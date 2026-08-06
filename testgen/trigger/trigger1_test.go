@@ -133,15 +133,15 @@ func Test_trigger1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "trigger1-1.10"
-		_res = db.Exec("\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
+		r = db.Query("\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
 		}
 	}
 	{ // do_test "trigger1-1.11"
-		_res = db.Exec("\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
+		r = db.Query("\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;\n  ")
 		}
 	}
 	{ // do_test "trigger1-1.12"

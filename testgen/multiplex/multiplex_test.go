@@ -338,9 +338,9 @@ func Test_multiplex(t *testing.T) {
 		// multiplex_set db main 4096 16 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-2.5.2"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
 		}
 	}
 	{ // do_test "multiplex-2.5.3"
@@ -579,9 +579,9 @@ func Test_multiplex(t *testing.T) {
 		// multiplex_set db main 32768 16 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-3.1.2"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
 		}
 		// file size [multiplex_name test.db 0]
 	}
@@ -617,9 +617,9 @@ func Test_multiplex(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		for _, db_iter := range tclSplitList("db1a db2a") {
 		_ = db_iter // suppress unused warning
-			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
+			r = db.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			}
 		}
 		_list := tclList([]string{"file size [multiplex_name test.db 0]", "file size [multiplex_name test2.db 0]"})
@@ -791,9 +791,9 @@ func Test_multiplex(t *testing.T) {
 		_dbtmp11, err := frigolite.Open("test.db")
 		_ = _dbtmp11 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}

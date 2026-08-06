@@ -360,9 +360,9 @@ func Test_conflict2(t *testing.T) {
 							}
 						}
 						{ // do_test "conflict2-6.0"
-							_res = db.Exec("\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+							r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 							}
 						}
 						// foreach {i conf1 cmd t0 t1 t2 t3 t4} "1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0"
@@ -470,9 +470,9 @@ func Test_conflict2(t *testing.T) {
 								}
 							}
 							{ // do_test "conflict2-7.2"
-								_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
+								r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
 								}
 							}
 							{ // do_test "conflict2-7.2.1"
@@ -490,9 +490,9 @@ func Test_conflict2(t *testing.T) {
 								}
 							}
 							{ // do_test "conflict2-7.5"
-								_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
+								r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
 								}
 							}
 							{ // do_test "conflict2-7.5.1"

@@ -204,9 +204,9 @@ func Test_symlink(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test "2." + tn + ".4"
-				_res = db2.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
+				r = db2.Query("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
 				}
 				// file exists "test.db-wal"
 			}
@@ -270,9 +270,9 @@ func Test_symlink(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			// file link y/test.db ../x/test.db
 			// file link z/test.db ../y/test.db
-			_res = db.Exec("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
+			r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
 			}
 		}
 		{ // do_test "4.2.1"

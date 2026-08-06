@@ -652,9 +652,9 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-7.3"
-		_res = db.Exec("\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;\n  ")
 		}
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {

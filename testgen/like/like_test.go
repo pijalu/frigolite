@@ -148,9 +148,9 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-1.5.3"
-		_res = db.Exec("\n    PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+		r = db.Query("\n    PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		}
 	}
 	{ // do_test "like-1.6"
@@ -222,9 +222,9 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.3.100"
 		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		_res = db.Exec("\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
+		r = db.Query("\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		}
 		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
@@ -478,9 +478,9 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.18"
 	}
 	{ // do_test "like-5.21"
-		_res = db.Exec("\n    PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');\n  ")
+		r = db.Query("\n    PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');\n  ")
 		}
 		// queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'zz%';\n  } (test infra, not transpiled)
 	}

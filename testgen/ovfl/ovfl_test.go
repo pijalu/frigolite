@@ -65,9 +65,9 @@ func Test_ovfl(t *testing.T) {
 	{ // do_test "1.1"
 		c2 = "abcdefghij 200"
 		_ = c2 // suppress unused warning
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
 		}
 		i = "1"
 		_ = i // suppress unused warning

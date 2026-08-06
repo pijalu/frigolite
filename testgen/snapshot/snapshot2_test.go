@@ -328,9 +328,9 @@ func Test_snapshot2(t *testing.T) {
 	}
 	{ // do_test "4.5"
 		os.Remove("test.db2")
-		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA aux.journal_mode = wal;\n    CREATE TABLE aux.t2(x, y);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA aux.journal_mode = wal;\n    CREATE TABLE aux.t2(x, y);\n  ")
+		r = db.Query("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA aux.journal_mode = wal;\n    CREATE TABLE aux.t2(x, y);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA aux.journal_mode = wal;\n    CREATE TABLE aux.t2(x, y);\n  ")
 		}
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -366,9 +366,9 @@ func Test_snapshot2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		_res = db2.Exec(" \n    SELECT * FROM t2;\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    SELECT * FROM t2;\n    BEGIN;\n  ")
+		r = db2.Query(" \n    SELECT * FROM t2;\n    BEGIN;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t2;\n    BEGIN;\n  ")
 		}
 		snap = "sqlite3_snapshot_get_blob db2 main"
 		_ = snap // suppress unused warning

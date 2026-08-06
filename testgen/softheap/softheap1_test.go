@@ -90,9 +90,9 @@ func Test_softheap1(t *testing.T) {
 		}
 	}
 	{ // do_test "softheap1-2.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;\n  ")
 		}
 		_res = db.Exec("\n    CREATE TABLE t2 AS SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

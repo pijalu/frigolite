@@ -64,15 +64,15 @@ func Test_fts3ak(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3ak-1.2"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;\n  ")
 		}
 	}
 	{ // do_test "fts3ak-1.3"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;\n  ")
 		}
 	}
 	{ // do_test "fts3ak-1.4"

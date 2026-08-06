@@ -120,9 +120,9 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".1.2.1"
-				_res = db.Exec("\n      PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);\n    ")
+				r = db.Query("\n      PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);\n    ")
 				}
 				_list := tclList([]string{"0", msg})
 				_ = _list
@@ -365,9 +365,9 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".4.1.3"
-				_res = db.Exec(" \n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
+				r = db.Query(" \n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
 				}
 				_list := tclList([]string{"0", msg})
 				_ = _list
@@ -388,9 +388,9 @@ func Test_snapshot(t *testing.T) {
 			{ // do_test tn + ".4.2.2"
 				snapshot = "snapshot_get db main"
 				_ = snapshot // suppress unused warning
-				_res = db.Exec("\n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
+				r = db.Query("\n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
 				}
 				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 				r = db.Query(" SELECT * FROM t3 ")

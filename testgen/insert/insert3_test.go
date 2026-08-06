@@ -197,9 +197,9 @@ func Test_insert3(t *testing.T) {
 		}
 	}
 	{ // do_test "insert3-4.2"
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;\n  ")
 		}
 	}
 }

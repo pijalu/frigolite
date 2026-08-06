@@ -120,9 +120,9 @@ func Test_corrupt2(t *testing.T) {
 		_ = presql // suppress unused warning
 	}
 	{ // do_test "corrupt2-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
 	}
 	{ // do_test "corrupt2-1.2"
@@ -220,9 +220,9 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db2.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
+		r = db2.Query("\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
 		}
 		db2.Close()
 		fd = "open corrupt.db r+"
@@ -251,9 +251,9 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db2.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
+		r = db2.Query("\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		}
 		db2.Close()
 		fd = "open corrupt.db r+"

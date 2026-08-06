@@ -112,9 +112,9 @@ func Test_walcksum(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');\n    ")
+			r = db.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');\n    ")
 			}
 			tclFileCopy("test.db", "test2.db")
 			tclFileCopy("test.db-wal", "test2.db-wal")
@@ -164,9 +164,9 @@ func Test_walcksum(t *testing.T) {
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".5.0"
-			_res = db.Exec(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(34, 'thirtyfour');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(34, 'thirtyfour');\n    ")
+			r = db.Query(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(34, 'thirtyfour');\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(34, 'thirtyfour');\n    ")
 			}
 			_list := tclList([]string{"file size test.db", "file size test.db-wal"})
 			_ = _list
@@ -194,9 +194,9 @@ func Test_walcksum(t *testing.T) {
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".7.0"
-			_res = db2.Exec(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
+			r = db2.Query(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			}
 			_list := tclList([]string{"file size test.db", "file size test.db-wal"})
 			_ = _list
@@ -227,9 +227,9 @@ func Test_walcksum(t *testing.T) {
 		}
 		db3.Close()
 		{ // do_test "walcksum-1." + endian + ".8.1"
-			_res = db.Exec("\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(89, 'eightynine');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(89, 'eightynine');\n    ")
+			r = db.Query("\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(89, 'eightynine');\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(89, 'eightynine');\n    ")
 			}
 			// log_checksum_verify test.db-wal 1 $native (unsupported command, not transpiled)
 		}
@@ -260,9 +260,9 @@ func Test_walcksum(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x PRIMARY KEY);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(800));\n    BEGIN;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   2 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   4 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   8 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  16 */\n      SAVEPOINT one;\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n      ROLLBACK TO one;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x PRIMARY KEY);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(800));\n    BEGIN;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   2 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   4 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   8 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  16 */\n      SAVEPOINT one;\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n      ROLLBACK TO one;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x PRIMARY KEY);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(800));\n    BEGIN;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   2 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   4 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   8 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  16 */\n      SAVEPOINT one;\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n      ROLLBACK TO one;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x PRIMARY KEY);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(800));\n    BEGIN;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   2 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   4 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   8 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  16 */\n      SAVEPOINT one;\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n      ROLLBACK TO one;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n    COMMIT;\n  ")
 		}
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")

@@ -285,9 +285,9 @@ func Test_mjournal(t *testing.T) {
 			_ = content // suppress unused warning
 			for func() bool { content_n, _content_e := strconv.Atoi(content); if _content_e != nil { return false }; return content_n < 2 }() {
 				// db_restore_and_reopen (unsupported command, not transpiled)
-				_res = db.Exec("\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
+				r = db.Query("\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
 				}
 				// db_save_and_close (unsupported command, not transpiled)
 				// db_restore (unsupported command, not transpiled)

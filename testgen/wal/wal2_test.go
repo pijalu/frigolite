@@ -232,9 +232,9 @@ func Test_wal2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 		}
 		r = db.Query("\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;\n  ")
 		if r.Error != nil {
@@ -312,9 +312,9 @@ func Test_wal2(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2
-			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
+			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 			}
 			r = db.Query("\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;\n  ")
 			if r.Error != nil {
@@ -407,9 +407,9 @@ func Test_wal2(t *testing.T) {
 					_dbtmp0, err := frigolite.Open("test.db")
 					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
-					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
+					r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
 					}
 					locked = "1" // TCL namespace variable
 					_ = locked // suppress unused warning
@@ -499,9 +499,9 @@ func Test_wal2(t *testing.T) {
 				_dbtmp5, err := frigolite.Open("test.db")
 				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
+				r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
 				}
 				// incr_tvfs_hdr $::shm_file 1 1 (unsupported command, not transpiled)
 				locks = "" // TCL namespace variable
@@ -634,9 +634,9 @@ func Test_wal2(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
+				r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
 				}
 				_list := tclList([]string{"file exists test.db-wal", "file exists test.db-journal"})
 				_ = _list
@@ -842,9 +842,9 @@ func Test_wal2(t *testing.T) {
 					_dbtmp9, err := frigolite.Open("test.db")
 					_ = _dbtmp9 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
-					_res = db.Exec("\n    PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
+					r = db.Query("\n    PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 					}
 					// file size test.db
 				}
@@ -888,9 +888,9 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-8.1.3"
-					_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t3(z);\n    BEGIN;\n      INSERT INTO t3 VALUES(randomblob(900));\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t2 VALUES('hello');\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    ROLLBACK;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    CREATE TABLE t3(z);\n    BEGIN;\n      INSERT INTO t3 VALUES(randomblob(900));\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t2 VALUES('hello');\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    ROLLBACK;\n  ")
+					r = db.Query("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t3(z);\n    BEGIN;\n      INSERT INTO t3 VALUES(randomblob(900));\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t2 VALUES('hello');\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    ROLLBACK;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    CREATE TABLE t3(z);\n    BEGIN;\n      INSERT INTO t3 VALUES(randomblob(900));\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t2 VALUES('hello');\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    ROLLBACK;\n  ")
 					}
 					_res = db.Exec("\n    INSERT INTO t2 VALUES('goodbye');\n    INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    INSERT INTO t3 SELECT randomblob(900) FROM t3;\n  ")
 					if _res.Error != nil {
@@ -916,9 +916,9 @@ func Test_wal2(t *testing.T) {
 					_dbtmp11, err := frigolite.Open("test.db")
 					_ = _dbtmp11 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
-					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
+					r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
 					}
 					wih_1 = "set_tvfs_hdr $::filename"
 					_ = wih_1 // suppress unused warning
@@ -962,9 +962,9 @@ func Test_wal2(t *testing.T) {
 					db.Close()
 					{ // do_test "wal2-10.1.1"
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)
-						_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+						r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 						}
 						// faultsim_save_and_close (unsupported command, not transpiled)
 					}
@@ -1123,9 +1123,9 @@ func Test_wal2(t *testing.T) {
 						if tcl_platform_os != "Windows NT" {
 							// proc definition (not transpiled)
 							// faultsim_delete_and_reopen (unsupported command, not transpiled)
-							_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")
+							r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")
 							}
 							{ // do_test "wal2-13.1.1"
 								_list := tclList([]string{"file exists test.db-shm", "file exists test.db-wal"})

@@ -82,9 +82,9 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.0"
-		_res = db.Exec("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		r = db.Query("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		}
 		// copydb (unsupported command, not transpiled)
 		// files (unsupported command, not transpiled)
@@ -104,9 +104,9 @@ func Test_delete_db(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0; ")
 		}
-		_res = db.Exec("\n    CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)\n  ")
+		r = db.Query("\n    CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)\n  ")
 		}
 		// copydb (unsupported command, not transpiled)
 		// files (unsupported command, not transpiled)
@@ -116,9 +116,9 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.0"
-		_res = db.Exec("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
+		r = db.Query("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
 		}
 		// copydb (unsupported command, not transpiled)
 		// files (unsupported command, not transpiled)
@@ -144,9 +144,9 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2.0"
-		_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);\n    ")
+		r = db.Query("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);\n    ")
 		}
 		// copydb (unsupported command, not transpiled)
 		// files (unsupported command, not transpiled)
@@ -166,9 +166,9 @@ func Test_delete_db(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0; ")
 		}
-		_res = db.Exec("\n      CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)\n    ")
+		r = db.Query("\n      CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)\n    ")
 		}
 		// copydb (unsupported command, not transpiled)
 		// files (unsupported command, not transpiled)
@@ -178,9 +178,9 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "2.4.0"
-		_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      UPDATE x1 SET a=randomblob(102)\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      UPDATE x1 SET a=randomblob(102)\n    ")
+		r = db.Query("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      UPDATE x1 SET a=randomblob(102)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      UPDATE x1 SET a=randomblob(102)\n    ")
 		}
 		// copydb (unsupported command, not transpiled)
 		// files (unsupported command, not transpiled)

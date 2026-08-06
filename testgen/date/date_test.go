@@ -613,9 +613,9 @@ func Test_date(t *testing.T) {
 	// datetest 13.37 {date('2023-04-31')} {2023-05-01} (unsupported command, not transpiled)
 	if tclBool("0==" + "") {
 		{ // do_test "date-14.1"
-			_res = db.Exec("\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
+			r = db.Query("\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
 			}
 			db.Close()
 			// hexio_write test.db 2040 4142ba32bffffff9 (unsupported command, not transpiled)

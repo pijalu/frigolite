@@ -83,9 +83,9 @@ func Test_fkey3(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey3-2.1"
-		_res = db.Exec("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);\n  ")
+		r = db.Query("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);\n  ")
 		}
 		r = db.Query("\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;\n  ")
 		if r.Error != nil {

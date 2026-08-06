@@ -240,9 +240,9 @@ func Test_corrupt(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
 		}
 		i = "0"
 		_ = i // suppress unused warning
@@ -315,9 +315,9 @@ func Test_corrupt(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+		r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 		}
 		i = "0"
 		_ = i // suppress unused warning
@@ -353,9 +353,9 @@ func Test_corrupt(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	_res = db.Exec(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+	r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 	}
 	{ // do_test "corrupt-7.1"
 		i = "0"
@@ -400,9 +400,9 @@ func Test_corrupt(t *testing.T) {
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		}
 		// hexio_write test.db 2044 [hexio_render_int32 2] (unsupported command, not transpiled)
 		// hexio_write test.db 24 [hexio_render_int32 45] (unsupported command, not transpiled)
@@ -415,9 +415,9 @@ func Test_corrupt(t *testing.T) {
 		_dbtmp2, err := frigolite.Open("test.db")
 		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		}
 		// hexio_write test.db 2047 FF (unsupported command, not transpiled)
 		// hexio_write test.db 24 [hexio_render_int32 45] (unsupported command, not transpiled)

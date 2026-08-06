@@ -75,9 +75,9 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-1.2"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 		}
 		// pager_cache_size db (unsupported command, not transpiled)
 	}

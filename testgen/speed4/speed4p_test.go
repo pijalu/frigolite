@@ -96,9 +96,9 @@ func Test_speed4p(t *testing.T) {
 	tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
 	_ = tens // suppress unused warning
 	// proc definition (not transpiled)
-	_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=8192;\n  PRAGMA locking_mode=EXCLUSIVE;\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=8192;\n  PRAGMA locking_mode=EXCLUSIVE;\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;\n")
+	r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=8192;\n  PRAGMA locking_mode=EXCLUSIVE;\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;\n")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=8192;\n  PRAGMA locking_mode=EXCLUSIVE;\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;\n")
 	}
 	jj = "1"
 	_ = jj // suppress unused warning

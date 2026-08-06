@@ -117,9 +117,9 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-3.3"
-		_res = db.Exec("\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
+		r = db.Query("\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
 		}
 		// expr [file size test.db]/$pageSize (not evaluated)
 	}
@@ -148,9 +148,9 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-3.13"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=NONE;\n    VACUUM;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=NONE;\n    VACUUM;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=NONE;\n    VACUUM;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=NONE;\n    VACUUM;\n  ")
 		}
 		// expr [file size test.db]/$pageSize (not evaluated)
 	}

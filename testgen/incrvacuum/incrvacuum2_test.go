@@ -63,9 +63,9 @@ func Test_incrvacuum2(t *testing.T) {
 	testprefix = "incrvacuum2"
 	_ = testprefix // suppress unused warning
 	{ // do_test "incrvacuum2-1.1"
-		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
 		}
 		// file size test.db
 	}
@@ -92,9 +92,9 @@ func Test_incrvacuum2(t *testing.T) {
 	}
 	{ // do_test "incrvacuum2-2.1"
 		os.Remove("test2.db")
-		_res = db.Exec("\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
+		r = db.Query("\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
 		}
 		_list := tclList([]string{"file size test.db", "file size test2.db"})
 		_ = _list
@@ -140,15 +140,15 @@ func Test_incrvacuum2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrvacuum2-3.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "incrvacuum2-3.2"
-		_res = db.Exec("\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+		r = db.Query("\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

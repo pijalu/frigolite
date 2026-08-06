@@ -59,9 +59,9 @@ func Test_corruptD(t *testing.T) {
 	// do_not_use_codec (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corruptD-1.0"
-		_res = db.Exec(" \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+		r = db.Query(" \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		}
 		ii = "1"
 		_ = ii // suppress unused warning

@@ -192,8 +192,8 @@ func Test_vtabH(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2." + tclvar_set_omit + "." + tn + ".1")
+					if flatten(r) != res {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "2." + tclvar_set_omit + "." + tn + ".1")
 					}
 				}
 				{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"

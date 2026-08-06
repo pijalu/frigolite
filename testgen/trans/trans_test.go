@@ -233,9 +233,9 @@ func Test_trans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "trans-2.10"
-		_res = db.Exec("\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
+		r = db.Query("\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -696,9 +696,9 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-6.4"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
 		}
 	}
 	{ // do_test "trans-6.5"
@@ -708,9 +708,9 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-6.6"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
 		}
 	}
 	{ // do_test "trans-6.7"
@@ -736,9 +736,9 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-6.13"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
 		}
 	}
 	{ // do_test "trans-6.14"
@@ -748,9 +748,9 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-6.15"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a unique,b,c);\n    INSERT INTO t1 VALUES(4,5,6);\n    SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
 		}
 	}
 	{ // do_test "trans-6.16"
@@ -770,9 +770,9 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-6.22"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "trans-6.23"
@@ -824,9 +824,9 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-6.32"
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "trans-6.33"
@@ -917,8 +917,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(x,y,z) FROM t2")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.2")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.2")
 		}
 	}
 	{ // do_test "trans-7.2.1"
@@ -926,8 +926,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.2.1")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-7.2.1")
 		}
 	}
 	{ // do_test "trans-7.3"
@@ -935,8 +935,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.3")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.3")
 		}
 	}
 	{ // do_test "trans-7.4"
@@ -944,8 +944,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.4")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.4")
 		}
 	}
 	{ // do_test "trans-7.5"
@@ -953,8 +953,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.5")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.5")
 		}
 	}
 	{ // do_test "trans-7.6"
@@ -962,8 +962,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.6")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.6")
 		}
 	}
 	{ // do_test "trans-7.7"
@@ -971,8 +971,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.7")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.7")
 		}
 	}
 	{ // do_test "trans-7.8"
@@ -980,8 +980,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.8")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-7.8")
 		}
 	}
 	{ // do_test "trans-7.9"
@@ -989,8 +989,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.9")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.9")
 		}
 	}
 	{ // do_test "trans-7.10"
@@ -998,8 +998,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.10")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-7.10")
 		}
 	}
 	{ // do_test "trans-7.11"
@@ -1007,8 +1007,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.11")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.11")
 		}
 	}
 	{ // do_test "trans-7.12"
@@ -1016,8 +1016,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.12")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-7.12")
 		}
 	}
 	{ // do_test "trans-7.13"
@@ -1025,8 +1025,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.13")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "trans-7.13")
 		}
 	}
 	{ // do_test "trans-7.14"
@@ -1034,8 +1034,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.14")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-7.14")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1065,8 +1065,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-8.2")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-8.2")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1095,8 +1095,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-8.5")
+		if flatten(r) != checksum2 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum2, "trans-8.5")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

@@ -60,9 +60,9 @@ func Test_corrupt7(t *testing.T) {
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt7-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n  ")
 		}
 		// file size test.db
 	}

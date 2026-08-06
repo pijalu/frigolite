@@ -123,6 +123,7 @@ func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
 	}
 
 	e.databases[schemaUpper] = ctx
+	e.dbList = append(e.dbList, ctx)
 	return &Result{}
 }
 
@@ -148,6 +149,13 @@ func (e *Engine) execDetach(s *sql.AttachStmt) *Result {
 	}
 
 	delete(e.databases, schemaUpper)
+	// Remove from the ordered attach list.
+	for i, c := range e.dbList {
+		if c == ctx {
+			e.dbList = append(e.dbList[:i], e.dbList[i+1:]...)
+			break
+		}
+	}
 	return &Result{}
 }
 
@@ -162,6 +170,8 @@ func (e *Engine) DetachAll() {
 		ctx.Pager.Close()
 		delete(e.databases, name)
 	}
+	// Rebuild the ordered list with only main.
+	e.dbList = []*DatabaseContext{e.mainDB}
 }
 
 // --- CREATE TABLE ---

@@ -56,9 +56,9 @@ func Test_corrupt5(t *testing.T) {
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt5-1.1"
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")

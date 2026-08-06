@@ -97,9 +97,9 @@ func Test_tempdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tempdb-2.3"
-		_res = db.Exec("\n    PRAGMA temp_store = 'memory';\n    ROLLBACK;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      INSERT INTO t1 VALUES(4, 5, 6);\n      INSERT INTO t2 SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA temp_store = 'memory';\n    ROLLBACK;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      INSERT INTO t1 VALUES(4, 5, 6);\n      INSERT INTO t2 SELECT * FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA temp_store = 'memory';\n    ROLLBACK;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      INSERT INTO t1 VALUES(4, 5, 6);\n      INSERT INTO t2 SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 'memory';\n    ROLLBACK;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      INSERT INTO t1 VALUES(4, 5, 6);\n      INSERT INTO t2 SELECT * FROM t1;\n  ")
 		}
 		_res = db.Exec(" INSERT INTO t1 SELECT * FROM t2 ")
 		_ = _res // catchsql

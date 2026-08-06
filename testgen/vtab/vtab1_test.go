@@ -537,9 +537,9 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-6-3.1.1"
-		_res = db.Exec("\n    PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
+		r = db.Query("\n    PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
 		}
 	}
 	{ // do_test "vtab1-6-3.1.2"
@@ -1151,9 +1151,9 @@ func Test_vtab1(t *testing.T) {
 	}
 	{ // do_test "vtab1-17.1"
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
-		_res = db.Exec(" \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
+		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
 		}
 		_res = db.Exec(" CREATE VIRTUAL TABLE t4 USING echo(t3); ")
 		_ = _res // catchsql

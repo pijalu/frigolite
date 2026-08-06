@@ -66,27 +66,27 @@ func Test_sync(t *testing.T) {
 		_ = sqlite_sync_count // suppress unused warning
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")
-		_res = db.Exec("\n    PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);\n  ")
+		r = db.Query("\n    PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);\n  ")
 		}
 		// cond_incr_sync_count 2 (unsupported command, not transpiled)
 	}
 	{ // do_test "sync-1.2"
 		sqlite_sync_count = "0"
 		_ = sqlite_sync_count // suppress unused warning
-		_res = db.Exec("\n      PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;\n    ")
+		r = db.Query("\n      PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;\n    ")
 		}
 		// cond_incr_sync_count 4 (unsupported command, not transpiled)
 	}
 	{ // do_test "sync-1.3"
 		sqlite_sync_count = "0"
 		_ = sqlite_sync_count // suppress unused warning
-		_res = db.Exec("\n    PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;\n  ")
 		}
 		// cond_incr_sync_count 4 (unsupported command, not transpiled)
 	}
@@ -94,9 +94,9 @@ func Test_sync(t *testing.T) {
 		{ // do_test "sync-1.4"
 			sqlite_sync_count = "0"
 			_ = sqlite_sync_count // suppress unused warning
-			_res = db.Exec("\n      PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;\n    ")
+			r = db.Query("\n      PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;\n    ")
 			}
 		}
 	}

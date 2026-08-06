@@ -1424,19 +1424,47 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], 0)
 		pg.Data[coff+7] = 0 // fragmented free bytes
 	} else {
-		// Recompute CellContent as the LOWEST remaining cell start. The
-		// deleted cell may have been the lowest, and a stale content pointer
-		// would make the next insert overlap the deleted cell's data (the
-		// deleted bytes are not compacted away).
-		lowest := uint16(0xffff)
-		for i := 0; i < int(page.CellCount); i++ {
-			p := storage.CellPointer(pg.Data, coff, i)
-			if p < lowest {
-				lowest = p
-			}
+		// Compact the remaining cells down so the deleted cell's bytes are
+		// reclaimed. Without this, repeated create/drop on the schema btree
+		// fragments the content area and eventually corrupts cells (stale
+		// dropped-table ghosts, overlapping new cells). Collect the remaining
+		// cells' data, rebuild them contiguously from the end of the usable
+		// area, and update CellContent to the new lowest start.
+		type cellRef struct {
+			data []byte
 		}
-		page.CellContent = lowest
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], lowest)
+		cells := make([]cellRef, int(page.CellCount))
+		for i := 0; i < int(page.CellCount); i++ {
+			p := int(storage.CellPointer(pg.Data, coff, i))
+			// Read the cell's encoded length: for table cells the payload
+			// length varint precedes the rowid; the encoded length is the
+			// number of bytes the cell occupies on the page.
+			var cellType storage.CellType
+			if page.PageType == storage.PageTypeLeafTable {
+				cellType = storage.CellTableLeaf
+			} else {
+				cellType = storage.CellIndexLeaf
+			}
+			c, err := storage.DecodeCell(pg.Data, p, cellType, int(t.pageSize))
+			if err != nil {
+				return err
+			}
+			cells[i] = cellRef{data: storage.EncodeCell(c)}
+		}
+		// Rewrite cells contiguously: the first cell (index 0) ends at
+		// pageSize-4 (reserved chain pointer). Each subsequent cell is placed
+		// immediately after the previous one's start... cells grow downward,
+		// so cell 0 occupies the highest addresses. Compute each cell's start.
+		start := int(t.pageSize) - 4
+		for i := 0; i < len(cells); i++ {
+			start -= len(cells[i].data)
+			copy(pg.Data[start:start+len(cells[i].data)], cells[i].data)
+			binary.BigEndian.PutUint16(pg.Data[ptrBase+i*2:ptrBase+i*2+2], uint16(start))
+		}
+		page.CellContent = uint16(start)
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
+		// After compaction there is no fragmented free space.
+		pg.Data[coff+7] = 0
 	}
 	// Persist the mutation so a fresh cursor / pager read sees the deletion
 	// (the pager cache returns the same buffer, but the page must be marked

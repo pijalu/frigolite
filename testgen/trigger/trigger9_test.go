@@ -59,9 +59,9 @@ func Test_trigger9(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "trigger9-1.1"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
 		}
 	}
 	{ // do_test "trigger9-1.2.1"
@@ -161,33 +161,33 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-3.2"
-		_res = db.Exec("\n    BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "trigger9-3.3"
-		_res = db.Exec("\n    BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "trigger9-3.4"
-		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "trigger9-3.5"
-		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		r = db.Query("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
 		}
 	}
 	{ // do_test "trigger9-3.6"
-		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		r = db.Query("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
 		}
 	}
 	db.Close()

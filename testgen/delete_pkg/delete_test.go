@@ -589,9 +589,9 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	{ // do_test "delete-7.6"
-		_res = db.Exec("\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
+		r = db.Query("\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

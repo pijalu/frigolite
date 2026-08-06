@@ -84,9 +84,9 @@ func Test_tkt2409(t *testing.T) {
 	STMT = "" // TCL namespace variable
 	_ = STMT // suppress unused warning
 	{ // do_test "tkt2409-1.1"
-		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
+		r = db.Query("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
 		}
 		// read_lock_db (unsupported command, not transpiled)
 		zShort = "0123456789 1" // TCL namespace variable
@@ -147,9 +147,9 @@ func Test_tkt2409(t *testing.T) {
 		DB = func() string { db, err = frigolite.Open("test.db;"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		// sqlite3_extended_result_codes $::DB 1 (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
 		}
 		// read_lock_db (unsupported command, not transpiled)
 		zShort = "0123456789 1" // TCL namespace variable
@@ -173,9 +173,9 @@ func Test_tkt2409(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// expr srand(1) (not evaluated)
 	{ // do_test "tkt2409-4.1"
-		_res = db.Exec("\n    PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);\n  ")
+		r = db.Query("\n    PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);\n  ")
 		}
 		t1_0 = "1"
 		_ = t1_0 // suppress unused warning

@@ -268,9 +268,9 @@ func Test_pager1(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
-				_res = db.Exec("\n      PRAGMA auto_vacuum = 2;\n      PRAGMA cache_size = 10;\n      CREATE TABLE z(x INTEGER PRIMARY KEY, y);\n      BEGIN;\n        INSERT INTO z VALUES(NULL, a_string(800));\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   2\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   4\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   8\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  16\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  32\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  64\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 128\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 256\n      COMMIT;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum = 2;\n      PRAGMA cache_size = 10;\n      CREATE TABLE z(x INTEGER PRIMARY KEY, y);\n      BEGIN;\n        INSERT INTO z VALUES(NULL, a_string(800));\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   2\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   4\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   8\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  16\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  32\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  64\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 128\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 256\n      COMMIT;\n    ")
+				r = db.Query("\n      PRAGMA auto_vacuum = 2;\n      PRAGMA cache_size = 10;\n      CREATE TABLE z(x INTEGER PRIMARY KEY, y);\n      BEGIN;\n        INSERT INTO z VALUES(NULL, a_string(800));\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   2\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   4\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   8\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  16\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  32\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  64\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 128\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 256\n      COMMIT;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = 2;\n      PRAGMA cache_size = 10;\n      CREATE TABLE z(x INTEGER PRIMARY KEY, y);\n      BEGIN;\n        INSERT INTO z VALUES(NULL, a_string(800));\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   2\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   4\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   8\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  16\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  32\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  64\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 128\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 256\n      COMMIT;\n    ")
 				}
 				r = db.Query(" PRAGMA auto_vacuum ")
 				if r.Error != nil {
@@ -360,9 +360,9 @@ func Test_pager1(t *testing.T) {
 			// tstvfs script xDeleteCallback (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
-			_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
+			r = db.Query("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 			}
 			db.Close()
 			// tstvfs delete (unsupported command, not transpiled)
@@ -413,9 +413,9 @@ func Test_pager1(t *testing.T) {
 			// tstvfs script xSyncCallback (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
-			_res = db.Exec("\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			r = db.Query("\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 			}
 			db.Close()
 			// tstvfs delete (unsupported command, not transpiled)
@@ -689,9 +689,9 @@ func Test_pager1(t *testing.T) {
 					// proc definition (not transpiled)
 					{ // do_test "pager1.4.6.1"
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)
-						_res = db.Exec("\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db2' AS two;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n    INSERT INTO t1 VALUES(1, 't1.1');\n    INSERT INTO t2 VALUES(1, 't2.1');\n    BEGIN;\n      UPDATE t1 SET b = 't1.2';\n      UPDATE t2 SET b = 't2.2';\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db2' AS two;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n    INSERT INTO t1 VALUES(1, 't1.1');\n    INSERT INTO t2 VALUES(1, 't2.1');\n    BEGIN;\n      UPDATE t1 SET b = 't1.2';\n      UPDATE t2 SET b = 't2.2';\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db2' AS two;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n    INSERT INTO t1 VALUES(1, 't1.1');\n    INSERT INTO t2 VALUES(1, 't2.1');\n    BEGIN;\n      UPDATE t1 SET b = 't1.2';\n      UPDATE t2 SET b = 't2.2';\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db2' AS two;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n    INSERT INTO t1 VALUES(1, 't1.1');\n    INSERT INTO t2 VALUES(1, 't2.1');\n    BEGIN;\n      UPDATE t1 SET b = 't1.2';\n      UPDATE t2 SET b = 't2.2';\n    COMMIT;\n  ")
 						}
 						// tv filter {} (unsupported command, not transpiled)
 						db.Close()
@@ -736,9 +736,9 @@ func Test_pager1(t *testing.T) {
 						_dbtmp4, err := frigolite.Open("test.db2")
 						_ = _dbtmp4 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
-						_res = db.Exec("\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db3' AS three;\n    CREATE TABLE three.t3(a, b);\n    INSERT INTO t3 VALUES(1, 't3.1');\n    BEGIN;\n      UPDATE t2 SET b = 't2.3';\n      UPDATE t3 SET b = 't3.3';\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db3' AS three;\n    CREATE TABLE three.t3(a, b);\n    INSERT INTO t3 VALUES(1, 't3.1');\n    BEGIN;\n      UPDATE t2 SET b = 't2.3';\n      UPDATE t3 SET b = 't3.3';\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db3' AS three;\n    CREATE TABLE three.t3(a, b);\n    INSERT INTO t3 VALUES(1, 't3.1');\n    BEGIN;\n      UPDATE t2 SET b = 't2.3';\n      UPDATE t3 SET b = 't3.3';\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db3' AS three;\n    CREATE TABLE three.t3(a, b);\n    INSERT INTO t3 VALUES(1, 't3.1');\n    BEGIN;\n      UPDATE t2 SET b = 't2.3';\n      UPDATE t3 SET b = 't3.3';\n    COMMIT;\n  ")
 						}
 						// expr $::mj_filename1 != $::mj_filename (not evaluated)
 					}
@@ -960,15 +960,15 @@ func Test_pager1(t *testing.T) {
 						db2.Close()
 					}
 					{ // do_test "pager1-5.2.1"
-						_res = db.Exec("\n    PRAGMA journal_mode = memory;\n    BEGIN;\n      INSERT INTO t1 VALUES(84, 'Andropov');\n      INSERT INTO t2 VALUES(84, 'Andropov');\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = memory;\n    BEGIN;\n      INSERT INTO t1 VALUES(84, 'Andropov');\n      INSERT INTO t2 VALUES(84, 'Andropov');\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA journal_mode = memory;\n    BEGIN;\n      INSERT INTO t1 VALUES(84, 'Andropov');\n      INSERT INTO t2 VALUES(84, 'Andropov');\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = memory;\n    BEGIN;\n      INSERT INTO t1 VALUES(84, 'Andropov');\n      INSERT INTO t2 VALUES(84, 'Andropov');\n    COMMIT;\n  ")
 						}
 					}
 					{ // do_test "pager1-5.3.1"
-						_res = db.Exec("\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
 						}
 					}
 					{ // do_test "pager1-5.4.1"
@@ -986,9 +986,9 @@ func Test_pager1(t *testing.T) {
 						max_journal = "0" // TCL namespace variable
 						_ = max_journal // suppress unused warning
 						// proc definition (not transpiled)
-						_res = db.Exec("\n    PRAGMA journal_mode = DELETE;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = DELETE;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA journal_mode = DELETE;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = DELETE;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
 						}
 						mj_pointer = tclExpr("\n    20 + [string length \"test.db-mjXXXXXX9XX\"]\n  ")
 						_ = mj_pointer // suppress unused warning
@@ -999,9 +999,9 @@ func Test_pager1(t *testing.T) {
 					{ // do_test "pager1-5.4.2"
 						max_journal = "0" // TCL namespace variable
 						_ = max_journal // suppress unused warning
-						_res = db.Exec("\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Lenin';\n      DELETE FROM t2 WHERE b = 'Lenin';\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Lenin';\n      DELETE FROM t2 WHERE b = 'Lenin';\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Lenin';\n      DELETE FROM t2 WHERE b = 'Lenin';\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Lenin';\n      DELETE FROM t2 WHERE b = 'Lenin';\n    COMMIT;\n  ")
 						}
 						mj_pointer = tclExpr("\n    20 + [string length \"test.db-mjXXXXXX9XX\"]\n  ")
 						_ = mj_pointer // suppress unused warning
@@ -1015,24 +1015,24 @@ func Test_pager1(t *testing.T) {
 						_dbtmp6, err := frigolite.Open("test.db")
 						_ = _dbtmp6 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
-						_res = db.Exec(" \n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t3(a, b);\n    INSERT INTO t3 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    UPDATE t3 SET b = randomblob(1501);\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t3(a, b);\n    INSERT INTO t3 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    UPDATE t3 SET b = randomblob(1501);\n  ")
+						r = db.Query(" \n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t3(a, b);\n    INSERT INTO t3 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    UPDATE t3 SET b = randomblob(1501);\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t3(a, b);\n    INSERT INTO t3 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    UPDATE t3 SET b = randomblob(1501);\n  ")
 						}
 						// expr [file size test.db-journal] (not evaluated)
 					}
 					{ // do_test "pager1-5.5.2"
-						_res = db.Exec("\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Stalin';\n      DELETE FROM t2 WHERE b = 'Stalin';\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Stalin';\n      DELETE FROM t2 WHERE b = 'Stalin';\n    COMMIT;\n  ")
+						r = db.Query("\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Stalin';\n      DELETE FROM t2 WHERE b = 'Stalin';\n    COMMIT;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Stalin';\n      DELETE FROM t2 WHERE b = 'Stalin';\n    COMMIT;\n  ")
 						}
 						// file size test.db-journal
 					}
 					{ // do_test "pager1-6.1"
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)
-						_res = db.Exec("\n    PRAGMA auto_vacuum = none;\n    PRAGMA max_page_count = 10;\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA max_page_count = 10;\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n  ")
+						r = db.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA max_page_count = 10;\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA max_page_count = 10;\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n  ")
 						}
 					}
 					{ // "pager1-6.2"
@@ -1239,9 +1239,9 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-9.0.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
+								r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
 								}
 							}
 							{ // do_test "pager1-9.0.2"
@@ -1333,9 +1333,9 @@ func Test_pager1(t *testing.T) {
 								{ // do_test "pager1-9.3.2codec"
 									db2, err = frigolite.Open("test.db2")
 									if err != nil { t.Fatal(err) }
-									_res = db2.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
+									r = db2.Query("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 									}
 									// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 									// B step 30 (unsupported command, not transpiled)
@@ -1352,9 +1352,9 @@ func Test_pager1(t *testing.T) {
 								{ // do_test "pager1-9.3.2"
 									db2, err = frigolite.Open("test.db2")
 									if err != nil { t.Fatal(err) }
-									_res = db2.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
+									r = db2.Query("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 									}
 									// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 									// B step 30 (unsupported command, not transpiled)
@@ -1372,9 +1372,9 @@ func Test_pager1(t *testing.T) {
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
 								db2, err = frigolite.Open("test.db2")
 								if err != nil { t.Fatal(err) }
-								_res = db2.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
+								r = db2.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
 								}
 								// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 								_list := tclList([]string{"B step 10000", "B finish"})
@@ -1402,9 +1402,9 @@ func Test_pager1(t *testing.T) {
 								}
 								{ // do_test "pager1-10." + sectorsize + ".1"
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
-									_res = db.Exec("\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
+									r = db.Query("\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
 									}
 									// file size test.db-journal
 								}
@@ -1418,9 +1418,9 @@ func Test_pager1(t *testing.T) {
 									db.Close()
 									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
-									_res = db.Exec(" \n      PRAGMA cache_size = 10;\n      BEGIN;\n    ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA cache_size = 10;\n      BEGIN;\n    ")
+									r = db.Query(" \n      PRAGMA cache_size = 10;\n      BEGIN;\n    ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA cache_size = 10;\n      BEGIN;\n    ")
 									}
 									// recursive_select 32 t3 {db eval "INSERT INTO t2 VALUES(1, 2)"} (unsupported command, not transpiled)
 									r = db.Query("\n      COMMIT;\n      SELECT * FROM t2;\n    ")
@@ -1448,9 +1448,9 @@ func Test_pager1(t *testing.T) {
 							// tv sectorsize 4096 (unsupported command, not transpiled)
 							{ // do_test "pager1.10.x.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n    PRAGMA auto_vacuum = none;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n  ")
+								r = db.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n  ")
 								}
 								i = "0"
 								_ = i // suppress unused warning
@@ -1553,9 +1553,9 @@ func Test_pager1(t *testing.T) {
 								{ // do_test "pager1-12." + pagesize + ".1"
 									db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 									_ = db2
-									_res = db.Exec("\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
+									r = db.Query("\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
 									}
 									// file size test.db
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), eff) {
@@ -1834,9 +1834,9 @@ func Test_pager1(t *testing.T) {
 							{ // do_test "pager1-19.1"
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
-								_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
+								r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
 								}
 							}
 							{ // do_test "pager1-20.1.1"
@@ -1860,9 +1860,9 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-20.2.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = persist;\n    CREATE TABLE one(two, three);\n    INSERT INTO one VALUES('a', 'b');\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = persist;\n    CREATE TABLE one(two, three);\n    INSERT INTO one VALUES('a', 'b');\n  ")
+								r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = persist;\n    CREATE TABLE one(two, three);\n    INSERT INTO one VALUES('a', 'b');\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = persist;\n    CREATE TABLE one(two, three);\n    INSERT INTO one VALUES('a', 'b');\n  ")
 								}
 							}
 							{ // do_test "pager1-20.2.2"
@@ -1873,9 +1873,9 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-20.3.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
+								r = db.Query("\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
 								}
 							}
 							{ // do_test "pager1-20.3.2"
@@ -1891,9 +1891,9 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-21.0"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE ko(c DEFAULT 'abc', b DEFAULT 'def');\n      INSERT INTO ko DEFAULT VALUES;\n    ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE ko(c DEFAULT 'abc', b DEFAULT 'def');\n      INSERT INTO ko DEFAULT VALUES;\n    ")
+								r = db.Query("\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE ko(c DEFAULT 'abc', b DEFAULT 'def');\n      INSERT INTO ko DEFAULT VALUES;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE ko(c DEFAULT 'abc', b DEFAULT 'def');\n      INSERT INTO ko DEFAULT VALUES;\n    ")
 								}
 							}
 							{ // do_test "pager1-21.1"
@@ -1935,9 +1935,9 @@ func Test_pager1(t *testing.T) {
 								_dbtmp10, err := frigolite.Open("test.db")
 								_ = _dbtmp10 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
-								_res = db.Exec("\n      PRAGMA synchronous = off;\n      PRAGMA journal_mode = WAL;\n      INSERT INTO ko DEFAULT VALUES;\n    ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA synchronous = off;\n      PRAGMA journal_mode = WAL;\n      INSERT INTO ko DEFAULT VALUES;\n    ")
+								r = db.Query("\n      PRAGMA synchronous = off;\n      PRAGMA journal_mode = WAL;\n      INSERT INTO ko DEFAULT VALUES;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA synchronous = off;\n      PRAGMA journal_mode = WAL;\n      INSERT INTO ko DEFAULT VALUES;\n    ")
 								}
 								r = db.Query(" PRAGMA wal_checkpoint ")
 								if r.Error != nil {
@@ -1948,9 +1948,9 @@ func Test_pager1(t *testing.T) {
 							// tv delete (unsupported command, not transpiled)
 							{ // do_test "pager1-23.1.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t1(a, b);\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t1(a, b);\n  ")
+								r = db.Query("\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t1(a, b);\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t1(a, b);\n  ")
 								}
 								// file exists "test.db-journal"
 							}
@@ -1962,9 +1962,9 @@ func Test_pager1(t *testing.T) {
 								// file exists "test.db-journal"
 							}
 							{ // do_test "pager1-23.2.1"
-								_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
+								r = db.Query("\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
 								}
 								_res = db.Exec(" SELECT * FROM t1 ")
 								if _res.Error != nil {
@@ -1979,9 +1979,9 @@ func Test_pager1(t *testing.T) {
 								// file exists "test.db-journal"
 							}
 							{ // do_test "pager1-23.3.1"
-								_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Darwin', 'NT');\n    BEGIN IMMEDIATE;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Darwin', 'NT');\n    BEGIN IMMEDIATE;\n  ")
+								r = db.Query("\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Darwin', 'NT');\n    BEGIN IMMEDIATE;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Darwin', 'NT');\n    BEGIN IMMEDIATE;\n  ")
 								}
 								_res = db.Exec(" PRAGMA journal_mode = DELETE ")
 								if _res.Error != nil {
@@ -2002,9 +2002,9 @@ func Test_pager1(t *testing.T) {
 								}
 							}
 							{ // do_test "pager1-23.4.1"
-								_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Adelaide', 'SA');\n    BEGIN EXCLUSIVE;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Adelaide', 'SA');\n    BEGIN EXCLUSIVE;\n  ")
+								r = db.Query("\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Adelaide', 'SA');\n    BEGIN EXCLUSIVE;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Adelaide', 'SA');\n    BEGIN EXCLUSIVE;\n  ")
 								}
 								_res = db.Exec(" PRAGMA journal_mode = DELETE ")
 								if _res.Error != nil {
@@ -2086,9 +2086,9 @@ func Test_pager1(t *testing.T) {
 								}
 								{ // do_test "pager1-24.1.1"
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
-									_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
+									r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
 									}
 								}
 								{ // do_test "pager1-24.1.2"
@@ -2146,9 +2146,9 @@ func Test_pager1(t *testing.T) {
 									// testvfs tv -default 1 (unsupported command, not transpiled)
 									// tv sectorsize 4096 (unsupported command, not transpiled)
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
-									_res = db.Exec("\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
+									r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
 									}
 								}
 								{ // "pager1-26.1"
@@ -2181,9 +2181,9 @@ func Test_pager1(t *testing.T) {
 								// do_multiclient_test tn {\n  do_test pager1-28.$tn.1 {\n    sql1 { \n      ...} (unsupported command, not transpiled)
 								{ // do_test "pager1-29.1"
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
-									_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = full;\n    PRAGMA locking_mode=exclusive;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = full;\n    PRAGMA locking_mode=exclusive;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+									r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = full;\n    PRAGMA locking_mode=exclusive;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = full;\n    PRAGMA locking_mode=exclusive;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 									}
 									// file size test.db
 								}
@@ -2194,9 +2194,9 @@ func Test_pager1(t *testing.T) {
 									}
 								} else {
 									{ // do_test "pager1-29.2"
-										_res = db.Exec("\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
-										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
+										r = db.Query("\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 4096;\n      VACUUM;\n    ")
 										}
 										// file size test.db
 									}
@@ -2221,9 +2221,9 @@ func Test_pager1(t *testing.T) {
 								if tcl_platform_os != "Windows NT" {
 									{ // do_test "pager1-31.1"
 										// faultsim_delete_and_reopen (unsupported command, not transpiled)
-										_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    INSERT INTO t1 VALUES(randomblob(1500), randomblob(1500));\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    BEGIN;\n      UPDATE t1 SET y = randomblob(1499);\n  ")
-										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    INSERT INTO t1 VALUES(randomblob(1500), randomblob(1500));\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    BEGIN;\n      UPDATE t1 SET y = randomblob(1499);\n  ")
+										r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    INSERT INTO t1 VALUES(randomblob(1500), randomblob(1500));\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    BEGIN;\n      UPDATE t1 SET y = randomblob(1499);\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    INSERT INTO t1 VALUES(randomblob(1500), randomblob(1500));\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    BEGIN;\n      UPDATE t1 SET y = randomblob(1499);\n  ")
 										}
 										// copy_file test.db test.db2 (unsupported command, not transpiled)
 										// copy_file test.db-journal test.db2-journal (unsupported command, not transpiled)
@@ -2259,9 +2259,9 @@ func Test_pager1(t *testing.T) {
 									}
 									// file_control_chunksize_test db main 1024 (unsupported command, not transpiled)
 									// file_control_sizehint_test db main 20971520 (unsupported command, not transpiled)
-									_res = db.Exec("\n    PRAGMA cache_size = 10;\n    INSERT INTO t1 VALUES(1, randomblob(10000));\n    INSERT INTO t1 VALUES(2, randomblob(10000));\n    INSERT INTO t1 SELECT x+2, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+4, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+8, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+16, randomblob(10000) from t1;\n    SELECT count(*) FROM t1;\n    COMMIT;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    INSERT INTO t1 VALUES(1, randomblob(10000));\n    INSERT INTO t1 VALUES(2, randomblob(10000));\n    INSERT INTO t1 SELECT x+2, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+4, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+8, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+16, randomblob(10000) from t1;\n    SELECT count(*) FROM t1;\n    COMMIT;\n  ")
+									r = db.Query("\n    PRAGMA cache_size = 10;\n    INSERT INTO t1 VALUES(1, randomblob(10000));\n    INSERT INTO t1 VALUES(2, randomblob(10000));\n    INSERT INTO t1 SELECT x+2, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+4, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+8, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+16, randomblob(10000) from t1;\n    SELECT count(*) FROM t1;\n    COMMIT;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    INSERT INTO t1 VALUES(1, randomblob(10000));\n    INSERT INTO t1 VALUES(2, randomblob(10000));\n    INSERT INTO t1 SELECT x+2, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+4, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+8, randomblob(10000) from t1;\n    INSERT INTO t1 SELECT x+16, randomblob(10000) from t1;\n    SELECT count(*) FROM t1;\n    COMMIT;\n  ")
 									}
 									db.Close()
 									// file size test.db
@@ -2334,9 +2334,9 @@ func Test_pager1(t *testing.T) {
 										_dbtmp14, err := frigolite.Open("test.db")
 										_ = _dbtmp14 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
-										_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+										r = db.Query("\n    CREATE TABLE t1(x, y);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x, y);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 										}
 										_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t2(a, b);\n  ")
 										if _res.Error != nil {
@@ -2417,9 +2417,9 @@ func Test_pager1(t *testing.T) {
 											_dbtmp17, err := frigolite.Open("test.db")
 											_ = _dbtmp17 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
-											_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
-											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
+											r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
 											}
 											stmt = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
 											_ = stmt // suppress unused warning

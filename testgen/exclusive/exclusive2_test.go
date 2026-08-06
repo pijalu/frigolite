@@ -273,9 +273,9 @@ func Test_exclusive2(t *testing.T) {
 		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.3"
-		_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
 		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
@@ -287,9 +287,9 @@ func Test_exclusive2(t *testing.T) {
 		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.5"
-		_res = db.Exec("\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		r = db.Query("\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
 		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}

@@ -108,9 +108,9 @@ func Test_autovacuum(t *testing.T) {
 	ENTRY_LEN = "3500"
 	_ = ENTRY_LEN // suppress unused warning
 	{ // do_test "autovacuum-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
 		}
 	}
 	tn = "0"
@@ -166,8 +166,8 @@ func Test_autovacuum(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        select a from av1 order by rowid\n      ")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), tbl_data) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tbl_data, _res.Error, "autovacuum-1." + tn + ".(" + delete + ").3")
+				if flatten(r) != tbl_data {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tbl_data, "autovacuum-1." + tn + ".(" + delete + ").3")
 				}
 			}
 		}
@@ -231,8 +231,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from av1\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), av1_data) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av1_data, _res.Error, "autovacuum-2.2.9")
+		if flatten(r) != av1_data {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av1_data, "autovacuum-2.2.9")
 		}
 	}
 	{ // do_test "autovacuum-2.3.1"
@@ -262,8 +262,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av3;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), av3_data) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av3_data, _res.Error, "autovacuum-2.3.4")
+		if flatten(r) != av3_data {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av3_data, "autovacuum-2.3.4")
 		}
 	}
 	{ // do_test "autovacuum-2.3.5"
@@ -271,8 +271,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av4;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), av4_data) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av4_data, _res.Error, "autovacuum-2.3.5")
+		if flatten(r) != av4_data {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av4_data, "autovacuum-2.3.5")
 		}
 	}
 	{ // do_test "autovacuum-2.4.1"
@@ -526,8 +526,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), AUTOVACUUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AUTOVACUUM, _res.Error, "autovacuum-3.5")
+		if flatten(r) != AUTOVACUUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "autovacuum-3.5")
 		}
 	}
 	{ // do_test "autovacuum-3.6"
@@ -622,9 +622,9 @@ func Test_autovacuum(t *testing.T) {
 		os.Remove("test.db-journal")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}

@@ -389,8 +389,8 @@ func Test_alter3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE name = 't4';\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sql) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sql, _res.Error, "alter3-8.2")
+		if flatten(r) != sql {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sql, "alter3-8.2")
 		}
 	}
 	db.Close()

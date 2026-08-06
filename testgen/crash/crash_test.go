@@ -224,9 +224,9 @@ func Test_crash(t *testing.T) {
 	{ // do_test "crash-4.0"
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")
-		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;\n    ")
+		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;\n    ")
 		}
 		// expr ([file size test2.db] (not evaluated)
 	}

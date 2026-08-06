@@ -190,9 +190,9 @@ func Test_quota(t *testing.T) {
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
 		}
 		// file size test.db
 	}
@@ -234,9 +234,9 @@ func Test_quota(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		for _, db_iter := range tclSplitList("db1a db2a") {
 		_ = db_iter // suppress unused warning
-			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
+			r = db.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			}
 		}
 		db1b = db // sqlite3 db1b test.db: alias to main in-memory db
@@ -569,9 +569,9 @@ func Test_quota(t *testing.T) {
 		_dbtmp4, err := frigolite.Open("test.db")
 		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}

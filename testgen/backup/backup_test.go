@@ -182,9 +182,9 @@ func Test_backup(t *testing.T) {
 								_ = _putsMsg
 							}
 							if tclBool(isMemDest + "==0 || " + pgsz_dest + "==1024 || " + rows_dest + "==0") {
-								_res = db.Exec("\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
+								r = db.Query("\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
 								}
 								r = db_dest.Query("PRAGMA " + file_dest + ".page_size = " + pgsz_dest)
 								if r.Error != nil {
@@ -491,9 +491,9 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		_res = db2.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+		r = db2.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		}
 		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 	}
@@ -565,9 +565,9 @@ func Test_backup(t *testing.T) {
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 			// test_contents backup-5.$iTest.1.6 db main db2 main (unsupported command, not transpiled)
 			{ // do_test "backup-5." + iTest + ".2.1"
-				_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
+				r = db.Query("\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".2.2"
@@ -621,9 +621,9 @@ func Test_backup(t *testing.T) {
 				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".4.3"
-				_res = writer.Exec(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
+				r = writer.Query(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				}
 				// B step 5000 (unsupported command, not transpiled)
 			}
@@ -666,9 +666,9 @@ func Test_backup(t *testing.T) {
 			db3, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "backup-5." + iTest + ".5.1"
-				_res = db.Exec("\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
+				r = db.Query("\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".5.2"

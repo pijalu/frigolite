@@ -1337,8 +1337,8 @@ func Test_e_fkey(t *testing.T) {
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_list(" + zTab + ")")
 									}
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), lRes) {
-										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lRes, _res.Error, "e_fkey-40." + tn)
+									if flatten(r) != lRes {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), lRes, "e_fkey-40." + tn)
 									}
 								}
 							}
@@ -2162,9 +2162,9 @@ func Test_e_fkey(t *testing.T) {
 									}
 								}
 								{ // do_test "e_fkey-57.7"
-									_res = db.Exec("\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
+									r = db.Query("\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
 									}
 								}
 								{ // do_test "e_fkey-58.1"
@@ -2190,9 +2190,9 @@ func Test_e_fkey(t *testing.T) {
 									_ = _res // catchsql
 								}
 								{ // do_test "e_fkey-58.4"
-									_res = db.Exec("\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
+									r = db.Query("\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
 									}
 								}
 								{ // do_test "e_fkey-59.1"
@@ -2249,9 +2249,9 @@ func Test_e_fkey(t *testing.T) {
 								}
 								_res = db.Exec("PRAGMA foreign_keys = ON")
 								{ // do_test "e_fkey-60.1"
-									_res = db.Exec("\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
+									r = db.Query("\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
 									}
 								}
 								{ // do_test "e_fkey-60.2"
@@ -2263,9 +2263,9 @@ func Test_e_fkey(t *testing.T) {
 									_ = _res // catchsql
 								}
 								{ // do_test "e_fkey-60.3"
-									_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
+									r = db.Query("\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
 									}
 								}
 								{ // do_test "e_fkey-60.4"
@@ -2353,9 +2353,9 @@ func Test_e_fkey(t *testing.T) {
 										}
 									}
 									_res = db.Exec("PRAGMA foreign_keys = ON")
-									_res = db.Exec("\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;\n  ")
+									r = db.Query("\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;\n  ")
 									}
 								}
 								{ // do_test "e_fkey-61.2.2"
@@ -2390,9 +2390,9 @@ func Test_e_fkey(t *testing.T) {
 										}
 									}
 									_res = db.Exec("PRAGMA foreign_keys = ON")
-									_res = db.Exec("\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;\n  ")
+									r = db.Query("\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;\n  ")
 									}
 								}
 								{ // do_test "e_fkey-61.3.2"

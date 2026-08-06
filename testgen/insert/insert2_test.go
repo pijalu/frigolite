@@ -149,9 +149,9 @@ func Test_insert2(t *testing.T) {
 			_res = db.Exec("DROP TABLE t1")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
-		_res = db.Exec("\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;\n  ")
 		}
 	}
 	{ // do_test "insert2-1.3.2"
@@ -236,9 +236,9 @@ func Test_insert2(t *testing.T) {
 		}
 	}
 	{ // do_test "insert2-3.5"
-		_res = db.Exec("\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;\n    ")
+		r = db.Query("\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;\n    ")
 		}
 	}
 	{ // do_test "insert2-3.6"
@@ -248,9 +248,9 @@ func Test_insert2(t *testing.T) {
 		}
 	}
 	{ // do_test "insert2-3.7"
-		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "insert2-3.8"

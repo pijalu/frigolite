@@ -7,7 +7,6 @@ package vtab
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -129,8 +128,8 @@ func Test_vtab2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, value FROM vars\n      WHERE name MATCH 'tcl_*' AND arrayname = '' \n      ORDER BY name;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "vtab2-2.3")
+		if flatten(r) != result {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), result, "vtab2-2.3")
 		}
 	}
 	{ // do_test "vtab2-3.1"

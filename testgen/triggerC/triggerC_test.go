@@ -392,9 +392,9 @@ func Test_triggerC(t *testing.T) {
 				_ = t5 // suppress unused warning
 				_ = _idx2
 					{ // do_test "triggerC-5.1." + n
-						_res = db.Exec("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
+						r = db.Query("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
 						}
 					}
 				}
@@ -417,9 +417,9 @@ func Test_triggerC(t *testing.T) {
 					_ = t5 // suppress unused warning
 					_ = _idx3
 						{ // do_test "triggerC-5.2." + n
-							_res = db.Exec("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
+							r = db.Query("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
 							}
 						}
 					}
@@ -442,9 +442,9 @@ func Test_triggerC(t *testing.T) {
 						_ = t5 // suppress unused warning
 						_ = _idx4
 							{ // do_test "triggerC-5.3." + n
-								_res = db.Exec("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
+								r = db.Query("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
 								}
 							}
 						}
@@ -479,15 +479,15 @@ func Test_triggerC(t *testing.T) {
 							}
 						}
 						{ // do_test "triggerC-7.2"
-							_res = db.Exec("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							r = db.Query("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
 							}
 						}
 						{ // do_test "triggerC-7.3"
-							_res = db.Exec("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							r = db.Query("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
 							}
 						}
 						{ // do_test "triggerC-7.4"
@@ -497,15 +497,15 @@ func Test_triggerC(t *testing.T) {
 							}
 						}
 						{ // do_test "triggerC-7.5"
-							_res = db.Exec("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							r = db.Query("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
 							}
 						}
 						{ // do_test "triggerC-7.6"
-							_res = db.Exec("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							r = db.Query("\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
 							}
 						}
 						{ // do_test "triggerC-7.7"
@@ -515,15 +515,15 @@ func Test_triggerC(t *testing.T) {
 							}
 						}
 						{ // do_test "triggerC-7.8"
-							_res = db.Exec("\n    BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							r = db.Query("\n    BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
 							}
 						}
 						{ // do_test "triggerC-7.9"
-							_res = db.Exec("\n    BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							r = db.Query("\n    BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;\n  ")
 							}
 						}
 						{ // do_test "triggerC-9.1"

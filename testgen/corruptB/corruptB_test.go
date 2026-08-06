@@ -78,9 +78,9 @@ func Test_corruptB(t *testing.T) {
 	// do_not_use_codec (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corruptB-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
 		}
 		// expr [file size test.db] > (1024*9) (not evaluated)
 	}

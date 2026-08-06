@@ -328,8 +328,8 @@ func Test_walmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode = wal ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), tempJrnlMode) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tempJrnlMode, _res.Error, "walmode-5.2.2")
+		if flatten(r) != tempJrnlMode {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tempJrnlMode, "walmode-5.2.2")
 		}
 	}
 	{ // do_test "walmode-5.2.3"
@@ -343,8 +343,8 @@ func Test_walmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode = wal ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), tempJrnlMode) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tempJrnlMode, _res.Error, "walmode-5.2.4")
+		if flatten(r) != tempJrnlMode {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tempJrnlMode, "walmode-5.2.4")
 		}
 	}
 	{ // do_test "walmode-5.2.5"
@@ -370,8 +370,8 @@ func Test_walmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp.journal_mode = wal ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), tempJrnlMode) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tempJrnlMode, _res.Error, "walmode-5.3.2")
+		if flatten(r) != tempJrnlMode {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tempJrnlMode, "walmode-5.3.2")
 		}
 	}
 	{ // do_test "walmode-5.3.3"
@@ -385,8 +385,8 @@ func Test_walmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp.journal_mode = wal ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), tempJrnlMode) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tempJrnlMode, _res.Error, "walmode-5.3.4")
+		if flatten(r) != tempJrnlMode {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tempJrnlMode, "walmode-5.3.4")
 		}
 	}
 	{ // do_test "walmode-5.3.5"
@@ -416,9 +416,9 @@ func Test_walmode(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
+			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 			}
 		}
 		// foreach {tn sql result} "1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal"

@@ -195,9 +195,9 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		_res = db2.Exec("\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
+		r = db2.Query("\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
 		}
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {

@@ -2475,10 +2475,36 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		// "1 {FOREIGN KEY constraint failed}" or "0 {}"), so use the
 		// count-aware runtime comparison.
 		bodyIsCatchsql := len(bodyCmds) == 1 && len(bodyCmds[0]) >= 1 && bodyCmds[0][0].Text == "catchsql"
+		// A single `execsql {SQL}` body whose SQL contains a query returns the
+		// flattened query results; a bare-ident expected is then a RESULT list
+		// (e.g. foreach $t232 in without_rowid4-3.2), not an error message.
+		bodyIsExecsqlQuery := false
+		if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 2 && bodyCmds[0][0].Text == "execsql" {
+			bodySQL := ""
+			if bodyCmds[0][1].Braced {
+				bodySQL = bodyCmds[0][1].Text
+			} else {
+				bodySQL = bodyCmds[0][1].Text
+			}
+			for _, stmt := range strings.Split(bodySQL, ";") {
+				if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
+					bodyIsExecsqlQuery = true
+					break
+				}
+			}
+		}
 		if isBareGoIdent(expectedExpr) {
 			if bodyIsCatchsql {
 				tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
 				tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", _res.Error, %s, %s)", expectedExpr, nameExpr)
+				tp.emitLine("}")
+			} else if bodyIsExecsqlQuery {
+				// The body's SQL contains a query; processCommands ran it through
+				// db.Query and left the flattened result in `r`. Compare it with
+				// the expected variable (a RESULT list, e.g. foreach $t232 in
+				// without_rowid4-3.2), not an error message.
+				tp.emitLine("if flatten(r) != %s {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
 				tp.emitLine("}")
 			} else {
 				tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
@@ -2592,8 +2618,18 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 		} else if len(args) > 0 {
 			sqlText = args[0].Text
 		}
-		lastStmt := lastStatementSQL(sqlText)
-		if isQueryStmt(lastStmt) {
+		// Use db.Query when the SQL contains ANY query statement (not just the
+		// last): a multi-statement execsql like "INSERT...; SELECT...;
+		// UPDATE..." returns the rows of every SELECT in between, and db.Query
+		// must be used to collect them (db.Exec discards query results).
+		containsQuery := false
+		for _, stmt := range strings.Split(sqlText, ";") {
+			if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
+				containsQuery = true
+				break
+			}
+		}
+		if containsQuery {
 			tp.emitLine("r = %s.Query(%s)", dbConn, sqlExpr)
 			if tp.catchMode {
 				tp.emitLine("if r.Error != nil { _catchErr = r.Error }")

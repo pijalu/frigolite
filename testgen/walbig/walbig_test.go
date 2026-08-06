@@ -60,9 +60,9 @@ func Test_walbig(t *testing.T) {
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "walbig-1.0"
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n  ")
 		}
 	}
 	db.Close()

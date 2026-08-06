@@ -76,9 +76,9 @@ func Test_mallocC(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
-	_res = db.Exec("\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
+	r = db.Query("\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
 	}
 	if false {
 		db.Close()

@@ -251,9 +251,9 @@ func Test_memdb(t *testing.T) {
 			}
 		}
 		{ // do_test "memdb-5.0"
-			_res = db.Exec("\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+			r = db.Query("\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 			}
 		}
 		// foreach {i conf1 conf2 cmd t0 t1 t2} "1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0"
@@ -460,9 +460,9 @@ func Test_memdb(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
+				r = db.Query("\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
 				}
 				before = "db one {PRAGMA page_count}"
 				_ = before // suppress unused warning

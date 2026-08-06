@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -108,8 +107,8 @@ func Test_incrvacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sqlite_options_default_autovacuum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sqlite_options_default_autovacuum, _res.Error, "incrvacuum-1.1")
+		if flatten(r) != sqlite_options_default_autovacuum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sqlite_options_default_autovacuum, "incrvacuum-1.1")
 		}
 	}
 	{ // do_test "incrvacuum-1.2.0"
@@ -155,9 +154,9 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-2.1"
-		_res = db.Exec("\n    pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);\n  ")
+		r = db.Query("\n    pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
 	}
 	{ // do_test "incrvacuum-2.2"
@@ -196,9 +195,9 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-3.2"
 		str = "1234567890 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -210,18 +209,18 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-3.4"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-4.1"
 		str = "1234567890 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -246,18 +245,18 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-5.1.2"
-		_res = db.Exec("\n    BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+		r = db.Query("\n    BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-5.2.1"
 		str = "abcdefghij 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
+		r = db.Query("\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -271,9 +270,9 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-5.2.3"
-		_res = db.Exec("\n    BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;\n  ")
+		r = db.Query("\n    BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -392,21 +391,21 @@ func Test_incrvacuum(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n  ")
 		}
 	}
 	{ // do_test "incrvacuum-9.2"
-		_res = db.Exec("\n    PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
+		r = db.Query("\n    PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "incrvacuum-9.3"
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;\n  ")
 		}
 	}
 	{ // do_test "incrvacuum-10.1"
@@ -478,8 +477,8 @@ func Test_incrvacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum;\n    ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), AUTOVACUUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AUTOVACUUM, _res.Error, "incrvacuum-11.1-av-dflt-on")
+		if flatten(r) != AUTOVACUUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "incrvacuum-11.1-av-dflt-on")
 		}
 	}
 	{ // do_test "incrvacuum-11.2"

@@ -369,9 +369,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // do_test "analyze3-2.1"
-		_res = db.Exec("\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		r = db.Query("\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		}
 		i = "0"
 		_ = i // suppress unused warning

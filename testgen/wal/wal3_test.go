@@ -163,8 +163,8 @@ func Test_wal3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "wal3-1." + i + ".3")
+			if flatten(r) != str {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), str, "wal3-1." + i + ".3")
 			}
 		}
 		{ // do_test "wal3-1." + i + ".4"
@@ -190,8 +190,8 @@ func Test_wal3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "wal3-1." + i + ".6")
+			if flatten(r) != str {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), str, "wal3-1." + i + ".6")
 			}
 		}
 		{ // do_test "wal3-1." + i + ".7"
@@ -268,9 +268,9 @@ func Test_wal3(t *testing.T) {
 		}
 		{ // do_test "wal3-5.1"
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
-			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 			}
 			// faultsim_save_and_close (unsupported command, not transpiled)
 		}
@@ -481,9 +481,9 @@ func Test_wal3(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
+			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
 			}
 		}
 		// T script method_callback (unsupported command, not transpiled)
@@ -535,9 +535,9 @@ func Test_wal3(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
+			r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
 			}
 		}
 		i = "0"
@@ -578,8 +578,8 @@ func Test_wal3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM whoami ")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), c) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", c, _res.Error, "wal3-9.2." + i)
+				if flatten(r) != c {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), c, "wal3-9.2." + i)
 				}
 			}
 			// incr i 1

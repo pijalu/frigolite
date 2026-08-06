@@ -158,9 +158,9 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	{ // do_test "jrnlmode-1.9"
-		_res = db.Exec("\n      PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;\n    ")
+		r = db.Query("\n      PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;\n    ")
 		}
 		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n    ")
 		if r.Error != nil {
@@ -241,9 +241,9 @@ func Test_jrnlmode(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	{ // do_test "jrnlmode-2.1"
-		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);\n    ")
+		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);\n    ")
 		}
 		_res = db.Exec("\n      BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;\n    ")
 		if _res.Error != nil {
@@ -296,9 +296,9 @@ func Test_jrnlmode(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode-4.1"
-		_res = db.Exec("\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
+		r = db.Query("\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
 		}
 		r = db.Query(" PRAGMA page_count ")
 		if r.Error != nil {
@@ -453,9 +453,9 @@ func Test_jrnlmode(t *testing.T) {
 			// expr $sz>=$journalsize (not evaluated)
 		}
 		{ // do_test "jrnlmode-5.18"
-			_res = db.Exec("\n      PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			r = db.Query("\n      PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
 			}
 			journalsize = "file size test.db-journal"
 			_ = journalsize // suppress unused warning
@@ -471,9 +471,9 @@ func Test_jrnlmode(t *testing.T) {
 			// expr $sz>=$journalsize (not evaluated)
 		}
 		{ // do_test "jrnlmode-5.20"
-			_res = db.Exec("\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			r = db.Query("\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
 			}
 		}
 		{ // do_test "jrnlmode-5.21"
@@ -509,9 +509,9 @@ func Test_jrnlmode(t *testing.T) {
 				// file exists "test.db-journal"
 			}
 			{ // do_test "jrnlmode-6.5"
-				_res = db.Exec("\n        PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);\n      ")
+				r = db.Query("\n        PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);\n      ")
 				}
 				// file exists "test.db-journal"
 			}
@@ -525,9 +525,9 @@ func Test_jrnlmode(t *testing.T) {
 				// file exists "test.db-journal"
 			}
 			{ // do_test "jrnlmode-6.9"
-				_res = db.Exec("\n        PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;\n      ")
+				r = db.Query("\n        PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;\n      ")
 				}
 				// file exists "test.db-journal"
 			}

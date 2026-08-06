@@ -62,9 +62,9 @@ func Test_tkt_d11f09d36e(t *testing.T) {
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "tkt-d11f09d36e.1"
-		_res = db.Exec("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
+		r = db.Query("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
 		}
 		i = "0"
 		_ = i // suppress unused warning

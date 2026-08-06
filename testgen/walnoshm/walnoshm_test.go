@@ -245,9 +245,9 @@ func Test_walnoshm(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+		r = db.Query(" \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		}
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -262,9 +262,9 @@ func Test_walnoshm(t *testing.T) {
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
+		r = db.Query(" \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 		}
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2

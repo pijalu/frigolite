@@ -75,9 +75,9 @@ func Test_stmt(t *testing.T) {
 	{ // do_test "stmt-1.2"
 	}
 	{ // do_test "stmt-1.3"
-		_res = db.Exec("\n    PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);\n  ")
+		r = db.Query("\n    PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);\n  ")
 		}
 	}
 	{ // do_test "stmt-1.4"

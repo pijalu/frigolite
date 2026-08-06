@@ -103,9 +103,9 @@ func Test_fkey6(t *testing.T) {
 		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.8"
-		_res = db.Exec("\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
+		r = db.Query("\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
 		}
 	}
 	{ // do_test "fkey6-1.9"

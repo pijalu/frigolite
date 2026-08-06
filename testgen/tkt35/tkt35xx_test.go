@@ -62,9 +62,9 @@ func Test_tkt35xx(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt35xx-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n  ")
 		}
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n  ")
 		if _res.Error != nil {
@@ -78,9 +78,9 @@ func Test_tkt35xx(t *testing.T) {
 	big = "abcdefghij 22"
 	_ = big // suppress unused warning
 	{ // do_test "tkt35xx-1.2.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
 		}
 	}
 	{ // do_test "tkt35xx-1.2.2"

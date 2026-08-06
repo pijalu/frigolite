@@ -379,9 +379,9 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma-1.18"
-		_res = db.Exec("\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
+		r = db.Query("\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
 		}
 	}
 	{ // do_test "pragma-2.1"
@@ -1362,9 +1362,9 @@ func Test_pragma(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "pragma-9.16"
-			_res = db.Exec("\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
+			r = db.Query("\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
 			}
 		}
 		{ // do_test "pragma-9.17"
@@ -1394,9 +1394,9 @@ func Test_pragma(t *testing.T) {
 		{ // do_test "pragma-10.0"
 			_res = db.Exec("\n    DROP TABLE main.t1;\n  ")
 			_ = _res // catchsql
-			_res = db.Exec("\n    PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;\n  ")
+			r = db.Query("\n    PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;\n  ")
 			}
 		}
 		{ // do_test "pragma-10.1"
@@ -1519,9 +1519,9 @@ func Test_pragma(t *testing.T) {
 			os.Remove("test2.db")
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			_res = db2.Exec("\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
+			r = db2.Query("\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
 			}
 			db2.Close()
 			r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_count;\n    ")
@@ -1833,9 +1833,9 @@ func Test_pragma(t *testing.T) {
 							os.Remove("test.db")
 							db, err = frigolite.Open("")
 							if err != nil { t.Fatal(err) }
-							_res = db.Exec(" \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
+							r = db.Query(" \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
 							}
 							i = "0"
 							_ = i // suppress unused warning
@@ -1909,8 +1909,8 @@ func Test_pragma(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.integrity_check; ")
 							}
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), auxerr) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", auxerr, _res.Error, "22.3.3")
+							if flatten(r) != auxerr {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), auxerr, "22.3.3")
 							}
 						}
 						{ // do_test "22.4.1"
@@ -1935,8 +1935,8 @@ func Test_pragma(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.integrity_check; ")
 							}
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), mainerr) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", mainerr, _res.Error, "22.4.2")
+							if flatten(r) != mainerr {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), mainerr, "22.4.2")
 							}
 						}
 						{ // do_test "22.4.3"

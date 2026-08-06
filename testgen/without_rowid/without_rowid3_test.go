@@ -678,9 +678,9 @@ func Test_without_rowid3(t *testing.T) {
 						}
 					}
 					{ // do_test "without_rowid3-4.3"
-						_res = db.Exec(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						r = db.Query(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
 						}
 					}
 					{ // do_test "without_rowid3-4.4"
@@ -694,9 +694,9 @@ func Test_without_rowid3(t *testing.T) {
 						}
 					}
 					{ // do_test "without_rowid3-4.3"
-						_res = db.Exec(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						r = db.Query(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -1162,9 +1162,9 @@ func Test_without_rowid3(t *testing.T) {
 						}
 					}
 					{ // do_test "without_rowid3-12.3.2"
-						_res = db.Exec("\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
+						r = db.Query("\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
 						}
 					}
 					{ // do_test "without_rowid3-12.3.3"
@@ -2593,9 +2593,9 @@ func Test_without_rowid3(t *testing.T) {
 										}
 									}
 									{ // do_test "without_rowid3-dd08e5.1.1"
-										_res = db.Exec("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
-										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
+										r = db.Query("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
 										}
 									}
 									{ // do_test "without_rowid3-dd08e5.1.2"

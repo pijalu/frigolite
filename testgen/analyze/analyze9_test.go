@@ -1706,9 +1706,9 @@ func Test_analyze9(t *testing.T) {
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", 100;\n      ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", 100;\n      ")
+							r = db.Query("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", 100;\n      ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", 100;\n      ")
 							}
 							// incr i 1
 							{

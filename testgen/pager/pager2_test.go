@@ -93,9 +93,9 @@ func Test_pager2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
-			_res = db.Exec("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(i INTEGER PRIMARY KEY, j blob);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(i INTEGER PRIMARY KEY, j blob);\n    ")
+			r = db.Query("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(i INTEGER PRIMARY KEY, j blob);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(i INTEGER PRIMARY KEY, j blob);\n    ")
 			}
 		}
 		tn = "0"

@@ -140,9 +140,9 @@ func Test_walcrash3(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
+		r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
 		}
 		i = "0"
 		_ = i // suppress unused warning

@@ -569,9 +569,9 @@ func Test_savepoint(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "savepoint-6.3"
-		_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE rowid%2;\n          PRAGMA incr_vacuum;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n            DELETE FROM t1 WHERE rowid%2;\n            PRAGMA incr_vacuum;\n        ROLLBACK TO one;\n      COMMIT;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE rowid%2;\n          PRAGMA incr_vacuum;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n            DELETE FROM t1 WHERE rowid%2;\n            PRAGMA incr_vacuum;\n        ROLLBACK TO one;\n      COMMIT;\n    ")
+		r = db.Query("\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE rowid%2;\n          PRAGMA incr_vacuum;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n            DELETE FROM t1 WHERE rowid%2;\n            PRAGMA incr_vacuum;\n        ROLLBACK TO one;\n      COMMIT;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE rowid%2;\n          PRAGMA incr_vacuum;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n            DELETE FROM t1 WHERE rowid%2;\n            PRAGMA incr_vacuum;\n        ROLLBACK TO one;\n      COMMIT;\n    ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -587,9 +587,9 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = incremental ")
 		}
 		// wal_set_journal_mode (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
 		}
 		// expr ([execsql { PRAGMA page_count }] (not evaluated)
 	}
@@ -616,9 +616,9 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	{ // do_test "savepoint-7.3.2"
-		_res = db.Exec("\n    BEGIN;\n      SAVEPOINT one;\n        DELETE FROM t2;\n        PRAGMA incremental_vacuum;\n        SAVEPOINT two;\n          INSERT INTO t2 SELECT a, b FROM t1;\n        ROLLBACK TO two;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      SAVEPOINT one;\n        DELETE FROM t2;\n        PRAGMA incremental_vacuum;\n        SAVEPOINT two;\n          INSERT INTO t2 SELECT a, b FROM t1;\n        ROLLBACK TO two;\n    COMMIT;\n  ")
+		r = db.Query("\n    BEGIN;\n      SAVEPOINT one;\n        DELETE FROM t2;\n        PRAGMA incremental_vacuum;\n        SAVEPOINT two;\n          INSERT INTO t2 SELECT a, b FROM t1;\n        ROLLBACK TO two;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SAVEPOINT one;\n        DELETE FROM t2;\n        PRAGMA incremental_vacuum;\n        SAVEPOINT two;\n          INSERT INTO t2 SELECT a, b FROM t1;\n        ROLLBACK TO two;\n    COMMIT;\n  ")
 		}
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
@@ -636,9 +636,9 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = incremental ")
 		}
 		// wal_set_journal_mode (unsupported command, not transpiled)
-		_res = db.Exec("\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(1000,1000), randstr(1000,1000));\n    BEGIN;\n      DELETE FROM t1;\n      SAVEPOINT one;\n      PRAGMA incremental_vacuum;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(1000,1000), randstr(1000,1000));\n    BEGIN;\n      DELETE FROM t1;\n      SAVEPOINT one;\n      PRAGMA incremental_vacuum;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(1000,1000), randstr(1000,1000));\n    BEGIN;\n      DELETE FROM t1;\n      SAVEPOINT one;\n      PRAGMA incremental_vacuum;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(1000,1000), randstr(1000,1000));\n    BEGIN;\n      DELETE FROM t1;\n      SAVEPOINT one;\n      PRAGMA incremental_vacuum;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
 		}
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {

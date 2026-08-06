@@ -356,9 +356,9 @@ func Test_uri(t *testing.T) {
 						_dbtmp8, err := frigolite.Open("file:test.db1?vfs=tvfs1")
 						_ = _dbtmp8 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
-						_res = db.Exec("\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
+						r = db.Query("\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
 						}
 						_ = tclSort("array names ::T1") // lsort result
 					}

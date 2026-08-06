@@ -91,9 +91,9 @@ func Test_snapshot4(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.4"
-		_res = db.Exec("\n    COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;\n  ")
+		r = db.Query("\n    COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;\n  ")
 		}
 		// sqlite3_snapshot_open_blob db main $::snap (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT count(*) FROM t1\n  ")

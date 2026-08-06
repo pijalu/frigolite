@@ -76,9 +76,9 @@ func Test_walfault(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n  ")
 		}
 		r = db.Query("\n    SELECT count(*) FROM x\n  ")
 		if r.Error != nil {
@@ -98,9 +98,9 @@ func Test_walfault(t *testing.T) {
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
 		}
 		db.Close()
 		// faultsim_save_and_close (unsupported command, not transpiled)
@@ -122,45 +122,45 @@ func Test_walfault(t *testing.T) {
 	// do_faultsim_test walfault-5 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  execsql { P... (unsupported command, not transpiled)
 	{ // do_test "walfault-6-pre-1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-6 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  shmfault fi... (unsupported command, not transpiled)
 	{ // do_test "walfault-7-pre-1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-7 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT... (unsupported command, not transpiled)
 	{ // do_test "walfault-8-pre-1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-8 -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGM...} -body {... (unsupported command, not transpiled)
 	{ // do_test "walfault-9-pre-1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-9 -prep {\n  #if {$iFail<73} { set iFail 73 }\n  #if {$iFai...} -body {... (unsupported command, not transpiled)
 	{ // do_test "walfault-10-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
@@ -169,27 +169,27 @@ func Test_walfault(t *testing.T) {
 		_dbtmp2, err := frigolite.Open("test.db")
 		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-11 -faults shmerr* -prep {\n  catch { db2 close }\n  faultsim_restore_a... (unsupported command, not transpiled)
 	{ // do_test "walfault-12-pre-1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-12 -prep {\n  if {[info commands shmfault] == ""} {\n    tes...} -body ... (unsupported command, not transpiled)
 	{ // do_test "walfault-13-pre-1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 		// delete_file sv_test.db-shm (unsupported command, not transpiled)
@@ -207,18 +207,18 @@ func Test_walfault(t *testing.T) {
 	// do_faultsim_test walfault-13.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { \n ... (unsupported command, not transpiled)
 	{ // do_test "walfault-14-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-14 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { \n   ... (unsupported command, not transpiled)
 	{ // do_test "walfault-15-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}

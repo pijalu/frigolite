@@ -90,8 +90,8 @@ func Test_tkt2332(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), Len) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", Len, _res.Error, "tkt2332." + Len + ".2")
+			if flatten(r) != Len {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), Len, "tkt2332." + Len + ".2")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".3"
@@ -106,8 +106,8 @@ func Test_tkt2332(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + "; ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), Len) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", Len, _res.Error, "tkt2332." + Len + ".4")
+			if flatten(r) != Len {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), Len, "tkt2332." + Len + ".4")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"

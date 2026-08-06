@@ -62,9 +62,9 @@ func Test_fts3aj(t *testing.T) {
 	_res = db2.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, 'hello world');\n  INSERT INTO t1 (rowid, content) VALUES(2, 'hello there');\n  INSERT INTO t1 (rowid, content) VALUES(3, 'cruel world');\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "fts3aj-1.1"
-		_res = db.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
+		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
 		}
 	}
 	{
@@ -74,9 +74,9 @@ func Test_fts3aj(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "fts3aj-1.2"
-		_res = db.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n    CREATE VIRTUAL TABLE two.t2 USING fts3(content);\n    INSERT INTO t2 (rowid, content) VALUES(1, 'hello world');\n    INSERT INTO t2 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO t2 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM t2 WHERE t2 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n    CREATE VIRTUAL TABLE two.t2 USING fts3(content);\n    INSERT INTO t2 (rowid, content) VALUES(1, 'hello world');\n    INSERT INTO t2 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO t2 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM t2 WHERE t2 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
+		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS two;\n    CREATE VIRTUAL TABLE two.t2 USING fts3(content);\n    INSERT INTO t2 (rowid, content) VALUES(1, 'hello world');\n    INSERT INTO t2 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO t2 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM t2 WHERE t2 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n    CREATE VIRTUAL TABLE two.t2 USING fts3(content);\n    INSERT INTO t2 (rowid, content) VALUES(1, 'hello world');\n    INSERT INTO t2 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO t2 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM t2 WHERE t2 MATCH 'hello';\n    DETACH DATABASE two;\n  ")
 		}
 	}
 	{
@@ -86,9 +86,9 @@ func Test_fts3aj(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "fts3aj-1.3"
-		_res = db2.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
+		r = db2.Query("\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
 		}
 	}
 	{

@@ -55,9 +55,9 @@ func Test_tkt_9d68c883(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-9d68c88-1.1"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);\n  ")
 		}
 	}
 	i = "0"

@@ -68,9 +68,9 @@ func Test_walbak(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "walbak-1.0"
-		_res = db.Exec(" \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
+		r = db.Query(" \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "walbak-1.1"
@@ -358,8 +358,8 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), src) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", src, _res.Error, "walbak-4." + tn + ".2")
+					if flatten(r) != src {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), src, "walbak-4." + tn + ".2")
 					}
 				}
 				{ // do_test "walbak-4." + tn + ".3"
@@ -367,8 +367,8 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), dest) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dest, _res.Error, "walbak-4." + tn + ".3")
+					if flatten(r) != dest {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), dest, "walbak-4." + tn + ".3")
 					}
 				}
 				{ // do_test "walbak-4." + tn + ".4"
@@ -384,8 +384,8 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), dest_final) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dest_final, _res.Error, "walbak-4." + tn + ".5")
+					if flatten(r) != dest_final {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), dest_final, "walbak-4." + tn + ".5")
 					}
 				}
 				db2.Close()
@@ -399,8 +399,8 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), dest_final) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dest_final, _res.Error, "walbak-4." + tn + ".7")
+					if flatten(r) != dest_final {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), dest_final, "walbak-4." + tn + ".7")
 					}
 				}
 			}

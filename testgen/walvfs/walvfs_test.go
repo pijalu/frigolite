@@ -147,16 +147,16 @@ func Test_walvfs(t *testing.T) {
 		// expr [file size test.db-wal]>12000 (not evaluated)
 	}
 	{ // do_test "2.2"
-		_res = db.Exec("\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
+		r = db.Query("\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
 		}
 		// file size test.db-wal
 	}
 	{ // do_test "2.3"
-		_res = db.Exec("\n    PRAGMA journal_size_limit = 8000;\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_size_limit = 8000;\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
+		r = db.Query("\n    PRAGMA journal_size_limit = 8000;\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_size_limit = 8000;\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(750));\n  ")
 		}
 		// file size test.db-wal
 	}

@@ -225,9 +225,9 @@ func Test_vacuum(t *testing.T) {
 		// delete_file test.db (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
+		r = db.Query("\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
 		}
 	}
 	{ // do_test "vacuum-4.1"

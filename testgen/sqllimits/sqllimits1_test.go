@@ -823,9 +823,9 @@ func Test_sqllimits1(t *testing.T) {
 		_ = fsize // suppress unused warning
 	}
 	{ // do_test "sqllimits1-7.7.1"
-		_res = db.Exec("\n    PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;\n  ")
+		r = db.Query("\n    PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;\n  ")
 		}
 		// expr [file size test.db] (not evaluated)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), fsize) {
@@ -850,8 +850,8 @@ func Test_sqllimits1(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA max_page_count;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), fsize) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", fsize, _res.Error, "sqllimits1-7.7.3")
+		if flatten(r) != fsize {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), fsize, "sqllimits1-7.7.3")
 		}
 	}
 	{ // do_test "sqllimits1-7.7.4"
@@ -1091,9 +1091,9 @@ func Test_sqllimits1(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "sqllimits1-9.3"
-				_res = db.Exec("\n      PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);\n    ")
+				r = db.Query("\n      PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);\n    ")
 				}
 				i = "1"
 				_ = i // suppress unused warning

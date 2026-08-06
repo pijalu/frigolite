@@ -61,9 +61,9 @@ func Test_walshared(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // do_test "walshared-1.0"
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")
 		}
 	}
 	{ // do_test "walshared-1.1"

@@ -263,9 +263,9 @@ func Test_incrblob3(t *testing.T) {
 			// close $::blob
 		}
 		{ // do_test "incrblob3-6.5.1"
-			_res = db.Exec(" \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+			r = db.Query(" \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
 			}
 			_list := tclList([]string{"0", msg})
 			_ = _list

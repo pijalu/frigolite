@@ -372,12 +372,12 @@ func Test_trigger2(t *testing.T) {
 	t232 = "1 0 1"
 	_ = t232 // suppress unused warning
 	{ // do_test "trigger2-3.2"
-		_res = db.Exec(" \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
+		r = db.Query(" \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), t232) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", t232, _res.Error, "trigger2-3.2")
+		if flatten(r) != t232 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), t232, "trigger2-3.2")
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n  DROP TABLE log;\n")

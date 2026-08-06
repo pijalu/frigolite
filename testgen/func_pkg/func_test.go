@@ -536,8 +536,8 @@ func Test_func(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ");")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), x2) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", x2, _res.Error, "func-4.17." + i)
+			if flatten(r) != x2 {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), x2, "func-4.17." + i)
 			}
 		}
 		// incr i 1
@@ -560,8 +560,8 @@ func Test_func(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ",1);")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), x2) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", x2, _res.Error, "func-4.18." + i)
+			if flatten(r) != x2 {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), x2, "func-4.18." + i)
 			}
 		}
 		// incr i 1
@@ -1353,8 +1353,8 @@ func Test_func(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + sqlLiteral(name) + ")")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), sdx) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sdx, _res.Error, "func-20." + i)
+					if flatten(r) != sdx {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sdx, "func-20." + i)
 					}
 				}
 			}

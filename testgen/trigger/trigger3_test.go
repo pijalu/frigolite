@@ -65,9 +65,9 @@ func Test_trigger3(t *testing.T) {
 	}
 	// verify_ex_errcode trigger3-1.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
 	{ // do_test "trigger3-1.2"
-		_res = db.Exec("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+		r = db.Query("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		}
 	}
 	{ // do_test "trigger3-1.3"
@@ -82,9 +82,9 @@ func Test_trigger3(t *testing.T) {
 	}
 	// verify_ex_errcode trigger3-2.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
 	{ // do_test "trigger3-2.2"
-		_res = db.Exec("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+		r = db.Query("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		}
 	}
 	{ // do_test "trigger3-3.1"
@@ -116,9 +116,9 @@ func Test_trigger3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "trigger3-4.2"
-		_res = db.Exec("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+		r = db.Query("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		}
 	}
 	_res = db.Exec("DROP TABLE tbl;")

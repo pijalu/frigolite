@@ -306,9 +306,9 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-4.6"
-		_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
+		r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
 		}
 	}
 	{ // do_test "update-4.7"
@@ -422,9 +422,9 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-5.6"
-		_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
+		r = db.Query("\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;\n  ")
 		}
 	}
 	{ // do_test "update-5.6.1"
@@ -974,9 +974,9 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-13.4"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;\n  ")
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "update-13.5"

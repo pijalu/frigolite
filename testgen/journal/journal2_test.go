@@ -96,9 +96,9 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.2"
 		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
-		_res = db.Exec(" \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		r = db.Query(" \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
 		_ = oplog // TCL namespace variable (query)
 	}
@@ -170,9 +170,9 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.12"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
 		}
 	}
 	{ // do_test "journal2-1.13"

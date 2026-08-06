@@ -69,9 +69,9 @@ func Test_walhook(t *testing.T) {
 	_ = wal_hook // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "walhook-1.1"
-		_res = db.Exec(" \n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);\n  ")
+		r = db.Query(" \n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);\n  ")
 		}
 		_ = wal_hook // TCL namespace variable (query)
 	}

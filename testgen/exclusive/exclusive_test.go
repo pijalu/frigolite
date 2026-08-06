@@ -128,9 +128,9 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive-1.7"
-		_res = db.Exec("\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
+		r = db.Query("\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
 		}
 		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n    ")
 		if r.Error != nil {
@@ -282,9 +282,9 @@ func Test_exclusive(t *testing.T) {
 			// filestate test.db-journal (unsupported command, not transpiled)
 		}
 		{ // do_test "exclusive-3.1"
-			_res = db.Exec("\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
+			r = db.Query("\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
 			}
 			// filestate test.db-journal (unsupported command, not transpiled)
 		}
@@ -340,9 +340,9 @@ func Test_exclusive(t *testing.T) {
 	X = "signature" // TCL namespace variable
 	_ = X // suppress unused warning
 	{ // do_test "exclusive-4.1"
-		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
+		r = db.Query("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		}
 		// signature (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), X) {
@@ -374,9 +374,9 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive-4.5"
-		_res = db.Exec("\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
+		r = db.Query("\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;\n  ")
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
@@ -419,9 +419,9 @@ func Test_exclusive(t *testing.T) {
 				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // do_test "exclusive-5.3"
-				_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+				r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
 				}
 				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}

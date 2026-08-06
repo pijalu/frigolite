@@ -46,6 +46,7 @@ type Engine struct {
 
 	// Multi-database support
 	databases map[string]*DatabaseContext // schema_name -> context (upper-cased key)
+	dbList    []*DatabaseContext          // attached databases in ATTACH order (main first)
 	mainDB    *DatabaseContext            // shortcut for "main"
 
 	// Legacy direct fields pointing to mainDB (kept for backward compat with existing code)
@@ -522,6 +523,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 			"MAIN": mainCtx,
 			"TEMP": mainCtx, // TEMP is an alias for main (no true temp db support yet)
 		},
+		dbList:           []*DatabaseContext{mainCtx},
 		mainDB:           mainCtx,
 		pager:            mainCtx.Pager,
 		schema:           mainCtx.Schema,
@@ -613,10 +615,10 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 		return entry, e.mainDB, nil
 	}
 
-	// Search attached databases
-	for _, ctx := range e.databases {
-		upper := strings.ToUpper(ctx.Name)
-		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+	// Search attached databases in ATTACH order (deterministic; SQLite resolves
+	// unqualified names to the first database that has the table).
+	for _, ctx := range e.dbList {
+		if ctx == e.mainDB {
 			continue
 		}
 		entry, err := ctx.Schema.FindTable(name)
@@ -678,9 +680,8 @@ func (e *Engine) findView(name string) (*schema.Entry, *DatabaseContext, error) 
 		return entry, e.mainDB, nil
 	}
 
-	for _, ctx := range e.databases {
-		upper := strings.ToUpper(ctx.Name)
-		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+	for _, ctx := range e.dbList {
+		if ctx == e.mainDB {
 			continue
 		}
 		entry, err := ctx.Schema.FindView(name)
@@ -712,9 +713,8 @@ func (e *Engine) findTrigger(name string) (*schema.Entry, *DatabaseContext, erro
 		return entry, e.mainDB, nil
 	}
 
-	for _, ctx := range e.databases {
-		upper := strings.ToUpper(ctx.Name)
-		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+	for _, ctx := range e.dbList {
+		if ctx == e.mainDB {
 			continue
 		}
 		entry, err := ctx.Schema.FindTrigger(name)
@@ -746,9 +746,8 @@ func (e *Engine) findIndex(name string) (*schema.Entry, *DatabaseContext, error)
 		return entry, e.mainDB, nil
 	}
 
-	for _, ctx := range e.databases {
-		upper := strings.ToUpper(ctx.Name)
-		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+	for _, ctx := range e.dbList {
+		if ctx == e.mainDB {
 			continue
 		}
 		entry, err := ctx.Schema.FindIndex(name)

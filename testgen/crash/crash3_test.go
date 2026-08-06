@@ -97,9 +97,9 @@ func Test_crash3(t *testing.T) {
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-1." + tn + ".1"
-					_res = db.Exec("\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
+					r = db.Query("\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
 					}
 				}
 				db.Close()
@@ -138,9 +138,9 @@ func Test_crash3(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "crash3-2.0"
-			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
+			r = db.Query("\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
 			}
 		}
 		tn = "1"

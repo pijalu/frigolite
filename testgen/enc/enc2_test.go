@@ -506,9 +506,9 @@ func Test_enc2(t *testing.T) {
 	{ // do_test "enc2-7.3"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
-		_res = db.Exec("\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
+		r = db.Query("\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
 	}
 	{ // do_test "enc2-7.4"

@@ -152,9 +152,9 @@ func Test_e_walckpt(t *testing.T) {
 			// testvfs tvfs (unsupported command, not transpiled)
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
+			r = db.Query("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
 			}
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
@@ -169,9 +169,9 @@ func Test_e_walckpt(t *testing.T) {
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		{ // do_test "6.1"
-			_res = db.Exec("\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			r = db.Query("\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			}
 			// file size test.db-wal
 		}

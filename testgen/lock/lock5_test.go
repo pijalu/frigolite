@@ -126,9 +126,9 @@ func Test_lock5(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "lock5-dotfile.8"
-			_res = db2.Exec("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+			r = db2.Query("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
 			}
 		}
 		{ // do_test "lock5-dotfile.9"

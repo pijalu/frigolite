@@ -118,8 +118,8 @@ func Test_bigrow(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), big1) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", big1, _res.Error, "bigrow-1.3")
+		if flatten(r) != big1 {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), big1, "bigrow-1.3")
 		}
 	}
 	{ // do_test "bigrow-1.4"

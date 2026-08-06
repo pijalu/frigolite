@@ -125,9 +125,9 @@ func Test_trans2(t *testing.T) {
 	max_rowid = tclExprWith("$i-1", map[string]string{"i": i})
 	_ = max_rowid // suppress unused warning
 	{ // do_test "trans2-1.1"
-		_res = db.Exec("\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
+		r = db.Query("\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
 		}
 		for _, rec := range tclSplitList("scramble $data") {
 		_ = rec // suppress unused warning

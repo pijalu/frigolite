@@ -105,9 +105,9 @@ func Test_speed1p(t *testing.T) {
 	_ = tens // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "speed1p-1.0"
-		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
+		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n  ")
 		}
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
 		if r.Error != nil {

@@ -98,9 +98,9 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // do_test "incrvacuum-ioerr-4.0"
-		_res = db1.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
+		r = db1.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
 		}
 		ii = "0"
 		_ = ii // suppress unused warning

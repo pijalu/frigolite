@@ -69,9 +69,9 @@ func Test_btreefault(t *testing.T) {
 		return
 	}
 	{ // do_test "1-pre1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    DELETE FROM t1 WHERE rowid%2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    DELETE FROM t1 WHERE rowid%2;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    DELETE FROM t1 WHERE rowid%2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    DELETE FROM t1 WHERE rowid%2;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}

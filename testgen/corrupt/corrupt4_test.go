@@ -88,9 +88,9 @@ func Test_corrupt4(t *testing.T) {
 	{ // do_test "corrupt4-1.1"
 		bigstring = "0123456789 200"
 		_ = bigstring // suppress unused warning
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
 		}
 		// file size test.db
 	}

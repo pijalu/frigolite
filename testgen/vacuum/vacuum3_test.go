@@ -70,9 +70,9 @@ func Test_vacuum3(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vacuum3-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
 		}
 	}
 	{ // do_test "vacuum3-1.2"
@@ -97,9 +97,9 @@ func Test_vacuum3(t *testing.T) {
 		_ = database // suppress unused warning
 		_ = _idx0
 			{ // do_test "vacuum3-1." + I + ".1"
-				_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+				r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 				}
 				r = db.Query(" PRAGMA page_size ")
 				if r.Error != nil {
@@ -132,9 +132,9 @@ func Test_vacuum3(t *testing.T) {
 			}
 		}
 		{ // do_test "vacuum3-2.1"
-			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
+			r = db.Query("\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
 			}
 			_res = db.Exec(" ALTER TABLE t1 ADD COLUMN d; ")
 			if _res.Error != nil {
@@ -170,9 +170,9 @@ func Test_vacuum3(t *testing.T) {
 			_ = database // suppress unused warning
 			_ = _idx1
 				{ // do_test "vacuum3-2." + I + ".1"
-					_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+					r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 					}
 					r = db.Query(" PRAGMA page_size ")
 					if r.Error != nil {
@@ -206,9 +206,9 @@ func Test_vacuum3(t *testing.T) {
 			}
 			// proc definition (not transpiled)
 			{ // do_test "vacuum3-3.1"
-				_res = db.Exec("\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+				r = db.Query("\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
 				}
 			}
 			{ // do_test "vacuum3-3.2"
@@ -230,9 +230,9 @@ func Test_vacuum3(t *testing.T) {
 				_ = actual // suppress unused warning
 				_ = _idx2
 					{ // do_test "vacuum3-3." + I + ".1"
-						_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+						r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 						}
 						r = db.Query(" PRAGMA page_size ")
 						if r.Error != nil {
@@ -263,9 +263,9 @@ func Test_vacuum3(t *testing.T) {
 					// delete_file test.db (unsupported command, not transpiled)
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
-					_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+					r = db.Query("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 					}
 					r = db.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
@@ -281,9 +281,9 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.3"
-					_res = db.Exec(" \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
+					r = db.Query(" \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
 					}
 					r = db.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
@@ -297,9 +297,9 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.5"
-					_res = db2.Exec("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
+					r = db2.Query("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
 					}
 					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
@@ -307,9 +307,9 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.6"
-					_res = db.Exec("\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
+					r = db.Query("\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
 					}
 					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {

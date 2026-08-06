@@ -100,9 +100,9 @@ func Test_malloc5(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "malloc5-1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
 		// sqlite3_release_memory (unsupported command, not transpiled)
 	}
@@ -313,9 +313,9 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA default_cache_size=2;\n  ")
 		}
-		_res = db.Exec("\n    PRAGMA temp_store = memory;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randstr(50,50), randstr(75,75), randstr(100,100));\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA temp_store = memory;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randstr(50,50), randstr(75,75), randstr(100,100));\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
+		r = db.Query("\n    PRAGMA temp_store = memory;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randstr(50,50), randstr(75,75), randstr(100,100));\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = memory;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randstr(50,50), randstr(75,75), randstr(100,100));\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
 		}
 		tclFileCopy("test.db", "test2.db")
 		db2, err = frigolite.Open("test2.db")

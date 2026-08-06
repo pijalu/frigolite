@@ -208,8 +208,8 @@ func Test_incrblob(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA auto_vacuum;\n      ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), AutoVacuumMode) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AutoVacuumMode, _res.Error, "incrblob-2." + AutoVacuumMode + ".2")
+			if flatten(r) != AutoVacuumMode {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AutoVacuumMode, "incrblob-2." + AutoVacuumMode + ".2")
 			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".3"
@@ -819,9 +819,9 @@ func Test_incrblob(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "incrblob-7.2.1"
-			_res = db.Exec("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")
+			r = db.Query("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")
 			}
 			b = "db incrblob -readonly t1 b 123" // TCL namespace variable
 			_ = b // suppress unused warning

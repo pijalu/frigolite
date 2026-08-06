@@ -80,9 +80,9 @@ func Test_tkt3793(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3793-1.3"
-		_res = db1.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
+		r = db1.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
 		}
 	}
 	x = "0"

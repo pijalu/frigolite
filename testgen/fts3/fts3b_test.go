@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -125,8 +124,8 @@ func Test_fts3b(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "fts3b-2.1")
+		if flatten(r) != res {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "fts3b-2.1")
 		}
 	}
 	_res = db.Exec("VACUUM")
@@ -138,8 +137,8 @@ func Test_fts3b(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "fts3b-2.2")
+		if flatten(r) != res {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "fts3b-2.2")
 		}
 	}
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n  INSERT INTO t3 (c) VALUES('this is a test');\n  INSERT INTO t3 (c) VALUES('that was a test');\n  INSERT INTO t3 (c) VALUES('this is fun');\n  DELETE FROM t3 WHERE c = 'that was a test';\n")

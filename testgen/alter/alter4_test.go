@@ -352,8 +352,8 @@ func Test_alter4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_temp_master WHERE name = 't4';\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sql) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sql, _res.Error, "alter4-8.2")
+		if flatten(r) != sql {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sql, "alter4-8.2")
 		}
 	}
 	{ // "alter4-9.1"

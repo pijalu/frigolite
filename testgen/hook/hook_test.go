@@ -296,9 +296,9 @@ func Test_hook(t *testing.T) {
 	{ // do_test "hook-4.4.2"
 		update_hook = "" // TCL namespace variable
 		_ = update_hook // suppress unused warning
-		_res = db.Exec("\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
+		r = db.Query("\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
 		}
 		_ = update_hook // TCL namespace variable (query)
 	}

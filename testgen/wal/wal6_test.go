@@ -137,9 +137,9 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_res = db2.Exec("\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
+		r = db2.Query("\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 		}
 	}
 	{ // "2.3"

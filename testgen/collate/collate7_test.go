@@ -88,9 +88,9 @@ func Test_collate7(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
-		_res = db.Exec("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
+		r = db.Query("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
 		}
 		_ = caseless_del // TCL namespace variable (query)
 	}

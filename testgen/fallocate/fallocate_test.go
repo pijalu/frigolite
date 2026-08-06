@@ -59,9 +59,9 @@ func Test_fallocate(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// file_control_chunksize_test db main [expr 1024*1024] (unsupported command, not transpiled)
 	{ // do_test "fallocate-1.1"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);\n  ")
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);\n  ")
 		}
 		// file size test.db
 	}
@@ -145,9 +145,9 @@ func Test_fallocate(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// file_control_chunksize_test db main [expr 32*1024] (unsupported command, not transpiled)
 		{ // do_test "fallocate-2.1"
-			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);\n    ")
+			r = db.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);\n    ")
 			}
 			// file size test.db
 		}
@@ -181,9 +181,9 @@ func Test_fallocate(t *testing.T) {
 			// file size test.db
 		}
 		{ // do_test "fallocate-2.5"
-			_res = db.Exec(" \n      INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;\n    ")
+			r = db.Query(" \n      INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;\n    ")
 			}
 			// file size test.db
 		}

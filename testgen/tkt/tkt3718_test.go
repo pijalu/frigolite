@@ -95,9 +95,9 @@ func Test_tkt3718(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3718-1.3"
-		_res = db.Exec(" \n    DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;\n  ")
+		r = db.Query(" \n    DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;\n  ")
 		}
 		_res = db.Exec("INSERT INTO t2 SELECT a+5, b||'+5' FROM t1")
 		if _res.Error != nil {

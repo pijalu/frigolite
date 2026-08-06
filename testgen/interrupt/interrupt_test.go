@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -120,8 +119,8 @@ func Test_interrupt(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(a || b) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "interrupt-2.3")
+		if flatten(r) != cksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), cksum, "interrupt-2.3")
 		}
 	}
 	{ // do_test "interrupt-2.4"
