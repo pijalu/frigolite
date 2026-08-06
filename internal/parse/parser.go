@@ -3576,6 +3576,13 @@ func indexedColumnName(e sql.Expr) (string, string) {
 	if ref, ok := e.(*sql.ColumnRef); ok {
 		return ref.Name, ""
 	}
+	// SQLite sqlite3StringToId: a bare single-quoted string literal in an
+	// index/constraint key becomes an identifier ("PRIMARY KEY('x' ASC)"
+	// indexes column x). CREATE INDEX (rule 239) already applies this rule;
+	// table-level PRIMARY KEY / UNIQUE constraints must do the same.
+	if sl, ok := e.(*sql.StringLit); ok {
+		return sl.Value, ""
+	}
 	return "", ""
 }
 

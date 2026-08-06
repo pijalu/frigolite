@@ -507,6 +507,9 @@ type transpiler struct {
 	dbAliases        map[string]string     // secondary connection name -> main db var it aliases (same file)
 	dqsDDL           bool                  // current SQLITE_DBCONFIG_DQS_DDL state (default true)
 	dqsDML           bool                  // current SQLITE_DBCONFIG_DQS_DML state (default true)
+	unsetVars        map[string]bool       // TCL vars unset via `unset`; `$var` renders as SQL NULL
+	dbVarFuncs       map[string]bool       // `db function NAME proc` registrations: NAME reads a TCL var
+	dbClosed         bool                  // main "db" connection was closed via `db close`
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -1027,10 +1030,14 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 			var parts []string
 			for _, e := range elems {
 				e = strings.TrimSpace(e)
-				// Strip each element's outer rendering braces (db eval renders
-				// each row as a braced element; flatten() emits it unbraced).
-				if len(e) >= 2 && e[0] == '{' && e[len(e)-1] == '}' {
-					e = strings.TrimSpace(e[1 : len(e)-1])
+				// tclSplitList returns the INNER content of each braced
+				// element, so a `{}` element (db eval's rendering of a
+				// NULL / empty-string row) arrives as the empty string.
+				// flatten() renders NULL as "{}", so keep it as `{}` —
+				// dropping it would corrupt the expected value (e.g.
+				// `{{} 1 {} 2}` must stay `{} 1 {} 2`, not ` 1  2`).
+				if e == "" {
+					e = "{}"
 				}
 				parts = append(parts, e)
 			}
@@ -1040,7 +1047,15 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	// Preserve structural content.
 	if strings.Contains(text, "|") || strings.Contains(text, "~") ||
 		strings.HasPrefix(text, "/") || strings.HasSuffix(text, "/") ||
-		strings.Contains(text, "=") || strings.Contains(text, "\n") {
+		strings.Contains(text, "=") ||
+		// A newline by itself is a row separator in a multi-row expected
+		// list (flatten() space-joins rows) — collapse it. But keep
+		// newlines when the text also carries structural content (e.g.
+		// a CREATE TABLE statement stored in an expected value), where
+		// collapsing would corrupt the text.
+		(strings.Contains(text, "\n") && (strings.Contains(text, "=") ||
+			strings.Contains(text, "|") || strings.Contains(text, "~") ||
+			strings.HasPrefix(text, "/") || strings.HasSuffix(text, "/"))) {
 		if unwrapped {
 			return tcl.RawWord{Text: text, Braced: true}
 		}
@@ -1178,7 +1193,12 @@ func (tp *transpiler) renderStringExpr(parts []stringPart, sqlMode bool) string 
 				inner = vn
 			}
 			if sqlMode {
-				result.WriteString("sqlLiteral(" + inner + ")")
+				if tp.unsetVars != nil && tp.unsetVars[vn] {
+					// TCL `unset var` then `$var` in db eval binds SQL NULL.
+					result.WriteString("sqlLiteral(nil)")
+				} else {
+					result.WriteString("sqlLiteral(" + inner + ")")
+				}
 			} else {
 				result.WriteString(inner)
 			}
@@ -1233,7 +1253,12 @@ func (tp *transpiler) renderSubstNovarSQL(s string) string {
 			} else {
 				inner = vn
 			}
-			result.WriteString("sqlLiteral(" + inner + ")")
+			if tp.unsetVars != nil && tp.unsetVars[vn] {
+				// TCL `unset var` then `$var` in db eval binds SQL NULL.
+				result.WriteString("sqlLiteral(nil)")
+			} else {
+				result.WriteString("sqlLiteral(" + inner + ")")
+			}
 		}
 		if p.command != "" {
 			if p.literal != "" || p.variable != "" {
@@ -1773,8 +1798,13 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	case "file":
 		tp.processFileCmd(args)
 	case "reset_db":
+		// SQLite tester.tcl reset_db: close, delete test.db, reopen on
+		// ./test.db (a fresh empty file). Reopening on the same filename
+		// matters because a later "sqlite3 db test.db" reopens that file
+		// and must find the writes made after reset.
 		tp.emitLine("db.Close()")
-		tp.emitLine("db, err = frigolite.Open(\"\")")
+		tp.emitLine("os.Remove(\"test.db\")")
+		tp.emitLine("db, err = frigolite.Open(\"test.db\")")
 		tp.emitLine("if err != nil { t.Fatal(err) }")
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
@@ -1815,7 +1845,23 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	case "proc":
 		tp.emitLine("// proc definition (not transpiled)")
 	case "unset":
-		// unset var — variables are managed by Go scope
+		// unset var — in TCL an unset variable referenced via $var in a
+		// db eval binds as SQL NULL (e.g. `unset -nocomplain null` followed
+		// by `SELECT ... WHERE a IS $null`). Track it so $var renders as
+		// sqlLiteral(nil), and so a later `set var value` un-marks it.
+		for _, a := range args {
+			flag := strings.TrimSpace(a.Text)
+			if flag == "-nocomplain" || flag == "--" {
+				continue
+			}
+			if !isValidGoIdent(tclVarToGo(flag)) {
+				continue
+			}
+			if tp.unsetVars == nil {
+				tp.unsetVars = make(map[string]bool)
+			}
+			tp.unsetVars[tclVarToGo(flag)] = true
+		}
 	case "count":
 		// count {SQL} — execute SQL, return result + search count (always 0)
 		if len(args) >= 1 {
@@ -2404,17 +2450,24 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 
 	if bodyCmds != nil {
 		bodyTP := &transpiler{
-			sb:       tp.sb,
-			indent:   tp.indent,
-			dbVar:    tp.dbVar,
-			t:        tp.t,
-			varCount: tp.varCount,
-			vars:     tp.vars,
-			forIncrs: tp.forIncrs,
+			sb:         tp.sb,
+			indent:     tp.indent,
+			dbVar:      tp.dbVar,
+			t:          tp.t,
+			varCount:   tp.varCount,
+			vars:       tp.vars,
+			forIncrs:   tp.forIncrs,
+			unsetVars:  tp.unsetVars,
+			dbVarFuncs: tp.dbVarFuncs,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
 		tp.indent = bodyTP.indent
+		// Propagate variable-reader function registrations and unset-var state
+		// back so sibling do_test blocks see them (e.g. `db function tclvar`
+		// registered in one test, used in later ones).
+		tp.unsetVars = bodyTP.unsetVars
+		tp.dbVarFuncs = bodyTP.dbVarFuncs
 		// A multi-command body whose expected value is a variable holding an
 		// error message (e.g. foreach $error in "13.2.$tn.1"): the last
 		// statement must fail with that message.
@@ -2565,6 +2618,7 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		// "sqlite3 db <file>" reopens it; the emitLine below pairs with
 		// the reopen logic in processSet/processSqlite3.
 		tp.emitLine("db.Close()")
+		tp.dbClosed = true
 	case "null", "nullvalue":
 		// TCL "db null <value>" / "db nullvalue <value>" sets how SQL NULL
 		// renders in query results.
@@ -2618,6 +2672,22 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
+		}
+	case "function":
+		// TCL `db function NAME procName` registers a scalar SQL function
+		// whose behavior is a TCL proc — not portable to a pure-Go engine.
+		// The only supported pattern is the variable-reader used by tests:
+		//   proc vf {vname} {return [set ::$vname]}
+		//   db function tclvar vf
+		// where tclvar('X') in SQL returns the current value of TCL var X.
+		// Track NAME so SQL rendering can inline the Go variable's value
+		// (see renderStringExpr / collectSQLExpression).
+		if len(rest) >= 1 {
+			if tp.dbVarFuncs == nil {
+				tp.dbVarFuncs = make(map[string]bool)
+			}
+			tp.dbVarFuncs[strings.TrimSpace(rest[0].Text)] = true
+			tp.emitLine("// db function %s (variable-reader, inlined)", strings.TrimSpace(rest[0].Text))
 		}
 	default:
 		// no-op for other db subcommands
@@ -2714,9 +2784,66 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 		if hasVarRef(text) {
 			return tp.buildSQLStringExpr(text)
 		}
+		// A registered variable-reader function (e.g. tclvar('v1')) is
+		// inlined as the Go variable's current value.
+		if inlined := tp.inlineVarFuncs(text); inlined != "" {
+			return inlined
+		}
 		return fmt.Sprintf("%q", text)
 	}
 	return tp.goStringLiteral(tcl.RawWord{Text: sanitizeSQL(args[0].Text), Quoted: args[0].Quoted})
+}
+
+// inlineVarFuncs rewrites calls to registered variable-reader SQL functions
+// (e.g. `db function tclvar` → `tclvar('v1')`) into a Go string concatenation
+// that injects the current value of the named TCL variable as a SQL literal:
+//   `SELECT ... WHERE tclvar('v1')`  →  `"SELECT ... WHERE " + sqlLiteral(v1) + ";..."`
+// Returns "" when no such call is present.
+func (tp *transpiler) inlineVarFuncs(text string) string {
+	if tp.dbVarFuncs == nil || len(tp.dbVarFuncs) == 0 {
+		return ""
+	}
+	var parts []string // alternating literals and sqlLiteral(...) fragments
+	rest := text
+	for {
+		// Find the earliest registered-function call fname('X') in rest.
+		bestPos := -1
+		bestFName := ""
+		bestName := ""
+		bestVar := ""
+		for fname := range tp.dbVarFuncs {
+			pos := strings.Index(rest, fname+"('")
+			if pos < 0 {
+				continue
+			}
+			closing := strings.Index(rest[pos+len(fname)+2:], "')")
+			if closing < 0 {
+				continue
+			}
+			vname := rest[pos+len(fname)+2 : pos+len(fname)+2+closing]
+			goVar := tclVarToGo(vname)
+			if !isValidGoIdent(goVar) {
+				continue
+			}
+			if bestPos < 0 || pos < bestPos {
+				bestPos = pos
+				bestFName = fname
+				bestName = vname
+				bestVar = goVar
+			}
+		}
+		if bestPos < 0 {
+			parts = append(parts, fmt.Sprintf("%q", rest))
+			break
+		}
+		if bestPos > 0 {
+			parts = append(parts, fmt.Sprintf("%q", rest[:bestPos]))
+		}
+		parts = append(parts, "sqlLiteral("+bestVar+")")
+		// skip the full call: fname + "('" + name + "')"
+		rest = rest[bestPos+len(bestFName)+len(bestName)+4:]
+	}
+	return strings.Join(parts, " + ")
 }
 
 // isBareGoIdent reports whether s is a single Go identifier (a variable
@@ -3654,6 +3781,13 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		return
 	}
 
+	// A `set var value` gives the variable a value, so it is no longer
+	// unset — clear any NULL-marking so $var renders as the value.
+	goName := tclVarToGo(args[0].Text)
+	if tp.unsetVars != nil {
+		delete(tp.unsetVars, goName)
+	}
+
 	// Skip set testdir [file dirname $argv0] etc - infrastructure
 	if len(args) >= 1 {
 		varName := args[0].Text
@@ -3693,7 +3827,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		}
 	}
 
-	goName := tclVarToGo(args[0].Text)
+	goName = tclVarToGo(args[0].Text)
 	if goName == "" || !isValidGoIdent(goName) {
 		// Variable name is not a valid Go identifier — skip
 		tp.emitLine("// set %s (invalid identifier, skipped)", args[0].Text)
@@ -4524,6 +4658,15 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)
 		tp.emitLine("defer %s.Close()", goName)
 		tp.vars = append(tp.vars, goName)
+	} else if goName == "db" && tp.dbClosed {
+		// "db close" then "sqlite3 db <file>": the main connection was
+		// closed, so reopen it on the same file so prior writes persist
+		// (matching SQLite's close+reopen semantics). The compat suite
+		// runs in-memory; the filename keeps the logical database alive.
+		tp.emitLine("db, err = frigolite.Open(%s)", filename)
+		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
+		tp.dqsDML = true
+		tp.dbClosed = false
 	} else {
 		// Variable already declared (possibly as string from set) —
 		// use a temp variable to avoid type conflicts. Reopening a FILE
