@@ -271,6 +271,25 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 		}
 	}
 
+	// resolveTable maps a column reference to its table index in the join.
+	// A qualified ref (t.col) resolves directly; an unqualified ref resolves
+	// by matching the column name against each table's columns.
+	resolveTable := func(ref *sql.ColumnRef) int {
+		if ref.Table != "" {
+			return e.tableIndexByDisplay(tables, ref.Table)
+		}
+		found := -1
+		for i := range tables {
+			if e.tableHasColumn(tables[i].real, ref.Name) {
+				if found >= 0 {
+					return -1 // ambiguous
+				}
+				found = i
+			}
+		}
+		return found
+	}
+
 	// constPreds counts constant predicates (col = literal) per table; these
 	// drive the join order even when the column is not indexed.
 	constPreds := make([]int, len(tables))
@@ -282,7 +301,7 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 			continue
 		}
 		if colRef, constVal := findColAndConst(bin); colRef != nil && constVal != nil {
-			if ti := e.tableIndexByDisplay(tables, colRef.Table); ti >= 0 {
+			if ti := resolveTable(colRef); ti >= 0 {
 				constPreds[ti]++
 			}
 			continue
@@ -292,8 +311,8 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 		if !okL || !okR {
 			continue
 		}
-		li := e.tableIndexByDisplay(tables, left.Table)
-		ri := e.tableIndexByDisplay(tables, right.Table)
+		li := resolveTable(left)
+		ri := resolveTable(right)
 		if li < 0 || ri < 0 || li == ri {
 			continue
 		}
@@ -323,6 +342,20 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 		if !found || cnt < bestCnt {
 			driver, bestCnt, found = i, cnt, true
 		}
+	}
+	if !found {
+		// No constant predicates: prefer the table with the fewest indexed
+		// join connections as the driving (scanned) table, so tables with
+		// useful join indexes become SEARCHed inner tables. Matches SQLite's
+		// choice for e.g. "FROM t2, t1 WHERE a=z AND c=x" where t2's index
+		// covers both predicates: scan t1, search t2.
+		best := -1
+		for i := range tables {
+			if best < 0 || len(joinRefs[i]) < len(joinRefs[best]) {
+				best = i
+			}
+		}
+		driver = best
 	}
 
 	planned := []string{tables[driver].display}
