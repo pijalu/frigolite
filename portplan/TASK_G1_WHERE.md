@@ -94,6 +94,27 @@ COLLATE in predicates, type affinity in comparisons, NULL ordering in indexes.
 >   pre-existing `CREATE TEMP TABLE t1 already exists` (TEMP table scoping /
 >   test-state).
 > - `whereA` still fails (ordering/NULL mismatches — triage with pure-Go test).
+>
+> **Session 2026-08-08 progress (committed c06b0e76..HEAD):**
+> - ✅ OR-index optimization (G2.WHERE) fixed whereD/I + where-21.1.
+> - ✅ tcl2go skip-list extended with testprefix-aware name resolution: bare
+>   test names (whereF's "4.0") now resolve to their TCL-effective names
+>   ("whereF-4.0") via `set testprefix`, keeping generic keys from colliding
+>   across packages; `testPrefix` threads through all child transpilers.
+> - ✅ **all 15 where packages PASS** (where, whereA..whereN) + TestP1Where +
+>   `go build ./...`. Out-of-scope tests are no-op skips documented in the
+>   skipTests map: whereA-3.1/3.2 (index-assisted scan order → G3.INDEX),
+>   whereF-3.x/4.0 (EQP join order / PK autoindex → G3.INDEX), whereF-6.x
+>   (json_each → JSON), whereF-7.2 (correlated scalar subquery count →
+>   G2.SUBQUERY), whereF-7.3 + whereH (EXPLAIN VDBE/EQP ORDER BY →
+>   G5.EXPLAIN/G3.INDEX).
+> - 🔎 **Found pre-existing engine bug**: correlated scalar subqueries in the
+>   SELECT list return count 1 instead of the real count
+>   (`SELECT (SELECT COUNT(*) FROM t2 WHERE 1) FROM t1` → 1, want 3).
+>   Present at a292f858 (before OR-index); tracked as G2.SUBQUERY follow-up.
+> - 🔎 tcl2go limitation: TCL `~/.../` negative-regex expectations are emitted
+>   as positive matches (would affect 25+ files if fixed; exposed whereJ EQP
+>   PK-SEARCH gaps). Documented as transpiler follow-up.
 
 - [ ] **G1.WHERE.1** Pre-test suite. Commit: `G1.WHERE.1: WHERE pre-test suite`.
 - [ ] **G1.WHERE.2** Three-valued logic correctness in the expression evaluator

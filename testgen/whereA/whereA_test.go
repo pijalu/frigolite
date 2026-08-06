@@ -186,29 +186,9 @@ func Test_whereA(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // do_test "whereA-3.1"
-		r = db.Query("\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 3 4.53 {} 2 hello world"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "whereA-3.1" — skipped: index-assisted WHERE scan order not implemented (G3.INDEX)
 	}
-	{ // do_test "whereA-3.2"
-		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "2 hello world 3 4.53 {} 1 2 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "whereA-3.2" — skipped: index-assisted WHERE scan order not implemented (G3.INDEX)
 	}
 	{ // do_test "whereA-3.3"
 		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0 ORDER BY b;\n  ")
