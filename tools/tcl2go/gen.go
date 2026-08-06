@@ -2045,6 +2045,16 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 		expectSuccess = false
 		errMsgDynamic = msgExpr
 	}
+	// Bare "1 {msg with $vars}" quoted form (do_catchsql_test "1 {msg $v}"):
+	// the message interpolates $var at runtime.
+	if expectSuccess && args[2].Quoted && strings.HasPrefix(strings.TrimSpace(args[2].Text), "1 {") &&
+		strings.Contains(args[2].Text, "$") {
+		msg := strings.TrimSpace(args[2].Text)
+		msg = strings.TrimSpace(msg[2:]) // drop "1 "
+		msg = strings.Trim(msg, "{}")
+		expectSuccess = false
+		errMsgDynamic = tp.buildStringExpr(msg)
+	}
 	if expectSuccess {
 		// TCL do_catchsql_test {0 {}} — the statement is expected to succeed.
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
@@ -2156,10 +2166,20 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
 			tp.emitLine("}")
 		} else {
-			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-			tp.emitLine("if _res.Error != nil {")
-			tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
-			tp.emitLine("}")
+			if isBareGoIdent(expectedExpr) {
+				// The expected value is a variable holding an error message
+				// (e.g. foreach $error in "13.2.$tn.1"): the statement must fail
+				// with that message.
+				tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+				tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, _res.Error, %s)", expectedExpr, sqlExpr)
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+				tp.emitLine("if _res.Error != nil {")
+				tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+				tp.emitLine("}")
+			}
 		}
 		tp.indent--
 		tp.emitLine("}")
@@ -2182,6 +2202,14 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
 		tp.indent = bodyTP.indent
+		// A multi-command body whose expected value is a variable holding an
+		// error message (e.g. foreach $error in "13.2.$tn.1"): the last
+		// statement must fail with that message.
+		if isBareGoIdent(expectedExpr) {
+			tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
+			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %s\", %s, _res.Error)", expectedExpr, nameExpr, expectedExpr)
+			tp.emitLine("}")
+		}
 	} else {
 		// String-bodied do_test: the body is a TCL script string, most
 		// commonly `execsql {SQL}`. Execute the SQL (with $var substitution)
