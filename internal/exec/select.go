@@ -3463,6 +3463,11 @@ func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.Colum
 		if ref.Name == "*" {
 			return nil
 		}
+		// TRUE/FALSE are boolean literals, not column references
+		// (the parser represents them as unqualified ColumnRefs).
+		if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
+			return nil
+		}
 		if colByName[strings.ToLower(ref.Name)] {
 			return nil
 		}

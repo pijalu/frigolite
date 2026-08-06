@@ -620,6 +620,8 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			e.reverseUnordered = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 			// SQLite: PRAGMA reverse_unordered_selects=1 (set form) returns
 			// no row; only the bare PRAGMA (getter) returns the value.
+		case "COUNT_CHANGES":
+			e.countChanges = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		}
 		// When setting a PRAGMA value, don't also return the value
 		return &Result{}
@@ -1010,7 +1012,7 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"TABLE_X": func(e *Engine) *Result {
 		return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}}
 	},
-	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{boolToInt(e.countChanges)}}} },
 	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"RECURSIVE_TRIGGERS": func(e *Engine) *Result {
 		val := int64(0)

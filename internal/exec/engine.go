@@ -91,6 +91,7 @@ type Engine struct {
 	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 100000, matching SQLite test builds)
 	reverseUnordered  bool                             // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
 	selectDepth        int                              // current SELECT nesting depth (1 = top-level statement)
+	countChanges       bool                             // PRAGMA count_changes: DML statements return a row with the changed-row count
 	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
 	returningTable    string                           // table name for RETURNING qualified column resolution
 	// aggRowMaps, when non-nil, holds the row set an aggregate query is
@@ -849,6 +850,12 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		if res.LastInsertRowID > 0 {
 			e.lastRowID = res.LastInsertRowID
 		}
+	}
+
+	// PRAGMA count_changes: a DML statement returns a single row with the
+	// changed-row count (SQLite's legacy behavior when the pragma is on).
+	if isDML && res != nil && res.Error == nil && e.countChanges && len(res.Rows) == 0 {
+		res.Rows = [][]interface{}{{res.Changes}}
 	}
 	return res
 }
