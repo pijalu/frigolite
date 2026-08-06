@@ -65,8 +65,16 @@ COLLATE in predicates, type affinity in comparisons, NULL ordering in indexes.
 > - ✅ join planner resolves unqualified refs; scans fewest-index table —
 >   whereE PASS.
 > - ✅ tcl2go: TCL regex `\y` word-boundary → RE2 `\b` — whereF-1.x/2.x PASS.
-> - **Now passing (8/15)**: whereB, whereC, whereE, whereG, whereJ, whereK,
->   whereM, whereN + all TestP1Where pre-tests.
+> - ✅ **fix(btree): persist table root-page splits to sqlite_schema** —
+>   where9 PASS (was count=42). This was a real data-loss bug: a table
+>   b-tree split moved the root page but sqlite_schema kept the old
+>   rootpage, so reopen (or tableRootPages invalidation) exposed only the
+>   first leaf page's rows.
+> - ✅ pragma_cache_size table-valued pragma + materialized rowids —
+>   where-29.1 PASS.
+> - **Now passing**: whereB, whereC, whereE, whereG, whereJ, whereK,
+>   whereM, whereN (8/15 packages) + where7, where9 (subtests of `where`)
+>   + all TestP1Where pre-tests.
 > - **Remaining (mostly G3.INDEX / out-of-scope)**:
 >   - whereD/H/I + whereA-3.x + where-19/21 ordering + whereF-3.x/4.0:
 >     index-assisted WHERE scan order, OR-optimization, ORDER BY index
