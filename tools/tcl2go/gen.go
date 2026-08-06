@@ -1054,8 +1054,15 @@ func isTCLRegexPattern(goQuoted string) bool {
 // too for EXPLAIN-plan comparisons.
 func regexPatternExpr(goQuoted string) string {
 	s := goQuoted
+	// expectedExpr is a Go string literal (e.g. "\"/.../\"" from
+	// goStringLiteral), so decode it with strconv.Unquote to get the real
+	// pattern text; the escapes would otherwise be doubled on re-quoting.
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		s = s[1 : len(s)-1]
+		if unquoted, err := strconv.Unquote(s); err == nil {
+			s = unquoted
+		} else {
+			s = s[1 : len(s)-1]
+		}
 	}
 	s = strings.TrimSpace(s)
 	if strings.HasPrefix(s, "~/") && strings.HasSuffix(s, "/") {
@@ -1063,6 +1070,9 @@ func regexPatternExpr(goQuoted string) string {
 	} else if len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/' {
 		s = s[1 : len(s)-1]
 	}
+	// TCL regex uses \y for a word boundary; RE2 (Go) uses \b. Convert so
+	// patterns like "SCAN t2\y" match in Go.
+	s = strings.ReplaceAll(s, `\y`, `\b`)
 	return fmt.Sprintf("%q", s)
 }
 
