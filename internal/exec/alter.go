@@ -402,16 +402,19 @@ parenLoop:
 		// Extract the column name (first word, handling quoted names)
 		colName := extractColumnName(trimmed)
 		if colName != "" && strings.EqualFold(colName, oldName) {
-			// Replace the first occurrence of the column name
+			// Preserve the leading whitespace of the original part so the
+			// rebuilt SQL keeps its formatting ("a INTEGER, b TEXT" stays
+			// "a INTEGER, d TEXT" rather than "a INTEGER,d TEXT").
+			leadWS := part[:len(part)-len(trimmed)]
 			if strings.HasPrefix(trimmed, `"`+colName+`"`) {
-				parts[i] = strings.Replace(trimmed, `"`+colName+`"`, `"`+newName+`"`, 1)
+				parts[i] = leadWS + strings.Replace(trimmed, `"`+colName+`"`, `"`+newName+`"`, 1)
 			} else {
 				// For unquoted names, replace the first word
 				spaceIdx := strings.IndexAny(trimmed, " (\"")
 				if spaceIdx > 0 {
-					parts[i] = newName + trimmed[spaceIdx:]
+					parts[i] = leadWS + newName + trimmed[spaceIdx:]
 				} else {
-					parts[i] = newName
+					parts[i] = leadWS + newName
 				}
 			}
 			break
@@ -429,7 +432,14 @@ parenLoop:
 		buf.WriteString(part)
 	}
 	buf.WriteString(sqlStr[parenEnd:])
-	return buf.String()
+	result := buf.String()
+
+	// Rewrite references to the renamed column in table-level and
+	// column-level constraints (CHECK, PRIMARY KEY, UNIQUE, FOREIGN KEY,
+	// defaults, generated expressions). The definition name was rewritten
+	// above; this pass updates every other reference within the CREATE SQL.
+	result = replaceColumnNameInSQL(result, oldName, newName)
+	return result
 }
 
 // extractColumnName extracts the column name from the start of a column definition.
