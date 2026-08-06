@@ -41,6 +41,40 @@ COLLATE in predicates, type affinity in comparisons, NULL ordering in indexes.
 >   `PRIMARY KEY('x' ASC,"y" ASC)` collapse engine bug and the
 >   `WHERE a IS $null` transpiler bug → where4-5.2, where4-8.2, where6 PASS.
 > - ✅ G1.WHERE.5 (partial) — `db function tclvar` inlined → where-10.2/10.3 PASS.
+>
+> **Session 2026-08-07 progress (committed `5713622c`..`79e6188b`):**
+> - ✅ Pre-tests: `frigolite_p1_where_test.go` (8 oracle-verified tests) PASS.
+> - ✅ BETWEEN collation/affinity: evalBetween uses compareValuesWithCollate
+>   (handles collatedValue wrappers, left-column collation) + NULL bounds.
+> - ✅ LIKE/GLOB/REGEXP REAL text rendering via util.SQLiteValueString
+>   (%.15g): 10.0 LIKE '10.0' matches (whereM PASS).
+> - ✅ EXPLAIN QUERY PLAN single-table SEARCH now emits 'USING INDEX name'
+>   (whereK PASS).
+> - ✅ NOT BETWEEN parser negation (rule 220 reads the between_op token).
+> - ✅ LIKE ESCAPE string extraction (rule 207 uses getString).
+> - ✅ IN/NOT IN with NULL list items → NULL when unmatched (Kleene).
+> - ✅ Explicit COLLATE operator overrides column collation
+>   (collatedValue.explicit flag).
+> - ✅ GROUP BY aggregate output sorts by key VALUES (NULL first) — whereG PASS.
+> - ✅ Scalar subquery with SELECT * FROM (subquery) arity — where-21.1 row
+>   values correct (order still index-driven).
+> - ✅ JOIN USING-column filtering only for USING/NATURAL; TRUE/FALSE in ON
+>   clause — whereL-610 PASS.
+> - ✅ PRAGMA reverse_unordered_selects (set/get + top-level scan reversal) —
+>   whereA-1.x/2.2/4.1 PASS (3.1/3.2 need UNIQUE autoindex scan order).
+> - ✅ int64 arithmetic overflow → REAL; sqlite3IntFloatCompare boundary at
+>   2^63 — where-27.2 PASS.
+> - **Now passing**: whereB, whereC, whereG, whereK, whereM, whereN (6/15).
+> - **Remaining (mostly G3.INDEX / out-of-scope)**:
+>   - whereD/E/F/H/I + whereA-3.x + where-19/21 ordering: index-assisted
+>     WHERE scan order / OR-optimization / QUERY PLAN SEARCH → G3.INDEX.
+>   - whereJ: ANALYZE/sqlite_stat1/sqlite_stat4 tables.
+>   - whereF: json_each virtual table.
+>   - where-26.x: corruption detection (database disk image is malformed).
+>   - where-29.1: pragma_cache_size table-valued pragma.
+>   - where-15.1: TEMP schema scoping (CREATE TEMP TABLE shadows main).
+>   - whereL-940/950: transpiler NULL-vs-empty-string ambiguity in expected
+>     values (engine matches oracle; transpiled want cannot distinguish).
 > - Remaining within `where`: where2 (EXPLAIN/plan-shape → G5.EXPLAIN scope),
 >   where7 (engine: `want [1 2 1 2 2]` got `[1 2 1 2]`), where9 (engine:
 >   missing rows / NULL rows), where-10.4 (stateful `tclvar` flip — needs a
