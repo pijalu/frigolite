@@ -1717,7 +1717,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Left:     left,
 			Operator: "LIKE",
 			Right:    right,
-			Escape:   fmt.Sprintf("%v", escape),
+			Escape:   getString(escape),
 		}
 
 	// Rule 208: expr ::= expr ISNULL|NOTNULL
@@ -1809,7 +1809,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 220: expr ::= expr between_op expr AND expr
 	case 220:
-		negated := (lookahead == TK_NOT)
+		// between_op is the raw keyword token: BETWEEN (or NOT for
+		// "NOT BETWEEN"). SQLite's grammar reduces between_op to an
+		// int flag; here the token itself sits on the stack.
+		negated := false
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok && strings.EqualFold(tok.Value, "NOT") {
+			negated = true
+		}
 		return &sql.Between{
 			Operand: getExpr(getRHS(p, ruleNo, 1)),
 			Low:     getExpr(getRHS(p, ruleNo, 3)),

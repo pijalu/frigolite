@@ -810,6 +810,12 @@ func getRowID(row Row) int64 {
 type collatedValue struct {
 	value     interface{}
 	collation string
+	// explicit is true when the collation came from an explicit COLLATE
+	// operator in the SQL text (expr COLLATE name), as opposed to a column's
+	// declared COLLATE clause. SQLite's collation resolution gives an
+	// explicit COLLATE on either operand precedence over any column
+	// collation.
+	explicit bool
 }
 
 // extractValue extracts the raw value and collation from a potentially collated value.
@@ -837,15 +843,24 @@ func compareValuesWithCollate(left, right interface{}) int {
 	lv, lc := extractValue(left)
 	rv, rc := extractValue(right)
 	// SQLite collation resolution for a binary comparison (datatype3.html):
-	// 1. Explicit COLLATE clause (already applied by the parser as a
-	//    collatedValue wrapper) wins.
-	// 2. If the LEFT operand is a column, its column collation is used —
-	//    defaulting to BINARY when the column has no COLLATE (a plain
+	// 1. An explicit COLLATE clause on either operand (the COLLATE operator)
+	//    wins over any column collation: `a = 'ABC' COLLATE BINARY` compares
+	//    BINARY even when column a is declared COLLATE NOCASE, and
+	//    `a COLLATE BINARY = 'ABC'` likewise. If both sides are explicit,
+	//    the left one wins (matching sqlite3ExprCollSeq).
+	// 2. Otherwise, if the LEFT operand is a column, its column collation is
+	//    used — defaulting to BINARY when the column has no COLLATE (a plain
 	//    ColumnValue wrapper). A column on the left masks a collation on
 	//    the right: `t2.y > t1.b` (b COLLATE NOCASE) compares BINARY
 	//    because t2.y is a column without collation.
 	// 3. Only when the left operand is NOT a column (literal/expression)
 	//    does the right operand's column collation apply, e.g. `'abc' > b`.
+	if le, ok := left.(*collatedValue); ok && le.explicit {
+		return util.CompareValuesCollate(lv, rv, le.collation)
+	}
+	if re, ok := right.(*collatedValue); ok && re.explicit {
+		return util.CompareValuesCollate(lv, rv, re.collation)
+	}
 	leftIsColumn := isColumnValue(left)
 	if leftIsColumn {
 		return util.CompareValuesCollate(lv, rv, lc)
@@ -1012,11 +1027,13 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 	case "COLLATE":
 		// COLLATE operator — returns the left value but marks it with
 		// the collation name. Comparison operators check for this
-		// marker and apply the correct collation.
+		// marker and apply the correct collation. The explicit flag
+		// distinguishes this operator from a column's declared COLLATE
+		// clause, so an explicit COLLATE on either operand wins.
 		if rightStr, ok := right.(string); ok {
 			switch strings.ToUpper(rightStr) {
 			case "", "BINARY", "NOCASE", "RTRIM":
-				return &collatedValue{value: left, collation: rightStr}, nil
+				return &collatedValue{value: left, collation: rightStr, explicit: true}, nil
 			default:
 				return nil, fmt.Errorf("no such collation sequence: %s", rightStr)
 			}
@@ -1412,6 +1429,7 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 		opArity = len(opRow)
 	}
 	found := false
+	sawNull := false // an unmatched list item evaluated to NULL
 	for _, item := range v.List {
 		// A subquery item in an IN list produces a set of rows. With a
 		// row-value operand each row's full column set is the comparison
@@ -1427,18 +1445,27 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 						return nil, fmt.Errorf("sub-select returns %d columns - expected %d", len(subRow), opArity)
 					}
 					equal := true
+					sawRowNull := false
 					for i := range opRow {
 						l, _ := extractValue(opRow[i])
+						if util.UnwrapColumnValue(l) == nil || util.UnwrapColumnValue(subRow[i]) == nil {
+							sawRowNull = true
+							continue
+						}
 						if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i])) != 0 {
 							equal = false
 							break
 						}
 					}
-					if equal {
+					if equal && sawRowNull {
+						sawNull = true
+					} else if equal {
 						found = true
 					}
 				} else if len(subRow) > 0 {
-					if util.CompareValues(operand, subRow[0]) == 0 {
+					if util.UnwrapColumnValue(subRow[0]) == nil {
+						sawNull = true
+					} else if util.CompareValues(operand, subRow[0]) == 0 {
 						found = true
 					}
 				}
@@ -1447,6 +1474,12 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 		}
 		ival, err := e.evalExpr(item, row)
 		if err != nil {
+			continue
+		}
+		if ival == nil {
+			// A NULL list item can only make the result unknown (NULL),
+			// never a match. Track it for the final decision.
+			sawNull = true
 			continue
 		}
 		ivRow, ivIsRow := ival.([]interface{})
@@ -1493,10 +1526,21 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 			break
 		}
 	}
-	if v.Negated {
-		found = !found
+	if found {
+		if v.Negated {
+			return int64(0), nil
+		}
+		return int64(1), nil
 	}
-	return boolToInt(found), nil
+	// Not found: a NULL list item makes the result unknown (NULL);
+	// otherwise the result is FALSE for IN and TRUE for NOT IN.
+	if sawNull {
+		return nil, nil
+	}
+	if v.Negated {
+		return int64(1), nil
+	}
+	return int64(0), nil
 }
 
 // evalSubqueryRows executes a subquery and returns all result rows (each row

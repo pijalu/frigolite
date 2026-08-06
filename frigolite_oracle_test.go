@@ -60,6 +60,16 @@ func queryRows(t *testing.T, db *DB, sql string, nullToken ...string) [][]string
 // cell parses to "" while NULL parses to the NULL token.
 func oracleRows(t *testing.T, sql string, nullToken ...string) [][]string {
 	t.Helper()
+	return oracleRowsWith(t, sql, "", nullToken...)
+}
+
+// oracleRowsWith runs setup SQL followed by the query against the system
+// sqlite3 CLI (:memory:) and parses the pipe-separated output into rows,
+// using the same NULL-token convention as queryRows. It skips the test when
+// no sqlite3 CLI is available. setup is executed before sql; both share one
+// in-memory database.
+func oracleRowsWith(t *testing.T, sql, setup string, nullToken ...string) [][]string {
+	t.Helper()
 	tok := defaultNullToken
 	if len(nullToken) > 0 {
 		tok = nullToken[0]
@@ -69,10 +79,10 @@ func oracleRows(t *testing.T, sql string, nullToken ...string) [][]string {
 		t.Skip("sqlite3 CLI not found; skipping oracle comparison")
 	}
 	cmd := exec.Command(bin, "-batch", "-noheader", "-separator", "|", "-nullvalue", tok, ":memory:")
-	cmd.Stdin = strings.NewReader(sql)
+	cmd.Stdin = strings.NewReader(setup + "\n" + sql)
 	out, err := cmd.Output()
 	if err != nil {
-		t.Fatalf("oracleRows: sqlite3 %q: %v", sql, err)
+		t.Fatalf("oracleRowsWith: sqlite3 %q: %v", sql, err)
 	}
 	lines := strings.Split(string(out), "\n")
 	// The final row's trailing newline yields a trailing empty element.
