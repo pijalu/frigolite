@@ -438,16 +438,25 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 	}
 	// Qualified column reference: check qualified name first
 	if v.Table != "" {
+		// Strip a schema prefix (main./temp.) from the qualifier so
+		// "main.txx.a" resolves against the "txx.a" key in the row map.
+		tableQual := v.Table
+		if dot := strings.Index(tableQual, "."); dot >= 0 {
+			prefix := strings.ToUpper(tableQual[:dot])
+			if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+				tableQual = tableQual[dot+1:]
+			}
+		}
 		// Try table-qualified key in the current row (e.g., "t1.a")
 		if row != nil {
-			if val, ok := row.Get(v.Table + "." + v.Name); ok {
+			if val, ok := row.Get(tableQual + "." + v.Name); ok {
 				return val, nil
 			}
 			// If the qualified key is not found and the qualifier matches the
 			// table currently being scanned, resolve via unqualified name.
 			// Row maps store unqualified column names, so "t1.a" in a query
 			// scanning table t1 resolves to row["a"].
-			if e.currentScanTable != "" && strings.EqualFold(v.Table, e.currentScanTable) {
+			if e.currentScanTable != "" && strings.EqualFold(tableQual, e.currentScanTable) {
 				if val, ok := row.Get(v.Name); ok {
 					return val, nil
 				}

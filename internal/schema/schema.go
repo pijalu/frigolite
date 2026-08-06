@@ -37,6 +37,7 @@ type Entry struct {
 	RootPage  uint32
 	SQL       string
 	Columns   []ColumnDef // cached column definitions (tables only)
+	RowID     int64       // sqlite_schema rowid (set when read from the b-tree)
 }
 
 // ColumnDef represents a column definition (replicated from sql.ColumnDef
@@ -141,6 +142,34 @@ func (m *Manager) AddEntry(entry *Entry) error {
 	return err
 }
 
+// addEntryWithRowID inserts a schema entry using an explicit rowid (used to
+// preserve a renamed entry's position in sqlite_schema).
+func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
+	m.cacheValid = false
+	m.entriesCache = nil
+
+	values := []interface{}{
+		entry.Type,
+		entry.Name,
+		entry.TblName,
+		int64(entry.RootPage),
+		entry.SQL,
+	}
+	record, err := storage.EncodeRecord(values)
+	if err != nil {
+		return err
+	}
+
+	cell := &storage.Cell{
+		Type:    storage.CellTableLeaf,
+		RowID:   rowID,
+		Payload: record,
+	}
+
+	tree := btree.NewBTree(m.pager, 1, true)
+	return tree.InsertCell(cell)
+}
+
 // GetEntries returns all schema entries of the given type.
 func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 	// Return cached entries if cache is valid
@@ -173,6 +202,7 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 				TblName:  toString(rec.Values[2]),
 				RootPage: uint32(toInt64(rec.Values[3])),
 				SQL:      toString(rec.Values[4]),
+				RowID:    cell.RowID,
 			}
 			if schemaType == "" || entry.Type == schemaType {
 				entries = append(entries, entry)
@@ -482,7 +512,9 @@ func (m *Manager) RenameEntryWithSQL(oldName, newName, newSQL string) error {
 		return err
 	}
 
-	// Add new entry with updated name/tbl_name
+	// Add new entry with updated name/tbl_name. Reuse the old entry's rowid
+	// so the renamed object keeps its position in sqlite_schema (SQLite
+	// rewrites the row in place; a fresh rowid would move it to the end).
 	newEntry := &Entry{
 		Type:     oldEntry.Type,
 		Name:     newName,
@@ -491,7 +523,7 @@ func (m *Manager) RenameEntryWithSQL(oldName, newName, newSQL string) error {
 		SQL:      finalSQL,
 	}
 
-	return m.AddEntry(newEntry)
+	return m.addEntryWithRowID(newEntry, oldEntry.RowID)
 }
 
 // UpdateEntry replaces the SQL text of an existing schema entry WITHOUT

@@ -1408,6 +1408,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		col := getString(getRHS(p, ruleNo, 3))
 		return &sql.ColumnRef{Table: schema, Name: col}
 
+	// Rule 182: expr ::= nm DOT nm DOT nm (schema.table.column)
+	case 182:
+		schema := getString(getRHS(p, ruleNo, 1))
+		table := getString(getRHS(p, ruleNo, 3))
+		col := getString(getRHS(p, ruleNo, 5))
+		return &sql.ColumnRef{Table: schema + "." + table, Name: col}
+
 	// Rule 183: term ::= NULL|FLOAT|BLOB
 	case 183:
 		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {

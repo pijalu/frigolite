@@ -83,7 +83,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}\n"
+		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -107,7 +107,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"t1new\"(a, b, CHECK(\"t1new\".a != \"t1new\".b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}\n"
+		want := "CREATE TABLE \"t1new\"(a, b, CHECK(\"t1new\".a != \"t1new\".b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -125,7 +125,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"t1new\"(a, b, CHECK(\"t1new\".a != \"t1new\".b))}\n  {CREATE TABLE \"t2new\"(a, b)}\n  {CREATE INDEX t2expr ON \"t2new\"(a) WHERE \"t2new\".b>0}\n"
+		want := "CREATE TABLE \"t1new\"(a, b, CHECK(\"t1new\".a != \"t1new\".b)) CREATE TABLE \"t2new\"(a, b) CREATE INDEX t2expr ON \"t2new\"(a) WHERE \"t2new\".b>0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -385,7 +385,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{} {} {}"
+		want := "  "
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -466,7 +466,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END} {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}"
+		want := "CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -502,7 +502,7 @@ func Test_altertab(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
-	trigger = "list" // TCL namespace variable
+	trigger = "" // TCL namespace variable
 	_ = trigger // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "11.0"
@@ -720,7 +720,7 @@ func Test_altertab(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// register_tcl_module db (unsupported command, not transpiled)
-	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "16.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE y1 USING fts3;\n    VACUUM;\n  ")
 		if _res.Error != nil {
@@ -745,14 +745,14 @@ func Test_altertab(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table y1_segments may not be altered", _res.Error, "\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "16.22"
 		_res = db.Exec("\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
 		if _res.Error != nil {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "16.23"
 		_res = db.Exec("\n    CREATE TABLE y1_segments AS SELECT * FROM abc;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: y1_segments") {
@@ -765,14 +765,14 @@ func Test_altertab(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: y1_segments", _res.Error, "\n    CREATE VIEW y1_segments AS SELECT * FROM abc;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "16.25"
 		_res = db.Exec("\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
 		if _res.Error != nil {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "16.30"
 		_res = db.Exec("\n    ALTER TABLE y1 RENAME TO z1;\n  ")
 		if _res.Error != nil {
@@ -795,7 +795,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "User {CREATE TABLE \"User\" (id integer)}"
+		want := "User CREATE TABLE \"User\" (id integer)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -864,7 +864,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE \"t3\"(x)} {CREATE VIEW t2 AS SELECT 1 FROM \"t3\", (\"t3\" AS a0, \"t3\")}"
+		want := "CREATE TABLE \"t3\"(x) CREATE VIEW t2 AS SELECT 1 FROM \"t3\", (\"t3\" AS a0, \"t3\")"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -987,7 +987,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"ggiiggoo\"(a text)} \n  {CREATE TABLE \"idx2\"(x text COLLATE compare64)}\n  {CREATE VIEW v1 AS SELECT * FROM \"idx2\" WHERE x='abc'}\n"
+		want := "CREATE TABLE \"ggiiggoo\"(a text) CREATE TABLE \"idx2\"(x text COLLATE compare64) CREATE VIEW v1 AS SELECT * FROM \"idx2\" WHERE x='abc'"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -999,7 +999,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"ggiiggoo\"(a text)} \n  {CREATE TABLE \"idx2\"(y text COLLATE compare64)}\n  {CREATE VIEW v1 AS SELECT * FROM \"idx2\" WHERE y='abc'}\n"
+		want := "CREATE TABLE \"ggiiggoo\"(a text) CREATE TABLE \"idx2\"(y text COLLATE compare64) CREATE VIEW v1 AS SELECT * FROM \"idx2\" WHERE y='abc'"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1113,7 +1113,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "CREATE VIEW v0 AS WITH p AS ( SELECT 1 FROM \"t2\" ), g AS ( SELECT 1 FROM p, \"t2\" ) SELECT 1 FROM g"
+		want := "CREATE VIEW v0 AS\n    WITH p AS ( SELECT 1 FROM \"t2\" ),\n         g AS ( SELECT 1 FROM p, \"t2\" )\n    SELECT 1 FROM g"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1149,7 +1149,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "CREATE VIEW v2 AS WITH p AS ( SELECT 1 FROM \"t3\" ), g AS ( SELECT 1 FROM ( WITH i AS (SELECT 1 FROM p, \"t3\") SELECT * FROM i ) ) SELECT 1 FROM g"
+		want := "CREATE VIEW v2 AS\n    WITH p AS ( SELECT 1 FROM \"t3\" ),\n         g AS ( SELECT 1 FROM (\n           WITH i AS (SELECT 1 FROM p, \"t3\")\n           SELECT * FROM i\n         )\n    )\n    SELECT 1 FROM g"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1170,7 +1170,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 2 {} 1 3 {} 2 5 {}"
+		want := "1 2  1 3  2 5 "
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1194,7 +1194,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "CREATE VIEW v3 AS WITH RECURSIVE t3(x,y,z) AS ( SELECT b,c,NULL FROM t4 UNION SELECT x,y,NULL FROM t3, \"t5\" ) SELECT * FROM t3 AS xyz"
+		want := "CREATE VIEW v3 AS \n    WITH RECURSIVE t3(x,y,z) AS (\n        SELECT b,c,NULL FROM t4\n        UNION\n        SELECT x,y,NULL FROM t3, \"t5\"\n    )\n  SELECT * FROM t3 AS xyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1221,7 +1221,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"t1x\"(a,b,c,d,e,f)} \n  {CREATE TABLE t2(a,b,c)}\n  {CREATE INDEX t1abc ON \"t1x\"(a,b,c+d+e)}\n  {CREATE VIEW v1(x,y) AS \n    SELECT \"t1x\".b,t2.b FROM \"t1x\",t2 WHERE \"t1x\".a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10}\n  {CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END}\n"
+		want := "CREATE TABLE \"t1x\"(a,b,c,d,e,f) CREATE TABLE t2(a,b,c) CREATE INDEX t1abc ON \"t1x\"(a,b,c+d+e) CREATE VIEW v1(x,y) AS \n    SELECT \"t1x\".b,t2.b FROM \"t1x\",t2 WHERE \"t1x\".a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10 CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
