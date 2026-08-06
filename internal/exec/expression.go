@@ -1079,14 +1079,14 @@ func typesMatchForEquality(left, right interface{}) bool {
 }
 
 func globValues(str, pattern interface{}) bool {
-	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
-	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
+	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
 	return function.GlobMatch(s, p)
 }
 
 func regexpValues(str, pattern interface{}) (bool, error) {
-	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
-	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
+	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
 	re, err := util.CompileRegexp(p)
 	if err != nil {
 		return false, err
@@ -1382,7 +1382,11 @@ func (e *Engine) evalBetween(v *sql.Between, row Row) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := util.CompareValues(operand, low) >= 0 && util.CompareValues(operand, high) <= 0
+	if low == nil || high == nil {
+		// SQLite: any NULL bound makes the whole BETWEEN NULL.
+		return nil, nil
+	}
+	result := compareValuesWithCollate(operand, low) >= 0 && compareValuesWithCollate(operand, high) <= 0
 	if v.Negated {
 		result = !result
 	}
@@ -2072,15 +2076,15 @@ func numericValue(v interface{}) (interface{}, error) {
 }
 
 func likeValues(str, pattern interface{}) bool {
-	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
-	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
+	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
 	return likeMatch(s, p)
 }
 
 // likeValuesWithEscape performs LIKE matching with an escape character.
 func likeValuesWithEscape(str, pattern interface{}, escape string) bool {
-	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
-	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
+	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
 	return likeMatchEscaped(s, p, escape)
 }
 

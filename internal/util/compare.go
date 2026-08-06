@@ -8,6 +8,43 @@ import (
 	"strings"
 )
 
+// SQLiteValueString renders a value the way SQLite's sqlite3_value_text does
+// for LIKE/GLOB/CAST-to-TEXT: INTEGER as decimal, REAL with %.15g formatting
+// (keeping ".0" on whole values and adding ".0" to a bare mantissa in
+// exponential form), TEXT as itself, BLOB as its bytes.
+func SQLiteValueString(v interface{}) string {
+	switch x := v.(type) {
+	case string:
+		return x
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		return FormatSQLiteReal(x)
+	case []byte:
+		return string(x)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+// FormatSQLiteReal renders a float64 the way SQLite's %!.15g does: 15
+// significant digits, fixed-point for exponents in range, always a decimal
+// point (alternate form), exponential otherwise.
+func FormatSQLiteReal(f float64) string {
+	s := strconv.FormatFloat(f, 'g', 15, 64)
+	if e := strings.IndexAny(s, "eE"); e >= 0 {
+		mant := s[:e]
+		if !strings.Contains(mant, ".") {
+			mant += ".0"
+		}
+		return mant + s[e:]
+	}
+	if !strings.Contains(s, ".") {
+		s += ".0"
+	}
+	return s
+}
+
 // CompareValues compares two SQL values according to SQLite affinity rules.
 // Returns -1 if a < b, 0 if a == b, 1 if a > b.
 //

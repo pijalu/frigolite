@@ -207,7 +207,11 @@ func (e *Engine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
 	threshold := float64(nRow) * 0.10
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || bestEstimate < threshold) {
-		plan := fmt.Sprintf("SEARCH %s USING %s", tableName, bestIndex)
+		using := "INDEX " + bestIndex
+		if bestIndex == "PRIMARY KEY" {
+			using = "PRIMARY KEY"
+		}
+		plan := fmt.Sprintf("SEARCH %s USING %s", tableName, using)
 		if conditions != "" {
 			plan += " " + conditions
 		}
