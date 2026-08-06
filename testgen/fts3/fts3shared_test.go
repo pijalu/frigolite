@@ -130,36 +130,36 @@ func Test_fts3shared(t *testing.T) {
 	{ // do_test "2.2.2"
 		_res = db.Exec("SELECT * FROM t1 WHERE rowid=1")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.2")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.2")
 		}
 	}
 	{ // do_test "2.2.3"
 		_res = db.Exec("SELECT * FROM t1 WHERE t1 MATCH 'a'")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.3")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.3")
 		}
 	}
 	{ // do_test "2.2.4"
 		_res = db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'a'")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.4")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.4")
 		}
 	}
 	{ // do_test "2.2.5"
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.5")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.5")
 		}
 	}
 	{ // do_test "2.2.6"
 		_res = db.Exec("SELECT * FROM t1aux")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.6")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.6")
 		}
 	}
 	{ // do_test "2.2.7"
@@ -187,22 +187,22 @@ func Test_fts3shared(t *testing.T) {
 	{ // do_test "2.3.3"
 		_res = db.Exec("SELECT * FROM t2 WHERE t2 MATCH 'a'")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.3.3")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.3.3")
 		}
 	}
 	{ // do_test "2.3.4"
 		_res = db.Exec("SELECT rowid FROM t2 WHERE t2 MATCH 'a'")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.3.4")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.3.4")
 		}
 	}
 	{ // do_test "2.3.6"
 		_res = db.Exec("SELECT * FROM t2aux")
 		_ = _res // catchsql
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.3.6")
+		if !tclCatchsqlMatches(_res, LOCKED) {
+			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.3.6")
 		}
 	}
 	{ // do_test "2.3.7"

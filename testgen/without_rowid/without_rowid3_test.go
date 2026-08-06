@@ -128,8 +128,8 @@ func Test_without_rowid3(t *testing.T) {
 			{ // do_test "without_rowid3-1.1." + tn + ".1"
 				_res = db.Exec(zSql)
 				_ = _res // catchsql
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "without_rowid3-1.1." + tn + ".1")
+				if !tclCatchsqlMatches(_res, res) {
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, res, "without_rowid3-1.1." + tn + ".1")
 				}
 			}
 			{ // do_test "without_rowid3-1.1." + tn + ".2"
@@ -203,8 +203,8 @@ func Test_without_rowid3(t *testing.T) {
 				{ // do_test "without_rowid3-1.2." + tn
 					_res = db.Exec(zSql)
 					_ = _res // catchsql
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "without_rowid3-1.2." + tn)
+					if !tclCatchsqlMatches(_res, res) {
+						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, res, "without_rowid3-1.2." + tn)
 					}
 				}
 				{ // do_test "without_rowid3-1.2." + tn + ".2"
@@ -286,8 +286,8 @@ func Test_without_rowid3(t *testing.T) {
 					{ // do_test "without_rowid3-1.3." + tn
 						_res = db.Exec(zSql)
 						_ = _res // catchsql
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "without_rowid3-1.3." + tn)
+						if !tclCatchsqlMatches(_res, res) {
+							t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, res, "without_rowid3-1.3." + tn)
 						}
 					}
 					{ // do_test "without_rowid3-1.3." + tn + ".2"
@@ -377,8 +377,8 @@ func Test_without_rowid3(t *testing.T) {
 						{ // do_test "without_rowid3-1.4." + tn
 							_res = db.Exec(zSql)
 							_ = _res // catchsql
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "without_rowid3-1.4." + tn)
+							if !tclCatchsqlMatches(_res, res) {
+								t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, res, "without_rowid3-1.4." + tn)
 							}
 						}
 						_res = db.Exec("COMMIT")

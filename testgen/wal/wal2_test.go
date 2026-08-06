@@ -1180,8 +1180,8 @@ func Test_wal2(t *testing.T) {
 										{ // do_test "wal2-13." + tn + ".3"
 											_res = db.Exec(" SELECT * FROM t1 ")
 											_ = _res // catchsql
-											if _res.Error == nil || !strings.Contains(_res.Error.Error(), a_can_read) {
-												t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", a_can_read, _res.Error, "wal2-13." + tn + ".3")
+											if !tclCatchsqlMatches(_res, a_can_read) {
+												t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, a_can_read, "wal2-13." + tn + ".3")
 											}
 										}
 										b_0_0 = "1 {unable to open database file}"
@@ -1193,8 +1193,8 @@ func Test_wal2(t *testing.T) {
 										{ // do_test "wal2-13." + tn + ".4"
 											_res = db.Exec(" INSERT INTO t1 DEFAULT VALUES ")
 											_ = _res // catchsql
-											if _res.Error == nil || !strings.Contains(_res.Error.Error(), b_can_read_can_write) {
-												t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", b_can_read_can_write, _res.Error, "wal2-13." + tn + ".4")
+											if !tclCatchsqlMatches(_res, b_can_read_can_write) {
+												t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, b_can_read_can_write, "wal2-13." + tn + ".4")
 											}
 										}
 									}
