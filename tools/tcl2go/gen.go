@@ -3286,6 +3286,11 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 
 	if len(varNames) == 1 {
 		goVN := tclVarToGo(varNames[0])
+		// A TCL loop variable named 'err' must map to _err_tcl so body
+		// references to $err (redirected to _err_tcl) see the loop value.
+		if goVN == "err" {
+			goVN = "_err_tcl"
+		}
 		// Avoid shadowing the main DB connection variable (dbVar)
 		if goVN == tp.dbVar {
 			goVN = goVN + "_iter"
@@ -3303,8 +3308,17 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		tp.emitLine("for %s := 0; %s+%d <= len(%s); %s += %d {", idxVar, idxVar, numVars, itemsVar, idxVar, numVars)
 		tp.indent++
 		for i, vn := range varNames {
-			tp.emitLine("%s := %s[%s+%d]", tclVarToGo(vn), itemsVar, idxVar, i)
-			tp.emitLine("_ = %s // suppress unused warning", tclVarToGo(vn))
+			goVN := tclVarToGo(vn)
+			// A TCL loop variable named 'err' must map to _err_tcl so body
+			// references to $err (redirected to _err_tcl) see the loop value.
+			if goVN == "err" {
+				goVN = "_err_tcl"
+				if !tp.isVarDeclared(goVN) {
+					tp.vars = append(tp.vars, goVN)
+				}
+			}
+			tp.emitLine("%s := %s[%s+%d]", goVN, itemsVar, idxVar, i)
+			tp.emitLine("_ = %s // suppress unused warning", goVN)
 		}
 		tp.emitLine("_ = %s", idxVar) // suppress unused warning
 	}
@@ -4233,6 +4247,26 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				tp.emitLine("%s = %s", goName, dbEvalVar)
 			} else {
 				tp.emitLine("var %s = %s", goName, dbEvalVar)
+				tp.vars = append(tp.vars, goName)
+			}
+			tp.emitLine("_ = %s // suppress unused warning", goName)
+			return
+		}
+		if len(cmdParts) > 0 && cmdParts[0] == "db" && len(cmdParts) >= 2 && (cmdParts[1] == "one" || cmdParts[1] == "onecolumn") {
+			// set var [db one "SQL"] / [db onecolumn "SQL"] — run the query
+			// and assign the first column of the first row (TCL's db one
+			// alias for onecolumn). The Go variable holds the rendered
+			// value as a string for later expected-value comparisons.
+			sqlText := strings.TrimSpace(strings.TrimPrefix(cmdText, "db "+cmdParts[1]))
+			sqlText = strings.TrimSpace(strings.Trim(sqlText, `"`))
+			sqlExpr := tp.buildSQLStringExpr(sqlText)
+			oneVar := fmt.Sprintf("_dbone%d", tp.varCount)
+			tp.varCount++
+			tp.emitLine("%s := tclExecSQL(db, %s)", oneVar, sqlExpr)
+			if tp.isVarDeclared(goName) {
+				tp.emitLine("%s = %s", goName, oneVar)
+			} else {
+				tp.emitLine("var %s = %s", goName, oneVar)
 				tp.vars = append(tp.vars, goName)
 			}
 			tp.emitLine("_ = %s // suppress unused warning", goName)
