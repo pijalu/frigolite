@@ -1749,7 +1749,11 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		var combinedMaps []RowMap
 		// For USING clause, exclude the merged columns from the right table's
 		// column definitions so that SELECT * expansion does not duplicate them.
-		filteredRightDefs := e.filterUsingColumns(rightDefs, effectiveOn, naturalCols)
+		// Only a USING/NATURAL join merges columns; a regular ON clause must
+		// keep both sides' columns even when they share names (A.ID = B.ID
+		// leaves B.ID in the output).
+		usingJoin := len(join.Using) > 0 || len(naturalCols) > 0
+		filteredRightDefs := e.filterUsingColumns(rightDefs, effectiveOn, naturalCols, usingJoin)
 		// Prefix remaining right-table column names when they conflict with
 		// existing left-table column names, so * expansion resolves values
 		// from the combined row map using qualified keys (table.col).
@@ -2046,8 +2050,8 @@ func (e *Engine) evalOnCondition(on sql.Expr, row Row) bool {
 // filterUsingColumns filters right-side column definitions to exclude columns
 // that are part of a USING clause. The USING clause generates equality conditions
 // in the ON expression, and those columns should appear only once in the result.
-func (e *Engine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr, naturalCols map[string]bool) []sql.ColumnDef {
-	if on == nil && len(naturalCols) == 0 {
+func (e *Engine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr, naturalCols map[string]bool, usingJoin bool) []sql.ColumnDef {
+	if !usingJoin || (on == nil && len(naturalCols) == 0) {
 		return rightDefs
 	}
 	// Collect column names referenced in USING equality conditions.
@@ -5126,6 +5130,11 @@ func validateOnColumnRefs(on sql.Expr, names map[string]bool) error {
 		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table == "" {
 			n := cr.Name
 			if n == "*" || n == "rowid" || n == "oid" || n == "_rowid_" {
+				return
+			}
+			// TRUE/FALSE are boolean literals, not column references
+			// (the parser represents them as unqualified ColumnRefs).
+			if strings.EqualFold(n, "TRUE") || strings.EqualFold(n, "FALSE") {
 				return
 			}
 			if !names[n] {
