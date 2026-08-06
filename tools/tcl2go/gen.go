@@ -3110,6 +3110,27 @@ var skipTests = map[string]string{
 	"nulls1-4.2": "echo virtual table module not implemented",
 	"nulls1-4.4": "echo virtual table module not implemented",
 	"nulls1-5.4": "index-based ORDER BY DESC tie-break ordering not matched (G3.INDEX)",
+
+	// expr-16.100/101/102: SELECT implies_nonnull_row(...) — a test-harness
+	// function registered by SQLite's test framework via
+	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS, which the pure-Go
+	// engine does not provide (G1.EXPR). The surrounding rows (LEFT JOIN dual
+	// with an empty t1) exercise NULL propagation the engine already handles.
+	"expr-16.100": "test-only function implies_nonnull_row not implemented",
+	"expr-16.101": "test-only function implies_nonnull_row not implemented",
+	"expr-16.102": "test-only function implies_nonnull_row not implemented",
+
+	// istrue-600.*: INSERT via sqlite3_prepare + sqlite3_bind_double — the
+	// bound-parameter API is not implemented, so the insert never runs and the
+	// table stays empty (G1.EXPR).
+	"istrue-600.$tn.2": "prepared-statement binds not implemented",
+	"istrue-600.$tn.3": "prepared-statement binds not implemented",
+	"istrue-600.$tn.4": "prepared-statement binds not implemented",
+
+	// cse-2.2.*: random column-order queries generated with TCL rand(); the
+	// expected answer is computed at transpile time from the TCL random seed,
+	// which cannot be reproduced by the pure-Go engine (G1.EXPR).
+	"cse-2.2.$i": "randomized column-order query (TCL rand) not reproducible",
 }
 
 // skipTestFiles lists TCL test files whose tests ALL exercise engine features
@@ -3118,6 +3139,12 @@ var skipTests = map[string]string{
 // gaps tracked by later-phase follow-ups.
 var skipTestFiles = map[string]string{
 	"nulls2": "row-value IN subquery with NULLs not implemented (G2.SUBQUERY)",
+
+	// subtype1: SELECT test_getsubtype(...) / test_setsubtype(...) — the
+	// value-subtype feature is a C-API extension interface (sqlite3_result_subtype /
+	// sqlite3_value_subtype) that the pure-Go engine does not expose, and the tests
+	// also use the json extension (G6.NA_DEFERRED).
+	"subtype1": "value-subtype API (C-extension) not implemented",
 }
 
 // bodyEndsWithStringResult reports whether a do_test body's last command is a

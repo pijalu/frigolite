@@ -310,37 +310,11 @@ func Test_istrue(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
 				}
 			}
-			{ // do_test "istrue-600." + tn + ".2"
-				STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
-				_ = STMT // suppress unused warning
-				// sqlite3_bind_double $::STMT 1 $val (unsupported command, not transpiled)
-				// sqlite3_step $::STMT (unsupported command, not transpiled)
-				// sqlite3_reset $::STMT (unsupported command, not transpiled)
-				// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+			{ // "istrue-600." + tn + ".2" — skipped: prepared-statement binds not implemented
 			}
-			{ // "istrue-600." + tn + ".3"
-				r = db.Query("\n    SELECT x IS TRUE FROM t1;\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x IS TRUE FROM t1;\n  ")
-					return
-				}
-				got := flatten(r)
-				want := tclExprWith("$tn in [list 5 6] ? {1} : {0}", map[string]string{"tn": tn})
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
+			{ // "istrue-600." + tn + ".3" — skipped: prepared-statement binds not implemented
 			}
-			{ // "istrue-600." + tn + ".4"
-				r = db.Query("\n    SELECT x IS FALSE FROM t1;\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x IS FALSE FROM t1;\n  ")
-					return
-				}
-				got := flatten(r)
-				want := "0"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
+			{ // "istrue-600." + tn + ".4" — skipped: prepared-statement binds not implemented
 			}
 		}
 		{ // "istrue-700"
