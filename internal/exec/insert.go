@@ -448,6 +448,13 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		return nil
 	}
 
+	// Set the DML table context so table-qualified column references inside
+	// CHECK/default expressions (e.g. CHECK (5 IN (false.false))) resolve
+	// against this row's unqualified column keys.
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = tableEntry.Name
+	defer func() { e.currentDMLTable = prevDML }()
+
 	row := buildRowMapFromValues(values, colDefs, rowID)
 
 	// In WITHOUT ROWID tables every PRIMARY KEY column is implicitly NOT NULL

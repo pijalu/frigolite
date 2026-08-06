@@ -254,7 +254,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// unknown column silently evaluates to NULL. (Virtual tables are handled
 	// above where the table-name pseudo-column is legal, e.g. FTS MATCH.)
 	if len(s.Joins) == 0 && e.outerRow == nil {
-		if err := e.validateSelectColumnRefs(s, colDefs, tableEntry.Name); err != nil {
+		if err := e.validateSelectColumnRefs(s, colDefs, tableEntry.Name, s.From.As); err != nil {
 			return &Result{Error: err}
 		}
 	}
@@ -1007,6 +1007,16 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 // execSelectNoFrom handles SELECT without FROM clause.
 func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 	columns := e.buildColumnNames(s.Columns, nil)
+
+	// A FROM-less SELECT cannot resolve any column reference — SQLite raises
+	// "no such column" at prepare time (SELECT false.false → no such column:
+	// false.false). Validate the select list and WHERE before evaluating.
+	if e.outerRow == nil && len(e.outerRows) == 0 {
+		if err := e.validateNoFromColumnRefs(s); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
 	if s.ValuesChain {
 		// A VALUES statement exposes its result columns as column1..columnN
 		// (SQLite naming). Without real names, materializing the rows into
@@ -2185,6 +2195,18 @@ func (e *Engine) exprHasAggregate(expr sql.Expr) bool {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
 		if fn, ok := e.funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
+			// MIN/MAX are scalar functions when given two or more arguments
+			// (SQLite: min(X,Y,...) is scalar; min(X) is aggregate). Without
+			// this check a plain per-row min(b,5) collapses the whole query
+			// into a single aggregate row.
+			if (strings.EqualFold(v.Name, "MIN") || strings.EqualFold(v.Name, "MAX")) && len(v.Args) >= 2 {
+				for _, arg := range v.Args {
+					if e.exprHasAggregate(arg) {
+						return true
+					}
+				}
+				return false
+			}
 			return true
 		}
 		for _, arg := range v.Args {
@@ -3454,13 +3476,14 @@ func (e *Engine) subqueryColumnCount(s *sql.SelectStmt) int {
 // (select list, WHERE, GROUP BY, HAVING, ORDER BY) resolves to a column of
 // the scanned table. SQLite reports unknown columns at prepare time; without
 // this check an unknown column would silently evaluate to NULL.
-func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef, tableName string) error {
+func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef, tableName, fromAlias string) error {
 	colByName := make(map[string]bool, len(colDefs))
 	for _, cd := range colDefs {
 		colByName[strings.ToLower(cd.Name)] = true
 	}
 	checkRef := func(ref *sql.ColumnRef) error {
-		// Qualified references must name this table (or be rowid aliases).
+		// Qualified references must name this table (or its FROM alias, or be
+		// rowid aliases).
 		if ref.Table != "" {
 			q := strings.ToLower(ref.Table)
 			// Strip a schema prefix (main./temp./aux.) for comparison.
@@ -3468,11 +3491,14 @@ func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.Colum
 				q = q[dot+1:]
 			}
 			tn := strings.ToLower(tableName)
-			if q != tn {
-				// Qualified ref to another table: handled by join validation;
-				// a single-table query referencing a non-existent table is an
-				// error but that is reported elsewhere (no such table).
-				return nil
+			alias := strings.ToLower(fromAlias)
+			if q != tn && q != alias {
+				// This validator only runs for single-table queries (no JOINs),
+				// so a qualifier naming any other table is an unresolvable
+				// column reference, exactly like SQLite's resolver:
+				// SELECT 9 IN (false.false) FROM t8 → "no such column:
+				// false.false".
+				return fmt.Errorf("no such column: %s.%s", ref.Table, ref.Name)
 			}
 		}
 		if ref.Name == "*" {
@@ -3770,6 +3796,56 @@ func hasAggregateInColumns(cols []sql.SelectColumn) bool {
 	return false
 }
 
+// validateNoFromColumnRefs rejects column references in a FROM-less SELECT.
+// SQLite's name resolver has no table to resolve against, so any column ref
+// (qualified or not) is an error: SELECT false.false → "no such column:
+// false.false". TRUE/FALSE literals are exempt (they parse as ColumnRefs).
+func (e *Engine) validateNoFromColumnRefs(s *sql.SelectStmt) error {
+	checkErr := error(nil)
+	check := func(expr sql.Expr) {
+		if checkErr != nil || expr == nil {
+			return
+		}
+		walkExprFull(expr, func(e2 sql.Expr) {
+			if checkErr != nil {
+				return
+			}
+			ref, ok := e2.(*sql.ColumnRef)
+			if !ok {
+				return
+			}
+			if ref.Name == "*" {
+				return
+			}
+			if ref.Table != "" {
+				checkErr = fmt.Errorf("no such column: %s.%s", ref.Table, ref.Name)
+				return
+			}
+			// TRUE/FALSE are boolean literals in the parser, not columns — but
+			// only when unqualified (a qualified false.false is a column ref).
+			if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
+				return
+			}
+			// CURRENT_TIME/CURRENT_DATE/CURRENT_TIMESTAMP are keywords parsed as
+			// column refs but evaluated as time literals by the engine.
+			if strings.EqualFold(ref.Name, "CURRENT_TIME") || strings.EqualFold(ref.Name, "CURRENT_DATE") || strings.EqualFold(ref.Name, "CURRENT_TIMESTAMP") {
+				return
+			}
+			// Double-quoted identifiers fall back to string literals when DQS is
+			// enabled (handled at evaluation); do not reject them here.
+			if ref.Quoted {
+				return
+			}
+			checkErr = fmt.Errorf("no such column: %s", ref.Name)
+		})
+	}
+	for _, col := range s.Columns {
+		check(col.Expr)
+	}
+	check(s.Where)
+	return checkErr
+}
+
 // findAggregateInSelect checks if a SELECT statement directly contains an aggregate function.
 func findAggregateInSelect(s *sql.SelectStmt) string {
 	for _, col := range s.Columns {
@@ -3784,9 +3860,15 @@ func findAggregateInSelect(s *sql.SelectStmt) string {
 func findAggregateInExpr(expr sql.Expr) string {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
-		// Check if this is an aggregate by name (no registry lookup needed)
+		// Check if this is an aggregate by name (no registry lookup needed).
+		// MIN/MAX are aggregates only in their single-argument form; with two
+		// or more arguments they are scalar functions (SQLite semantics), so
+		// a query like SELECT min(x,5) FROM t must NOT collapse to one row.
 		upper := strings.ToUpper(v.Name)
-		if upper == "COUNT" || upper == "SUM" || upper == "AVG" || upper == "MIN" || upper == "MAX" || upper == "TOTAL" || upper == "GROUP_CONCAT" || upper == "STRING_AGG" {
+		if upper == "COUNT" || upper == "SUM" || upper == "AVG" || upper == "TOTAL" || upper == "GROUP_CONCAT" || upper == "STRING_AGG" {
+			return v.Name
+		}
+		if (upper == "MIN" || upper == "MAX") && len(v.Args) == 1 {
 			return v.Name
 		}
 		for _, arg := range v.Args {
@@ -5427,6 +5509,9 @@ func walkExprFull(expr sql.Expr, fn func(sql.Expr)) {
 		walkExprFull(e.Operand, fn)
 	case *sql.InList:
 		walkExprFull(e.Operand, fn)
+		for _, item := range e.List {
+			walkExprFull(item, fn)
+		}
 	case *sql.IsNull:
 		walkExprFull(e.Operand, fn)
 	case *sql.IsNotNull:

@@ -80,6 +80,7 @@ type Engine struct {
 	cteScopes         [][]sql.CTEDef                   // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[string]bool                  // CTEs currently being resolved (circular reference detection)
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
+	currentDMLTable   string                           // table being INSERTed/UPDATEd (for qualified refs in CHECK/defaults)
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
 	inCompoundMember  bool                             // executing a SELECT member of a compound query
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
