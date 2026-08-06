@@ -77,7 +77,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 		snap := dbCtx.Pager.Snapshot()
 		defer func() {
 			if ret != nil && ret.Error != nil {
-				dbCtx.Pager.Restore(snap)
+				e.restorePager(dbCtx.Pager, snap)
 				// Rows whose rowids were computed for the aborted statement
 				// are gone; the cached rowid counter must not survive.
 				e.nextRowIDCache = make(map[uint32]int64)
@@ -1362,7 +1362,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 	snap := e.pager.Snapshot()
 	defer func() {
 		if ret != nil && ret.Error != nil {
-			e.pager.Restore(snap)
+			e.restorePager(e.pager, snap)
 			// The pager rollback can invalidate cached rowid counters (rows
 			// whose rowids were computed for the aborted statement are gone).
 			e.nextRowIDCache = make(map[uint32]int64)

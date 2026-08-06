@@ -200,6 +200,11 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Force a fresh schema read before the existence check: a stale schema
+	// cache can miss an existing table, causing a duplicate schema entry
+	// ("table X already exists" on later CREATEs).
+	ctx.Schema.InvalidateCache()
+
 	existing, err := ctx.Schema.FindTable(tableName)
 	if err == nil && existing != nil && !e.isSyntheticSystemEntry(existing, tableName) {
 		// Table already exists. Only IF NOT EXISTS silently succeeds;
@@ -923,6 +928,11 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 	if err := e.authorize(auth.ActionDropTable, s.Name, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
+	// Force a fresh schema read so a stale schema cache cannot make the DROP
+	// target a table that is no longer in the btree ("deleted=0").
+	for _, dbCtx := range e.dbList {
+		dbCtx.Schema.InvalidateCache()
+	}
 	entry, ctx, err := e.findTable(s.Name)
 	if err != nil {
 		if s.IfExists {
@@ -930,7 +940,6 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 		}
 		return &Result{Error: err}
 	}
-
 	// Enforce FOREIGN KEY constraints: DROP TABLE fails if a child table
 	// references this table's rows and the FK is immediate (SQLite
 	// "FOREIGN KEY constraint failed"). Deferred FKs are checked at COMMIT.

@@ -45,5 +45,9 @@ func (e *Engine) execRollback() *Result {
 		}
 	}
 	e.txSnapshots = nil
+	e.invalidateTableCaches()
+	for _, dbCtx := range e.dbList {
+		dbCtx.Schema.InvalidateCache()
+	}
 	return &Result{}
 }

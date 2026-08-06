@@ -922,14 +922,14 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		// error, matching SQLite.
 		if e.foreignKeys {
 			if res := e.checkForeignKeyViolations(tableEntry, colDefs, c.values, c.rowID); res.Error != nil {
-				e.pager.Restore(snap)
+				e.restorePager(e.pager, snap)
 				e.invalidateRowIDCache(tableEntry.RootPage)
 				return res
 			}
 			oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
 			newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
 			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID); res.Error != nil {
-				e.pager.Restore(snap)
+				e.restorePager(e.pager, snap)
 				e.invalidateRowIDCache(tableEntry.RootPage)
 				return res
 			}

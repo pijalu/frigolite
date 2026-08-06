@@ -134,7 +134,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		if e.foreignKeys {
 			for _, row := range deletedRows {
 				if res := e.fkParentDelete(tableEntry, colDefs, row); res.Error != nil {
-					dbCtx.Pager.Restore(snap)
+					e.restorePager(dbCtx.Pager, snap)
 					e.invalidateRowIDCache(tableEntry.RootPage)
 					return res
 				}

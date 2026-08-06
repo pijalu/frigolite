@@ -112,6 +112,21 @@ func (m *Manager) InvalidateCache() {
 	m.entriesCache = nil
 }
 
+// findEntryByName returns a schema entry with the given name and type, or nil
+// if none exists. Used for duplicate detection.
+func (m *Manager) findEntryByName(name string, schemaType SchemaType) (*Entry, error) {
+	entries, err := m.GetEntries(schemaType)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range entries {
+		if strings.EqualFold(e.Name, name) {
+			return e, nil
+		}
+	}
+	return nil, fmt.Errorf("schema: %s not found", name)
+}
+
 // AddEntry adds a new entry to the schema.
 func (m *Manager) AddEntry(entry *Entry) error {
 	// Invalidate schema cache since the schema has changed
@@ -138,8 +153,7 @@ func (m *Manager) AddEntry(entry *Entry) error {
 	}
 
 	tree := btree.NewBTree(m.pager, 1, true)
-	err = tree.InsertCell(cell)
-	return err
+	return tree.InsertCell(cell)
 }
 
 // addEntryWithRowID inserts a schema entry using an explicit rowid (used to
@@ -172,13 +186,11 @@ func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
 
 // GetEntries returns all schema entries of the given type.
 func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
-	// Return cached entries if cache is valid
-	if m.cacheValid && m.entriesCache != nil {
-		if entries, ok := m.entriesCache[schemaType]; ok {
-			return entries, nil
-		}
-	}
-
+	// NOTE: the schema cache is intentionally disabled (always read fresh).
+	// The schema btree lives on page 1 of each database; a stale cache here
+	// diverges from the btree after DDL + pager restore cycles, causing
+	// "table X already exists" / "no such table" errors in the FK torture
+	// tests. The btree is small, so a fresh read per call is cheap.
 	var entries []*Entry
 	tree := btree.NewBTree(m.pager, 1, true)
 	cursor, err := tree.OpenCursor()
@@ -213,16 +225,6 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 			break
 		}
 	}
-
-	// Cache the result (copy the slice to prevent caller modifications from
-	// corrupting the cache)
-	if !m.cacheValid {
-		m.entriesCache = make(map[SchemaType][]*Entry)
-		m.cacheValid = true
-	}
-	cached := make([]*Entry, len(entries))
-	copy(cached, entries)
-	m.entriesCache[schemaType] = cached
 
 	return entries, nil
 }
