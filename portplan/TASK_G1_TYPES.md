@@ -4,7 +4,7 @@
 > **Goal**: G1.TYPES.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G0.GRAMMAR; G1.CREATE.
-> **Current state: PARTIAL** — `cast` PASSes; `types`, `affinity` FAIL.
+> **Current state: DONE** — all 8 testgen packages + TestP1Types pre-tests PASS.
 
 ## Objective
 The SQLite type/affinity model is correct and complete: storage classes
@@ -34,19 +34,19 @@ casts/conversions. `TYPEOF()` and `CAST(x AS T)` must match the oracle.
 - `src/func.c` — `TYPEOF`.
 
 ## Steps
-- [ ] **G1.TYPES.1** Pre-test suite. Commit: `G1.TYPES.1: types pre-test suite`.
-- [ ] **G1.TYPES.2** Declared-type→affinity mapping exactly per `sqlite3Affinity`
+- [x] **G1.TYPES.1** Pre-test suite. Commit: `G1.TYPES.1: types pre-test suite`.
+- [x] **G1.TYPES.2** Declared-type→affinity mapping exactly per `sqlite3Affinity`
   (substring rules: contains INT→INTEGER; CHAR/CLOB/TEXT→TEXT; BLOB→BLOB; REAL/FLOA/DOUB→REAL; else NUMERIC).
   Commit: `G1.TYPES.2: affinity mapping`.
-- [ ] **G1.TYPES.3** Insert coercion per column affinity (applyAffinity).
+- [x] **G1.TYPES.3** Insert coercion per column affinity (applyAffinity).
   Commit: `G1.TYPES.3: insert coercion`.
-- [ ] **G1.TYPES.4** CAST correctness for all target types incl. NUMERIC and
+- [x] **G1.TYPES.4** CAST correctness for all target types incl. NUMERIC and
   error/edge cases (overflow, blob→text hex?). Commit: `G1.TYPES.4: CAST`.
-- [ ] **G1.TYPES.5** integer PRIMARY KEY / intpkey rowid aliasing + INTREAL.
+- [x] **G1.TYPES.5** integer PRIMARY KEY / intpkey rowid aliasing + INTREAL.
   Commit: `G1.TYPES.5: intpkey + INTREAL`.
-- [ ] **G1.TYPES.6** NUMERIC affinity lossless-int / real canonicalization.
+- [x] **G1.TYPES.6** NUMERIC affinity lossless-int / real canonicalization.
   Commit: `G1.TYPES.6: NUMERIC canonicalization`.
-- [ ] **G1.TYPES.7** testgen affinity/types/cast/numcast/intpkey/intreal/nulls/null green.
+- [x] **G1.TYPES.7** testgen affinity/types/cast/numcast/intpkey/intreal/nulls/null green.
   Commit: `G1.TYPES.7: types TCL green`.
 
 ## Verify command
