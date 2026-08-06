@@ -1433,6 +1433,35 @@ func (e *Engine) virtualTableRows(entry *schema.Entry) ([][]interface{}, error) 
 	if !ok {
 		return nil, fmt.Errorf("vtab: module not found: %s", moduleName)
 	}
+	// The echo module mirrors its underlying table (echo('t1') proxies t1's
+	// rows and columns). Resolve it directly through the engine so SELECT
+	// FROM echo_table returns the source table's data.
+	if strings.EqualFold(moduleName, "echo") && len(args) > 0 {
+		srcName := strings.Trim(args[0], "'\"")
+		if srcEntry, _, ferr := e.findTable(srcName); ferr == nil {
+			tree := e.tableBTreePg(e.mainDB.Pager, srcEntry.Name, srcEntry.RootPage, true)
+			cursor, cerr := tree.OpenCursor()
+			if cerr == nil {
+				var rows [][]interface{}
+				for {
+					cell, rerr := cursor.ReadCell()
+					if rerr != nil || cell == nil {
+						break
+					}
+					rec, derr := storage.DecodeRecord(cell.Payload)
+					if derr != nil || rec == nil {
+						break
+					}
+					rows = append(rows, rec.Values)
+					okN, nerr := cursor.Next()
+					if nerr != nil || !okN {
+						break
+					}
+				}
+				return rows, nil
+			}
+		}
+	}
 	vtabInstance, err := module.Connect(args)
 	if err != nil {
 		return nil, err
