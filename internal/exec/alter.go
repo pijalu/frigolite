@@ -1052,6 +1052,12 @@ func isSQLKeywordOrPseudo(name string) bool {
 	case "*", "TRUE", "FALSE", "NULL", "ROWID", "_ROWID_", "OID",
 		"ROW", "ROWS", "RANGE", "GROUPS", "UNBOUNDED", "PRECEDING", "FOLLOWING",
 		"CURRENT", "RECURSIVE", "EXCLUDE", "TIES", "OTHERS",
+		// Common SQL keywords that can appear in expression tokens
+		"IN", "NOT", "AND", "OR", "IS", "LIKE", "GLOB", "BETWEEN", "COLLATE",
+		"ASC", "DESC", "CAST", "CASE", "WHEN", "THEN", "ELSE", "END",
+		"EXISTS", "SELECT", "FROM", "WHERE", "GROUP", "HAVING", "ORDER", "BY",
+		"LIMIT", "OFFSET", "UNION", "INTERSECT", "EXCEPT", "JOIN", "ON",
+		"DISTINCT", "ALL", "AS", "OVER", "FILTER", "PARTITION", "NULLS",
 		// Window function names (common ones that might appear as identifiers)
 		"RANK", "DENSE_RANK", "PERCENT_RANK", "ROW_NUMBER", "NTILE",
 		"LEAD", "LAG", "FIRST_VALUE", "LAST_VALUE", "NTH_VALUE",
@@ -2525,6 +2531,16 @@ func (e *Engine) checkIndexRenameDependencies(tableName string) *Result {
 		}
 		cols := indexColumnRefs(entry.SQL)
 		for _, col := range cols {
+			// Skip numeric literals in expression index keys (e.g. 1.0 in
+			// a+1.0) — they are values, not column references.
+			if _, err := strconv.ParseFloat(col, 64); err == nil {
+				continue
+			}
+			// Skip SQL keywords that the tokenizer extracts from expressions
+			// (e.g. IN in "WHERE a IN (...)").
+			if isSQLKeywordOrPseudo(strings.ToUpper(col)) {
+				continue
+			}
 			if !e.tableHasColumn(tableName, col) {
 				return &Result{Error: fmt.Errorf("error in index %s: no such column: %s", entry.Name, col)}
 			}
