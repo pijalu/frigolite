@@ -791,7 +791,7 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// restoring them on error. Nested Exec calls (trigger bodies) snapshot
 	// again, so a failure inside a trigger rolls back the inner statement and
 	// then propagates to the outer statement's restore.
-	var snaps []*pager.PagerState
+	var snaps []pagerSnap
 	isDML := false
 	switch stmt.(type) {
 	case *sql.InsertStmt, *sql.UpdateStmt, *sql.DeleteStmt:
@@ -843,37 +843,40 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	return res
 }
 
-// snapshotAllPagers captures the in-memory state of every database pager.
-func (e *Engine) snapshotAllPagers() []*pager.PagerState {
-	var snaps []*pager.PagerState
+// pagerSnap pairs a pager with the snapshot taken from it, so a restore can
+// match each pager to its own snapshot regardless of map iteration order.
+type pagerSnap struct {
+	pg    *pager.Pager
+	state *pager.PagerState
+}
+
+// snapshotAllPagers captures the in-memory state of every database pager,
+// pairing each snapshot with the pager it came from.
+func (e *Engine) snapshotAllPagers() []pagerSnap {
+	var snaps []pagerSnap
 	seen := make(map[*pager.Pager]bool)
 	for _, ctx := range e.databases {
 		if ctx == nil || ctx.Pager == nil || seen[ctx.Pager] {
 			continue
 		}
 		seen[ctx.Pager] = true
-		snaps = append(snaps, ctx.Pager.Snapshot())
+		snaps = append(snaps, pagerSnap{pg: ctx.Pager, state: ctx.Pager.Snapshot()})
 	}
 	return snaps
 }
 
-// restoreAllPagers restores pager states captured by snapshotAllPagers.
-func (e *Engine) restoreAllPagers(snaps []*pager.PagerState) {
+// restoreAllPagers restores each pager to the snapshot captured from it by
+// snapshotAllPagers. Pairing by pager identity (rather than positional index)
+// keeps snapshots matched even though e.databases is a map with random
+// iteration order.
+func (e *Engine) restoreAllPagers(snaps []pagerSnap) {
 	if len(snaps) == 0 {
 		return
 	}
-	// Re-find each pager by identity; a PagerState does not reference its pager.
-	i := 0
-	seen := make(map[*pager.Pager]bool)
-	for _, ctx := range e.databases {
-		if ctx == nil || ctx.Pager == nil || seen[ctx.Pager] {
-			continue
+	for _, snap := range snaps {
+		if snap.pg != nil && snap.state != nil {
+			snap.pg.Restore(snap.state)
 		}
-		seen[ctx.Pager] = true
-		if i < len(snaps) && snaps[i] != nil {
-			ctx.Pager.Restore(snaps[i])
-		}
-		i++
 	}
 	e.invalidateTableCaches()
 	for _, dbCtx := range e.dbList {
