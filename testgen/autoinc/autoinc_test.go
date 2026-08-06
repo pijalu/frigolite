@@ -743,9 +743,11 @@ func Test_autoinc(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n  ")
 		}
-		root1 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='sqlite_sequence'}"
+		_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master\n                     WHERE name='sqlite_sequence'}")
+		root1 = _dbone0
 		_ = root1 // suppress unused warning
-		root2 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}"
+		_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}")
+		root2 = _dbone1
 		_ = root2 // suppress unused warning
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")

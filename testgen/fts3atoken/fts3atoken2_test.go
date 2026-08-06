@@ -94,9 +94,11 @@ func Test_fts3atoken2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	literal = "db one {SELECT quote( fts3_tokenizer($bound) )}"
+	_dbone0 := tclExecSQL(db, "{SELECT quote( fts3_tokenizer(" + sqlLiteral(bound) + ") )}")
+	literal = _dbone0
 	_ = literal // suppress unused warning
-	blob = "db one {SELECT fts3_tokenizer($bound) }"
+	_dbone1 := tclExecSQL(db, "{SELECT fts3_tokenizer(" + sqlLiteral(bound) + ") }")
+	blob = _dbone1
 	_ = blob // suppress unused warning
 	{ // "1.2.1"
 		_res = db.Exec("\n  SELECT fts3_tokenizer('mytok', " + literal + ")\n")
@@ -149,9 +151,11 @@ func Test_fts3atoken2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	literal = "db one {SELECT quote( fts3_tokenizer($bound) )}"
+	_dbone2 := tclExecSQL(db, "{SELECT quote( fts3_tokenizer(" + sqlLiteral(bound) + ") )}")
+	literal = _dbone2
 	_ = literal // suppress unused warning
-	blob = "db one {SELECT fts3_tokenizer($bound) }"
+	_dbone3 := tclExecSQL(db, "{SELECT fts3_tokenizer(" + sqlLiteral(bound) + ") }")
+	blob = _dbone3
 	_ = blob // suppress unused warning
 	{ // "1.4.1"
 		r = db.Query("\n  SELECT typeof( fts3_tokenizer('mytok2', " + literal + ") );\n")

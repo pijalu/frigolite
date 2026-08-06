@@ -464,13 +464,15 @@ func Test_memdb(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
 				}
-				before = "db one {PRAGMA page_count}"
+				_dbone2 := tclExecSQL(db, "{PRAGMA page_count}")
+				before = _dbone2
 				_ = before // suppress unused warning
 				_res = db.Exec(" DELETE FROM t1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 				}
-				after = "db one {PRAGMA page_count}"
+				_dbone3 := tclExecSQL(db, "{PRAGMA page_count}")
+				after = _dbone3
 				_ = after // suppress unused warning
 				// expr $before>$after (not evaluated)
 			}

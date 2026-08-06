@@ -634,7 +634,8 @@ func Test_date(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "date-14.2." + i
-				date = "db one {SELECT datetime(x) FROM t1}"
+				_dbone0 := tclExecSQL(db, "{SELECT datetime(x) FROM t1}")
+				date = _dbone0
 				_ = date // suppress unused warning
 				// expr $date eq "2008-06-12 00:00:00" || $date eq "2008-06-11 23:59:59" (not evaluated)
 			}

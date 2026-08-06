@@ -75,7 +75,8 @@ func Test_cksumvfs(t *testing.T) {
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 4096;\n")
 	}
-	text = "db one \"SELECT hex(randomblob(5000))\""
+	_dbone0 := tclExecSQL(db, "SELECT hex(randomblob(5000))")
+	text = _dbone0
 	_ = text // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, " + sqlLiteral(text) + ", NULL);\n")

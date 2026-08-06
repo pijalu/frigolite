@@ -118,7 +118,8 @@ func Test_fts3atoken(t *testing.T) {
 	_ = simplename // suppress unused warning
 	blah2name = "blah2"
 	_ = blah2name // suppress unused warning
-	simple = "db one {SELECT fts3_tokenizer('simple')}"
+	_dbone0 := tclExecSQL(db, "{SELECT fts3_tokenizer('simple')}")
+	simple = _dbone0
 	_ = simple // suppress unused warning
 	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // "1.6"

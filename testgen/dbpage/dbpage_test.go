@@ -300,7 +300,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);\n")
 		}
 	}
-	pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
+	_dbone0 := tclExecSQL(db, "{SELECT max(rootpage) FROM sqlite_schema}")
+	pgno = _dbone0
 	_ = pgno // suppress unused warning
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }

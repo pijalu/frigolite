@@ -124,7 +124,8 @@ func Test_timediff1(t *testing.T) {
 				d2 := _items1[_idx1+1]
 				_ = d2 // suppress unused warning
 				_ = _idx1
-					r1 = "db one {SELECT datetime($d1)}"
+					_dbone2 := tclExecSQL(db, "{SELECT datetime(" + sqlLiteral(d1) + ")}")
+					r1 = _dbone2
 					_ = r1 // suppress unused warning
 					{ // "timediff-4-" + x1 + x2
 						r = db.Query("\n      SELECT datetime(" + sqlLiteral(d2) + ", timediff(" + sqlLiteral(d1) + "," + sqlLiteral(d2) + "));\n    ")
@@ -138,7 +139,8 @@ func Test_timediff1(t *testing.T) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
-					r2 = "db one {SELECT datetime($d2)}"
+					_dbone3 := tclExecSQL(db, "{SELECT datetime(" + sqlLiteral(d2) + ")}")
+					r2 = _dbone3
 					_ = r2 // suppress unused warning
 					{ // "timediff-4-" + x2 + x1
 						r = db.Query("\n      SELECT datetime(" + sqlLiteral(d1) + ", timediff(" + sqlLiteral(d2) + "," + sqlLiteral(d1) + "));\n    ")
@@ -179,22 +181,23 @@ func Test_timediff1(t *testing.T) {
 			p2 = "\n  A   {2001-01-01 00:00:00}\n  B   {2001-01-31 23:59:59}\n  C   {2001-02-01 00:00:00}\n  D   {2001-02-28 23:59:59}\n  E   {2001-03-01 00:00:00}\n  F   {2001-03-31 23:59:59}\n  G   {2001-04-01 00:00:00}\n  H   {2001-04-30 23:59:59}\n  I   {2001-05-01 00:00:00}\n  J   {2001-05-31 23:59:59}\n  K   {2001-06-01 00:00:00}\n  L   {2001-06-30 23:59:59}\n  M   {2001-07-01 00:00:00}\n  N   {2001-07-31 23:59:59}\n  O   {2001-08-01 00:00:00}\n  P   {2001-08-31 23:59:59}\n  Q   {2001-09-01 00:00:00}\n  R   {2001-09-30 23:59:59}\n  S   {2001-10-01 00:00:00}\n  T   {2001-10-31 23:59:59}\n  U   {2001-11-01 00:00:00}\n  V   {2001-11-30 23:59:59}\n  W   {2001-12-01 00:00:00}\n  X   {2001-12-31 23:59:59}\n"
 			_ = p2 // suppress unused warning
 			// foreach {x1 d1} p1
-			_items2 := tclSplitList(p1)
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				x1 := _items2[_idx2+0]
+			_items4 := tclSplitList(p1)
+			for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+				x1 := _items4[_idx4+0]
 				_ = x1 // suppress unused warning
-				d1 := _items2[_idx2+1]
+				d1 := _items4[_idx4+1]
 				_ = d1 // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					// foreach {x2 d2} p2
-					_items3 := tclSplitList(p2)
-					for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-						x2 := _items3[_idx3+0]
+					_items5 := tclSplitList(p2)
+					for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+						x2 := _items5[_idx5+0]
 						_ = x2 // suppress unused warning
-						d2 := _items3[_idx3+1]
+						d2 := _items5[_idx5+1]
 						_ = d2 // suppress unused warning
-						_ = _idx3
-							r1 = "db one {SELECT datetime($d1)}"
+						_ = _idx5
+							_dbone6 := tclExecSQL(db, "{SELECT datetime(" + sqlLiteral(d1) + ")}")
+							r1 = _dbone6
 							_ = r1 // suppress unused warning
 							{ // "timediff-6-" + x1 + x2
 								r = db.Query("\n      SELECT datetime(" + sqlLiteral(d2) + ", timediff(" + sqlLiteral(d1) + "," + sqlLiteral(d2) + "));\n    ")
@@ -208,7 +211,8 @@ func Test_timediff1(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
-							r2 = "db one {SELECT datetime($d2)}"
+							_dbone7 := tclExecSQL(db, "{SELECT datetime(" + sqlLiteral(d2) + ")}")
+							r2 = _dbone7
 							_ = r2 // suppress unused warning
 							{ // "timediff-6-" + x2 + x1
 								r = db.Query("\n      SELECT datetime(" + sqlLiteral(d1) + ", timediff(" + sqlLiteral(d2) + "," + sqlLiteral(d1) + "));\n    ")

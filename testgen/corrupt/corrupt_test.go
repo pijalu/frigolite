@@ -267,7 +267,8 @@ func Test_corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt-4.2"
-		iRoot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 'i1'}"
+		_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 'i1'}")
+		iRoot = _dbone1
 		_ = iRoot // suppress unused warning
 		iOffset = "hexio_get_int [hexio_read test.db [expr 12+($iRoot-1)*1024] 2]"
 		_ = iOffset // suppress unused warning
@@ -338,7 +339,8 @@ func Test_corrupt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid=1 ")
 		}
-		rootpage = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
+		_dbone2 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 't1'}")
+		rootpage = _dbone2
 		_ = rootpage // suppress unused warning
 		db.Close()
 		offset = tclExprWith("($rootpage * 1024)-14+2", map[string]string{"rootpage": rootpage})
@@ -397,8 +399,8 @@ func Test_corrupt(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		if r.Error != nil {
@@ -412,8 +414,8 @@ func Test_corrupt(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.2"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		if r.Error != nil {

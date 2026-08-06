@@ -67,7 +67,8 @@ func Test_corruptG(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
 		}
 	}
-	idxroot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}"
+	_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}")
+	idxroot = _dbone0
 	_ = idxroot // suppress unused warning
 	db.Close()
 	// hexio_write test.db [expr {$idxroot*512 - 15}] 888080807f (unsupported command, not transpiled)

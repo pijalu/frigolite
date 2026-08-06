@@ -201,8 +201,8 @@ func Test_nulls1(t *testing.T) {
 			_ = tn // suppress unused warning
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			err := _items1[_idx1+2]
-			_ = err // suppress unused warning
+			_err_tcl := _items1[_idx1+2]
+			_ = _err_tcl // suppress unused warning
 			_ = _idx1
 				{ // "3.1." + tn
 					_res = db.Exec(sql)

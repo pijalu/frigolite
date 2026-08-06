@@ -578,8 +578,8 @@ func Test_e_fkey(t *testing.T) {
 		_ = tbl // suppress unused warning
 		ptbl := _items0[_idx0+2]
 		_ = ptbl // suppress unused warning
-		err := _items0[_idx0+3]
-		_ = err // suppress unused warning
+		_err_tcl := _items0[_idx0+3]
+		_ = _err_tcl // suppress unused warning
 		_ = _idx0
 			{ // do_test "e_fkey-20." + tn + ".1"
 				_res = db.Exec("INSERT INTO " + tbl + " VALUES('a', 'b')")
@@ -877,8 +877,8 @@ func Test_e_fkey(t *testing.T) {
 						_ = tn // suppress unused warning
 						sql := _items4[_idx4+1]
 						_ = sql // suppress unused warning
-						err := _items4[_idx4+2]
-						_ = err // suppress unused warning
+						_err_tcl := _items4[_idx4+2]
+						_ = _err_tcl // suppress unused warning
 						_ = _idx4
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {

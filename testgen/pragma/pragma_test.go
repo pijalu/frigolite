@@ -150,9 +150,11 @@ func Test_pragma(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	DFLT_CACHE_SZ = "db one {PRAGMA default_cache_size}"
+	_dbone0 := tclExecSQL(db, "{PRAGMA default_cache_size}")
+	DFLT_CACHE_SZ = _dbone0
 	_ = DFLT_CACHE_SZ // suppress unused warning
-	TEMP_CACHE_SZ = "db one {PRAGMA temp.default_cache_size}"
+	_dbone1 := tclExecSQL(db, "{PRAGMA temp.default_cache_size}")
+	TEMP_CACHE_SZ = _dbone1
 	_ = TEMP_CACHE_SZ // suppress unused warning
 	{ // do_test "pragma-1.1"
 		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
@@ -708,8 +710,8 @@ func Test_pragma(t *testing.T) {
 			db.Close()
 		}
 		// delete_file test.db (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);\n  ")
 		if _res.Error != nil {
@@ -809,15 +811,15 @@ func Test_pragma(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_temp_master")
 		}
 		// foreach {idx name file} tclExecSQL(db, "{pragma database_list}")
-		_items1 := tclSplitList(tclExecSQL(db, "{pragma database_list}"))
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			idx := _items1[_idx1+0]
+		_items3 := tclSplitList(tclExecSQL(db, "{pragma database_list}"))
+		for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+			idx := _items3[_idx3+0]
 			_ = idx // suppress unused warning
-			name := _items1[_idx1+1]
+			name := _items3[_idx3+1]
 			_ = name // suppress unused warning
-			file := _items1[_idx1+2]
+			file := _items3[_idx3+2]
 			_ = file // suppress unused warning
-			_ = _idx1
+			_ = _idx3
 				res = tclListAppend(res, idx, name)
 			}
 		}
@@ -1506,7 +1508,8 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-14.4"
-			page_size = "db one {pragma page_size}"
+			_dbone4 := tclExecSQL(db, "{pragma page_size}")
+			page_size = _dbone4
 			_ = page_size // suppress unused warning
 			// expr [file size test.db] (not evaluated)
 		}
@@ -1574,13 +1577,13 @@ func Test_pragma(t *testing.T) {
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items2 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-			name := _items2[_idx2+0]
+		_items5 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+			name := _items5[_idx5+0]
 			_ = name // suppress unused warning
-			value := _items2[_idx2+1]
+			value := _items5[_idx5+1]
 			_ = value // suppress unused warning
-			_ = _idx2
+			_ = _idx5
 				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
@@ -1686,8 +1689,8 @@ func Test_pragma(t *testing.T) {
 			}
 			db.Close()
 			{ // do_test "pragma-16.9"
-				_dbtmp3, err := frigolite.Open("proxytest.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				_dbtmp6, err := frigolite.Open("proxytest.db")
+				_ = _dbtmp6 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				lockpath2 = tclExecSQL(db, "{\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    } db")
 				_ = lockpath2 // suppress unused warning
@@ -1698,13 +1701,13 @@ func Test_pragma(t *testing.T) {
 			sqlite_hostid_num = "0"
 			_ = sqlite_hostid_num // suppress unused warning
 			// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
-			_items4 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
-			for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
-				autovac_setting := _items4[_idx4+0]
+			_items7 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
+			for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+				autovac_setting := _items7[_idx7+0]
 				_ = autovac_setting // suppress unused warning
-				val := _items4[_idx4+1]
+				val := _items7[_idx7+1]
 				_ = val // suppress unused warning
-				_ = _idx4
+				_ = _idx7
 					{ // do_test "pragma-17.1." + autovac_setting
 						{
 							var _catchErr error
@@ -1723,13 +1726,13 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
-				_items5 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
-				for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-					temp_setting := _items5[_idx5+0]
+				_items8 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
+				for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
+					temp_setting := _items8[_idx8+0]
 					_ = temp_setting // suppress unused warning
-					val := _items5[_idx5+1]
+					val := _items8[_idx8+1]
 					_ = val // suppress unused warning
-					_ = _idx5
+					_ = _idx8
 						{ // do_test "pragma-18.1." + temp_setting
 							{
 								var _catchErr error

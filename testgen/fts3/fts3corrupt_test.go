@@ -70,7 +70,8 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-1.1"
-		blob = "db one {SELECT root from t1_segdir}"
+		_dbone0 := tclExecSQL(db, "{SELECT root from t1_segdir}")
+		blob = _dbone0
 		_ = blob // suppress unused warning
 		blob = "binary format a7ca* $blob 24 [string range $blob 8 end]"
 		_ = blob // suppress unused warning
@@ -110,7 +111,8 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-2.1"
-		blob = "db one {SELECT root from t1_segdir}"
+		_dbone1 := tclExecSQL(db, "{SELECT root from t1_segdir}")
+		blob = _dbone1
 		_ = blob // suppress unused warning
 		blob = "binary format a*a* \"\x00\x7f\" [string range $blob 2 end]"
 		_ = blob // suppress unused warning
@@ -135,7 +137,8 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-3.1"
-		blob = "db one {SELECT quote(root) from t1_segdir}"
+		_dbone2 := tclExecSQL(db, "{SELECT quote(root) from t1_segdir}")
+		blob = _dbone2
 		_ = blob // suppress unused warning
 		blob = "binary format a11a*a* $blob \"\x7f\" [string range $blob 12 end]"
 		_ = blob // suppress unused warning

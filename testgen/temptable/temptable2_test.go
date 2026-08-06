@@ -224,7 +224,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.4"
-		n = "db one { PRAGMA temp.page_count }"
+		_dbone0 := tclExecSQL(db, "{ PRAGMA temp.page_count }")
+		n = _dbone0
 		_ = n // suppress unused warning
 		// expr ($n (not evaluated)
 	}
@@ -252,7 +253,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1.2"
-		n = "db one { PRAGMA temp.page_count }"
+		_dbone1 := tclExecSQL(db, "{ PRAGMA temp.page_count }")
+		n = _dbone1
 		_ = n // suppress unused warning
 		// expr ($n (not evaluated)
 	}
@@ -381,13 +383,13 @@ func Test_temptable2(t *testing.T) {
 	}
 	// tmp close (unsupported command, not transpiled)
 	// foreach {tn mode} "1 delete\n  2 wal"
-	_items0 := tclSplitList("1 delete\n  2 wal")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items2 := tclSplitList("1 delete\n  2 wal")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		mode := _items0[_idx0+1]
+		mode := _items2[_idx2+1]
 		_ = mode // suppress unused warning
-		_ = _idx0
+		_ = _idx2
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")

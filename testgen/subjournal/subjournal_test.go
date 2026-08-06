@@ -92,7 +92,8 @@ func Test_subjournal(t *testing.T) {
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
-		nPage = "db one {PRAGMA page_count}"
+		_dbone0 := tclExecSQL(db, "{PRAGMA page_count}")
+		nPage = _dbone0
 		_ = nPage // suppress unused warning
 		// B step [expr $nPage-10] (unsupported command, not transpiled)
 	}

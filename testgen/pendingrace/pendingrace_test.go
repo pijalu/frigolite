@@ -77,7 +77,8 @@ func Test_pendingrace(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1a"
-		nPg = "db one { PRAGMA page_count }"
+		_dbone0 := tclExecSQL(db, "{ PRAGMA page_count }")
+		nPg = _dbone0
 		_ = nPg // suppress unused warning
 		// expr ($nPg==20 (not evaluated)
 	}

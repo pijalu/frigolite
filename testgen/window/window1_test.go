@@ -675,8 +675,8 @@ func Test_window1(t *testing.T) {
 						_ = tn // suppress unused warning
 						expr := _items4[_idx4+1]
 						_ = expr // suppress unused warning
-						err := _items4[_idx4+2]
-						_ = err // suppress unused warning
+						_err_tcl := _items4[_idx4+2]
+						_ = _err_tcl // suppress unused warning
 						_ = _idx4
 							res = "0 1"
 							_ = res // suppress unused warning

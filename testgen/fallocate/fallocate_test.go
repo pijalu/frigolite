@@ -117,7 +117,8 @@ func Test_fallocate(t *testing.T) {
 		}
 	}
 	{ // do_test "fallocate-1.8"
-		nPg = "db one {PRAGMA page_count}"
+		_dbone0 := tclExecSQL(db, "{PRAGMA page_count}")
+		nPg = _dbone0
 		_ = nPg // suppress unused warning
 		nFile = tclExpr("[file size test.db] / 1024")
 		_ = nFile // suppress unused warning

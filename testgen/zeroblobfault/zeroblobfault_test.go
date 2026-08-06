@@ -57,7 +57,8 @@ func Test_zeroblobfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zeroblobfault"
 	_ = testprefix // suppress unused warning
-	quoted_res = "db one { SELECT quote(zeroblob(2000)) }"
+	_dbone0 := tclExecSQL(db, "{ SELECT quote(zeroblob(2000)) }")
+	quoted_res = _dbone0
 	_ = quoted_res // suppress unused warning
 	// do_faultsim_test 1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT quote(zeroblob(20... (unsupported command, not transpiled)
 }

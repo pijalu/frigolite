@@ -196,7 +196,8 @@ func Test_intreal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');\n")
 		}
 	}
-	D = "db one {SELECT c1 FROM t1}"
+	_dbone0 := tclExecSQL(db, "{SELECT c1 FROM t1}")
+	D = _dbone0
 	_ = D // suppress unused warning
 	{ // "2.4"
 		r = db.Query("\n  SELECT * FROM t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));\n")

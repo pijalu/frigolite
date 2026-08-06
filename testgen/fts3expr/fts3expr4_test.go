@@ -80,7 +80,8 @@ func Test_fts3expr4(t *testing.T) {
 	// do_icu_expr_test 1.6 { "(x OR y)" } {PHRASE 3 0 ( x or y )} (unsupported command, not transpiled)
 	// do_icu_expr_test 1.7 {a:word} {PHRASE 0 0 word} (unsupported command, not transpiled)
 	{ // do_test "1.8"
-		res = "db one {SELECT fts3_exprtest('icu en_US', 'd:word', 'a', 'b', 'c')}"
+		_dbone0 := tclExecSQL(db, "db one {SELECT fts3_exprtest('icu en_US', 'd:word', 'a', 'b', 'c')}")
+		res = _dbone0
 		_ = res // suppress unused warning
 		// expr \n    $res=="PHRASE 3 0 d:word" ||\n    $res=="AND {AND {PHRASE 3 0 d} {PHRASE 3... (not evaluated)
 	}

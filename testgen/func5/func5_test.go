@@ -96,7 +96,8 @@ func Test_func5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x, y FROM t2\n   WHERE x+counter1('hello')=counter1('hello')+x\n   ORDER BY +x;\n")
 		}
 	}
-	cvalue = "db one {SELECT counter2('hello')+1}"
+	_dbone0 := tclExecSQL(db, "{SELECT counter2('hello')+1}")
+	cvalue = _dbone0
 	_ = cvalue // suppress unused warning
 	{ // "func5-2.3"
 		r = db.Query("\n  SELECT x, y FROM t2\n   WHERE x+counter2('hello')=" + sqlLiteral(cvalue) + "+x\n   ORDER BY +x;\n")

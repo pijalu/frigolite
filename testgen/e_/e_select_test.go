@@ -430,8 +430,8 @@ func Test_e_select(t *testing.T) {
 						_ = tn // suppress unused warning
 						_select := _items4[_idx4+1]
 						_ = _select // suppress unused warning
-						err := _items4[_idx4+2]
-						_ = err // suppress unused warning
+						_err_tcl := _items4[_idx4+2]
+						_ = _err_tcl // suppress unused warning
 						_ = _idx4
 							{ // "e_select-4.2." + tn
 								_res = db.Exec(_select)
@@ -625,7 +625,6 @@ func Test_e_select(t *testing.T) {
 										op2 := _items8[_idx8+3]
 										_ = op2 // suppress unused warning
 										_ = _idx8
-											var _err_tcl string
 											_err_tcl = op1 + " clause should come after " + op2 + " not before"
 											_ = _err_tcl // suppress unused warning
 											{ // "e_select-7.2." + tn

@@ -411,7 +411,8 @@ func Test_e_fts3(t *testing.T) {
 					// write_test 10.2.1 ta_content { DELETE FROM ta } (unsupported command, not transpiled)
 					// write_test 10.2.2 ta_content { \n  INSERT INTO ta VALUES('debate demonstrated th...} (unsupported command, not transpiled)
 					// write_test 10.2.3 ta_content { \n  INSERT INTO ta VALUES('Google released its br...} (unsupported command, not transpiled)
-					blob = "db one {SELECT root FROM ta_segdir WHERE rowid = 2}"
+					_dbone5 := tclExecSQL(db, "{SELECT root FROM ta_segdir WHERE rowid = 2}")
+					blob = _dbone5
 					_ = blob // suppress unused warning
 					// binary scan $blob a6 a3 a* start middle end (test infra, not transpiled)
 					middle = "\x0e\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x06\x06"

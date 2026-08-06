@@ -99,7 +99,8 @@ func Test_dbpagefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);\n")
 		}
 	}
-	pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
+	_dbone0 := tclExecSQL(db, "{SELECT max(rootpage) FROM sqlite_schema}")
+	pgno = _dbone0
 	_ = pgno // suppress unused warning
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 4 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTAC...} -body {\n  execs... (unsupported command, not transpiled)

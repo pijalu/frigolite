@@ -869,7 +869,8 @@ func Test_func(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(x'00112233445566778899aAbBcCdDeEfF')")
 		}
 	}
-	encoding = "db one {PRAGMA encoding}"
+	_dbone0 := tclExecSQL(db, "{PRAGMA encoding}")
+	encoding = _dbone0
 	_ = encoding // suppress unused warning
 	if encoding == "UTF-16le" {
 		{ // do_test "func-9.11-utf16le"

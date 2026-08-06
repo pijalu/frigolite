@@ -327,7 +327,8 @@ func Test_zipfile2(t *testing.T) {
 			}
 		}
 		{ // do_test "5.0"
-			blob = "db one {\n    WITH c(n, d) AS (\n      SELECT 'notadir', ''\n    )\n    SELECT zipfile(n, d) FROM c\n }"
+			_dbone1 := tclExecSQL(db, "{\n    WITH c(n, d) AS (\n      SELECT 'notadir', ''\n    )\n    SELECT zipfile(n, d) FROM c\n }")
+			blob = _dbone1
 			_ = blob // suppress unused warning
 			hex = "binary encode hex $blob"
 			_ = hex // suppress unused warning

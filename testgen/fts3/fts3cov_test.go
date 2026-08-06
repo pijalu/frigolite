@@ -96,7 +96,8 @@ func Test_fts3cov(t *testing.T) {
 	}
 	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // do_test "fts3cov-2.2"
-		root = "db one {SELECT root FROM t1_segdir}"
+		_dbone0 := tclExecSQL(db, "{SELECT root FROM t1_segdir}")
+		root = _dbone0
 		_ = root // suppress unused warning
 		// read_fts3varint [string range $root 1 end] left_child (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t1_segments WHERE blockid = " + sqlLiteral(left_child) + " ")

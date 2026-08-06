@@ -111,7 +111,8 @@ func Test_pager2(t *testing.T) {
 					tn = strconv.Itoa(_n + 1)
 				}
 			}
-			now = "db one {SELECT count(i) FROM t1}"
+			_dbone0 := tclExecSQL(db, "{SELECT count(i) FROM t1}")
+			now = _dbone0
 			_ = now // suppress unused warning
 			if x == "x" {
 				_res = db.Exec(" COMMIT ; BEGIN ")

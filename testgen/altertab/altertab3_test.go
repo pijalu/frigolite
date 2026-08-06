@@ -885,13 +885,15 @@ func Test_altertab3(t *testing.T) {
 			}
 		}
 		{ // do_test "31.1"
-			pg = "db one {PRAGMA page_count}"
+			_dbone1 := tclExecSQL(db, "{PRAGMA page_count}")
+			pg = _dbone1
 			_ = pg // suppress unused warning
 			_res = db.Exec("\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
 			}
-			pg2 = "db one {PRAGMA page_count}"
+			_dbone2 := tclExecSQL(db, "{PRAGMA page_count}")
+			pg2 = _dbone2
 			_ = pg2 // suppress unused warning
 			// expr $pg==$pg2 (not evaluated)
 		}

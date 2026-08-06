@@ -206,20 +206,21 @@ func Test_distinctagg(t *testing.T) {
 					}
 				}
 			}
-			t3root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t3'}"
+			_dbone4 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_schema WHERE name='t3'}")
+			t3root = _dbone4
 			_ = t3root // suppress unused warning
 			// foreach {tn use_t3 sql res} "1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0"
-			_items4 := tclSplitList("1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0")
-			for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
-				tn := _items4[_idx4+0]
+			_items5 := tclSplitList("1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0")
+			for _idx5 := 0; _idx5+4 <= len(_items5); _idx5 += 4 {
+				tn := _items5[_idx5+0]
 				_ = tn // suppress unused warning
-				use_t3 := _items4[_idx4+1]
+				use_t3 := _items5[_idx5+1]
 				_ = use_t3 // suppress unused warning
-				sql := _items4[_idx4+2]
+				sql := _items5[_idx5+2]
 				_ = sql // suppress unused warning
-				res := _items4[_idx4+3]
+				res := _items5[_idx5+3]
 				_ = res // suppress unused warning
-				_ = _idx4
+				_ = _idx5
 					{ // do_test "5." + tn + ".1"
 						bUse = "0"
 						_ = bUse // suppress unused warning

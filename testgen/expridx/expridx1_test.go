@@ -76,7 +76,8 @@ func Test_expridx1(t *testing.T) {
 	}
 	idxcheck = "\n  SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)\n"
 	_ = idxcheck // suppress unused warning
-	root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
+	_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_schema WHERE name='i1'}")
+	root = _dbone0
 	_ = root // suppress unused warning
 	{ // do_test "1.0.2"
 		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
@@ -195,13 +196,13 @@ func Test_expridx1(t *testing.T) {
 		}
 	}
 	// foreach {tn a} "1 15   2 30   3 20   4 10   5 25"
-	_items0 := tclSplitList("1 15   2 30   3 20   4 10   5 25")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("1 15   2 30   3 20   4 10   5 25")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		a := _items0[_idx0+1]
+		a := _items1[_idx1+1]
 		_ = a // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // "1.3.3." + tn
 				_res = db.Exec("\n    DELETE FROM t1 WHERE a=" + sqlLiteral(a) + "\n  ")
 				if _res.Error != nil {
@@ -242,7 +243,8 @@ func Test_expridx1(t *testing.T) {
 		}
 		idxcheck = "\n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n"
 		_ = idxcheck // suppress unused warning
-		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t1c'}"
+		_dbone2 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_schema WHERE name='t1c'}")
+		root = _dbone2
 		_ = root // suppress unused warning
 		{ // do_test "2.1"
 			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
@@ -316,7 +318,8 @@ func Test_expridx1(t *testing.T) {
 		}
 		idxcheck = "\n  SELECT rowid FROM y1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)\n"
 		_ = idxcheck // suppress unused warning
-		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
+		_dbone3 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_schema WHERE name='i1'}")
+		root = _dbone3
 		_ = root // suppress unused warning
 		{ // do_test "3.1"
 			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
@@ -361,7 +364,8 @@ func Test_expridx1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
 			}
 		}
-		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='z1b'}"
+		_dbone4 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_schema WHERE name='z1b'}")
+		root = _dbone4
 		_ = root // suppress unused warning
 		{ // do_test "4.1"
 			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)

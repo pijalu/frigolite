@@ -532,8 +532,8 @@ func Test_spellfix(t *testing.T) {
 						_ = tn // suppress unused warning
 						conflict := _items4[_idx4+1]
 						_ = conflict // suppress unused warning
-						err := _items4[_idx4+2]
-						_ = err // suppress unused warning
+						_err_tcl := _items4[_idx4+2]
+						_ = _err_tcl // suppress unused warning
 						bRollback := _items4[_idx4+3]
 						_ = bRollback // suppress unused warning
 						res := _items4[_idx4+4]
@@ -581,8 +581,8 @@ func Test_spellfix(t *testing.T) {
 							_ = tn // suppress unused warning
 							conflict := _items5[_idx5+1]
 							_ = conflict // suppress unused warning
-							err := _items5[_idx5+2]
-							_ = err // suppress unused warning
+							_err_tcl := _items5[_idx5+2]
+							_ = _err_tcl // suppress unused warning
 							bRollback := _items5[_idx5+3]
 							_ = bRollback // suppress unused warning
 							res := _items5[_idx5+4]

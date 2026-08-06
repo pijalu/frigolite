@@ -87,7 +87,8 @@ func Test_tkt2565(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
 		}
-		nRow = "db one {SELECT count(*) FROM a}"
+		_dbone0 := tclExecSQL(db, "{SELECT count(*) FROM a}")
+		nRow = _dbone0
 		_ = nRow // suppress unused warning
 		{ // do_test "tkt2565-1." + iFail + ".1"
 			_res = db.Exec("\n      BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n    ")

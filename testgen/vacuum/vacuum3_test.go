@@ -153,22 +153,23 @@ func Test_vacuum3(t *testing.T) {
 			}
 		}
 		{ // do_test "vacuum3-2.3"
-			blob = "db one {select d from t1}"
+			_dbone1 := tclExecSQL(db, "{select d from t1}")
+			blob = _dbone1
 			_ = blob // suppress unused warning
 			_ = strconv.Itoa(len(blob)) // string length result
 		}
 		I = "4"
 		_ = I // suppress unused warning
 		// foreach {request actual database} "  2048 2048 4096                          1024 1024 3072                          1170 1024 3072                          256  1024 3072                          512  512  2048                          4096 4096 8192                          1024 1024 3072                        "
-		_items1 := tclSplitList("  2048 2048 4096                          1024 1024 3072                          1170 1024 3072                          256  1024 3072                          512  512  2048                          4096 4096 8192                          1024 1024 3072                        ")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			request := _items1[_idx1+0]
+		_items2 := tclSplitList("  2048 2048 4096                          1024 1024 3072                          1170 1024 3072                          256  1024 3072                          512  512  2048                          4096 4096 8192                          1024 1024 3072                        ")
+		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+			request := _items2[_idx2+0]
 			_ = request // suppress unused warning
-			actual := _items1[_idx1+1]
+			actual := _items2[_idx2+1]
 			_ = actual // suppress unused warning
-			database := _items1[_idx1+2]
+			database := _items2[_idx2+2]
 			_ = database // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "vacuum3-2." + I + ".1"
 					r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 					if r.Error != nil {
@@ -222,13 +223,13 @@ func Test_vacuum3(t *testing.T) {
 			I = "3"
 			_ = I // suppress unused warning
 			// foreach {request actual} "  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    "
-			_items2 := tclSplitList("  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    ")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				request := _items2[_idx2+0]
+			_items3 := tclSplitList("  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    ")
+			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+				request := _items3[_idx3+0]
 				_ = request // suppress unused warning
-				actual := _items2[_idx2+1]
+				actual := _items3[_idx3+1]
 				_ = actual // suppress unused warning
-				_ = _idx2
+				_ = _idx3
 					{ // do_test "vacuum3-3." + I + ".1"
 						r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 						if r.Error != nil {

@@ -178,7 +178,8 @@ func Test_vacuum5(t *testing.T) {
 	{ // do_test "vacuum5-1.3.4"
 		// expr [file size test3.db]<$size3 (not evaluated)
 	}
-	sizeTemp = "db one {PRAGMA temp.page_count}"
+	_dbone0 := tclExecSQL(db, "{PRAGMA temp.page_count}")
+	sizeTemp = _dbone0
 	_ = sizeTemp // suppress unused warning
 	{ // "vacuum5-1.4.1"
 		_res = db.Exec("\n  VACUUM temp;\n")

@@ -1184,7 +1184,8 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				{ // do_test "24.1"
-					zip = "db one {SELECT hex( readfile('test.zip') )}"
+					_dbone2 := tclExecSQL(db, "{SELECT hex( readfile('test.zip') )}")
+					zip = _dbone2
 					_ = zip // suppress unused warning
 					off = "\"504B0102\" $zip"
 					_ = off // suppress unused warning

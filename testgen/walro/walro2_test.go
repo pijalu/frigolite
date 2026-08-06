@@ -97,7 +97,8 @@ func Test_walro2(t *testing.T) {
 	}
 	MINSHMSZ = "file size test.db-shm"
 	_ = MINSHMSZ // suppress unused warning
-	dfltpgsz = "db one {PRAGMA page_size}"
+	_dbone0 := tclExecSQL(db, "{PRAGMA page_size}")
+	dfltpgsz = _dbone0
 	_ = dfltpgsz // suppress unused warning
 	for _, bZeroShm := range tclSplitList("0 1") {
 	_ = bZeroShm // suppress unused warning

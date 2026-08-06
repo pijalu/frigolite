@@ -67,11 +67,14 @@ func Test_imposter1(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;\n  ")
 		}
-		t1_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1'}"
+		_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name='t1'}")
+		t1_root = _dbone0
 		_ = t1_root // suppress unused warning
-		t1b_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1b'}"
+		_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name='t1b'}")
+		t1b_root = _dbone1
 		_ = t1b_root // suppress unused warning
-		t1c_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1c'}"
+		_dbone2 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name='t1c'}")
+		t1c_root = _dbone2
 		_ = t1c_root // suppress unused warning
 		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1_root (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE xt1(a,b,c,d)")

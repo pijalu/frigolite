@@ -138,7 +138,8 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			{ // do_test "3.1"
-				root = "db one { SELECT rootpage FROM sqlite_master WHERE name = 'x1' }"
+				_dbone2 := tclExecSQL(db, "{ SELECT rootpage FROM sqlite_master WHERE name = 'x1' }")
+				root = _dbone2
 				_ = root // suppress unused warning
 				_res = db.Exec(" \n    BEGIN IMMEDIATE;\n  ")
 				if _res.Error != nil {
@@ -160,7 +161,8 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			{ // do_test "3.2"
-				root = "db one { SELECT rootpage FROM sqlite_master WHERE name = 'x2' }"
+				_dbone3 := tclExecSQL(db, "{ SELECT rootpage FROM sqlite_master WHERE name = 'x2' }")
+				root = _dbone3
 				_ = root // suppress unused warning
 				_res = db.Exec(" \n    BEGIN IMMEDIATE;\n  ")
 				if _res.Error != nil {

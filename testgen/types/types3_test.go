@@ -125,39 +125,46 @@ func Test_types3(t *testing.T) {
 		_ = _r_tcl
 	}
 	{ // do_test "types3-2.1"
-		V = "db one {SELECT x'616263'}"
+		_dbone0 := tclExecSQL(db, "{SELECT x'616263'}")
+		V = _dbone0
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.2"
-		V = "db one {SELECT 123}"
+		_dbone1 := tclExecSQL(db, "{SELECT 123}")
+		V = _dbone1
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	Vx = "123456789123457"
 	_ = Vx // suppress unused warning
 	{ // do_test "types3-2.3"
-		V = "db one {SELECT 1234567890123456}"
+		_dbone2 := tclExecSQL(db, "{SELECT 1234567890123456}")
+		V = _dbone2
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.4.1"
-		V = "db one {SELECT 1234567890123456.1}"
+		_dbone3 := tclExecSQL(db, "{SELECT 1234567890123456.1}")
+		V = _dbone3
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.4.2"
-		V = "db one {SELECT 1234567890123.456}"
+		_dbone4 := tclExecSQL(db, "{SELECT 1234567890123.456}")
+		V = _dbone4
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.5"
-		V = "db one {SELECT '1234567890123456.0'}"
+		_dbone5 := tclExecSQL(db, "{SELECT '1234567890123456.0'}")
+		V = _dbone5
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.6"
-		V = "db one {SELECT NULL}"
+		_dbone6 := tclExecSQL(db, "{SELECT NULL}")
+		V = _dbone6
 		_ = V // suppress unused warning
 		// tcl_variable_type V (unsupported command, not transpiled)
 	}

@@ -549,7 +549,8 @@ func Test_like3(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				x = "db one {SELECT x || '%' FROM t1}"
+				_dbone1 := tclExecSQL(db, "{SELECT x || '%' FROM t1}")
+				x = _dbone1
 				_ = x // suppress unused warning
 				{ // "like3-8." + tn + ".5"
 					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE " + sqlLiteral(x) + "\n    ")
