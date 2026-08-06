@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "regexp"
-"strings"
 "testing"
 )
 
@@ -104,9 +103,15 @@ func Test_in6(t *testing.T) {
 		_ = sqlite_search_count // TCL namespace variable (query)
 	}
 	{ // "in6-2.1"
-		_res = db.Exec("\n  CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 {} 3 {} 4 {} 5 {} 8 {} 9") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 {} 3 {} 4 {} 5 {} 8 {} 9", _res.Error, "\n  CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;\n")
+		r = db.Query("\n  CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 2 {} 3 {} 4 {} 5 {} 8 {} 9 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

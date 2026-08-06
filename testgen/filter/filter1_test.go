@@ -195,9 +195,15 @@ func Test_filter1(t *testing.T) {
 		}
 	}
 	{ // "3.1"
-		_res = db.Exec("\n  SELECT b, max(a) FILTER (WHERE b='x') FROM t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT b, max(a) FILTER (WHERE b='x') FROM t1;\n")
+		r = db.Query("\n  SELECT b, max(a) FILTER (WHERE b='x') FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, max(a) FILTER (WHERE b='x') FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.2"

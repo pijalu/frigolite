@@ -7,7 +7,6 @@ package join
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -163,9 +162,15 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	{ // "join5-3.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{}") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{}", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
+		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join5-3.2"

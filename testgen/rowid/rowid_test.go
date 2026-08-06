@@ -1160,9 +1160,15 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // "rowid-15.2"
-		_res = db.Exec("\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
+		r = db.Query("\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

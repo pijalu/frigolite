@@ -7,7 +7,6 @@ package whereD
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -372,9 +371,15 @@ func Test_whereD(t *testing.T) {
 		}
 	}
 	{ // "5.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t;\n  CREATE TABLE t(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17);\n  CREATE INDEX tc0 ON t(c0);\n  CREATE INDEX tc1 ON t(c1);\n  CREATE INDEX tc2 ON t(c2);\n  CREATE INDEX tc3 ON t(c3);\n  CREATE INDEX tc4 ON t(c4);\n  CREATE INDEX tc5 ON t(c5);\n  CREATE INDEX tc6 ON t(c6);\n  CREATE INDEX tc7 ON t(c7);\n  CREATE INDEX tc8 ON t(c8);\n  CREATE INDEX tc9 ON t(c9);\n  CREATE INDEX tc10 ON t(c10);\n  CREATE INDEX tc11 ON t(c11);\n  CREATE INDEX tc12 ON t(c12);\n  CREATE INDEX tc13 ON t(c13);\n  CREATE INDEX tc14 ON t(c14);\n  CREATE INDEX tc15 ON t(c15);\n  CREATE INDEX tc16 ON t(c16);\n  CREATE INDEX tc17 ON t(c17);\n  \n  INSERT INTO t(c0, c16) VALUES (1,1);\n  \n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{} {} {} {} {} {} {} {} {} {} {} {} {} {} 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{} {} {} {} {} {} {} {} {} {} {} {} {} {} 1", _res.Error, "\n  DROP TABLE IF EXISTS t;\n  CREATE TABLE t(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17);\n  CREATE INDEX tc0 ON t(c0);\n  CREATE INDEX tc1 ON t(c1);\n  CREATE INDEX tc2 ON t(c2);\n  CREATE INDEX tc3 ON t(c3);\n  CREATE INDEX tc4 ON t(c4);\n  CREATE INDEX tc5 ON t(c5);\n  CREATE INDEX tc6 ON t(c6);\n  CREATE INDEX tc7 ON t(c7);\n  CREATE INDEX tc8 ON t(c8);\n  CREATE INDEX tc9 ON t(c9);\n  CREATE INDEX tc10 ON t(c10);\n  CREATE INDEX tc11 ON t(c11);\n  CREATE INDEX tc12 ON t(c12);\n  CREATE INDEX tc13 ON t(c13);\n  CREATE INDEX tc14 ON t(c14);\n  CREATE INDEX tc15 ON t(c15);\n  CREATE INDEX tc16 ON t(c16);\n  CREATE INDEX tc17 ON t(c17);\n  \n  INSERT INTO t(c0, c16) VALUES (1,1);\n  \n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
+		r = db.Query("\n  DROP TABLE IF EXISTS t;\n  CREATE TABLE t(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17);\n  CREATE INDEX tc0 ON t(c0);\n  CREATE INDEX tc1 ON t(c1);\n  CREATE INDEX tc2 ON t(c2);\n  CREATE INDEX tc3 ON t(c3);\n  CREATE INDEX tc4 ON t(c4);\n  CREATE INDEX tc5 ON t(c5);\n  CREATE INDEX tc6 ON t(c6);\n  CREATE INDEX tc7 ON t(c7);\n  CREATE INDEX tc8 ON t(c8);\n  CREATE INDEX tc9 ON t(c9);\n  CREATE INDEX tc10 ON t(c10);\n  CREATE INDEX tc11 ON t(c11);\n  CREATE INDEX tc12 ON t(c12);\n  CREATE INDEX tc13 ON t(c13);\n  CREATE INDEX tc14 ON t(c14);\n  CREATE INDEX tc15 ON t(c15);\n  CREATE INDEX tc16 ON t(c16);\n  CREATE INDEX tc17 ON t(c17);\n  \n  INSERT INTO t(c0, c16) VALUES (1,1);\n  \n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t;\n  CREATE TABLE t(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17);\n  CREATE INDEX tc0 ON t(c0);\n  CREATE INDEX tc1 ON t(c1);\n  CREATE INDEX tc2 ON t(c2);\n  CREATE INDEX tc3 ON t(c3);\n  CREATE INDEX tc4 ON t(c4);\n  CREATE INDEX tc5 ON t(c5);\n  CREATE INDEX tc6 ON t(c6);\n  CREATE INDEX tc7 ON t(c7);\n  CREATE INDEX tc8 ON t(c8);\n  CREATE INDEX tc9 ON t(c9);\n  CREATE INDEX tc10 ON t(c10);\n  CREATE INDEX tc11 ON t(c11);\n  CREATE INDEX tc12 ON t(c12);\n  CREATE INDEX tc13 ON t(c13);\n  CREATE INDEX tc14 ON t(c14);\n  CREATE INDEX tc15 ON t(c15);\n  CREATE INDEX tc16 ON t(c16);\n  CREATE INDEX tc17 ON t(c17);\n  \n  INSERT INTO t(c0, c16) VALUES (1,1);\n  \n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.2"
@@ -390,9 +395,15 @@ func Test_whereD(t *testing.T) {
 		}
 	}
 	{ // "5.3"
-		_res = db.Exec("\n  DELETE FROM t;\n  INSERT INTO t(c0,c15) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{} {} {} {} {} {} {} {} {} {} {} {} {} 1 {}") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{} {} {} {} {} {} {} {} {} {} {} {} {} 1 {}", _res.Error, "\n  DELETE FROM t;\n  INSERT INTO t(c0,c15) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
+		r = db.Query("\n  DELETE FROM t;\n  INSERT INTO t(c0,c15) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t;\n  INSERT INTO t(c0,c15) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1 {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.1"

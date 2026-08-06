@@ -2322,6 +2322,10 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 // expected literal is an error expectation of the form "1 {message}"
 // (SQLite error code 1 followed by a braced message). Result expectations
 // such as "1 2 3" do not contain braces and are NOT error expectations.
+// A multi-column result row whose first value is 1 and that contains NULL
+// cells (e.g. "1 {} {} ...") also starts with "1 {" and ends with "}", but
+// is a row result, not an error: an error expectation is exactly a two-element
+// list ("1" plus one braced message), and the message is never empty.
 func isErrExpectation(expected string) bool {
 	raw, err := strconv.Unquote(expected)
 	if err != nil {
@@ -2331,7 +2335,14 @@ func isErrExpectation(expected string) bool {
 		return false
 	}
 	rest := strings.TrimSpace(raw[2:])
-	return strings.HasPrefix(rest, "{") && strings.HasSuffix(rest, "}")
+	if !strings.HasPrefix(rest, "{") || !strings.HasSuffix(rest, "}") {
+		return false
+	}
+	elems := tclSplitList(raw)
+	if len(elems) != 2 {
+		return false
+	}
+	return strings.TrimSpace(elems[1]) != ""
 }
 
 func extractExpectedErrorFromLiteral(expected string) string {

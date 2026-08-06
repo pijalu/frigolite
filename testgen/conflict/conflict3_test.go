@@ -539,9 +539,15 @@ func Test_conflict3(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // "13.1.3"
-		_res = db.Exec("\n    SELECT * FROM t0\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "0", _res.Error, "\n    SELECT * FROM t0\n  ")
+		r = db.Query("\n    SELECT * FROM t0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 0 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "13.2.0"

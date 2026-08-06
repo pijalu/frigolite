@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "regexp"
-"strings"
 "testing"
 )
 
@@ -216,9 +215,15 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				{ // "6.2"
-					_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8", _res.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+					r = db.Query("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 {} {\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "6.3"

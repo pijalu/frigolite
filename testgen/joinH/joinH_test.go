@@ -746,9 +746,15 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	{ // "16.1"
-		_res = db.Exec("\n  SELECT * FROM t2 LEFT JOIN t0_b\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT * FROM t2 LEFT JOIN t0_b\n")
+		r = db.Query("\n  SELECT * FROM t2 LEFT JOIN t0_b\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 LEFT JOIN t0_b\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "16.2.1"
@@ -782,9 +788,15 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	{ // "16.3.2"
-		_res = db.Exec("\n  SELECT * FROM (t0_a RIGHT JOIN (SELECT * FROM t2 LEFT JOIN t0_b) USING (c0));\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT * FROM (t0_a RIGHT JOIN (SELECT * FROM t2 LEFT JOIN t0_b) USING (c0));\n")
+		r = db.Query("\n  SELECT * FROM (t0_a RIGHT JOIN (SELECT * FROM t2 LEFT JOIN t0_b) USING (c0));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (t0_a RIGHT JOIN (SELECT * FROM t2 LEFT JOIN t0_b) USING (c0));\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "16.4.0"

@@ -106,9 +106,15 @@ func Test_triggerupfrom(t *testing.T) {
 		}
 	}
 	{ // "2.2"
-		_res = db.Exec("\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y", _res.Error, "\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
+		r = db.Query("\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.3"
