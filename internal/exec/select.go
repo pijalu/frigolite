@@ -4057,11 +4057,11 @@ func isSchemaTable(name string) bool {
 }
 
 // isHiddenSystemTable returns true if the table name is an internal system table
-// that should not appear in sqlite_master queries. SQLite hides these tables from
-// direct schema introspection while still allowing direct access by name.
+// that should not appear in sqlite_master queries. SQLite exposes sqlite_stat1
+// and sqlite_stat4 as ordinary entries in sqlite_schema (they can be read and
+// queried like any table), so they are NOT hidden here.
 func isHiddenSystemTable(name string) bool {
-	upper := strings.ToUpper(name)
-	return upper == "SQLITE_STAT1" || upper == "SQLITE_STAT4"
+	return false
 }
 
 // filterSystemTables removes rows that correspond to internal system tables

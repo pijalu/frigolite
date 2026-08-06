@@ -100,11 +100,10 @@ func Open(path string) (*DB, error) {
 		return nil, fmt.Errorf("frigolite: init schema: %w", err)
 	}
 
-	// Create sqlite_stat1 table (always available, like sqlite_sequence)
-	if err := db.engine.InitStatTable(); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("frigolite: init stat table: %w", err)
-	}
+	// sqlite_stat1/sqlite_stat4 are created lazily by ANALYZE (execAnalyze),
+	// matching SQLite: they only appear in sqlite_master after ANALYZE runs.
+	// (Do NOT call InitStatTable here — that would expose the stat tables to
+	// `SELECT * FROM sqlite_master` before any ANALYZE.)
 
 	return db, nil
 }

@@ -429,17 +429,21 @@ func (e *Engine) createAutoIndexes(ctx *DatabaseContext, tableName string, s *sq
 		}
 		idxName := fmt.Sprintf("sqlite_autoindex_%s_%d", tableName, seq)
 		cols := u.cols
-		idxSQL := fmt.Sprintf("CREATE UNIQUE INDEX %s ON %s(%s)", idxName, tableName, strings.Join(cols, ", "))
+		// SQLite stores sqlite_autoindex_* rows with NULL sql, so they are
+		// excluded by `SELECT sql FROM sqlite_master WHERE sql!=''`. The
+		// uniqueness itself is enforced from the table's UNIQUE/PRIMARY KEY
+		// constraints (compositeUniqueGroups), not from this entry's SQL.
 		idxEntry := &schema.Entry{
 			Type:     schema.TypeIndex,
 			Name:     idxName,
 			TblName:  tableName,
 			RootPage: 0, // no backing b-tree; uniqueness is enforced by scan
-			SQL:      idxSQL,
+			SQL:      "",
 		}
 		if err := ctx.Schema.AddEntry(idxEntry); err != nil {
 			return &Result{Error: err}
 		}
+		_ = cols
 	}
 	return &Result{}
 }

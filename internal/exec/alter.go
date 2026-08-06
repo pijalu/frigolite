@@ -46,6 +46,11 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	oldName := s.Table
 	newName := s.NewName
 
+	// SQLite protects its internal tables from ALTER TABLE.
+	if isProtectedSystemTable(oldName) {
+		return &Result{Error: fmt.Errorf("table %s may not be altered", oldName)}
+	}
+
 	// Reject renaming to a name that already exists as a table or index.
 	// SQLite: "there is already another table or index with this name: %s"
 	if _, err := e.schema.FindTable(newName); err == nil {
@@ -220,10 +225,28 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: fmt.Errorf("ALTER TABLE RENAME COLUMN requires old and new column names")}
 	}
 
+	// SQLite protects its internal tables from ALTER TABLE.
+	if isProtectedSystemTable(tableName) {
+		return &Result{Error: fmt.Errorf("table %s may not be altered", tableName)}
+	}
+
+	// If the name names a VIEW instead of a table, SQLite rejects the
+	// rename with a dedicated message (check before validateRename, which
+	// would report "no such table").
+	if _, _, vErr := e.findView(tableName); vErr == nil {
+		return &Result{Error: fmt.Errorf("cannot rename columns of view %q", tableName)}
+	}
+
 	// Validate triggers before proceeding - reject rename if any trigger
 	// references a non-existent table (matches SQLite behavior).
 	if err := e.validateRename(tableName, tableName); err != nil {
 		return &Result{Error: err}
+	}
+
+	// Validate views that reference this table for broken column references
+	// before mutating anything (SQLite: "error in view %s: no such column: %s").
+	if depResult := e.checkViewRenameDependencies(tableName); depResult != nil {
+		return depResult
 	}
 
 	// Find the table entry (searching all attached databases, matching
@@ -235,7 +258,7 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 
 	// Check for virtual table
 	if e.isVirtualTable(tableEntry) {
-		return &Result{Error: fmt.Errorf("cannot rename column of virtual table %q", tableName)}
+		return &Result{Error: fmt.Errorf("cannot rename columns of virtual table %q", tableName)}
 	}
 
 	// Get column definitions, parsing them if needed
@@ -334,6 +357,11 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 	// Update views that reference the old column name
 	e.renameColumnInViews(tableName, oldColName, newColName)
 
+	// Update FOREIGN KEY references in other tables: a child table whose
+	// REFERENCES clause names the renamed column must be rewritten (SQLite
+	// updates the RefCols list in the child's CREATE TABLE SQL).
+	e.renameColumnInForeignKeys(tableName, oldColName, newColName)
+
 	return &Result{}
 }
 
@@ -406,15 +434,25 @@ parenLoop:
 			// rebuilt SQL keeps its formatting ("a INTEGER, b TEXT" stays
 			// "a INTEGER, d TEXT" rather than "a INTEGER,d TEXT").
 			leadWS := part[:len(part)-len(trimmed)]
-			if strings.HasPrefix(trimmed, `"`+colName+`"`) {
-				parts[i] = leadWS + strings.Replace(trimmed, `"`+colName+`"`, `"`+newName+`"`, 1)
+			// Render the new name quoted if it is not a bare identifier
+			// (SQLite quotes column names containing spaces, e.g. "silly name"),
+			// or if the original column was quoted (SQLite preserves the
+			// original token's quoting style, e.g. "b" → "d").
+			quoteNew := sqlNameNeedsQuoting(newName)
+			wasQuoted := strings.HasPrefix(trimmed, `"`+colName+`"`)
+			newToken := newName
+			if quoteNew || wasQuoted {
+				newToken = `"` + newName + `"`
+			}
+			if wasQuoted {
+				parts[i] = leadWS + strings.Replace(trimmed, `"`+colName+`"`, newToken, 1)
 			} else {
 				// For unquoted names, replace the first word
 				spaceIdx := strings.IndexAny(trimmed, " (\"")
 				if spaceIdx > 0 {
-					parts[i] = leadWS + newName + trimmed[spaceIdx:]
+					parts[i] = leadWS + newToken + trimmed[spaceIdx:]
 				} else {
-					parts[i] = leadWS + newName
+					parts[i] = leadWS + newToken
 				}
 			}
 			break
@@ -440,6 +478,37 @@ parenLoop:
 	// above; this pass updates every other reference within the CREATE SQL.
 	result = replaceColumnNameInSQL(result, oldName, newName)
 	return result
+}
+
+// isProtectedSystemTable reports whether a table name is an internal SQLite
+// table that ALTER TABLE may not modify (SQLite: "table %s may not be altered").
+func isProtectedSystemTable(name string) bool {
+	upper := strings.ToUpper(strings.TrimSpace(name))
+	switch upper {
+	case "SQLITE_MASTER", "SQLITE_SCHEMA", "SQLITE_TEMP_MASTER", "SQLITE_TEMP_SCHEMA",
+		"SQLITE_STAT1", "SQLITE_STAT4", "SQLITE_SEQUENCE":
+		return true
+	}
+	return false
+}
+
+// sqlNameNeedsQuoting reports whether an identifier must be quoted in SQL.
+// A bare identifier is letters/digits/underscore starting with a non-digit.
+func sqlNameNeedsQuoting(name string) bool {
+	if name == "" {
+		return true
+	}
+	for i := 0; i < len(name); i++ {
+		ch := name[i]
+		if ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch >= 0x80 {
+			continue
+		}
+		if i > 0 && ch >= '0' && ch <= '9' {
+			continue
+		}
+		return true
+	}
+	return false
 }
 
 // extractColumnName extracts the column name from the start of a column definition.
@@ -468,6 +537,45 @@ func extractColumnName(def string) string {
 		return def[:spaceIdx]
 	}
 	return def
+}
+
+// renameColumnInForeignKeys updates the REFERENCES clauses in child tables
+// that reference the renamed column of the given parent table. SQLite rewrites
+// the parent-column list in every child's FOREIGN KEY declaration (e.g.
+// `REFERENCES p1(c, d)` becomes `REFERENCES p1(c, "silly name")`).
+func (e *Engine) renameColumnInForeignKeys(parentTable, oldColName, newColName string) {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.Type != schema.TypeTable {
+			continue
+		}
+		if strings.EqualFold(entry.TblName, parentTable) {
+			continue // the parent's own SQL is rewritten by renameColumnInCreateTableSQL
+		}
+		if entry.SQL == "" {
+			continue
+		}
+		if !strings.Contains(entry.SQL, oldColName) &&
+			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldColName)) {
+			continue
+		}
+		if !strings.Contains(strings.ToUpper(entry.SQL), "REFERENCES") {
+			continue
+		}
+		// Only rewrite REFERENCES clauses that name the parent table.
+		if !refTableInTrigger(entry.SQL, parentTable) {
+			continue
+		}
+		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+		if newSQL != entry.SQL && newSQL != "" {
+			entry.SQL = newSQL
+			_ = e.schema.RemoveEntry(entry.Name)
+			_ = e.schema.AddEntry(entry)
+		}
+	}
 }
 
 // renameColumnInTriggers updates trigger SQL for triggers that reference the
@@ -588,20 +696,45 @@ func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName stri
 
 // replaceColumnNameInSQL replaces occurrences of oldColName with newColName
 // in a SQL string, using word-boundary matching to avoid partial matches.
+// Quoting is preserved per occurrence: a match that was double-quoted
+// ("b") stays quoted ("d"), and a new name that requires quoting (e.g.
+// "silly name") is always emitted quoted.
 func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
 	if sqlStr == "" || oldColName == "" || newColName == "" {
 		return sqlStr
 	}
-	// Use word-boundary regex to match the old column name as a standalone identifier.
-	// Match at word boundaries (\b) and handle dots (.colname) for qualified refs.
-	// This matches:
-	//   - colname at start/end of string
-	//   - colname preceded by space, comma, paren, operator, or dot
-	//   - colname followed by space, comma, paren, operator, or dot
 	quotedOld := regexp.QuoteMeta(oldColName)
-	re := regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + quotedOld + `([^a-zA-Z0-9_]|$)`)
-	result := re.ReplaceAllString(sqlStr, "${1}"+newColName+"${2}")
-	return result
+	// \b word boundaries never consume the neighboring non-word characters,
+	// so consecutive matches (e.g. x+x) are all found. \b also matches
+	// around double-quoted identifiers ("b") without consuming the quotes.
+	re := regexp.MustCompile(`(?i)\b` + quotedOld + `\b`)
+	idxs := re.FindAllStringIndex(sqlStr, -1)
+	if len(idxs) == 0 {
+		return sqlStr
+	}
+	quoteNew := sqlNameNeedsQuoting(newColName)
+	var b strings.Builder
+	last := 0
+	for _, idx := range idxs {
+		start, end := idx[0], idx[1]
+		// A quoted occurrence is `"b"`; extend the span so the quotes are
+		// replaced together with the name (avoids `""d""` duplication).
+		wasQuoted := start > 0 && sqlStr[start-1] == '"' &&
+			end < len(sqlStr) && sqlStr[end] == '"'
+		if wasQuoted {
+			start--
+			end++
+		}
+		b.WriteString(sqlStr[last:start])
+		token := newColName
+		if wasQuoted || quoteNew {
+			token = `"` + newColName + `"`
+		}
+		b.WriteString(token)
+		last = end
+	}
+	b.WriteString(sqlStr[last:])
+	return b.String()
 }
 
 // refTableInTrigger checks if a trigger's SQL references the given table name.
@@ -2309,6 +2442,76 @@ func (e *Engine) checkViewDependencies(tableName, columnName string) *Result {
 			// Skip the column being dropped — its validity is checked later
 			if refersToTarget && strings.EqualFold(col, columnName) {
 				continue
+			}
+			if !validCols[strings.ToUpper(upperCol)] && upperCol != "*" {
+				return &Result{Error: fmt.Errorf("error in view %s: no such column: %s",
+					view.Name, col)}
+			}
+		}
+	}
+	return nil
+}
+
+// checkViewRenameDependencies checks whether any view that references the
+// given table has broken column references. ALTER TABLE RENAME COLUMN fails
+// if a view selects a column that does not exist on the referenced table
+// (SQLite: "error in view %s: no such column: %s").
+func (e *Engine) checkViewRenameDependencies(tableName string) *Result {
+	views, err := e.schema.GetEntries(schema.TypeView)
+	if err != nil {
+		return nil
+	}
+	for _, view := range views {
+		upperSQL := strings.ToUpper(view.SQL)
+		fromIdx := strings.Index(upperSQL, " FROM ")
+		if fromIdx < 0 {
+			continue
+		}
+		fromRest := strings.TrimSpace(upperSQL[fromIdx+6:])
+		spaceIdx := strings.IndexAny(fromRest, " \n\t\r")
+		refTable := ""
+		if spaceIdx > 0 {
+			refTable = fromRest[:spaceIdx]
+		} else {
+			refTable = fromRest
+		}
+		if refTable == "" || !strings.EqualFold(refTable, tableName) {
+			continue
+		}
+		entry, findErr := e.schema.FindTable(refTable)
+		if findErr != nil {
+			return &Result{Error: fmt.Errorf("error in view %s: %s", view.Name, findErr.Error())}
+		}
+		colDefs := e.colCache[refTable]
+		if colDefs == nil {
+			colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+		}
+		validCols := make(map[string]bool)
+		for _, cd := range colDefs {
+			validCols[strings.ToUpper(cd.Name)] = true
+		}
+		selIdx := strings.Index(strings.ToUpper(view.SQL), "SELECT ")
+		if selIdx < 0 {
+			continue
+		}
+		afterSelect := view.SQL[selIdx+7 : fromIdx]
+		viewCols := strings.FieldsFunc(afterSelect, func(r rune) bool {
+			return r == ',' || r == ' ' || r == '\n' || r == '\t' || r == '\r'
+		})
+		for _, col := range viewCols {
+			col = strings.TrimSpace(col)
+			if col == "" {
+				continue
+			}
+			upperCol := strings.ToUpper(col)
+			if upperCol == "DISTINCT" || upperCol == "ALL" || upperCol == "AS" {
+				continue
+			}
+			if strings.Contains(upperCol, ".") {
+				parts := strings.Split(upperCol, ".")
+				if len(parts) == 2 {
+					upperCol = parts[1]
+				}
 			}
 			if !validCols[strings.ToUpper(upperCol)] && upperCol != "*" {
 				return &Result{Error: fmt.Errorf("error in view %s: no such column: %s",

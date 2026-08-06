@@ -18,7 +18,7 @@ import (
 
 func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 	// Ensure sqlite_stat1 table exists
-	if err := e.ensureStatTable("sqlite_stat1", "tbl TEXT,idx TEXT,stat TEXT"); err != nil {
+	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
 		return &Result{Error: err}
 	}
 
@@ -57,12 +57,14 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 }
 
 // InitStatTable ensures the sqlite_stat1 and sqlite_stat4 tables exist.
-// It is called during database initialization to make stat tables always available.
+// It is called by ANALYZE (execAnalyze) after ensuring sqlite_stat1; stat4 is
+// created on demand. The schema text matches SQLite's canonical definitions
+// (no column types: CREATE TABLE sqlite_stat1(tbl,idx,stat)).
 func (e *Engine) InitStatTable() error {
-	if err := e.ensureStatTable("sqlite_stat1", "tbl TEXT,idx TEXT,stat TEXT"); err != nil {
+	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
 		return err
 	}
-	return e.ensureStatTable("sqlite_stat4", "tbl TEXT,idx TEXT,nEq BLOB,nLt BLOB,nDLt BLOB,sample BLOB")
+	return e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample")
 }
 func (e *Engine) ensureStatTable(name, schemaSQL string) error {
 	_, err := e.schema.FindTable(name)
