@@ -121,10 +121,20 @@ you've now fixed/regressed them. Don't inherit stale assumptions.
 - Common transpiler gaps: dynamic `[list 1 "<msg with $vars>"]` expected-error
   forms, `db eval` string-literal preservation, `catchsql` error expectations,
   `$var` substitution in setup SQL, multi-DB / connection sequences.
-- After editing the transpiler: `go run ./tools/tcl2go/` regenerates **all**
-  testgen files. `git diff --stat` to see the blast radius; commit regenerated
-  output separately from the transpiler logic change.
+- **The committed testgen can be STALE vs gen.go.** Regeneration routinely
+  surfaces latent gen.go bugs (observed 2026-08-06: `{}`-element stripping in
+  expected lists, `db close` reopen, reset_db, unset-var NULL, `tclvar`
+  inlining). After editing the transpiler: `go run ./tools/tcl2go/`
+  regenerates **all** testgen files. Review `git diff --stat`, then re-run the
+  task's verify command **and** the previously-green packages from
+  `PORTPLAN.md §3` PASS list; treat new failures as gen.go bugs to fix, not
+  test regressions to ignore.
+- Commit regenerated output separately from the transpiler logic change.
 - **Never hand-edit generated `testgen/*_test.go`.** Regenerate instead.
+- Test-harness function registration (`db function tclvar`) is handled by
+  inlining variable-reader calls into `sqlLiteral(...)`; the stateful flip
+  variant (where-10.4) is not yet supported — triage/document before assuming
+  a `db function` is portable.
 
 ---
 

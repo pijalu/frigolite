@@ -61,12 +61,14 @@ WAL, and other heavy subsystems come last.
 
 ---
 
-## 3. Current State (snapshot 2026-08-06)
+## 3. Current State (snapshot 2026-08-06, updated after session 2026-08-06)
 
-A representative sweep of 38 P1–P4 packages showed **12 PASS / 26 FAIL**.
+A representative sweep of 38 P1–P4 packages showed **13 PASS / 25 FAIL** after
+this session's fixes (was 12 PASS / 26 FAIL at session start).
 
 **PASSING:** select1, select2, select3, insert, delete_, whereB, cast, between,
-instr, substr, round, quote.
+instr, substr, round, quote (+ where4/where6/where-10.x subtests inside the
+`where` package).
 
 **FAILING (core):** update, where, types, affinity, expr, coalesce, view, join,
 joinA, joinB, subquery, count, having, distinct, limit, unionall, index,
@@ -74,6 +76,34 @@ trigger, alter, upsert, check, notnull, conflict, collate, like, date.
 
 **Implication:** even the CRUD foundation is incomplete. Phase G1 is the
 critical path and must be substantially complete before G2–G5 add load on top.
+
+### Session log (2026-08-06) — G1.WHERE triage, 3 commits
+Three real bugs fixed and committed (`5faefdad` engine+transpiler,
+`80f98eea` regenerated testgen, `30a703c2` plan+triage test):
+
+| Bug | Type | Fix | Evidence |
+|-----|------|-----|----------|
+| `PRIMARY KEY('x' ASC,"y" ASC)` collapsed to UNIQUE on y → `UNIQUE constraint failed: t4.y` | **Engine** `internal/parse/parser.go` | `indexedColumnName` maps single-quoted string in PK/UNIQUE list to a column id (SQLite `sqlite3StringToId`); CREATE INDEX already did this | where4-5.2 passes; `TestTriageCompositePKAsc` → `[1 2 4]` = oracle |
+| `SELECT ... WHERE a IS $null` returned no rows | **Transpiler** | `unset` vars tracked; `$var` renders as `sqlLiteral(nil)` (SQL NULL) | where4-8.2 passes |
+| Expected `{{} 1 {} 2}` became `" 1  2"` | **Transpiler** | preserve `{}` NULL elements in multi-element expected lists; collapse newline-only row separators but keep structural newlines | where4-8.2, select3 expected correct |
+| `tclvar('v1')` → "no such function" | **Transpiler** | `db function` variable-reader inlined as `sqlLiteral(v1)`, state propagated across do_test bodies | where-10.2/10.3 pass |
+| `pager: write page: file already closed` (insert3) | **Transpiler** | `db close`+`sqlite3 db <file>` reopens `db` on same file (`dbClosed` flag); `reset_db` = close + `os.Remove` + reopen `test.db` (matches tester.tcl) | insert3 passes; quote passes |
+
+### Key findings for all agents
+1. **The committed testgen was STALE vs HEAD gen.go.** Regenerating surfaced
+   latent transpiler bugs (now fixed): `{}`-element stripping in expected
+   lists, `db close` handling, reset_db reopen. Always regenerate after a
+   gen.go change and re-run the affected packages — do not assume the
+   committed testgen reflects gen.go.
+2. **Goal creation is disabled in this environment** (`create_disabled` on the
+   goal tool). Work is executed directly, following PORTPLAN order. The
+   `goal create` commands in every TASK_*.md remain valid for a Goa-enabled
+   run.
+3. **Remaining `where` failures** decompose as: where2 = EXPLAIN/plan-shape
+   (G5.EXPLAIN scope), where7/where9 = engine bugs (row counts / NULL
+   handling), where-10.4 = stateful `tclvar` flip (needs per-row function
+   callback — document or implement `CreateFunction`-style API), pre-existing
+   `CREATE TEMP TABLE t1 already exists` (test-state / TEMP scoping).
 
 ### Categorization of the 614 packages
 | Category | Count | Disposition |
@@ -126,41 +156,43 @@ immediately — a later goal that breaks an earlier goal's verify command is a
 > Every task file is **self-contained**: an agent can run it with only that file
 > + `portplan/GUIDELINES.md` in context. Verify commands list **specific**
 > packages — never run all 614 packages.
+>
+> **Progress legend:** 🟢 done · 🟡 partial (see task file) · ⚪ not started.
 
-| ID | Task file | Goal(s) | Verify (short) | Phase |
-|----|-----------|---------|----------------|-------|
-| G0 | `TASK_G0_FOUNDATION.md` | G0.GRAMMAR, G0.TRIAGE | grammar coverage test + triage harness builds | G0 |
-| G1.CREATE | `TASK_G1_CREATE.md` | G1.CREATE | select1 types strict without_rowid tableopts + TestP1Create | G1 |
-| G1.INSERT | `TASK_G1_INSERT.md` | G1.INSERT | insert values default_pkg + TestP1Insert | G1 |
-| G1.SELECT | `TASK_G1_SELECT.md` | G1.SELECT | select2–selectH + TestP1Select | G1 |
-| G1.WHERE | `TASK_G1_WHERE.md` | G1.WHERE | where–whereN + TestP1Where | G1 |
-| G1.UPDATE | `TASK_G1_UPDATE.md` | G1.UPDATE | update returning + TestP1Update | G1 |
-| G1.DELETE | `TASK_G1_DELETE.md` | G1.DELETE | delete_–delete4 + TestP1Delete | G1 |
-| G1.TYPES | `TASK_G1_TYPES.md` | G1.TYPES | types affinity cast numcast nulls + TestP1Types | G1 |
-| G1.EXPR | `TASK_G1_EXPR.md` | G1.EXPR | expr between coalesce istrue literal + TestP1Expr | G1 |
-| G2.JOIN | `TASK_G2_JOIN.md` | G2.JOIN | join–joinI | G2 |
-| G2.SUBQUERY | `TASK_G2_SUBQUERY.md` | G2.SUBQUERY | subquery subselect exists | G2 |
-| G2.AGGREGATE | `TASK_G2_AGGREGATE.md` | G2.AGGREGATE | count having distinct distinctagg aggorderby | G2 |
-| G2.ORDERBY | `TASK_G2_ORDERBY.md` | G2.ORDERBY | orderbyA/B limit minmax sort | G2 |
-| G2.SETOPS | `TASK_G2_SETOPS.md` | G2.SETOPS | unionall + compound selects | G2 |
-| G2.VIEW | `TASK_G2_VIEW.md` | G2.VIEW | view countofview | G2 |
-| G3.ALTER | `TASK_G3_ALTER.md` | G3.ALTER | alter altercol altertab altertrig alterdropcol | G3 |
-| G3.INDEX | `TASK_G3_INDEX.md` | G3.INDEX | index indexedby indexexpr conflict unique | G3 |
-| G3.TRIGGER | `TASK_G3_TRIGGER.md` | G3.TRIGGER | trigger triggerA–G temptrigger triggerupfrom | G3 |
-| G3.FKEY | `TASK_G3_FKEY.md` | G3.FKEY | fkey fkey_ | G3 |
-| G3.CONSTRAINTS | `TASK_G3_CONSTRAINTS.md` | G3.CONSTRAINTS | check notnull conflict trans | G3 |
-| G3.COLLATE | `TASK_G3_COLLATE.md` | G3.COLLATE | collate collateA collateB | G3 |
-| G4.STRING | `TASK_G4_STRING.md` | G4.STRING | instr substr like quote hexlit blob regexp trim | G4 |
-| G4.DATETIME | `TASK_G4_DATETIME.md` | G4.DATETIME | date timediff | G4 |
-| G4.NUMERIC | `TASK_G4_NUMERIC.md` | G4.NUMERIC | round nan zeroblob unhex percentile | G4 |
-| G4.PRINTF | `TASK_G4_PRINTF.md` | G4.PRINTF | printf func2–func9 | G4 |
-| G5.PRAGMA | `TASK_G5_PRAGMA.md` | G5.PRAGMA | pragma (+ table_info pragmas) | G5 |
-| G5.ATTACH | `TASK_G5_ATTACH.md` | G5.ATTACH | attach | G5 |
-| G5.VTAB | `TASK_G5_VTAB.md` | G5.VTAB | vtab vtab_ vtabA–L generate_series bestindex | G5 |
-| G5.EXPLAIN | `TASK_G5_EXPLAIN.md` | G5.EXPLAIN | eqp explain | G5 |
-| G5.ANALYZE | `TASK_G5_ANALYZE.md` | G5.ANALYZE | analyze analyzeC–G autoindex | G5 |
-| G6.TRIAGE | `TASK_G6_TRIAGE.md` | G6.TRIAGE | sweep remaining applicable packages | G6 |
-| G6.NA | `TASK_G6_NA_DEFERRED.md` | G6.NA | keep NOT_APPLICABLE.md / DEFERRED.md + harness map in sync | G6 |
+| ID | Task file | Goal(s) | Verify (short) | Phase | Status |
+|----|-----------|---------|----------------|-------|--------|
+| G0 | `TASK_G0_FOUNDATION.md` | G0.GRAMMAR, G0.TRIAGE | grammar coverage test + triage harness builds | G0 | 🟡 GRAMMAR done, TRIAGE partial |
+| G1.CREATE | `TASK_G1_CREATE.md` | G1.CREATE | select1 types strict without_rowid tableopts + TestP1Create | G1 | 🟡 composite-PK fixed |
+| G1.INSERT | `TASK_G1_INSERT.md` | G1.INSERT | insert values default_pkg + TestP1Insert | G1 | 🟡 `insert` PASS (reopen fix); values/default_pkg remain |
+| G1.SELECT | `TASK_G1_SELECT.md` | G1.SELECT | select2–selectH + TestP1Select | G1 | ⚪ |
+| G1.WHERE | `TASK_G1_WHERE.md` | G1.WHERE | where–whereN + TestP1Where | G1 | 🟡 where4/6/10.x fixed; where7/9/10.4/A remain |
+| G1.UPDATE | `TASK_G1_UPDATE.md` | G1.UPDATE | update returning + TestP1Update | G1 | ⚪ |
+| G1.DELETE | `TASK_G1_DELETE.md` | G1.DELETE | delete_–delete4 + TestP1Delete | G1 | 🟡 delete_ PASS |
+| G1.TYPES | `TASK_G1_TYPES.md` | G1.TYPES | types affinity cast numcast nulls + TestP1Types | G1 | ⚪ (cast PASS) |
+| G1.EXPR | `TASK_G1_EXPR.md` | G1.EXPR | expr between coalesce istrue literal + TestP1Expr | G1 | ⚪ (between PASS) |
+| G2.JOIN | `TASK_G2_JOIN.md` | G2.JOIN | join–joinI | G2 | ⚪ |
+| G2.SUBQUERY | `TASK_G2_SUBQUERY.md` | G2.SUBQUERY | subquery subselect exists | G2 | ⚪ |
+| G2.AGGREGATE | `TASK_G2_AGGREGATE.md` | G2.AGGREGATE | count having distinct distinctagg aggorderby | G2 | ⚪ |
+| G2.ORDERBY | `TASK_G2_ORDERBY.md` | G2.ORDERBY | orderbyA/B limit minmax sort | G2 | ⚪ |
+| G2.SETOPS | `TASK_G2_SETOPS.md` | G2.SETOPS | unionall + compound selects | G2 | ⚪ |
+| G2.VIEW | `TASK_G2_VIEW.md` | G2.VIEW | view countofview | G2 | ⚪ |
+| G3.ALTER | `TASK_G3_ALTER.md` | G3.ALTER | alter altercol altertab altertrig alterdropcol | G3 | ⚪ |
+| G3.INDEX | `TASK_G3_INDEX.md` | G3.INDEX | index indexedby indexexpr conflict unique | G3 | ⚪ |
+| G3.TRIGGER | `TASK_G3_TRIGGER.md` | G3.TRIGGER | trigger triggerA–G temptrigger triggerupfrom | G3 | ⚪ |
+| G3.FKEY | `TASK_G3_FKEY.md` | G3.FKEY | fkey fkey_ | G3 | ⚪ |
+| G3.CONSTRAINTS | `TASK_G3_CONSTRAINTS.md` | G3.CONSTRAINTS | check notnull conflict trans | G3 | ⚪ |
+| G3.COLLATE | `TASK_G3_COLLATE.md` | G3.COLLATE | collate collateA collateB | G3 | ⚪ |
+| G4.STRING | `TASK_G4_STRING.md` | G4.STRING | instr substr like quote hexlit blob regexp trim | G4 | 🟡 instr/substr/quote/round PASS; like remains |
+| G4.DATETIME | `TASK_G4_DATETIME.md` | G4.DATETIME | date timediff | G4 | ⚪ |
+| G4.NUMERIC | `TASK_G4_NUMERIC.md` | G4.NUMERIC | round nan zeroblob unhex percentile | G4 | ⚪ (round PASS) |
+| G4.PRINTF | `TASK_G4_PRINTF.md` | G4.PRINTF | printf func2–func9 | G4 | ⚪ |
+| G5.PRAGMA | `TASK_G5_PRAGMA.md` | G5.PRAGMA | pragma (+ table_info pragmas) | G5 | ⚪ |
+| G5.ATTACH | `TASK_G5_ATTACH.md` | G5.ATTACH | attach | G5 | ⚪ |
+| G5.VTAB | `TASK_G5_VTAB.md` | G5.VTAB | vtab vtab_ vtabA–L generate_series bestindex | G5 | ⚪ |
+| G5.EXPLAIN | `TASK_G5_EXPLAIN.md` | G5.EXPLAIN | eqp explain | G5 | ⚪ (where2 EXPLAIN failures deferred here) |
+| G5.ANALYZE | `TASK_G5_ANALYZE.md` | G5.ANALYZE | analyze analyzeC–G autoindex | G5 | ⚪ |
+| G6.TRIAGE | `TASK_G6_TRIAGE.md` | G6.TRIAGE | sweep remaining applicable packages | G6 | ⚪ |
+| G6.NA | `TASK_G6_NA_DEFERRED.md` | G6.NA | keep NOT_APPLICABLE.md / DEFERRED.md + harness map in sync | G6 | ⚪ |
 
 ---
 
@@ -179,6 +211,11 @@ A task is **done** when **all** are true:
    was made via a pure-Go test **first**.
 8. Commits follow the cadence in §7 and the task's own step list; the plan
    checkbox is updated + committed.
+9. **Regeneration check:** if `tools/tcl2go/` changed, the task regenerates
+   (`go run ./tools/tcl2go/`), re-runs its verify command **and** the
+   previously-green packages from §3's PASS list, and fixes any regressions
+   the regeneration exposed (the committed testgen may be stale vs gen.go —
+   see §3 session findings).
 
 ---
 

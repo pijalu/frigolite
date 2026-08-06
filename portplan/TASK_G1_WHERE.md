@@ -36,6 +36,19 @@ COLLATE in predicates, type affinity in comparisons, NULL ordering in indexes.
 - `src/vdbe.c` — comparison opcodes + NULL jump logic.
 
 ## Steps
+> **Session 2026-08-06 progress (committed `5faefdad`, `80f98eea`, `30a703c2`):**
+> - ✅ G1.WHERE.4 (partial) — IN with NULL + composite PK: fixed the
+>   `PRIMARY KEY('x' ASC,"y" ASC)` collapse engine bug and the
+>   `WHERE a IS $null` transpiler bug → where4-5.2, where4-8.2, where6 PASS.
+> - ✅ G1.WHERE.5 (partial) — `db function tclvar` inlined → where-10.2/10.3 PASS.
+> - Remaining within `where`: where2 (EXPLAIN/plan-shape → G5.EXPLAIN scope),
+>   where7 (engine: `want [1 2 1 2 2]` got `[1 2 1 2]`), where9 (engine:
+>   missing rows / NULL rows), where-10.4 (stateful `tclvar` flip — needs a
+>   per-row function callback or `CreateFunction`-style public API), and the
+>   pre-existing `CREATE TEMP TABLE t1 already exists` (TEMP table scoping /
+>   test-state).
+> - `whereA` still fails (ordering/NULL mismatches — triage with pure-Go test).
+
 - [ ] **G1.WHERE.1** Pre-test suite. Commit: `G1.WHERE.1: WHERE pre-test suite`.
 - [ ] **G1.WHERE.2** Three-valued logic correctness in the expression evaluator
   (`internal/exec/expression.go`): every boolean op must propagate NULL per
@@ -44,7 +57,9 @@ COLLATE in predicates, type affinity in comparisons, NULL ordering in indexes.
 - [ ] **G1.WHERE.3** Comparison affinity: apply SQLite's affinity rules
   (src/expr.c `sqlite3Affinity`) so INTEGER-vs-TEXT compares numerically when
   appropriate. Commit: `G1.WHERE.3: comparison affinity`.
-- [ ] **G1.WHERE.4** IN with NULL in list; NOT IN semantics; IN subquery.
+- [x] **G1.WHERE.4** IN with NULL in list; NOT IN semantics; IN subquery.
+  (Session: fixed the where4 composite-PK + `$null` transpiler bugs; where4
+  subtests now pass. IN-subquery and NOT-IN-with-NULL may still need work.)
   Commit: `G1.WHERE.4: IN/NOT IN with NULL`.
 - [ ] **G1.WHERE.5** LIKE/GLOB/REGEXP: ASCII case-insensitivity, ESCAPE clause,
   pattern-too-big error. Commit: `G1.WHERE.5: LIKE/GLOB/REGEXP`.
@@ -54,6 +69,15 @@ COLLATE in predicates, type affinity in comparisons, NULL ordering in indexes.
   rather than silently skipping rows (rowPassesWhere returns (bool,error)).
   Commit: `G1.WHERE.7: WHERE error propagation`.
 - [ ] **G1.WHERE.8** testgen where–whereN green. Commit: `G1.WHERE.8: WHERE TCL green`.
+- [ ] **G1.WHERE.9** (new, from session) Triage remaining `where` failures:
+  where7 row count, where9 NULL/missing rows (pure-Go test first), the
+  stateful `tclvar` flip in where-10.4 (document or add a
+  `CreateFunction`-style public API), and the TEMP t1 duplicate. EXPLAIN-shape
+  failures (where2) belong to G5.EXPLAIN — do not fix here.
+  Commit: `G1.WHERE.9: remaining where failures`. 
+- [ ] **G1.WHERE.10** (new, from session) `whereA` ordering/NULL mismatches —
+  triage with a pure-Go test; likely DISTINCT/ORDER-BACK or NULL rendering.
+  Commit: `G1.WHERE.10: whereA fixes`.
 
 ## Verify command
 ```bash

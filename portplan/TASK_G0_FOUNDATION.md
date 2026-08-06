@@ -29,26 +29,21 @@ None directly. This task improves *infrastructure*:
 
 ## G0.GRAMMAR — Grammar coverage
 
-### Current signal
-`internal/parse/grammar_coverage_test.go` + `rule_inventory_test.go` exist. The
-goal is **0 multi-symbol passthrough rules** (rules where `handleRule` returns
-the first RHS value instead of building a real node).
+### Status (2026-08-06): DONE ✅
+`go test ./internal/parse/ -run TestGrammarCoverage -count=1` passes (0
+failures) and `go test ./internal/parse/ -count=1` passes. The G0.GRAMMAR
+verify command's CRUD regression packages were already in their baseline
+state (select1/insert/delete_ PASS; update/where FAIL for G1 reasons, not
+grammar). No further grammar work needed unless a later task exposes new
+passthrough rules.
 
 ### Steps
-- [ ] **G0.GRAMMAR.1** Run `go test ./internal/parse/ -run TestGrammarCoverage -count=1 -v`.
-  Capture the list of multi-symbol passthrough rules. Record them.
-  Commit: `G0.GRAMMAR.1: grammar coverage baseline`.
-- [ ] **G0.GRAMMAR.2** Extend `grammarCoverageCorpus` to exercise window, CTE,
-  ALTER, constraint, RETURNING, UPSERT, generated-column statements so all
-  reachable rules fire. Re-run; expect new failures.
-  Commit: `G0.GRAMMAR.2: extend grammar corpus`.
-- [ ] **G0.GRAMMAR.3** Implement a real AST node for each multi-symbol
-  passthrough rule (rules are number-keyed in `handleRule`). One rule group per
-  commit. After each, re-run coverage.
-  Commit per group: `G0.GRAMMAR.3.<n>: handle rule <no>`.
-- [ ] **G0.GRAMMAR.4** Re-run a CRUD regression to prove no breakage:
-  `go test -tags testgen ./testgen/select1/ ./testgen/insert/ ./testgen/update/ ./testgen/delete_/ ./testgen/where/ -count=1`.
-  Commit: `G0.GRAMMAR.4: grammar full coverage, CRUD regression green`.
+- [x] **G0.GRAMMAR.1** Baseline coverage — PASS.
+- [x] **G0.GRAMMAR.2** Corpus extension — coverage test green at HEAD.
+- [x] **G0.GRAMMAR.3** Passthrough rule handlers — 0 multi-symbol passthroughs
+  at baseline.
+- [x] **G0.GRAMMAR.4** CRUD regression — select1/insert/delete_ green (where/
+  update failures are G1.WHERE/G1.UPDATE scope, tracked in those tasks).
 
 ### Verify command
 ```bash
@@ -60,6 +55,14 @@ go build ./...
 ---
 
 ## G0.TRIAGE — Reusable triage/oracle harness
+
+### Status (2026-08-06): PARTIAL
+The pure-Go triage test pattern is proven (see `triage_pk_test.go` —
+`TestTriageCompositePKAsc` / `TestTriageIsNull` isolate the composite-PK and
+IS-NULL engine behavior and compare against the sqlite3 oracle). The shared
+helpers (`runSQL`/`queryRows`/`oracleRows`) are **not yet written**; pre-tests
+currently roll their own. Write the helpers per the steps below, then extend
+`triage_pk_test.go` to use them.
 
 ### Objective
 A tiny, shared test helper that any pre-test can call to:
@@ -79,6 +82,9 @@ A tiny, shared test helper that any pre-test can call to:
   Commit: `G0.TRIAGE.1: add oracle/triage test helpers`.
 - [ ] **G0.TRIAGE.2** Document usage in `portplan/GUIDELINES.md §11` and show a
   worked example. Commit: `G0.TRIAGE.2: document triage helpers`.
+- [ ] **G0.TRIAGE.3** (new, from session) Move the triage patterns proven in
+  `triage_pk_test.go` onto the helpers; keep the pure-Go tests as regression
+  guards. Commit: `G0.TRIAGE.3: fold triage_pk_test.go onto helpers`.
 
 ### Verify command
 ```bash

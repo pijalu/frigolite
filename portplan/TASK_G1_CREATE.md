@@ -10,6 +10,14 @@ All `CREATE TABLE` functionality works and matches SQLite exactly: column types,
 type affinity, all column/table constraints, WITHOUT ROWID, STRICT, IF NOT
 EXISTS, CREATE TABLE AS SELECT, AUTOINCREMENT, generated columns.
 
+> **Status (2026-08-06): PARTIAL.** Session fix relevant to CREATE TABLE:
+> `PRIMARY KEY('x' ASC, "y" ASC)` (single-quoted string keys + ASC in a
+> composite table-level PK) previously collapsed to a UNIQUE on the last
+> column; `indexedColumnName` now maps a bare string literal to a column
+> identifier (SQLite `sqlite3StringToId`), matching the CREATE INDEX path.
+> See `TestTriageCompositePKAsc`. `types`/`strict`/`without_rowid`/`tableopts`
+> still FAIL — table-level constraint parsing/STRICT/ordering work remains.
+
 ## Scope — testgen packages
 `select1` (shared), `types`, `strict`, `without_rowid`, `tableopts`.
 (Several of these overlap with G1.TYPES; coordinate on shared fixes — see

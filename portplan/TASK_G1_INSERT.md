@@ -12,6 +12,12 @@ resolution (`OR IGNORE`/`OR REPLACE`/`REPLACE INTO`), RETURNING, default-value
 evaluation, type affinity coercion, NULL/NOT NULL/UNIQUE/CHECK enforcement, and
 exact error text on constraint violations.
 
+> **Status (2026-08-06): `insert` testgen PASSES.** The prior `insert3`
+> failure (`pager: write page: file already closed`) was a transpiler bug in
+> `db close; sqlite3 db test.db` reopen — fixed by the `dbClosed` flag +
+> reset_db reopen-on-test.db (commits `5faefdad`/`80f98eea`). Remaining INSERT
+> work is in `values`/`default_pkg` and the pre-test suite (not yet written).
+
 ## Scope — testgen packages
 `insert`, `values`, `valuesfault`, `default_pkg` (note: `valuesfault` may
 contain fault-injection cases — triage; keep the applicable ones, document the
