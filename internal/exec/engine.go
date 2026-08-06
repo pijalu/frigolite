@@ -210,9 +210,16 @@ func (e *Engine) rootPage(tableName string, schemaRoot uint32) uint32 {
 	return schemaRoot
 }
 
-// updateRootPage tracks a root page change after a b-tree split.
+// updateRootPage tracks a root page change after a b-tree split and persists
+// it to sqlite_schema so the correct root survives a reopen (the in-memory
+// map alone would be lost, and queries would fall back to the stale schema
+// rootpage after the map is cleared).
 func (e *Engine) updateRootPage(tableName string, newRoot uint32) {
 	e.tableRootPages[tableName] = newRoot
+	// Find the table in whichever database context it lives, then persist.
+	if entry, ctx, err := e.findTable(tableName); err == nil && entry != nil {
+		_ = ctx.Schema.UpdateEntryRoot(entry.Name, newRoot)
+	}
 }
 
 // tableBTree creates a BTree for a table, using the engine's tracked root page.

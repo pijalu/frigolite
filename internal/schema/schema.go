@@ -537,6 +537,55 @@ func (m *Manager) UpdateEntry(name, newSQL string) error {
 	return m.UpdateEntryFull(name, name, newSQL)
 }
 
+// UpdateEntryRoot updates an existing schema entry's root page in place,
+// preserving its rowid, type, tbl_name, and SQL. Used when a table b-tree
+// split moves the root page so sqlite_schema stays correct across reopens.
+func (m *Manager) UpdateEntryRoot(name string, newRoot uint32) error {
+	m.cacheValid = false
+	m.entriesCache = nil
+
+	searchName := name
+	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
+		searchName = name[dotIdx+1:]
+	}
+
+	tree := btree.NewBTree(m.pager, 1, true)
+
+	var foundRowID int64 = -1
+	var foundType, foundTbl, foundSQL interface{}
+	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil || len(rec.Values) < 5 {
+			return false
+		}
+		if !strings.EqualFold(toString(rec.Values[1]), searchName) {
+			return false
+		}
+		foundRowID = cell.RowID
+		foundType = rec.Values[0]
+		foundTbl = rec.Values[2]
+		foundSQL = rec.Values[4]
+		return true
+	}); err != nil {
+		return err
+	}
+	if foundRowID < 0 {
+		return fmt.Errorf("no such table: %s", name)
+	}
+
+	values := []interface{}{foundType, name, foundTbl, int64(newRoot), foundSQL}
+	record, err := storage.EncodeRecord(values)
+	if err != nil {
+		return err
+	}
+	cell := &storage.Cell{
+		Type:    storage.CellTableLeaf,
+		RowID:   foundRowID,
+		Payload: record,
+	}
+	return tree.InsertCell(cell)
+}
+
 // UpdateEntryFull updates an existing schema entry in place, preserving its
 // rowid and original type/rootpage. Used by ALTER TABLE operations that must
 // not reorder sqlite_schema rows (e.g. RENAME COLUMN, DROP COLUMN).

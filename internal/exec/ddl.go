@@ -873,7 +873,7 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		}
 	}
 
-	tree := e.tableBTreePg(tableCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreePg(tableCtx.Pager, tableEntry.Name, e.rootPage(tableEntry.Name, tableEntry.RootPage), true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{Error: err}
