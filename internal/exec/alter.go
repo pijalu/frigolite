@@ -283,9 +283,14 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 		}
 	}
 
-	// Validate: reject if any trigger on a DIFFERENT table references the old column name
-	// in the context of the table being renamed. Triggers on the same table will be
-	// updated by renameColumnInTriggers below.
+	// Update triggers that reference the old column name (ON the same table)
+	e.renameColumnInTriggers(tableName, oldColName, newColName)
+
+	// Validate: reject if any trigger references the old column name ONLY through
+	// a view that depends on the table being renamed. References made directly
+	// against the renamed table are updated by renameColumnInTriggers /
+	// renameColumnInEntries below (SQLite updates triggers on other tables whose
+	// bodies reference the renamed table's column directly).
 	entries, gErr := e.schema.GetEntries("")
 	if gErr == nil {
 		// Collect views that depend on the table being renamed
@@ -295,30 +300,33 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 				viewNames[entry.Name] = true
 			}
 		}
-		for _, entry := range entries {
-			if entry.Type == schema.TypeTrigger && !strings.EqualFold(entry.TblName, tableName) {
-				// Check if the trigger references BOTH the old column name AND the table
-				// (or a view that depends on the table)
+		if len(viewNames) > 0 {
+			for _, entry := range entries {
+				if entry.Type != schema.TypeTrigger {
+					continue
+				}
+				if strings.EqualFold(entry.TblName, tableName) {
+					continue
+				}
+				// Only consider triggers that reference the old column name but do
+				// NOT reference the renamed table directly. If the trigger touches
+				// the table itself, its references were already rewritten above.
+				if refTableInTrigger(entry.SQL, tableName) {
+					continue
+				}
 				newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
-				if newSQL != entry.SQL {
-					// The trigger references the column name.
-					// Check if it also references the table or a view of the table.
-					if refTableInTrigger(entry.SQL, tableName) {
+				if newSQL == entry.SQL {
+					continue
+				}
+				// The trigger references the column name through a view.
+				for vn := range viewNames {
+					if refTableInTrigger(entry.SQL, vn) {
 						return &Result{Error: fmt.Errorf("error in trigger %s after rename: no such column: %s", entry.Name, oldColName)}
-					}
-					// Also check if the trigger references any view that depends on the table
-					for vn := range viewNames {
-						if refTableInTrigger(entry.SQL, vn) {
-							return &Result{Error: fmt.Errorf("error in trigger %s after rename: no such column: %s", entry.Name, oldColName)}
-						}
 					}
 				}
 			}
 		}
 	}
-
-	// Update triggers that reference the old column name (ON the same table)
-	e.renameColumnInTriggers(tableName, oldColName, newColName)
 
 	// Update indexes that reference the old column name
 	e.renameColumnInIndexes(tableName, oldColName, newColName)
@@ -452,8 +460,9 @@ func extractColumnName(def string) string {
 	return def
 }
 
-// renameColumnInTriggers updates trigger SQL for triggers on the given table,
-// replacing old column name references with the new column name.
+// renameColumnInTriggers updates trigger SQL for triggers that reference the
+// given table — either triggers ON the table (TblName matches) or triggers on
+// other tables whose bodies directly reference the renamed table's column.
 // Uses token-level rename with string-regex complement.
 func (e *Engine) renameColumnInTriggers(tableName, oldColName, newColName string) {
 	ctx := &RenameContext{
@@ -519,8 +528,18 @@ func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName stri
 		if entry.Type != entryType {
 			continue
 		}
-		if tblName != "" && !strings.EqualFold(entry.TblName, tblName) {
-			continue
+		if tblName != "" {
+			// For triggers, match either triggers ON the renamed table OR triggers
+			// whose bodies directly reference the renamed table (their column
+			// references to the renamed table must be rewritten too).
+			if entryType == schema.TypeTrigger {
+				if !strings.EqualFold(entry.TblName, tblName) &&
+					!refTableInTrigger(entry.SQL, tblName) {
+					continue
+				}
+			} else if !strings.EqualFold(entry.TblName, tblName) {
+				continue
+			}
 		}
 		if entry.SQL == "" {
 			continue
