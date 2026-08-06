@@ -948,6 +948,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 68: tcons ::= PRIMARY KEY LP sortlist autoinc RP onconf
 	case 68:
+		sortlist := getOrderByList(getRHS(p, ruleNo, 4))
+		if err := rejectNullsInSortlist(sortlist); err != nil {
+			p.SemanticErr = err
+			return nil
+		}
 		return sql.TableConstraint{
 			Type:       sql.ConstraintPrimaryKey,
 			Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 4)),
@@ -956,6 +961,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 69: tcons ::= UNIQUE LP sortlist RP onconf
 	case 69:
+		sortlist := getOrderByList(getRHS(p, ruleNo, 3))
+		if err := rejectNullsInSortlist(sortlist); err != nil {
+			p.SemanticErr = err
+			return nil
+		}
 		return sql.TableConstraint{
 			Type:       sql.ConstraintUnique,
 			Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 3)),
@@ -1660,6 +1670,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	//                       DO UPDATE SET setlist where_opt upsert
 	case 168:
 		target := getOrderByList(getRHS(p, ruleNo, 4))
+		// NULLS FIRST/LAST is not supported in an ON CONFLICT target.
+		if err := rejectNullsInSortlist(target); err != nil {
+			p.SemanticErr = err
+			return nil
+		}
 		oc := &sql.OnConflictClause{
 			Action:         sql.ConflictDoUpdate,
 			ConflictColumn: conflictTargetColumn(target),
@@ -2266,6 +2281,12 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		name := getString(getRHS(p, ruleNo, 5))
 		table := getString(getRHS(p, ruleNo, 8))
 		sortlist := getOrderByList(getRHS(p, ruleNo, 10))
+		// NULLS FIRST/LAST is only valid in ORDER BY, not in index key
+		// definitions (SQLite: "unsupported use of NULLS FIRST/LAST").
+		if err := rejectNullsInSortlist(sortlist); err != nil {
+			p.SemanticErr = err
+			return nil
+		}
 		where := getExpr(getRHS(p, ruleNo, 12))
 		// uniqueflag is RHS[2]: empty or "UNIQUE".
 		unique := strings.EqualFold(strings.TrimSpace(getString(getRHS(p, ruleNo, 2))), "UNIQUE")
@@ -3406,6 +3427,22 @@ func getTableRef(v interface{}) sql.TableRef {
 		return t
 	}
 	return sql.TableRef{}
+}
+
+// rejectNullsInSortlist returns an error if any sortlist term carries an
+// explicit NULLS FIRST/LAST clause. SQLite only allows NULLS FIRST/LAST in
+// ORDER BY, not in index key, PRIMARY KEY, UNIQUE, or ON CONFLICT definitions
+// (error: "unsupported use of NULLS FIRST/LAST").
+func rejectNullsInSortlist(terms []sql.OrderByTerm) error {
+	for _, t := range terms {
+		if t.NullsFirst {
+			return fmt.Errorf("unsupported use of NULLS FIRST")
+		}
+		if t.NullsLast {
+			return fmt.Errorf("unsupported use of NULLS LAST")
+		}
+	}
+	return nil
 }
 
 // seltablistAcc accumulates the FROM clause during seltablist reductions.
