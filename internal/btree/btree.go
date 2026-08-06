@@ -1417,14 +1417,31 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 	pg.Data[lastPtr+1] = 0
 	page.CellCount--
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-	// If the page became empty, reset the content pointer so the next
-	// insert treats it as fresh.
 	if page.CellCount == 0 {
+		// The page became empty: reset the content pointer so the next
+		// insert treats it as fresh.
 		page.CellContent = 0
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], 0)
 		pg.Data[coff+7] = 0 // fragmented free bytes
+	} else {
+		// Recompute CellContent as the LOWEST remaining cell start. The
+		// deleted cell may have been the lowest, and a stale content pointer
+		// would make the next insert overlap the deleted cell's data (the
+		// deleted bytes are not compacted away).
+		lowest := uint16(0xffff)
+		for i := 0; i < int(page.CellCount); i++ {
+			p := storage.CellPointer(pg.Data, coff, i)
+			if p < lowest {
+				lowest = p
+			}
+		}
+		page.CellContent = lowest
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], lowest)
 	}
-	return nil
+	// Persist the mutation so a fresh cursor / pager read sees the deletion
+	// (the pager cache returns the same buffer, but the page must be marked
+	// dirty to be written back on flush and to keep reads consistent).
+	return t.pager.WritePage(pg)
 }
 
 // collectLeafPages appends the page numbers of all leaf pages reachable
