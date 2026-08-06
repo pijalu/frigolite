@@ -641,8 +641,110 @@ func (tp *transpiler) goStringLiteral(w tcl.RawWord) string {
 		// string carries the actual character (not a literal backslash).
 		return tp.buildStringExpr(tclUnescapeQuoted(w.Text))
 	}
-	// Build Go string expression from the unbraced word
-	return tp.buildStringExpr(w.Text)
+	// Unquoted (bare) words also perform TCL backslash substitution, but
+	// $var and [cmd] references must remain for buildStringExpr. Unescape
+	// only the sequences that cannot collide with interpolation syntax:
+	// octal (\123), hex (\x41), and the recognized letter escapes
+	// (\n \t \r \v \f \b \a). \$ and \[ are left intact so buildStringExpr
+	// does not misread an escaped literal as a variable/command.
+	return tp.buildStringExpr(unescapeBareWord(w.Text))
+}
+
+// isHexDigit reports whether c is an ASCII hexadecimal digit.
+func isHexDigit(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+}
+
+// hexVal returns the numeric value of an ASCII hexadecimal digit.
+func hexVal(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'a' && c <= 'f':
+		return int(c-'a') + 10
+	default:
+		return int(c-'A') + 10
+	}
+}
+
+// unescapeBareWord applies TCL backslash substitution to an unquoted word,
+// preserving the escapes that must survive for buildStringExpr to interpret
+// $var and [cmd] references. TCL unquoted words substitute backslash
+// sequences (\n, \t, octal, hex, ...), but \$ and \[ yield literal characters
+// rather than interpolation triggers; those must stay escaped so
+// buildStringExpr does not treat them as variable/command references.
+func unescapeBareWord(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] != '\\' || i+1 >= len(s) {
+			b.WriteByte(s[i])
+			continue
+		}
+		next := s[i+1]
+		// Preserve the escape for interpolation-sensitive characters.
+		switch next {
+		case '$', '[', ']', '{', '}':
+			b.WriteByte('\\')
+			b.WriteByte(next)
+			i++
+			continue
+		}
+		// Line continuation: backslash-newline is removed entirely.
+		if next == '\n' {
+			i++
+			continue
+		}
+		if next == '\r' && i+2 < len(s) && s[i+2] == '\n' {
+			i += 2
+			continue
+		}
+		i++
+		if i < len(s) && s[i] >= '0' && s[i] <= '7' {
+			// TCL octal escape: \ooo (1-3 octal digits).
+			val := 0
+			for count := 0; count < 3 && i < len(s) && s[i] >= '0' && s[i] <= '7'; count++ {
+				val = val*8 + int(s[i]-'0')
+				i++
+			}
+			b.WriteByte(byte(val))
+			i-- // compensate for the loop's i++
+			continue
+		}
+		if i < len(s) && s[i] == 'x' && i+1 < len(s) && isHexDigit(s[i+1]) {
+			// TCL hex escape: \xHH.
+			j := i + 1
+			val := 0
+			for count := 0; count < 2 && j < len(s) && isHexDigit(s[j]); count++ {
+				val = val*16 + hexVal(s[j])
+				j++
+			}
+			b.WriteByte(byte(val))
+			i = j - 1 // compensate for the loop's i++
+			continue
+		}
+		switch s[i] {
+		case 'n':
+			b.WriteByte('\n')
+		case 't':
+			b.WriteByte('\t')
+		case 'r':
+			b.WriteByte('\r')
+		case 'v':
+			b.WriteByte('\v')
+		case 'f':
+			b.WriteByte('\f')
+		case 'b':
+			b.WriteByte('\b')
+		case 'a':
+			b.WriteByte('\a')
+		case '\\', '"':
+			b.WriteByte(s[i])
+		default:
+			// TCL drops the backslash for unrecognized escapes.
+			b.WriteByte(s[i])
+		}
+	}
+	return b.String()
 }
 
 // tclUnescapeQuoted converts TCL double-quoted string escapes to the
@@ -667,6 +769,31 @@ func tclUnescapeQuoted(s string) string {
 			continue
 		}
 		i++
+		// TCL octal escape: \ooo (1-3 octal digits) yields the byte with
+		// that value, e.g. \123 → 'S' (0x53) and \342 → 0xE2. A following
+		// non-octal digit terminates the escape (\1234 → \123 + '4').
+		if i < len(s) && s[i] >= '0' && s[i] <= '7' {
+			val := 0
+			for count := 0; count < 3 && i < len(s) && s[i] >= '0' && s[i] <= '7'; count++ {
+				val = val*8 + int(s[i]-'0')
+				i++
+			}
+			b.WriteByte(byte(val))
+			i-- // compensate for the loop's i++
+			continue
+		}
+		// TCL hex escape: \xHH yields the byte with that value.
+		if i < len(s) && s[i] == 'x' && i+1 < len(s) && isHexDigit(s[i+1]) {
+			j := i + 1
+			val := 0
+			for count := 0; count < 2 && j < len(s) && isHexDigit(s[j]); count++ {
+				val = val*16 + hexVal(s[j])
+				j++
+			}
+			b.WriteByte(byte(val))
+			i = j - 1 // compensate for the loop's i++
+			continue
+		}
 		switch s[i] {
 		case 'n':
 			b.WriteByte('\n')
@@ -994,6 +1121,15 @@ func (tp *transpiler) buildStringExpr(s string) string {
 	return tp.renderStringExpr(parts, false)
 }
 
+// buildStringExprNoCmd is like buildStringExpr but treats [...] as literal
+// text instead of TCL command substitution. It implements the semantics of
+// TCL `subst -nocommands`, where bracket-quoted SQL identifiers such as
+// [t1'x1] must be preserved verbatim.
+func (tp *transpiler) buildStringExprNoCmd(s string) string {
+	parts := parseStringPartsMode(s, false, true)
+	return tp.renderStringExpr(parts, false)
+}
+
 // buildSQLStringExpr converts TCL text with $var/[cmd] references into a Go
 // SQL string expression. Unlike buildStringExpr, variable and command values
 // are rendered as SQL literals via sqlLiteral(...) rather than concatenated
@@ -1121,6 +1257,16 @@ type stringPart struct {
 // treated literally (a regex/glob class like '[Aa]' or '$' must not become a
 // $var or [cmd] substitution), matching how TCL passes braced SQL to db eval.
 func parseStringParts(s string, sqlQuoted bool) []stringPart {
+	return parseStringPartsMode(s, sqlQuoted, false)
+}
+
+// parseStringPartsNoCmd is like parseStringParts but treats [...] as literal
+// text rather than TCL command substitution (subst -nocommands semantics).
+func parseStringPartsNoCmd(s string, sqlQuoted bool) []stringPart {
+	return parseStringPartsMode(s, sqlQuoted, true)
+}
+
+func parseStringPartsMode(s string, sqlQuoted, noCommands bool) []stringPart {
 	// Quick scan: if no $ or [ or \, just quote it
 	simple := true
 	for i := 0; i < len(s); i++ {
@@ -1206,7 +1352,7 @@ func parseStringParts(s string, sqlQuoted bool) []stringPart {
 			continue
 		}
 
-		if ch == '[' && !inSQL {
+		if ch == '[' && !inSQL && !noCommands {
 			depth := 1
 			start := pos + 1
 			pos++
@@ -1280,10 +1426,14 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		// substitution on string. Flags are order-independent.
 		content := strings.TrimSpace(cmdText[len("subst"):])
 		noVar := false
+		noCommands := false
 		for strings.HasPrefix(content, "-") {
 			flag := strings.Fields(content)[0]
-			if flag == "-novar" {
+			switch flag {
+			case "-novar":
 				noVar = true
+			case "-nocommands":
+				noCommands = true
 			}
 			content = strings.TrimSpace(strings.TrimPrefix(content, flag))
 		}
@@ -1298,6 +1448,12 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 			// [set op] yielding a comparison operator) renders as raw SQL
 			// syntax.
 			return tp.renderSubstNovarSQL(content)
+		}
+		if noCommands {
+			// subst -nocommands substitutes $var and backslash escapes but
+			// leaves [...] as literal text (e.g. SQL bracket-quoted
+			// identifiers like [t1'x1]).
+			return tp.buildStringExprNoCmd(content)
 		}
 		return tp.buildStringExpr(content)
 
@@ -1436,6 +1592,26 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		"sqlite3_open_new", "sqlite3_open_old":
 		// sqlite3_open returns a handle — represent as empty string placeholder
 		return `""`
+
+	case "sqlite3":
+		// [sqlite3 db <file>] — reopen a connection inside a command
+		// substitution (TCL: `set ::DB [sqlite3 db test.db]`). Emit a
+		// side-effecting closure that reassigns the connection, returning
+		// an empty string placeholder (the handle is not used in Go).
+		if len(args) < 2 {
+			return `""`
+		}
+		goName := tclVarToGo(args[0])
+		filename := tp.buildStringExpr(args[1])
+		// A preceding forcedelete of the file means the reopen starts from
+		// a fresh database.
+		if tp.pendingFileReset[args[1]] {
+			delete(tp.pendingFileReset, args[1])
+			filename = `""`
+		}
+		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
+		tp.dqsDML = true
+		return fmt.Sprintf("func() string { %s, err = frigolite.Open(%s); if err != nil { t.Fatal(err) }; return \"\" }()", goName, filename)
 
 	case "join":
 		// [join list sep] — TCL list join. The list is a TCL variable built
@@ -2244,7 +2420,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		// statement must fail with that message.
 		if isBareGoIdent(expectedExpr) {
 			tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
-			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %s\", %s, _res.Error)", expectedExpr, nameExpr, expectedExpr)
+			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %%s\", %s, _res.Error, %s)", expectedExpr, nameExpr)
 			tp.emitLine("}")
 		}
 	} else {
@@ -2384,6 +2560,11 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 	rest := args[1:]
 
 	switch subCmd {
+	case "close":
+		// TCL "db close" closes the main connection. A subsequent
+		// "sqlite3 db <file>" reopens it; the emitLine below pairs with
+		// the reopen logic in processSet/processSqlite3.
+		tp.emitLine("db.Close()")
 	case "null", "nullvalue":
 		// TCL "db null <value>" / "db nullvalue <value>" sets how SQL NULL
 		// renders in query results.
@@ -3578,6 +3759,30 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				tp.emitLine("%s = %s", goName, valExpr)
 			} else {
 				tp.emitLine("var %s = %s", goName, valExpr)
+				tp.vars = append(tp.vars, goName)
+			}
+			tp.emitLine("_ = %s // suppress unused warning", goName)
+			return
+		}
+		if len(cmdParts) > 0 && cmdParts[0] == "sqlite3" && len(cmdParts) >= 3 {
+			// set var [sqlite3 db <file>] — reopen a connection as a side
+			// effect. The connection handle is not used in Go, so assign an
+			// empty placeholder after performing the reopen. A preceding
+			// "db close" already emitted db.Close().
+			goName2 := tclVarToGo(cmdParts[1])
+			filename := tp.buildStringExpr(cmdParts[2])
+			if tp.pendingFileReset[cmdParts[2]] {
+				delete(tp.pendingFileReset, cmdParts[2])
+				filename = `""`
+			}
+			tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
+			tp.dqsDML = true
+			tp.emitLine("%s, err = frigolite.Open(%s)", goName2, filename)
+			tp.emitLine("if err != nil { t.Fatal(err) }")
+			if tp.isVarDeclared(goName) {
+				tp.emitLine("%s = \"\"", goName)
+			} else {
+				tp.emitLine("var %s = \"\"", goName)
 				tp.vars = append(tp.vars, goName)
 			}
 			tp.emitLine("_ = %s // suppress unused warning", goName)

@@ -219,35 +219,39 @@ var _ = dirname
 // tcl_nullvalue controls how SQL NULL renders in query results (TCL "db null").
 var tcl_nullvalue = "{}"
 
+// tclRenderCell converts a single query-result cell to its TCL string
+// rendering, honoring the nullvalue setting and SQLite's REAL formatting.
+func tclRenderCell(v interface{}) string {
+	if v == nil {
+		return tcl_nullvalue
+	}
+	switch x := v.(type) {
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		// SQLite displays REALs in a fixed-point format for moderate
+		// magnitudes (e.g. 12300000.0, not 1.23e+07).
+		s := strconv.FormatFloat(x, 'f', -1, 64)
+		// SQLite preserves trailing .0 for whole-number REALs
+		if !strings.ContainsAny(s, ".eE") {
+			s = s + ".0"
+		}
+		return s
+	case string:
+		return x
+	case []byte:
+		return string(x)
+	default:
+		return fmt.Sprintf("%v", x)
+	}
+}
+
 // flatten converts a query result to a space-separated string.
 func flatten(res *frigolite.Result) string {
 	var parts []string
 	for _, row := range res.Rows {
 		for _, val := range row {
-			if val == nil {
-				parts = append(parts, tcl_nullvalue)
-			} else {
-				switch x := val.(type) {
-				case int64:
-					parts = append(parts, strconv.FormatInt(x, 10))
-				case float64:
-					// SQLite displays REALs in a fixed-point format for
-					// moderate magnitudes (e.g. 12300000.0, not 1.23e+07).
-					// %%g switches to scientific notation for large exponents.
-					s := strconv.FormatFloat(x, 'f', -1, 64)
-					// SQLite preserves trailing .0 for whole-number REALs
-					if !strings.ContainsAny(s, ".eE") {
-						s = s + ".0"
-					}
-					parts = append(parts, s)
-				case string:
-					parts = append(parts, x)
-				case []byte:
-					parts = append(parts, string(x))
-				default:
-					parts = append(parts, fmt.Sprintf("%%v", x))
-				}
-			}
+			parts = append(parts, tclRenderCell(val))
 		}
 	}
 	return strings.Join(parts, " ")
@@ -601,7 +605,7 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 	var parts []string
 	for _, row := range r.Rows {
 		for _, v := range row {
-			parts = append(parts, fmt.Sprintf("%%v", v))
+			parts = append(parts, tclRenderCell(v))
 		}
 	}
 	return strings.Join(parts, " ")

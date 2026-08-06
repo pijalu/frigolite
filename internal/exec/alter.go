@@ -1593,6 +1593,15 @@ func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs 
 	if newCol.Check == nil && !newCol.NotNull {
 		return &Result{}
 	}
+
+	// Generated columns: the generated expression is evaluated for every
+	// existing row and NOT NULL/CHECK are enforced per row, matching
+	// SQLite (alter3-9.* tests). For each row the CHECK constraint is
+	// evaluated before the NOT NULL constraint.
+	if newCol.Generated != nil {
+		return e.validateGeneratedAddColumn(tableEntry, colDefs, newCol)
+	}
+
 	// Determine the default value for the new column.
 	defVal, err := e.evalColumnExpr(newCol)
 	if err != nil {
@@ -1633,6 +1642,54 @@ func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs 
 		if verr == nil && checkVal != nil && !toBool(checkVal) {
 			checkText := e.checkConstraintText(tableEntry.SQL, newCol.Name, newCol.Check)
 			return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", checkText)}
+		}
+		ok, nerr := cursor.Next()
+		if nerr != nil || !ok {
+			break
+		}
+	}
+	return &Result{}
+}
+
+// validateGeneratedAddColumn enforces NOT NULL and CHECK constraints for a
+// generated column added via ALTER TABLE ADD COLUMN. The generated
+// expression is evaluated for every existing row (SQLite evaluates the
+// constraints per row, in row order).
+func (e *Engine) validateGeneratedAddColumn(tableEntry *schema.Entry, colDefs []sql.ColumnDef, newCol sql.ColumnDef) *Result {
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{}
+	}
+	for {
+		cell, cerr := cursor.ReadCell()
+		if cerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		row := e.buildRowMap(rec, colDefs, cell.RowID)
+		genVal, gerr := e.evalExpr(newCol.Generated, row)
+		if gerr != nil {
+			ok, nerr := cursor.Next()
+			if nerr != nil || !ok {
+				break
+			}
+			continue
+		}
+		row[newCol.Name] = genVal
+		// CHECK is evaluated before NOT NULL for each row, matching SQLite.
+		if newCol.Check != nil {
+			checkVal, verr := e.evalExpr(newCol.Check, row)
+			if verr == nil && checkVal != nil && !toBool(checkVal) {
+				checkText := e.checkConstraintText(tableEntry.SQL, newCol.Name, newCol.Check)
+				return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", checkText)}
+			}
+		}
+		if newCol.NotNull && genVal == nil {
+			return &Result{Error: fmt.Errorf("NOT NULL constraint failed: %s", newCol.Name)}
 		}
 		ok, nerr := cursor.Next()
 		if nerr != nil || !ok {
@@ -1740,7 +1797,7 @@ func (e *Engine) columnHasNull(entry *schema.Entry, colDefs []sql.ColumnDef, col
 func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	// ALTER TABLE ... ADD [COLUMN] column_def
 	tableName := s.Table
-	tableEntry, _, err := e.findTable(tableName)
+	tableEntry, ctx, err := e.findTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -1757,12 +1814,12 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 			tableEntry.SQL = newSQL
 			delete(e.tableCache, tableName)
 			delete(e.tcCache, tableName)
-			_ = e.schema.RemoveEntry(tableEntry.Name)
-			if err := e.schema.AddEntry(tableEntry); err != nil {
+			_ = ctx.Schema.RemoveEntry(tableEntry.Name)
+			if err := ctx.Schema.AddEntry(tableEntry); err != nil {
 				return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
 			}
-			if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-				if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+			if _, err := ctx.Schema.FindTable(tableEntry.Name); err != nil {
+				if retryErr := ctx.Schema.AddEntry(tableEntry); retryErr != nil {
 					return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
 				}
 			}
@@ -1812,13 +1869,13 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		if newSQL != "" && newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
 			delete(e.tableCache, tableName)
-			_ = e.schema.RemoveEntry(tableEntry.Name)
-			if err := e.schema.AddEntry(tableEntry); err != nil {
+			_ = ctx.Schema.RemoveEntry(tableEntry.Name)
+			if err := ctx.Schema.AddEntry(tableEntry); err != nil {
 				return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
 			}
 			// Verify the entry was re-added
-			if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-				if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+			if _, err := ctx.Schema.FindTable(tableEntry.Name); err != nil {
+				if retryErr := ctx.Schema.AddEntry(tableEntry); retryErr != nil {
 					return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
 				}
 			}

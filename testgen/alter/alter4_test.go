@@ -216,8 +216,9 @@ func Test_alter4(t *testing.T) {
 		}
 	}
 	{ // do_test "alter4-4.1"
+		db.Close()
 		os.Remove("test.db")
-		DB = "sqlite3 db test.db" // TCL namespace variable
+		DB = func() string { db, err = frigolite.Open(""); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		r = db.Query("\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -351,6 +352,9 @@ func Test_alter4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_temp_master WHERE name = 't4';\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sql) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sql, _res.Error, "alter4-8.2")
+		}
 	}
 	{ // "alter4-9.1"
 		_res = db.Exec("\n  CREATE TABLE t5(\n    a INTEGER DEFAULT -9223372036854775808,\n    b INTEGER DEFAULT (-(-9223372036854775808))\n  );\n  INSERT INTO t5 DEFAULT VALUES;\n")
@@ -365,7 +369,7 @@ func Test_alter4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "integer -9223372036854775808 real 9.22337203685478e+18"
+		want := "\n  integer -9223372036854775808\n  real     9.22337203685478e+18\n"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -383,9 +387,10 @@ func Test_alter4(t *testing.T) {
 		}
 	}
 	{ // do_test "alter4-10.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")

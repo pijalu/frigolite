@@ -88,9 +88,9 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-1.1"
 		temp = "TEMP" // TCL namespace variable
 		_ = temp // suppress unused warning
-		_res = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);")
+		_res = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE [t1'x1](c UNIQUE, b PRIMARY KEY);\n    INSERT INTO [t1'x1] VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON [t1'x1](b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON [temp table](f);\n    INSERT INTO [temp table] VALUES(5,6,7);")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE [t1'x1](c UNIQUE, b PRIMARY KEY);\n    INSERT INTO [t1'x1] VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON [t1'x1](b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON [temp table](f);\n    INSERT INTO [temp table] VALUES(5,6,7);")
 		}
 		r = db.Query("\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];\n  ")
 		if r.Error != nil {
@@ -140,6 +140,7 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	{ // do_test "alter-1.6"
+		db.Close()
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -516,7 +517,7 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		}
 	}
-	col_name = "ghi\\1234\\jkl" // TCL namespace variable
+	col_name = "ghiS4jkl" // TCL namespace variable
 	_ = col_name // suppress unused warning
 	{ // do_test "alter-6.5"
 		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name + " VARCHAR\n  ")
@@ -528,9 +529,10 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		}
 	}
-	col_name2 = "B\\3421\\A" // TCL namespace variable
+	col_name2 = "B\xe21A" // TCL namespace variable
 	_ = col_name2 // suppress unused warning
 	{ // do_test "alter-6.6"
+		db.Close()
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -714,6 +716,7 @@ func Test_alter(t *testing.T) {
 			}
 		}
 		{ // do_test "alter-12.4"
+			db.Close()
 			_dbtmp3, err := frigolite.Open("test.db")
 			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
@@ -799,6 +802,7 @@ func Test_alter(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
+			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "alter-17.100"

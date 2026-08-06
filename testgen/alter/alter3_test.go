@@ -74,7 +74,7 @@ func Test_alter3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "alter3-1.1"
-		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;\n  ")
@@ -204,10 +204,11 @@ func Test_alter3(t *testing.T) {
 		}
 	}
 	{ // do_test "alter3-4.1"
+		db.Close()
 		os.Remove("test.db")
-		DB = "sqlite3 db test.db" // TCL namespace variable
+		DB = func() string { db, err = frigolite.Open(""); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
-		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
@@ -387,6 +388,9 @@ func Test_alter3(t *testing.T) {
 		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE name = 't4';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE name = 't4';\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sql) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sql, _res.Error, "alter3-8.2")
 		}
 	}
 	db.Close()

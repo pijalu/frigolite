@@ -2819,6 +2819,9 @@ func mergeColumnDef(dst *sql.ColumnDef, src sql.ColumnDef) {
 	if src.Check != nil {
 		dst.Check = src.Check
 	}
+	if src.Generated != nil {
+		dst.Generated = src.Generated
+	}
 	if src.References != "" {
 		dst.References = src.References
 	}

@@ -7,6 +7,7 @@ package alter
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -84,7 +85,7 @@ func Test_alter2(t *testing.T) {
 		_res = db.Exec("SELECT substr('abcdefg',1,3)")
 		_ = _res // catchsql
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // do_test "alter2-1.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b);\n    INSERT INTO abc VALUES(1, 2);\n    INSERT INTO abc VALUES(3, 4);\n    INSERT INTO abc VALUES(5, 6);\n  ")
 		if _res.Error != nil {
@@ -216,6 +217,7 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-4.1"
+		db.Close()
 		// set_file_format 5 (unsupported command, not transpiled)
 		{
 			var _catchErr error
@@ -248,6 +250,7 @@ func Test_alter2(t *testing.T) {
 	_ = default_file_format // suppress unused warning
 	{ // do_test "alter2-5.1"
 		// set_file_format 2 (unsupported command, not transpiled)
+		db.Close()
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -265,8 +268,12 @@ func Test_alter2(t *testing.T) {
 	}
 	{ // do_test "alter2-5.3"
 		// get_file_format (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), default_file_format) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", default_file_format, _res.Error, "alter2-5.3")
+		}
 	}
 	{ // do_test "alter2-6.1"
+		db.Close()
 		// set_file_format 2 (unsupported command, not transpiled)
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
@@ -281,6 +288,9 @@ func Test_alter2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b);\n    ")
 		}
 		// get_file_format test2.db (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), default_file_format) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", default_file_format, _res.Error, "alter2-6.2")
+		}
 	}
 	{ // do_test "alter2-6.3"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n  ")

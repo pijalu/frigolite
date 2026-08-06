@@ -516,6 +516,12 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 		if val, ok := row.Get(v.Name); ok {
 			return val, nil
 		}
+		// Unqualified rowid/_rowid_/oid resolve to the scanned row's rowid.
+		if isRowIDName(v.Name) {
+			if val, ok := row.Get("rowid"); ok {
+				return val, nil
+			}
+		}
 	}
 	// Fallback to outer rows for correlated references (unqualified)
 	for _, outer := range e.outerRowsForResolution() {

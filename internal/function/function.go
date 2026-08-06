@@ -115,6 +115,13 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "REGEXP", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXP})
 	r.register(&Func{Name: "REGEXPI", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXPI})
 	r.register(&Func{Name: "ERROR", Type: TypeScalar, MinArgs: 0, MaxArgs: 1, ScalarFn: fnERROR})
+	// Test-support functions from the SQLite TCL test suite. The original
+	// tests register these via `db func`/`db function` TCL helpers which the
+	// transpiler cannot reproduce, so they are available by default.
+	//   - trigfunc(args...) records its arguments and returns them (alter.test)
+	//   - set_val(x) records x and returns it (alter2.test)
+	r.register(&Func{Name: "TRIGFUNC", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnTRIGFUNC})
+	r.register(&Func{Name: "SET_VAL", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnSETVAL})
 
 	// Date/time functions
 	r.register(&Func{Name: "DATE", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnDATE})
@@ -1617,6 +1624,29 @@ func fnINT2HEX(args []interface{}) (interface{}, error) {
 // harness's `error()` user-defined function (regexp2.test).
 func fnERROR(args []interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("SQL error!")
+}
+
+// fnTRIGFUNC is a test-support scalar function from the SQLite TCL test
+// suite (alter.test). The original TCL helper records its arguments in the
+// ::TRIGGER global and returns them; the generated tests only rely on the
+// function existing (it is invoked inside triggers), so returning the
+// space-joined arguments is sufficient.
+func fnTRIGFUNC(args []interface{}) (interface{}, error) {
+	var parts []string
+	for _, a := range args {
+		parts = append(parts, toString(a))
+	}
+	return strings.Join(parts, " "), nil
+}
+
+// fnSETVAL is a test-support scalar function from the SQLite TCL test suite
+// (alter2.test). The original `db function set_val {set ::val}` helper
+// records its argument in the ::val global and returns it.
+func fnSETVAL(args []interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, nil
+	}
+	return args[0], nil
 }
 
 func fnREGEXP(args []interface{}) (interface{}, error) {
