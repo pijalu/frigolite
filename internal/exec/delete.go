@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -80,6 +81,17 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 				}
 			}
 		}
+	}
+
+	// Apply DELETE ... ORDER BY ... LIMIT (a SQLite extension): sort the
+	// matching rows by the ORDER BY expressions, then keep only the LIMIT
+	// window. Without ORDER BY the rows are processed in rowid order; LIMIT
+	// alone applies to that natural order.
+	if len(s.OrderBy) > 0 {
+		e.sortDeleteRows(deletedRows, s.OrderBy)
+	}
+	if s.Limit != nil {
+		deletedRows = e.limitDeleteRows(deletedRows, s)
 	}
 
 	// Fire BEFORE DELETE triggers, delete the row, evaluate RETURNING
@@ -208,4 +220,49 @@ func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Res
 		changed++
 	}
 	return &Result{Changes: changed}
+}
+
+// sortDeleteRows sorts the rows to delete by the ORDER BY expressions evaluated
+// against each row's values (SQLite DELETE ... ORDER BY ... LIMIT).
+func (e *Engine) sortDeleteRows(rows []RowMap, orderBy []sql.OrderByTerm) {
+	if len(rows) <= 1 {
+		return
+	}
+	sort.SliceStable(rows, func(i, j int) bool {
+		for _, ob := range orderBy {
+			left, _ := e.evalExpr(ob.Expr, rows[i])
+			right, _ := e.evalExpr(ob.Expr, rows[j])
+			cmp := compareOrderByValues(left, right, ob)
+			if cmp < 0 {
+				return true
+			} else if cmp > 0 {
+				return false
+			}
+		}
+		return false
+	})
+}
+
+// limitDeleteRows applies DELETE ... LIMIT n [OFFSET m] to the row list, keeping
+// the first n entries after skipping m (SQLite semantics for DELETE LIMIT: the
+// first N rows matched by the scan order are deleted).
+func (e *Engine) limitDeleteRows(rows []RowMap, s *sql.DeleteStmt) []RowMap {
+	limit, err := e.evalConstInt(s.Limit)
+	if err != nil || limit < 0 {
+		return rows
+	}
+	offset := int64(0)
+	if s.Offset != nil {
+		if v, err := e.evalConstInt(s.Offset); err == nil && v > 0 {
+			offset = v
+		}
+	}
+	if offset >= int64(len(rows)) {
+		return nil
+	}
+	end := offset + limit
+	if end > int64(len(rows)) {
+		end = int64(len(rows))
+	}
+	return rows[offset:end]
 }

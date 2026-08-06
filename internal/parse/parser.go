@@ -22,12 +22,12 @@ import (
 // Returns a list of statements compatible with Frigolite's AST types.
 func ParseSQL(input string) ([]sql.Stmt, error) {
 	// The LALR tables are generated from SQLite's grammar, which accepts
-	// UPDATE ... ORDER BY ... LIMIT (a SQLite extension). The tables used
-	// here predate that extension, so rewrite such statements first: strip
-	// the trailing ORDER BY/LIMIT, parse the remainder, then re-attach the
-	// clause to the resulting UpdateStmt.
-	rewritten, updClauses, hasUpdateRewrite := rewriteUpdateOrderLimit(input)
-	if hasUpdateRewrite {
+	// UPDATE ... ORDER BY ... LIMIT and DELETE ... ORDER BY ... LIMIT (SQLite
+	// extensions). The tables used here predate that extension, so rewrite
+	// such statements first: strip the trailing ORDER BY/LIMIT, parse the
+	// remainder, then re-attach the clause to the resulting statement.
+	rewritten, stmtClauses, hasStmtRewrite := rewriteStmtOrderLimit(input)
+	if hasStmtRewrite {
 		input = rewritten
 	}
 
@@ -179,8 +179,8 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	// Recover function-call ORDER BY clauses that the LALR tables drop
 	// (e.g. group_concat(a ORDER BY b)) by scanning the raw statement text.
 	recoverFuncCallOrderBy(stmts)
-	if hasUpdateRewrite {
-		attachUpdateOrderLimit(stmts, updClauses)
+	if hasStmtRewrite {
+		attachStmtOrderLimit(stmts, stmtClauses)
 	}
 	return stmts, nil
 }
@@ -292,35 +292,43 @@ func extractFuncCallOrderBy(raw, funcName string) []sql.OrderByTerm {
 	return subSel.OrderBy
 }
 
-// updateOrderLimit records the ORDER BY/LIMIT clause stripped from a top-level
-// UPDATE statement so it can be re-attached after LALR parsing. The clause
-// index matches the statement's position in the parsed statement list.
-type updateOrderLimit struct {
+// stmtOrderLimit records the ORDER BY/LIMIT clause stripped from a top-level
+// UPDATE or DELETE statement so it can be re-attached after LALR parsing. The
+// clause index matches the statement's position in the parsed statement list.
+type stmtOrderLimit struct {
 	orderBy []sql.OrderByTerm
 	limit   sql.Expr
 	offset  sql.Expr
 }
 
-// rewriteUpdateOrderLimit scans the input for top-level UPDATE statements that
-// carry a trailing ORDER BY/LIMIT clause (a SQLite extension not accepted by
-// the LALR tables), strips the clause text, and returns the rewritten SQL plus
-// the extracted clauses (indexed by statement order). It returns
-// hasUpdateRewrite=false when no UPDATE statement needs rewriting.
+// rewriteStmtOrderLimit scans the input for top-level UPDATE or DELETE
+// statements that carry a trailing ORDER BY/LIMIT clause (a SQLite extension
+// not accepted by the LALR tables), strips the clause text, and returns the
+// rewritten SQL plus the extracted clauses (indexed by statement order). It
+// returns hasRewrite=false when no statement needs rewriting.
+//
+// SQLite rejects ORDER BY/LIMIT combined with RETURNING on UPDATE and DELETE
+// ("near \"RETURNING\": syntax error"), so a statement that carries both a
+// clause and a RETURNING is left untouched and fails to parse.
 //
 // The scan operates on token boundaries with parenthesis tracking so that
 // ORDER BY/LIMIT inside subqueries (e.g. SET x=(SELECT ... ORDER BY ... LIMIT
 // 1)) is not mistaken for the statement-level clause.
-func rewriteUpdateOrderLimit(input string) (string, []updateOrderLimit, bool) {
+func rewriteStmtOrderLimit(input string) (string, []stmtOrderLimit, bool) {
 	toks, ok := tokenizeInput(input)
 	if !ok {
 		return input, nil, false
 	}
 	spans := splitTopLevelStatements(toks)
 
-	// Find the statement-level ORDER BY/LIMIT clause of each top-level UPDATE.
+	// Find the statement-level ORDER BY/LIMIT clause of each top-level
+	// UPDATE/DELETE statement that has no RETURNING.
 	var clauseStarts []int // token index where the clause begins, per statement
 	for _, sp := range spans {
-		if !isTopLevelUpdate(toks, sp) {
+		if !(isTopLevelStmt(toks, sp, "UPDATE") || isTopLevelStmt(toks, sp, "DELETE")) {
+			continue
+		}
+		if hasStatementReturning(toks, sp) {
 			continue
 		}
 		if start, ok := findStatementOrderLimit(toks, sp); ok {
@@ -332,17 +340,17 @@ func rewriteUpdateOrderLimit(input string) (string, []updateOrderLimit, bool) {
 	}
 
 	// Convert each clause start to a byte splice and parse the clause text.
-	var splices []updateSplice
+	var splices []stmtSplice
 	for _, tokStart := range clauseStarts {
 		clauseText, from, to := clauseTextForToken(toks, input, tokStart)
 		ob, limit, offset := parseOrderLimitClause(clauseText)
 		if ob == nil && limit == nil {
 			continue
 		}
-		splices = append(splices, updateSplice{
+		splices = append(splices, stmtSplice{
 			from:   from,
 			to:     to,
-			clause: updateOrderLimit{orderBy: ob, limit: limit, offset: offset},
+			clause: stmtOrderLimit{orderBy: ob, limit: limit, offset: offset},
 		})
 	}
 	if len(splices) == 0 {
@@ -352,18 +360,41 @@ func rewriteUpdateOrderLimit(input string) (string, []updateOrderLimit, bool) {
 	// The clause order in splices matches statement order; the parsed
 	// statements will be in the same order (the rewritten input preserves
 	// statement boundaries), so build the return slice in statement order.
-	var result []updateOrderLimit
+	var result []stmtOrderLimit
 	for _, s := range splices {
 		result = append(result, s.clause)
 	}
-	return applyUpdateSplices(input, splices), result, true
+	return applyStmtSplices(input, splices), result, true
 }
 
-// updateSplice records a byte range of the input to remove and the clause it
+// stmtSplice records a byte range of the input to remove and the clause it
 // contained.
-type updateSplice struct {
+type stmtSplice struct {
 	from, to int // byte offsets
-	clause   updateOrderLimit
+	clause   stmtOrderLimit
+}
+
+// hasStatementReturning reports whether a top-level statement span contains a
+// RETURNING keyword at parenthesis depth 0. SQLite does not allow RETURNING
+// together with ORDER BY/LIMIT on UPDATE or DELETE, so such statements must
+// not be rewritten (they should fail to parse).
+func hasStatementReturning(toks []sql.Token, sp stmtSpan) bool {
+	d := 0
+	for j := sp.start; j < sp.end; j++ {
+		switch {
+		case toks[j].Type == sql.TokenLParen:
+			d++
+		case toks[j].Type == sql.TokenRParen:
+			if d > 0 {
+				d--
+			}
+		case toks[j].Type == sql.TokenKeyword && d == 0:
+			if strings.EqualFold(toks[j].Value, "RETURNING") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // tokenizeInput tokenizes the input, returning false on a tokenizer error.
@@ -412,16 +443,17 @@ func splitTopLevelStatements(toks []sql.Token) []stmtSpan {
 	return spans
 }
 
-// isTopLevelUpdate reports whether the statement span starts with UPDATE
-// (optionally after WITH, which SQLite does not allow on UPDATE — the check is
-// conservative so a WITH ... UPDATE is simply not rewritten).
-func isTopLevelUpdate(toks []sql.Token, sp stmtSpan) bool {
+// isTopLevelStmt reports whether the statement span starts with the given
+// keyword (optionally after WITH, which SQLite does not allow on UPDATE or
+// DELETE — the check is conservative so a WITH ... statement is simply not
+// rewritten).
+func isTopLevelStmt(toks []sql.Token, sp stmtSpan, keyword string) bool {
 	for j := sp.start; j < sp.end; j++ {
-		if toks[j].Type == sql.TokenKeyword && strings.EqualFold(toks[j].Value, "UPDATE") {
+		if toks[j].Type == sql.TokenKeyword && strings.EqualFold(toks[j].Value, keyword) {
 			return true
 		}
 		// Stop at the first meaningful token after the previous SEMI that is
-		// not WITH (a non-UPDATE statement).
+		// not WITH (a non-matching statement).
 		if toks[j].Type != sql.TokenIdentifier || !strings.EqualFold(toks[j].Value, "WITH") {
 			return false
 		}
@@ -432,7 +464,7 @@ func isTopLevelUpdate(toks []sql.Token, sp stmtSpan) bool {
 // findStatementOrderLimit finds the token index where the statement-level
 // ORDER BY/LIMIT clause begins (the LAST top-level ORDER BY, or the last
 // top-level LIMIT when no ORDER BY is present). SQLite requires LIMIT when
-// ORDER BY is used on UPDATE ("ORDER BY without LIMIT on UPDATE"), so an ORDER
+// ORDER BY is used on UPDATE or DELETE ("ORDER BY without LIMIT on UPDATE/DELETE"), so an ORDER
 // BY without a following LIMIT is not rewritten. Returns ok=false when the
 // statement has no usable clause.
 func findStatementOrderLimit(toks []sql.Token, sp stmtSpan) (int, bool) {
@@ -483,9 +515,9 @@ func clauseTextForToken(toks []sql.Token, input string, tokStart int) (string, i
 	return strings.TrimSpace(input[from:to]), from, to
 }
 
-// applyUpdateSplices rebuilds the input with each clause's text replaced by a
+// applyStmtSplices rebuilds the input with each clause's text replaced by a
 // single space (so adjacent tokens do not merge).
-func applyUpdateSplices(input string, splices []updateSplice) string {
+func applyStmtSplices(input string, splices []stmtSplice) string {
 	var out strings.Builder
 	out.WriteString(input[:splices[0].from])
 	for i, s := range splices {
@@ -560,22 +592,29 @@ func parseLimitClause(text string) (sql.Expr, sql.Expr) {
 	return subSel.Limit, subSel.Offset
 }
 
-// attachUpdateOrderLimit applies the ORDER BY/LIMIT clauses stripped by
-// rewriteUpdateOrderLimit to the parsed statements in order.
-func attachUpdateOrderLimit(stmts []sql.Stmt, clauses []updateOrderLimit) {
+// attachStmtOrderLimit applies the ORDER BY/LIMIT clauses stripped by
+// rewriteStmtOrderLimit to the parsed statements in order.
+func attachStmtOrderLimit(stmts []sql.Stmt, clauses []stmtOrderLimit) {
 	ci := 0
 	for _, st := range stmts {
-		upd, ok := st.(*sql.UpdateStmt)
-		if !ok {
-			continue
+		switch upd := st.(type) {
+		case *sql.UpdateStmt:
+			if ci >= len(clauses) {
+				break
+			}
+			upd.OrderBy = clauses[ci].orderBy
+			upd.Limit = clauses[ci].limit
+			upd.Offset = clauses[ci].offset
+			ci++
+		case *sql.DeleteStmt:
+			if ci >= len(clauses) {
+				break
+			}
+			upd.OrderBy = clauses[ci].orderBy
+			upd.Limit = clauses[ci].limit
+			upd.Offset = clauses[ci].offset
+			ci++
 		}
-		if ci >= len(clauses) {
-			break
-		}
-		upd.OrderBy = clauses[ci].orderBy
-		upd.Limit = clauses[ci].limit
-		upd.Offset = clauses[ci].offset
-		ci++
 	}
 }
 

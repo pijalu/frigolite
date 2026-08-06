@@ -31,14 +31,16 @@ G3.TRIGGER; this task covers the DELETE scan + RETURNING + the OLD-row context.
 - `src/update.c` — RETURNING shared machinery.
 
 ## Steps
-- [ ] **G1.DELETE.1** Pre-test suite. Commit: `G1.DELETE.1: DELETE pre-test suite`.
-- [ ] **G1.DELETE.2** Qualified-column WHERE during DELETE scan
+- [x] **G1.DELETE.1** Pre-test suite (`frigolite_p1_delete_test.go`). Commit: `G1.DELETE.1: DELETE pre-test suite`.
+- [x] **G1.DELETE.2** Qualified-column WHERE during DELETE scan
   (`e.currentScanTable` set so `t6.x` resolves). Commit: `G1.DELETE.2: DELETE qualified WHERE`.
-- [ ] **G1.DELETE.3** DELETE ... ORDER BY ... LIMIT. Commit: `G1.DELETE.3: DELETE ORDER BY/LIMIT`.
-- [ ] **G1.DELETE.4** RETURNING (shared path). Commit: `G1.DELETE.4: DELETE RETURNING`.
-- [ ] **G1.DELETE.5** OLD-row context for DELETE triggers (coordinate G3.TRIGGER).
+- [x] **G1.DELETE.3** DELETE ... ORDER BY ... LIMIT (parser rewrite generalized
+  from UPDATE + exec sort/limit helpers). Commit: `G1.DELETE.3: DELETE ORDER BY/LIMIT`.
+- [x] **G1.DELETE.4** RETURNING (shared path). Commit: `G1.DELETE.4: DELETE RETURNING`.
+- [x] **G1.DELETE.5** OLD-row context for DELETE triggers (coordinate G3.TRIGGER).
   Commit: `G1.DELETE.5: DELETE trigger OLD context`.
-- [ ] **G1.DELETE.6** testgen delete_–delete4 green. Commit: `G1.DELETE.6: DELETE TCL green`.
+- [x] **G1.DELETE.6** testgen delete_–delete4 green + TestP1Delete green + build.
+  Commit: `G1.DELETE.6: DELETE TCL green`.
 
 ## Verify command
 ```bash
