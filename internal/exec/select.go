@@ -259,6 +259,18 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		}
 	}
 
+	// OR-index optimization: WHERE of the form (a=1 AND b=2) OR (c=3 AND d=4)
+	// where every OR term constrains the leading columns of some index.
+	// SQLite unions the matching rowids in index scan order (deduplicating),
+	// which determines the output order when there is no ORDER BY. The plan is
+	// skipped when correlated outer rows are active or reverse_unordered_selects
+	// is on (which forces a plain table scan order).
+	if len(s.Joins) == 0 && s.Where != nil && e.outerRow == nil && len(e.outerRows) == 0 && !e.reverseUnordered {
+		if branches, ok := e.planOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
+			return e.execSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches)
+		}
+	}
+
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
