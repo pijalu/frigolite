@@ -220,13 +220,18 @@ func (e *Engine) evalCaseWithOperand(v *sql.CaseExpr, row Row) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	for _, w := range v.Whens {
-		when, err := e.evalExpr(w.When, row)
-		if err != nil {
-			return nil, err
-		}
-		if util.CompareValues(operand, when) == 0 {
-			return e.evalExpr(w.Then, row)
+	// Simple CASE uses = semantics (SQLite): a NULL operand never matches,
+	// even a NULL WHEN (CASE NULL WHEN NULL → ELSE). Non-NULL operands are
+	// compared with util.CompareValues.
+	if operand != nil {
+		for _, w := range v.Whens {
+			when, err := e.evalExpr(w.When, row)
+			if err != nil {
+				return nil, err
+			}
+			if util.CompareValues(operand, when) == 0 {
+				return e.evalExpr(w.Then, row)
+			}
 		}
 	}
 	return e.evalCaseElse(v, row)
@@ -302,54 +307,20 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (result interface{}, err
 			// SQLite: CAST(text AS REAL) parses the text as a number,
 			// accepting a leading numeric prefix and ignoring trailing
 			// garbage (sqlite3AtoF). E.g. CAST(' 876xyz' AS REAL) is 876.0.
-			t := strings.TrimSpace(x)
-			if f, err := strconv.ParseFloat(t, 64); err == nil {
+			if f, ok := parseNumericPrefix(x); ok {
 				return f, nil
-			}
-			// Numeric prefix parse: [sign] digits [.digits] [eE [sign] digits]
-			i := 0
-			if i < len(t) && (t[i] == '+' || t[i] == '-') {
-				i++
-			}
-			digits := 0
-			for i < len(t) && t[i] >= '0' && t[i] <= '9' {
-				i++
-				digits++
-			}
-			if i < len(t) && t[i] == '.' {
-				i++
-				for i < len(t) && t[i] >= '0' && t[i] <= '9' {
-					i++
-					digits++
-				}
-			}
-			if digits > 0 && i < len(t) && (t[i] == 'e' || t[i] == 'E') {
-				j := i + 1
-				if j < len(t) && (t[j] == '+' || t[j] == '-') {
-					j++
-				}
-				if j < len(t) && t[j] >= '0' && t[j] <= '9' {
-					i = j
-					for i < len(t) && t[i] >= '0' && t[i] <= '9' {
-						i++
-					}
-				}
-			}
-			if digits > 0 {
-				if f, err := strconv.ParseFloat(t[:i], 64); err == nil {
-					return f, nil
-				}
-				// Overflow: SQLite returns +/-Inf.
-				if t[0] == '-' {
-					return math.Inf(-1), nil
-				}
-				return math.Inf(1), nil
 			}
 			return float64(0), nil
 		default:
 			return float64(0), nil
 		}
 	case "TEXT":
+		// CAST(blob AS TEXT) decodes the blob bytes as UTF-8 text (SQLite
+		// does a byte copy; the result is a text value). fmt.Sprintf("%v")
+		// on a []byte would render "[104 105]", so convert explicitly.
+		if b, ok := val.([]byte); ok {
+			return string(b), nil
+		}
 		return fmt.Sprintf("%v", val), nil
 	case "NUMERIC":
 		// SQLite: CAST(x AS NUMERIC) coerces text to a number; non-numeric
@@ -470,6 +441,14 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 			// Row maps store unqualified column names, so "t1.a" in a query
 			// scanning table t1 resolves to row["a"].
 			if e.currentScanTable != "" && strings.EqualFold(tableQual, e.currentScanTable) {
+				if val, ok := row.Get(v.Name); ok {
+					return val, nil
+				}
+			}
+			// Same for DML (INSERT/UPDATE) rows: a table-qualified reference in
+			// a CHECK/default expression (e.g. CHECK (5 IN (false.false)))
+			// resolves against the row's unqualified column keys.
+			if e.currentDMLTable != "" && strings.EqualFold(tableQual, e.currentDMLTable) {
 				if val, ok := row.Get(v.Name); ok {
 					return val, nil
 				}
@@ -1877,7 +1856,7 @@ func addValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
-		if isInt(a) && isInt(b) {
+		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) + int64(bf), nil
 		}
 		return af + bf, nil
@@ -1892,6 +1871,26 @@ func isZeroString(v interface{}) bool {
 	}
 	trimmed := strings.TrimSpace(s)
 	return trimmed == "" || trimmed == "." || trimmed == "+." || trimmed == "-."
+}
+
+// numericIsInt reports whether a value should be treated as an integer in
+// arithmetic. int64 values are integers; text that parses to a whole number
+// (SQLite's text→integer rule: '12' is 12, '1x' is 1, '12.5' is not) is also
+// integer-valued so that '12' + 3 yields the integer 15, matching SQLite.
+// A string with no numeric prefix at all ("abc") is integer 0.
+func numericIsInt(v interface{}) bool {
+	if _, ok := v.(int64); ok {
+		return true
+	}
+	s, ok := v.(string)
+	if !ok {
+		return false
+	}
+	f, ok := parseNumericPrefix(s)
+	if !ok {
+		return true
+	}
+	return f == float64(int64(f))
 }
 
 func subValues(a, b interface{}) (interface{}, error) {
@@ -1911,7 +1910,7 @@ func subValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
-		if isInt(a) && isInt(b) {
+		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) - int64(bf), nil
 		}
 		return af - bf, nil
@@ -1971,7 +1970,7 @@ func mulValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
-		if isInt(a) && isInt(b) {
+		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) * int64(bf), nil
 		}
 		return af * bf, nil
@@ -1986,7 +1985,7 @@ func divValues(a, b interface{}) (interface{}, error) {
 		if bf == 0 {
 			return nil, nil
 		}
-		if isInt(a) && isInt(b) {
+		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) / int64(bf), nil
 		}
 		return af / bf, nil
@@ -2001,11 +2000,14 @@ func modValues(a, b interface{}) (interface{}, error) {
 		if bf == 0 {
 			return nil, nil
 		}
-		if isInt(a) && isInt(b) {
-			return int64(af) % int64(bf), nil
+		// SQLite's % truncates both operands to integers then applies integer
+		// modulo (5.5 % 2 is 1, not 1.5). The result type is REAL when either
+		// operand was REAL, INTEGER otherwise (5 % 2 → 1, 5.0 % 2 → 1.0).
+		r := int64(af) % int64(bf)
+		if numericIsInt(a) && numericIsInt(b) {
+			return r, nil
 		}
-		// For floating point modulo, convert to int64 equivalent
-		return int64(af) % int64(bf), nil
+		return float64(r), nil
 	}
 	return nil, fmt.Errorf("cannot mod non-numeric values")
 }
@@ -2245,18 +2247,72 @@ func toFloat(v interface{}) (float64, bool) {
 	case int64:
 		return float64(x), true
 	case string:
-		// SQLite treats empty/whitespace-only strings as numeric 0 in
-		// arithmetic contexts (e.g. '' - 5 == -5). A lone '.' is also 0.
-		if strings.TrimSpace(x) == "" || x == "." || x == "+." || x == "-." {
-			return 0, true
-		}
-		if f, err := strconv.ParseFloat(x, 64); err == nil {
+		// SQLite text→numeric conversion in arithmetic uses the leading
+		// numeric prefix: '1x' → 1, 'x1' → 0, ' 12.5foo' → 12.5, and
+		// empty/whitespace/dot strings are 0. (sqlite3AtoF semantics.)
+		// A string with no numeric prefix at all ("abc") is numeric 0.
+		if f, ok := parseNumericPrefix(x); ok {
 			return f, true
 		}
-		return 0, false
+		return 0, true
 	default:
 		return 0, false
 	}
+}
+
+// parseNumericPrefix parses the leading numeric prefix of a string the way
+// SQLite's sqlite3AtoF does: optional whitespace, sign, digits, optional
+// fraction, optional exponent, stopping at the first non-numeric character.
+// It returns false when the string has no numeric prefix at all (e.g. "x1").
+func parseNumericPrefix(s string) (float64, bool) {
+	t := strings.TrimSpace(s)
+	// Empty/whitespace-only strings and a lone '.' are numeric 0.
+	if t == "" || t == "." || t == "+." || t == "-." {
+		return 0, true
+	}
+	if f, err := strconv.ParseFloat(t, 64); err == nil {
+		return f, true
+	}
+	// Numeric prefix parse: [sign] digits [.digits] [eE [sign] digits]
+	i := 0
+	if i < len(t) && (t[i] == '+' || t[i] == '-') {
+		i++
+	}
+	digits := 0
+	for i < len(t) && t[i] >= '0' && t[i] <= '9' {
+		i++
+		digits++
+	}
+	if i < len(t) && t[i] == '.' {
+		i++
+		for i < len(t) && t[i] >= '0' && t[i] <= '9' {
+			i++
+			digits++
+		}
+	}
+	if digits > 0 && i < len(t) && (t[i] == 'e' || t[i] == 'E') {
+		j := i + 1
+		if j < len(t) && (t[j] == '+' || t[j] == '-') {
+			j++
+		}
+		if j < len(t) && t[j] >= '0' && t[j] <= '9' {
+			i = j
+			for i < len(t) && t[i] >= '0' && t[i] <= '9' {
+				i++
+			}
+		}
+	}
+	if digits > 0 {
+		if f, err := strconv.ParseFloat(t[:i], 64); err == nil {
+			return f, true
+		}
+		// Overflow: SQLite returns +/-Inf.
+		if t[0] == '-' {
+			return math.Inf(-1), true
+		}
+		return math.Inf(1), true
+	}
+	return 0, false
 }
 
 func isInt(v interface{}) bool {
