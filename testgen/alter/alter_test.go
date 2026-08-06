@@ -88,13 +88,13 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-1.1"
 		temp = "TEMP" // TCL namespace variable
 		_ = temp // suppress unused warning
-		_res = db.Exec("-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
+		_res = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);")
 		}
-		r = db.Query("\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM " + sqlLiteral("temp table") + ";\n  ")
+		r = db.Query("\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM " + sqlLiteral("temp table") + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];\n  ")
 		}
 	}
 	{ // do_test "alter-1.2"
@@ -114,9 +114,9 @@ func Test_alter(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "alter-1.3"
-		_res = db.Exec("\n    ALTER TABLE " + sqlLiteral("T1") + " RENAME to " + sqlLiteral("-t1-") + ";\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE " + sqlLiteral("temp table") + " RENAME to TempTab;\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + sqlLiteral("T1") + " RENAME to " + sqlLiteral("-t1-") + ";\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + sqlLiteral("T1") + " RENAME to " + sqlLiteral("-t1-") + ";\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE " + sqlLiteral("temp table") + " RENAME to TempTab;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + sqlLiteral("T1") + " RENAME to " + sqlLiteral("-t1-") + ";\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

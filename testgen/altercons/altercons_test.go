@@ -98,7 +98,7 @@ func Test_altercons(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list [string trim $after]"
+				want := strings.TrimSpace(after)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -159,7 +159,7 @@ func Test_altercons(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "list [string trim $after]"
+					want := strings.TrimSpace(after)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -232,7 +232,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "list [string trim $after]"
+						want := strings.TrimSpace(after)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -323,7 +323,7 @@ func Test_altercons(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := "list [string trim $after]"
+							want := strings.TrimSpace(after)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}

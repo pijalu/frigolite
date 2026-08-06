@@ -2415,7 +2415,7 @@ parenLoop3:
 		buf.WriteString(", ")
 		buf.WriteString(tc)
 	}
-	buf.WriteString("\n)")
+	buf.WriteString(")")
 	if trailingSQL != "" {
 		buf.WriteString(" ")
 		buf.WriteString(trailingSQL)
