@@ -4,7 +4,7 @@
 > **Goal**: G1.EXPR.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G0.GRAMMAR; G1.TYPES.
-> **Current state: PARTIAL** — `between` PASSes; `expr`, `coalesce` FAIL.
+> **Current state: COMPLETE** — all seven testgen packages pass plus TestP1Expr pre-tests.
 
 ## Objective
 The shared expression evaluator (`internal/exec/expression.go`) handles every
@@ -36,19 +36,19 @@ projection, UPDATE SET, and CHECK constraints.
 - `src/vdbe.c` — arithmetic opcodes, Concat, Cast.
 
 ## Steps
-- [ ] **G1.EXPR.1** Pre-test suite. Commit: `G1.EXPR.1: expr pre-test suite`.
-- [ ] **G1.EXPR.2** Operator precedence correctness (verify against parse.y
+- [x] **G1.EXPR.1** Pre-test suite. Commit: `G1.EXPR.1: expr pre-test suite`.
+- [x] **G1.EXPR.2** Operator precedence correctness (verify against parse.y
   precedence levels). Commit: `G1.EXPR.2: operator precedence`.
-- [ ] **G1.EXPR.3** Arithmetic affinity: int vs real division, modulo, type of result.
+- [x] **G1.EXPR.3** Arithmetic affinity: int vs real division, modulo, type of result.
   Commit: `G1.EXPR.3: arithmetic affinity`.
-- [ ] **G1.EXPR.4** `||` concat with NULL propagation. Commit: `G1.EXPR.4: concat`.
-- [ ] **G1.EXPR.5** CASE (searched + simple) with NULL in WHEN/THEN/ELSE.
+- [x] **G1.EXPR.4** `||` concat with NULL propagation. Commit: `G1.EXPR.4: concat`.
+- [x] **G1.EXPR.5** CASE (searched + simple) with NULL in WHEN/THEN/ELSE.
   Commit: `G1.EXPR.5: CASE expressions`.
-- [ ] **G1.EXPR.6** Triage `coalesce` failure (likely IS/NULL handling or arg eval).
+- [x] **G1.EXPR.6** Triage `coalesce` failure (likely IS/NULL handling or arg eval).
   Commit: `G1.EXPR.6: COALESCE/IFNULL`.
-- [ ] **G1.EXPR.7** Triage `expr` testgen failure via pure-Go test; fix root cause.
+- [x] **G1.EXPR.7** Triage `expr` testgen failure via pure-Go test; fix root cause.
   Commit: `G1.EXPR.7: expr TCL fixes`.
-- [ ] **G1.EXPR.8** testgen expr/between/coalesce/istrue/literal green.
+- [x] **G1.EXPR.8** testgen expr/between/coalesce/istrue/literal green.
   Commit: `G1.EXPR.8: expr TCL green`.
 
 ## Verify command
