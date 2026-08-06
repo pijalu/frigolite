@@ -807,6 +807,25 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return sql.ColumnDef{Default: &sql.UnaryOp{Operand: getExpr(getRHS(p, ruleNo, 4)), Operator: "-"}}
 
+	// Rule 37: ccons ::= DEFAULT scantok ID
+	// SQLite's "DEFAULT ID" rule: an unquoted identifier becomes a string
+	// literal (sqlite3AddDefaultValue converts TK_ID to TK_STRING), except
+	// the unquoted keywords TRUE/FALSE which are boolean literals (1/0).
+	case 37:
+		if tok, ok := getRHS(p, ruleNo, 3).(sql.Token); ok {
+			if !tok.QuotedIdent && strings.EqualFold(tok.Value, "TRUE") {
+				return sql.ColumnDef{Default: &sql.NumericLit{Value: "1"}}
+			}
+			if !tok.QuotedIdent && strings.EqualFold(tok.Value, "FALSE") {
+				return sql.ColumnDef{Default: &sql.NumericLit{Value: "0"}}
+			}
+			return sql.ColumnDef{Default: &sql.StringLit{Value: tok.Value}}
+		}
+		if s, ok := getRHS(p, ruleNo, 3).(string); ok {
+			return sql.ColumnDef{Default: &sql.StringLit{Value: s}}
+		}
+		return sql.ColumnDef{}
+
 	// Rule 38: ccons ::= NOT NULL onconf
 	case 38:
 		cd := sql.ColumnDef{NotNull: true}
@@ -2089,8 +2108,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 210:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
-		// IS TRUE / IS FALSE predicates.
-		if name, ok := boolLitName(right); ok {
+		// IS TRUE / IS FALSE predicates. The right side may be wrapped in a
+		// COLLATE operator (e.g. `x IS TRUE COLLATE NOCASE`), which SQLite
+		// parses as the IS TRUE predicate with a no-op collation on the
+		// result; unwrap it so the predicate is still recognized.
+		boolExpr := right
+		if bo, ok := boolExpr.(*sql.BinaryOp); ok && bo.Operator == "COLLATE" {
+			boolExpr = bo.Left
+		}
+		if name, ok := boolLitName(boolExpr); ok {
 			if name == "TRUE" {
 				return &sql.IsTrue{Operand: left}
 			}
@@ -2102,8 +2128,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 211:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 4))
-		// IS NOT TRUE / IS NOT FALSE predicates.
-		if name, ok := boolLitName(right); ok {
+		// IS NOT TRUE / IS NOT FALSE predicates (unwrap a COLLATE wrapper on
+		// the right side, mirroring rule 210).
+		boolExpr := right
+		if bo, ok := boolExpr.(*sql.BinaryOp); ok && bo.Operator == "COLLATE" {
+			boolExpr = bo.Left
+		}
+		if name, ok := boolLitName(boolExpr); ok {
 			if name == "TRUE" {
 				return &sql.IsTrue{Operand: left, Negated: true}
 			}
