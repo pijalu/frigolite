@@ -4909,6 +4909,12 @@ func (e *Engine) validateCompoundOrderBy(s *sql.SelectStmt, orderBy []sql.OrderB
 		if ref, ok := expr.(*sql.ColumnRef); ok && colNames[strings.ToLower(ref.Name)] {
 			continue
 		}
+		// rowid/_rowid_/oid in compound ORDER BY resolve to the source table's
+		// rowid (SQLite sorts by the rowid of the underlying rows even though
+		// it is not a result column).
+		if ref, ok := expr.(*sql.ColumnRef); ok && ref.Table == "" && isRowIDName(ref.Name) {
+			continue
+		}
 		// Aggregate expressions are permitted in compound ORDER BY (SQLite
 		// treats the trailing ORDER BY of a compound as applying to the
 		// merged result, where aggregates are legal).
