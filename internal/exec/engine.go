@@ -1315,8 +1315,11 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	}
 	// Flush attached database pagers after a successful DML/DDL so a later
 	// connection on the attached file sees the writes immediately (SQLite
-	// commits each statement). The main pager is flushed on Close.
+	// commits each statement). The MAIN pager is flushed only for DDL (a
+	// schema change another connection may observe); per-DML main flushes
+	// are skipped to avoid corrupting in-memory btree state.
 	if res != nil && res.Error == nil {
+		isDDL := !isDML
 		for name, ctx := range e.databases {
 			upper := strings.ToUpper(name)
 			if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
@@ -1325,6 +1328,9 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 			if ctx.Pager != nil {
 				_ = ctx.Pager.Flush()
 			}
+		}
+		if isDDL && e.pager != nil && !e.inTransaction {
+			_ = e.pager.Flush()
 		}
 	}
 	return res

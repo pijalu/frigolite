@@ -768,6 +768,16 @@ func (e *Engine) applyUpdateChanges(tableName string, rootPage uint32, changes [
 // skips writing rows that no longer exist and checks UNIQUE/PK constraints
 // against the live table state. AFTER UPDATE triggers fire phase-based after
 // the writes (matching the engine's existing behavior for non-trigger rows).
+// tableBTreeForDML builds the btree for a table being modified, using the
+// modified table's context pager when known (a table in an ATTACHed database
+// lives on the attached pager even when a same-named table exists in main).
+func (e *Engine) tableBTreeForDML(tableEntry *schema.Entry, rootPage uint32) *btree.BTree {
+	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil {
+		return e.tableBTreePg(e.currentDMLCtx.Pager, tableEntry.Name, rootPage, true)
+	}
+	return e.tableBTree(tableEntry.Name, rootPage, true)
+}
+
 func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
 	if len(changes) == 0 {
 		return &Result{}
@@ -782,7 +792,7 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
 	rootPage := tableEntry.RootPage
 	tableName := tableEntry.Name
-	tree := e.tableBTree(tableName, rootPage, true)
+	tree := e.tableBTreeForDML(tableEntry, rootPage)
 	var changesMade int64
 	var applied []updateChange
 
@@ -910,7 +920,12 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 // Returns the full column-value slice to encode for the final row.
 func (e *Engine) mergeTriggerModifiedRow(tableName string, rootPage uint32, colDefs []sql.ColumnDef, ch updateChange) ([]interface{}, error) {
 	// Re-read the current row (post-trigger state) from the btree.
-	curTree := e.tableBTreeForName(tableName, rootPage, true)
+	var curTree *btree.BTree
+	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil {
+		curTree = e.tableBTreePg(e.currentDMLCtx.Pager, tableName, rootPage, true)
+	} else {
+		curTree = e.tableBTreeForName(tableName, rootPage, true)
+	}
 	cursor, err := curTree.OpenCursor()
 	if err != nil {
 		return nil, err
@@ -979,7 +994,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
 	rootPage := tableEntry.RootPage
 	tableName := tableEntry.Name
-	tree := e.tableBTree(tableName, rootPage, true)
+	tree := e.tableBTreeForDML(tableEntry, rootPage)
 	hasTriggers := e.hasTriggersForTable(tableName)
 	var changesMade int64
 

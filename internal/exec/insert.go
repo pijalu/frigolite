@@ -2061,13 +2061,23 @@ func (e *Engine) fireBeforeDeleteTriggers(tableName string, oldRow RowMap) *Resu
 
 // fireTriggers fires triggers matching the given event and timing for the table.
 func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow RowMap) *Result {
+	// Resolve the table's context first (the recursion guard and trigger
+	// lookup both need it).
+	tableCtx := e.mainDB
+	if e.currentDMLCtx != nil {
+		tableCtx = e.currentDMLCtx
+	} else if entry, ctx, err := e.findTable(tableName); err == nil && ctx != nil && entry != nil {
+		tableCtx = ctx
+	}
 	// SQLite (recursive_triggers OFF by default) does not allow a trigger to
 	// re-fire on a table that is already in the current trigger invocation
-	// chain (that would be recursion). Chained triggers on OTHER tables fire
-	// normally. With recursive_triggers ON, recursion is allowed.
+	// chain (that would be recursion). The chain keys on the SCHEMA-QUALIFIED
+	// name so a cross-schema chain (db0.tbl → db1.tbl) is not mistaken for
+	// same-table recursion. Chained triggers on OTHER tables fire normally.
 	if e.triggerDepth > 0 && !e.recursiveTriggers {
+		qualName := tableCtx.Name + "." + tableName
 		for _, t := range e.triggerTables {
-			if t == tableName {
+			if t == qualName {
 				return &Result{}
 			}
 		}
@@ -2079,12 +2089,6 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 	// triggers from the table's own context PLUS the TEMP context. A main
 	// trigger does NOT fire for a temp-table event (temp shadows main).
 	var triggers []*schema.Entry
-	tableCtx := e.mainDB
-	if e.currentDMLCtx != nil {
-		tableCtx = e.currentDMLCtx
-	} else if entry, ctx, err := e.findTable(tableName); err == nil && ctx != nil && entry != nil {
-		tableCtx = ctx
-	}
 	// Triggers in the table's own context.
 	if t, err := tableCtx.Schema.FindTriggersForTable(tableName); err == nil {
 		triggers = append(triggers, t...)
@@ -2133,7 +2137,8 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 	if len(triggers) == 0 {
 		return &Result{}
 	}
-	e.triggerTables = append(e.triggerTables, tableName)
+	// The recursion chain keys on the SCHEMA-QUALIFIED table name.
+	e.triggerTables = append(e.triggerTables, tableCtx.Name+"."+tableName)
 	defer func() { e.triggerTables = e.triggerTables[:len(e.triggerTables)-1] }()
 	for _, t := range triggers {
 		if res := e.fireTrigger(t, event, timing, newRow, oldRow); res != nil {

@@ -90,6 +90,7 @@ func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
 	}
 	// Record the file state at attach time so later external writes (from
 	// another connection) are detected and the schema re-read.
+	sch.SetTrackExternalMod(true)
 	sch.CaptureFileStamp()
 
 	// Check text encoding compatibility

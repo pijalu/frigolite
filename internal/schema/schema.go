@@ -63,6 +63,12 @@ type Manager struct {
 	lastFileMod  int64
 	lastFileSize int64
 
+	// trackExternalMod enables external-modification detection. Only ATTACHed
+	// databases set this (their files may be written by other connections);
+	// the main database's file changes come from the engine's own writes and
+	// must not invalidate the pager cache.
+	trackExternalMod bool
+
 	// entriesCache caches GetEntries results to avoid repeated schema scans.
 	// Invalidated by AddEntry. Not thread-safe — callers must ensure single-
 	// goroutine access, which holds for the current architecture (each DB has
@@ -190,6 +196,13 @@ func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
 	return tree.InsertCell(cell)
 }
 
+// SetTrackExternalMod enables or disables external-modification detection.
+// ATTACHed databases enable it; the main database keeps it off so the engine's
+// own file writes do not invalidate the pager cache.
+func (m *Manager) SetTrackExternalMod(enabled bool) {
+	m.trackExternalMod = enabled
+}
+
 // FileStamp returns the last-recorded file size+modtime stamp used to detect
 // external modification.
 func (m *Manager) FileStamp() int64 {
@@ -215,7 +228,7 @@ func (m *Manager) CheckExternalMod() {
 // and drops the pager page cache so the schema btree is re-read from disk.
 // Compares both size and modtime (same-second writes may not change mtime).
 func (m *Manager) checkExternalMod() {
-	if m.pager == nil {
+	if m.pager == nil || !m.trackExternalMod {
 		return
 	}
 	fi, ok := m.pager.FileInfo()
