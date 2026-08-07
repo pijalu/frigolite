@@ -1668,10 +1668,15 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 			}
 		}
 		// Materialized tables (subquery-in-FROM, pragma table-valued
-		// functions) have implicit rowids 1..N, like SQLite.
-		rowMap["rowid"] = int64(i + 1)
-		if alias != "" {
-			rowMap[alias+".rowid"] = int64(i + 1)
+		// functions) have implicit rowids 1..N, like SQLite. When the
+		// materialized table itself declares a column named "rowid" (e.g.
+		// pragma_foreign_key_check's child-rowid column), that column wins
+		// and no implicit rowid is added.
+		if _, hasRowIDCol := rowMap["rowid"]; !hasRowIDCol {
+			rowMap["rowid"] = int64(i + 1)
+			if alias != "" {
+				rowMap[alias+".rowid"] = int64(i + 1)
+			}
 		}
 		allRowMaps[i] = rowMap
 	}
@@ -2165,6 +2170,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 	for _, join := range s.Joins {
 		var rightMaps []RowMap
 		var rightDefs []sql.ColumnDef
+		var corrLeftIdx []int
 		var tableName string
 
 		// Handle derived table (subquery) in JOIN: JOIN (SELECT ...) AS t
@@ -2230,23 +2236,39 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			}
 		} else if isPragmaTableFunc(join.Table.Name) {
 			// Table-valued pragma function in a JOIN: pragma_table_info('t1') AS t
-			defs, rows, err := e.materializePragmaTable(join.Table)
-			if err != nil {
-				return nil, nil, err
-			}
-			rightDefs = defs
-			tableName = join.Table.Name
-			if join.Table.As != "" {
-				tableName = join.Table.As
-			}
-			for _, row := range rows {
-				rightRowMap := make(RowMap)
-				for i, val := range row {
-					if i < len(rightDefs) {
-						rightRowMap[rightDefs[i].Name] = val
-					}
+			// When an argument references an outer (left-side) column, the pragma
+			// is materialized per left row with that row as evaluation context
+			// (SQLite correlation, e.g. FROM sqlite_schema,
+			// pragma_foreign_key_check(name)).
+			if pragmaArgsCorrelated(join.Table) {
+				var merr error
+				rightDefs, rightMaps, corrLeftIdx, merr = e.materializeCorrelatedPragma(join.Table, currentMaps)
+				if merr != nil {
+					return nil, nil, merr
 				}
-				rightMaps = append(rightMaps, rightRowMap)
+				tableName = join.Table.Name
+				if join.Table.As != "" {
+					tableName = join.Table.As
+				}
+			} else {
+				defs, rows, err := e.materializePragmaTable(join.Table)
+				if err != nil {
+					return nil, nil, err
+				}
+				rightDefs = defs
+				tableName = join.Table.Name
+				if join.Table.As != "" {
+					tableName = join.Table.As
+				}
+				for _, row := range rows {
+					rightRowMap := make(RowMap)
+					for i, val := range row {
+						if i < len(rightDefs) {
+							rightRowMap[rightDefs[i].Name] = val
+						}
+					}
+					rightMaps = append(rightMaps, rightRowMap)
+				}
 			}
 		} else if cteDef, ok := e.findCTE(s, join.Table.Name); ok {
 			// A CTE referenced in a JOIN (e.g. "FROM t LEFT JOIN VVV" where
@@ -2455,9 +2477,23 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			if effectiveOn != join.On {
 				effectiveJoin.On = effectiveOn
 			}
+			// For a correlated pragma the right rows were materialized per left
+			// row; pair each left row only with its own right rows.
+			rowRightMaps := rightMaps
+			rowCorrLeft := corrLeftIdx
+			if corrLeftIdx != nil {
+				rowRightMaps = nil
+				rowCorrLeft = nil
+				for ri, li := range corrLeftIdx {
+					if li == leftIdx {
+						rowRightMaps = append(rowRightMaps, rightMaps[ri])
+						rowCorrLeft = append(rowCorrLeft, 0) // placeholders; no further filtering
+					}
+				}
+			}
 			matched := e.processJoinRowTrackingRight(
-				leftMap, rightMaps, &combinedMaps, tableName, effectiveJoin, s, rightDefs, autoIndex,
-				isRightOrFull, matchedRight, leftIdx)
+				leftMap, rowRightMaps, &combinedMaps, tableName, effectiveJoin, s, rightDefs, autoIndex,
+				isRightOrFull, matchedRight, leftIdx, rowCorrLeft)
 			if !matched && (joinTypeHas(join.JoinType, "LEFT") || joinTypeHas(join.JoinType, "FULL")) {
 				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName, leftName))
 			}
@@ -2498,7 +2534,7 @@ func (e *Engine) processJoinRowTrackingRight(
 	leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap,
 	tableName string, join sql.JoinClause, s *sql.SelectStmt,
 	rightDefs []sql.ColumnDef, autoIndex map[interface{}][]joinIndexEntry,
-	trackMatchedRight bool, matchedRight []bool, leftIdx int,
+	trackMatchedRight bool, matchedRight []bool, leftIdx int, corrLeftIdx []int,
 ) bool {
 	// The left table's qualified-name prefix uses its alias when present.
 	leftName := s.From.Name

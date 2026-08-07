@@ -195,6 +195,7 @@ type InsertStmt struct {
 	OnConflict   *OnConflictClause
 	IsReplace    bool // true for REPLACE INTO or INSERT OR REPLACE
 	OrIgnore     bool // true for INSERT OR IGNORE
+	OrFail       bool // true for INSERT OR FAIL (a failed row aborts the statement but earlier rows survive)
 	Returning    SelectColumn
 	HasReturning bool
 }
@@ -461,6 +462,9 @@ func (s *RollbackStmt) stmt() {}
 type PragmaStmt struct {
 	Name  string
 	Value string // optional value
+	// Schema is the optional schema qualifier (PRAGMA main.foreign_key_check
+	// sets Schema="main", Name="foreign_key_check").
+	Schema string
 }
 
 func (s *PragmaStmt) stmt() {}

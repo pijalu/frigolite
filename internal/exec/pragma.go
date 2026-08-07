@@ -16,6 +16,29 @@ import (
 
 // --- ANALYZE ---
 
+// execReindex implements REINDEX. REINDEX rebuilds indexes; when the schema
+// is corrupt (e.g. two index entries share a name after a writable_schema
+// edit) SQLite reports "database disk image is malformed" before doing any
+// work. Frigolite validates the schema and reports the same corruption error.
+func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
+	seen := make(map[string]string) // index name -> table
+	for _, ctx := range e.databases {
+		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if prev, ok := seen[strings.ToUpper(ent.Name)]; ok {
+				if !strings.EqualFold(prev, ent.TblName) {
+					return &Result{Error: fmt.Errorf("database disk image is malformed")}
+				}
+			}
+			seen[strings.ToUpper(ent.Name)] = ent.TblName
+		}
+	}
+	return &Result{}
+}
+
 func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 	// Ensure sqlite_stat1 table exists
 	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
@@ -570,6 +593,56 @@ func (e *Engine) statLookup(tbl, idx string) string {
 func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 	name := strings.ToUpper(s.Name)
 
+	// PRAGMA foreign_key_check / foreign_key_check(table): report every
+	// foreign key violation as rows (child_table, rowid, parent_table, fkid).
+	// Runs regardless of the foreign_keys setting. A schema qualifier
+	// (PRAGMA main.foreign_key_check) restricts the scan to that schema.
+	if name == "FOREIGN_KEY_CHECK" {
+		viols, err := e.findFKViolations(s.Value, s.Schema)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		rows := make([][]interface{}, 0, len(viols))
+		for _, v := range viols {
+			rows = append(rows, []interface{}{v.childTable, v.rowID, v.parentTable, int64(v.fkID)})
+		}
+		return &Result{Columns: []string{"table", "rowid", "parent", "fkid"}, Rows: rows}
+	}
+
+	// PRAGMA foreign_key_list(table): report each FK of the table as rows
+	// (id, seq, table, from, to, on_update, on_delete, match). id is the FK
+	// index, seq the column position within the FK.
+	if name == "FOREIGN_KEY_LIST" {
+		entry, _, err := e.findTable(s.Value)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+		fks := e.tableFKConstraints(entry, colDefs)
+		var rows [][]interface{}
+		for id, fk := range fks {
+			// For an implicit "REFERENCES t" the parent column is not named;
+			// SQLite reports NULL in the "to" column.
+			parentCols := fk.parentCols
+			for seq, childCol := range fk.childCols {
+				to := ""
+				if seq < len(parentCols) {
+					to = parentCols[seq]
+				}
+				upd := fk.onUpdate
+				if upd == "" {
+					upd = "NO ACTION"
+				}
+				del := fk.onDelete
+				if del == "" {
+					del = "NO ACTION"
+				}
+				rows = append(rows, []interface{}{int64(id), int64(seq), fk.parentRef, childCol, to, upd, del, "NONE"})
+			}
+		}
+		return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}, Rows: rows}
+	}
+
 	// PRAGMA index_info(name) / index_xinfo(name) take an argument: an index
 	// name or (for WITHOUT ROWID tables) the table name referring to its
 	// implicit PRIMARY KEY index. Handled before the value-return shortcut
@@ -604,6 +677,15 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			e.recursiveTriggers = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "FOREIGN_KEYS":
 			e.foreignKeys = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+		case "DEFER_FOREIGN_KEYS":
+			// SQLite refuses to change defer_foreign_keys from ON to ON (or
+			// set it at all) outside a transaction once it is already ON
+			// ("defer_foreign_keys only supported inside a transaction").
+			// The first 0→1 transition outside a transaction is allowed.
+			if e.deferForeignKeys && !e.inTransaction {
+				return &Result{Error: fmt.Errorf("defer_foreign_keys only supported inside a transaction")}
+			}
+			e.deferForeignKeys = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "WRITABLE_SCHEMA":
 			e.writableSchema = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "ENCODING":
@@ -992,9 +1074,6 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	},
 	"INDEX_INFO": func(e *Engine) *Result { return &Result{Columns: []string{"seqno", "cid", "name"}} },
 	"INDEX_LIST": func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "unique"}} },
-	"FOREIGN_KEY_LIST": func(e *Engine) *Result {
-		return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}}
-	},
 	"DATABASE_VERSION": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
 	"PAGE_SIZE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(e.pager.PageSize())}}} },
 	"PAGE_COUNT":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
@@ -1050,6 +1129,13 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"FOREIGN_KEYS": func(e *Engine) *Result {
 		val := int64(0)
 		if e.foreignKeys {
+			val = 1
+		}
+		return &Result{Rows: [][]interface{}{{val}}}
+	},
+	"DEFER_FOREIGN_KEYS": func(e *Engine) *Result {
+		val := int64(0)
+		if e.deferForeignKeys {
 			val = 1
 		}
 		return &Result{Rows: [][]interface{}{{val}}}

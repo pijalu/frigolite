@@ -107,6 +107,13 @@ func (e *Engine) execPragmaTableValued(s *sql.SelectStmt) *Result {
 // materializePragmaTable converts a table-valued pragma reference into column
 // definitions and rows, mirroring SQLite's pragma table-valued functions.
 func (e *Engine) materializePragmaTable(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	return e.materializePragmaTableWithRowImpl(ref, nil)
+}
+
+// materializePragmaTableWithRowImpl converts a table-valued pragma reference
+// into column definitions and rows. When row is non-nil, column-reference
+// arguments are evaluated against it (correlated table-valued pragmas).
+func (e *Engine) materializePragmaTableWithRowImpl(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
 	lower := strings.ToLower(ref.Name)
 	if dot := strings.LastIndex(lower, "."); dot >= 0 {
 		lower = lower[dot+1:]
@@ -115,6 +122,8 @@ func (e *Engine) materializePragmaTable(ref sql.TableRef) ([]sql.ColumnDef, [][]
 	switch pragma {
 	case "table_info", "table_xinfo":
 		return e.materializeTableInfo(ref)
+	case "foreign_key_check":
+		return e.materializeForeignKeyCheckWithRow(ref, row)
 	case "table_list":
 		return e.materializeTableList(ref)
 	case "cache_size":
@@ -186,6 +195,108 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		}
 		rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, nil, pk})
 		cid++
+	}
+	return cols, rows, nil
+}
+
+// pragmaArgsCorrelated reports whether a table-valued pragma reference has an
+// argument that is a bare column reference (an outer-row correlation, e.g.
+// pragma_foreign_key_check(name) joined against sqlite_schema).
+func pragmaArgsCorrelated(ref sql.TableRef) bool {
+	for _, a := range ref.Args {
+		if _, ok := a.(*sql.ColumnRef); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// materializeCorrelatedPragma materializes a table-valued pragma once per left
+// row, evaluating column-reference arguments against that row (SQLite
+// correlation for table-valued pragma functions). It returns the pragma column
+// definitions, the materialized row maps, and for each row map the index of the
+// left row it was materialized for (so the join pairs each right row with its
+// own left row instead of cross-joining).
+func (e *Engine) materializeCorrelatedPragma(ref sql.TableRef, leftRows []RowMap) ([]sql.ColumnDef, []RowMap, []int, error) {
+	var colDefs []sql.ColumnDef
+	var allMaps []RowMap
+	var leftIdx []int
+	for li, left := range leftRows {
+		defs, rows, err := e.materializePragmaTableWithRow(ref, left)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		if colDefs == nil {
+			colDefs = defs
+		}
+		for _, row := range rows {
+			m := make(RowMap)
+			for i, val := range row {
+				if i < len(defs) {
+					m[defs[i].Name] = val
+				}
+			}
+			allMaps = append(allMaps, m)
+			leftIdx = append(leftIdx, li)
+		}
+	}
+	return colDefs, allMaps, leftIdx, nil
+}
+
+// materializePragmaTableWithRow is materializePragmaTable with a row context
+// for column-reference arguments.
+func (e *Engine) materializePragmaTableWithRow(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
+	return e.materializePragmaTableWithRowImpl(ref, row)
+}
+
+// materializeForeignKeyCheck builds the rows of pragma_foreign_key_check, the
+// table-valued form of PRAGMA foreign_key_check. Arguments are the optional
+// child table name and optional schema name; the schema argument restricts the
+// child lookup to that schema (and errors when the table is not found there,
+// matching SQLite).
+func (e *Engine) materializeForeignKeyCheck(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	return e.materializeForeignKeyCheckWithRow(ref, nil)
+}
+
+// materializeForeignKeyCheckWithRow is materializeForeignKeyCheck with a row
+// context for column-reference arguments (correlated pragma_foreign_key_check).
+func (e *Engine) materializeForeignKeyCheckWithRow(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{
+		{Name: "table"},
+		{Name: "rowid"},
+		{Name: "parent"},
+		{Name: "fkid"},
+	}
+	var tableName, schemaName string
+	for _, a := range ref.Args {
+		v, err := e.evalExpr(a, row)
+		if err != nil {
+			return nil, nil, err
+		}
+		s, ok := util.UnwrapColumnValue(v).(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("wrong type for argument of pragma_foreign_key_check(): expected string")
+		}
+		if tableName == "" {
+			tableName = s
+		} else if schemaName == "" {
+			schemaName = s
+		}
+	}
+	viols, err := e.findFKViolations(tableName, schemaName)
+	if err != nil {
+		// In a correlated join (pragma_foreign_key_check(name) against
+		// sqlite_schema) a non-table name (an index, a dropped object) yields
+		// no rows rather than an error; the standalone call with a schema
+		// qualifier still errors (fkey5-13.1).
+		if pragmaArgsCorrelated(ref) && strings.Contains(err.Error(), "no such table") {
+			return cols, nil, nil
+		}
+		return nil, nil, err
+	}
+	rows := make([][]interface{}, 0, len(viols))
+	for _, v := range viols {
+		rows = append(rows, []interface{}{v.childTable, v.rowID, v.parentTable, int64(v.fkID)})
 	}
 	return cols, rows, nil
 }

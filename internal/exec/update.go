@@ -683,6 +683,15 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 					return nil, fmt.Errorf("datatype mismatch")
 				}
 				newRowID = &n
+				// An INTEGER PRIMARY KEY column is the rowid: changing the
+				// rowid changes the IPK column value too (and fires FK parent
+				// actions on it).
+				for i, cd := range colDefs {
+					if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+						i < len(values) {
+						values[i] = n
+					}
+				}
 			}
 			continue
 		}
@@ -855,6 +864,17 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 		}
 		if conflict {
 			return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, nil, ch.values, uniqueCols, idxColsList)}
+		}
+		// Enforce FOREIGN KEY parent actions: children referencing the old key
+		// values are restricted (error) or cascaded/updated. This runs for the
+		// plain UPDATE path here too (SQLite fires FK actions regardless of
+		// whether the table has triggers).
+		if e.foreignKeys {
+			oldFKRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+			newFKRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			if res := e.fkParentUpdate(tableEntry, colDefs, oldFKRow, newFKRow, ch.rowID); res.Error != nil {
+				return res
+			}
 		}
 		// Write the row: delete the old cell and insert the new record. SQLite
 		// computes the NEW row values from the SET expressions BEFORE firing

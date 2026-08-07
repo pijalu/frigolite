@@ -78,7 +78,6 @@ type Engine struct {
 	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
 	validatedTriggers map[string]bool                  // triggers whose loaded-body schema refs were validated
 	uniqueIdxCache    map[string][]uniqueIndexDef      // cached unique-index definitions per table name
-	fkCache           map[string][]fkCascadeRef        // cached FK ON DELETE CASCADE refs per parent table
 	inTransaction     bool                             // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer         []func()                         // DDL undo operations for transaction rollback
 	txSnapshots       map[string]*pager.PagerState     // pager snapshots per database at BEGIN (for ROLLBACK undo)
@@ -116,6 +115,11 @@ type Engine struct {
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
 	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
+	deferForeignKeys  bool                             // PRAGMA defer_foreign_keys: defer all FK checks to COMMIT (reset at COMMIT/ROLLBACK)
+	// fkDirty tracks tables modified during the current transaction/statement
+	// whose FK relationships must be re-validated at COMMIT (deferred FK checks
+	// only inspect affected tables, mirroring SQLite's incremental counters).
+	fkDirty map[fkDirtyKey]bool
 	writableSchema    bool                             // PRAGMA writable_schema setting (permits sqlite_schema edits)
 	dqsDDL            bool                             // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
 	dqsDML            bool                             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
@@ -322,7 +326,6 @@ func (e *Engine) invalidateTableCaches() {
 	e.uniqueIdxCache = make(map[string][]uniqueIndexDef)
 	e.nextRowIDCache = make(map[uint32]int64)
 	e.autoIncSeq = make(map[uint32]int64)
-	e.fkCache = make(map[string][]fkCascadeRef)
 	e.tableCache = make(map[string]*cachedTableEntry)
 	e.tableRootPages = make(map[string]uint32)
 }
@@ -1286,9 +1289,37 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		res = e.execOtherDDL(stmt)
 	}
 
+	// Record the modified table so the deferred FK check at COMMIT (or at the
+	// end of this statement in autocommit mode) re-validates only the tables
+	// whose FK relationships changed.
+	if isDML && res != nil && res.Error == nil && e.foreignKeys && e.triggerDepth == 0 {
+		if entry, ctx, terr := e.dmlTargetTable(stmt); terr == nil {
+			e.markFKDirty(entry, ctx)
+		}
+	}
+
+	// In autocommit mode every statement is its own transaction, so deferred
+	// foreign key constraints (DEFERRABLE INITIALLY DEFERRED, or immediate
+	// ones while PRAGMA defer_foreign_keys is ON) are checked at the end of
+	// the statement, exactly as if an implicit COMMIT ran. Only the outermost
+	// statement checks (trigger bodies execute as nested Exec calls).
+	if isDML && res != nil && res.Error == nil && !e.inTransaction && e.foreignKeys && e.triggerDepth == 0 {
+		if err := e.checkDeferredFK(); err != nil {
+			res = &Result{Error: err}
+		}
+		e.resetFKDirty()
+	}
+
 	// Roll back the whole statement on error, restoring all pagers and
-	// dropping row-id caches that may reference restored pages.
-	if isDML && res != nil && res.Error != nil {
+	// dropping row-id caches that may reference restored pages. INSERT OR
+	// FAIL does NOT back out earlier rows of the statement (SQLite ON CONFLICT
+	// FAIL semantics: only ABORT/ROLLBACK undo prior changes); the failing row
+	// itself was never written, so earlier rows survive.
+	isOrFail := false
+	if is, ok := stmt.(*sql.InsertStmt); ok && is.OrFail {
+		isOrFail = true
+	}
+	if isDML && res != nil && res.Error != nil && !isOrFail {
 		e.restoreAllPagers(snaps)
 		e.nextRowIDCache = make(map[uint32]int64)
 		e.autoIncSeq = make(map[uint32]int64)
@@ -1438,6 +1469,8 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 			return e.execDetach(s)
 		}
 		return e.execAttach(s)
+	case *sql.ReindexStmt:
+		return e.execReindex(s)
 	default:
 		// Begin, Rollback, Vacuum, Reindex, Savepoint — all no-ops
 		return &Result{}

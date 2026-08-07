@@ -1781,6 +1781,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Select:    sel,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
+			OrFail:    strings.EqualFold(cmd, "FAIL"),
 			CTEs:      getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
 		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause and/or
@@ -1805,6 +1806,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Columns:   columns,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
+			OrFail:    strings.EqualFold(cmd, "FAIL"),
 		}
 		// The returning nonterminal (RHS 8) is either nil (rule 166) or a
 		// []sql.SelectColumn from `RETURNING selcollist` (rule 167).
@@ -2603,34 +2605,60 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.VacuumStmt{}
 
 	// Rule 253: cmd ::= PRAGMA nm dbnm
+	// The nm token is the pragma name, dbnm the optional schema qualifier.
+	// When dbnm is present (PRAGMA main.foreign_key_check), nm is the schema
+	// and dbnm the pragma name (mirroring sqlite3Pragma's swap).
 	case 253:
 		name := getString(getRHS(p, ruleNo, 2))
+		schema := getString(getRHS(p, ruleNo, 3))
+		if schema != "" {
+			name, schema = schema, name
+		}
 		return &sql.PragmaStmt{
-			Name:  name,
-			Value: "",
+			Name:   name,
+			Value:  "",
+			Schema: schema,
 		}
 
 	// Rule 254: cmd ::= PRAGMA nm dbnm = pragma_value
 	case 254:
 		name := getString(getRHS(p, ruleNo, 2))
 		value := getString(getRHS(p, ruleNo, 5))
+		schema := getString(getRHS(p, ruleNo, 3))
+		if schema != "" {
+			name, schema = schema, name
+		}
 		return &sql.PragmaStmt{
-			Name:  name,
-			Value: value,
+			Name:   name,
+			Value:  value,
+			Schema: schema,
 		}
 
 	// Rule 255: cmd ::= PRAGMA nm dbnm LP pragma_value RP
 	// Rule 257: cmd ::= PRAGMA nm dbnm LP minus_num RP
 	case 255, 257:
+		name := getString(getRHS(p, ruleNo, 2))
+		value := getString(getRHS(p, ruleNo, 5))
+		schema := getString(getRHS(p, ruleNo, 3))
+		if schema != "" {
+			name, schema = schema, name
+		}
 		return &sql.PragmaStmt{
-			Name:  getString(getRHS(p, ruleNo, 2)),
-			Value: getString(getRHS(p, ruleNo, 5)),
+			Name:   name,
+			Value:  value,
+			Schema: schema,
 		}
 
 	// Rule 256: cmd ::= PRAGMA nm dbnm LP RP
 	case 256:
+		name := getString(getRHS(p, ruleNo, 2))
+		schema := getString(getRHS(p, ruleNo, 3))
+		if schema != "" {
+			name, schema = schema, name
+		}
 		return &sql.PragmaStmt{
-			Name: getString(getRHS(p, ruleNo, 2)),
+			Name:   name,
+			Schema: schema,
 		}
 
 	// Rule 260: cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
@@ -2718,6 +2746,8 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Values:    values,
 			Select:    sel,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
+			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
+			OrFail:    strings.EqualFold(cmd, "FAIL"),
 		}
 		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause.
 		if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {

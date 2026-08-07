@@ -2001,6 +2001,17 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 	// CREATE VIRTUAL TABLE t1 USING module(a, b, c): the module arguments are
 	// the virtual table's column names. A trailing empty argument from a
 	// module written with empty parentheses (USING module()) is skipped.
+	// FTS tables report their real column names through the FTS table instance
+	// (module options like content= and tokendata= are not columns); other
+	// virtual tables use the raw argument list.
+	if ftsTable, ok := e.ftsTables[tableName]; ok {
+		colDefs := make([]sql.ColumnDef, len(ftsTable.ColumnNames()))
+		for i, name := range ftsTable.ColumnNames() {
+			colDefs[i] = sql.ColumnDef{Name: name, Type: ""}
+		}
+		e.colCache[tableName] = colDefs
+		return colDefs
+	}
 	if vt, ok := stmts[0].(*sql.CreateVirtualTableStmt); ok && vt != nil {
 		var colDefs []sql.ColumnDef
 		for _, arg := range vt.Args {

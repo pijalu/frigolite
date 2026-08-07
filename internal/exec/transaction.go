@@ -6,7 +6,18 @@ import "github.com/pijalu/frigolite/internal/pager"
 // --- COMMIT ---
 
 func (e *Engine) execCommit() *Result {
+	// Deferred foreign key constraints are checked at COMMIT. On a violation
+	// the COMMIT fails and the transaction stays open (SQLite semantics:
+	// "cannot start a transaction within a transaction" after a failed
+	// COMMIT), so inTransaction/txSnapshots are NOT cleared.
+	if e.foreignKeys && e.inTransaction {
+		if err := e.checkDeferredFK(); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	e.inTransaction = false
+	e.deferForeignKeys = false
+	e.resetFKDirty()
 	e.ddlBuffer = nil
 	e.txSnapshots = nil
 	if err := e.pager.Flush(); err != nil {
@@ -19,6 +30,7 @@ func (e *Engine) execCommit() *Result {
 
 func (e *Engine) execBegin() *Result {
 	e.inTransaction = true
+	e.resetFKDirty()
 	e.ddlBuffer = nil
 	// Snapshot every attached database's pager so ROLLBACK can undo DML
 	// (page-level undo images). COMMIT discards the snapshots.
@@ -33,6 +45,8 @@ func (e *Engine) execBegin() *Result {
 
 func (e *Engine) execRollback() *Result {
 	e.inTransaction = false
+	e.deferForeignKeys = false
+	e.resetFKDirty()
 	// Undo all DDL operations that were performed during the transaction
 	for i := len(e.ddlBuffer) - 1; i >= 0; i-- {
 		e.ddlBuffer[i]()

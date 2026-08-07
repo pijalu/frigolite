@@ -127,9 +127,15 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			if err != nil {
 				return &Result{Error: err}
 			}
+			// An explicit rowid in the INSERT list sets the new row's rowid;
+			// use it for conflict detection (a REPLACE of a specific rowid must
+			// delete the existing row at that rowid).
+			if explicitRowID != nil && !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+				rr = *explicitRowID
+			}
 			replaceRowID = rr
 			haveReplaceRowID = true
-			if res := e.replaceDeleteConflicts(dbCtx.Pager, tableEntry, colDefs, values); res.Error != nil {
+			if res := e.replaceDeleteConflicts(dbCtx.Pager, tableEntry, colDefs, values, rr); res.Error != nil {
 				return res
 			}
 		}
@@ -176,6 +182,14 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			lastRowID = res.LastInsertRowID
 			// insertRow mutates values in place; it holds the written row.
 			writtenRow = values
+			// INSERT OR REPLACE: the implicit delete's NO ACTION / RESTRICT
+			// constraints are checked at statement end, after the new row is
+			// written (the new row may restore the deleted key).
+			if s.IsReplace && e.foreignKeys {
+				if fkResult := e.fkCheckReplaceChildren(tableEntry, dbCtx); fkResult.Error != nil {
+					return fkResult
+				}
+			}
 		}
 
 		// Handle RETURNING clause — evaluate RETURNING expression against the
@@ -1064,9 +1078,10 @@ func (e *Engine) rowIDExists(tableName string, rootPage uint32, rowID int64) boo
 }
 
 // replaceDeleteConflicts deletes every row that conflicts with the new values
-// on a UNIQUE/PRIMARY KEY column or a UNIQUE index, firing BEFORE and AFTER
-// DELETE triggers for each deleted row (SQLite REPLACE semantics).
-func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+// on a UNIQUE/PRIMARY KEY column, a UNIQUE index, or the explicit rowid
+// (replaceRowID), firing BEFORE and AFTER DELETE triggers for each deleted row
+// (SQLite REPLACE semantics).
+func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, replaceRowID int64) *Result {
 	colIndex := buildColumnIndex(colDefs)
 	seen := make(map[int64]bool)
 	// Collect ALL currently-conflicting rows BEFORE firing any triggers.
@@ -1080,8 +1095,22 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 		var foundID int64
 		var foundVals []interface{}
 		found := false
-		if rid, rv, _, ok := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values); ok && !seen[rid] {
-			foundID, foundVals, found = rid, rv, true
+		// An explicit rowid (rowid/oid/_rowid_ in the INSERT list) conflicts
+		// with the existing row at that rowid (SQLite OP_Delete on the rowid).
+		if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+			tree := e.tableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
+			if cell, cerr := e.readCellByRowID(tree, replaceRowID); cerr == nil && cell != nil {
+				if rec, derr := storage.DecodeRecord(cell.Payload); derr == nil && rec != nil {
+					if !seen[cell.RowID] {
+						foundID, foundVals, found = cell.RowID, rec.Values, true
+					}
+				}
+			}
+		}
+		if !found {
+			if rid, rv, _, ok := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values); ok && !seen[rid] {
+				foundID, foundVals, found = rid, rv, true
+			}
 		}
 		if !found {
 			for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
@@ -1128,10 +1157,14 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 				return trigResult
 			}
 		}
-		// Foreign key ON DELETE CASCADE: delete child rows that reference
-		// this row's key values (firing their DELETE triggers).
-		if cascadeResult := e.cascadeDelete(tableEntry, colDefs, conflictValues); cascadeResult.Error != nil {
-			return cascadeResult
+		// Foreign key actions for the deleted conflicting row: CASCADE children
+		// are deleted, SET NULL / SET DEFAULT children update their FK column.
+		// NO ACTION / RESTRICT are deferred to after the new row is written
+		// (SQLite: the REPLACE may re-insert the same key).
+		if e.foreignKeys {
+			if fkResult := e.fkParentDeleteReplace(tableEntry, colDefs, oldRow); fkResult.Error != nil {
+				return fkResult
+			}
 		}
 	}
 	return &Result{}
@@ -1714,7 +1747,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 				return &Result{Error: err}
 			}
 			replaceRowID = rr
-			if res := e.replaceDeleteConflicts(e.pager, tableEntry, colDefs, values); res.Error != nil {
+			if res := e.replaceDeleteConflicts(e.pager, tableEntry, colDefs, values, rr); res.Error != nil {
 				return res
 			}
 		}

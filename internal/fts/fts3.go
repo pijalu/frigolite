@@ -19,6 +19,22 @@ type FTS3Table struct {
 }
 
 // NewFTS3Table creates a new FTS3 table with the given configuration.
+// hasFTSOptionPrefix reports whether an FTS module argument names an option
+// (content=, prefix=, tokendata=, notindexed=, notreatas=, tokenize=) rather
+// than a column. The parser may join option tokens with spaces, so match the
+// name prefix followed by whitespace or '='.
+func hasFTSOptionPrefix(upper string) bool {
+	for _, name := range []string{"CONTENT", "PREFIX", "TOKENDATA", "NOTINDEXED", "NOTREATAS", "TOKENIZE", "TOKENIZER"} {
+		if strings.HasPrefix(upper, name) {
+			rest := strings.TrimSpace(upper[len(name):])
+			if rest == "" || strings.HasPrefix(rest, "=") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func NewFTS3Table(name, moduleName string, args []string) (*FTS3Table, error) {
 	t := &FTS3Table{
 		name:       name,
@@ -44,11 +60,11 @@ func NewFTS3Table(name, moduleName string, args []string) (*FTS3Table, error) {
 			continue
 		}
 
-		// Skip content=, prefix= etc options
-		if strings.HasPrefix(upper, "CONTENT=") {
-			continue
-		}
-		if strings.HasPrefix(upper, "PREFIX=") {
+		// Skip content=, prefix=, tokendata=, notindexed= etc options. The
+		// parser joins vtabarg tokens with spaces (content='' becomes
+		// "content = ''" with the empty literal trimmed), so match the option
+		// name prefix rather than requiring "name=" exactly.
+		if hasFTSOptionPrefix(upper) {
 			continue
 		}
 
