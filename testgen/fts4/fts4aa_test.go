@@ -23,9 +23,11 @@ func Test_fts4aa(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -53,8 +55,6 @@ func Test_fts4aa(t *testing.T) {
 	_ = fts4aa_queries // pre-declared from TCL source
 	var q string
 	_ = q // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var fts4aa_res_q string
 	_ = fts4aa_res_q // pre-declared from TCL source
 	var scan_littleEndian string

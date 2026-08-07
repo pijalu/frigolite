@@ -24,9 +24,11 @@ func Test_rowvalue(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -86,8 +88,6 @@ func Test_rowvalue(t *testing.T) {
 	_ = _map_arr // pre-declared from TCL source
 	var map_1 string
 	_ = map_1 // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var order string
 	_ = order // pre-declared from TCL source
 	var sql string

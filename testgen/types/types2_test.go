@@ -21,9 +21,11 @@ func Test_types2(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -51,8 +53,6 @@ func Test_types2(t *testing.T) {
 	_ = _t // pre-declared from TCL source
 	var e string
 	_ = e // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var vals string
 	_ = vals // pre-declared from TCL source
 	var v string

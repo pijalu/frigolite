@@ -89,9 +89,11 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	body.WriteString("\tvar _res *frigolite.Result\n")
 	body.WriteString("\tvar r *frigolite.Result\n")
 	body.WriteString("\tvar msg string\n")
+	body.WriteString("\tvar _r string\n")
 	body.WriteString("\t_ = msg // suppress unused warning\n")
 	body.WriteString("\t_ = _res // suppress unused warning\n")
 	body.WriteString("\t_ = r    // suppress unused warning\n")
+	body.WriteString("\t_ = _r   // suppress unused warning\n")
 	body.WriteString("\ttcl_nullvalue = \"{}\" // default NULL rendering\n\n")
 	// Pre-declare secondary DB connection variables (TCL scope is function-wide)
 	for i := 1; i <= 9; i++ {
@@ -151,7 +153,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	// Process top-level TCL commands
 	// Initial vars: db, err (from db.Open), msg, r, _res (preamble),
 	// db1-db9 (pre-declared DB connections), plus pre-declared TCL vars.
-	initialVars := []string{"db", "err", "msg", "r", "_res"}
+	initialVars := []string{"db", "err", "msg", "r", "_res", "_r"}
 	for i := 1; i <= 9; i++ {
 		initialVars = append(initialVars, fmt.Sprintf("db%d", i))
 	}
@@ -288,7 +290,7 @@ func knownGlobalVars() map[string]bool {
 		"_error": true, "argv": true, "has_codec": true, "bitmask_size": true,
 		"tcl_precision": true, "highPrecision": true, "file_dest": true,
 		"upperBound": true, "prefix": true, "dirname": true,
-		"msg": true, "_res": true, "r": true,
+		"msg": true, "_res": true, "r": true, "_r": true,
 		// db1-db9 are pre-declared as *frigolite.DB in the function preamble
 		"db1": true, "db2": true, "db3": true, "db4": true, "db5": true,
 		"db6": true, "db7": true, "db8": true, "db9": true,
@@ -3244,6 +3246,19 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		// commonly `execsql {SQL}`. Execute the SQL (with $var substitution)
 		// and compare its joined result values with the expected argument.
 		bodyText := strings.TrimSpace(args[1].Text)
+		// Resolve a [subst {...}] (or subst {...}) body wrapper to its inner
+		// text so execsql/catchsql bodies inside it are recognized as TCL
+		// commands rather than raw SQL text.
+		if substBody, ok := substNovarBody(bodyText); ok {
+			bodyText = strings.TrimSpace(substBody)
+		} else if strings.HasPrefix(bodyText, "[") && strings.HasSuffix(bodyText, "]") {
+			inner := strings.TrimSpace(bodyText[1 : len(bodyText)-1])
+			if strings.HasPrefix(inner, "subst") {
+				if r, ok := substNovarBody(inner); ok {
+					bodyText = strings.TrimSpace(r)
+				}
+			}
+		}
 		if strings.HasPrefix(bodyText, "execsql ") || strings.HasPrefix(bodyText, "execsql2 ") {
 			rest := strings.TrimSpace(strings.TrimPrefix(bodyText, "execsql"))
 			rest = strings.TrimSpace(strings.TrimPrefix(rest, "2"))

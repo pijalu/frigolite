@@ -22,9 +22,11 @@ func Test_savepoint(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -52,8 +54,6 @@ func Test_savepoint(t *testing.T) {
 	_ = fd // pre-declared from TCL source
 	var rc string
 	_ = rc // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var ii string
 	_ = ii // pre-declared from TCL source
 	var authdata string

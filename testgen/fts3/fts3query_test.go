@@ -24,9 +24,11 @@ func Test_fts3query(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -94,8 +96,6 @@ func Test_fts3query(t *testing.T) {
 	_ = blob // pre-declared from TCL source
 	var scan__tcl_platform_byteOrder string
 	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	DO_MALLOC_TEST = "0"

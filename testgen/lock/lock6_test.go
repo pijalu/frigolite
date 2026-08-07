@@ -21,9 +21,11 @@ func Test_lock6(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -51,8 +53,6 @@ func Test_lock6(t *testing.T) {
 	_ = prg // pre-declared from TCL source
 	var _chan string
 	_ = _chan // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var line string
 	_ = line // pre-declared from TCL source
 	var f string

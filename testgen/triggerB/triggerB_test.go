@@ -22,9 +22,11 @@ func Test_triggerB(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -125,21 +127,21 @@ func Test_triggerB(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 64 }() {
 		{ // do_test "triggerB-3.2." + i + ".1"
-			_res = db.Exec("execsql {\n      UPDATE t3 SET c" + i + "='b" + i + "';\n      SELECT * FROM t3_changes ORDER BY rowid DESC LIMIT 1;\n    }")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "execsql {\n      UPDATE t3 SET c" + i + "='b" + i + "';\n      SELECT * FROM t3_changes ORDER BY rowid DESC LIMIT 1;\n    }")
+			_r = tclExecSQL(db, "UPDATE t3 SET c" + i + "='b" + i + "';\n      SELECT * FROM t3_changes ORDER BY rowid DESC LIMIT 1;")
+			if _r != i + " a" + i + " b" + i {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", _r, i + " a" + i + " b" + i)
 			}
 		}
 		{ // do_test "triggerB-3.2." + i + ".2"
-			_res = db.Exec("execsql {\n      SELECT count(*) FROM t3_changes\n    }")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "execsql {\n      SELECT count(*) FROM t3_changes\n    }")
+			_r = tclExecSQL(db, "SELECT count(*) FROM t3_changes")
+			if _r != tclExprWith("$i+1", map[string]string{"i": i}) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", _r, tclExprWith("$i+1", map[string]string{"i": i}))
 			}
 		}
 		{ // do_test "triggerB-3.2." + i + ".2"
-			_res = db.Exec("execsql {\n      SELECT * FROM t3_changes WHERE colnum=" + i + "\n    }")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "execsql {\n      SELECT * FROM t3_changes WHERE colnum=" + i + "\n    }")
+			_r = tclExecSQL(db, "SELECT * FROM t3_changes WHERE colnum=" + i)
+			if _r != i + " a" + i + " b" + i {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", _r, i + " a" + i + " b" + i)
 			}
 		}
 		// incr i 1

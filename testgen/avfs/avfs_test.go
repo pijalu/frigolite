@@ -23,9 +23,11 @@ func Test_avfs(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -91,8 +93,6 @@ func Test_avfs(t *testing.T) {
 	_ = nrint // pre-declared from TCL source
 	var randints_i string
 	_ = randints_i // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var s string
 	_ = s // pre-declared from TCL source
 	var _t string

@@ -23,9 +23,11 @@ func Test_pragma(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -117,8 +119,6 @@ func Test_pragma(t *testing.T) {
 	_ = mainerr // pre-declared from TCL source
 	var auxerr string
 	_ = auxerr // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var Id_ string
 	_ = Id_ // pre-declared from TCL source
 	var argv0 string

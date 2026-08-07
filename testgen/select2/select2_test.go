@@ -22,9 +22,11 @@ func Test_select2(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -52,8 +54,6 @@ func Test_select2(t *testing.T) {
 	_ = i // pre-declared from TCL source
 	var sql string
 	_ = sql // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var t1 string
 	_ = t1 // pre-declared from TCL source
 	var t2 string

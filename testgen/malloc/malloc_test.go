@@ -22,9 +22,11 @@ func Test_malloc(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
+	var _r string
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -72,8 +74,6 @@ func Test_malloc(t *testing.T) {
 	_ = static_string // pre-declared from TCL source
 	var l string
 	_ = l // pre-declared from TCL source
-	var _r string
-	_ = _r // pre-declared from TCL source
 	var sqlite_io_error_pending string
 	_ = sqlite_io_error_pending // pre-declared from TCL source
 	var e string
