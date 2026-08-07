@@ -131,11 +131,7 @@ func Test_temptrigger(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tt1 ")
 		}
 	}
-	{ // do_test "temptrigger-1.5"
-		_res = db.Exec("\n  # Before the bug was fixed, the following 'DROP TRIGGER' hit an \n  # assert if executed.\n  #execsql { DROP TRIGGER tr1 }\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  # Before the bug was fixed, the following 'DROP TRIGGER' hit an \n  # assert if executed.\n  #execsql { DROP TRIGGER tr1 }\n")
-		}
+	{ // "temptrigger-1.5" (comment-only body)
 	}
 	{
 		var _catchErr error
@@ -148,8 +144,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "temptrigger-2.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
 		if _res.Error != nil {
@@ -173,11 +168,7 @@ func Test_temptrigger(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;\n  ")
 		}
 	}
-	{ // do_test "temptrigger-2.5"
-		_res = db.Exec("\n  #execsql { DROP TRIGGER tr1 }\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  #execsql { DROP TRIGGER tr1 }\n")
-		}
+	{ // "temptrigger-2.5" (comment-only body)
 	}
 	{
 		var _catchErr error
@@ -201,12 +192,11 @@ func Test_temptrigger(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" CREATE TABLE t2(a, b) ")
+		_res = db2.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a, b) ")
 		}
@@ -228,7 +218,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-3.3.1"
-		_res = db.Exec(" CREATE TABLE t3(a, b) ")
+		_res = db2.Exec(" CREATE TABLE t3(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t3(a, b) ")
 		}
@@ -243,11 +233,7 @@ func Test_temptrigger(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM tt2 ")
 		}
 	}
-	{ // do_test "temptrigger-3.4"
-		_res = db.Exec("\n  # Before the bug was fixed, the following 'DROP TRIGGER' hit an \n  # assert if executed.\n  #execsql { DROP TRIGGER tr2 }\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  # Before the bug was fixed, the following 'DROP TRIGGER' hit an \n  # assert if executed.\n  #execsql { DROP TRIGGER tr2 }\n")
-		}
+	{ // "temptrigger-3.4" (comment-only body)
 	}
 	{
 		var _catchErr error
@@ -257,7 +243,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -323,7 +309,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // do_test "6.1"
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" CREATE TABLE t1(a, b, c); ")
+		_res = db2.Exec(" CREATE TABLE t1(a, b, c); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b, c); ")
 		}
@@ -346,7 +332,7 @@ func Test_temptrigger(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error", _res.Error, "\n  INSERT INTO main.t1 VALUES(1);\n")
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

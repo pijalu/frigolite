@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -924,7 +925,17 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 
 // rowExists reports whether a table contains a cell with the given rowID.
 func (e *Engine) rowExists(tableName string, rootPage uint32, rowID int64) (bool, error) {
-	tree := e.tableBTreeForName(tableName, rootPage, true)
+	// The table may share its short name with a table in another schema
+	// (main.t1 vs aux.t1); use the modified table's context pager when known
+	// AND the name carries a schema prefix (an unqualified name resolves
+	// temp/main-first, which the fallback handles correctly).
+	var pg *pager.Pager
+	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil && e.currentDMLCtx != e.mainDB {
+		pg = e.currentDMLCtx.Pager
+	} else {
+		pg = e.tablePager(tableName)
+	}
+	tree := e.tableBTreePg(pg, tableName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false, err

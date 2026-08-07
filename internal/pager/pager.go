@@ -227,6 +227,39 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	return pg, nil
 }
 
+// FileInfo returns the underlying file's info (nil, false for in-memory
+// pagers). Used to detect external modification of attached database files.
+func (p *Pager) FileInfo() (os.FileInfo, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if p.file == nil {
+		return nil, false
+	}
+	info, err := p.file.Stat()
+	if err != nil {
+		return nil, false
+	}
+	return info, true
+}
+
+// InvalidateCache drops the in-memory page cache and page-count so the next
+// read re-reads the file. Used when an external connection may have modified
+// the database file (schema reload after an ATTACHed file changes).
+func (p *Pager) InvalidateCache() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.pages = make(map[uint32]*Page)
+	p.header = nil
+	if p.file != nil {
+		if info, err := p.file.Stat(); err == nil {
+			p.numPages = uint32(info.Size() / int64(p.pageSize))
+			if p.numPages == 0 && info.Size() > 0 {
+				p.numPages = 1
+			}
+		}
+	}
+}
+
 // WritePage marks a page as dirty.
 func (p *Pager) WritePage(pg *Page) error {
 	if p.readOnly {
@@ -257,10 +290,6 @@ func (p *Pager) flushAll() error {
 		pg, ok := p.pages[pageNum]
 		if !ok {
 			continue
-		}
-		// For page 1, copy the header into the data before writing
-		if pageNum == 1 && p.header != nil {
-			copy(pg.Data[:HeaderSize], p.header)
 		}
 		off := int64(pageNum-1) * int64(p.pageSize)
 		fileEnd := int64(pageNum) * int64(p.pageSize)

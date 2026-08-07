@@ -3013,6 +3013,25 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 	nameExpr := tp.goStringLiteral(args[0])
 	bodyCmds := tp.parseBracedBody(args, 1)
 
+	// A braced body that is only TCL comments (e.g. temptrigger-1.5's
+	// "# Before the bug was fixed ...") has no commands; parseCommands
+	// returns nil. Emit a no-op instead of treating the comment text as SQL.
+	if bodyCmds == nil && len(args) >= 2 && args[1].Braced && strings.TrimSpace(args[1].Text) != "" {
+		allComments := true
+		for _, line := range strings.Split(args[1].Text, "\n") {
+			t := strings.TrimSpace(line)
+			if t != "" && !strings.HasPrefix(t, "#") {
+				allComments = false
+				break
+			}
+		}
+		if allComments {
+			tp.emitLine("{ // %s (comment-only body)", nameExpr)
+			tp.emitLine("}")
+			return
+		}
+	}
+
 	expectedExpr := `""`
 	if len(args) >= 3 {
 		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
@@ -3126,6 +3145,9 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			testPrefix: tp.testPrefix,
 			queryVars:  tp.queryVars,
 			dbAliases:  tp.dbAliases,
+			dbClosed:   tp.dbClosed,
+			dqsDDL:     tp.dqsDDL,
+			dqsDML:     tp.dqsDML,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -3138,6 +3160,9 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		tp.constFuncs = bodyTP.constFuncs
 		tp.dbAliases = bodyTP.dbAliases
 		tp.queryVars = bodyTP.queryVars
+		tp.dbClosed = bodyTP.dbClosed
+		tp.dqsDDL = bodyTP.dqsDDL
+		tp.dqsDML = bodyTP.dqsDML
 		// A multi-command body whose expected value is a variable holding an
 		// error message (e.g. foreach $error in "13.2.$tn.1"): the last
 		// statement must fail with that message. When the body is a catchsql
@@ -3350,10 +3375,21 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 	// execsql {SQL} db2 runs the SQL on the named connection (default db).
 	// Route through the alias map: a secondary connection on the main test
 	// file ("sqlite3 db2 test.db") is aliased to db, so execute on the
-	// underlying handle.
+	// underlying handle. The connection name is args[1] for `execsql $sql
+	// db2`, or args[2] for `execsql {SQL} db2`.
 	dbConn := "db"
+	connIdx := -1
 	if len(args) >= 2 {
-		h := tclVarToGo(args[1].Text)
+		if args[1].Braced || args[1].Quoted || strings.HasPrefix(args[1].Text, "${") {
+			if len(args) >= 3 {
+				connIdx = 2
+			}
+		} else {
+			connIdx = 1
+		}
+	}
+	if connIdx >= 0 && connIdx < len(args) {
+		h := tclVarToGo(args[connIdx].Text)
 		if h != "" && h != "db" && (isPreDeclaredDB(h) || tp.isVarDeclared(h)) {
 			if target, ok := tp.dbAliases[h]; ok {
 				dbConn = target
@@ -6347,6 +6383,18 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		tp.emitLine("%s = db // sqlite3 %s %s: alias to main in-memory db", goName, dbName, args[1].Text)
 		tp.emitLine("_ = %s", goName)
 		return // no err to check; alias assignment cannot fail
+	}
+
+	// A secondary connection reopened on a DIFFERENT file clears any prior
+	// alias to the main connection (the TCL suite may open db2 on test.db
+	// for shared-cache tests, then reopen it on another file later).
+	if goName != "db" && tp.dbAliases != nil {
+		if _, wasAliased := tp.dbAliases[goName]; wasAliased {
+			delete(tp.dbAliases, goName)
+			if len(tp.dbAliases) == 0 {
+				tp.dbAliases = nil
+			}
+		}
 	}
 
 	// db1-db9 are pre-declared at function level; always use = for them

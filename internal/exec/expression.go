@@ -1981,8 +1981,10 @@ func (e *Engine) invalidateRowIDCache(rootPage uint32) {
 }
 
 func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
-	// Check cache first
-	if cached, ok := e.colCache[tableName]; ok {
+	// Check cache first. Keyed by table name + SQL so tables with the same
+	// short name in different schemas (main.t1 vs aux.t1) do not collide.
+	cacheKey := tableName + "\x00" + createSQL
+	if cached, ok := e.colCache[cacheKey]; ok {
 		return cached
 	}
 	// Fall back to re-parsing
@@ -1993,7 +1995,7 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 	ct, ok := stmts[0].(*sql.CreateTableStmt)
 	if ok && ct != nil && len(ct.Columns) > 0 {
 		// Cache for future use
-		e.colCache[tableName] = ct.Columns
+		e.colCache[cacheKey] = ct.Columns
 		return ct.Columns
 	}
 	// CREATE VIRTUAL TABLE t1 USING module(a, b, c): the module arguments are

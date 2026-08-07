@@ -57,6 +57,12 @@ type Manager struct {
 	pager *pager.Pager
 	debug bool
 
+	// lastFileMod tracks the attached file's modification time so an external
+	// connection's writes are detected and the pager cache is dropped before
+	// the next schema read (schema-reload tests). Zero for in-memory dbs.
+	lastFileMod  int64
+	lastFileSize int64
+
 	// entriesCache caches GetEntries results to avoid repeated schema scans.
 	// Invalidated by AddEntry. Not thread-safe — callers must ensure single-
 	// goroutine access, which holds for the current architecture (each DB has
@@ -184,8 +190,53 @@ func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
 	return tree.InsertCell(cell)
 }
 
+// FileStamp returns the last-recorded file size+modtime stamp used to detect
+// external modification.
+func (m *Manager) FileStamp() int64 {
+	return m.lastFileMod + m.lastFileSize
+}
+
+// CaptureFileStamp records the current file size+modtime as the baseline for
+// external-modification detection. Called after attaching/opening a database
+// so later external writes are detected.
+func (m *Manager) CaptureFileStamp() {
+	m.lastFileMod = 0
+	m.lastFileSize = 0
+	m.checkExternalMod()
+}
+
+// CheckExternalMod is the exported form of checkExternalMod.
+func (m *Manager) CheckExternalMod() {
+	m.checkExternalMod()
+}
+
+// checkExternalMod detects when the underlying database file was modified by
+// an external connection (an attached database written from another engine)
+// and drops the pager page cache so the schema btree is re-read from disk.
+// Compares both size and modtime (same-second writes may not change mtime).
+func (m *Manager) checkExternalMod() {
+	if m.pager == nil {
+		return
+	}
+	fi, ok := m.pager.FileInfo()
+	if !ok {
+		return
+	}
+	mod := fi.ModTime().UnixNano()
+	size := fi.Size()
+	if m.lastFileMod != 0 && (mod != m.lastFileMod || size != m.lastFileSize) {
+		m.pager.InvalidateCache()
+	}
+	m.lastFileMod = mod
+	m.lastFileSize = size
+}
+
 // GetEntries returns all schema entries of the given type.
 func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
+	// Detect external file modification (an attached database written by
+	// another connection): drop the pager page cache so the schema btree is
+	// re-read from disk.
+	m.checkExternalMod()
 	// NOTE: the schema cache is intentionally disabled (always read fresh).
 	// The schema btree lives on page 1 of each database; a stale cache here
 	// diverges from the btree after DDL + pager restore cycles, causing
@@ -231,6 +282,8 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 
 // FindTable returns the schema entry for a table.
 func (m *Manager) FindTable(name string) (*Entry, error) {
+	// Detect external file modification before reading the schema btree.
+	m.checkExternalMod()
 	// If the name has a schema prefix (e.g. "aux.t4"), try the full name first
 	// to support tables in attached databases, then fall back to the short name.
 	searchNames := []string{name}

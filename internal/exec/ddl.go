@@ -88,6 +88,9 @@ func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
 		pg.Close()
 		return &Result{Error: fmt.Errorf("cannot initialize schema for attached database: %w", err)}
 	}
+	// Record the file state at attach time so later external writes (from
+	// another connection) are detected and the schema re-read.
+	sch.CaptureFileStamp()
 
 	// Check text encoding compatibility
 	// SQLite requires all attached databases to use the same text encoding as main
@@ -1507,6 +1510,7 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	ctx := e.mainDB
 	triggerName := rawName
 	tableName := s.Table
+	qualifiedTable := tableName // full ON-table name with schema (for TblName)
 	explicitSchema := false
 
 	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
@@ -1599,10 +1603,21 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		return &Result{Error: fmt.Errorf("trigger cannot use variables")}
 	}
 
+	// Schema-scoping validations: a NON-temp trigger may not reference
+	// objects in an attached database ("trigger tr1 cannot reference objects
+	// in database aux"), and may not use qualified table names in its DML
+	// ("qualified table names are not allowed on INSERT, UPDATE, and DELETE
+	// statements within triggers"). TEMP triggers are exempt from both.
+	if !isTempTrigger {
+		if err := e.validateTriggerSchemaRefs(triggerName, s.Statements, ctx); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,
 		Name:     triggerName,
-		TblName:  tableName,
+		TblName:  qualifiedTable,
 		RootPage: 0,
 		SQL:      sqlStr,
 	}
@@ -1691,6 +1706,105 @@ func isDigit(c byte) bool {
 
 func isIdentStart(c byte) bool {
 	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+// validateTriggerSchemaRefs enforces SQLite's schema-scoping rules for
+// non-temp trigger bodies: they may not reference objects in an attached
+// database, and their DML statements may not use qualified table names.
+func (e *Engine) validateTriggerSchemaRefs(trigName string, stmts []sql.Stmt, trigCtx *DatabaseContext) error {
+	for _, stmt := range stmts {
+		switch s := stmt.(type) {
+		case *sql.InsertStmt:
+			if err := checkQualifiedDMLTable(s.Table); err != nil {
+				return err
+			}
+			if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
+				return err
+			}
+			if s.Select != nil {
+				if err := e.checkTriggerSelectSchemaRefs(trigName, s.Select, trigCtx); err != nil {
+					return err
+				}
+			}
+		case *sql.UpdateStmt:
+			if err := checkQualifiedDMLTable(s.Table); err != nil {
+				return err
+			}
+			if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
+				return err
+			}
+		case *sql.DeleteStmt:
+			if err := checkQualifiedDMLTable(s.Table); err != nil {
+				return err
+			}
+			if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
+				return err
+			}
+		case *sql.SelectStmt:
+			if err := e.checkTriggerSelectSchemaRefs(trigName, s, trigCtx); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// checkQualifiedDMLTable rejects qualified table names in trigger DML.
+func checkQualifiedDMLTable(table string) error {
+	schemaName, _ := parseSchemaName(table)
+	if schemaName != "" {
+		return fmt.Errorf("qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers")
+	}
+	return nil
+}
+
+// checkTriggerSchemaRef rejects a table reference in an attached database
+// (any schema other than main/temp).
+func (e *Engine) checkTriggerSchemaRef(trigName, table string, trigCtx *DatabaseContext) error {
+	schemaName, _ := parseSchemaName(table)
+	if schemaName == "" {
+		return nil
+	}
+	upper := strings.ToUpper(schemaName)
+	if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+		return nil
+	}
+	if e.getDB(schemaName) != nil {
+		return fmt.Errorf("trigger %s cannot reference objects in database %s", trigName, schemaName)
+	}
+	return nil
+}
+
+// checkTriggerSelectSchemaRefs walks a SELECT's FROM sources for references
+// to attached databases.
+func (e *Engine) checkTriggerSelectSchemaRefs(trigName string, s *sql.SelectStmt, trigCtx *DatabaseContext) error {
+	if s == nil {
+		return nil
+	}
+	if s.From.Name != "" {
+		schemaName, _ := parseSchemaName(s.From.Name)
+		if schemaName != "" {
+			upper := strings.ToUpper(schemaName)
+			if upper != "MAIN" && upper != "TEMP" && upper != "TEMPORARY" && e.getDB(schemaName) != nil {
+				return fmt.Errorf("trigger %s cannot reference objects in database %s", trigName, schemaName)
+			}
+		}
+	}
+	for _, j := range s.Joins {
+		if j.Table.Name != "" {
+			schemaName, _ := parseSchemaName(j.Table.Name)
+			if schemaName != "" {
+				upper := strings.ToUpper(schemaName)
+				if upper != "MAIN" && upper != "TEMP" && upper != "TEMPORARY" && e.getDB(schemaName) != nil {
+					return fmt.Errorf("trigger %s cannot reference objects in database %s", trigName, schemaName)
+				}
+			}
+		}
+	}
+	if s.Union != nil {
+		return e.checkTriggerSelectSchemaRefs(trigName, s.Union, trigCtx)
+	}
+	return nil
 }
 
 // buildTriggerSQL constructs the full CREATE TRIGGER SQL text including the body.

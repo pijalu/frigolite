@@ -733,10 +733,36 @@ func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 	return ctx, object
 }
 
+// detectExternalSchemaChanges checks every attached database's schema manager
+// for external file modification (an attached file written by another
+// connection). When a change is detected the pager cache and tableCache are
+// invalidated so the next lookup re-reads the file.
+func (e *Engine) detectExternalSchemaChanges() {
+	for _, ctx := range e.databases {
+		if ctx == nil || ctx.Schema == nil || ctx.Pager == nil {
+			continue
+		}
+		upper := strings.ToUpper(ctx.Name)
+		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+			continue
+		}
+		before := ctx.Schema.FileStamp()
+		ctx.Schema.CheckExternalMod()
+		if ctx.Schema.FileStamp() != before {
+			e.tableCache = make(map[string]*cachedTableEntry)
+		}
+	}
+}
+
 // findTable searches for a table across all attached databases.
 // If the name has a schema prefix (e.g. "aux.t3"), it searches only that database.
 // If no schema prefix, it searches main first, then attached databases.
 func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error) {
+	// An attached database's file may have been modified by an external
+	// connection; the schema manager's checkExternalMod drops the pager cache
+	// and any tableCache entries become stale. Detect the change up front so
+	// the cache check below does not return a stale entry.
+	e.detectExternalSchemaChanges()
 	// Check table cache first
 	if cached, ok := e.tableCache[name]; ok {
 		// Re-hydrate FTS state for cached entries too: a fresh engine has an
@@ -754,6 +780,16 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 			return nil, nil, fmt.Errorf("no such table: %s", name)
 		}
 		entry, err := ctx.Schema.FindTable(objName)
+		if err != nil && schemaName != "main" && schemaName != "temp" {
+			// The attached database's file may have been modified by an
+			// external connection since we attached (schema reload test):
+			// drop the pager cache and schema and retry once.
+			if ctx.Pager != nil {
+				ctx.Pager.InvalidateCache()
+			}
+			ctx.Schema.InvalidateCache()
+			entry, err = ctx.Schema.FindTable(objName)
+		}
 		if err != nil {
 			// SQLite reports the schema-qualified name when a qualified
 			// reference fails ("no such table: main.txx"), not just the
@@ -1271,8 +1307,11 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	}
 	// Flush attached database pagers after a successful DML/DDL so a later
 	// connection on the attached file sees the writes immediately (SQLite
-	// commits each statement). The main pager is flushed on Close.
+	// commits each statement). The MAIN pager is flushed only for DDL (a
+	// schema change another connection may observe); per-DML main flushes
+	// are skipped to avoid corrupting in-memory btree state.
 	if res != nil && res.Error == nil {
+		isDDL := !isDML
 		for name, ctx := range e.databases {
 			upper := strings.ToUpper(name)
 			if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
@@ -1281,6 +1320,9 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 			if ctx.Pager != nil {
 				_ = ctx.Pager.Flush()
 			}
+		}
+		if isDDL && e.pager != nil && !e.inTransaction {
+			_ = e.pager.Flush()
 		}
 	}
 	return res

@@ -2089,24 +2089,40 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 	if t, err := tableCtx.Schema.FindTriggersForTable(tableName); err == nil {
 		triggers = append(triggers, t...)
 	}
-	// TEMP triggers fire on the referenced table. But a TEMP trigger whose ON
-	// table resolved to a TEMP table (temp shadows main at CREATE time) fires
-	// only for that TEMP table's events. When the event table is a temp table
-	// (tableCtx == temp), the temp context's own triggers are already included
-	// above; when the event is on main/attached and NO temp table of the same
-	// name shadows it, the TEMP trigger's ON table resolved to the main table
-	// and it fires here too.
+	// TEMP triggers fire on the table they were created ON. The stored
+	// TblName carries the ON-table resolution: a schema-qualified ON table
+	// (aux.t1) fires only for that schema's events; an unqualified ON table
+	// fires for the table it resolved to at CREATE time (temp shadows main:
+	// if a temp table of that name exists, the ON table is the temp one).
 	tc := e.getDB("temp")
 	if tc != nil && tc != tableCtx && tableCtx != nil {
-		// Does a temp table shadow this name? If so, the temp trigger is on
-		// the temp table and only fires for temp-table events.
-		shadowed := false
-		if _, err := tc.Schema.FindTable(tableName); err == nil {
-			shadowed = true
-		}
-		if !shadowed {
-			if t, err := tc.Schema.FindTriggersForTable(tableName); err == nil {
-				triggers = append(triggers, t...)
+		tempTriggers, _ := tc.Schema.FindTriggersForTable(tableName)
+		for _, tt := range tempTriggers {
+			if tt == nil {
+				continue
+			}
+			onSchema, _ := parseSchemaName(tt.TblName)
+			if onSchema != "" {
+				// Schema-qualified ON table: fire only when the event table is
+				// in that schema.
+				if strings.EqualFold(onSchema, tableCtx.Name) {
+					triggers = append(triggers, tt)
+				}
+				continue
+			}
+			// Unqualified ON table. If a temp table of this name shadows
+			// main, the trigger is on the temp table (fires only for temp
+			// events); otherwise it is on the main table and fires for main
+			// events (tableCtx == main).
+			shadowed := false
+			if _, err := tc.Schema.FindTable(tableName); err == nil {
+				shadowed = true
+			}
+			if shadowed && tableCtx == tc {
+				triggers = append(triggers, tt)
+			}
+			if !shadowed && tableCtx == e.mainDB {
+				triggers = append(triggers, tt)
 			}
 		}
 	}
