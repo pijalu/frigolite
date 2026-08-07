@@ -4,7 +4,7 @@
 > **Goal**: G2.SETOPS.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.SELECT; G2.ORDERBY (ORDER BY applies to the whole compound).
-> **Current state: FAILING** — `unionall` fails.
+> **Current state: DONE** — unionall testgen green, TestP2Setops pre-tests pass.
 
 ## Objective
 Compound SELECT matches SQLite: `UNION`, `UNION ALL`, `INTERSECT`, `EXCEPT`
@@ -32,16 +32,16 @@ G1.SELECT). `unionallfault`, `unionvtab` are fault/vtab → triage.
 - `src/expr.c` — comparison affinity for dedup.
 
 ## Steps
-- [ ] **G2.SETOPS.1** Pre-test suite. Commit: `G2.SETOPS.1: setops pre-test suite`.
-- [ ] **G2.SETOPS.2** Triage `unionall` failure via pure-Go test. Likely result
+- [x] **G2.SETOPS.1** Pre-test suite. Commit: `G2.SETOPS.1: setops pre-test suite`.
+- [x] **G2.SETOPS.2** Triage `unionall` failure via pure-Go test. Likely result
   merge / column-count check / dedup. Fix `internal/exec/select.go`.
   Commit: `G2.SETOPS.2: compound query merge + dedup`.
-- [ ] **G2.SETOPS.3** INTERSECT / EXCEPT semantics. Commit: `G2.SETOPS.3: INTERSECT/EXCEPT`.
-- [ ] **G2.SETOPS.4** Column-count check + result names from first arm.
+- [x] **G2.SETOPS.3** INTERSECT / EXCEPT semantics. Commit: `G2.SETOPS.3: INTERSECT/EXCEPT`.
+- [x] **G2.SETOPS.4** Column-count check + result names from first arm.
   Commit: `G2.SETOPS.4: compound arity + naming`.
-- [ ] **G2.SETOPS.5** ORDER BY/LIMIT over the whole compound. Commit:
+- [x] **G2.SETOPS.5** ORDER BY/LIMIT over the whole compound. Commit:
   `G2.SETOPS.5: compound ORDER BY/LIMIT`.
-- [ ] **G2.SETOPS.6** testgen unionall green (+ compound cases in selectN).
+- [x] **G2.SETOPS.6** testgen unionall green (+ compound cases in selectN).
   Commit: `G2.SETOPS.6: setops TCL green`.
 
 ## Verify command
