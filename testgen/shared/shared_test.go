@@ -325,7 +325,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			{
 				var _catchErr error
@@ -459,7 +459,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			{
 				var _catchErr error
@@ -575,12 +575,12 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db1.Close()
+				_ = db1 // close db1: aliased to db, no-op
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			for _, f := range tclSplitList("test.db test2.db") {
 			_ = f // suppress unused warning
@@ -646,7 +646,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.1.1"
@@ -706,7 +706,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.3.2"
@@ -757,7 +757,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".9.1"

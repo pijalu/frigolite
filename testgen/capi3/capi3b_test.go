@@ -171,7 +171,7 @@ func Test_capi3b(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

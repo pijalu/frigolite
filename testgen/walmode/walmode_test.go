@@ -271,7 +271,7 @@ func Test_walmode(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "walmode-5.1.1"
 		db, err = frigolite.Open("")

@@ -5427,9 +5427,18 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 							tp.emitLine("var _catchErr error")
 							// Parse and transpile the body
 							bodyCmds := parseCommands(bodyStr)
-							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, varCount: tp.varCount}
 							bodyTP.processCommands(bodyCmds)
 							tp.indent = bodyTP.indent
+							tp.dbClosed = bodyTP.dbClosed
+							tp.dqsDDL = bodyTP.dqsDDL
+							tp.dqsDML = bodyTP.dqsDML
+							tp.varCount = bodyTP.varCount
+							tp.queryVars = bodyTP.queryVars
+							tp.unsetVars = bodyTP.unsetVars
+							tp.dbVarFuncs = bodyTP.dbVarFuncs
+							tp.constFuncs = bodyTP.constFuncs
+							tp.dbAliases = bodyTP.dbAliases
 							// After body, set result and error message
 							tp.emitLine("if _catchErr != nil {")
 							tp.indent++
@@ -5677,9 +5686,18 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 	if !hasResult {
 		tp.emitLine("_ = _catchErr // suppress unused warning")
 	}
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, varCount: tp.varCount}
 	bodyTP.processCommands(bodyCmds)
 	tp.indent = bodyTP.indent
+	tp.dbClosed = bodyTP.dbClosed
+	tp.dqsDDL = bodyTP.dqsDDL
+	tp.dqsDML = bodyTP.dqsDML
+	tp.varCount = bodyTP.varCount
+	tp.queryVars = bodyTP.queryVars
+	tp.unsetVars = bodyTP.unsetVars
+	tp.dbVarFuncs = bodyTP.dbVarFuncs
+	tp.constFuncs = bodyTP.constFuncs
+	tp.dbAliases = bodyTP.dbAliases
 	if hasResult {
 		// After body, set the error message if there was an error
 		tp.emitLine("if _catchErr != nil {")

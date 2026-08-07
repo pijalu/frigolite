@@ -272,8 +272,7 @@ func Test_snapshot_up(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db.Close()
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

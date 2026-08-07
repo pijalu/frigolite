@@ -210,8 +210,7 @@ func Test_mutex1(t *testing.T) {
 					_ = _catchErr // suppress unused warning
 					db.Close()
 				}
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")
@@ -232,8 +231,7 @@ func Test_mutex1(t *testing.T) {
 					_ = _catchErr // suppress unused warning
 					db.Close()
 				}
-				_dbtmp4, err := frigolite.Open("test.db")
-				_ = _dbtmp4 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")

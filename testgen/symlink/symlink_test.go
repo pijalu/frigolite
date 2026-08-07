@@ -123,7 +123,7 @@ func Test_symlink(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		db.Close()
 		os.Remove("test.db")
@@ -167,7 +167,7 @@ func Test_symlink(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
@@ -249,8 +249,7 @@ func Test_symlink(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				_dbtmp0, err := frigolite.Open("[string repeat x 100]/ 6")
-				_ = _dbtmp0 // sqlite3 db connection
+				db, err = frigolite.Open("[string repeat x 100]/ 6")
 				if err != nil { t.Fatal(err) }
 				if _catchErr != nil {
 					res = "1"

@@ -1991,10 +1991,22 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 	return &Result{}
 }
 
+// maxTriggerDepth is SQLite's SQLITE_MAX_TRIGGER_DEPTH default: recursive
+// trigger programs abort with "too many levels of trigger recursion" once
+// the nesting exceeds this limit.
+const maxTriggerDepth = 1000
+
 // fireTrigger fires a single trigger matching the given event and timing.
 // Returns a Result with an error if execution fails, or nil on success
 // (including when the trigger does not match or its WHEN clause is false).
 func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldRow RowMap) *Result {
+	// Enforce SQLite's trigger nesting limit. Recursive trigger chains (with
+	// recursive_triggers ON) abort with "too many levels of trigger
+	// recursion" once the nesting exceeds the limit.
+	if e.triggerDepth >= maxTriggerDepth {
+		return &Result{Error: fmt.Errorf("too many levels of trigger recursion")}
+	}
+
 	// Extract the declared timing and event from the trigger header. This is
 	// whitespace-robust (the declaration can have arbitrary spaces between
 	// the timing, event and ON keywords) unlike a naive " BEFORE INSERT ON "
@@ -2010,7 +2022,20 @@ func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldR
 		return nil
 	}
 
-	// Increment trigger depth to prevent recursive trigger firing
+	// UPDATE OF <cols> selectivity: an UPDATE trigger declared with an OF
+	// column list fires only when the triggering UPDATE statement assigns at
+	// least one of those columns. SQLite keys this on the SET clause, not on
+	// whether the value actually changed (setting a column to its current
+	// value still fires).
+	if declEvent == "UPDATE" {
+		if ofCols := parseTriggerUpdateOf(t.SQL); len(ofCols) > 0 {
+			if !e.triggerSetsColumn(ofCols) {
+				return nil
+			}
+		}
+	}
+
+	// Increment trigger depth to track recursion nesting
 	e.triggerDepth++
 	defer func() { e.triggerDepth-- }()
 
@@ -2109,6 +2134,57 @@ func (e *Engine) parseTriggerWhen(triggerSQL string) sql.Expr {
 		return nil
 	}
 	return sel.Columns[0].Expr
+}
+
+// parseTriggerUpdateOf extracts the column list of an "UPDATE OF <cols>"
+// trigger declaration. Returns nil when the trigger is not an UPDATE OF form
+// (no OF clause). Column names are returned lower-cased (SQLite column
+// matching is case-insensitive).
+func parseTriggerUpdateOf(triggerSQL string) []string {
+	upper := strings.ToUpper(triggerSQL)
+	header := upper
+	if beginIdx := strings.Index(upper, "BEGIN"); beginIdx >= 0 {
+		header = upper[:beginIdx]
+	}
+	ofIdx := strings.Index(header, " OF ")
+	if ofIdx < 0 {
+		return nil
+	}
+	// The column list runs from after " OF " to the " ON " keyword.
+	rest := header[ofIdx+len(" OF "):]
+	onIdx := strings.Index(rest, " ON ")
+	if onIdx < 0 {
+		return nil
+	}
+	list := rest[:onIdx]
+	var cols []string
+	for _, part := range strings.Split(list, ",") {
+		name := strings.TrimSpace(part)
+		name = strings.Trim(name, `"'[]`)
+		if name != "" {
+			cols = append(cols, strings.ToLower(name))
+		}
+	}
+	return cols
+}
+
+// triggerSetsColumn reports whether the current UPDATE statement assigns any
+// of the given columns (the UPDATE OF <cols> selectivity check).
+func (e *Engine) triggerSetsColumn(ofCols []string) bool {
+	if len(e.updateSetColumns) == 0 {
+		// No SET columns recorded (e.g. an UPDATE produced by a view or
+		// internal path): fall back to firing (SQLite conservatively fires
+		// when the set is unknown).
+		return true
+	}
+	for _, set := range e.updateSetColumns {
+		for _, of := range ofCols {
+			if strings.EqualFold(set, of) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // parseTriggerHeader extracts the declared timing ("BEFORE", "AFTER",

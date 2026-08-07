@@ -641,6 +641,16 @@ func (m *Manager) UpdateEntryFull(oldName, newName, newSQL string) error {
 
 // RemoveEntry removes a schema entry by name.
 func (m *Manager) RemoveEntry(name string) error {
+	return m.RemoveEntryOfType(name, "")
+}
+
+// RemoveEntryOfType removes a schema entry by name, optionally restricted to
+// a specific object type. When schemaType is empty every object with the name
+// is removed (RemoveEntry behavior); otherwise only rows whose type column
+// matches are deleted. The type filter matters for objects that share a name
+// with another object (e.g. a trigger and a table both named "t2"): DROP
+// TRIGGER t2 must not delete the table t2.
+func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 	// Invalidate schema cache since the schema has changed
 	m.cacheValid = false
 	m.entriesCache = nil
@@ -650,15 +660,18 @@ func (m *Manager) RemoveEntry(name string) error {
 	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
 		searchName = name[dotIdx+1:]
 	}
-	
+
 	tree := btree.NewBTree(m.pager, 1, true)
 	_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
 			return false
 		}
-		if len(rec.Values) >= 2 {
-			return strings.EqualFold(toString(rec.Values[1]), searchName)
+		if len(rec.Values) >= 2 && strings.EqualFold(toString(rec.Values[1]), searchName) {
+			if schemaType == "" {
+				return true
+			}
+			return len(rec.Values) >= 1 && strings.EqualFold(toString(rec.Values[0]), string(schemaType))
 		}
 		return false
 	})

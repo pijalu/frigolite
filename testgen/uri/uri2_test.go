@@ -79,8 +79,8 @@ func Test_uri2(t *testing.T) {
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					_dbtmp0, err := frigolite.Open(uri)
-					_ = _dbtmp0 // sqlite3 db connection
+					_dbtmp1, err := frigolite.Open(uri)
+					_ = _dbtmp1 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					if _catchErr != nil {
 						rc = "1"

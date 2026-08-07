@@ -308,8 +308,7 @@ func Test_uri(t *testing.T) {
 						_res = db2.Exec("CREATE TABLE t1(a, b)")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 						// sqlite3_enable_shared_cache $sc_default (unsupported command, not transpiled)
-						_dbtmp7, err := frigolite.Open("file:test.db?" + options)
-						_ = _dbtmp7 // sqlite3 db connection
+						db, err = frigolite.Open("file:test.db?" + options)
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec("SELECT * FROM t1")
 						if _res.Error != nil {
@@ -353,8 +352,8 @@ func Test_uri(t *testing.T) {
 					}
 					// eval (dynamic, not transpiled)
 					{ // do_test "5.1.1"
-						_dbtmp8, err := frigolite.Open("file:test.db1?vfs=tvfs1")
-						_ = _dbtmp8 // sqlite3 db connection
+						_dbtmp7, err := frigolite.Open("file:test.db1?vfs=tvfs1")
+						_ = _dbtmp7 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						r = db.Query("\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
 						if r.Error != nil {
@@ -374,15 +373,15 @@ func Test_uri(t *testing.T) {
 						db.Close()
 					}
 					// foreach {tn uri res} "1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}"
-					_items9 := tclSplitList("1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}")
-					for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-						tn := _items9[_idx9+0]
+					_items8 := tclSplitList("1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}")
+					for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+						tn := _items8[_idx8+0]
 						_ = tn // suppress unused warning
-						uri := _items9[_idx9+1]
+						uri := _items8[_idx8+1]
 						_ = uri // suppress unused warning
-						res := _items9[_idx9+2]
+						res := _items8[_idx8+2]
 						_ = res // suppress unused warning
-						_ = _idx9
+						_ = _idx8
 							if tcl_platform_platform == "windows" {
 								uri = ""
 								_ = uri // suppress unused warning
@@ -406,8 +405,8 @@ func Test_uri(t *testing.T) {
 						}
 						os.Remove("test.db")
 						{ // do_test "7.1"
-							_dbtmp10, err := frigolite.Open("test.db")
-							_ = _dbtmp10 // sqlite3 db connection
+							_dbtmp9, err := frigolite.Open("test.db")
+							_ = _dbtmp9 // sqlite3 db connection
 							if err != nil { t.Fatal(err) }
 							_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
 							if _res.Error != nil {
@@ -416,8 +415,8 @@ func Test_uri(t *testing.T) {
 							db.Close()
 						}
 						{ // do_test "7.2"
-							_dbtmp11, err := frigolite.Open("file:test.db?mode=ro")
-							_ = _dbtmp11 // sqlite3 db connection
+							_dbtmp10, err := frigolite.Open("file:test.db?mode=ro")
+							_ = _dbtmp10 // sqlite3 db connection
 							if err != nil { t.Fatal(err) }
 							_res = db.Exec(" ATTACH 'file:test.db2?mode=rw' AS aux ")
 							if _res.Error != nil {

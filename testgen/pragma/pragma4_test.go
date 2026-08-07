@@ -508,7 +508,7 @@ func Test_pragma4(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db3.Close()
+				_ = db3 // close db3: aliased to db, no-op
 			}
 			db.Close()
 			os.Remove("test.db")

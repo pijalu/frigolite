@@ -512,7 +512,7 @@ func Test_snapshot(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			db.Close()
 			os.Remove("test.db")

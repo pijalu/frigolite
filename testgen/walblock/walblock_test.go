@@ -77,8 +77,7 @@ func Test_walblock(t *testing.T) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.0"
 		r = db.Query("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(7, 8);\n")

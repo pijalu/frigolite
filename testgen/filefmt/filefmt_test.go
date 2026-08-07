@@ -83,8 +83,8 @@ func Test_filefmt(t *testing.T) {
 	_ = _err_tcl // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				x = "1"

@@ -143,7 +143,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "temptrigger-2.1"
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -185,7 +185,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	{ // do_test "temptrigger-3.1"
@@ -255,7 +255,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	db.Close()
 	os.Remove("test.db")

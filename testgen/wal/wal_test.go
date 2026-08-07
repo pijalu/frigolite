@@ -787,7 +787,7 @@ func Test_wal(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -858,7 +858,7 @@ func Test_wal(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{
 		var _catchErr error
@@ -1138,7 +1138,7 @@ func Test_wal(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					db2.Close()
+					_ = db2 // close db2: aliased to db, no-op
 				}
 				{
 					var _catchErr error

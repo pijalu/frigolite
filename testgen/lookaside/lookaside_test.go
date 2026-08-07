@@ -79,8 +79,7 @@ func Test_lookaside(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "lookaside-1.1"
 		{

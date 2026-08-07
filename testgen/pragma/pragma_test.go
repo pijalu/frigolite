@@ -710,8 +710,7 @@ func Test_pragma(t *testing.T) {
 			db.Close()
 		}
 		// delete_file test.db (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);\n  ")
 		if _res.Error != nil {
@@ -811,15 +810,15 @@ func Test_pragma(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_temp_master")
 		}
 		// foreach {idx name file} tclExecSQL(db, "{pragma database_list}")
-		_items3 := tclSplitList(tclExecSQL(db, "{pragma database_list}"))
-		for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-			idx := _items3[_idx3+0]
+		_items2 := tclSplitList(tclExecSQL(db, "{pragma database_list}"))
+		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+			idx := _items2[_idx2+0]
 			_ = idx // suppress unused warning
-			name := _items3[_idx3+1]
+			name := _items2[_idx2+1]
 			_ = name // suppress unused warning
-			file := _items3[_idx3+2]
+			file := _items2[_idx2+2]
 			_ = file // suppress unused warning
-			_ = _idx3
+			_ = _idx2
 				res = tclListAppend(res, idx, name)
 			}
 		}
@@ -1508,8 +1507,8 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-14.4"
-			_dbone4 := tclExecSQL(db, "{pragma page_size}")
-			page_size = _dbone4
+			_dbone3 := tclExecSQL(db, "{pragma page_size}")
+			page_size = _dbone3
 			_ = page_size // suppress unused warning
 			// expr [file size test.db] (not evaluated)
 		}
@@ -1577,13 +1576,13 @@ func Test_pragma(t *testing.T) {
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items5 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-			name := _items5[_idx5+0]
+		_items4 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+			name := _items4[_idx4+0]
 			_ = name // suppress unused warning
-			value := _items5[_idx5+1]
+			value := _items4[_idx4+1]
 			_ = value // suppress unused warning
-			_ = _idx5
+			_ = _idx4
 				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
@@ -1689,8 +1688,8 @@ func Test_pragma(t *testing.T) {
 			}
 			db.Close()
 			{ // do_test "pragma-16.9"
-				_dbtmp6, err := frigolite.Open("proxytest.db")
-				_ = _dbtmp6 // sqlite3 db connection
+				_dbtmp5, err := frigolite.Open("proxytest.db")
+				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				lockpath2 = tclExecSQL(db, "{\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    } db")
 				_ = lockpath2 // suppress unused warning
@@ -1701,13 +1700,13 @@ func Test_pragma(t *testing.T) {
 			sqlite_hostid_num = "0"
 			_ = sqlite_hostid_num // suppress unused warning
 			// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
-			_items7 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
-			for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-				autovac_setting := _items7[_idx7+0]
+			_items6 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
+			for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+				autovac_setting := _items6[_idx6+0]
 				_ = autovac_setting // suppress unused warning
-				val := _items7[_idx7+1]
+				val := _items6[_idx6+1]
 				_ = val // suppress unused warning
-				_ = _idx7
+				_ = _idx6
 					{ // do_test "pragma-17.1." + autovac_setting
 						{
 							var _catchErr error
@@ -1726,13 +1725,13 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
-				_items8 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
-				for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
-					temp_setting := _items8[_idx8+0]
+				_items7 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
+				for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+					temp_setting := _items7[_idx7+0]
 					_ = temp_setting // suppress unused warning
-					val := _items8[_idx8+1]
+					val := _items7[_idx7+1]
 					_ = val // suppress unused warning
-					_ = _idx8
+					_ = _idx7
 						{ // do_test "pragma-18.1." + temp_setting
 							{
 								var _catchErr error
@@ -1874,8 +1873,7 @@ func Test_pragma(t *testing.T) {
 								_ = _catchErr // suppress unused warning
 								db.Close()
 							}
-							_dbtmp0, err := frigolite.Open("testerr.db")
-							_ = _dbtmp0 // sqlite3 db connection
+							db, err = frigolite.Open("testerr.db")
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" PRAGMA integrity_check ")
 							if r.Error != nil {
@@ -1891,8 +1889,7 @@ func Test_pragma(t *testing.T) {
 								_ = _catchErr // suppress unused warning
 								db.Close()
 							}
-							_dbtmp1, err := frigolite.Open("test.db")
-							_ = _dbtmp1 // sqlite3 db connection
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" \n      ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
 							if r.Error != nil {
@@ -1923,8 +1920,7 @@ func Test_pragma(t *testing.T) {
 								_ = _catchErr // suppress unused warning
 								db.Close()
 							}
-							_dbtmp2, err := frigolite.Open("testerr.db")
-							_ = _dbtmp2 // sqlite3 db connection
+							db, err = frigolite.Open("testerr.db")
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" \n      ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
 							if r.Error != nil {

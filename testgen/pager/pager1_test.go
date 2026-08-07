@@ -2378,8 +2378,7 @@ func Test_pager1(t *testing.T) {
 												}
 												// sqlite3_shutdown (unsupported command, not transpiled)
 												// sqlite3_config_uri 1 (unsupported command, not transpiled)
-												_dbtmp16, err := frigolite.Open(uri)
-												_ = _dbtmp16 // sqlite3 db connection
+												db, err = frigolite.Open(uri)
 												if err != nil { t.Fatal(err) }
 												_res = db.Exec("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      SELECT * FROM t1;\n    ")
 												if _res.Error != nil {
@@ -2428,8 +2427,8 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 										}
 										{ // do_test "39.1"
-											_dbtmp17, err := frigolite.Open("test.db")
-											_ = _dbtmp17 // sqlite3 db connection
+											_dbtmp16, err := frigolite.Open("test.db")
+											_ = _dbtmp16 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
 											if r.Error != nil {

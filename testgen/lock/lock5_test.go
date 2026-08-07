@@ -168,7 +168,7 @@ func Test_lock5(t *testing.T) {
 					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 					_ = db2
 				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
+				_res = db.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.4"
@@ -176,7 +176,7 @@ func Test_lock5(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
+				_res = db.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.5"
@@ -184,7 +184,7 @@ func Test_lock5(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
+				_res = db.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.6"
@@ -192,16 +192,16 @@ func Test_lock5(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
+				_res = db.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.7"
 				db.Close()
-				_res = db2.Exec(" SELECT * FROM t1 ")
+				_res = db.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.8"
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			{ // do_test "lock5-flock.9"
 				_dbtmp1, err := frigolite.Open("test.db")

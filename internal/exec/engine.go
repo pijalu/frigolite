@@ -73,6 +73,7 @@ type Engine struct {
 	triggerTables     []string                         // chain of tables currently in trigger programs
 	triggerNewRow     Row                              // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
+	updateSetColumns  []string                         // column names in the current UPDATE's SET clause
 	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
 	uniqueIdxCache    map[string][]uniqueIndexDef      // cached unique-index definitions per table name
 	fkCache           map[string][]fkCascadeRef        // cached FK ON DELETE CASCADE refs per parent table
@@ -974,7 +975,16 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	switch stmt.(type) {
 	case *sql.InsertStmt, *sql.UpdateStmt, *sql.DeleteStmt:
 		isDML = true
-		snaps = e.snapshotAllPagers()
+		// SQLite guarantees statement atomicity: when a statement fails (a
+		// constraint violation, a trigger error, etc.) every change it made
+		// is rolled back. We emulate that by snapshotting all pagers before
+		// DML and restoring them on error. A single-row VALUES INSERT cannot
+		// fail after writing (constraints are checked before the write), so
+		// it needs no snapshot — this avoids an O(pages) copy per insert in
+		// bulk-load loops (100k-row inserts are ~100x faster).
+		if !e.dmlCanSkipSnapshot(stmt) {
+			snaps = e.snapshotAllPagers()
+		}
 	}
 
 	var res *Result
@@ -1032,6 +1042,31 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 type pagerSnap struct {
 	pg    *pager.Pager
 	state *pager.PagerState
+}
+
+// dmlCanSkipSnapshot reports whether a DML statement can skip the pre-rollback
+// pager snapshot because it cannot fail after partially writing. A single-row
+// VALUES INSERT (no SELECT, no RETURNING, not REPLACE/upsert, no triggers, no
+// FK enforcement) either writes its one row or fails before writing — there is
+// no partial state to restore.
+func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
+	ins, ok := stmt.(*sql.InsertStmt)
+	if !ok {
+		return false // UPDATE/DELETE can fail mid-scan after earlier writes
+	}
+	if ins.Select != nil || ins.HasReturning || ins.IsReplace || len(ins.Values) != 1 {
+		return false
+	}
+	if ins.OnConflict != nil {
+		return false // DO NOTHING / DO UPDATE upsert paths may skip or modify rows
+	}
+	if e.foreignKeys {
+		return false // FK enforcement could reject after other writes
+	}
+	if e.hasTriggersForTable(ins.Table) {
+		return false // a trigger could fail after the insert
+	}
+	return true
 }
 
 // snapshotAllPagers captures the in-memory state of every database pager,

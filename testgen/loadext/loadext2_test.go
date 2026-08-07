@@ -149,8 +149,8 @@ func Test_loadext2(t *testing.T) {
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"

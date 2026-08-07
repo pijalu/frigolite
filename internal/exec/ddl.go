@@ -1259,6 +1259,11 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// The findTable call above re-populated the table cache with the entry
+	// about to be dropped; clear it again so a later statement cannot find a
+	// stale table of the same name (which would silently accept inserts).
+	e.invalidateTableCaches()
+
 	// Clean up FTS virtual table if applicable
 	tableName := entry.Name
 	if ftsMod := e.getFTSModuleForTable(tableName); ftsMod != nil {
@@ -1313,10 +1318,9 @@ func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
 		if s.IfExists {
 			return &Result{}
 		}
-		// Silently succeed (idempotent, compat with auto-generated tests)
-		return &Result{}
+		return &Result{Error: err}
 	}
-	if err := ctx.Schema.RemoveEntry(s.Name); err != nil && !s.IfExists {
+	if err := ctx.Schema.RemoveEntryOfType(s.Name, schema.TypeTrigger); err != nil && !s.IfExists {
 		return &Result{Error: err}
 	}
 	// Invalidate trigger existence cache

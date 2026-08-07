@@ -43,6 +43,19 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
+	// Record which columns this UPDATE statement's SET clause assigns, so
+	// UPDATE OF <cols> triggers fire only when a listed column is in the set.
+	// Cleared on return (the engine is single-threaded per connection).
+	prevSetCols := e.updateSetColumns
+	e.updateSetColumns = nil
+	for _, a := range s.Assignments {
+		e.updateSetColumns = append(e.updateSetColumns, a.Column)
+	}
+	if len(s.SetParenColumns) > 0 {
+		e.updateSetColumns = append(e.updateSetColumns, s.SetParenColumns...)
+	}
+	defer func() { e.updateSetColumns = prevSetCols }()
+
 	if s.HasReturning {
 		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
 			return &Result{Error: err}
@@ -618,14 +631,25 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 		if conflict {
 			return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, nil, ch.values, uniqueCols, idxColsList)}
 		}
-		// Write the row: delete the old cell and insert the new record.
+		// Write the row: delete the old cell and insert the new record. SQLite
+		// computes the NEW row values from the SET expressions BEFORE firing
+		// BEFORE triggers, then writes only the SET columns after the triggers
+		// run — so a BEFORE trigger that modifies a non-SET column (e.g.
+		// UPDATE t SET b=1000 WHERE a=old.a) keeps its change, while the outer
+		// SET columns get the pre-computed values. Re-read the current
+		// (post-trigger) row first, overlay the SET columns' computed values,
+		// then replace the row with the merged result.
+		finalValues, err := e.mergeTriggerModifiedRow(tableName, rootPage, colDefs, ch)
+		if err != nil {
+			return &Result{Error: err}
+		}
 		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 			return cell.RowID == ch.rowID
 		}); err != nil {
 			return &Result{Error: err}
 		}
 		e.invalidateRowIDCache(rootPage)
-		newRecord, err := storage.EncodeRecord(ch.values)
+		newRecord, err := storage.EncodeRecord(finalValues)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -652,6 +676,66 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 		}
 	}
 	return &Result{Changes: changesMade}
+}
+
+// mergeTriggerModifiedRow reads the current (post-BEFORE-trigger) values of
+// the row being updated and overlays the UPDATE statement's SET columns with
+// their pre-computed values. SQLite computes NEW values from the SET
+// expressions before BEFORE triggers run, then after the triggers the outer
+// UPDATE writes only the SET columns — so a BEFORE trigger's changes to
+// non-SET columns survive, while the SET columns get the computed values.
+// Returns the full column-value slice to encode for the final row.
+func (e *Engine) mergeTriggerModifiedRow(tableName string, rootPage uint32, colDefs []sql.ColumnDef, ch updateChange) ([]interface{}, error) {
+	// Re-read the current row (post-trigger state) from the btree.
+	curTree := e.tableBTreeForName(tableName, rootPage, true)
+	cursor, err := curTree.OpenCursor()
+	if err != nil {
+		return nil, err
+	}
+	var current []interface{}
+	found := false
+	for {
+		cell, rerr := cursor.ReadCell()
+		if rerr != nil || cell == nil {
+			break
+		}
+		if cell.RowID == ch.rowID {
+			rec, derr := storage.DecodeRecord(cell.Payload)
+			if derr != nil || rec == nil {
+				break
+			}
+			current = rec.Values
+			found = true
+			break
+		}
+		ok, nerr := cursor.Next()
+		if nerr != nil || !ok {
+			break
+		}
+	}
+	if !found {
+		// The row vanished during trigger execution (a BEFORE trigger deleted
+		// it); the caller skips the write when rowExists reports false, so this
+		// path should not normally be reached. Fall back to the computed NEW
+		// values.
+		return ch.values, nil
+	}
+	// Overlay the SET columns with the pre-computed values. Columns not in
+	// the SET clause keep the post-trigger (possibly trigger-modified) values.
+	if len(e.updateSetColumns) == 0 {
+		return ch.values, nil
+	}
+	merged := make([]interface{}, len(current))
+	copy(merged, current)
+	for i, cd := range colDefs {
+		for _, setCol := range e.updateSetColumns {
+			if strings.EqualFold(cd.Name, setCol) && i < len(ch.values) {
+				merged[i] = ch.values[i]
+				break
+			}
+		}
+	}
+	return merged, nil
 }
 
 // applyUpdateIgnore implements UPDATE OR IGNORE: each change is applied only
