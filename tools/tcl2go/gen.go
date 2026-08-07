@@ -1337,7 +1337,94 @@ func (tp *transpiler) buildStringExprNoCmd(s string) string {
 // `CAST(' 876xyz' AS real)`, not `CAST( 876xyz AS real)` (a parse error).
 func (tp *transpiler) buildSQLStringExpr(s string) string {
 	parts := parseStringParts(s, true)
+	// TCL db eval/execsql binds $var references as positional parameters
+	// (first $var → ?1, second → ?2, ...). A literal ?NNN in the same SQL
+	// refers to the N-th bound parameter and therefore gets the same value
+	// as the N-th $var. Replace those literals with the bound variable's
+	// sqlLiteral so `INSERT INTO t VALUES($one, ?1)` yields (3, 3) matching
+	// SQLite's TCL binding semantics.
+	parts = tp.resolveBindParamRefs(parts)
 	return tp.renderStringExpr(parts, true)
+}
+
+// resolveBindParamRefs rewrites literal ?NNN placeholders in parsed string
+// parts to reference the N-th $var bound by TCL db eval/execsql. TCL binds
+// $var references in order of appearance as parameters ?1, ?2, ...; a literal
+// ?N in the same statement refers to the N-th such parameter, so its value is
+// the N-th variable's value. Literals before the first $var that contain ?N
+// cannot be resolved (no binding exists yet) and are left unchanged.
+func (tp *transpiler) resolveBindParamRefs(parts []stringPart) []stringPart {
+	// Collect the variables in binding order (only the first occurrence of
+	// each parameter slot matters: each $var is one parameter).
+	var boundVars []string
+	for _, p := range parts {
+		if p.variable != "" {
+			boundVars = append(boundVars, p.variable)
+		}
+	}
+	if len(boundVars) == 0 {
+		return parts
+	}
+	// Replace ?N in literal parts with a reference to the N-th bound var.
+	out := make([]stringPart, len(parts))
+	copy(out, parts)
+	for i := range out {
+		p := &out[i]
+		if p.literal == "" {
+			continue
+		}
+		// Split the literal on ?N patterns (outside SQL string literals).
+		var rebuilt strings.Builder
+		j := 0
+		for j < len(p.literal) {
+			if p.literal[j] == '?' && j+1 < len(p.literal) && isDigit(p.literal[j+1]) {
+				k := j + 1
+				for k < len(p.literal) && isDigit(p.literal[k]) {
+					k++
+				}
+				n, _ := strconv.Atoi(p.literal[j+1 : k])
+				if n >= 1 && n <= len(boundVars) {
+					// Emit a synthetic variable reference so renderStringExpr
+					// wraps it in sqlLiteral(boundVar).
+					rebuilt.WriteString("\x00" + boundVars[n-1] + "\x00")
+				} else {
+					rebuilt.WriteString(p.literal[j:k])
+				}
+				j = k
+				continue
+			}
+			rebuilt.WriteByte(p.literal[j])
+			j++
+		}
+		if rebuilt.Len() != len(p.literal) {
+			// There was a substitution; re-parse the literal into parts so the
+			// synthetic \x00var\x00 markers become variable parts.
+			sub := rebuilt.String()
+			var newParts []stringPart
+			for idx := 0; idx < len(sub); {
+				if sub[idx] == '\x00' {
+					end := strings.IndexByte(sub[idx+1:], '\x00')
+					if end < 0 {
+						newParts = append(newParts, stringPart{literal: sub[idx:]})
+						break
+					}
+					name := sub[idx+1 : idx+1+end]
+					newParts = append(newParts, stringPart{variable: name})
+					idx += end + 2
+				} else {
+					start := idx
+					for idx < len(sub) && sub[idx] != '\x00' {
+						idx++
+					}
+					newParts = append(newParts, stringPart{literal: sub[start:idx]})
+				}
+			}
+			// Splice newParts into out at position i.
+			out = append(out[:i], append(newParts, out[i+1:]...)...)
+			i += len(newParts) - 1
+		}
+	}
+	return out
 }
 
 // buildSQLStringExprNoCmd is like buildSQLStringExpr but treats [...] as
@@ -1347,6 +1434,7 @@ func (tp *transpiler) buildSQLStringExpr(s string) string {
 // literals. SQL in a braced execsql/db eval word has no [cmd] substitution.
 func (tp *transpiler) buildSQLStringExprNoCmd(s string) string {
 	parts := parseStringPartsMode(s, true, true)
+	parts = tp.resolveBindParamRefs(parts)
 	return tp.renderStringExpr(parts, true)
 }
 
@@ -2028,6 +2116,11 @@ func sanitizeTCLComment(s string) string {
 		s = s[:80] + "..."
 	}
 	return s
+}
+
+// isDigit reports whether c is an ASCII digit.
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
 }
 
 func isVarStartChar(c byte) bool {

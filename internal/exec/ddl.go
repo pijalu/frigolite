@@ -1641,14 +1641,12 @@ func hasBindParameter(sqlStr string) bool {
 				i++
 			}
 		case '?':
-			// A ? followed by a digit or a name is a bind parameter.
-			if i+1 < len(sqlStr) && (isDigit(sqlStr[i+1]) || isIdentStart(sqlStr[i+1])) {
-				return true
-			}
-			i++
+			// Any ? outside a string literal is a bind parameter placeholder
+			// (bare ? or ?NNN/?name). SQLite rejects all of them in triggers.
+			return true
 		case ':', '@', '$':
-			// Named parameters :name, @name, $name.
-			if i+1 < len(sqlStr) && isIdentStart(sqlStr[i+1]) {
+			// Named parameters :name, @name, $name (also :1, @1, $1).
+			if i+1 < len(sqlStr) && (isIdentStart(sqlStr[i+1]) || isDigit(sqlStr[i+1])) {
 				return true
 			}
 			i++
