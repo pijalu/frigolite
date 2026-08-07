@@ -157,7 +157,7 @@ func Test_fts3snippet(t *testing.T) {
 			// do_offsets_test $T.1.4 {"xxx xxx" xxx} {\n      0 0  0 3     0 2  0 3     0 0  4 3     0 1...} (unsupported command, not transpiled)
 			// do_offsets_test $T.1.5 {xxx "xxx xxx"} {\n      0 0  0 3     0 1  0 3     0 0  4 3     0 1...} (unsupported command, not transpiled)
 			{ // do_test T + ".2.1"
-				v1 = "lrange $numbers 0 99"
+				v1 = tclLRange(numbers, "0", "99")
 				_ = v1 // suppress unused warning
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES(" + sqlLiteral(v1) + ", " + sqlLiteral(numbers) + ");\n      INSERT INTO ft VALUES(" + sqlLiteral(v1) + ", NULL);\n    ")
 				if _res.Error != nil {
@@ -294,7 +294,7 @@ func Test_fts3snippet(t *testing.T) {
 				}
 				for _, n := range tclSplitList("1 2 3") {
 				_ = n // suppress unused warning
-					v1 = "lrange $numbers 0 [expr $n*100]"
+					v1 = tclLRange(numbers, "0", tclExprWith("$n*100", map[string]string{"n": n}))
 					_ = v1 // suppress unused warning
 					v2 = strings.TrimSpace("\"$numbers \" $n")
 					_ = v2 // suppress unused warning

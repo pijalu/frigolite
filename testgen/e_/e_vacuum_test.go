@@ -5,6 +5,7 @@
 package e_
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -441,9 +442,18 @@ func Test_e_vacuum(t *testing.T) {
 		{ // do_test "e_vacuum-3.2.2.1"
 			res = ""
 			_ = res // suppress unused warning
-			_res = db.Exec(" SELECT a FROM t1 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t1 ")
+			_dbevalRows1 := db.Query(" SELECT a FROM t1 ")
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 10 }() {
+					res = "catchsql VACUUM"
+					_ = res // suppress unused warning
+				}
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr3 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr3)
 			}
 		}
 		{ // do_test "e_vacuum-3.3.1"

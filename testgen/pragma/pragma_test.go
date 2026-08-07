@@ -5,6 +5,7 @@
 package pragma
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -716,9 +717,18 @@ func Test_pragma(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);\n  ")
 		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA integrity_check")
+		_dbevalRows2 := db.Query("PRAGMA integrity_check")
+		var _dbevalRb3 bool
+		var _dbevalErr4 error
+		for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+			_res = db.Exec("DELETE FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
+			}
+			if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr4 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr4)
 		}
 	}
 	db.Close()
@@ -810,15 +820,15 @@ func Test_pragma(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_temp_master")
 		}
 		// foreach {idx name file} tclExecSQL(db, "{pragma database_list}")
-		_items2 := tclSplitList(tclExecSQL(db, "{pragma database_list}"))
-		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-			idx := _items2[_idx2+0]
+		_items5 := tclSplitList(tclExecSQL(db, "{pragma database_list}"))
+		for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+			idx := _items5[_idx5+0]
 			_ = idx // suppress unused warning
-			name := _items2[_idx2+1]
+			name := _items5[_idx5+1]
 			_ = name // suppress unused warning
-			file := _items2[_idx2+2]
+			file := _items5[_idx5+2]
 			_ = file // suppress unused warning
-			_ = _idx2
+			_ = _idx5
 				res = tclListAppend(res, idx, name)
 			}
 		}
@@ -1372,8 +1382,19 @@ func Test_pragma(t *testing.T) {
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				_res = db.Exec("SELECT t FROM temp_table")
-				if _res.Error != nil { _catchErr = _res.Error }
+				_dbevalRows6 := db.Query("SELECT t FROM temp_table")
+				var _dbevalRb7 bool
+				var _dbevalErr8 error
+				for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+					r = db.Query("pragma temp_store = 1")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store = 1")
+					}
+					if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr8 != nil {
+					_catchErr = _dbevalErr8
+				}
 				if _catchErr != nil {
 					rc = "1"
 					msg = _catchErr.Error()
@@ -1499,8 +1520,8 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-14.4"
-			_dbone3 := tclExecSQL(db, "{pragma page_size}")
-			page_size = _dbone3
+			_dbone9 := tclExecSQL(db, "{pragma page_size}")
+			page_size = _dbone9
 			_ = page_size // suppress unused warning
 			// expr [file size test.db] (not evaluated)
 		}
@@ -1568,13 +1589,13 @@ func Test_pragma(t *testing.T) {
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items4 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
-			name := _items4[_idx4+0]
+		_items10 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx10 := 0; _idx10+2 <= len(_items10); _idx10 += 2 {
+			name := _items10[_idx10+0]
 			_ = name // suppress unused warning
-			value := _items4[_idx4+1]
+			value := _items10[_idx10+1]
 			_ = value // suppress unused warning
-			_ = _idx4
+			_ = _idx10
 				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
@@ -1691,13 +1712,13 @@ func Test_pragma(t *testing.T) {
 			sqlite_hostid_num = "0"
 			_ = sqlite_hostid_num // suppress unused warning
 			// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
-			_items5 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
-			for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-				autovac_setting := _items5[_idx5+0]
+			_items11 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
+			for _idx11 := 0; _idx11+2 <= len(_items11); _idx11 += 2 {
+				autovac_setting := _items11[_idx11+0]
 				_ = autovac_setting // suppress unused warning
-				val := _items5[_idx5+1]
+				val := _items11[_idx11+1]
 				_ = val // suppress unused warning
-				_ = _idx5
+				_ = _idx11
 					{ // do_test "pragma-17.1." + autovac_setting
 						{
 							var _catchErr error
@@ -1716,13 +1737,13 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
-				_items6 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
-				for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-					temp_setting := _items6[_idx6+0]
+				_items12 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
+				for _idx12 := 0; _idx12+2 <= len(_items12); _idx12 += 2 {
+					temp_setting := _items12[_idx12+0]
 					_ = temp_setting // suppress unused warning
-					val := _items6[_idx6+1]
+					val := _items12[_idx12+1]
 					_ = val // suppress unused warning
-					_ = _idx6
+					_ = _idx12
 						{ // do_test "pragma-18.1." + temp_setting
 							{
 								var _catchErr error

@@ -5,6 +5,7 @@
 package misuse
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -128,8 +129,15 @@ func Test_misuse(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT * FROM t1")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows0 := db.Query("SELECT * FROM t1")
+			var _dbevalRb1 bool
+			var _dbevalErr2 error
+			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr2 != nil {
+				_catchErr = _dbevalErr2
+			}
 			if _catchErr != nil {
 				v = "1"
 				msg = _catchErr.Error()
@@ -166,8 +174,15 @@ func Test_misuse(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT * FROM t1")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows3 := db.Query("SELECT * FROM t1")
+			var _dbevalRb4 bool
+			var _dbevalErr5 error
+			for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+				if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr5 != nil {
+				_catchErr = _dbevalErr5
+			}
 			if _catchErr != nil {
 				v = "1"
 				msg = _catchErr.Error()
@@ -204,8 +219,15 @@ func Test_misuse(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT * FROM t1")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows6 := db.Query("SELECT * FROM t1")
+			var _dbevalRb7 bool
+			var _dbevalErr8 error
+			for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+				if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr8 != nil {
+				_catchErr = _dbevalErr8
+			}
 			if _catchErr != nil {
 				v = "1"
 				msg = _catchErr.Error()

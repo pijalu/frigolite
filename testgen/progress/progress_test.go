@@ -5,6 +5,7 @@
 package progress
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -200,9 +201,41 @@ func Test_progress(t *testing.T) {
 		}
 		res = "" // TCL namespace variable
 		_ = res // suppress unused warning
-		_res = db.Exec("SELECT a, b, c FROM abc")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, b, c FROM abc")
+		_dbevalRows0 := db.Query("SELECT a, b, c FROM abc")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			res = tclListAppend(res, a, b, c)
+			db.SetProgressHandler(toInt(5), func() bool { return true })
+			{
+				var msg string // catch result ("0"=ok, "1"=error)
+				var _catchErrMsg string // catch error message
+				_ = msg // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
+				var _catchErr error
+				_dbevalRows3 := db.Query("SELECT a, b, c FROM abc")
+				var _dbevalRb4 bool
+				var _dbevalErr5 error
+				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+					if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr5 != nil {
+					_catchErr = _dbevalErr5
+				}
+				if _catchErr != nil {
+					msg = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					msg = "0"
+					_catchErrMsg = ""
+				}
+			}
+			db.SetProgressHandler(toInt(5), func() bool { return true })
+			res = tclListAppend(res, msg)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_ = res // TCL namespace variable (query)
 	}

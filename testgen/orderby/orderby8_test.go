@@ -5,6 +5,7 @@
 package orderby
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -81,9 +82,15 @@ func Test_orderby8(t *testing.T) {
 		{ // do_test "1." + i
 			res = ""
 			_ = res // suppress unused warning
-			_res = db.Exec("SELECT " + result_set + " FROM t1 ORDER BY x LIMIT -1")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + result_set + " FROM t1 ORDER BY x LIMIT -1")
+			_dbevalRows0 := db.Query("SELECT " + result_set + " FROM t1 ORDER BY x LIMIT -1")
+			var _dbevalRb1 bool
+			var _dbevalErr2 error
+			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				res = tclListAppend(res, x)
+				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr2 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr2)
 			}
 		}
 		// incr i 1

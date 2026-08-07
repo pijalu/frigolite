@@ -5,6 +5,7 @@
 package zipfile
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -124,18 +125,54 @@ func Test_zipfile(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
-	if false {
+	var _error string
+	{
+		var _catchErr error
+		// load_static_extension db zipfile (unsupported command, not transpiled)
+		if _catchErr != nil {
+			_error = "1"
+			_error = _catchErr.Error()
+		} else {
+			_error = "0"
+			_error = ""
+		}
+	}
+	if _error == "1" {
 		_putsMsg := "Skipping zipfile tests, hit load error: " + _error
 		_ = _putsMsg
 		return
 	}
-	if false {
+	var _error string
+	{
+		var _catchErr error
+		// load_static_extension db fileio (unsupported command, not transpiled)
+		if _catchErr != nil {
+			_error = "1"
+			_error = _catchErr.Error()
+		} else {
+			_error = "0"
+			_error = ""
+		}
+	}
+	if _error == "1" {
 		_putsMsg := "Skipping zipfile tests, hit load error: " + _error
 		_ = _putsMsg
 		return
 	}
 	// proc definition (not transpiled)
-	if tclBool("0" + "==0 && \\\n    " + "regexp -line {^UnZip \\d+\\.\\d+ .*? Info-ZIP\\.} $msg") {
+	var msg_==0 string
+	{
+		var _catchErr error
+		// exec unzip (unsupported command, not transpiled)
+		if _catchErr != nil {
+			msg_==0 = "1"
+			msg_==0 = _catchErr.Error()
+		} else {
+			msg_==0 = "0"
+			msg_==0 = ""
+		}
+	}
+	if msg_==0 == "1" {
 		UNZIP = "unzip" // TCL namespace variable
 		_ = UNZIP // suppress unused warning
 		// proc definition (not transpiled)
@@ -694,9 +731,20 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			{ // do_test "8.0.2"
-				_res = db.Exec(" SELECT name, data FROM zz ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, data FROM zz ")
+				_dbevalRows2 := db.Query(" SELECT name, data FROM zz ")
+				var _dbevalRb3 bool
+				var _dbevalErr4 error
+				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+					if data == "2" {
+						_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
+						}
+					}
+					if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr4 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr4)
 				}
 				r = db.Query(" SELECT name, data FROM zz ")
 				if r.Error != nil {
@@ -704,9 +752,18 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			{ // do_test "8.0.3"
-				_res = db.Exec(" SELECT name, data FROM zz ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, data FROM zz ")
+				_dbevalRows5 := db.Query(" SELECT name, data FROM zz ")
+				var _dbevalRb6 bool
+				var _dbevalErr7 error
+				for _ri := 0; _ri < len(_dbevalRows5.Rows) && _dbevalErr7 == nil; _ri++ {
+					_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
+					}
+					if _dbevalRb6 { _dbevalErr7 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr7 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr7)
 				}
 				r = db.Query(" SELECT name, data FROM zz ")
 				if r.Error != nil {
@@ -1174,8 +1231,8 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				{ // do_test "24.1"
-					_dbone2 := tclExecSQL(db, "{SELECT hex( readfile('test.zip') )}")
-					zip = _dbone2
+					_dbone8 := tclExecSQL(db, "{SELECT hex( readfile('test.zip') )}")
+					zip = _dbone8
 					_ = zip // suppress unused warning
 					off = "\"504B0102\" $zip"
 					_ = off // suppress unused warning

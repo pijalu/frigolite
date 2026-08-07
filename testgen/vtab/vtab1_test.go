@@ -5,6 +5,7 @@
 package vtab
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -1357,9 +1358,18 @@ func Test_vtab1(t *testing.T) {
 				}
 				res = ""
 				_ = res // suppress unused warning
-				_res = db.Exec(" SELECT value FROM t1 WHERE value<10 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT value FROM t1 WHERE value<10 ")
+				_dbevalRows2 := db.Query(" SELECT value FROM t1 WHERE value<10 ")
+				var _dbevalRb3 bool
+				var _dbevalErr4 error
+				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+					if func() bool { value_n, _value_e := strconv.Atoi(value); if _value_e != nil { return false }; return value_n == 5 }() {
+						res = "catchsql { DROP TABLE t1 }"
+						_ = res // suppress unused warning
+					}
+					if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr4 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr4)
 				}
 			}
 			{ // do_test "23.2"

@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -111,6 +110,7 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-1.9"
+		var altdb *frigolite.DB
 		altdb = db // sqlite3 altdb test.db: alias to main in-memory db
 		_ = altdb
 		r = db.Query("SELECT b FROM one ORDER BY a")
@@ -1069,7 +1069,8 @@ func Test_avtrans(t *testing.T) {
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
-		sig = "signature" // TCL namespace variable
+		_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+		sig = _dbeval0
 		_ = sig // suppress unused warning
 		cnt = tclLIndex(sig, "0")
 		_ = cnt // suppress unused warning
@@ -1093,9 +1094,9 @@ func Test_avtrans(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "avtrans-9." + i + ".1-" + cnt)
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "avtrans-9." + i + ".1-" + cnt)
 			}
 		}
 		{ // do_test "avtrans-9." + i + ".2-" + cnt
@@ -1103,9 +1104,9 @@ func Test_avtrans(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "avtrans-9." + i + ".2-" + cnt)
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "avtrans-9." + i + ".2-" + cnt)
 			}
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {

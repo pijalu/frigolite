@@ -115,7 +115,7 @@ func Test_vtabJ(t *testing.T) {
 	{ // do_test "111"
 		res = ""
 		_ = res // suppress unused warning
-		for _, vname := range tclSplitList("lsort [array names vtabJ]") {
+		for _, vname := range tclSplitList(tclSort("array names vtabJ")) {
 		_ = vname // suppress unused warning
 			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ_vname)
 		}
@@ -149,7 +149,7 @@ func Test_vtabJ(t *testing.T) {
 	{ // do_test "152"
 		res = ""
 		_ = res // suppress unused warning
-		for _, vname := range tclSplitList("lsort [array names vtabJ]") {
+		for _, vname := range tclSplitList(tclSort("array names vtabJ")) {
 		_ = vname // suppress unused warning
 			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ_vname)
 		}
@@ -181,7 +181,7 @@ func Test_vtabJ(t *testing.T) {
 	{ // do_test "162"
 		res = ""
 		_ = res // suppress unused warning
-		for _, vname := range tclSplitList("lsort [array names vtabJ]") {
+		for _, vname := range tclSplitList(tclSort("array names vtabJ")) {
 		_ = vname // suppress unused warning
 			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ_vname)
 		}

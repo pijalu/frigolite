@@ -177,7 +177,8 @@ func Test_crash6(t *testing.T) {
 			}
 			// expr ([file size test.db] (not evaluated)
 		}
-		sig = "signature"
+		_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval0
 		_ = sig // suppress unused warning
 		db.Close()
 		{ // do_test "crash6-3." + ii + ".2"
@@ -186,9 +187,9 @@ func Test_crash6(t *testing.T) {
 		{ // do_test "crash6-3." + ii + ".3"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash6-3." + ii + ".3")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash6-3." + ii + ".3")
 			}
 		}
 		// incr ii 1

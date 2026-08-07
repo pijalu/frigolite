@@ -5,6 +5,7 @@
 package tkt
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -78,9 +79,20 @@ func Test_tkt2820(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n  ")
 		}
-		_res = db.Exec("SELECT name FROM sqlite_master")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT name FROM sqlite_master")
+		_dbevalRows0 := db.Query("SELECT name FROM sqlite_master")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+				_res = db.Exec("\n      INSERT INTO t1 SELECT a+1 FROM t1 ORDER BY a DESC\n    ")
+				if _res.Error != nil { _catchErr = _res.Error }
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_res = db.Exec("SELECT a FROM t1 ORDER BY a")
 		if _res.Error != nil {

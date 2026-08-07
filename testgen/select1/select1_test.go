@@ -399,7 +399,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-2.8.1"
 		r = db.Query("SELECT coalesce(min(a),'xyzzy') FROM t3")
@@ -468,7 +468,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-2.12"
 	_ = v // suppress unused warning
@@ -485,7 +485,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-2.13"
 	_ = v // suppress unused warning
@@ -723,7 +723,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-3.5"
 	_ = v // suppress unused warning
@@ -740,7 +740,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-3.6"
 	_ = v // suppress unused warning
@@ -757,7 +757,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-3.7"
 	_ = v // suppress unused warning
@@ -774,7 +774,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-3.8"
 	_ = v // suppress unused warning
@@ -791,7 +791,7 @@ func Test_select1(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, "lsort $msg")
+		v = tclListAppend(v, tclSort(msg))
 	}
 	{ // do_test "select1-3.9"
 	_ = v // suppress unused warning

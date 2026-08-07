@@ -84,7 +84,8 @@ func Test_crash(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 		}
-		sig = "signature" // TCL namespace variable
+		_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval0
 		_ = sig // suppress unused warning
 		// expr 0 → "0"
 	}
@@ -97,9 +98,9 @@ func Test_crash(t *testing.T) {
 			// crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-1.3." + i
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-1.3." + i)
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-1.3." + i)
 			}
 		}
 		// incr i 1
@@ -114,9 +115,9 @@ func Test_crash(t *testing.T) {
 		// crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a = 1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.5"
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-1.5")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-1.5")
 		}
 	}
 	{ // do_test "crash-1.6"
@@ -164,7 +165,8 @@ func Test_crash(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		sig = "signature" // TCL namespace variable
+		_dbeval1 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval1
 		_ = sig // suppress unused warning
 		r = db.Query(" SELECT sum(a), sum(b), sum(c) from abc ")
 		if r.Error != nil {
@@ -178,18 +180,18 @@ func Test_crash(t *testing.T) {
 		// crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a < 800;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.4"
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-2.4")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-2.4")
 		}
 	}
 	{ // do_test "crash-2.5"
 		// crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a<800;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.6"
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-2.6")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-2.6")
 		}
 	}
 	{ // do_test "crash-3.0"
@@ -202,7 +204,8 @@ func Test_crash(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; repeats_n, _repeats_e := strconv.Atoi(repeats); if _repeats_e != nil { return false }; return i_n < repeats_n }() {
-		sig = "signature"
+		_dbeval2 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval2
 		_ = sig // suppress unused warning
 		{ // do_test "crash-3." + i + ".1"
 			seed = "0"
@@ -210,9 +213,9 @@ func Test_crash(t *testing.T) {
 			// crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n      ... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-3." + i + ".2"
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-3." + i + ".2")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-3." + i + ".2")
 			}
 		}
 		// incr i 1
@@ -356,7 +359,8 @@ func Test_crash(t *testing.T) {
 	{ // do_test "crash-5.2"
 		// expr [file size test.db] (not evaluated)
 	}
-	sig = "signature"
+	_dbeval3 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+	sig = _dbeval3
 	_ = sig // suppress unused warning
 	{ // do_test "crash-5.3"
 		// crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                    ... (unsupported command, not transpiled)
@@ -364,18 +368,18 @@ func Test_crash(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "crash-5.5"
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-5.5")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-5.5")
 		}
 	}
 	{ // do_test "crash-6.1"
 		// crashsql -delay 1 -file test.db {\n    DROP TABLE abc;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-6.2"
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-6.2")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-6.2")
 		}
 	}
 	{ // do_test "crash-7.1"
@@ -389,9 +393,9 @@ func Test_crash(t *testing.T) {
 		// close $f
 	}
 	{ // do_test "crash-7.2"
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-7.2")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-7.2")
 		}
 	}
 }

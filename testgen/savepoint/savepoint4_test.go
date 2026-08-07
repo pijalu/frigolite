@@ -88,7 +88,8 @@ func Test_savepoint4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; ITERATIONS_n, _ITERATIONS_e := strconv.Atoi(ITERATIONS); if _ITERATIONS_e != nil { return false }; return ii_n <= ITERATIONS_n }() {
-		sig = "signature" // TCL namespace variable
+		_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t1")
+		sig = _dbeval0
 		_ = sig // suppress unused warning
 		iDelay = "1"
 		_ = iDelay // suppress unused warning
@@ -98,9 +99,9 @@ func Test_savepoint4(t *testing.T) {
 			{ // do_test "savepoint4-1." + ii + ".1." + iDelay
 				ret = "crashsql -delay $iDelay -file test.db-journal {\n        PRAGMA cache_size = 20;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE random()%2==0;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,10)||x FROM t1;\n           ROLLBACK TO two;\n            UPDATE t1 SET x = randstr(10, 400) WHERE random()%10;\n          RELEASE two;\n        ROLLBACK TO one;\n        RELEASE one;\n      }"
 				_ = ret // suppress unused warning
-				// signature (unsupported command, not transpiled)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "savepoint4-1." + ii + ".1." + iDelay)
+				_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t1")
+				if _r != sig {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "savepoint4-1." + ii + ".1." + iDelay)
 				}
 			}
 			crashed = tclLIndex(ret, "0")
@@ -138,7 +139,8 @@ func Test_savepoint4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; ITERATIONS2_n, _ITERATIONS2_e := strconv.Atoi(ITERATIONS2); if _ITERATIONS2_e != nil { return false }; return ii_n <= ITERATIONS2_n }() {
-		sig = "signature" // TCL namespace variable
+		_dbeval1 := tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t1")
+		sig = _dbeval1
 		_ = sig // suppress unused warning
 		file = "test.db-journal"
 		_ = file // suppress unused warning

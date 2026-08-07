@@ -5,6 +5,7 @@
 package vtab_
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -157,15 +158,24 @@ func Test_vtab_shared(t *testing.T) {
 				res = ""
 				_ = res // suppress unused warning
 				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
+				var dbClose *frigolite.DB
 				dbClose = db // sqlite3 $dbClose test.db: alias to main in-memory db
 				_ = dbClose
 				// register_echo_module [sqlite3_connection_pointer $dbClose] (unsupported command, not transpiled)
 			}
 		}
 		{ // do_test "vtab_shared-1.10"
-			_res = db.Exec(" SELECT * FROM t1 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			_dbevalRows1 := db.Query(" SELECT * FROM t1 ")
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				var _error = "catchsql { DROP TABLE t1 } db2"
+				_ = _error // suppress unused warning
+				break
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr3 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr3)
 			}
 		}
 		{ // do_test "vtab_shared-1.11"
@@ -306,8 +316,8 @@ func Test_vtab_shared(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "2.2.1"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			_dbtmp4, err := frigolite.Open("test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2

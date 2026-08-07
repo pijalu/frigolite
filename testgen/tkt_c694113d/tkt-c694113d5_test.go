@@ -5,8 +5,10 @@
 package tkt_c694113d
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -66,9 +68,22 @@ func Test_tkt_c694113d5(t *testing.T) {
 		}
 		answer = ""
 		_ = answer // suppress unused warning
-		_res = db.Exec("SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE d=a)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE d=a)")
+		_dbevalRows0 := db.Query("SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE d=a)")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
+				answer = tclListAppend(answer, "CREATE INDEX")
+				_res = db.Exec("CREATE INDEX t2e ON t2(e);")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX t2e ON t2(e);")
+				}
+			}
+			answer = tclListAppend(answer, "a=" + a)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 }

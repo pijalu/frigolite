@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -339,16 +338,17 @@ func Test_exclusive(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t3;")
 		}
 	}
-	X = "signature" // TCL namespace variable
+	_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+	X = _dbeval0
 	_ = X // suppress unused warning
 	{ // do_test "exclusive-4.1"
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		}
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), X) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", X, _res.Error, "exclusive-4.1")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+		if _r != X {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, X, "exclusive-4.1")
 		}
 	}
 	{ // do_test "exclusive-4.2"
@@ -356,9 +356,9 @@ func Test_exclusive(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
 		}
-		// signature (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), X) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", X, _res.Error, "exclusive-4.2")
+		_r = tclExecSQL(db, "SELECT count(*), md5sum(x) FROM t3")
+		if _r != X {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, X, "exclusive-4.2")
 		}
 	}
 	{ // do_test "exclusive-4.3"

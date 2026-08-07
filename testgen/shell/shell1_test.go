@@ -764,7 +764,13 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
 		}
-		// foreach x,y "catchcmd test.db \".mode tcl\nselect * from tcl1;\"" (no body)
+		_items0 := tclSplitList("catchcmd test.db \".mode tcl\nselect * from tcl1;\"")
+		if len(_items0) >= 2 {
+			x = _items0[0]
+			_ = x // suppress unused warning
+			y = _items0[1]
+			_ = y // suppress unused warning
+		}
 		_list := tclList([]string{x, y, strconv.Itoa(tclLLength(y))})
 		_ = _list
 	}

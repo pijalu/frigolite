@@ -108,8 +108,10 @@ func Test_fts3shared(t *testing.T) {
 	LOCKED = "1 {database table is locked}"
 	_ = LOCKED // suppress unused warning
 	os.Remove("test.db")
+	var dbR *frigolite.DB
 	dbR = db // sqlite3 dbR test.db: alias to main in-memory db
 	_ = dbR
+	var dbW *frigolite.DB
 	dbW = db // sqlite3 dbW test.db: alias to main in-memory db
 	_ = dbW
 	{ // do_test "2.1"
@@ -227,29 +229,29 @@ func Test_fts3shared(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			{ // do_test "2.4." + tn
-				_res = db.Exec("BEGIN")
+				_res = dbR.Exec("BEGIN")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				_res = db.Exec(sql)
+				_res = dbR.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
-				_res = db.Exec("BEGIN")
+				_res = dbW.Exec("BEGIN")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				_res = db.Exec("INSERT INTO t1 VALUES('p q r')")
+				_res = dbW.Exec("INSERT INTO t1 VALUES('p q r')")
 				_ = _res // catchsql
 				if !tclCatchsqlMatches(_res, LOCKED) {
 					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.4." + tn)
 				}
 			}
-			_res = db.Exec("ROLLBACK")
+			_res = dbR.Exec("ROLLBACK")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 			}
-			_res = db.Exec("ROLLBACK")
+			_res = dbW.Exec("ROLLBACK")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 			}
@@ -263,29 +265,29 @@ func Test_fts3shared(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx1
 				{ // do_test "2.5." + tn
-					_res = db.Exec("BEGIN")
+					_res = dbR.Exec("BEGIN")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 					}
-					_res = db.Exec(sql)
+					_res = dbR.Exec(sql)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
-					_res = db.Exec("BEGIN")
+					_res = dbW.Exec("BEGIN")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 					}
-					_res = db.Exec("INSERT INTO t2(rowid, a, b) VALUES(3, 's t u', 'v w x')")
+					_res = dbW.Exec("INSERT INTO t2(rowid, a, b) VALUES(3, 's t u', 'v w x')")
 					_ = _res // catchsql
 					if !tclCatchsqlMatches(_res, LOCKED) {
 						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.5." + tn)
 					}
 				}
-				_res = db.Exec("ROLLBACK")
+				_res = dbR.Exec("ROLLBACK")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 				}
-				_res = db.Exec("ROLLBACK")
+				_res = dbW.Exec("ROLLBACK")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 				}

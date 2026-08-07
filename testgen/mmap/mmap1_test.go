@@ -5,8 +5,10 @@
 package mmap
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -191,9 +193,27 @@ func Test_mmap1(t *testing.T) {
 		{ // do_test "3.2"
 			nRow = "0"
 			_ = nRow // suppress unused warning
-			_res = db.Exec("SELECT * FROM t2 ORDER BY a, b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2 ORDER BY a, b")
+			_dbevalRows1 := db.Query("SELECT * FROM t2 ORDER BY a, b")
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; return nRow_n == 4 }() {
+					_res = db.Exec(" DELETE FROM t1 ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
+					}
+				}
+				// incr nRow 1
+				{
+					_n, _err := strconv.Atoi(nRow)
+					if _err == nil {
+						nRow = strconv.Itoa(_n + 1)
+					}
+				}
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr3 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr3)
 			}
 		}
 		db.Close()

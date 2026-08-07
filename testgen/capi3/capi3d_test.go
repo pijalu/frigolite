@@ -111,7 +111,7 @@ func Test_capi3d(t *testing.T) {
 			_ = tclSort(x) // lsort result
 		}
 		{ // do_test "capi3-1.2." + i + ".2"
-			for _, p := range tclSplitList("scramble $::stmtlist") {
+			for _, p := range tclSplitList(tclScramble(stmtlist)) {
 			_ = p // suppress unused warning
 				// sqlite3_finalize $p (unsupported command, not transpiled)
 			}

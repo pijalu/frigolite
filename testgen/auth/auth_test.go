@@ -96,7 +96,18 @@ func Test_auth(t *testing.T) {
 	_ = op // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if false {
+	var msg string
+	{
+		var _catchErr error
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
 		return
 	}
 	// proc_real proc {name arguments script} {\n  proc_real $name $arguments $script\n  if {$nam... (unsupported command, not transpiled)

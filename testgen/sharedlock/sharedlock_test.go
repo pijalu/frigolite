@@ -5,8 +5,10 @@
 package sharedlock
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -87,19 +89,41 @@ func Test_sharedlock(t *testing.T) {
 	{ // do_test "sharedlock-1.2"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT * FROM t1 ORDER BY rowid ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ORDER BY rowid ")
+		_dbevalRows0 := db.Query(" SELECT * FROM t1 ORDER BY rowid ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			res = tclListAppend(res, a, b)
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 1 }() {
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					_res = db.Exec("INSERT INTO t1 VALUES(3, 'three')")
+					if _res.Error != nil { _catchErr = _res.Error }
+				}
+			}
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 2 }() {
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					_res = db2.Exec("INSERT INTO t1 VALUES(4, 'four')")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				}
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	// foreach {tn delete_sql} "1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }"
-	_items0 := tclSplitList("1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items3 := tclSplitList("1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		delete_sql := _items0[_idx0+1]
+		delete_sql := _items3[_idx3+1]
 		_ = delete_sql // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			{ // "2.1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 				if _res.Error != nil {

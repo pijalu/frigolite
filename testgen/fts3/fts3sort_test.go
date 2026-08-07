@@ -175,7 +175,7 @@ func Test_fts3sort(t *testing.T) {
 						{ // do_test tn + ".9"
 						}
 					} else {
-						CONTROL_tn = "lsort [array get DATA]"
+						CONTROL_tn = tclSort("array get DATA")
 						_ = CONTROL_tn // suppress unused warning
 					}
 				}

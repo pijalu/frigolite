@@ -895,7 +895,7 @@ func Test_gencol1(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x " + t1 + ",\n        a " + t2 + " AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');\n    ")
 				}
-				x1 = "lsort [db eval {SELECT typeof(b) FROM t1}]"
+				x1 = tclSort("db eval {SELECT typeof(b) FROM t1}")
 				_ = x1 // suppress unused warning
 				{ // do_test "gencol1-23.1." + cnt
 					_ = tclSort("db eval {SELECT typeof(b) FROM t1 INDEXED BY x2}") // lsort result

@@ -5,8 +5,10 @@
 package in
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -119,15 +121,50 @@ func Test_in7(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 				}
-				_res = db.Exec("SELECT rootpage, tbl_name FROM sqlite_schema")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rootpage, tbl_name FROM sqlite_schema")
+				_dbevalRows1 := db.Query("SELECT rootpage, tbl_name FROM sqlite_schema")
+				var _dbevalRb2 bool
+				var _dbevalErr3 error
+				for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+					var root_to_tbl_rootpage = tbl_name
+					_ = root_to_tbl_rootpage // suppress unused warning
+					if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr3 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr3)
 				}
 				nSeen = "0"
 				_ = nSeen // suppress unused warning
-				_res = db.Exec("explain " + sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "explain " + sql)
+				_dbevalRows4 := db.Query("explain " + sql)
+				var _dbevalRb5 bool
+				var _dbevalErr6 error
+				for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
+					if opcode == "OpenRead" {
+						csr_to_root_p1 = p2
+						_ = csr_to_root_p1 // suppress unused warning
+					}
+					if opcode == "Next" {
+						{
+							var _catchErr error
+							_ = _catchErr // suppress unused warning
+							var root = csr_to_root_p1
+							_ = root // suppress unused warning
+							tbl = root_to_tbl_root
+							_ = tbl // suppress unused warning
+							if tbl == "t1" {
+								// incr nSeen 1
+								{
+									_n, _err := strconv.Atoi(nSeen)
+									if _err == nil {
+										nSeen = strconv.Itoa(_n + 1)
+									}
+								}
+							}
+						}
+					}
+					if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr6 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr6)
 				}
 				_res = db.Exec("ROLLBACK")
 				if _res.Error != nil {

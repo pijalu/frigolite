@@ -5,6 +5,7 @@
 package corruptH
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strings"
@@ -86,9 +87,16 @@ func Test_corruptH(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		_res = db.Exec(" SELECT name, rootpage FROM sqlite_master ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
+		_dbevalRows0 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			var r_name = rootpage
+			_ = r_name // suppress unused warning
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)] (unsupported command, not transpiled)
@@ -115,9 +123,16 @@ func Test_corruptH(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_res = db.Exec(" SELECT name, rootpage FROM sqlite_master ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
+		_dbevalRows3 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			var r_name = rootpage
+			_ = r_name // suppress unused warning
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 		db.Close()
 		fl = "hexio_get_int [hexio_read test.db 32 4]"
@@ -150,9 +165,16 @@ func Test_corruptH(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		_res = db.Exec(" SELECT name, rootpage FROM sqlite_master ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
+		_dbevalRows6 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
+		var _dbevalRb7 bool
+		var _dbevalErr8 error
+		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			var r_name = rootpage
+			_ = r_name // suppress unused warning
+			if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr8 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr8)
 		}
 		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002 (unsupported command, not transpiled)

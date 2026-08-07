@@ -470,8 +470,12 @@ func Test_multiplex(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode = " + jmode + ";")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), jmode) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", jmode, _res.Error, "multiplex-2.6.2." + sz + "." + jmode)
+				r = db.Query("PRAGMA journal_mode = " + sqlLiteral(jmode) + ";")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = " + sqlLiteral(jmode) + ";")
+				}
+				if flatten(r) != jmode {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), jmode, "multiplex-2.6.2." + sz + "." + jmode)
 				}
 			}
 			{ // do_test "multiplex-2.6.3." + sz + "." + jmode
@@ -603,6 +607,7 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-3.2.1a"
 		// multiplex_delete test.db (unsupported command, not transpiled)
 		// multiplex_delete test2.db (unsupported command, not transpiled)
+		var db1a *frigolite.DB
 		db1a = db // sqlite3 db1a test.db: alias to main in-memory db
 		_ = db1a
 		db2a, err := frigolite.Open("test2.db")
@@ -619,6 +624,7 @@ func Test_multiplex(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "multiplex-3.2.1b"
+		var db1b *frigolite.DB
 		db1b = db // sqlite3 db1b test.db: alias to main in-memory db
 		_ = db1b
 		db2b, err := frigolite.Open("test2.db")

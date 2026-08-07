@@ -5,6 +5,7 @@
 package incrvacuum
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -236,9 +237,21 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-4.3"
 		nStep = "0" // TCL namespace variable
 		_ = nStep // suppress unused warning
-		_res = db.Exec("pragma incremental_vacuum(10)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "pragma incremental_vacuum(10)")
+		_dbevalRows0 := db.Query("pragma incremental_vacuum(10)")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			// incr nStep 1
+			{
+				_n, _err := strconv.Atoi(nStep)
+				if _err == nil {
+					nStep = strconv.Itoa(_n + 1)
+				}
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_list := tclList([]string{tclExpr("[file size test.db] / 1024"), nStep})
 		_ = _list
@@ -669,9 +682,21 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-16.2"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT a FROM t3 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t3 ")
+		_dbevalRows3 := db.Query(" SELECT a FROM t3 ")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
+				_res = db.Exec("COMMIT")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+				}
+			}
+			res = tclListAppend(res, a)
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 	}
 	{ // do_test "incrvacuum-17.0"

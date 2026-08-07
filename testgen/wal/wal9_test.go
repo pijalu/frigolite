@@ -99,7 +99,15 @@ func Test_wal9(t *testing.T) {
 		// expr [file size test.db-shm]>32768 (not evaluated)
 	}
 	{ // do_test "1.6"
-		// skip: foreach over unresolved TCL command
+		_items0 := tclSplitList("db eval {PRAGMA wal_checkpoint}")
+		if len(_items0) >= 3 {
+			a = _items0[0]
+			_ = a // suppress unused warning
+			b = _items0[1]
+			_ = b // suppress unused warning
+			c = _items0[2]
+			_ = c // suppress unused warning
+		}
 		_list := tclList([]string{tclExprWith("$a==0", map[string]string{"a": a}), tclExprWith("$b>14500", map[string]string{"b": b}), tclExprWith("$c>14500", map[string]string{"c": c}), tclExprWith("$b==$c", map[string]string{"b": b, "c": c})})
 		_ = _list
 	}

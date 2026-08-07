@@ -5,6 +5,7 @@
 package shared
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -621,7 +622,7 @@ func Test_shared(t *testing.T) {
 				_ = _error // suppress unused warning
 				for _, s := range tclSplitList(scans) {
 				_ = s // suppress unused warning
-					if tclBool("lsort -integer -index 0 $s" + "!=" + contents) {
+					if func() bool { l_n, l_e := strconv.Atoi(tclSort("-integer")); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(contents); if r_e != nil { return false }; return l_n != r_n }() {
 						_error = "1"
 						_ = _error // suppress unused warning
 					}
@@ -902,6 +903,7 @@ func Test_shared(t *testing.T) {
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 15 }() {
 					db_handles = tclListAppend(db_handles, "db" + i)
+					var dbi *frigolite.DB
 					dbi = db // sqlite3 db$i test.db: alias to main in-memory db
 					_ = dbi
 					_res = db.Exec("CREATE TABLE db" + i + "(a, b, c)")
@@ -966,9 +968,18 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".14.2"
 				res = ""
 				_ = res // suppress unused warning
-				_res = db.Exec("SELECT name FROM sqlite_master")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT name FROM sqlite_master")
+				_dbevalRows3 := db.Query("SELECT name FROM sqlite_master")
+				var _dbevalRb4 bool
+				var _dbevalErr5 error
+				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+					if name == "db7" {
+						db2.Close()
+					}
+					res = tclListAppend(res, name)
+					if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr5 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr5)
 				}
 			}
 			{ // do_test "shared-" + av + ".14.3"

@@ -258,7 +258,7 @@ func Test_cost(t *testing.T) {
 		nRow := _items0[_idx0+2]
 		_ = nRow // suppress unused warning
 		_ = _idx0
-			w = strings.Join(tclSplitList("lrange $L 0 [expr $nTerm-1]"), " AND ")
+			w = strings.Join(tclSplitList(tclLRange(L, "0", tclExprWith("$nTerm-1", map[string]string{"nTerm": nTerm}))), " AND ")
 			_ = w // suppress unused warning
 			p1 = strconv.Itoa((toInt(nRow)-1) / 100.0)
 			_ = p1 // suppress unused warning

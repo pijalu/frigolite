@@ -5,6 +5,7 @@
 package fkey
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strings"
@@ -423,9 +424,15 @@ func Test_fkey5(t *testing.T) {
 	{ // do_test "fkey5-7.1"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec("\n    INSERT OR IGNORE INTO c13 SELECT * FROM c12;\n    INSERT OR IGNORE INTO C14 SELECT * FROM c12;\n    DELETE FROM c12;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO c13 SELECT * FROM c12;\n    INSERT OR IGNORE INTO C14 SELECT * FROM c12;\n    DELETE FROM c12;\n    PRAGMA foreign_key_check;\n  ")
+		_dbevalRows0 := db.Query("\n    INSERT OR IGNORE INTO c13 SELECT * FROM c12;\n    INSERT OR IGNORE INTO C14 SELECT * FROM c12;\n    DELETE FROM c12;\n    PRAGMA foreign_key_check;\n  ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			res = tclListAppend(res, table + " " + rowid + " " + fkid + " " + parent)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_ = tclSort(res) // lsort result
 	}

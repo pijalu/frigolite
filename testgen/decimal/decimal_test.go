@@ -57,7 +57,19 @@ func Test_decimal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "decimal"
 	_ = testprefix // suppress unused warning
-	if false {
+	var _error string
+	{
+		var _catchErr error
+		// load_static_extension db decimal (unsupported command, not transpiled)
+		if _catchErr != nil {
+			_error = "1"
+			_error = _catchErr.Error()
+		} else {
+			_error = "0"
+			_error = ""
+		}
+	}
+	if _error == "1" {
 		_putsMsg := "Skipping decimal tests, hit load error: " + _error
 		_ = _putsMsg
 		return
@@ -398,7 +410,19 @@ func Test_decimal(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	if false {
+	var _error string
+	{
+		var _catchErr error
+		// load_static_extension db ieee754 (unsupported command, not transpiled)
+		if _catchErr != nil {
+			_error = "1"
+			_error = _catchErr.Error()
+		} else {
+			_error = "0"
+			_error = ""
+		}
+	}
+	if _error == "1" {
 		_putsMsg := "Skipping ieee754 tests, hit load error: " + _error
 		_ = _putsMsg
 		return

@@ -99,7 +99,7 @@ func Test_mallocL(t *testing.T) {
 	j = "1"
 	_ = j // suppress unused warning
 	for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 40 }() {
-		sql = "SELECT DISTINCT " + strings.Join(tclSplitList("lrange $cols 0 $j"), ",") + " FROM t1" // TCL namespace variable
+		sql = "SELECT DISTINCT " + strings.Join(tclSplitList(tclLRange(cols, "0", j)), ",") + " FROM t1" // TCL namespace variable
 		_ = sql // suppress unused warning
 		// do_faultsim_test 1.$j -faults oom* -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_re... (unsupported command, not transpiled)
 		// incr j 1

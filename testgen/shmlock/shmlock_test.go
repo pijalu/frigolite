@@ -151,6 +151,7 @@ func Test_shmlock(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
+					var dbi *frigolite.DB
 					dbi = db // sqlite3 db$i test.db: alias to main in-memory db
 					_ = dbi
 					r = db.Query(" SELECT * FROM t1 ")
@@ -236,6 +237,7 @@ func Test_shmlock(t *testing.T) {
 				}
 			}
 		}
+		var db0 *frigolite.DB
 		db0 = db // sqlite3 db0 test.db: alias to main in-memory db
 		_ = db0
 		db1 = db // sqlite3 db1 test.db: alias to main in-memory db

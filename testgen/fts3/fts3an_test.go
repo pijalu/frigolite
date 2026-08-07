@@ -5,6 +5,7 @@
 package fts3
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -232,9 +233,17 @@ func Test_fts3an(t *testing.T) {
 	{ // do_test "fts3an-3.1"
 		_t = ""
 		_ = _t // suppress unused warning
-		_res = db.Exec("SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
+		_dbevalRows0 := db.Query("SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			l = strconv.Itoa(tclLLength(o))
+			_ = l // suppress unused warning
+			_t = tclListAppend(_t, tclExprWith("$l/4", map[string]string{"l": l}))
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), ret) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ret, _res.Error, "fts3an-3.1")

@@ -5,6 +5,7 @@
 package malloc
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -181,9 +182,22 @@ func Test_malloc5(t *testing.T) {
 		}
 		data = ""
 		_ = data // suppress unused warning
-		_res = db.Exec("SELECT * FROM abc")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM abc")
+		_dbevalRows0 := db.Query("SELECT * FROM abc")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			// incr nRelease sqlite3_release_memory
+			{
+				_n, _err := strconv.Atoi(nRelease)
+				if _err == nil {
+					nRelease = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(sqlite3_release_memory); return _v }())
+				}
+			}
+			data = tclListAppend(data, a, b, c)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_res = db.Exec("\n    COMMIT;\n  ")
 		if _res.Error != nil {

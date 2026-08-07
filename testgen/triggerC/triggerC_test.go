@@ -5,8 +5,10 @@
 package triggerC
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -648,9 +650,20 @@ func Test_triggerC(t *testing.T) {
 								}
 							}
 							{ // do_test "triggerC-12.2"
-								_res = db.Exec(" SELECT * FROM t1 ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+								_dbevalRows6 := db.Query(" SELECT * FROM t1 ")
+								var _dbevalRb7 bool
+								var _dbevalErr8 error
+								for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+									if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
+										_res = db.Exec(" DROP TRIGGER tr1 ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TRIGGER tr1 ")
+										}
+									}
+									if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+								}
+								if _dbevalErr8 != nil {
+									t.Errorf("db eval callback error: %v", _dbevalErr8)
 								}
 								r = db.Query(" SELECT count(*) FROM sqlite_master ")
 								if r.Error != nil {

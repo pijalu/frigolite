@@ -67,7 +67,21 @@ func Test_lock5(t *testing.T) {
 	testprefix = "lock5"
 	_ = testprefix // suppress unused warning
 	db.Close()
-	if false {
+	var msg string
+	{
+		var _catchErr error
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
 		return
 	}
 	db.Close()
@@ -75,13 +89,13 @@ func Test_lock5(t *testing.T) {
 	using_proxy = "0" // TCL namespace variable
 	_ = using_proxy // suppress unused warning
 	// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-	_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		name := _items0[_idx0+0]
+	_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		name := _items1[_idx1+0]
 		_ = name // suppress unused warning
-		value := _items0[_idx0+1]
+		value := _items1[_idx1+1]
 		_ = value // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			using_proxy = value // TCL namespace variable
 			_ = using_proxy // suppress unused warning
 		}

@@ -196,7 +196,19 @@ func Test_win32longpath(t *testing.T) {
 	_putsMsg := fd
 	_ = _putsMsg
 	// close $fd
-	if false {
+	var msg string
+	{
+		var _catchErr error
+		// exec cleanup.bat (unsupported command, not transpiled)
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
 		_putsMsg = "Command " + "cleanup.bat" + " returns " + msg
 		_ = _putsMsg
 	}

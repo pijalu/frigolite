@@ -5,6 +5,7 @@
 package tclsqlite
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -766,26 +767,60 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-6.1"
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		_dbevalRows0 := db.Query("SELECT * FROM t1")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			break
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		a = tclListAppend(a, b)
 	}
 	{ // do_test "tcl-6.2"
 		cnt = "0"
 		_ = cnt // suppress unused warning
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		_dbevalRows3 := db.Query("SELECT * FROM t1")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n > 40 }() {
+			}
+			// incr cnt 1
+			{
+				_n, _err := strconv.Atoi(cnt)
+				if _err == nil {
+					cnt = strconv.Itoa(_n + 1)
+				}
+			}
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 	}
 	{ // do_test "tcl-6.3"
 		cnt = "0"
 		_ = cnt // suppress unused warning
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		_dbevalRows6 := db.Query("SELECT * FROM t1")
+		var _dbevalRb7 bool
+		var _dbevalErr8 error
+		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n < 40 }() {
+			}
+			// incr cnt 1
+			{
+				_n, _err := strconv.Atoi(cnt)
+				if _err == nil {
+					cnt = strconv.Itoa(_n + 1)
+				}
+			}
+			if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr8 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr8)
 		}
 	}
 	{ // do_test "tcl-6.4"
@@ -1349,8 +1384,16 @@ func Test_tclsqlite(t *testing.T) {
 	_ = rc // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("-unknown")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows9 := db.Query("-unknown")
+			var _dbevalRb10 bool
+			var _dbevalErr11 error
+			for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+				// SELECT * FROM t1 (unsupported command, not transpiled)
+				if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr11 != nil {
+				_catchErr = _dbevalErr11
+			}
 			if _catchErr != nil {
 				res = "1"
 				rc = _catchErr.Error()
@@ -1364,9 +1407,15 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-16.103"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec("-withoutnulls")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-withoutnulls")
+		_dbevalRows12 := db.Query("-withoutnulls")
+		var _dbevalRb13 bool
+		var _dbevalErr14 error
+		for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+			// SELECT * FROM t1 (unsupported command, not transpiled)
+			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr14 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr14)
 		}
 	}
 	db.Close()
@@ -1560,9 +1609,15 @@ func Test_tclsqlite(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tad(a,b) VALUES('aa','bb'),('AA','BB')")
 		}
-		_res = db.Exec("-asdict")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-asdict")
+		_dbevalRows15 := db.Query("-asdict")
+		var _dbevalRb16 bool
+		var _dbevalErr17 error
+		for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
+			// SELECT a, b FROM tad WHERE 0 (unsupported command, not transpiled)
+			if _dbevalRb16 { _dbevalErr17 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr17 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr17)
 		}
 	}
 	{ // do_test "20.1"
@@ -1572,9 +1627,15 @@ func Test_tclsqlite(t *testing.T) {
 		_ = res // suppress unused warning
 		colNames = ""
 		_ = colNames // suppress unused warning
-		_res = db.Exec("-asdict")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-asdict")
+		_dbevalRows18 := db.Query("-asdict")
+		var _dbevalRb19 bool
+		var _dbevalErr20 error
+		for _ri := 0; _ri < len(_dbevalRows18.Rows) && _dbevalErr20 == nil; _ri++ {
+			// SELECT a, b FROM tad ORDER BY a (unsupported command, not transpiled)
+			if _dbevalRb19 { _dbevalErr20 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr20 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr20)
 		}
 		res = tclListAppend(res, colNames)
 	}
@@ -1600,8 +1661,16 @@ func Test_tclsqlite(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows21 := db.Query("SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
+			var _dbevalRb22 bool
+			var _dbevalErr23 error
+			for _ri := 0; _ri < len(_dbevalRows21.Rows) && _dbevalErr23 == nil; _ri++ {
+				db.Close()
+				if _dbevalRb22 { _dbevalErr23 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr23 != nil {
+				_catchErr = _dbevalErr23
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -1615,8 +1684,8 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc func1 returns constant 1 (registered via db func)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	_dbtmp24, err := frigolite.Open("test.db")
+	_ = _dbtmp24 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// db function closedb (variable-reader, inlined)
 	db.RegisterFunction("func1", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)

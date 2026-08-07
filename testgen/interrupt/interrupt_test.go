@@ -5,6 +5,7 @@
 package interrupt
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -142,8 +143,23 @@ func Test_interrupt(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec(sql)
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows1 := db.Query(sql)
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				// sqlite3_interrupt $DB (unsupported command, not transpiled)
+				// incr interrupt_count sqlite3_is_interrupted $DB
+				{
+					_n, _err := strconv.Atoi(interrupt_count)
+					if _err == nil {
+						interrupt_count = strconv.Itoa(_n + 1)
+					}
+				}
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr3 != nil {
+				_catchErr = _dbevalErr3
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

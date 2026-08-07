@@ -5,6 +5,7 @@
 package pager
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -1974,9 +1975,18 @@ func Test_pager1(t *testing.T) {
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
 								}
-								_res = db.Exec(" SELECT * FROM t1 ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+								_dbevalRows8 := db.Query(" SELECT * FROM t1 ")
+								var _dbevalRb9 bool
+								var _dbevalErr10 error
+								for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
+									_res = db.Exec(" PRAGMA journal_mode = DELETE ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA journal_mode = DELETE ")
+									}
+									if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
+								}
+								if _dbevalErr10 != nil {
+									t.Errorf("db eval callback error: %v", _dbevalErr10)
 								}
 								r = db.Query(" PRAGMA journal_mode ")
 								if r.Error != nil {
@@ -2038,15 +2048,15 @@ func Test_pager1(t *testing.T) {
 								if err != nil { t.Fatal(err) }
 							}
 							// foreach {tn mode possible} "2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0"
-							_items8 := tclSplitList("2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0")
-							for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
-								tn := _items8[_idx8+0]
+							_items11 := tclSplitList("2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0")
+							for _idx11 := 0; _idx11+3 <= len(_items11); _idx11 += 3 {
+								tn := _items11[_idx11+0]
 								_ = tn // suppress unused warning
-								mode := _items8[_idx8+1]
+								mode := _items11[_idx11+1]
 								_ = mode // suppress unused warning
-								possible := _items8[_idx8+2]
+								possible := _items11[_idx11+2]
 								_ = possible // suppress unused warning
-								_ = _idx8
+								_ = _idx11
 									{ // do_test "pager1-23.5." + tn + ".1"
 										r = db.Query("PRAGMA journal_mode = off")
 										if r.Error != nil {
@@ -2299,15 +2309,15 @@ func Test_pager1(t *testing.T) {
 									}
 								}
 								// foreach {tn pragma strsize} "1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400"
-								_items9 := tclSplitList("1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400")
-								for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-									tn := _items9[_idx9+0]
+								_items12 := tclSplitList("1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400")
+								for _idx12 := 0; _idx12+3 <= len(_items12); _idx12 += 3 {
+									tn := _items12[_idx12+0]
 									_ = tn // suppress unused warning
-									pragma := _items9[_idx9+1]
+									pragma := _items12[_idx12+1]
 									_ = pragma // suppress unused warning
-									strsize := _items9[_idx9+2]
+									strsize := _items12[_idx12+2]
 									_ = strsize // suppress unused warning
-									_ = _idx9
+									_ = _idx12
 										db.Close()
 										os.Remove("test.db")
 										db, err = frigolite.Open("test.db")
@@ -2360,13 +2370,13 @@ func Test_pager1(t *testing.T) {
 									// do_multiclient_test tn {\n  sql1 {\n    PRAGMA auto_vacuum = 0;\n    CREAT...} (unsupported command, not transpiled)
 									os.Remove("test1")
 									// foreach {tn uri} "1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}"
-									_items10 := tclSplitList("1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}")
-									for _idx10 := 0; _idx10+2 <= len(_items10); _idx10 += 2 {
-										tn := _items10[_idx10+0]
+									_items13 := tclSplitList("1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}")
+									for _idx13 := 0; _idx13+2 <= len(_items13); _idx13 += 2 {
+										tn := _items13[_idx13+0]
 										_ = tn // suppress unused warning
-										uri := _items10[_idx10+1]
+										uri := _items13[_idx13+1]
 										_ = uri // suppress unused warning
-										_ = _idx10
+										_ = _idx13
 											{ // do_test "37." + tn
 												{
 													var _catchErr error

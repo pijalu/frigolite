@@ -59,7 +59,19 @@ func Test_zipfilefault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zipfilefault"
 	_ = testprefix // suppress unused warning
-	if false {
+	var _error string
+	{
+		var _catchErr error
+		// load_static_extension db zipfile (unsupported command, not transpiled)
+		if _catchErr != nil {
+			_error = "1"
+			_error = _catchErr.Error()
+		} else {
+			_error = "0"
+			_error = ""
+		}
+	}
+	if _error == "1" {
 		_putsMsg := "Skipping zipfile2 tests, hit load error: " + _error
 		_ = _putsMsg
 		return

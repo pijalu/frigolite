@@ -5,6 +5,7 @@
 package snapshot
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -285,9 +286,17 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".3.2.2a"
-				_res = db.Exec("SELECT * FROM t2")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+				_dbevalRows1 := db.Query("SELECT * FROM t2")
+				var _dbevalRb2 bool
+				var _dbevalErr3 error
+				for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+					res = "0" + " " + msg
+					_ = res // suppress unused warning
+					break
+					if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr3 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr3)
 				}
 			}
 			{ // do_test tn + ".3.2.2b"

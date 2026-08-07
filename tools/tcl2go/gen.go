@@ -118,6 +118,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	counterFuncs := collectCounterFuncs(cmds)
 	predFuncs := collectPredFuncs(cmds)
 	queryFuncs := collectQueryFuncs(cmds)
+	specialFuncs := collectSpecialFuncs(cmds)
 
 	// Merge: pre-declare all set variables + referenced-but-not-global variables
 	var preDeclared []string
@@ -172,6 +173,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		counterFuncs: counterFuncs,
 		predFuncs:    predFuncs,
 		queryFuncs:   queryFuncs,
+		specialFuncs: specialFuncs,
 	}
 	tp.processCommands(cmds)
 
@@ -642,6 +644,43 @@ func collectPredFuncs(cmds [][]tcl.RawWord) map[string]string {
 	return result
 }
 
+// collectSpecialFuncs scans all TCL commands for test-infrastructure procs
+// whose bodies the transpiler cannot inline but which have standard runtime
+// Go equivalents: scramble (random shuffle), random_uuid (random hex string),
+// hash1/hash2 (MD5 of sorted data columns, trans2.test). Returns a map of
+// proc name → Go helper call template; "$data" in the template is replaced
+// with the caller's argument at use sites.
+func collectSpecialFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "proc" && len(cmd) >= 4 {
+				switch cmd[1].Text {
+				case "scramble":
+					result["scramble"] = "tclScramble($data)"
+				case "random_uuid":
+					result["random_uuid"] = "tclRandomUUID()"
+				case "hash1":
+					result["hash1"] = "tclHashByIndex($data, 1)"
+				case "hash2":
+					result["hash2"] = "tclHashByIndex($data, 3)"
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
 // queryProcValue extracts the SQL from a query-proc body like
 // "{ return [db eval {SELECT count(*), md5sum(x) FROM t3}] }" (trans.test's
 // `proc signature {}`). Returns the SQL text, or "" when the body is not a
@@ -771,6 +810,7 @@ type transpiler struct {
 	counterFuncs     map[string]string     // `proc NAME {} { incr ::VAR }`: NAME increments VAR
 	predFuncs        map[string]string     // `proc NAME {x} { expr $x < N }`: NAME compares its arg
 	queryFuncs       map[string]string     // `proc NAME {} { return [db eval {SQL}] }`: NAME returns a query result
+	specialFuncs     map[string]string     // test-infra procs (scramble/random_uuid/hash1/hash2) mapped to Go helper calls
 	dbClosed         bool                  // main "db" connection was closed via `db close`
 	testPrefix       string                // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
 	queryVars        map[string]bool       // TCL vars known to hold query SQL (set/append to SELECT...)
@@ -2097,6 +2137,24 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		}
 		return `"0"`
 
+	case "lrange":
+		// [lrange $list start end] — sublist as a TCL list string.
+		if len(args) >= 3 {
+			listExpr := tp.buildStringExpr(args[0])
+			startExpr := tp.buildStringExpr(args[1])
+			endExpr := tp.buildStringExpr(args[2])
+			return fmt.Sprintf("tclLRange(%s, %s, %s)", listExpr, startExpr, endExpr)
+		}
+		return `""`
+
+	case "lsort":
+		// [lsort $list] — sorted list (default ascending).
+		if len(args) >= 1 {
+			listExpr := tp.buildStringExpr(args[0])
+			return fmt.Sprintf("tclSort(%s)", listExpr)
+		}
+		return `""`
+
 	case "file":
 		return fmt.Sprintf("%q", cmdText)
 
@@ -2170,6 +2228,22 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		return fmt.Sprintf("tclExecSQL(db, %s)", tp.buildStringExpr(sqlText))
 
 	default:
+		// Test-infrastructure procs (scramble/random_uuid/hash1/hash2) with
+		// runtime Go equivalents. The template's $data placeholder is replaced
+		// with the first argument (e.g. `[scramble $data]` →
+		// tclScramble(data)); hash1/hash2 read the global data list variable.
+		if len(tp.specialFuncs) > 0 {
+			if tmpl, ok := tp.specialFuncs[cmdName]; ok {
+				if strings.Contains(tmpl, "$data") {
+					dataExpr := "data"
+					if len(args) >= 1 {
+						dataExpr = tp.buildStringExpr(args[0])
+					}
+					return strings.Replace(tmpl, "$data", dataExpr, 1)
+				}
+				return tmpl
+			}
+		}
 		return fmt.Sprintf("%q", cmdText)
 	}
 }
@@ -3347,6 +3421,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			constFuncs: tp.constFuncs,
 			predFuncs:  tp.predFuncs,
 			queryFuncs: tp.queryFuncs,
+		specialFuncs: tp.specialFuncs,
 			testPrefix: tp.testPrefix,
 			queryVars:  tp.queryVars,
 			dbAliases:  tp.dbAliases,
@@ -3419,6 +3494,22 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 				}
 			}
 		}
+		// Multi-command bodies ending in `db eval {SELECT ...}` (a query) also
+		// return the flattened query result, not an error (trans2.test's
+		// `db eval \"DELETE...\"; db eval {SELECT md5sum...}` form).
+		bodyEndsDBEvalQuery := false
+		if len(bodyCmds) >= 1 {
+			lastCmd := bodyCmds[len(bodyCmds)-1]
+			if len(lastCmd) >= 3 && lastCmd[0].Text == "db" && lastCmd[1].Text == "eval" {
+				sqlText := lastCmd[2].Text
+				for _, stmt := range strings.Split(sqlText, ";") {
+					if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
+						bodyEndsDBEvalQuery = true
+						break
+					}
+				}
+			}
+		}
 		if isBareGoIdent(expectedExpr) {
 			if bodyIsCatchsql {
 				tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
@@ -3436,6 +3527,20 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 				// db.Query and left the flattened result in `r`. Compare it with
 				// the expected variable (a RESULT list, e.g. foreach $t232 in
 				// without_rowid4-3.2), not an error message.
+				tp.emitLine("if flatten(r) != %s {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
+				tp.emitLine("}")
+			} else if bodyEndsDBEvalQuery {
+				// The body's last command is `db eval {SELECT ...}` — its result
+				// is the query rows, not an error. Re-run the SELECT as a query
+				// and compare the flattened result against the expected value
+				// (trans2.test's hash checks).
+				lastCmd := bodyCmds[len(bodyCmds)-1]
+				lastSQL := lastCmd[2].Text
+				tp.emitLine("r = db.Query(%s)", tp.buildSQLStringExpr(lastSQL))
+				tp.emitLine("if r.Error != nil {")
+				tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", tp.buildSQLStringExpr(lastSQL))
+				tp.emitLine("}")
 				tp.emitLine("if flatten(r) != %s {", expectedExpr)
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
 				tp.emitLine("}")
@@ -3882,6 +3987,7 @@ func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
 		testPrefix:   tp.testPrefix,
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
+		specialFuncs: tp.specialFuncs,
 		rollbackFlag: rbFlag,
 	}
 	bodyTP.processCommands(parseCommands(rest[1].Text))
@@ -4959,6 +5065,7 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		forIncrs:   append(tp.forIncrs, nil),
 		testPrefix: tp.testPrefix,
 		queryFuncs: tp.queryFuncs,
+		specialFuncs: tp.specialFuncs,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -5224,6 +5331,7 @@ func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 		testPrefix: tp.testPrefix,
 		queryVars:  tp.queryVars,
 		queryFuncs: tp.queryFuncs,
+		specialFuncs: tp.specialFuncs,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -5263,6 +5371,7 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 			forIncrs:   append(tp.forIncrs, nil),
 			testPrefix: tp.testPrefix,
 			queryVars:  tp.queryVars,
+			specialFuncs: tp.specialFuncs,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -5454,7 +5563,8 @@ func emitCatchBody(bodyText, varName, resultVar string, tp *transpiler) {
 	tp.emitLine("{")
 	tp.indent++
 	tp.emitLine("var _catchErr error")
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, queryVars: tp.queryVars, queryFuncs: tp.queryFuncs, rollbackFlag: tp.rollbackFlag, varCount: tp.varCount}
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, queryVars: tp.queryVars, queryFuncs: tp.queryFuncs,
+		specialFuncs: tp.specialFuncs, rollbackFlag: tp.rollbackFlag, varCount: tp.varCount}
 	bodyTP.processCommands(parseCommands(bodyText))
 	tp.varCount = bodyTP.varCount
 	tp.indent = bodyTP.indent

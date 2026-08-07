@@ -89,7 +89,7 @@ func Test_mallocAll(t *testing.T) {
 	}
 	INCLUDE = "\n"
 	_ = INCLUDE // suppress unused warning
-	for _, testfile := range tclSplitList("lsort -dictionary [glob $testdir/*malloc*.test]") {
+	for _, testfile := range tclSplitList(tclSort("-dictionary")) {
 	_ = testfile // suppress unused warning
 		tail = "file tail $testfile"
 		_ = tail // suppress unused warning

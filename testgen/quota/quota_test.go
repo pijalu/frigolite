@@ -227,6 +227,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-3.2.1"
 		// delete_file force test.db test2.db (unsupported command, not transpiled)
 		// sqlite3_quota_set * 4096 {} (unsupported command, not transpiled)
+		var db1a *frigolite.DB
 		db1a = db // sqlite3 db1a test.db: alias to main in-memory db
 		_ = db1a
 		db2a, err := frigolite.Open("test2.db")
@@ -239,6 +240,7 @@ func Test_quota(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			}
 		}
+		var db1b *frigolite.DB
 		db1b = db // sqlite3 db1b test.db: alias to main in-memory db
 		_ = db1b
 		db2b, err := frigolite.Open("test2.db")

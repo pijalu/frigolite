@@ -5,8 +5,10 @@
 package fts3
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -72,9 +74,21 @@ func Test_fts3f(t *testing.T) {
 	{ // do_test "1.1"
 		ret = ""
 		_ = ret // suppress unused warning
-		_res = db.Exec(" SELECT docid FROM ft WHERE ft MATCH 'one' ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT docid FROM ft WHERE ft MATCH 'one' ")
+		_dbevalRows0 := db.Query(" SELECT docid FROM ft WHERE ft MATCH 'one' ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			if func() bool { docid_n, _docid_e := strconv.Atoi(docid); if _docid_e != nil { return false }; return docid_n == 2 }() {
+				_res = db.Exec("COMMIT")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+				}
+			}
+			ret = tclListAppend(ret, docid)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	{ // "1.2"

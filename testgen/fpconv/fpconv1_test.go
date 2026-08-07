@@ -103,7 +103,19 @@ func Test_fpconv1(t *testing.T) {
 		}
 	}
 	// sqlite3_db_config FP_DIGITS (unhandled flag)
-	if false {
+	var _error string
+	{
+		var _catchErr error
+		// load_static_extension db decimal (unsupported command, not transpiled)
+		if _catchErr != nil {
+			_error = "1"
+			_error = _catchErr.Error()
+		} else {
+			_error = "0"
+			_error = ""
+		}
+	}
+	if _error == "1" {
 		_putsMsg := "Skipping decimal tests, hit load error: " + _error
 		_ = _putsMsg
 		return

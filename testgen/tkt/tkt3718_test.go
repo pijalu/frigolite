@@ -5,6 +5,7 @@
 package tkt
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -102,9 +103,30 @@ func Test_tkt3718(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;\n  ")
 		}
-		_res = db.Exec("INSERT INTO t2 SELECT a+5, b||'+5' FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 SELECT a+5, b||'+5' FROM t1")
+		_dbevalRows0 := db.Query("INSERT INTO t2 SELECT a+5, b||'+5' FROM t1")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			{
+				var msg string // catch result ("0"=ok, "1"=error)
+				var _catchErrMsg string // catch error message
+				_ = msg // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
+				var _catchErr error
+				_res = db.Exec("SELECT f2('three')")
+				if _res.Error != nil { _catchErr = _res.Error }
+				if _catchErr != nil {
+					msg = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					msg = "0"
+					_catchErrMsg = ""
+				}
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		r = db.Query("\n    COMMIT;\n    SELECT a FROM t2;\n  ")
 		if r.Error != nil {
@@ -152,17 +174,17 @@ func Test_tkt3718(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// foreach {tn io ii results} "1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}"
-	_items0 := tclSplitList("1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		tn := _items0[_idx0+0]
+	_items3 := tclSplitList("1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}")
+	for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		io := _items0[_idx0+1]
+		io := _items3[_idx3+1]
 		_ = io // suppress unused warning
-		ii := _items0[_idx0+2]
+		ii := _items3[_idx3+2]
 		_ = ii // suppress unused warning
-		results := _items0[_idx0+3]
+		results := _items3[_idx3+3]
 		_ = results // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			{ // do_test "tkt3718-3." + tn
 				_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n    ")
 				if _res.Error != nil {
@@ -186,19 +208,19 @@ func Test_tkt3718(t *testing.T) {
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		}
 		// foreach {tn i1 i2 i3 results} "1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}"
-		_items1 := tclSplitList("1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}")
-		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
-			tn := _items1[_idx1+0]
+		_items4 := tclSplitList("1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}")
+		for _idx4 := 0; _idx4+5 <= len(_items4); _idx4 += 5 {
+			tn := _items4[_idx4+0]
 			_ = tn // suppress unused warning
-			i1 := _items1[_idx1+1]
+			i1 := _items4[_idx4+1]
 			_ = i1 // suppress unused warning
-			i2 := _items1[_idx1+2]
+			i2 := _items4[_idx4+2]
 			_ = i2 // suppress unused warning
-			i3 := _items1[_idx1+3]
+			i3 := _items4[_idx4+3]
 			_ = i3 // suppress unused warning
-			results := _items1[_idx1+4]
+			results := _items4[_idx4+4]
 			_ = results // suppress unused warning
-			_ = _idx1
+			_ = _idx4
 				{ // do_test "tkt3718-4." + tn
 					_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;\n    ")
 					if _res.Error != nil {

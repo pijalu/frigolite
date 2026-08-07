@@ -5,6 +5,7 @@
 package savepoint
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -69,9 +70,18 @@ func Test_savepoint7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SAVEPOINT x1;\n  ")
 		}
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		_dbevalRows0 := db.Query("SELECT * FROM t1")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			_res = db.Exec("\n      SAVEPOINT x2;\n      CREATE TABLE IF NOT EXISTS t3(xyz);\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      CREATE TABLE IF NOT EXISTS t3(xyz);\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_res = db.Exec("SELECT * FROM t2; RELEASE x1")
 		if _res.Error != nil {
@@ -83,9 +93,18 @@ func Test_savepoint7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2;")
 		}
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		_dbevalRows3 := db.Query("SELECT * FROM t1")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			_res = db.Exec("\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
+			}
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 		_res = db.Exec("SELECT * FROM t2;")
 		if _res.Error != nil {
@@ -97,9 +116,18 @@ func Test_savepoint7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2; BEGIN;")
 		}
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		_dbevalRows6 := db.Query("SELECT * FROM t1")
+		var _dbevalRb7 bool
+		var _dbevalErr8 error
+		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			_res = db.Exec("\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
+			}
+			if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr8 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr8)
 		}
 		_res = db.Exec("SELECT * FROM t2; ROLLBACK;")
 		if _res.Error != nil {
@@ -115,8 +143,19 @@ func Test_savepoint7(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT * FROM t1")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows9 := db.Query("SELECT * FROM t1")
+			var _dbevalRb10 bool
+			var _dbevalErr11 error
+			for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+				_res = db.Exec("\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
+				}
+				if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr11 != nil {
+				_catchErr = _dbevalErr11
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -141,8 +180,19 @@ func Test_savepoint7(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT * FROM t1")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows12 := db.Query("SELECT * FROM t1")
+			var _dbevalRb13 bool
+			var _dbevalErr14 error
+			for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+				_res = db.Exec("\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
+				}
+				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr14 != nil {
+				_catchErr = _dbevalErr14
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

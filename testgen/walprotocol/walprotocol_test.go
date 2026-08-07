@@ -5,6 +5,7 @@
 package walprotocol
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -163,9 +164,21 @@ func Test_walprotocol(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		_res = db.Exec(" SELECT * FROM b ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM b ")
+		_dbevalRows1 := db.Query(" SELECT * FROM b ")
+		var _dbevalRb2 bool
+		var _dbevalErr3 error
+		for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+			_res = db.Exec(" INSERT INTO b VALUES('Qazvin') ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO b VALUES('Qazvin') ")
+			}
+			_r = "db2 eval { SELECT * FROM b }"
+			_ = _r // suppress unused warning
+			break
+			if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr3 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr3)
 		}
 	}
 	{ // do_test "2.4"

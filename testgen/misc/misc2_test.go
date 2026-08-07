@@ -5,8 +5,10 @@
 package misc
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -177,8 +179,15 @@ func Test_misc2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT rowid FROM t1")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows0 := db.Query("SELECT rowid FROM t1")
+			var _dbevalRb1 bool
+			var _dbevalErr2 error
+			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr2 != nil {
+				_catchErr = _dbevalErr2
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -200,9 +209,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		_dbevalRows3 := db.Query("SELECT rowid, x FROM t1")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
+				}
+			}
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -214,9 +234,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		_dbevalRows6 := db.Query("SELECT rowid, x FROM t1")
+		var _dbevalRb7 bool
+		var _dbevalErr8 error
+		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
+				}
+			}
+			if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr8 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr8)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -228,9 +259,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		_dbevalRows9 := db.Query("SELECT rowid, x FROM t1")
+		var _dbevalRb10 bool
+		var _dbevalErr11 error
+		for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("DELETE FROM t1")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
+				}
+			}
+			if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr11 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr11)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -242,9 +284,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		_dbevalRows12 := db.Query("SELECT rowid, x FROM t1")
+		var _dbevalRb13 bool
+		var _dbevalErr14 error
+		for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
+				}
+			}
+			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr14 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr14)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -256,9 +309,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		_dbevalRows15 := db.Query("SELECT rowid, x FROM t1")
+		var _dbevalRb16 bool
+		var _dbevalErr17 error
+		for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
+			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 10 }() {
+				_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(x) + "+1)")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(x) + "+1)")
+				}
+			}
+			if _dbevalRb16 { _dbevalErr17 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr17 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr17)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -280,8 +344,15 @@ func Test_misc2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT rowid FROM t1 ORDER BY rowid DESC")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows18 := db.Query("SELECT rowid FROM t1 ORDER BY rowid DESC")
+			var _dbevalRb19 bool
+			var _dbevalErr20 error
+			for _ri := 0; _ri < len(_dbevalRows18.Rows) && _dbevalErr20 == nil; _ri++ {
+				if _dbevalRb19 { _dbevalErr20 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr20 != nil {
+				_catchErr = _dbevalErr20
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -303,9 +374,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		_dbevalRows21 := db.Query("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		var _dbevalRb22 bool
+		var _dbevalErr23 error
+		for _ri := 0; _ri < len(_dbevalRows21.Rows) && _dbevalErr23 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
+				}
+			}
+			if _dbevalRb22 { _dbevalErr23 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr23 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr23)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -317,9 +399,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		_dbevalRows24 := db.Query("SELECT rowid, x FROM t1")
+		var _dbevalRb25 bool
+		var _dbevalErr26 error
+		for _ri := 0; _ri < len(_dbevalRows24.Rows) && _dbevalErr26 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
+				}
+			}
+			if _dbevalRb25 { _dbevalErr26 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr26 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr26)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -331,9 +424,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		_dbevalRows27 := db.Query("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		var _dbevalRb28 bool
+		var _dbevalErr29 error
+		for _ri := 0; _ri < len(_dbevalRows27.Rows) && _dbevalErr29 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("DELETE FROM t1")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
+				}
+			}
+			if _dbevalRb28 { _dbevalErr29 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr29 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr29)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -345,9 +449,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		_dbevalRows30 := db.Query("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		var _dbevalRb31 bool
+		var _dbevalErr32 error
+		for _ri := 0; _ri < len(_dbevalRows30.Rows) && _dbevalErr32 == nil; _ri++ {
+			if tclBool(x + " & 1") {
+				_res = db.Exec("UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
+				}
+			}
+			if _dbevalRb31 { _dbevalErr32 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr32 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr32)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -359,9 +474,20 @@ func Test_misc2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1(rowid,x) VALUES(10,10);\n    ")
 		}
-		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		_dbevalRows33 := db.Query("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		var _dbevalRb34 bool
+		var _dbevalErr35 error
+		for _ri := 0; _ri < len(_dbevalRows33.Rows) && _dbevalErr35 == nil; _ri++ {
+			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n > 1 }() {
+				_res = db.Exec("INSERT INTO t1(rowid,x) VALUES(" + sqlLiteral(x) + "-1," + sqlLiteral(x) + "-1)")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(rowid,x) VALUES(" + sqlLiteral(x) + "-1," + sqlLiteral(x) + "-1)")
+				}
+			}
+			if _dbevalRb34 { _dbevalErr35 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr35 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr35)
 		}
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {

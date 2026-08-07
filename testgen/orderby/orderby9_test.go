@@ -5,6 +5,7 @@
 package orderby
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -77,27 +78,45 @@ func Test_orderby9(t *testing.T) {
 	{ // do_test "1.0"
 		l1 = ""
 		_ = l1 // suppress unused warning
-		_res = db.Exec("SELECT random() AS y FROM t1 ORDER BY 1;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT random() AS y FROM t1 ORDER BY 1;")
+		_dbevalRows0 := db.Query("SELECT random() AS y FROM t1 ORDER BY 1;")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			l1 = tclListAppend(l1, y)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}
 	{ // do_test "1.1"
 		l1 = ""
 		_ = l1 // suppress unused warning
-		_res = db.Exec("SELECT random() AS y FROM t1 ORDER BY random();")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT random() AS y FROM t1 ORDER BY random();")
+		_dbevalRows3 := db.Query("SELECT random() AS y FROM t1 ORDER BY random();")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			l1 = tclListAppend(l1, y)
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}
 	{ // do_test "1.2"
 		l1 = ""
 		_ = l1 // suppress unused warning
-		_res = db.Exec("SELECT random() AS y FROM t1 ORDER BY +random();")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT random() AS y FROM t1 ORDER BY +random();")
+		_dbevalRows6 := db.Query("SELECT random() AS y FROM t1 ORDER BY +random();")
+		var _dbevalRb7 bool
+		var _dbevalErr8 error
+		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			l1 = tclListAppend(l1, y)
+			if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr8 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr8)
 		}
 		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}

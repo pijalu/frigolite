@@ -104,7 +104,15 @@ func Test_lookaside(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(w,x,y,z);")
 		}
-		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0" (no body)
+		_items0 := tclSplitList("sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
+		if len(_items0) >= 3 {
+			x = _items0[0]
+			_ = x // suppress unused warning
+			y = _items0[1]
+			_ = y // suppress unused warning
+			z = _items0[2]
+			_ = z // suppress unused warning
+		}
 		p = tclLIndex("sqlite3_db_status db DBSTATUS_LOOKASIDE_HIT 0", "2")
 		_ = p // suppress unused warning
 		q = tclLIndex("sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_SIZE 0", "2")
@@ -114,19 +122,51 @@ func Test_lookaside(t *testing.T) {
 		// expr $x==0 && $y<$z && $z==18 && $p>0 && $q>0 && $r>0 (not evaluated)
 	}
 	{ // do_test "lookaside-1.5"
-		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 1" (no body)
+		_items1 := tclSplitList("sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 1")
+		if len(_items1) >= 3 {
+			x = _items1[0]
+			_ = x // suppress unused warning
+			y = _items1[1]
+			_ = y // suppress unused warning
+			z = _items1[2]
+			_ = z // suppress unused warning
+		}
 		// expr $x==0 && $y<$z && $z==18 (not evaluated)
 	}
 	{ // do_test "lookaside-1.6"
-		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0" (no body)
+		_items2 := tclSplitList("sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
+		if len(_items2) >= 3 {
+			x = _items2[0]
+			_ = x // suppress unused warning
+			y = _items2[1]
+			_ = y // suppress unused warning
+			z = _items2[2]
+			_ = z // suppress unused warning
+		}
 		// expr $x==0 && $y==$z && $y<18 (not evaluated)
 	}
 	{ // do_test "lookaside-1.7"
-		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0" (no body)
+		_items3 := tclSplitList("sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
+		if len(_items3) >= 3 {
+			x = _items3[0]
+			_ = x // suppress unused warning
+			y = _items3[1]
+			_ = y // suppress unused warning
+			z = _items3[2]
+			_ = z // suppress unused warning
+		}
 		// expr $x==0 && $y==0 && $z<18 (not evaluated)
 	}
 	{ // do_test "lookaside-1.8"
-		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 1" (no body)
+		_items4 := tclSplitList("sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 1")
+		if len(_items4) >= 3 {
+			x = _items4[0]
+			_ = x // suppress unused warning
+			y = _items4[1]
+			_ = y // suppress unused warning
+			z = _items4[2]
+			_ = z // suppress unused warning
+		}
 		// expr $x==0 && $y==0 && $z<18 (not evaluated)
 	}
 	{ // "lookaside-1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
@@ -139,7 +179,15 @@ func Test_lookaside(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2(x);")
 		}
-		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0" (no body)
+		_items5 := tclSplitList("sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
+		if len(_items5) >= 3 {
+			x = _items5[0]
+			_ = x // suppress unused warning
+			y = _items5[1]
+			_ = y // suppress unused warning
+			z = _items5[2]
+			_ = z // suppress unused warning
+		}
 		// expr $x==0 && $y<$z && $z>10 && $z<100 (not evaluated)
 	}
 	{ // do_test "lookaside-2.3"

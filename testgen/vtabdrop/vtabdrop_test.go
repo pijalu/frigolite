@@ -5,6 +5,7 @@
 package vtabdrop
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -73,9 +74,16 @@ func Test_vtabdrop(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n    ")
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+		_dbevalRows0 := db.Query(" SELECT * FROM t1 ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			_res = db.Exec(" DROP TABLE ft ")
+			_ = _res // catchsql
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
@@ -125,9 +133,16 @@ func Test_vtabdrop(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n    ")
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+		_dbevalRows3 := db.Query(" SELECT * FROM t1 ")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			_res = db.Exec(" DROP TABLE ft ")
+			_ = _res // catchsql
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {

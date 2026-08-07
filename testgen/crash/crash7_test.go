@@ -90,7 +90,8 @@ func Test_crash7(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = " + from_size + ";\n      BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c);\n      INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n      INSERT INTO abc \n          SELECT randomblob(1000), randomblob(200), randomblob(100)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + tclExprWith("$ii&16", map[string]string{"ii": ii}) + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + tclExprWith("$ii&32", map[string]string{"ii": ii}) + ";\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + tclExprWith("$ii&8", map[string]string{"ii": ii}) + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + tclExprWith("$ii&4", map[string]string{"ii": ii}) + ";\n      COMMIT;\n    ")
 			}
-			sig = "signature"
+			_dbeval0 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			sig = _dbeval0
 			_ = sig // suppress unused warning
 			db.Close()
 			{ // do_test "crash7-1." + ii + ".crash"

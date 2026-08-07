@@ -249,7 +249,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "lrange [string repeat \"10 \" 100] 0 99"
+		want := tclLRange("\"10 \" 100", "0", "99")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -261,7 +261,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "lrange [string repeat \"10 \" 100] 0 23"
+		want := tclLRange("\"10 \" 100", "0", "23")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

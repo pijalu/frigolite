@@ -420,6 +420,14 @@ func (c *Cursor) ReadCell() (*storage.Cell, error) {
 	pg := c.currentPg
 	page := c.currentPage
 
+	// A leaf page may be empty (all its cells deleted). Skip forward past
+	// empty leaves so a scan does not stop early.
+	if err := c.skipEmptyLeaves(); err != nil {
+		return nil, err
+	}
+	pg = c.currentPg
+	page = c.currentPage
+
 	if c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
 		return nil, fmt.Errorf("btree: cell index %d out of range (count %d)", c.cellIdx, page.CellCount)
 	}
@@ -446,6 +454,29 @@ func (c *Cursor) ReadCell() (*storage.Cell, error) {
 	return c.tx.readOverflow(cell)
 }
 
+// skipEmptyLeaves advances the cursor past any empty leaf pages at the
+// current position. The engine keeps empty leaves in the tree after deletes
+// (it does not rebalance), so scans must skip them rather than stop early.
+func (c *Cursor) skipEmptyLeaves() error {
+	for {
+		if err := c.cachePage(); err != nil {
+			return err
+		}
+		page := c.currentPage
+		if page.CellCount != 0 ||
+			(page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex) {
+			return nil
+		}
+		// Empty leaf: move to the next child in the tree.
+		c.cellIdx = 0
+		c.clearPageCache()
+		c.navigateToNextChild()
+		if c.endOfBTree {
+			return fmt.Errorf("btree: cursor at end")
+		}
+	}
+}
+
 // ReadCellData reads the current cell's payload data and rowID for table leaf
 // cells without allocating a Cell struct. This is the fast path for table scans.
 // For non-table-leaf pages, it falls back to ReadCell.
@@ -459,6 +490,13 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 	}
 	pg := c.currentPg
 	page := c.currentPage
+
+	// Skip forward past empty leaf pages.
+	if err := c.skipEmptyLeaves(); err != nil {
+		return nil, 0, err
+	}
+	pg = c.currentPg
+	page = c.currentPage
 
 	if c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
 		return nil, 0, fmt.Errorf("btree: cell index %d out of range (count %d)", c.cellIdx, page.CellCount)

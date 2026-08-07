@@ -5,6 +5,7 @@
 package delete_pkg
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -672,9 +673,21 @@ func Test_delete(t *testing.T) {
 	{ // do_test "delete-9.2"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		_dbevalRows0 := db.Query(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
+				_res = db.Exec(" DELETE FROM t5 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 ")
+				}
+			}
+			res = tclListAppend(res, _r, c, d)
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	{ // do_test "delete-9.3"
@@ -684,9 +697,21 @@ func Test_delete(t *testing.T) {
 		}
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		_dbevalRows3 := db.Query(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
+				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 2 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 WHERE rowid = 2 ")
+				}
+			}
+			res = tclListAppend(res, _r, c, d)
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
 		}
 	}
 	{ // do_test "delete-9.4"
@@ -696,9 +721,21 @@ func Test_delete(t *testing.T) {
 		}
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		_dbevalRows6 := db.Query(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		var _dbevalRb7 bool
+		var _dbevalErr8 error
+		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
+				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 1 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 WHERE rowid = 1 ")
+				}
+			}
+			res = tclListAppend(res, _r, c, d)
+			if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr8 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr8)
 		}
 	}
 	{ // do_test "delete-9.5"
@@ -708,9 +745,21 @@ func Test_delete(t *testing.T) {
 		}
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		_dbevalRows9 := db.Query(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
+		var _dbevalRb10 bool
+		var _dbevalErr11 error
+		for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
+				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 3 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 WHERE rowid = 3 ")
+				}
+			}
+			res = tclListAppend(res, _r, c, d)
+			if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr11 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr11)
 		}
 	}
 	{ // "delete-10.0"

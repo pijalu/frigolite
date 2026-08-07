@@ -5,6 +5,7 @@
 package ioerr
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -161,9 +162,21 @@ func Test_ioerr2(t *testing.T) {
 			N = "2" // TCL namespace variable
 			_ = N // suppress unused warning
 			for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n < 200 }() {
-				_res = db.Exec("SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
+				_dbevalRows0 := db.Query("SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
+				var _dbevalRb1 bool
+				var _dbevalErr2 error
+				for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+					sqlite_io_error_hit = "0" // TCL namespace variable
+					_ = sqlite_io_error_hit // suppress unused warning
+					sqlite_io_error_pending = N // TCL namespace variable
+					_ = sqlite_io_error_pending // suppress unused warning
+					sql = "UPDATE t2 SET b = randstr(400,400)"
+					_ = sql // suppress unused warning
+					// foreach ::go,res "catchsql $sql" (no body)
+					if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr2 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr2)
 				}
 				// incr N 1
 				{

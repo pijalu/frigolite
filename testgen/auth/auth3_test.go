@@ -61,7 +61,18 @@ func Test_auth3(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if false {
+	var msg string
+	{
+		var _catchErr error
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
 		return
 	}
 	// proc definition (not transpiled)

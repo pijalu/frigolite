@@ -5,6 +5,7 @@
 package tkt_5ee23731
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -71,8 +72,19 @@ func Test_tkt_5ee23731f(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY x")
-			if _res.Error != nil { _catchErr = _res.Error }
+			_dbevalRows0 := db.Query("SELECT rowid, x FROM t1 ORDER BY x")
+			var _dbevalRb1 bool
+			var _dbevalErr2 error
+			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				_res = db.Exec("UPDATE t1 SET x=x+1 WHERE rowid=:rowid")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET x=x+1 WHERE rowid=:rowid")
+				}
+				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr2 != nil {
+				_catchErr = _dbevalErr2
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

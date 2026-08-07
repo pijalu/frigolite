@@ -5,6 +5,7 @@
 package atof
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -91,9 +92,16 @@ func Test_atof1(t *testing.T) {
 			if tclBool("!" + y) {
 				_putsMsg := "-nonewline"
 				_ = _putsMsg
-				_res = db.Exec("SELECT " + xf + "+0.0 AS a, " + x + " AS b")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + xf + "+0.0 AS a, " + x + " AS b")
+				_dbevalRows0 := db.Query("SELECT " + xf + "+0.0 AS a, " + x + " AS b")
+				var _dbevalRb1 bool
+				var _dbevalErr2 error
+				for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+					_putsMsg = tclFormat("\n%.60e\n%.60e\n%.60e", x, a, b)
+					_ = _putsMsg
+					if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr2 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr2)
 				}
 			}
 		}
@@ -102,9 +110,14 @@ func Test_atof1(t *testing.T) {
 			y = _dbeval1
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
-				_res = db.Exec("SELECT real2hex(" + sqlLiteral(x) + ") a, real2hex(CAST(quote(" + sqlLiteral(x) + ") AS real)) b")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT real2hex(" + sqlLiteral(x) + ") a, real2hex(CAST(quote(" + sqlLiteral(x) + ") AS real)) b")
+				_dbevalRows0 := db.Query("SELECT real2hex(" + sqlLiteral(x) + ") a, real2hex(CAST(quote(" + sqlLiteral(x) + ") AS real)) b")
+				var _dbevalRb1 bool
+				var _dbevalErr2 error
+				for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+					if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr2 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr2)
 				}
 				_putsMsg := ""
 				_ = _putsMsg
@@ -119,9 +132,14 @@ func Test_atof1(t *testing.T) {
 				_ = _putsMsg
 				_putsMsg = tclFormat("!QUOTE: %16s %s", "", "db eval {SELECT quote($x)}")
 				_ = _putsMsg
-				_res = db.Exec("SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
+				_dbevalRows3 := db.Query("SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
+				var _dbevalRb4 bool
+				var _dbevalErr5 error
+				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+					if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+				}
+				if _dbevalErr5 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr5)
 				}
 				_putsMsg = "!OUT:   " + b + " " + tclFormat("%.32e", c)
 				_ = _putsMsg

@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -171,8 +170,12 @@ func Test_jrnlmode3(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + tojmode)
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), fromjmode) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", fromjmode, _res.Error, "jrnlmode3-3." + cnt + ".3")
+				r = db.Query("PRAGMA journal_mode=" + sqlLiteral(tojmode))
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode=" + sqlLiteral(tojmode))
+				}
+				if flatten(r) != fromjmode {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), fromjmode, "jrnlmode3-3." + cnt + ".3")
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".4"

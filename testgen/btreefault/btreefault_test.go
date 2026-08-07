@@ -5,6 +5,7 @@
 package btreefault
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -99,9 +100,21 @@ func Test_btreefault(t *testing.T) {
 	{ // do_test "2.2"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec("\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
+		_dbevalRows0 := db.Query("\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			res = tclListAppend(res, x, y)
+			if y == "b" {
+				_res = db.Exec(" DELETE FROM t1 WHERE i=25 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE i=25 ")
+				}
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	// do_faultsim_test 2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT...} -... (unsupported command, not transpiled)

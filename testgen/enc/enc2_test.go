@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -140,8 +139,12 @@ func Test_enc2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), enc) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", enc, _res.Error, "enc2-" + i + ".0.2")
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			}
+			if flatten(r) != enc {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.2")
 			}
 		}
 		{ // do_test "enc2-" + i + ".0.3"
@@ -153,8 +156,12 @@ func Test_enc2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), enc) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", enc, _res.Error, "enc2-" + i + ".0.3")
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			}
+			if flatten(r) != enc {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.3")
 			}
 		}
 		{ // do_test "enc2-" + i + ".0.4"
@@ -166,8 +173,12 @@ func Test_enc2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), enc) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", enc, _res.Error, "enc2-" + i + ".0.4")
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			}
+			if flatten(r) != enc {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.4")
 			}
 		}
 		db.Close()

@@ -5,8 +5,10 @@
 package orderby
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -524,9 +526,21 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "8.3"
-		_res = db.Exec(" SELECT * FROM t1 ORDER BY a, b ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ORDER BY a, b ")
+		_dbevalRows0 := db.Query(" SELECT * FROM t1 ORDER BY a, b ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			// incr res a
+			{
+				_n, _err := strconv.Atoi(res)
+				if _err == nil {
+					res = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(a); return _v }())
+				}
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	{ // "9.0"

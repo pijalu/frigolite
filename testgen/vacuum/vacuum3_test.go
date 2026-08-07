@@ -220,18 +220,19 @@ func Test_vacuum3(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 				}
 			}
-			sig = "signature" // TCL namespace variable
+			_dbeval3 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			sig = _dbeval3
 			_ = sig // suppress unused warning
 			I = "3"
 			_ = I // suppress unused warning
 			// foreach {request actual} "  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    "
-			_items3 := tclSplitList("  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    ")
-			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-				request := _items3[_idx3+0]
+			_items4 := tclSplitList("  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    ")
+			for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+				request := _items4[_idx4+0]
 				_ = request // suppress unused warning
-				actual := _items3[_idx3+1]
+				actual := _items4[_idx4+1]
 				_ = actual // suppress unused warning
-				_ = _idx3
+				_ = _idx4
 					{ // do_test "vacuum3-3." + I + ".1"
 						r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 						if r.Error != nil {
@@ -246,9 +247,9 @@ func Test_vacuum3(t *testing.T) {
 						}
 					}
 					{ // do_test "vacuum3-3." + I + ".2"
-						// signature (unsupported command, not transpiled)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "vacuum3-3." + I + ".2")
+						_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+						if _r != sig {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "vacuum3-3." + I + ".2")
 						}
 					}
 					_res = db.Exec("PRAGMA integrity_check")

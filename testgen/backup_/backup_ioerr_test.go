@@ -152,6 +152,7 @@ func Test_backup_ioerr(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						os.Remove("bak.db")
 					}
+					var sdb *frigolite.DB
 					sdb = db // sqlite3 sdb test.db: alias to main in-memory db
 					_ = sdb
 					ddb, err := frigolite.Open("bak.db")

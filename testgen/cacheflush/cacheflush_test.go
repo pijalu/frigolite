@@ -5,8 +5,10 @@
 package cacheflush
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -103,9 +105,17 @@ func Test_cacheflush(t *testing.T) {
 		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
-		_res = db.Exec(" SELECT a FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t1 ")
+		_dbevalRows0 := db.Query(" SELECT a FROM t1 ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
+				// sqlite3_db_cacheflush db (unsupported command, not transpiled)
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}

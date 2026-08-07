@@ -5,8 +5,10 @@
 package vacuum
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -256,9 +258,19 @@ func Test_vacuum2(t *testing.T) {
 		_ = res // suppress unused warning
 		res2 = ""
 		_ = res2 // suppress unused warning
-		_res = db.Exec("SELECT a, b FROM t1 WHERE a<=10")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, b FROM t1 WHERE a<=10")
+		_dbevalRows1 := db.Query("SELECT a, b FROM t1 WHERE a<=10")
+		var _dbevalRb2 bool
+		var _dbevalErr3 error
+		for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 6 }() {
+				res = "catchsql VACUUM"
+				_ = res // suppress unused warning
+			}
+			res2 = tclListAppend(res2, a)
+			if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr3 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr3)
 		}
 		res2 = tclListAppend(res2, res)
 	}

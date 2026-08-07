@@ -5,6 +5,7 @@
 package autoindex
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "regexp"
@@ -156,9 +157,19 @@ func Test_autoindex1(t *testing.T) {
 	{ // do_test "autoindex1-300"
 		_r = ""
 		_ = _r // suppress unused warning
-		_res = db.Exec("SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")
+		_dbevalRows0 := db.Query("SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			_r = tclListAppend(_r, b, d)
+			_res = db.Exec("UPDATE t2 SET d=d+1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t2 SET d=d+1")
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	{ // do_test "autoindex1-310"

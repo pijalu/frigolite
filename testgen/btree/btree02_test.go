@@ -5,8 +5,10 @@
 package btree
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -84,9 +86,44 @@ func Test_btree02(t *testing.T) {
 		}
 		i = "0"
 		_ = i // suppress unused warning
-		_res = db.Exec("SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL")
+		_dbevalRows0 := db.Query("SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			if a == "" {
+			}
+			_res = db.Exec("INSERT INTO t2(x,y) VALUES(" + sqlLiteral(b) + "," + sqlLiteral(cnt) + ")")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2(x,y) VALUES(" + sqlLiteral(b) + "," + sqlLiteral(cnt) + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 1 }() {
+				bx = strconv.Itoa(toInt(b)+1000)
+				_ = bx // suppress unused warning
+				_res = db.Exec("INSERT INTO t1(a,ax,b) VALUES(printf('(%s)'," + sqlLiteral(a) + "),random()," + sqlLiteral(bx) + ")")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a,ax,b) VALUES(printf('(%s)'," + sqlLiteral(a) + "),random()," + sqlLiteral(bx) + ")")
+				}
+			} else {
+				_res = db.Exec("DELETE FROM t1 WHERE a=" + sqlLiteral(a))
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE a=" + sqlLiteral(a))
+				}
+			}
+			_res = db.Exec("COMMIT; BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT; BEGIN")
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 }

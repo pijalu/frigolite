@@ -96,7 +96,7 @@ func Test_memleak(t *testing.T) {
 		var argv = ""
 		_ = argv // suppress unused warning
 	} else {
-		FILELIST = "lsort -dictionary [glob $testdir/*.test]"
+		FILELIST = tclSort("-dictionary")
 		_ = FILELIST // suppress unused warning
 	}
 	for _, testfile := range tclSplitList(FILELIST) {

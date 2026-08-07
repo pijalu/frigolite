@@ -5,8 +5,10 @@
 package wal
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -308,9 +310,23 @@ func Test_wal6(t *testing.T) {
 	{ // do_test "5.2"
 		res = ""
 		_ = res // suppress unused warning
-		_res = db.Exec("\n    SELECT * FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1\n  ")
+		_dbevalRows1 := db.Query("\n    SELECT * FROM t1\n  ")
+		var _dbevalRb2 bool
+		var _dbevalErr3 error
+		for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n == 1 }() {
+				_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6) ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n == 3 }() {
+				res = "catchsql {BEGIN EXCLUSIVE}"
+				_ = res // suppress unused warning
+				res = tclListAppend(res, "sqlite3_extended_errcode db")
+			}
+			if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+		}
+		if _dbevalErr3 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr3)
 		}
 	}
 }

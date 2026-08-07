@@ -59,7 +59,18 @@ func Test_dbdata(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "dbdata"
 	_ = testprefix // suppress unused warning
-	if tclBool("0" + "\n  || " + "0") {
+	var _ string
+	{
+		var _catchErr error
+		if _catchErr != nil {
+			_ = "1"
+			_ = _catchErr.Error()
+		} else {
+			_ = "0"
+			_ = ""
+		}
+	}
+	if _ == "1" {
 		return
 	}
 	{ // "1.0"

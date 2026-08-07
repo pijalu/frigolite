@@ -5,6 +5,7 @@
 package speed
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -301,9 +302,15 @@ func Test_speed1(t *testing.T) {
 	}
 	sql = ""
 	_ = sql // suppress unused warning
-	_res = db.Exec("SELECT c FROM t1 ORDER BY random() LIMIT 50000")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT c FROM t1 ORDER BY random() LIMIT 50000")
+	_dbevalRows0 := db.Query("SELECT c FROM t1 ORDER BY random() LIMIT 50000")
+	var _dbevalRb1 bool
+	var _dbevalErr2 error
+	for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+		sql += "SELECT c FROM t1 WHERE c='" + c + "';"
+		if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+	}
+	if _dbevalErr2 != nil {
+		t.Errorf("db eval callback error: %v", _dbevalErr2)
 	}
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {

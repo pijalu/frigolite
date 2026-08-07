@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -127,7 +126,8 @@ func Test_crash2(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 30 }() {
-		sig = "signature"
+		_dbeval1 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval1
 		_ = sig // suppress unused warning
 		sector = tclExprWith("1024 * 1<<($i%4)", map[string]string{"i": i})
 		_ = sector // suppress unused warning
@@ -138,9 +138,9 @@ func Test_crash2(t *testing.T) {
 		{ // do_test "crash2-2." + i + ".2"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash2-2." + i + ".2")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash2-2." + i + ".2")
 			}
 		}
 		// incr i 1
@@ -154,7 +154,8 @@ func Test_crash2(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-		sig = "signature"
+		_dbeval2 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval2
 		_ = sig // suppress unused warning
 		sector = tclExprWith("1024 * 1<<($i%4)", map[string]string{"i": i})
 		_ = sector // suppress unused warning
@@ -165,9 +166,9 @@ func Test_crash2(t *testing.T) {
 		{ // do_test "crash2-3." + i + ".2"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash2-3." + i + ".2")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash2-3." + i + ".2")
 			}
 		}
 		// incr i 1

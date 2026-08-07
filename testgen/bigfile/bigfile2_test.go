@@ -71,7 +71,19 @@ func Test_bigfile2(t *testing.T) {
 		}
 	}
 	db.Close()
-	if false {
+	var msg string
+	{
+		var _catchErr error
+		// fake_big_file 4096 [get_pwd]/test.db (unsupported command, not transpiled)
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
 		_putsMsg := "**** Unable to create a file larger than 4096 MB. *****"
 		_ = _putsMsg
 		return

@@ -5,8 +5,11 @@
 package unionvtab
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -355,7 +358,12 @@ func tclLLength(list string) int { return len(tclSplitList(list)) }
 func tclLRange(list string, start, end interface{}) string {
 	items := tclSplitList(list)
 	s, _ := strconv.Atoi(fmt.Sprintf("%v", start))
-	e, _ := strconv.Atoi(fmt.Sprintf("%v", end))
+	// "end" means the last element (TCL lrange semantics); a numeric end is
+	// clamped to the list bounds.
+	e := len(items) - 1
+	if es, ok := end.(string); ok && es != "end" {
+		e, _ = strconv.Atoi(es)
+	}
 	if s < 0 { s = 0 }
 	if e < 0 || e >= len(items) { e = len(items) - 1 }
 	if s > e || s >= len(items) { return "" }
@@ -1060,4 +1068,73 @@ func tclFormat(format string, args ...string) string {
 		i = j
 	}
 	return fmt.Sprintf(goFmt.String(), goArgs...)
+}
+
+// tclRandomUUID returns a pseudo-random 30-hex-char string (trans2.test's
+// random_uuid proc: five hex values of int(rand()*16777216), seeded with
+// srand(1) — deterministic sequence, self-consistent within the test).
+func tclRandomUUID() string {
+	// Five 6-hex-digit values of int(rand()*16777216), matching trans2.test's
+	// random_uuid proc. Build without printf verbs so the helper template
+	// (inside a raw string) stays valid for the outer Sprintf.
+	const hexdigits = "0123456789abcdef"
+	var b strings.Builder
+	for i := 0; i < 5; i++ {
+		n := rand.Intn(16777216)
+		// Render n as zero-padded 6-hex-digit.
+		var tmp [6]byte
+		for j := 5; j >= 0; j-- {
+			tmp[j] = hexdigits[n&0xf]
+			n >>= 4
+		}
+		b.Write(tmp[:])
+	}
+	return b.String()
+}
+
+// tclScramble shuffles a TCL list into a random order (trans2.test's scramble
+// proc: attach a random key to each element and sort by it).
+func tclScramble(list string) string {
+	items := tclSplitList(list)
+	type keyed struct {
+		key float64
+		val string
+	}
+	ks := make([]keyed, len(items))
+	for i, it := range items {
+		ks[i] = keyed{key: rand.Float64(), val: it}
+	}
+	sort.SliceStable(ks, func(i, j int) bool { return ks[i].key < ks[j].key })
+	out := make([]string, len(ks))
+	for i, k := range ks {
+		out[i] = k.val
+	}
+	return tclList(out)
+}
+
+// tclMD5 returns the lowercase hex MD5 of a string (trans2.test's md5
+// helper, registered by SQLite's test_config.c).
+func tclMD5(s string) string {
+	h := md5.Sum([]byte(s))
+	return hex.EncodeToString(h[:])
+}
+
+// tclHashByIndex computes trans2.test's hash1/hash2: sort the data records
+// by field 0 (id) as integers, concatenate field idx (1 = u1, 3 = u2) of each
+// record in that order, and return the MD5 of the concatenation.
+func tclHashByIndex(data string, idx int) string {
+	records := tclSplitList(data)
+	sort.SliceStable(records, func(i, j int) bool {
+		a := tclLIndex(records[i], "0")
+		b := tclLIndex(records[j], "0")
+		ai, _ := strconv.Atoi(a)
+		bi, _ := strconv.Atoi(b)
+		return ai < bi
+	})
+	var b strings.Builder
+	for _, rec := range records {
+		f := tclLIndex(rec, idx)
+		b.WriteString(f)
+	}
+	return tclMD5(b.String())
 }

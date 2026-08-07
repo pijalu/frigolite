@@ -206,6 +206,7 @@ func Test_notify1(t *testing.T) {
 		os.Remove("test.db")
 		for _, con := range tclSplitList("db db2 db3") {
 		_ = con // suppress unused warning
+			var con *frigolite.DB
 			con = db // sqlite3 $con test.db: alias to main in-memory db
 			_ = con
 			// $con eval { ATTACH 'test2.db' AS aux2 } (unsupported command, not transpiled)
@@ -378,6 +379,7 @@ func Test_notify1(t *testing.T) {
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
+				var conn *frigolite.DB
 				conn = db // sqlite3 $conn test.db: alias to main in-memory db
 				_ = conn
 				_res = db.Exec(" ATTACH 'test2.db' AS two ")
@@ -471,6 +473,7 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-7.1"
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
+				var conn *frigolite.DB
 				conn = db // sqlite3 $conn test.db: alias to main in-memory db
 				_ = conn
 			}

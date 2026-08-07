@@ -128,7 +128,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 		tbl_data = "" // TCL namespace variable
 		_ = tbl_data // suppress unused warning
-		for _, i := range tclSplitList("lsort -integer [eval concat $delete_order]") {
+		for _, i := range tclSplitList(tclSort("-integer")) {
 		_ = i // suppress unused warning
 			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
 			if _res.Error != nil {

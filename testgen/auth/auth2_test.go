@@ -75,7 +75,18 @@ func Test_auth2(t *testing.T) {
 	_ = a3 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if false {
+	var msg string
+	{
+		var _catchErr error
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
 		return
 	}
 	{ // do_test "auth2-1.1"

@@ -5,8 +5,10 @@
 package update
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -276,9 +278,22 @@ func Test_update2(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			_res = db.Exec(" EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
+			_dbevalRows3 := db.Query(" EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
+			var _dbevalRb4 bool
+			var _dbevalErr5 error
+			for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+				var A_opcode = "0"
+				// incr A_opcode 1
+				{
+					_n, _err := strconv.Atoi(A_opcode)
+					if _err == nil {
+						A_opcode = strconv.Itoa(_n + 1)
+					}
+				}
+				if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+			}
+			if _dbevalErr5 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr5)
 			}
 		}
 		{ // "6.0"

@@ -113,7 +113,7 @@ func Test_trans2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 400 }() {
-		rec = i + " " + "random_uuid" + " " + "1000" + " " + "random_uuid"
+		rec = i + " " + tclRandomUUID() + " " + "1000" + " " + tclRandomUUID()
 		_ = rec // suppress unused warning
 		data = tclListAppend(data, rec)
 		// incr i 1
@@ -131,7 +131,7 @@ func Test_trans2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
 		}
-		for _, rec := range tclSplitList("scramble $data") {
+		for _, rec := range tclSplitList(tclScramble(data)) {
 		_ = rec // suppress unused warning
 			_items0 := tclSplitList(rec)
 			if len(_items0) >= 4 {
@@ -146,6 +146,7 @@ func Test_trans2(t *testing.T) {
 			}
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			if _res.Error != nil {
+				print("DBG insert err:", _res.Error, "rec=", rec)
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			}
 		}
@@ -153,6 +154,8 @@ func Test_trans2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 		}
+		_dbgCnt := db.Query("SELECT count(*) FROM t1")
+		print("DBG after 1.1 count:", tclStr(_dbgCnt.Rows[0][0]), "dataCount:", tclLLength(data))
 	}
 	i = "2"
 	_ = i // suppress unused warning
@@ -161,13 +164,13 @@ func Test_trans2(t *testing.T) {
 		_ = todel // suppress unused warning
 		n = strconv.Itoa((tclLLength(data))/10)
 		_ = n // suppress unused warning
-		data = "scramble $data"
+		data = tclScramble(data)
 		_ = data // suppress unused warning
-		for _, rec := range tclSplitList("lrange $data 0 $n") {
+		for _, rec := range tclSplitList(tclLRange(data, "0", n)) {
 		_ = rec // suppress unused warning
 			todel = tclListAppend(todel, tclLIndex(rec, "0"))
 		}
-		data = "lrange $data [expr {$n+1}] end"
+		data = tclLRange(data, tclExprWith("$n+1", map[string]string{"n": n}), "end")
 		_ = data // suppress unused warning
 		max1 = tclLIndex(tclLIndex(data, "0"), "0")
 		_ = max1 // suppress unused warning
@@ -180,9 +183,10 @@ func Test_trans2(t *testing.T) {
 				_ = max1 // suppress unused warning
 			}
 		}
-		origres = "hash1" + " " + "hash2"
+		origres = tclHashByIndex(data, 1) + " " + tclHashByIndex(data, 3)
 		_ = origres // suppress unused warning
 		{ // do_test "trans2-" + i + ".1"
+			print("DBG delete sql:", "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
 			_res = db.Exec("DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
@@ -191,8 +195,22 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), origres) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", origres, _res.Error, "trans2-" + i + ".1")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if flatten(r) != origres {
+				dbgIDs := db.Query("SELECT id FROM t1 ORDER BY id")
+				dbgIDs2 := []string{}
+				for _, row := range dbgIDs.Rows {
+					dbgIDs2 = append(dbgIDs2, tclStr(row[0]))
+				}
+				dbgDataIDs := []string{}
+				for _, rec := range tclSplitList(data) {
+					dbgDataIDs = append(dbgDataIDs, tclLIndex(rec, "0"))
+				}
+				print("DBG trans2-" + i + ".1 mismatch: got", flatten(r), "want", origres, "dbCount", len(dbgIDs2), "dataCount", len(dbgDataIDs), "todelCount", len(tclSplitList(todel)))
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".1")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -201,7 +219,7 @@ func Test_trans2(t *testing.T) {
 		_ = newdata // suppress unused warning
 		for _, id := range tclSplitList(todel) {
 		_ = id // suppress unused warning
-			rec = id + " " + "random_uuid" + "                        " + "1000" + " " + "random_uuid"
+			rec = id + " " + tclRandomUUID() + "                        " + "1000" + " " + tclRandomUUID()
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
 			data = tclListAppend(data, rec)
@@ -212,7 +230,7 @@ func Test_trans2(t *testing.T) {
 			id = strconv.Itoa(toInt(max_rowid)+toInt(j))
 			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
-			rec = id + " " + "random_uuid" + "                        " + "1000" + " " + "random_uuid"
+			rec = id + " " + tclRandomUUID() + "                        " + "1000" + " " + tclRandomUUID()
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
 			data = tclListAppend(data, rec)
@@ -230,14 +248,14 @@ func Test_trans2(t *testing.T) {
 		_ = modsql // suppress unused warning
 		inssql = ""
 		_ = inssql // suppress unused warning
-		newres = "hash1" + " " + "hash2"
+		newres = tclHashByIndex(data, 1) + " " + tclHashByIndex(data, 3)
 		_ = newres // suppress unused warning
 		{ // do_test "trans2-" + i + ".3"
 			_res = db.Exec("BEGIN")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			for _, rec := range tclSplitList("scramble $newdata") {
+			for _, rec := range tclSplitList(tclScramble(newdata)) {
 			_ = rec // suppress unused warning
 				_items1 := tclSplitList(rec)
 				if len(_items1) >= 4 {
@@ -263,8 +281,12 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), newres) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", newres, _res.Error, "trans2-" + i + ".3")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if flatten(r) != newres {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), newres, "trans2-" + i + ".3")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -297,8 +319,12 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), origres) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", origres, _res.Error, "trans2-" + i + ".20")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if flatten(r) != origres {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".20")
 			}
 		}
 		{ // do_test "trans2-" + i + ".30"
@@ -327,8 +353,12 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), newres) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", newres, _res.Error, "trans2-" + i + ".40")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if flatten(r) != newres {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), newres, "trans2-" + i + ".40")
 			}
 		}
 		{ // do_test "trans2-" + i + ".90"
@@ -340,8 +370,12 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), origres) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", origres, _res.Error, "trans2-" + i + ".90")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if flatten(r) != origres {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".90")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -367,8 +401,12 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), newres) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", newres, _res.Error, "trans2-" + i + ".92")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if flatten(r) != newres {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), newres, "trans2-" + i + ".92")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")

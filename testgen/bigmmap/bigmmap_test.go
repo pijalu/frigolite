@@ -5,6 +5,7 @@
 package bigmmap
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -74,9 +75,15 @@ func Test_bigmmap(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	mmap_limit = "0"
 	_ = mmap_limit // suppress unused warning
-	_res = db.Exec(" \n  SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%' \n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%' \n")
+	_dbevalRows0 := db.Query(" \n  SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%' \n")
+	var _dbevalRb1 bool
+	var _dbevalErr2 error
+	for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+		tclRegexp("MAX_MMAP_SIZE=([0-9]*)", x)
+		if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+	}
+	if _dbevalErr2 != nil {
+		t.Errorf("db eval callback error: %v", _dbevalErr2)
 	}
 	if func() bool { l_n, l_e := strconv.Atoi(mmap_limit); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("8589934592"); if r_e != nil { return false }; return l_n < r_n }() {
 		_putsMsg := "Skipping bigmmap.test - requires SQLITE_MAX_MMAP_SIZE >= 8G"
