@@ -4,7 +4,9 @@
 > **Goal**: G3.ALTER.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.CREATE; G3.TRIGGER (dependency rewrite); G3.INDEX (index rebuild).
-> **Current state: FAILING** — `alter` fails (much recent work per git log).
+> **Current state: PASSING** — all 8 ALTER testgen packages (alter, altercol,
+> altertab, altertrig, alterdropcol, altercons, alterlegacy, alterqf) pass.
+> TestP3Alter pre-tests pass; `go build ./...` succeeds.
 
 ## Objective
 ALTER TABLE matches SQLite: `RENAME TO` (rewrites table name + every dependent
@@ -40,19 +42,19 @@ Cases vs oracle:
 - `internal/rename/` — frigolite's dependency analysis (rename_test/quotefix funcs).
 
 ## Steps
-- [ ] **G3.ALTER.1** Extend pre-test suite; record remaining failures.
+- [x] **G3.ALTER.1** Extend pre-test suite; record remaining failures.
   Commit: `G3.ALTER.1: extend ALTER pre-test suite`.
-- [ ] **G3.ALTER.2** Run `alter` testgen; collect failures; triage each via
+- [x] **G3.ALTER.2** Run `alter` testgen; collect failures; triage each via
   pure-Go test (engine vs transpiler). Commit per fix:
   `G3.ALTER.2.<n>: <fix>`.
-- [ ] **G3.ALTER.3** RENAME COLUMN dependency rewrite byte-accuracy (views,
+- [x] **G3.ALTER.3** RENAME COLUMN dependency rewrite byte-accuracy (views,
   triggers, check-constraints, index expressions) — DQS-aware. Commit:
   `G3.ALTER.3: RENAME COLUMN dependency accuracy`.
-- [ ] **G3.ALTER.4** ADD COLUMN edge cases (non-constant default, NOT NULL
+- [x] **G3.ALTER.4** ADD COLUMN edge cases (non-constant default, NOT NULL
   without default, type affinity of new column). Commit: `G3.ALTER.4: ADD COLUMN`.
-- [ ] **G3.ALTER.5** DROP COLUMN rebuild + dependent-object errors.
+- [x] **G3.ALTER.5** DROP COLUMN rebuild + dependent-object errors.
   Commit: `G3.ALTER.5: DROP COLUMN rebuild`.
-- [ ] **G3.ALTER.6** altercol/altertab/altertrig/alterdropcol/altercons/
+- [x] **G3.ALTER.6** altercol/altertab/altertrig/alterdropcol/altercons/
   alterlegacy/alterqf green. Commit: `G3.ALTER.6: ALTER TCL green`.
 
 ## Verify command
