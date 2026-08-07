@@ -318,8 +318,12 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (result interface{}, err
 		// CAST(blob AS TEXT) decodes the blob bytes as UTF-8 text (SQLite
 		// does a byte copy; the result is a text value). fmt.Sprintf("%v")
 		// on a []byte would render "[104 105]", so convert explicitly.
+		// A REAL input renders like SQLite: CAST(123.0 AS TEXT) is '123.0'.
 		if b, ok := val.([]byte); ok {
 			return string(b), nil
+		}
+		if f, ok := val.(float64); ok {
+			return util.FormatSQLiteReal(f), nil
 		}
 		return fmt.Sprintf("%v", val), nil
 	case "NUMERIC":
@@ -1993,14 +1997,20 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return ct.Columns
 	}
 	// CREATE VIRTUAL TABLE t1 USING module(a, b, c): the module arguments are
-	// the virtual table's column names.
+	// the virtual table's column names. A trailing empty argument from a
+	// module written with empty parentheses (USING module()) is skipped.
 	if vt, ok := stmts[0].(*sql.CreateVirtualTableStmt); ok && vt != nil {
-		colDefs := make([]sql.ColumnDef, len(vt.Args))
-		for i, arg := range vt.Args {
-			colDefs[i] = sql.ColumnDef{Name: arg, Type: ""}
+		var colDefs []sql.ColumnDef
+		for _, arg := range vt.Args {
+			if arg == "" {
+				continue
+			}
+			colDefs = append(colDefs, sql.ColumnDef{Name: arg, Type: ""})
 		}
-		e.colCache[tableName] = colDefs
-		return colDefs
+		if len(colDefs) > 0 {
+			e.colCache[tableName] = colDefs
+			return colDefs
+		}
 	}
 	// For virtual tables, check if we have an FTS table registered
 	if ftsTable, ok := e.ftsTables[tableName]; ok {

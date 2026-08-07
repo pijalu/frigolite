@@ -902,7 +902,7 @@ func Test_window4(t *testing.T) {
 		_ = _row0 // suppress unused warning
 		_r := fmt.Sprint(_row0[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "1.0000 0.0000 1.0000 0.0000 1.0000 0.0000 4.0000 0.0000 4.0000 0.0000 6.0000 0.0000 7.0000 0.0000"
 		_ = res2 // suppress unused warning
@@ -930,7 +930,7 @@ func Test_window4(t *testing.T) {
 		_ = _row1 // suppress unused warning
 		_r := fmt.Sprint(_row1[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "0.0000 0.0000 0.0000"
 		_ = res2 // suppress unused warning
@@ -950,7 +950,7 @@ func Test_window4(t *testing.T) {
 		_ = _row2 // suppress unused warning
 		_r := fmt.Sprint(_row2[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "1.0000 1.0000 1.0000"
 		_ = res2 // suppress unused warning
@@ -1044,7 +1044,7 @@ func Test_window4(t *testing.T) {
 		_ = _row3 // suppress unused warning
 		_r := fmt.Sprint(_row3[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "2.0000"
 		_ = res2 // suppress unused warning
@@ -1064,7 +1064,7 @@ func Test_window4(t *testing.T) {
 		_ = _row4 // suppress unused warning
 		_r := fmt.Sprint(_row4[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "1.0000 2.0000 3.0000"
 		_ = res2 // suppress unused warning

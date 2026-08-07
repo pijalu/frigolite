@@ -179,10 +179,10 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 
 	if !skipConv {
 		if isNumeric(ta) && tb == typeText {
-			return compareNumericText(a, b, -1)
+			return compareNumericText(a, b, -1, aAff)
 		}
 		if isNumeric(tb) && ta == typeText {
-			return compareTextNumeric(a, b, 1)
+			return compareTextNumeric(a, b, 1, bAff)
 		}
 	}
 
@@ -220,10 +220,31 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 }
 
 // compareNumericText compares a numeric value a with a text value b.
-// If b can be parsed as a number, compare numerically; otherwise
-// return typeOrder (numeric < text).
-func compareNumericText(a, b interface{}, typeOrder int) int {
-	if f, err := strconv.ParseFloat(toStr(b), 64); err == nil {
+// numAff is the affinity of the numeric operand ('I'/'R'/'N' for a column,
+// 0 for a bare literal/expression). A numeric COLUMN converts any
+// well-formed number text ('3.0' → 3.0), while a bare numeric literal only
+// matches an exact integer string ('123' = 123 is FALSE for '123.0').
+func compareNumericText(a, b interface{}, typeOrder int, numAff rune) int {
+	s := toStr(b)
+	if _, ok := a.(int64); ok && numAff == 0 {
+		if isExactIntString(s) {
+			n, err := strconv.ParseInt(s, 10, 64)
+			if err != nil {
+				return typeOrder
+			}
+			ai := a.(int64)
+			switch {
+			case ai < n:
+				return -1
+			case ai > n:
+				return 1
+			default:
+				return 0
+			}
+		}
+		return typeOrder
+	}
+	if f, err := strconv.ParseFloat(s, 64); err == nil {
 		fa := toFloat64(a)
 		switch {
 		case fa < f:
@@ -313,10 +334,34 @@ func sqlite3IntFloatCompare(i int64, r float64) int {
 }
 
 // compareTextNumeric compares a text value a with a numeric value b.
-// If a can be parsed as a number, compare numerically; otherwise
-// return typeOrder (text > numeric).
-func compareTextNumeric(a, b interface{}, typeOrder int) int {
-	if f, err := strconv.ParseFloat(toStr(a), 64); err == nil {
+// numAff is the affinity of the numeric operand ('I'/'R'/'N' for a column,
+// 0 for a bare literal/expression). A numeric COLUMN converts any
+// well-formed number text ('3.0' → 3.0), while a bare numeric literal only
+// matches an exact integer string ('123.0' = 123 is FALSE).
+func compareTextNumeric(a, b interface{}, typeOrder int, numAff rune) int {
+	s := toStr(a)
+	if _, ok := b.(int64); ok && numAff == 0 {
+		// Bare integer operand: only exact integer strings convert.
+		if isExactIntString(s) {
+			n, err := strconv.ParseInt(s, 10, 64)
+			if err != nil {
+				return typeOrder
+			}
+			bi := b.(int64)
+			switch {
+			case n < bi:
+				return -1
+			case n > bi:
+				return 1
+			default:
+				return 0
+			}
+		}
+		return typeOrder
+	}
+	// Real operand (or numeric column): a well-formed real string converts
+	// (SQLite converts '123.0' to 123.0, and '123' to 123.0 as well).
+	if f, err := strconv.ParseFloat(s, 64); err == nil {
 		fb := toFloat64(b)
 		switch {
 		case f < fb:
@@ -328,6 +373,21 @@ func compareTextNumeric(a, b interface{}, typeOrder int) int {
 		}
 	}
 	return typeOrder
+}
+
+// isExactIntString reports whether s is a plain integer literal with no
+// decimal point, exponent, sign, or surrounding whitespace (SQLite's
+// integer-looking TEXT rule: '123' yes, '123.0' no, ' 123' no).
+func isExactIntString(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 type valueClass int
@@ -475,6 +535,7 @@ func parseInt(s string) (int64, error) {
 func parseFloat(s string) (float64, error) {
 	return strconv.ParseFloat(s, 64)
 }
+
 // SQLite affinities: TEXT, NUMERIC, INTEGER, REAL, BLOB.
 // AffinityNone is the type name used to mark a value/column with NO affinity
 // (SQLite SQLITE_AFF_NONE = 0). It is distinct from BLOB affinity: a view

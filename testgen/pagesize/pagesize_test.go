@@ -7,7 +7,6 @@ package pagesize
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -128,8 +127,8 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".0.1")
+			if flatten(r) != PGSZ {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), PGSZ, "pagesize-2." + PGSZ + ".0.1")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".0.2"
@@ -141,8 +140,8 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".0.2")
+			if flatten(r) != PGSZ {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), PGSZ, "pagesize-2." + PGSZ + ".0.2")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".0.3"
@@ -164,8 +163,8 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      PRAGMA page_size;\n    ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".1")
+			if flatten(r) != PGSZ {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), PGSZ, "pagesize-2." + PGSZ + ".1")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".2"
@@ -176,8 +175,8 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size\n    ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".2")
+			if flatten(r) != PGSZ {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), PGSZ, "pagesize-2." + PGSZ + ".2")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".3"
@@ -199,8 +198,8 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".6")
+			if flatten(r) != PGSZ {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), PGSZ, "pagesize-2." + PGSZ + ".6")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".7"
@@ -225,8 +224,8 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".10")
+			if flatten(r) != PGSZ {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), PGSZ, "pagesize-2." + PGSZ + ".10")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".11"

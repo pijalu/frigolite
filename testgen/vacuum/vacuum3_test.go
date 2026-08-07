@@ -105,8 +105,8 @@ func Test_vacuum3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), actual) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", actual, _res.Error, "vacuum3-1." + I + ".1")
+				if flatten(r) != actual {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), actual, "vacuum3-1." + I + ".1")
 				}
 			}
 			{ // do_test "vacuum3-1." + I + ".2"
@@ -179,8 +179,8 @@ func Test_vacuum3(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), actual) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", actual, _res.Error, "vacuum3-2." + I + ".1")
+					if flatten(r) != actual {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), actual, "vacuum3-2." + I + ".1")
 					}
 				}
 				{ // do_test "vacuum3-2." + I + ".2"
@@ -239,8 +239,8 @@ func Test_vacuum3(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 						}
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), actual) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", actual, _res.Error, "vacuum3-3." + I + ".1")
+						if flatten(r) != actual {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), actual, "vacuum3-3." + I + ".1")
 						}
 					}
 					{ // do_test "vacuum3-3." + I + ".2"

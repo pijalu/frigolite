@@ -14,6 +14,7 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // --- SELECT ---
@@ -247,6 +248,18 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		delete(e.resolvingViews, s.From.Name)
 		return result
 	}
+
+	// INDEXED BY clause: validate the named index exists and can serve the
+	// query. SQLite raises "no such index" for a missing index and "no
+	// query solution" when the forced index cannot be used (e.g. a partial
+	// index whose predicate is not implied by the query's WHERE clause).
+	// The engine still scans the table for correct results; this check only
+	// enforces the INDEXED BY contract.
+	if s.From.IndexedBy != "" && len(s.Joins) == 0 {
+		if err := e.validateIndexedBy(tableEntry, s.From.IndexedBy, s); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	// Resolve collations used by the WHERE clause. SQLite raises
@@ -274,16 +287,34 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
 			return e.execFTSSelect(s, tableEntry, ftsTable, colDefs)
 		}
-		// Non-FTS virtual tables: return all rows directly (no WHERE/ORDER BY)
-		rows, err := e.virtualTableRows(tableEntry)
+		// Non-FTS virtual tables: materialize the rows (with an upper-bound
+		// hint for bounded tables like wholenumber) and run the full SELECT
+		// pipeline (WHERE, ORDER BY, LIMIT, aggregates) over them.
+		// A virtual table whose module declares column names (e.g.
+		// wholenumber's "value") provides the column definitions even when
+		// the CREATE VIRTUAL TABLE has no explicit column list.
+		if len(colDefs) == 0 {
+			if moduleName, _, perr := parseVTabSQL(tableEntry.SQL); perr == nil {
+				if module, found := e.vtabs.Find(moduleName); found {
+					if inst, cerr := module.Connect(nil); cerr == nil {
+						if ci, ok := inst.(vtab.ColumnInfo); ok {
+							for _, name := range ci.Columns() {
+								colDefs = append(colDefs, sql.ColumnDef{Name: name, Type: ""})
+							}
+						}
+					}
+				}
+			}
+		}
+		var bound int64
+		if b, ok := vtabUpperBound(s.Where); ok {
+			bound = b
+		}
+		rows, err := e.virtualTableRows(tableEntry, bound)
 		if err != nil {
 			return &Result{Error: err}
 		}
-		result := &Result{
-			Columns: e.buildColumnNames(s.Columns, colDefs),
-			Rows:    rows,
-		}
-		return result
+		return e.execSelectOverMaterialized(s, colDefs, rows)
 	}
 
 	// Validate that every column reference in the SELECT (select list, WHERE,

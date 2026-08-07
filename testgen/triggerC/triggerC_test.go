@@ -594,8 +594,8 @@ func Test_triggerC(t *testing.T) {
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TRIGGER tt1 BEFORE INSERT ON t1 BEGIN \n        INSERT INTO log VALUES(new.a, new.b);\n      END;\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;\n    ")
 									}
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), defaults) {
-										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", defaults, _res.Error, "triggerC-11." + testno + ".1")
+									if flatten(r) != defaults {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), defaults, "triggerC-11." + testno + ".1")
 									}
 								}
 								{ // do_test "triggerC-11." + testno + ".2"
@@ -621,8 +621,8 @@ func Test_triggerC(t *testing.T) {
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;\n    ")
 									}
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), defaults) {
-										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", defaults, _res.Error, "triggerC-11." + testno + ".3")
+									if flatten(r) != defaults {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), defaults, "triggerC-11." + testno + ".3")
 									}
 								}
 							}

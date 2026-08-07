@@ -326,7 +326,7 @@ func Test_fts3rnd(t *testing.T) {
 				_ = testprefix // suppress unused warning
 				rows = "array names ::t1"
 				_ = rows // suppress unused warning
-				nRow = "llength $rows"
+				nRow = strconv.Itoa(tclLLength(rows))
 				_ = nRow // suppress unused warning
 				iUpdate = tclLIndex(rows, tclExprWith("int(rand()*$nRow)", map[string]string{"nRow": nRow}))
 				_ = iUpdate // suppress unused warning

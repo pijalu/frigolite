@@ -230,6 +230,56 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		}
 	}
 
+	// STRICT table enforcement: check each value against its column's declared
+	// type BEFORE affinity is applied (affinity would convert the value to
+	// match the column type, defeating the STRICT check). In STRICT tables,
+	// only values compatible with the declared type are allowed.
+	isStrict := isStrictTable(tableEntry.SQL)
+	if isStrict {
+		for i, v := range values {
+			if i >= len(colDefs) {
+				break
+			}
+			cd := colDefs[i]
+			// Skip generated columns (computed separately)
+			if cd.Generated != nil {
+				continue
+			}
+			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+
+	// Apply type affinity to each value based on column type. This must run
+	// BEFORE the constraint checks so UNIQUE/PRIMARY KEY index comparisons
+	// (which may involve expressions over the columns, e.g. "a GLOB b") see
+	// the stored, affinity-converted values — SQLite applies affinity when
+	// writing the row, before validating constraints.
+	for i, v := range values {
+		if i < len(colDefs) {
+			values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
+		}
+	}
+
+	// In STRICT mode, affinity may have converted the value — re-check that
+	// the converted value still matches the declared type (e.g. integer '42'
+	// was accepted as a string but affinity converted it to int64 42).
+	if isStrict {
+		for i, v := range values {
+			if i >= len(colDefs) {
+				break
+			}
+			cd := colDefs[i]
+			if cd.Generated != nil {
+				continue
+			}
+			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+
 	if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
 		// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
 		if e.isIgnoreableConflict(err, tableEntry, colDefs) {
@@ -253,53 +303,6 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 			}
 		} else {
 			return &Result{Error: err}
-		}
-	}
-
-	// STRICT table enforcement: check each value against its column's declared
-	// type BEFORE affinity is applied (affinity would convert the value to
-	// match the column type, defeating the STRICT check). In STRICT tables,
-	// only values compatible with the declared type are allowed.
-	isStrict := isStrictTable(tableEntry.SQL)
-	if isStrict {
-		for i, v := range values {
-			if i >= len(colDefs) {
-				break
-			}
-			cd := colDefs[i]
-			// Skip generated columns (computed separately)
-			if cd.Generated != nil {
-				continue
-			}
-			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
-				return &Result{Error: err}
-			}
-		}
-	}
-
-	// Apply type affinity to each value based on column type.
-	// Apply in-place to avoid allocating a separate affValues slice.
-	for i, v := range values {
-		if i < len(colDefs) {
-			values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
-		}
-	}
-
-	// In STRICT mode, affinity may have converted the value — re-check that
-	// the converted value still matches the declared type (e.g. integer '42'
-	// was accepted as a string but affinity converted it to int64 42).
-	if isStrict {
-		for i, v := range values {
-			if i >= len(colDefs) {
-				break
-			}
-			cd := colDefs[i]
-			if cd.Generated != nil {
-				continue
-			}
-			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
-				return &Result{Error: err}
-			}
 		}
 	}
 
@@ -647,18 +650,80 @@ func allMatch(colDefs []sql.ColumnDef, recValues []interface{}, group []int, val
 	return true
 }
 
-// uniqueIndexDef describes a UNIQUE index on a table: the indexed columns and
-// the optional partial-index WHERE clause (empty for a full index).
+// uniqueIndexDef describes a UNIQUE index on a table: the indexed columns,
+// the optional partial-index WHERE clause (empty for a full index), and the
+// index name (for expression-key error messages, which SQLite reports as
+// "index 'name'" rather than listing the columns).
 type uniqueIndexDef struct {
+	Name  string
 	Cols  []string
 	Where string // partial index predicate ("" for full indexes)
 }
 
 // uniqueIndexColsRe matches "CREATE UNIQUE INDEX name ON tbl(col1, col2 ...)".
-var uniqueIndexColsRe = regexp.MustCompile(`(?is)^\s*CREATE\s+UNIQUE\s+INDEX\b.*?\bON\b\s+[^\s(]+\((.*?)\)`)
+// The column-list capture is used only for boolean "is this a UNIQUE index"
+// checks (pragma index_list); the actual column/expression extraction uses
+// indexColumnListText (balanced-paren aware) below.
+var uniqueIndexColsRe = regexp.MustCompile(`(?is)^\s*CREATE\s+UNIQUE\s+INDEX\b.*?\bON\b\s+[^\s(]+\(.*\)`)
 
 // indexWhereRe captures the partial-index predicate after the column list.
 var indexWhereRe = regexp.MustCompile(`(?is)\)\s*WHERE\s+(.+)$`)
+
+// indexColumnListText extracts the text between the key parentheses of a
+// CREATE [UNIQUE] INDEX statement, honoring nested parentheses in expression
+// keys (e.g. TYPEOF(a), a GLOB b, (a+b)*2) and stopping before a trailing
+// WHERE clause. Returns "" when no balanced key list is found.
+func indexColumnListText(sqlText string) string {
+	upper := strings.ToUpper(sqlText)
+	onIdx := strings.Index(upper, " ON ")
+	if onIdx < 0 {
+		return ""
+	}
+	parenStart := strings.Index(sqlText[onIdx+4:], "(")
+	if parenStart < 0 {
+		return ""
+	}
+	parenStart += onIdx + 4
+	depth := 0
+	for i := parenStart; i < len(sqlText); i++ {
+		switch sqlText[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				return sqlText[parenStart+1 : i]
+			}
+		}
+	}
+	return ""
+}
+
+// splitIndexCols splits a CREATE INDEX column-list text on top-level commas,
+// keeping commas inside parentheses (function calls like substr(b,2,4)) as
+// part of the element.
+func splitIndexCols(s string) []string {
+	var parts []string
+	depth := 0
+	start := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			depth++
+		case ')':
+			if depth > 0 {
+				depth--
+			}
+		case ',':
+			if depth == 0 {
+				parts = append(parts, s[start:i])
+				start = i + 1
+			}
+		}
+	}
+	parts = append(parts, s[start:])
+	return parts
+}
 
 // uniqueIndexColumns returns the UNIQUE indexes defined on the given table
 // (cached per table name).
@@ -679,20 +744,36 @@ func (e *Engine) uniqueIndexColumns(tableName string) []uniqueIndexDef {
 			if !strings.EqualFold(ent.TblName, tableName) {
 				continue
 			}
-			m := uniqueIndexColsRe.FindStringSubmatch(ent.SQL)
-			if m == nil {
+			if !uniqueIndexColsRe.MatchString(ent.SQL) {
+				continue
+			}
+			colText := indexColumnListText(ent.SQL)
+			if colText == "" {
 				continue
 			}
 			var cols []string
-			for _, part := range strings.Split(m[1], ",") {
+			for _, part := range splitIndexCols(colText) {
 				name := strings.TrimSpace(part)
 				upper := strings.ToUpper(name)
-				if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
-					name = strings.TrimSpace(name[:idx])
-				} else if idx := strings.Index(upper, " DESC"); idx >= 0 {
-					name = strings.TrimSpace(name[:idx])
-				} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
-					name = strings.TrimSpace(name[:idx])
+				// Strip COLLATE / ASC / DESC suffixes. For a plain column key the
+				// collation comes from the table definition, so it is dropped;
+				// for an expression key the explicit COLLATE is part of the
+				// expression and must be kept (indexKeyValue evaluates it).
+				if strings.ContainsAny(name, "()") {
+					// expression key: keep COLLATE, strip only ASC/DESC
+					if idx := strings.Index(upper, " DESC"); idx >= 0 {
+						name = strings.TrimSpace(name[:idx])
+					} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
+						name = strings.TrimSpace(name[:idx])
+					}
+				} else {
+					if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
+						name = strings.TrimSpace(name[:idx])
+					} else if idx := strings.Index(upper, " DESC"); idx >= 0 {
+						name = strings.TrimSpace(name[:idx])
+					} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
+						name = strings.TrimSpace(name[:idx])
+					}
 				}
 				if name != "" {
 					cols = append(cols, name)
@@ -701,12 +782,18 @@ func (e *Engine) uniqueIndexColumns(tableName string) []uniqueIndexDef {
 			if len(cols) == 0 {
 				continue
 			}
-			def := uniqueIndexDef{Cols: cols}
+			def := uniqueIndexDef{Name: ent.Name, Cols: cols}
 			if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
 				def.Where = strings.TrimSpace(wm[1])
 			}
 			result = append(result, def)
 		}
+	}
+	// SQLite checks UNIQUE indexes newest-first (its table index list is
+	// prepended on creation), so the error text names the most recently
+	// created conflicting index. Reverse to match the exact error message.
+	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
 	}
 	e.uniqueIdxCache[tableName] = result
 	return result
@@ -764,8 +851,10 @@ func (e *Engine) indexKeyValue(cn string, colDefs []sql.ColumnDef, colIndex map[
 	if v == nil {
 		return nil, false
 	}
-	// Unwrap column-affinity wrappers so comparisons use raw values.
-	v = util.UnwrapColumnValue(v)
+	// Keep the collatedValue wrapper (from an explicit COLLATE in the index
+	// key, e.g. substr(b,2,4) COLLATE nocase) so the uniqueness comparison
+	// uses the collation. Unwrap only the column-affinity wrapper; the
+	// comparison helper extracts the raw value and collation itself.
 	return v, true
 }
 
@@ -809,12 +898,25 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 			match := true
 			for i, cn := range idxCols {
 				kv, ok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, erow)
-				if !ok || util.CompareValues(kv, key[i]) != 0 {
+				if !ok || compareValuesWithCollate(kv, key[i]) != 0 {
 					match = false
 					break
 				}
 			}
 			if match {
+				// Expression index keys report the index name (SQLite:
+				// "UNIQUE constraint failed: index 'name'"); plain column keys
+				// list the columns ("UNIQUE constraint failed: t.col").
+				allPlain := true
+				for _, cn := range idxCols {
+					if _, ok := colIndex[cn]; !ok {
+						allPlain = false
+						break
+					}
+				}
+				if !allPlain {
+					return fmt.Errorf("UNIQUE constraint failed: index '%s'", def.Name)
+				}
 				parts := make([]string, len(idxCols))
 				for i, cn := range idxCols {
 					parts[i] = tableEntry.Name + "." + cn
@@ -868,7 +970,7 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 			match := true
 			for i, cn := range idxCols {
 				kv, ok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, erow)
-				if !ok || util.CompareValues(kv, key[i]) != 0 {
+				if !ok || compareValuesWithCollate(kv, key[i]) != 0 {
 					match = false
 					break
 				}

@@ -291,7 +291,7 @@ func Test_unionvtab(t *testing.T) {
 			_ = e // suppress unused warning
 				E = "split $e ."
 				_ = E // suppress unused warning
-				if tclBool("llength $E" + ">1") {
+				if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength(E))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("1"); if r_e != nil { return false }; return l_n > r_n }() {
 					L = tclListAppend(L, "('" + tclLIndex(E, "0") + "', '" + tclLIndex(E, "1") + "', " + iMin + ", " + iMin + ")")
 				} else {
 					L = tclListAppend(L, "(NULL, '" + e + "', " + iMin + ", " + iMin + ")")

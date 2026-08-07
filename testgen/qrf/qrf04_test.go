@@ -78,7 +78,7 @@ func Test_qrf04(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 80 }() {
 			sp = tclExprWith("$i-13", map[string]string{"i": i})
 			_ = sp // suppress unused warning
-			res += "format \"<----%*s%3d%*s---->\n\"                  [expr {$sp/2}] {} $i [expr {$sp-$sp/2}] {}"
+			res += tclFormat("<----%*s%3d%*s---->\n", tclExprWith("$sp/2", map[string]string{"sp": sp}), "", i, tclExprWith("$sp-$sp/2", map[string]string{"sp": sp}), "")
 			res += "db format -style column -title off                    -screenwidth $i -splitcolumn on                   {SELECT x FROM t1 ORDER BY x ASC}"
 			// incr i 1
 			{

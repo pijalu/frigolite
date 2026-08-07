@@ -677,7 +677,7 @@ func Test_capi3c(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT a FROM t1;\n  ")
 			}
 		}
-		if tclBool("llength [info commands sqlite3_clear_bindings]" + ">0") {
+		if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands sqlite3_clear_bindings"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
 			{ // do_test "capi3c-13.1"
 				_res = db.Exec("\n      DELETE FROM t1;\n    ")
 				if _res.Error != nil {
@@ -706,7 +706,7 @@ func Test_capi3c(t *testing.T) {
 				}
 			}
 		}
-		if tclBool("llength [info commands sqlite3_sleep]" + ">0") {
+		if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands sqlite3_sleep"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
 			{ // do_test "capi3c-13-5"
 				ms = "sqlite3_sleep 80"
 				_ = ms // suppress unused warning

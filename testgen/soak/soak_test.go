@@ -79,7 +79,7 @@ func Test_soak(t *testing.T) {
 	// proc definition (not transpiled)
 	TIMEOUT = "3600"
 	_ = TIMEOUT // suppress unused warning
-	if tclBool("llength $argv" + ">0") {
+	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength(argv))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
 		// foreach {name value} argv
 		_items0 := tclSplitList(argv)
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {

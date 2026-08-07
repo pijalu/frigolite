@@ -95,7 +95,7 @@ func Test_literal2(t *testing.T) {
 		_ = _row0 // suppress unused warning
 		_r := fmt.Sprint(_row0[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "1000000000000.0000"
 		_ = res2 // suppress unused warning

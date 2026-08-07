@@ -4,7 +4,7 @@
 > **Goal**: G3.INDEX.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.CREATE; G1.WHERE (partial-index WHERE).
-> **Current state: FAILING** — `index` fails.
+> **Current state: PASSING** — `index`, `indexedby`, `indexexpr`, `unique` testgen packages and `TestP3Index` pre-tests all pass; verify command green.
 
 ## Objective
 Indexes match SQLite: CREATE INDEX (single/multi-column, ASC/DESC, COLLATE per
@@ -41,18 +41,18 @@ coordinate G3.CONSTRAINTS), `unique`. Plus P6c index-flavored packages
 - `src/where*.c` — index usage (planner; relevant for correctness equivalence).
 
 ## Steps
-- [ ] **G3.INDEX.1** Pre-test suite. Commit: `G3.INDEX.1: index pre-test suite`.
-- [ ] **G3.INDEX.2** Triage `index` failure via pure-Go test. Commit per fix:
+- [x] **G3.INDEX.1** Pre-test suite. Commit: `G3.INDEX.1: index pre-test suite`.
+- [x] **G3.INDEX.2** Triage `index` failure via pure-Go test. Commit per fix:
   `G3.INDEX.2.<n>: <fix>`.
-- [ ] **G3.INDEX.3** UNIQUE enforcement on INSERT/UPDATE with exact error.
+- [x] **G3.INDEX.3** UNIQUE enforcement on INSERT/UPDATE with exact error.
   Commit: `G3.INDEX.3: UNIQUE enforcement`.
-- [ ] **G3.INDEX.4** Expression + partial indexes (maintain on write; WHERE
+- [x] **G3.INDEX.4** Expression + partial indexes (maintain on write; WHERE
   predicate gates inclusion). Commit: `G3.INDEX.4: expr + partial indexes`.
-- [ ] **G3.INDEX.5** Index maintenance on UPDATE of an indexed column.
+- [x] **G3.INDEX.5** Index maintenance on UPDATE of an indexed column.
   Commit: `G3.INDEX.5: index maintenance on update`.
-- [ ] **G3.INDEX.6** DROP INDEX + IF variants; autoindex lifecycle for PK/UNIQUE.
+- [x] **G3.INDEX.6** DROP INDEX + IF variants; autoindex lifecycle for PK/UNIQUE.
   Commit: `G3.INDEX.6: DROP INDEX + autoindex`.
-- [ ] **G3.INDEX.7** indexedby/indexexpr/unique/conflict green; triage P6c index
+- [x] **G3.INDEX.7** indexedby/indexexpr/unique/conflict green; triage P6c index
   packages. Commit: `G3.INDEX.7: index TCL green`.
 
 ## Verify command

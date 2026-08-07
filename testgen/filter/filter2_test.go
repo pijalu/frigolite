@@ -238,7 +238,7 @@ func Test_filter2(t *testing.T) {
 		_ = _row0 // suppress unused warning
 		_r := fmt.Sprint(_row0[0])
 		_ = _r // suppress unused warning
-			myres = tclListAppend(myres, "format %.4f [set r]")
+			myres = tclListAppend(myres, tclFormat("%.4f", _r))
 		}
 		res2 = "30.8333 13.7273 31.4167 13.0000"
 		_ = res2 // suppress unused warning

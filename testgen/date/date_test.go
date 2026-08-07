@@ -132,9 +132,9 @@ func Test_date(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-		sql = "format {strftime('%%H:%%M:%%f',1237962480.%03d,'unixepoch')} $i"
+		sql = tclFormat("strftime('%%H:%%M:%%f',1237962480.%03d,'unixepoch')", i)
 		_ = sql // suppress unused warning
-		res = "format {06:28:00.%03d} $i"
+		res = tclFormat("06:28:00.%03d", i)
 		_ = res // suppress unused warning
 		// datetest 2.2c-$i $sql $res (unsupported command, not transpiled)
 		// incr i 1

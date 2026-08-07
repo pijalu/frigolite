@@ -283,8 +283,8 @@ func Test_wal2(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "wal2-1." + tn + ".1")
+				if flatten(r) != res {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "wal2-1." + tn + ".1")
 				}
 			}
 			{ // do_test "wal2-1." + tn + ".2"
@@ -353,8 +353,8 @@ func Test_wal2(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res1) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res1, _res.Error, "wal2-2." + tn + ".1")
+					if flatten(r) != res1 {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res1, "wal2-2." + tn + ".1")
 					}
 				}
 				{ // do_test "wal2-2." + tn + ".2"
@@ -368,8 +368,8 @@ func Test_wal2(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res0) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res0, _res.Error, "wal2-2." + tn + ".2")
+					if flatten(r) != res0 {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res0, "wal2-2." + tn + ".2")
 					}
 				}
 				{ // do_test "wal2-2." + tn + ".3"
@@ -389,8 +389,8 @@ func Test_wal2(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res1) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res1, _res.Error, "wal2-2." + tn + ".4")
+					if flatten(r) != res1 {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res1, "wal2-2." + tn + ".4")
 					}
 				}
 			}
@@ -953,8 +953,8 @@ func Test_wal2(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x ")
 							}
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "wal2-9." + tn)
+							if flatten(r) != res {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "wal2-9." + tn)
 							}
 						}
 					}
@@ -1080,10 +1080,10 @@ func Test_wal2(t *testing.T) {
 							_ = permissions // suppress unused warning
 							_ = _idx1
 								if tcl_version >= "9.0" {
-									effective = "format %.5d [expr $permissions & ~$umask]"
+									effective = tclFormat("%.5d", tclExprWith("$permissions & ~$umask", map[string]string{"permissions": permissions, "umask": umask}))
 									_ = effective // suppress unused warning
 								} else {
-									effective = "format %.5o [expr $permissions & ~$umask]"
+									effective = tclFormat("%.5o", tclExprWith("$permissions & ~$umask", map[string]string{"permissions": permissions, "umask": umask}))
 									_ = effective // suppress unused warning
 								}
 								{ // do_test "wal2-12.2." + tn + ".1"

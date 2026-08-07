@@ -108,9 +108,9 @@ func Test_quota2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%10 == 0 }() {
-			bigtext += "format \"%06d\n\" $i"
+			bigtext += tclFormat("%06d\n", i)
 		} else {
-			bigtext += "format \"%06d \" $i"
+			bigtext += tclFormat("%06d ", i)
 		}
 		// incr i 1
 		{

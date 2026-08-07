@@ -147,7 +147,7 @@ func Test_thread003(t *testing.T) {
 	{ // do_test "thread003.2"
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
-			SCRIPT = "format {\n      set iEnd [expr {[clock_seconds] + %d}]\n      set ::DB [sqlthread open %s xyzzy]\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {[clock_seconds] < $iEnd} {\n        set iQuery [expr {int(rand()*5000)}]\n        execsql \" SELECT * FROM t1 WHERE a = $iQuery \"\n      }\n  \n      sqlite3_close $::DB\n      expr 1\n    } $nSecond $zFile"
+			SCRIPT = tclFormat("\n      set iEnd " + tclExpr("[clock_seconds] + %d") + "\n      set ::DB " + "sqlthread open %s xyzzy" + "\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {" + "clock_seconds" + " < " + iEnd + "} {\n        set iQuery " + "0" + "\n        execsql \" SELECT * FROM t1 WHERE a = " + iQuery + " \"\n      }\n  \n      sqlite3_close " + DB + "\n      expr 1\n    ", nSecond, zFile)
 			_ = SCRIPT // suppress unused warning
 			// thread_spawn finished($zFile) $thread_procs $SCRIPT (unsupported command, not transpiled)
 		}
@@ -165,7 +165,7 @@ func Test_thread003(t *testing.T) {
 	{ // do_test "thread003.3"
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
-			SCRIPT = "format {\n      set iStart [clock_seconds]\n      set iEnd [expr {[clock_seconds] + %d}]\n      set ::DB [sqlthread open %s xyzzy]\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {[clock_seconds] < $iEnd} {\n        set iQuery [expr {int(rand()*5000)}]\n        execsql \"SELECT * FROM t1 WHERE a = $iQuery\"\n        execsql \"UPDATE t1 SET b = randomblob(200) \n                 WHERE a < $iQuery AND a > $iQuery + 20\n        \"\n      }\n  \n      sqlite3_close $::DB\n      expr 1\n    } $nSecond $zFile"
+			SCRIPT = tclFormat("\n      set iStart " + "clock_seconds" + "\n      set iEnd " + tclExpr("[clock_seconds] + %d") + "\n      set ::DB " + "sqlthread open %s xyzzy" + "\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {" + "clock_seconds" + " < " + iEnd + "} {\n        set iQuery " + "0" + "\n        execsql \"SELECT * FROM t1 WHERE a = " + iQuery + "\"\n        execsql \"UPDATE t1 SET b = randomblob(200) \n                 WHERE a < " + iQuery + " AND a > " + iQuery + " + 20\n        \"\n      }\n  \n      sqlite3_close " + DB + "\n      expr 1\n    ", nSecond, zFile)
 			_ = SCRIPT // suppress unused warning
 			// thread_spawn finished($zFile) $thread_procs $SCRIPT (unsupported command, not transpiled)
 		}

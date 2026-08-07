@@ -276,7 +276,7 @@ func Test_fts3query(t *testing.T) {
 				_dbeval2 := tclExecSQL(db, "{ \n    SELECT rowid FROM t4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + " \n  }")
 				res = _dbeval2
 				_ = res // suppress unused warning
-				{ // "7.2." + tn + ".1." + "llength $res"
+				{ // "7.2." + tn + ".1." + strconv.Itoa(tclLLength(res))
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + "\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + "\n  ")
@@ -291,7 +291,7 @@ func Test_fts3query(t *testing.T) {
 				_dbeval3 := tclExecSQL(db, "{ \n    SELECT rowid FROM t4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + " \n     ORDER BY +rowid DESC\n  }")
 				res = _dbeval3
 				_ = res // suppress unused warning
-				{ // "7.2." + tn + ".2." + "llength $res"
+				{ // "7.2." + tn + ".2." + strconv.Itoa(tclLLength(res))
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + "\n    ORDER BY rowid DESC\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + "\n    ORDER BY rowid DESC\n  ")

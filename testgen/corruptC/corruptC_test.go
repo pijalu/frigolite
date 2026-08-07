@@ -308,7 +308,7 @@ func Test_corruptC(t *testing.T) {
 				roffset = "random $fsize"
 				_ = roffset // suppress unused warning
 			}
-			rbyte = "format %02x [random 255]"
+			rbyte = tclFormat("%02x", "random 255")
 			_ = rbyte // suppress unused warning
 			// hexio_write test.db $roffset $rbyte (unsupported command, not transpiled)
 			db, err = frigolite.Open("test.db")

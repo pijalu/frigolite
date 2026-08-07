@@ -90,7 +90,7 @@ func Test_date5(t *testing.T) {
 		jd := _items0[_idx0+4]
 		_ = jd // suppress unused warning
 		_ = _idx0
-			date = "format %04d-%02d-%02d $y $m $d"
+			date = tclFormat("%04d-%02d-%02d", y, m, d)
 			_ = date // suppress unused warning
 			{ // "date5-jd" + jd
 				r = db.Query("\n    SELECT date(" + sqlLiteral(jd) + ");\n  ")
@@ -121,7 +121,7 @@ func Test_date5(t *testing.T) {
 			for func() bool { y_n, _y_e := strconv.Atoi(y); if _y_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return y_n+400*i_n <= 9999 }() {
 				y2 = tclExprWith("$y+400*$i", map[string]string{"y": y, "i": i})
 				_ = y2 // suppress unused warning
-				date2 = "format %04d-%02d-%02d $y2 $m $d"
+				date2 = tclFormat("%04d-%02d-%02d", y2, m, d)
 				_ = date2 // suppress unused warning
 				jd2 = tclExprWith("$jd+146097*$i", map[string]string{"jd": jd, "i": i})
 				_ = jd2 // suppress unused warning
@@ -163,10 +163,10 @@ func Test_date5(t *testing.T) {
 				y2 = tclExprWith("$y-400*$i", map[string]string{"y": y, "i": i})
 				_ = y2 // suppress unused warning
 				if func() bool { y2_n, _y2_e := strconv.Atoi(y2); if _y2_e != nil { return false }; return y2_n < 0 }() {
-					date2 = "format -%04d-%02d-%02d [expr {-$y2}] $m $d"
+					date2 = tclFormat("-%04d-%02d-%02d", tclExprWith("-$y2", map[string]string{"y2": y2}), m, d)
 					_ = date2 // suppress unused warning
 				} else {
-					date2 = "format %04d-%02d-%02d $y2 $m $d"
+					date2 = tclFormat("%04d-%02d-%02d", y2, m, d)
 					_ = date2 // suppress unused warning
 				}
 				jd2 = tclExprWith("$jd-146097*$i", map[string]string{"jd": jd, "i": i})

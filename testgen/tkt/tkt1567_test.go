@@ -70,7 +70,7 @@ func Test_tkt1567(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			x = "format %5d [expr $i*2]"
+			x = tclFormat("%5d", tclExprWith("$i*2", map[string]string{"i": i}))
 			_ = x // suppress unused warning
 			sql = "INSERT INTO t1 VALUES('" + x + "-" + bigstr + "')"
 			_ = sql // suppress unused warning
@@ -117,7 +117,7 @@ func Test_tkt1567(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			x = "format %5d [expr $i*2]"
+			x = tclFormat("%5d", tclExprWith("$i*2", map[string]string{"i": i}))
 			_ = x // suppress unused warning
 			sql = "INSERT INTO t2 VALUES('" + x + "-" + bigstr + "', " + i + "+1)"
 			_ = sql // suppress unused warning

@@ -141,7 +141,7 @@ func Test_win32lock(t *testing.T) {
 				}
 			}
 		}
-		if tclBool("llength $win32_lock_ok" + " && " + "llength $win32_lock_error") {
+		if tclBool(strconv.Itoa(tclLLength(win32_lock_ok)) + " && " + strconv.Itoa(tclLLength(win32_lock_error))) {
 		}
 		// incr delay1 25
 		{
@@ -206,7 +206,7 @@ func Test_win32lock(t *testing.T) {
 				}
 			}
 		}
-		if tclBool("llength $win32_lock_ok" + " && " + "llength $win32_lock_error") {
+		if tclBool(strconv.Itoa(tclLLength(win32_lock_ok)) + " && " + strconv.Itoa(tclLLength(win32_lock_error))) {
 		}
 		// incr delay1 1
 		{

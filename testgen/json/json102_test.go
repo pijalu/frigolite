@@ -2287,7 +2287,7 @@ func Test_json102(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 		str = "abcdef" + "\" [expr {$i+50}]" + "uvwxyz"
 		_ = str // suppress unused warning
-		{ // do_test "json102-" + "format %d [expr {$i+1300}]"
+		{ // do_test "json102-" + tclFormat("%d", tclExprWith("$i+1300", map[string]string{"i": i}))
 			r = db.Query("SELECT json_extract(json_array(" + sqlLiteral(str) + "),'$[0]')==" + sqlLiteral(str))
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_extract(json_array(" + sqlLiteral(str) + "),'$[0]')==" + sqlLiteral(str))

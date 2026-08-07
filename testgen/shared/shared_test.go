@@ -148,8 +148,8 @@ func Test_shared(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma auto_vacuum")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), av) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av, _res.Error, "shared-" + tclExprWith("$av+1", map[string]string{"av": av}) + ".1.0")
+			if flatten(r) != av {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av, "shared-" + tclExprWith("$av+1", map[string]string{"av": av}) + ".1.0")
 			}
 		}
 		using_proxy = "0"
@@ -905,7 +905,7 @@ func Test_shared(t *testing.T) {
 				_res = db2.Exec("\n    SELECT abc.a as I, abc2.a as II FROM abc, abc2;\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
-			if tclBool("llength [info command sqlite3_shared_cache_report]" + "==1") {
+			if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info command sqlite3_shared_cache_report"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("1"); if r_e != nil { return false }; return l_n == r_n }() {
 				{ // do_test "shared-" + av + ".11.9"
 					strings.ToLower("sqlite3_shared_cache_report")
 				}

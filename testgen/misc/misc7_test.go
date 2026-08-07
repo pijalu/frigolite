@@ -359,8 +359,8 @@ func Test_misc7(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';\n      ")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), pending_byte_page) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", pending_byte_page, _res.Error, "misc7-17.3")
+				if flatten(r) != pending_byte_page {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), pending_byte_page, "misc7-17.3")
 				}
 			}
 			{ // do_test "misc7-17.4"

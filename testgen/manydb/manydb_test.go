@@ -128,7 +128,7 @@ func Test_manydb(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			for true {
-				name = "test-" + "format %08x [expr {int(rand()*0x7fffffff)}]" + ".db"
+				name = "test-" + tclFormat("%08x", "0") + ".db"
 				_ = name // suppress unused warning
 				if tclBool("info exists used($name)") {
 				}

@@ -91,7 +91,7 @@ func Test_in2(t *testing.T) {
 		ii = "0" // TCL namespace variable
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
-			_t = "format \"x%04d\" $ii" // TCL namespace variable
+			_t = tclFormat("x%04d", ii) // TCL namespace variable
 			_ = _t // suppress unused warning
 			_res = db.Exec("INSERT INTO a VALUES(NULL, " + sqlLiteral(_t) + ")")
 			if _res.Error != nil {

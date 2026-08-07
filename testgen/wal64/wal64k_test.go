@@ -7,6 +7,7 @@ package wal64
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -55,7 +56,7 @@ func Test_wal64k(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal64k"
 	_ = testprefix // suppress unused warning
-	if tclBool("llength [info commands test_syscall]" + "==0") {
+	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands test_syscall"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 		return
 	}
 	db.Close()

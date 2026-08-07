@@ -7,6 +7,7 @@ package symlink
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -333,7 +334,7 @@ func Test_symlink(t *testing.T) {
 		}
 		path = "pwd"
 		_ = path // suppress unused warning
-		nLink = "llength [split $path /]"
+		nLink = strconv.Itoa(tclLLength("split $path /"))
 		_ = nLink // suppress unused warning
 		path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
 		_ = path // suppress unused warning

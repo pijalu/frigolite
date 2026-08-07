@@ -319,8 +319,8 @@ func Test_walmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), tempJrnlMode) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tempJrnlMode, _res.Error, "walmode-5.2.1")
+		if flatten(r) != tempJrnlMode {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tempJrnlMode, "walmode-5.2.1")
 		}
 	}
 	{ // do_test "walmode-5.2.2"
@@ -361,8 +361,8 @@ func Test_walmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp.journal_mode ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), tempJrnlMode) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tempJrnlMode, _res.Error, "walmode-5.3.1")
+		if flatten(r) != tempJrnlMode {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tempJrnlMode, "walmode-5.3.1")
 		}
 	}
 	{ // do_test "walmode-5.3.2"

@@ -358,8 +358,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), root_page_list) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", root_page_list, _res.Error, "autovacuum-2.4.5")
+		if flatten(r) != root_page_list {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), root_page_list, "autovacuum-2.4.5")
 		}
 	}
 	{ // do_test "autovacuum-2.4.6"
@@ -517,8 +517,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), AUTOVACUUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AUTOVACUUM, _res.Error, "autovacuum-3.4")
+		if flatten(r) != AUTOVACUUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "autovacuum-3.4")
 		}
 	}
 	{ // do_test "autovacuum-3.5"

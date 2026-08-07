@@ -1060,8 +1060,8 @@ func Test_rowid(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t7 VALUES(NULL,'x');\n      SELECT count(*) FROM t7 WHERE y=='x';\n    ")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), i) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", i, _res.Error, "rowid-12.3." + i)
+			if flatten(r) != i {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), i, "rowid-12.3." + i)
 			}
 		}
 		// incr i 1

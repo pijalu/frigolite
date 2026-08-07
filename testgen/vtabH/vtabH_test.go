@@ -7,6 +7,7 @@ package vtabH
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -269,7 +270,7 @@ func Test_vtabH(t *testing.T) {
 						res = tclListAppend(res, "/" + p)
 					}
 				}
-				num_root_files = "llength $res"
+				num_root_files = strconv.Itoa(tclLLength(res))
 				_ = num_root_files // suppress unused warning
 				{ // do_test "3.1"
 					// sort_files [execsql {\n      SELECT path FROM fstree WHERE pa... true (unsupported command, not transpiled)

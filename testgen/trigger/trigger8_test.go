@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -97,8 +96,8 @@ func Test_trigger8(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(5);\n    SELECT count(*) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), nStatement) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nStatement, _res.Error, "trigger8-1.1")
+		if flatten(r) != nStatement {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), nStatement, "trigger8-1.1")
 		}
 	}
 }

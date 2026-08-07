@@ -394,6 +394,10 @@ func fnABS(args []interface{}) (interface{}, error) {
 	switch v := args[0].(type) {
 	case int64:
 		if v < 0 {
+			// ABS of the minimum int64 overflows (SQLite: "integer overflow").
+			if v == math.MinInt64 {
+				return nil, fmt.Errorf("integer overflow")
+			}
 			return -v, nil
 		}
 		return v, nil

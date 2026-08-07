@@ -1422,11 +1422,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 111: seltablist ::= stl_prefix nm dbnm as on_using
 	case 111:
-		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 5)
+		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 0, 5)
 
 	// Rule 112: seltablist ::= stl_prefix nm dbnm as indexed_by on_using
 	case 112:
-		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 6)
+		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 5, 6)
 
 	// Rule 113: seltablist ::= stl_prefix nm dbnm LP exprlist RP as on_using
 	// Table-valued function in FROM: pragma_table_info('t1').
@@ -2214,6 +2214,23 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Right:    getExpr(getRHS(p, ruleNo, 3)),
 		}
 
+	// Rule 205: likeop ::= NOT LIKE_KW|MATCH — the negated form of a
+	// LIKE/GLOB/REGEXP/MATCH operator ("a NOT LIKE 'x'"). Returns the
+	// negated operator name so rule 206 can build a NOT LIKE BinaryOp.
+	case 205:
+		op := "NOT LIKE"
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
+			switch strings.ToUpper(tok.Value) {
+			case "MATCH":
+				op = "NOT MATCH"
+			case "GLOB":
+				op = "NOT GLOB"
+			case "REGEXP":
+				op = "NOT REGEXP"
+			}
+		}
+		return op
+
 		// Rule 206: expr ::= expr likeop expr (LIKE/GLOB/REGEXP/MATCH)
 	case 206:
 		left := getExpr(getRHS(p, ruleNo, 1))
@@ -2235,6 +2252,26 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Right:    right,
 			Escape:   getString(escape),
 		}
+
+	// Rule 209: expr ::= expr NOT likeop expr (NOT LIKE / NOT GLOB /
+	// NOT REGEXP / NOT MATCH). The NOT negates the likeop result.
+	case 209:
+		left := getExpr(getRHS(p, ruleNo, 1))
+		right := getExpr(getRHS(p, ruleNo, 3))
+		op := "NOT LIKE"
+		if s, ok := getRHS(p, ruleNo, 2).(string); ok && s != "" {
+			switch s {
+			case "LIKE":
+				op = "NOT LIKE"
+			case "GLOB":
+				op = "NOT GLOB"
+			case "REGEXP":
+				op = "NOT REGEXP"
+			case "MATCH":
+				op = "NOT MATCH"
+			}
+		}
+		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
 	// Rule 208: expr ::= expr ISNULL|NOTNULL
 	case 208:
@@ -2507,12 +2544,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			}
 		}
 		return &sql.CreateIndexStmt{
-			Name:    name,
-			Table:   table,
-			Columns: cols,
-			Terms:   sortlist,
-			Unique:  unique,
-			Where:   where,
+			Name:        name,
+			Table:       table,
+			Columns:     cols,
+			Terms:       sortlist,
+			Unique:      unique,
+			Where:       where,
+			IfNotExists: getBool(getRHS(p, ruleNo, 4)),
 		}
 
 	// Rule 242: eidlist_opt ::=
@@ -3751,7 +3789,7 @@ func (a *seltablistAcc) hasExplicitJoins() bool {
 // appendSeltablistTable handles seltablist ::= stl_prefix nm dbnm as ... rules.
 // posName/posSchema/posAlias are the 1-based RHS positions of the table name,
 // schema (dbnm), and alias. posOn is the position of the on_using value.
-func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posOn int) *seltablistAcc {
+func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posIndexedBy, posOn int) *seltablistAcc {
 	acc := getSeltablist(getRHS(p, ruleNo, 1))
 	tbl := getString(getRHS(p, ruleNo, posName))
 	schema := getString(getRHS(p, ruleNo, posSchema))
@@ -3760,7 +3798,13 @@ func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posO
 	if schema != "" {
 		tbl = tbl + "." + schema
 	}
-	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias}, on, using)
+	ref := sql.TableRef{Name: tbl, As: alias}
+	if posIndexedBy > 0 {
+		if ib, ok := getRHS(p, ruleNo, posIndexedBy).(string); ok && ib != "" && !strings.EqualFold(ib, "NOT INDEXED") {
+			ref.IndexedBy = ib
+		}
+	}
+	return acc.appendTableWithOn(ref, on, using)
 }
 
 // valuesFromSelect converts a VALUES-select (a SelectStmt with no FROM) into

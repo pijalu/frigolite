@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -120,8 +119,8 @@ func Test_multiplex3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(a, b) FROM t1 ORDER BY a")
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum1) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum1, _res.Error, "2." + iTest)
+			if flatten(r) != cksum1 {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), cksum1, "2." + iTest)
 			}
 		}
 		db2.Close()

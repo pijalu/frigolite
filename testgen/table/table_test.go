@@ -397,7 +397,7 @@ func Test_table(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		_r = tclListAppend(_r, "format test%03d $i")
+		_r = tclListAppend(_r, tclFormat("test%03d", i))
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -410,7 +410,7 @@ func Test_table(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			sql = "CREATE TABLE " + "format test%03d $i" + " ("
+			sql = "CREATE TABLE " + tclFormat("test%03d", i) + " ("
 			_ = sql // suppress unused warning
 			k = "1"
 			_ = k // suppress unused warning
@@ -441,8 +441,8 @@ func Test_table(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _r) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _r, _res.Error, "table-4.1")
+		if flatten(r) != _r {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), _r, "table-4.1")
 		}
 	}
 	{ // do_test "table-4.1b"
@@ -453,8 +453,8 @@ func Test_table(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _r) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _r, _res.Error, "table-4.1b")
+		if flatten(r) != _r {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), _r, "table-4.1b")
 		}
 	}
 	_r = ""
@@ -462,7 +462,7 @@ func Test_table(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		_r = tclListAppend(_r, "format test%03d $i")
+		_r = tclListAppend(_r, tclFormat("test%03d", i))
 		// incr i 2
 		{
 			_n, _err := strconv.Atoi(i)
@@ -475,7 +475,7 @@ func Test_table(t *testing.T) {
 		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			sql = "DROP TABLE " + "format TEST%03d $i"
+			sql = "DROP TABLE " + tclFormat("TEST%03d", i)
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -493,15 +493,15 @@ func Test_table(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _r) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _r, _res.Error, "table-4.2")
+		if flatten(r) != _r {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), _r, "table-4.2")
 		}
 	}
 	{ // do_test "table-4.3"
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			sql = "DROP TABLE " + "format test%03d $i"
+			sql = "DROP TABLE " + tclFormat("test%03d", i)
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {

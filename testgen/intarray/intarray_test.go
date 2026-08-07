@@ -78,7 +78,7 @@ func Test_intarray(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 999 }() {
-			b = "format {x%03d} $i"
+			b = tclFormat("x%03d", i)
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t1(a,b) VALUES(" + sqlLiteral(i) + "," + sqlLiteral(b) + ")")
 			if _res.Error != nil {

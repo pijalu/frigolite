@@ -7,6 +7,7 @@ package thread
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -56,7 +57,7 @@ func Test_thread2(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	if tclBool("llength [info command thread_step]" + "==0 || " + "") {
+	if tclBool(strconv.Itoa(tclLLength("info command thread_step")) + "==0 || " + "") {
 		return
 	}
 	{ // do_test "thread1-1.1"

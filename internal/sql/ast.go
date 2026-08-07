@@ -168,6 +168,10 @@ type TableRef struct {
 	NameTok  TokenInfo   // byte position of the Name token in original SQL
 	Subquery *SelectStmt // subquery in FROM clause (optional)
 	Args     []Expr      // table-valued function arguments: FROM tablename(args)
+	// IndexedBy is the index name from an "INDEXED BY name" clause ("NOT
+	// INDEXED" is represented as the sentinel ""). The engine validates
+	// that the named index can serve the query.
+	IndexedBy string
 }
 
 // OrderByTerm represents an ORDER BY term.
@@ -340,6 +344,9 @@ type CreateIndexStmt struct {
 	Terms  []OrderByTerm
 	Unique bool
 	Where  Expr // optional WHERE clause for partial indexes
+	// IfNotExists is set for "CREATE INDEX IF NOT EXISTS ..." (SQLite
+	// silently ignores the statement when the index already exists).
+	IfNotExists bool
 
 	// RawSQL is the original CREATE INDEX statement text as written by the
 	// user. It is stored verbatim in sqlite_schema (matching SQLite) so the

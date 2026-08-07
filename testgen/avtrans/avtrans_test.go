@@ -1030,8 +1030,8 @@ func Test_avtrans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(x,y,z) FROM t2")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "avtrans-8.1")
+		if flatten(r) != checksum {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), checksum, "avtrans-8.1")
 		}
 	}
 	{ // do_test "avtrans-8.2"

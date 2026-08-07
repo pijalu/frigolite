@@ -557,8 +557,8 @@ func Test_wal3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      SELECT * FROM whoami\n    ")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), c) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", c, _res.Error, "wal3-9.1." + i)
+				if flatten(r) != c {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), c, "wal3-9.1." + i)
 				}
 			}
 			// incr i 1

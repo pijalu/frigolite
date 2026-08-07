@@ -763,7 +763,7 @@ func Test_shell1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
 		}
 		// foreach x,y "catchcmd test.db \".mode tcl\nselect * from tcl1;\"" (no body)
-		_list := tclList([]string{x, y, "llength $y"})
+		_list := tclList([]string{x, y, strconv.Itoa(tclLLength(y))})
 		_ = _list
 	}
 	{ // do_test "shell1-4.7"
@@ -794,7 +794,7 @@ func Test_shell1(t *testing.T) {
 				}
 				if tclBool(i + ">=0xE0 && " + i + "<=0xEF && " + tcl_platform_os + " == \"Linux\"") {
 				}
-				hex = "format %02X $i"
+				hex = tclFormat("%02X", i)
 				_ = hex // suppress unused warning
 				char = "\\x" + hex
 				_ = char // suppress unused warning
@@ -821,8 +821,8 @@ func Test_shell1(t *testing.T) {
 					t.Errorf("TCL error: %s", "failed with error: " + res)
 				}
 				if res != "oldChar\n" {
-					if tclBool("llength $res" + " > 0") {
-						got = "format %02X [scan $res %c]"
+					if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength(res))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
+						got = tclFormat("%02X", "scan $res %c")
 						_ = got // suppress unused warning
 					} else {
 						got = "<empty>"

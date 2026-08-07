@@ -181,7 +181,7 @@ func Test_zipfile2(t *testing.T) {
 	_ = L // suppress unused warning
 	i = "0"
 	_ = i // suppress unused warning
-	for tclBool(i + " < " + "llength $L") {
+	for func() bool { l_n, l_e := strconv.Atoi(i); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strconv.Itoa(tclLLength(L))); if r_e != nil { return false }; return l_n < r_n }() {
 		idx = tclLIndex(L, i)
 		_ = idx // suppress unused warning
 		a = "$archive $idx [expr $idx+3] 0000"
@@ -206,7 +206,7 @@ func Test_zipfile2(t *testing.T) {
 	_ = L // suppress unused warning
 	i = "0"
 	_ = i // suppress unused warning
-	for tclBool(i + " < " + "llength $L") {
+	for func() bool { l_n, l_e := strconv.Atoi(i); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strconv.Itoa(tclLLength(L))); if r_e != nil { return false }; return l_n < r_n }() {
 		idx = tclLIndex(L, i)
 		_ = idx // suppress unused warning
 		a = "$archive $idx [expr $idx+3] 1234"
@@ -235,7 +235,7 @@ func Test_zipfile2(t *testing.T) {
 	}
 	i = "0"
 	_ = i // suppress unused warning
-	for tclBool(i + " < " + "llength $L") {
+	for func() bool { l_n, l_e := strconv.Atoi(i); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strconv.Itoa(tclLLength(L))); if r_e != nil { return false }; return l_n < r_n }() {
 		idx = tclLIndex(L, i)
 		_ = idx // suppress unused warning
 		a = "$archive [expr $idx+8] [expr $idx+9] 00"

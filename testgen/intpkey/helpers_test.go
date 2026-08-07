@@ -971,3 +971,92 @@ func tclIndex(idx interface{}, length int) int {
 	n, _ := strconv.Atoi(s)
 	return n
 }
+
+// tclFormat implements TCL's format command at runtime. The format string is
+// a TCL printf-style format; each argument is passed as a string (TCL values
+// are strings). TCL converts each argument to the type its conversion
+// specifier requires — an integer conversion (%d %i %o %u %x %X %c) parses
+// the argument as an integer, a floating conversion (%f %e %E %g %G) parses
+// it as a double, and %s uses it verbatim — unlike Go's fmt.Sprintf which
+// type-errors on mismatches. Size modifiers (l, h, ll, hh) are stripped and
+// %i/%u are mapped to %d, both of which Go's fmt does not support.
+func tclFormat(format string, args ...string) string {
+	var goFmt strings.Builder
+	var goArgs []interface{}
+	ai := 0
+	i := 0
+	for i < len(format) {
+		c := format[i]
+		if c != '%' {
+			goFmt.WriteByte(c)
+			i++
+			continue
+		}
+		if i+1 < len(format) && format[i+1] == '%' {
+			goFmt.WriteString("%%")
+			i += 2
+			continue
+		}
+		// Parse the conversion specifier: %[flags][width][.prec][size]conv.
+		j := i + 1
+		for j < len(format) && strings.ContainsRune("-+ #0", rune(format[j])) {
+			j++
+		}
+		for j < len(format) && (format[j] >= '0' && format[j] <= '9' || format[j] == '*') {
+			j++
+		}
+		if j < len(format) && format[j] == '.' {
+			j++
+			for j < len(format) && (format[j] >= '0' && format[j] <= '9' || format[j] == '*') {
+				j++
+			}
+		}
+		for j < len(format) && strings.ContainsRune("hlL", rune(format[j])) {
+			j++
+		}
+		if j >= len(format) {
+			// Unterminated specifier: emit literally.
+			goFmt.WriteString(format[i:])
+			break
+		}
+		conv := format[j]
+		spec := format[i : j+1]
+		// Drop size modifiers (Go fmt has no l/h/ll/hh) and map %i/%u to %d.
+		spec = strings.Map(func(r rune) rune {
+			if r == 'l' || r == 'h' || r == 'L' {
+				return -1
+			}
+			return r
+		}, spec)
+		if conv == 'i' || conv == 'u' {
+			spec = spec[:len(spec)-1] + "d"
+		}
+		j++
+		if ai >= len(args) {
+			goFmt.WriteString(spec)
+			continue
+		}
+		arg := args[ai]
+		ai++
+		switch conv {
+		case 'd', 'o', 'x', 'X', 'c', 'i', 'u':
+			// TCL integer conversions accept numeric strings and real
+			// values (truncated toward zero), like SQLite's printf.
+			var n int64
+			if f, err := strconv.ParseFloat(strings.TrimSpace(arg), 64); err == nil {
+				n = int64(f)
+			} else {
+				n, _ = strconv.ParseInt(strings.TrimSpace(arg), 0, 64)
+			}
+			goArgs = append(goArgs, n)
+		case 'f', 'e', 'E', 'g', 'G':
+			f, _ := strconv.ParseFloat(strings.TrimSpace(arg), 64)
+			goArgs = append(goArgs, f)
+		default: // 's' and anything else: use the string verbatim.
+			goArgs = append(goArgs, arg)
+		}
+		goFmt.WriteString(spec)
+		i = j
+	}
+	return fmt.Sprintf(goFmt.String(), goArgs...)
+}

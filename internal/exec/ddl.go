@@ -17,6 +17,7 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // --- ATTACH / DETACH ---
@@ -295,12 +296,17 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 
 	// rowid/_rowid_/oid may not be used in table-level UNIQUE or PRIMARY KEY
 	// constraints (SQLite: "no such column: rowid") — rowid is not a column
-	// name that can be indexed at table level.
+	// name that can be indexed at table level. A non-column expression key
+	// (e.g. substr(x,1,5)) is also rejected: "expressions prohibited in
+	// PRIMARY KEY and UNIQUE constraints" (build.c sqlite3AddPrimaryKey).
 	for _, tc := range s.Constraints {
 		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.Columns != nil {
 			for _, col := range tc.Columns {
 				if isRowIDName(col.Name) {
 					return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+				}
+				if col.Name == "" {
+					return &Result{Error: fmt.Errorf("expressions prohibited in PRIMARY KEY and UNIQUE constraints")}
 				}
 			}
 		}
@@ -395,72 +401,84 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	return &Result{Changes: 0}
 }
 
-// createAutoIndexes creates schema entries for UNIQUE constraints on a table,
-// named sqlite_autoindex_<table>_N in SQLite's numbering. Identical UNIQUE
-// constraints are deduplicated; on WITHOUT ROWID tables an autoindex whose
-// columns exactly match the PRIMARY KEY is redundant and dropped.
+// createAutoIndexes creates schema entries for UNIQUE and PRIMARY KEY
+// constraints on a table, named sqlite_autoindex_<table>_N in SQLite's
+// numbering. Constraints are processed in statement order — column-level
+// constraints in column order (UNIQUE then PRIMARY KEY per column), then
+// table-level constraints in list order — and each consumes a sequence
+// slot even when no entry is created (SQLite numbers by position). An
+// entry is skipped when the constraint is deduplicated (identical column
+// set already seen), when the PK is an INTEGER PRIMARY KEY rowid alias
+// (no index exists, no slot consumed), or when the PK of a WITHOUT ROWID
+// table is the table's own key (no separate sqlite_master row, but the
+// slot is consumed). UNIQUE constraints always create an entry; the
+// uniqueness itself is enforced from the table's UNIQUE/PRIMARY KEY
+// constraints (compositeUniqueGroups), not from this entry's SQL.
 func (e *Engine) createAutoIndexes(ctx *DatabaseContext, tableName string, s *sql.CreateTableStmt, tableEntry *schema.Entry) *Result {
 	type uniqDef struct {
 		cols []string
+		isPK bool
 	}
 	var uniq []uniqDef
-	// Column-level UNIQUE constraints (in column order).
+	// Column-level constraints, in column order. Within a column the UNIQUE
+	// is listed before the PRIMARY KEY; when both exist they name the same
+	// column, so the ordering only affects which duplicate is skipped.
 	for _, cd := range s.Columns {
 		if cd.Unique {
 			uniq = append(uniq, uniqDef{cols: []string{cd.Name}})
 		}
+		if cd.PrimaryKey {
+			uniq = append(uniq, uniqDef{cols: []string{cd.Name}, isPK: true})
+		}
 	}
-	// Table-level UNIQUE constraints.
+	// Table-level constraints, in list order.
+	colIndex := make(map[string]int)
+	for i, cd := range s.Columns {
+		colIndex[cd.Name] = i
+	}
 	for _, tc := range s.Constraints {
-		if tc.Type != sql.ConstraintUnique {
+		if tc.Type != sql.ConstraintUnique && tc.Type != sql.ConstraintPrimaryKey {
 			continue
 		}
-		var cols []string
-		for _, ic := range tc.Columns {
-			cols = append(cols, ic.Name)
-		}
-		uniq = append(uniq, uniqDef{cols: cols})
+		cols := constraintColumnNames(tc, colIndex, s.Columns)
+		uniq = append(uniq, uniqDef{cols: cols, isPK: tc.Type == sql.ConstraintPrimaryKey})
 	}
 	if len(uniq) == 0 {
 		return &Result{}
 	}
 
-	isWithoutRowid := hasWithoutRowidKeyword(strings.ToUpper(s.RawSQL))
-	// PK columns (for redundancy dropping on WITHOUT ROWID).
-	var pkList []string
-	for _, cd := range s.Columns {
-		if cd.PrimaryKey {
-			pkList = append(pkList, cd.Name)
-		}
-	}
-	for _, tc := range s.Constraints {
-		if tc.Type == sql.ConstraintPrimaryKey {
-			for _, ic := range tc.Columns {
-				if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(s.Columns) {
-					pkList = append(pkList, s.Columns[n-1].Name)
-				} else {
-					pkList = append(pkList, ic.Name)
-				}
+	isWithoutRowid := s.WithoutRowid
+
+	// Column type lookup by name (for INTEGER PRIMARY KEY detection).
+	colType := func(name string) string {
+		for _, cd := range s.Columns {
+			if strings.EqualFold(cd.Name, name) {
+				return cd.Type
 			}
 		}
+		return ""
 	}
 
 	seen := map[string]bool{}
 	seq := 0
 	for _, u := range uniq {
-		seq++
 		key := strings.Join(u.cols, ",")
+		// An INTEGER PRIMARY KEY is a rowid alias: no autoindex exists at
+		// all and no sequence slot is consumed (SQLite creates no index).
+		if u.isPK && len(u.cols) == 1 && strings.EqualFold(strings.TrimSpace(colType(u.cols[0])), "INTEGER") {
+			continue
+		}
+		seq++
 		if seen[key] {
-			continue // duplicate UNIQUE constraint
+			continue // duplicate constraint — no entry, no slot consumed
 		}
 		seen[key] = true
-		// On WITHOUT ROWID, a UNIQUE constraint on exactly the PK columns is
-		// redundant (the PK already enforces uniqueness) and is dropped.
-		if isWithoutRowid && sameColumnSet(u.cols, pkList) {
+		// On WITHOUT ROWID, the PK is the table's own key: no separate
+		// sqlite_master entry, but the sequence slot is consumed.
+		if u.isPK && isWithoutRowid {
 			continue
 		}
 		idxName := fmt.Sprintf("sqlite_autoindex_%s_%d", tableName, seq)
-		cols := u.cols
 		// SQLite stores sqlite_autoindex_* rows with NULL sql, so they are
 		// excluded by `SELECT sql FROM sqlite_master WHERE sql!=''`. The
 		// uniqueness itself is enforced from the table's UNIQUE/PRIMARY KEY
@@ -475,7 +493,6 @@ func (e *Engine) createAutoIndexes(ctx *DatabaseContext, tableName string, s *sq
 		if err := ctx.Schema.AddEntry(idxEntry); err != nil {
 			return &Result{Error: err}
 		}
-		_ = cols
 	}
 	return &Result{}
 }
@@ -508,7 +525,7 @@ func (e *Engine) isSyntheticSystemEntry(entry *schema.Entry, name string) bool {
 // is stored as "CREATE TABLE t(...)" in sqlite_temp_schema).
 func (e *Engine) createTableSQL(s *sql.CreateTableStmt) string {
 	if strings.TrimSpace(s.RawSQL) != "" {
-		return stripCreateTempKeyword(strings.TrimSpace(s.RawSQL))
+		return stripIfNotExists(stripCreateTempKeyword(strings.TrimSpace(s.RawSQL)))
 	}
 	return e.buildCreateTableSQL(s)
 }
@@ -880,6 +897,15 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	// entry is written to the schema (an error must not leak a partial index).
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
+	// CREATE INDEX IF NOT EXISTS: silently ignore when an index with the
+	// same name already exists in the target schema (SQLite checks the
+	// schema by name; a table with the name still errors).
+	if s.IfNotExists {
+		if _, _, findErr := e.findIndex(indexName); findErr == nil {
+			return &Result{}
+		}
+	}
+
 	// DDL double-quoted-string (DQS) validation: with DQS disabled for DDL,
 	// a double-quoted identifier in an index key or WHERE clause that does
 	// not resolve to a table column is an error. writable_schema + DQS DML
@@ -897,6 +923,16 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		}
 	}
 
+	// Validate index key expressions: SQLite rejects non-deterministic
+	// functions (random(), julianday('now',...)), subqueries, and other
+	// prohibited constructs in index expressions (build.c
+	// sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
+	for _, term := range s.Terms {
+		if err := validateIndexKeyExpr(term.Expr); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
 	// Allocate root page for index
 	pg := tableCtx.Pager.AllocatePage()
 	pg.Data[0] = storage.PageTypeLeafIndex
@@ -907,7 +943,11 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	// Build index SQL: store the original statement verbatim when available
 	// (matching SQLite's sqlite_schema storage, which preserves expression
 	// index keys and original quoting), falling back to the AST rendering.
+	// IF NOT EXISTS is stripped, matching SQLite's stored-SQL behavior.
 	sqlStr := strings.TrimSpace(s.RawSQL)
+	if s.IfNotExists {
+		sqlStr = stripIfNotExists(sqlStr)
+	}
 	if sqlStr == "" {
 		sqlStr = buildIndexSQL(indexName, s.Table, s.Columns, s.Unique, s.Where)
 	}
@@ -952,6 +992,33 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 
 	idxTree := btree.NewBTree(tableCtx.Pager, pg.PageNum, false)
 
+	// Track index keys to enforce UNIQUE against the existing rows: CREATE
+	// UNIQUE INDEX fails when the table already contains duplicate keys
+	// (SQLite errors "UNIQUE constraint failed: tbl.col" for column keys
+	// and "UNIQUE constraint failed: index 'name'" for expression keys).
+	// NULL keys never conflict (SQL UNIQUE allows multiple NULLs).
+	seenKeys := make(map[string]bool)
+	// The key expressions: plain column names / 1-based positions from
+	// s.Columns when the parser captured them (plain-column indexes), else
+	// the full expression keys from s.Terms (expression indexes like
+	// ON t(substr(a,1,12))).
+	keyExprs := make([]string, 0, len(s.Columns))
+	for _, ic := range s.Columns {
+		keyExprs = append(keyExprs, ic.Name)
+	}
+	if len(keyExprs) == 0 && len(s.Terms) > 0 {
+		for _, term := range s.Terms {
+			keyExprs = append(keyExprs, sql.ExprString(term.Expr))
+		}
+	}
+	allColumnKeys := true
+	for _, ke := range keyExprs {
+		if !isPlainColumnKey(ke) {
+			allColumnKeys = false
+			break
+		}
+	}
+
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil {
@@ -963,12 +1030,65 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		}
 
 		// Build index values: [indexed_col1, ..., indexed_colN, rowid]
-		indexValues := make([]interface{}, 0, len(s.Columns)+1)
+		indexValues := make([]interface{}, 0, len(keyExprs)+1)
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
-		for _, ic := range s.Columns {
-			indexValues = append(indexValues, row[ic.Name])
+		// Partial index: rows not satisfying the WHERE predicate are excluded
+		// from the index entirely, so they neither enter the index nor
+		// participate in UNIQUE validation.
+		if s.Where != nil {
+			if inIndex, err := e.evalBool(s.Where, row); err != nil || !inIndex {
+				if err != nil {
+					return &Result{Error: err}
+				}
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
+			}
+		}
+		for _, ke := range keyExprs {
+			kv, kerr := e.indexKeyForCreate(row, colDefs, ke)
+			if kerr != nil {
+				// SQLite rolls back the CREATE INDEX on an evaluation error
+				// (e.g. integer overflow); remove the schema entry first.
+				_ = tableCtx.Schema.RemoveEntry(indexName)
+				return &Result{Error: kerr}
+			}
+			indexValues = append(indexValues, kv)
 		}
 		indexValues = append(indexValues, cell.RowID)
+
+		// Enforce UNIQUE against existing rows.
+		if s.Unique {
+			hasNull := false
+			var keyParts []string
+			for _, kv := range indexValues[:len(indexValues)-1] {
+				if kv == nil {
+					hasNull = true
+					break
+				}
+				keyParts = append(keyParts, util.SQLiteValueString(kv))
+			}
+			if !hasNull {
+				key := strings.Join(keyParts, "\x00")
+				if seenKeys[key] {
+					// The schema entry was added before the key scan; remove it so
+					// a failed CREATE UNIQUE INDEX does not leak a partial index
+					// (SQLite rolls the whole statement back).
+					_ = tableCtx.Schema.RemoveEntry(indexName)
+					if allColumnKeys {
+						var cols []string
+						for _, ke := range keyExprs {
+							cols = append(cols, tableEntry.Name+"."+ke)
+						}
+						return &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(cols, ", "))}
+					}
+					return &Result{Error: fmt.Errorf("UNIQUE constraint failed: index '%s'", indexName)}
+				}
+				seenKeys[key] = true
+			}
+		}
 
 		// Encode and insert into index b-tree
 		payload, err := storage.EncodeRecord(indexValues)
@@ -990,6 +1110,82 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	return &Result{Changes: 0}
+}
+
+// validateIndexKeyExpr rejects constructs SQLite prohibits in index key
+// expressions (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction):
+// non-deterministic functions, julianday()/randomblob()/zeroblob() with
+// certain arguments, and subqueries.
+func validateIndexKeyExpr(expr sql.Expr) error {
+	var err error
+	walkExprFull(expr, func(n sql.Expr) {
+		if err != nil {
+			return
+		}
+		switch e := n.(type) {
+		case *sql.FuncCall:
+			switch strings.ToUpper(e.Name) {
+			case "RANDOM", "RANDOMBLOB", "ZEROBLOB":
+				err = fmt.Errorf("non-deterministic functions prohibited in index expressions")
+			case "JULIANDAY":
+				// julianday('now', ...) is non-deterministic; julianday(col)
+				// is fine.
+				for _, a := range e.Args {
+					if sl, ok := a.(*sql.StringLit); ok && strings.EqualFold(sl.Value, "now") {
+						err = fmt.Errorf("non-deterministic use of julianday() in an index")
+					}
+				}
+			}
+		case *sql.Subquery:
+			err = fmt.Errorf("subqueries prohibited in index expressions")
+		}
+	})
+	return err
+}
+
+// isPlainColumnKey reports whether an index key is a plain column name (not
+// an expression). Numeric literal keys are 1-based column positions.
+func isPlainColumnKey(name string) bool {
+	if name == "" {
+		return false
+	}
+	if n, err := strconv.Atoi(name); err == nil && n >= 1 {
+		return true
+	}
+	for _, r := range name {
+		if r == '(' || r == ')' || r == '+' || r == '-' || r == '*' || r == '/' ||
+			r == ' ' || r == ',' || r == '=' || r == '<' || r == '>' || r == '|' || r == '&' {
+			return false
+		}
+	}
+	return true
+}
+
+// indexKeyForCreate computes an index key value for a row during CREATE
+// INDEX. Plain column names (and 1-based positions) resolve to the column;
+// anything else is treated as an expression evaluated against the row. An
+// evaluation error (e.g. integer overflow in ABS) is returned so CREATE
+// INDEX can fail like SQLite.
+func (e *Engine) indexKeyForCreate(row RowMap, colDefs []sql.ColumnDef, key string) (interface{}, error) {
+	// 1-based column position.
+	if n, err := strconv.Atoi(key); err == nil && n >= 1 && n <= len(colDefs) {
+		return row[colDefs[n-1].Name], nil
+	}
+	// Plain column name.
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, key) {
+			return row[cd.Name], nil
+		}
+	}
+	// Expression key: evaluate SELECT <expr> against the row.
+	stmts, perr := parse.ParseSQL("SELECT " + key)
+	if perr != nil || len(stmts) == 0 {
+		return nil, nil
+	}
+	if sel, ok := stmts[0].(*sql.SelectStmt); ok && len(sel.Columns) > 0 {
+		return e.evalExpr(sel.Columns[0].Expr, row)
+	}
+	return nil, nil
 }
 
 // --- DROP TABLE ---
@@ -1144,16 +1340,18 @@ func (e *Engine) execDropIndex(s *sql.DropIndexStmt) *Result {
 		return &Result{Error: err}
 	}
 	// Find the index to get its database context
-	_, ctx, err := e.findIndex(s.Name)
+	entry, ctx, err := e.findIndex(s.Name)
 	if err != nil {
-		// If index not found, try removing from main schema (backward compat)
-		if err := e.schema.RemoveEntry(s.Name); err != nil {
-			if s.IfExists {
-				return &Result{}
-			}
-			return &Result{Error: err}
+		if s.IfExists {
+			return &Result{}
 		}
-		return &Result{}
+		return &Result{Error: err}
+	}
+	// Auto-generated indexes (sqlite_autoindex_*) may not be dropped
+	// explicitly (SQLite: "index associated with UNIQUE or PRIMARY KEY
+	// constraint cannot be dropped").
+	if entry != nil && strings.HasPrefix(entry.Name, "sqlite_autoindex_") {
+		return &Result{Error: fmt.Errorf("index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped")}
 	}
 	// Remove from schema
 	if err := ctx.Schema.RemoveEntry(s.Name); err != nil {
@@ -1591,6 +1789,125 @@ func parseVTabSQL(sql string) (moduleName string, args []string, err error) {
 	return moduleName, args, nil
 }
 
+// vtabUpperBound extracts an inclusive upper bound from a virtual-table
+// WHERE clause of the forms "value < N", "value <= N", "N > value",
+// "N >= value", or "value BETWEEN 1 AND N". Returns ok=false when no
+// usable bound is found (the table falls back to its default range).
+func vtabUpperBound(where sql.Expr) (int64, bool) {
+	cmp, ok := where.(*sql.BinaryOp)
+	if !ok || cmp == nil {
+		return 0, false
+	}
+	colRef := func(e sql.Expr) (string, bool) {
+		cr, ok := e.(*sql.ColumnRef)
+		if !ok {
+			return "", false
+		}
+		return strings.ToLower(cr.Name), true
+	}
+	num := func(e sql.Expr) (int64, bool) {
+		nl, ok := e.(*sql.NumericLit)
+		if !ok {
+			return 0, false
+		}
+		v, err := strconv.ParseInt(nl.Value, 10, 64)
+		if err != nil {
+			return 0, false
+		}
+		return v, true
+	}
+	switch strings.ToUpper(cmp.Operator) {
+	case "<", "<=":
+		if c, ok := colRef(cmp.Left); ok && c == "value" {
+			if n, ok := num(cmp.Right); ok {
+				if strings.ToUpper(cmp.Operator) == "<" {
+					return n - 1, true
+				}
+				return n, true
+			}
+		}
+	case ">", ">=":
+		if c, ok := colRef(cmp.Right); ok && c == "value" {
+			if n, ok := num(cmp.Left); ok {
+				if strings.ToUpper(cmp.Operator) == ">" {
+					return n + 1, true
+				}
+				return n, true
+			}
+		}
+	}
+	return 0, false
+}
+
+// validateIndexedBy enforces an INDEXED BY name clause on a single-table
+// query. SQLite raises "no such index: X" when the named index does not
+// exist, and "no query solution" when the forced index cannot serve the
+// query (notably a partial index whose WHERE predicate is not implied by
+// the query's own WHERE clause, or an index that does not cover the query's
+// ORDER BY). The engine does not actually use the forced index for the
+// scan (results are correct via a table scan), but the error contract is
+// observable and tested (indexedby.test).
+func (e *Engine) validateIndexedBy(tableEntry *schema.Entry, indexName string, s *sql.SelectStmt) error {
+	// Resolve the index within the table's schema.
+	var idxEntry *schema.Entry
+	for _, ctx := range e.databases {
+		en, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, ent := range en {
+			if strings.EqualFold(ent.Name, indexName) && strings.EqualFold(ent.TblName, tableEntry.Name) {
+				idxEntry = ent
+				break
+			}
+		}
+		if idxEntry != nil {
+			break
+		}
+	}
+	if idxEntry == nil {
+		return fmt.Errorf("no such index: %s", indexName)
+	}
+
+	// A partial index (WHERE predicate) can only serve the query when the
+	// query's WHERE clause implies the predicate. Without any WHERE, or when
+	// the predicate cannot be implied, the forced partial index yields no
+	// query solution.
+	if wm := indexWhereRe.FindStringSubmatch(idxEntry.SQL); wm != nil {
+		pred := strings.TrimSpace(wm[1])
+		if s.Where == nil || !e.whereImplies(s.Where, pred) {
+			return fmt.Errorf("no query solution")
+		}
+	}
+	return nil
+}
+
+// whereImplies reports whether a query WHERE expression textually implies a
+// partial-index predicate. It is a conservative syntactic check: the
+// predicate matches when the WHERE contains an identical conjunct (e.g.
+// WHERE z=1 implies a predicate "z=1"). Used only for the INDEXED BY
+// "no query solution" error contract.
+func (e *Engine) whereImplies(where sql.Expr, pred string) bool {
+	if where == nil {
+		return false
+	}
+	predNorm := normalizeSQLText(pred)
+	var found bool
+	walkExprFull(where, func(n sql.Expr) {
+		if be, ok := n.(*sql.BinaryOp); ok {
+			if normalizeSQLText(sql.ExprString(be)) == predNorm {
+				found = true
+			}
+		}
+	})
+	return found
+}
+
+// normalizeSQLText collapses whitespace in SQL text for comparison.
+func normalizeSQLText(s string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(s)), " ")
+}
+
 // ensureFTSForTable lazily re-creates the in-memory FTS table for a virtual
 // table entry whose module is an FTS module. On a fresh connection the FTS
 // tables map is empty even though the schema (sqlite_schema) still contains
@@ -1620,7 +1937,7 @@ func (e *Engine) ensureFTSForTable(entry *schema.Entry) {
 }
 
 // virtualTableRows reads all rows from a virtual table.
-func (e *Engine) virtualTableRows(entry *schema.Entry) ([][]interface{}, error) {
+func (e *Engine) virtualTableRows(entry *schema.Entry, bound int64) ([][]interface{}, error) {
 	moduleName, args, err := parseVTabSQL(entry.SQL)
 	if err != nil {
 		return nil, err
@@ -1661,6 +1978,13 @@ func (e *Engine) virtualTableRows(entry *schema.Entry) ([][]interface{}, error) 
 	vtabInstance, err := module.Connect(args)
 	if err != nil {
 		return nil, err
+	}
+	// Pass the WHERE-derived upper bound to bounded virtual tables
+	// (e.g. wholenumber) so they generate only the needed prefix.
+	if bound > 0 {
+		if bt, ok := vtabInstance.(vtab.BoundedVTab); ok {
+			bt.SetUpperBound(bound)
+		}
 	}
 	cursor, err := vtabInstance.Open()
 	if err != nil {

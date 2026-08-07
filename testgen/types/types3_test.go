@@ -56,7 +56,7 @@ func Test_types3(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "types3-1.1"
-		V = "format %s xxxxx"
+		V = tclFormat("%s", "xxxxx")
 		_ = V // suppress unused warning
 		_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
 		_r_tcl = append(_r_tcl, tclSplitList(tclExecSQL(db, "{SELECT typeof(:V)}"))...)

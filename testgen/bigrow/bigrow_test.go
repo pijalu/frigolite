@@ -81,7 +81,7 @@ func Test_bigrow(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 9999 }() {
 			sep = "\"abcdefghijklmnopqrstuvwxyz\" [expr {$i%26}]"
 			_ = sep // suppress unused warning
-			bigstr += sep + " " + "format %04d $i" + " "
+			bigstr += sep + " " + tclFormat("%04d", i) + " "
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

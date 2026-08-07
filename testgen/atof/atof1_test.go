@@ -80,7 +80,7 @@ func Test_atof1(t *testing.T) {
 		_ = pow // suppress unused warning
 		x = tclExprWith("pow((rand()-0.5)*2*rand(),$pow)", map[string]string{"pow": pow})
 		_ = x // suppress unused warning
-		xf = "format %.32e $x"
+		xf = tclFormat("%.32e", x)
 		_ = xf // suppress unused warning
 		{ // do_test "atof1-1." + i + ".1"
 			_dbeval0 := tclExecSQL(db, "SELECT " + sqlLiteral(xf) + "=\\$x")
@@ -107,21 +107,21 @@ func Test_atof1(t *testing.T) {
 				_putsMsg := ""
 				_ = _putsMsg
 				if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 0 }() {
-					_putsMsg = "format {!SCALE: %17s 1 23456789 123456789 123456789} {}"
+					_putsMsg = tclFormat("!SCALE: %17s 1 23456789 123456789 123456789", "")
 					_ = _putsMsg
 				} else {
-					_putsMsg = "format {!SCALE: %16s 1 23456789 123456789 123456789} {}"
+					_putsMsg = tclFormat("!SCALE: %16s 1 23456789 123456789 123456789", "")
 					_ = _putsMsg
 				}
 				_putsMsg = "!IN:    " + a + " " + xf
 				_ = _putsMsg
-				_putsMsg = "format {!QUOTE: %16s %s} {} [db eval {SELECT quote($x)}]"
+				_putsMsg = tclFormat("!QUOTE: %16s %s", "", "db eval {SELECT quote($x)}")
 				_ = _putsMsg
 				_res = db.Exec("SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
 				}
-				_putsMsg = "!OUT:   " + b + " " + "format %.32e $c"
+				_putsMsg = "!OUT:   " + b + " " + tclFormat("%.32e", c)
 				_ = _putsMsg
 			}
 		}

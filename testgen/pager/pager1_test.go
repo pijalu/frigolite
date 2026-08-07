@@ -442,8 +442,8 @@ func Test_pager1(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 					}
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "pager1.4.3." + tn)
+					if flatten(r) != result {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), result, "pager1.4.3." + tn)
 					}
 				}
 			}

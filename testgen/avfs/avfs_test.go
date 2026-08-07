@@ -227,7 +227,7 @@ func Test_avfs(t *testing.T) {
 		_ = in // suppress unused warning
 		tli = ""
 		_ = tli // suppress unused warning
-		i = "llength $::tlo"
+		i = strconv.Itoa(tclLLength(tlo))
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 0 }() {
 			tli = tclListAppend(tli, "gets $in")

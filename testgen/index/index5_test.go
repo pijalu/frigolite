@@ -136,7 +136,7 @@ func Test_index5(t *testing.T) {
 		_ = iPrev // suppress unused warning
 		i = "1"
 		_ = i // suppress unused warning
-		for tclBool(i + " < " + "llength $::write_list") {
+		for func() bool { l_n, l_e := strconv.Atoi(i); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strconv.Itoa(tclLLength(write_list))); if r_e != nil { return false }; return l_n < r_n }() {
 			iNext = tclLIndex(write_list, i)
 			_ = iNext // suppress unused warning
 			if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n+1) }() {

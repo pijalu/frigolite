@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -179,7 +178,7 @@ func Test_index(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		_r = tclListAppend(_r, "format index%02d $i")
+		_r = tclListAppend(_r, tclFormat("index%02d", i))
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -196,7 +195,7 @@ func Test_index(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			sql = "CREATE INDEX " + "format index%02d $i" + " ON test1(f" + tclExprWith("($i%5)+1", map[string]string{"i": i}) + ")"
+			sql = "CREATE INDEX " + tclFormat("index%02d", i) + " ON test1(f" + tclExprWith("($i%5)+1", map[string]string{"i": i}) + ")"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -214,8 +213,8 @@ func Test_index(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _r) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _r, _res.Error, "index-3.1")
+		if flatten(r) != _r {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), _r, "index-3.1")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -715,7 +714,7 @@ func Test_index(t *testing.T) {
 	}
 	i = "0"
 	_ = i // suppress unused warning
-	for tclBool(i + "<" + "llength $::idxlist") {
+	for func() bool { l_n, l_e := strconv.Atoi(i); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strconv.Itoa(tclLLength(idxlist))); if r_e != nil { return false }; return l_n < r_n }() {
 		{ // do_test "index-13.3." + i
 			_res = db.Exec("\n      DROP INDEX '" + tclLIndex(idxlist, i) + "';\n    ")
 			_ = _res // catchsql

@@ -7,7 +7,7 @@ package bigfile
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
+"strconv"
 "testing"
 )
 
@@ -79,8 +79,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.1")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.1")
 		}
 	}
 	db.Close()
@@ -98,11 +98,11 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.2")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.2")
 		}
 	}
-	if tclBool("llength [info command db]" + "<=0") {
+	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info command db"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n <= r_n }() {
 		_putsMsg := "**** Large file support appears to be broken. *****"
 		_ = _putsMsg
 		return
@@ -124,8 +124,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.4")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.4")
 		}
 	}
 	db.Close()
@@ -143,8 +143,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.5")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.5")
 		}
 	}
 	{ // do_test "bigfile-1.6"
@@ -155,8 +155,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.6")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.6")
 		}
 	}
 	{ // do_test "bigfile-1.7"
@@ -176,8 +176,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.8")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.8")
 		}
 	}
 	{ // do_test "bigfile-1.9"
@@ -204,8 +204,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.10")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.10")
 		}
 	}
 	{ // do_test "bigfile-1.11"
@@ -216,8 +216,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.11")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.11")
 		}
 	}
 	{ // do_test "bigfile-1.12"
@@ -228,8 +228,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t3;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.12")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.12")
 		}
 	}
 	{ // do_test "bigfile-1.13"
@@ -249,8 +249,8 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.14")
+		if flatten(r) != MAGIC_SUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), MAGIC_SUM, "bigfile-1.14")
 		}
 	}
 	{ // do_test "bigfile-1.15"

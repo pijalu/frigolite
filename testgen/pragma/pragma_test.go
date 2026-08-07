@@ -1881,8 +1881,8 @@ func Test_pragma(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 							}
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), mainerr) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", mainerr, _res.Error, "22.2")
+							if flatten(r) != mainerr {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), mainerr, "22.2")
 							}
 						}
 						{ // do_test "22.3.1"
@@ -1898,8 +1898,8 @@ func Test_pragma(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
 							}
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), auxerr) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", auxerr, _res.Error, "22.3.1")
+							if flatten(r) != auxerr {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), auxerr, "22.3.1")
 							}
 						}
 						{ // do_test "22.3.2"
@@ -1930,8 +1930,8 @@ func Test_pragma(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
 							}
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), mainerr) {
-								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", mainerr, _res.Error, "22.4.1")
+							if flatten(r) != mainerr {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), mainerr, "22.4.1")
 							}
 						}
 						{ // do_test "22.4.2"

@@ -88,7 +88,7 @@ func Test_memleak(t *testing.T) {
 	EXCLUDE = tclListAppend(EXCLUDE, "btree4.test")
 	if tclBool("") {
 	}
-	if tclBool("llength $argv" + ">0") {
+	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength(argv))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
 		FILELIST = argv
 		_ = FILELIST // suppress unused warning
 		var argv = ""
