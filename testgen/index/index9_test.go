@@ -87,7 +87,7 @@ func Test_index9(t *testing.T) {
 	_ = y // suppress unused warning
 	// do_sqluses_test 1.3 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
 	// do_sqluses_test 1.4 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
-	y = tclStringRange("\"45\"", "0", "end")
+	y = tclStringRange("45", "0", "end")
 	_ = y // suppress unused warning
 	// do_sqluses_test 1.5 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
 	{ // "2.0"

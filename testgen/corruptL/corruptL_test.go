@@ -460,10 +460,6 @@ func Test_corruptL(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
-	{ // "18.1" — skipped: window functions not supported
-		_res = db.Exec("\n  SELECT \n    json_group_array(c) OVER win4 \n  FROM t1\n    WINDOW win4 AS (\n        ORDER BY a COLLATE nocase RANGE BETWEEN 1.0 PRECEDING AND CURRENT ROW\n    )\n")
-		_ = _res
-	}
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

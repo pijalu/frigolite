@@ -165,7 +165,7 @@ func Test_ioerr5(t *testing.T) {
 				// close $fd
 				// expr $zDatabase eq $zDatabase2 (not evaluated)
 			}
-			if func() bool { l_n, l_e := strconv.Atoi(rc); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0 {}"); if r_e != nil { return false }; return l_n == r_n }() {
+			if func() bool { l_n, l_e := strconv.Atoi(rc); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0 "); if r_e != nil { return false }; return l_n == r_n }() {
 				{ // do_test "ioerr5.1-" + locking_mode + "-" + iFail + ".3"
 					r = db.Query(" SELECT count(*) FROM a ")
 					if r.Error != nil {

@@ -824,9 +824,9 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-6.2"
-			r = db.Query("\n    CREATE TABLE t2(a TYPE_X, b " + sqlLiteral("TYPE_Y") + ", c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+			r = db.Query("\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a TYPE_X, b " + sqlLiteral("TYPE_Y") + ", c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
 			}
 		}
 		{ // do_test "pragma-6.2.1"
@@ -1110,7 +1110,7 @@ func Test_pragma(t *testing.T) {
 			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "pragma-8.1.18"
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		{ // do_test "pragma-8.2.1"
 			r = db.Query("\n    PRAGMA user_version;\n  ")
@@ -1440,7 +1440,7 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.table_info('abc');\n    ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		{ // do_test "pragma-12.2"
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2
@@ -1449,7 +1449,7 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;\n    ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		{ // do_test "pragma-12.3"
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2
@@ -1458,7 +1458,7 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;\n    ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		{ // do_test "pragma-13.1"
 			r = db.Query("\n    DROP TABLE IF EXISTS t4;\n    PRAGMA vdbe_trace=on;\n    PRAGMA vdbe_listing=on;\n    PRAGMA sql_trace=on;\n    CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n    INSERT INTO t4(b) VALUES(x'0123456789abcdef0123456789abcdef0123456789');\n    INSERT INTO t4(b) VALUES(randstr(30,30));\n    INSERT INTO t4(b) VALUES(1.23456);\n    INSERT INTO t4(b) VALUES(NULL);\n    INSERT INTO t4(b) VALUES(0);\n    INSERT INTO t4(b) SELECT b||b||b||b FROM t4;\n    SELECT * FROM t4;\n  ")
 			if r.Error != nil {
@@ -1610,7 +1610,7 @@ func Test_pragma(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"mylittleproxy\";\n    ")
 				}
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			{ // do_test "pragma-16.2.1"
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -1623,7 +1623,7 @@ func Test_pragma(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file;\n    ")
 				}
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			{ // do_test "pragma-16.3"
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -1635,7 +1635,7 @@ func Test_pragma(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "pragma-16.4"
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				db.Close()
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -1644,7 +1644,7 @@ func Test_pragma(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"myoriginalproxy\";\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n      PRAGMA lock_proxy_file;\n    ")
 				}
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			env_SQLITE_FORCE_PROXY_LOCKING = "1"
 			_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
 			{ // do_test "pragma-16.5"
@@ -1656,7 +1656,7 @@ func Test_pragma(t *testing.T) {
 				}
 			}
 			{ // do_test "pragma-16.6"
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
 				lockpath = tclExecSQL(db, "{\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    } db2")
@@ -1674,7 +1674,7 @@ func Test_pragma(t *testing.T) {
 				_list := tclList([]string{"0", msg})
 				_ = _list
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			{ // do_test "pragma-16.8.1"
 				r = db.Query("\n      PRAGMA lock_proxy_file=\"yetanotherproxy\";\n      PRAGMA lock_proxy_file;\n    ")
 				if r.Error != nil {

@@ -170,7 +170,7 @@ func Test_avfs(t *testing.T) {
 		// adb eval {\n    PRAGMA page_size=1024;\n    PRAGMA cache_siz...} { lappend results $... (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		results = tclListAppend(results, "fosAvfs $fza")
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.1"
@@ -181,7 +181,7 @@ func Test_avfs(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT ...} { lappend results $... (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.2"
@@ -204,7 +204,7 @@ func Test_avfs(t *testing.T) {
 		adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
 		results = tclListAppend(results, "Bytes before/after " + adbSz + "/" + adaSz)
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.3"
@@ -215,7 +215,7 @@ func Test_avfs(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT ...} { lappend results $... (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.4"
@@ -240,7 +240,7 @@ func Test_avfs(t *testing.T) {
 			}
 		}
 		// close $in
-		if func() bool { l_n, l_e := strconv.Atoi(strings.Join(tclSplitList(tli), "\":\"")); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strings.Join(tclSplitList(tlo), "\":\"")); if r_e != nil { return false }; return l_n != r_n }() {
+		if func() bool { l_n, l_e := strconv.Atoi(strings.Join(tclSplitList(tli), ":")); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(strings.Join(tclSplitList(tlo), ":")); if r_e != nil { return false }; return l_n != r_n }() {
 			result = "Appendee changed." // TCL namespace variable
 			_ = result // suppress unused warning
 		} else {
@@ -307,7 +307,7 @@ func Test_avfs(t *testing.T) {
 		results = "concat $results [lrange $qr 0 2]"
 		_ = results // suppress unused warning
 		results = tclListAppend(results, tclExprWith("$adba > 10.0", map[string]string{"adba": adba}))
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "3.2"
@@ -318,7 +318,7 @@ func Test_avfs(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// adb eval {\n    SELECT integrity_check as ic FROM pragma_int...} { lappend results $... (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "3.3"
@@ -348,7 +348,7 @@ func Test_avfs(t *testing.T) {
 		okSzr = tclExprWith("$adaSzr > 1.0 && $adaSzr < 1.3", map[string]string{"adaSzr": adaSzr})
 		_ = okSzr // suppress unused warning
 		results = tclListAppend(results, okSzr)
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "3.4"
@@ -380,7 +380,7 @@ func Test_avfs(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// adb eval {\n    SELECT integrity_check as ic FROM pragma_int...} { lappend results $... (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
-		result = strings.Join(tclSplitList(results), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(results), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	cliDoesAr = "shellDoesAr" // TCL namespace variable
@@ -416,7 +416,7 @@ func Test_avfs(t *testing.T) {
 		_ = res // suppress unused warning
 		res = tclListAppend(res, "fosAvfs $shod")
 		os.Remove(shdo)
-		result = strings.Join(tclSplitList(res), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(res), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "4.2"
@@ -448,7 +448,7 @@ func Test_avfs(t *testing.T) {
 		_ = res // suppress unused warning
 		res = tclListAppend(res, "fosAvfs $shod")
 		os.Remove(shdo)
-		result = strings.Join(tclSplitList(res), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(res), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "4.3"
@@ -485,7 +485,7 @@ func Test_avfs(t *testing.T) {
 		// adb eval {\n    SELECT count(*) as n FROM sqlar\n  } { lappend res $n } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		os.Remove(shdo)
-		result = strings.Join(tclSplitList(res), "\"") // TCL namespace variable
+		result = strings.Join(tclSplitList(res), " | ") // TCL namespace variable
 		_ = result // suppress unused warning
 	}
 	{ // do_test "5.1"

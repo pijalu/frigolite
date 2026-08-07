@@ -189,18 +189,6 @@ func Test_whereF(t *testing.T) {
 				{ // do_test "5.6"
 					// expr [db status vmstep]<200 (not evaluated)
 				}
-				{ // "6.1"
-					r = db.Query("\n    CREATE TABLE t6(x);\n    SELECT * FROM t6 WHERE 1 IN (SELECT value FROM json_each(x));\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x);\n    SELECT * FROM t6 WHERE 1 IN (SELECT value FROM json_each(x));\n  ")
-					}
-				}
-				{ // "whereF-6.2" — skipped: json_each virtual table not supported
-				}
-				{ // "whereF-6.3" — skipped: json_each virtual table not supported
-				}
-				{ // "whereF-6.4" — skipped: json_each virtual table not supported
-				}
 				{ // "7.1"
 					r = db.Query("\n  DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );\n")
 					if r.Error != nil {

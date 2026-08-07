@@ -79,7 +79,7 @@ func Test_capi3b(t *testing.T) {
 		}
 	}
 	{ // do_test "capi3b-1.2"
-		r = db2.Query("\n    SELECT * FROM t1\n  ")
+		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
@@ -112,7 +112,7 @@ func Test_capi3b(t *testing.T) {
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi3b-1.8"
-		r = db2.Query("SELECT * FROM t1")
+		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}

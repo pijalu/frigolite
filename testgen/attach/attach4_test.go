@@ -90,7 +90,6 @@ func Test_attach4(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		// sqlite3_limit db SQLITE_LIMIT_ATTACHED -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "1.1")
 		}

@@ -52,7 +52,6 @@ func Test_all(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// run_test_suite full (unsupported command, not transpiled)
-	// run_test_suite rbu (unsupported command, not transpiled)
 	// run_test_suite no_optimization (unsupported command, not transpiled)
 	// run_test_suite memsubsys1 (unsupported command, not transpiled)
 	// run_test_suite memsubsys2 (unsupported command, not transpiled)

@@ -605,7 +605,7 @@ func Test_multiplex(t *testing.T) {
 	}
 	{ // do_test "multiplex-3.1.6"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "multiplex-3.2.1a"
 		// multiplex_delete test.db (unsupported command, not transpiled)
@@ -766,7 +766,7 @@ func Test_multiplex(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "multiplex-4.1.11"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		res = "multiplex_list"
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {test2.db} $res"})

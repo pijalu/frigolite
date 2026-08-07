@@ -79,7 +79,7 @@ func Test_resetdb(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // do_test "110"
-		r = db2.Query("\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_count;\n  ")
+		r = db.Query("\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_count;\n  ")
 		}
@@ -90,7 +90,7 @@ func Test_resetdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "201"
-		_res = db2.Exec("\n    PRAGMA quick_check;\n  ")
+		_res = db.Exec("\n    PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "210"
@@ -104,7 +104,7 @@ func Test_resetdb(t *testing.T) {
 			_res = db2.Exec("SELECT * FROM sqlite_master")
 			_ = _res // catchsql
 		}
-		_res = db2.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA quick_check;\n     PRAGMA journal_mode;\n  ")
+		_res = db.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA quick_check;\n     PRAGMA journal_mode;\n  ")
 		_ = _res // catchsql
 	}
 	db.Close()
@@ -127,7 +127,7 @@ func Test_resetdb(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // do_test "310"
-		r = db2.Query("\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
+		r = db.Query("\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
 		}
@@ -140,7 +140,7 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "330"
-		_res = db2.Exec("\n    PRAGMA quick_check\n  ")
+		_res = db.Exec("\n    PRAGMA quick_check\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "400"
@@ -150,7 +150,7 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
 		// sqlite3_db_config RESET_DB (unhandled flag)
-		_res = db2.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
+		_res = db.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
 	_ = db2 // close db2: aliased to db, no-op
@@ -326,11 +326,11 @@ func Test_resetdb(t *testing.T) {
 		_ = tclStringRange("db eval {\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('one', 'two');\n      PRAGMA encoding;\n    }", "0", "5") // string range result
 	}
 	{ // do_test "850"
-		_res = db2.Exec(" SELECT * FROM t1; ")
+		_res = db.Exec(" SELECT * FROM t1; ")
 		_ = _res // catchsql
 	}
 	{ // do_test "860"
-		_res = db2.Exec(" SELECT * FROM t2; ")
+		_res = db.Exec(" SELECT * FROM t2; ")
 		_ = _res // catchsql
 	}
 }

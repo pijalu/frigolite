@@ -580,16 +580,16 @@ func Test_returning1(t *testing.T) {
 		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.2"
-		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING " + sqlLiteral("x") + ";")
+		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING [x];")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING " + sqlLiteral("x") + ";")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING [x];")
 		}
 		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.3"
-		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS " + sqlLiteral("xyz") + ";")
+		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS " + sqlLiteral("xyz") + ";")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];")
 		}
 		_ = tclSort("array names cname") // lsort result
 	}
@@ -599,29 +599,6 @@ func Test_returning1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x,y) VALUES(4,5) RETURNING \"x\"+\"y\";")
 		}
 		_ = tclSort("array names cname") // lsort result
-	}
-	db.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	{ // "13.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
-		}
-	}
-	{ // "13.1"
-		r = db.Query("\n  INSERT INTO t1(a,b,c) VALUES(1,2,3) \n  RETURNING (SELECT b FROM t2);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1(a,b,c) VALUES(1,2,3) \n  RETURNING (SELECT b FROM t2);\n")
-			return
-		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
 	}
 	db.Close()
 	os.Remove("test.db")

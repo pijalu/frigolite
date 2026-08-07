@@ -84,7 +84,7 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.2"
-		r = db2.Query(" \n    BEGIN;\n    SELECT * FROM abc;\n  ")
+		r = db.Query(" \n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		}
@@ -104,7 +104,7 @@ func Test_tkt2854(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.6"
-		_res = db2.Exec(" COMMIT ")
+		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -128,15 +128,15 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.8"
-		_res = db2.Exec(" BEGIN EXCLUSIVE ")
+		_res = db.Exec(" BEGIN EXCLUSIVE ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.9"
-		_res = db2.Exec(" BEGIN IMMEDIATE ")
+		_res = db.Exec(" BEGIN IMMEDIATE ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.10"
-		_res = db2.Exec(" BEGIN ")
+		_res = db.Exec(" BEGIN ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.11"
@@ -170,7 +170,7 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.18"
-		r = db2.Query(" SELECT * FROM abc ")
+		r = db.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
@@ -197,13 +197,13 @@ func Test_tkt2854(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.21"
-		r = db2.Query("SELECT * FROM abc")
+		r = db.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db3.Close()
 	db4.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)

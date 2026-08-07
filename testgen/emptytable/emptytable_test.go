@@ -64,6 +64,7 @@ func Test_emptytable(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	db.SetProgressHandler(toInt(1000000), func() bool { return true })
 	{ // "emptytable-110"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t1, t1, t1, t1, t1, empty;\n")
 		if _res.Error != nil {

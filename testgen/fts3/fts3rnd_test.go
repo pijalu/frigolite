@@ -235,14 +235,14 @@ func Test_fts3rnd(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nVocab_n, _nVocab_e := strconv.Atoi(nVocab); if _nVocab_e != nil { return false }; return i_n < nVocab_n }() {
 		_len = "2"
 		_ = _len // suppress unused warning
-		word = tclLIndex(lChar, "")
+		word = tclLIndex(lChar, "0")
 		_ = word // suppress unused warning
-		word += tclLIndex(lChar, "")
+		word += tclLIndex(lChar, "0")
 		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 2 }() {
-			word += tclLIndex(lChar, "")
+			word += tclLIndex(lChar, "0")
 		}
 		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 3 }() {
-			word += tclLIndex(lChar, "")
+			word += tclLIndex(lChar, "0")
 		}
 		lVocab = tclListAppend(lVocab, word)
 		// incr i 1
@@ -328,12 +328,12 @@ func Test_fts3rnd(t *testing.T) {
 				_ = rows // suppress unused warning
 				nRow = "llength $rows"
 				_ = nRow // suppress unused warning
-				iUpdate = tclLIndex(rows, "")
+				iUpdate = tclLIndex(rows, tclExprWith("int(rand()*$nRow)", map[string]string{"nRow": nRow}))
 				_ = iUpdate // suppress unused warning
 				iDelete = iUpdate
 				_ = iDelete // suppress unused warning
 				for func() bool { iDelete_n, _iDelete_e := strconv.Atoi(iDelete); if _iDelete_e != nil { return false }; iUpdate_n, _iUpdate_e := strconv.Atoi(iUpdate); if _iUpdate_e != nil { return false }; return iDelete_n == iUpdate_n }() {
-					iDelete = tclLIndex(rows, "")
+					iDelete = tclLIndex(rows, tclExprWith("int(rand()*$nRow)", map[string]string{"nRow": nRow}))
 					_ = iDelete // suppress unused warning
 				}
 				iInsert = iUpdate
@@ -443,7 +443,7 @@ func Test_fts3rnd(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					terms = "random_term" + " " + "random_term"
 					_ = terms // suppress unused warning
-					match = strings.Join(tclSplitList(terms), "\"")
+					match = strings.Join(tclSplitList(terms), " NEAR ")
 					_ = match // suppress unused warning
 					// do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_near $terms... (unsupported command, not transpiled)
 					// incr i 1
@@ -461,7 +461,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = terms // suppress unused warning
 					nNear = "11"
 					_ = nNear // suppress unused warning
-					match = strings.Join(tclSplitList(terms), "\"")
+					match = strings.Join(tclSplitList(terms), " NEAR/" + nNear + " ")
 					_ = match // suppress unused warning
 					// do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_near $terms... (unsupported command, not transpiled)
 					// incr i 1

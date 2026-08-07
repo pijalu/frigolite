@@ -146,350 +146,282 @@ func Test_sqllimits1(t *testing.T) {
 	db2, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqllimits1-1.1"
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-1.1")
 		}
 	}
 	{ // do_test "sqllimits1-1.2"
-		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SQL_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-1.2")
 		}
 	}
 	{ // do_test "sqllimits1-1.3"
-		// sqlite3_limit db SQLITE_LIMIT_COLUMN -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COLUMN) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-1.3")
 		}
 	}
 	{ // do_test "sqllimits1-1.4"
-		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1 (unsupported command, not transpiled)
+		db.SetExprDepthLimit(toInt(-1))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_EXPR_DEPTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-1.4")
 		}
 	}
 	{ // do_test "sqllimits1-1.5"
-		// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COMPOUND_SELECT) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-1.5")
 		}
 	}
 	{ // do_test "sqllimits1-1.6"
-		// sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VDBE_OP) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-1.6")
 		}
 	}
 	{ // do_test "sqllimits1-1.7"
-		// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_FUNCTION_ARG) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-1.7")
 		}
 	}
 	{ // do_test "sqllimits1-1.8"
-		// sqlite3_limit db SQLITE_LIMIT_ATTACHED -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-1.8")
 		}
 	}
 	{ // do_test "sqllimits1-1.9"
-		// sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LIKE_PATTERN_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-1.9")
 		}
 	}
 	{ // do_test "sqllimits1-1.10"
-		// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VARIABLE_NUMBER) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-1.10")
 		}
 	}
 	{ // do_test "sqllimits1-1.11"
-		// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_TRIGGER_DEPTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_TRIGGER_DEPTH, _res.Error, "sqllimits1-1.11")
 		}
 	}
 	{ // do_test "sqllimits1-1.12"
-		// sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 99999 (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_WORKER_THREADS) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_WORKER_THREADS, _res.Error, "sqllimits1-1.12")
 		}
 	}
 	{ // do_test "sqllimits1-1.13"
-		// sqlite3_limit db SQLITE_LIMIT_SCHEMA 999999999 (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_SCHEMA -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SCHEMA) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SCHEMA, _res.Error, "sqllimits1-1.13")
 		}
 	}
 	{ // do_test "sqllimits1-1.20"
-		// sqlite3_limit db SQLITE_LIMIT_TOOSMALL 123 (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-1.21"
-		// sqlite3_limit db SQLITE_LIMIT_TOOSMALL 123 (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-1.22"
-		// sqlite3_limit db SQLITE_LIMIT_TOOBIG 123 (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-1.23"
-		// sqlite3_limit db SQLITE_LIMIT_TOOBIG 123 (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-1.30"
 		prior = "sqlite3_limit db SQLITE_LIMIT_LENGTH 1"
 		_ = prior // suppress unused warning
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH $prior (unsupported command, not transpiled)
 	}
 	if func() bool { SQLITE_MAX_LENGTH_n, _SQLITE_MAX_LENGTH_e := strconv.Atoi(SQLITE_MAX_LENGTH); if _SQLITE_MAX_LENGTH_e != nil { return false }; return SQLITE_MAX_LENGTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.1.1"
-			// sqlite3_limit db SQLITE_LIMIT_LENGTH [expr {$::SQLITE_MAX_LENGTH/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LENGTH) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-2.1.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.1.2"
-			// sqlite3_limit db SQLITE_LIMIT_LENGTH -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_SQL_LENGTH_n, _SQLITE_MAX_SQL_LENGTH_e := strconv.Atoi(SQLITE_MAX_SQL_LENGTH); if _SQLITE_MAX_SQL_LENGTH_e != nil { return false }; return SQLITE_MAX_SQL_LENGTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.2.1"
-			// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH [expr {$::SQLITE_MAX_SQL_LENGTH/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SQL_LENGTH) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-2.2.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.2.2"
-			// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_COLUMN_n, _SQLITE_MAX_COLUMN_e := strconv.Atoi(SQLITE_MAX_COLUMN); if _SQLITE_MAX_COLUMN_e != nil { return false }; return SQLITE_MAX_COLUMN_n >= 2 }() {
 		{ // do_test "sqllimits1-2.3.1"
-			// sqlite3_limit db SQLITE_LIMIT_COLUMN [expr {$::SQLITE_MAX_COLUMN/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COLUMN) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-2.3.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.3.2"
-			// sqlite3_limit db SQLITE_LIMIT_COLUMN -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_EXPR_DEPTH_n, _SQLITE_MAX_EXPR_DEPTH_e := strconv.Atoi(SQLITE_MAX_EXPR_DEPTH); if _SQLITE_MAX_EXPR_DEPTH_e != nil { return false }; return SQLITE_MAX_EXPR_DEPTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.4.1"
-			// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH [expr {$::SQLITE_MAX_EXPR_DEPTH/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_EXPR_DEPTH) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-2.4.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.4.2"
-			// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1 (unsupported command, not transpiled)
+			db.SetExprDepthLimit(toInt(-1))
 		}
 	}
 	if func() bool { SQLITE_MAX_COMPOUND_SELECT_n, _SQLITE_MAX_COMPOUND_SELECT_e := strconv.Atoi(SQLITE_MAX_COMPOUND_SELECT); if _SQLITE_MAX_COMPOUND_SELECT_e != nil { return false }; return SQLITE_MAX_COMPOUND_SELECT_n >= 2 }() {
 		{ // do_test "sqllimits1-2.5.1"
-			// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT [expr {$::SQLITE_MAX_COMPOUND_SELECT/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COMPOUND_SELECT) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-2.5.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.5.2"
-			// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_VDBE_OP_n, _SQLITE_MAX_VDBE_OP_e := strconv.Atoi(SQLITE_MAX_VDBE_OP); if _SQLITE_MAX_VDBE_OP_e != nil { return false }; return SQLITE_MAX_VDBE_OP_n >= 2 }() {
 		{ // do_test "sqllimits1-2.6.1"
-			// sqlite3_limit db SQLITE_LIMIT_VDBE_OP [expr {$::SQLITE_MAX_VDBE_OP/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VDBE_OP) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-2.6.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.6.2"
-			// sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_FUNCTION_ARG_n, _SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(SQLITE_MAX_FUNCTION_ARG); if _SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return SQLITE_MAX_FUNCTION_ARG_n >= 2 }() {
 		{ // do_test "sqllimits1-2.7.1"
-			// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG [expr {$::SQLITE_MAX_FUNCTION_ARG/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_FUNCTION_ARG) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-2.7.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.7.2"
-			// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return SQLITE_MAX_ATTACHED_n >= 2 }() {
 		{ // do_test "sqllimits1-2.8.1"
-			// sqlite3_limit db SQLITE_LIMIT_ATTACHED [expr {$::SQLITE_MAX_ATTACHED/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-2.8.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.8.2"
-			// sqlite3_limit db SQLITE_LIMIT_ATTACHED -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_LIKE_PATTERN_LENGTH_n, _SQLITE_MAX_LIKE_PATTERN_LENGTH_e := strconv.Atoi(SQLITE_MAX_LIKE_PATTERN_LENGTH); if _SQLITE_MAX_LIKE_PATTERN_LENGTH_e != nil { return false }; return SQLITE_MAX_LIKE_PATTERN_LENGTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.9.1"
-			// sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH [expr {$::SQLITE_MAX_LIKE_PATTERN_LENGTH/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LIKE_PATTERN_LENGTH) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-2.9.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.9.2"
-			// sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_VARIABLE_NUMBER_n, _SQLITE_MAX_VARIABLE_NUMBER_e := strconv.Atoi(SQLITE_MAX_VARIABLE_NUMBER); if _SQLITE_MAX_VARIABLE_NUMBER_e != nil { return false }; return SQLITE_MAX_VARIABLE_NUMBER_n >= 2 }() {
 		{ // do_test "sqllimits1-2.10.1"
-			// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER [expr {$::SQLITE_MAX_VARIABLE_NUMBER/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VARIABLE_NUMBER) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-2.10.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.10.2"
-			// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1 (unsupported command, not transpiled)
 		}
 	}
 	if func() bool { SQLITE_MAX_SCHEMA_n, _SQLITE_MAX_SCHEMA_e := strconv.Atoi(SQLITE_MAX_SCHEMA); if _SQLITE_MAX_SCHEMA_e != nil { return false }; return SQLITE_MAX_SCHEMA_n >= 2 }() {
 		{ // do_test "sqllimits1-2.11.1"
-			// sqlite3_limit db SQLITE_LIMIT_SCHEMA [expr {$::SQLITE_MAX_SCHEMA/2}] (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SCHEMA) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SCHEMA, _res.Error, "sqllimits1-2.11.1")
 			}
 		}
 		{ // do_test "sqllimits1-2.11.2"
-			// sqlite3_limit db SQLITE_LIMIT_SCHEMA -1 (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "sqllimits1-3.1"
-		// sqlite3_limit db2 SQLITE_LIMIT_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-3.1")
 		}
 	}
 	{ // do_test "sqllimits1-3.2"
-		// sqlite3_limit db2 SQLITE_LIMIT_SQL_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SQL_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-3.2")
 		}
 	}
 	{ // do_test "sqllimits1-3.3"
-		// sqlite3_limit db2 SQLITE_LIMIT_COLUMN -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COLUMN) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-3.3")
 		}
 	}
 	{ // do_test "sqllimits1-3.4"
-		// sqlite3_limit db2 SQLITE_LIMIT_EXPR_DEPTH -1 (unsupported command, not transpiled)
+		db.SetExprDepthLimit(toInt(-1))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_EXPR_DEPTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-3.4")
 		}
 	}
 	{ // do_test "sqllimits1-3.5"
-		// sqlite3_limit db2 SQLITE_LIMIT_COMPOUND_SELECT -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COMPOUND_SELECT) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-3.5")
 		}
 	}
 	{ // do_test "sqllimits1-3.6"
-		// sqlite3_limit db2 SQLITE_LIMIT_VDBE_OP -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VDBE_OP) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-3.6")
 		}
 	}
 	{ // do_test "sqllimits1-3.7"
-		// sqlite3_limit db2 SQLITE_LIMIT_FUNCTION_ARG -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_FUNCTION_ARG) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-3.7")
 		}
 	}
 	{ // do_test "sqllimits1-3.8"
-		// sqlite3_limit db2 SQLITE_LIMIT_ATTACHED -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-3.8")
 		}
 	}
 	{ // do_test "sqllimits1-3.9"
-		// sqlite3_limit db2 SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LIKE_PATTERN_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-3.9")
 		}
 	}
 	{ // do_test "sqllimits1-3.10"
-		// sqlite3_limit db2 SQLITE_LIMIT_VARIABLE_NUMBER -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VARIABLE_NUMBER) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-3.10")
 		}
 	}
 	db2.Close()
 	{ // do_test "sqllimits1-4.1.1"
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-4.1.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.2.1"
-		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SQL_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-4.2.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.3.1"
-		// sqlite3_limit db SQLITE_LIMIT_COLUMN 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_COLUMN -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COLUMN) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-4.3.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.4.1"
-		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1 (unsupported command, not transpiled)
+		db.SetExprDepthLimit(toInt(-1))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_EXPR_DEPTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-4.4.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.5.1"
-		// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COMPOUND_SELECT) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-4.5.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.6.1"
-		// sqlite3_limit db SQLITE_LIMIT_VDBE_OP 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VDBE_OP) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-4.6.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.7.1"
-		// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_FUNCTION_ARG) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-4.7.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.8.1"
-		// sqlite3_limit db SQLITE_LIMIT_ATTACHED 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_ATTACHED -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-4.8.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.9.1"
-		// sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LIKE_PATTERN_LENGTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-4.9.1")
 		}
 	}
 	{ // do_test "sqllimits1-4.10.1"
-		// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER 0x7fffffff (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VARIABLE_NUMBER) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-4.10.1")
 		}
@@ -501,7 +433,6 @@ func Test_sqllimits1(t *testing.T) {
 	_ = LARGESIZE // suppress unused warning
 	SQLITE_LIMIT_LENGTH = "100000"
 	_ = SQLITE_LIMIT_LENGTH // suppress unused warning
-	// sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH (unsupported command, not transpiled)
 	{ // do_test "sqllimits1-5.1.1"
 		_res = db.Exec(" SELECT randomblob(2147483647) ")
 		_ = _res // catchsql
@@ -696,7 +627,6 @@ func Test_sqllimits1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t4")
 	}
-	// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 0x7fffffff (unsupported command, not transpiled)
 	strvalue = "A $::SQLITE_LIMIT_LENGTH"
 	_ = strvalue // suppress unused warning
 	{ // do_test "sqllimits1-5.16"
@@ -708,12 +638,10 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.17.2"
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff (unsupported command, not transpiled)
 		_res = db.Exec("SELECT 'A' || " + sqlLiteral(strvalue))
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.17.3"
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH (unsupported command, not transpiled)
 		_res = db.Exec("SELECT 'A' || " + sqlLiteral(strvalue))
 		_ = _res // catchsql
 	}
@@ -738,7 +666,6 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-6.1"
-		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
 		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
@@ -750,7 +677,6 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-6.3"
-		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
 		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
@@ -862,7 +788,6 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	SQLITE_LIMIT_COLUMN = "200"
 	_ = SQLITE_LIMIT_COLUMN // suppress unused warning
-	// sqlite3_limit db SQLITE_LIMIT_COLUMN $SQLITE_LIMIT_COLUMN (unsupported command, not transpiled)
 	{ // do_test "sqllimits1-8.1"
 		cols = ""
 		_ = cols // suppress unused warning
@@ -1125,7 +1050,6 @@ func Test_sqllimits1(t *testing.T) {
 		{ // do_test "sqllimits1-11." + max + ".1"
 			vals = ""
 			_ = vals // suppress unused warning
-			// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG $::max (unsupported command, not transpiled)
 			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return i_n < max_n }() {
@@ -1267,7 +1191,6 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	SQLITE_LIMIT_LIKE_PATTERN = "1000"
 	_ = SQLITE_LIMIT_LIKE_PATTERN // suppress unused warning
-	// sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH $SQLITE_LIMIT_LIKE_PATTERN (unsupported command, not transpiled)
 	{ // do_test "sqllimits1-15.1"
 		max = SQLITE_LIMIT_LIKE_PATTERN
 		_ = max // suppress unused warning
@@ -1311,7 +1234,6 @@ func Test_sqllimits1(t *testing.T) {
 				_ = key // suppress unused warning
 			}
 		}
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH 10000 (unsupported command, not transpiled)
 		nm = "x 10000"
 		_ = nm // suppress unused warning
 		{ // "sqllimits1-17.1"
@@ -1320,7 +1242,6 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
 			}
 		}
-		// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10 (unsupported command, not transpiled)
 		{ // "sqllimits1-18.1"
 			_res = db.Exec("\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
 			if _res.Error != nil {
@@ -1360,7 +1281,6 @@ func Test_sqllimits1(t *testing.T) {
 			_ = val // suppress unused warning
 			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 		}
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH 100000 (unsupported command, not transpiled)
 		{ // do_test "19.3"
 			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
 			_ = stmt // suppress unused warning
@@ -1370,7 +1290,6 @@ func Test_sqllimits1(t *testing.T) {
 			_ = val // suppress unused warning
 			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 		}
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH 99999 (unsupported command, not transpiled)
 		{ // do_test "19.4"
 			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
 			_ = stmt // suppress unused warning
@@ -1378,7 +1297,6 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _list
 		}
 		// sqlite3_finalize $::stmt (unsupported command, not transpiled)
-		// sqlite3_limit db SQLITE_LIMIT_LENGTH 100000 (unsupported command, not transpiled)
 		{ // do_test "19.5"
 			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
 			_ = stmt // suppress unused warning

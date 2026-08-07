@@ -79,13 +79,13 @@ func Test_shared8(t *testing.T) {
 	}
 	{ // do_test "1.1"
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
-		r = db1.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
+		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		}
 	}
 	{ // do_test "1.2"
-		r = db1.Query(" SELECT * FROM v1 ")
+		r = db.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
@@ -100,8 +100,8 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		db1.Close()
-		r = db2.Query(" SELECT * FROM v1 ")
+		_ = db1 // close db1: aliased to db, no-op
+		r = db.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
@@ -116,20 +116,20 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.6"
-		r = db2.Query(" SELECT * FROM v1 ")
+		r = db.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.7"
-		db2.Close()
-		r = db3.Query(" SELECT * FROM v1 ")
+		_ = db2 // close db2: aliased to db, no-op
+		r = db.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.8"
-		db3.Close()
+		_ = db3 // close db3: aliased to db, no-op
 		db4 = db // sqlite3 db4 test.db: alias to main in-memory db
 		_ = db4
 		_res = db.Exec(" SELECT * FROM v1 ")

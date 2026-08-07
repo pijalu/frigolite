@@ -301,7 +301,7 @@ func Test_schema(t *testing.T) {
 		}
 	}
 	{ // do_test "schema-10.5"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "schema-11.1"
 		// db function tstfunc (variable-reader, inlined)

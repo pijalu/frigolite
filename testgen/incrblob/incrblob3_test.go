@@ -301,7 +301,7 @@ func Test_incrblob3(t *testing.T) {
 			_ = blob // suppress unused warning
 			// close $::blob
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// testvfs tvfs -default 1 (unsupported command, not transpiled)
 		// tvfs filter xAccess (unsupported command, not transpiled)
 		// tvfs script access_method (unsupported command, not transpiled)

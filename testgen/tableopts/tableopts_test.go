@@ -105,7 +105,7 @@ func Test_tableopts(t *testing.T) {
 		_res = db2.Exec("SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // "tableopt-3.1"
 		r = db.Query("\n  CREATE TABLE without(x INTEGER PRIMARY KEY, without TEXT);\n  INSERT INTO without VALUES(1, 'xyzzy'), (2, 'fizzle');\n  SELECT * FROM without WHERE without='xyzzy';\n")
 		if r.Error != nil {

@@ -147,7 +147,7 @@ func Test_e_update(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{*}" + data
+				want := "* " + data
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -180,7 +180,7 @@ func Test_e_update(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{*}{ main t1 main t2 main t3 main t6 temp t4 temp t6 aux t1 aux t5 }"
+			want := "* \n    main t1\n    main t2\n    main t3\n    main t6\n    temp t4\n    temp t6\n    aux  t1\n    aux  t5\n"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

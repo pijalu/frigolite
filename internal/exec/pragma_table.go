@@ -178,7 +178,13 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		if cd.PrimaryKey {
 			pk = 1
 		}
-		rows = append(rows, []interface{}{cid, cd.Name, cd.Type, notnull, nil, pk})
+		// The NONE-affinity sentinel (an expression-derived view column with
+		// no declared type) renders as an empty type, matching SQLite.
+		typeName := cd.Type
+		if typeName == util.AffinityNone {
+			typeName = ""
+		}
+		rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, nil, pk})
 		cid++
 	}
 	return cols, rows, nil
@@ -241,6 +247,25 @@ func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 			int64(len(colDefs)), wr, strict,
 		})
 	}
+
+	// Views appear in pragma_table_list with type "view" and their column
+	// count. Their ncol is the number of result columns of the view SELECT.
+	viewEntries, err := e.mainDB.Schema.GetEntries(schema.TypeView)
+	if err == nil {
+		for _, entry := range viewEntries {
+			if filterName != "" && entry.Name != filterName {
+				continue
+			}
+			defs, derr := e.viewColumnDefs(entry)
+			ncol := 0
+			if derr == nil {
+				ncol = len(defs)
+			}
+			rows = append(rows, []interface{}{
+				"main", entry.Name, "view", int64(ncol), int64(0), int64(0),
+			})
+		}
+	}
 	return cols, rows, nil
 }
 
@@ -284,7 +309,13 @@ func (e *Engine) viewColumnDefsGuard(viewEntry *schema.Entry, resolving map[stri
 	if !ok {
 		return nil, fmt.Errorf("exec: view does not contain SELECT")
 	}
-	return e.viewColumnDefsFromSelectGuard(sel, resolving), nil
+	defs := e.viewColumnDefsFromSelectGuard(sel, resolving)
+	// A declared column list must match the SELECT's result width; SQLite
+	// raises "expected N columns for 'view' but got M" at view use time.
+	if declared := viewDeclaredColumns(sqlStr); len(declared) > 0 && len(declared) != len(defs) {
+		return nil, fmt.Errorf("expected %d columns for '%s' but got %d", len(declared), viewEntry.Name, len(defs))
+	}
+	return defs, nil
 }
 
 // viewColumnDefsFromSelect computes column definitions for a view's SELECT.
@@ -358,14 +389,25 @@ func (e *Engine) viewColumnType(sel *sql.SelectStmt, i int, srcDefs []sql.Column
 	pS2 := first
 	m := 0
 	// Walk the compound chain while the current member has no affinity,
-	// remembering the datatypes of the members skipped.
+	// remembering the datatypes of the members skipped. Bounds-check each
+	// member: a malformed/uneven compound (e.g. an expected-error case)
+	// must not panic when a later member has fewer columns.
 	for aff == 0 && pS2.Union != nil {
-		m |= exprDataType(pS2.Columns[i].Expr)
+		if i < len(pS2.Columns) {
+			m |= exprDataType(pS2.Columns[i].Expr)
+		}
 		pS2 = pS2.Union
+		if i >= len(pS2.Columns) {
+			break
+		}
 		aff = e.exprAffinity(pS2.Columns[i].Expr, srcDefs)
 	}
 	if aff == 0 {
-		aff = 'B' // default view affinity: SQLITE_AFF_BLOB
+		// No affinity: the expression (e.g. a function call) has no declared
+		// affinity. SQLite's view columns default to SQLITE_AFF_NONE (not
+		// BLOB) in sqlite3SubqueryColumnTypes. Return the sentinel type name
+		// so downstream affinity extraction yields 0 (NONE).
+		return util.AffinityNone
 	}
 	// Compound queries refine the affinity using the datatypes of later members.
 	if isTextOrNumericAff(aff) && (pS2.Union != nil || pS2 != first) {

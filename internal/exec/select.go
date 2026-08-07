@@ -223,8 +223,16 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	tableEntry, dbCtx, err := e.findTable(s.From.Name)
 	if err != nil {
-		viewEntry, _, viewErr := e.findView(s.From.Name)
+		viewEntry, viewCtx, viewErr := e.findView(s.From.Name)
 		if viewErr != nil {
+			// SQLite prefixes a missing table in a main-schema view's body
+			// with "main." ("no such table: main.txx", alterlegacy-3.1.2b);
+			// temp-schema views use the bare name (alterlegacy-3.3.1).
+			if s.From.Name != "" && !strings.HasPrefix(err.Error(), "no such table: main.") {
+				if e.expandingView && !e.expandingTempView {
+					return &Result{Error: fmt.Errorf("no such table: main.%s", s.From.Name)}
+				}
+			}
 			return &Result{Error: err}
 		}
 		// Check for circular view reference
@@ -235,7 +243,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 			e.resolvingViews = make(map[string]bool)
 		}
 		e.resolvingViews[s.From.Name] = true
-		result := e.execSelectViewWithOuter(s, viewEntry)
+		result := e.execSelectViewWithOuter(s, viewEntry, viewCtx)
 		delete(e.resolvingViews, s.From.Name)
 		return result
 	}
@@ -788,6 +796,12 @@ func (e *Engine) tableColumnNames(tableName string) ([]string, error) {
 			}
 			return e.viewSelectColumnNames(v)
 		}
+		// A missing table referenced by a main-schema view's body is reported
+		// with the "main." prefix (SQLite); temp views and direct queries use
+		// the bare name.
+		if e.expandingView && !e.expandingTempView {
+			return nil, fmt.Errorf("no such table: main.%s", tableName)
+		}
 		return nil, fmt.Errorf("no such table: %s", tableName)
 	}
 	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
@@ -1139,10 +1153,12 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 	if !strings.HasPrefix(trimmedUpper, "SELECT") && !strings.HasPrefix(trimmedUpper, "WITH") && !strings.HasPrefix(trimmedUpper, "VALUES") {
 		return &Result{Error: fmt.Errorf("exec: view does not contain SELECT: %s", sqlStr)}
 	}
-	// Check for circular view references before expanding
-	if hasViewCircularRef(sqlStr, entry.Name) {
-		return &Result{Error: fmt.Errorf("view %s is circularly defined", entry.Name)}
-	}
+	// Circular references are detected at expansion time by the
+	// resolvingViews guard in execSelect (a body reference to the same view
+	// re-enters while its name is marked in-use). A name-based static check
+	// here would wrongly flag a view that shadows a same-named table in
+	// another schema (e.g. "CREATE TEMP VIEW t1 AS SELECT ... FROM t1"
+	// where t1 is a main table), so it must not be used as a pre-check.
 	stmts, err := parse.ParseSQL(selectSQL)
 	if err != nil || len(stmts) == 0 {
 		return &Result{Error: fmt.Errorf("exec: view parse error: %v", err)}
@@ -1155,8 +1171,37 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 
 // execSelectViewWithOuter executes a view and applies the outer SELECT's
 // column expressions, aggregates, ORDER BY, etc. on the view's result.
-func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.Entry) *Result {
+func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.Entry, viewCtx *DatabaseContext) *Result {
+	// Enforce the expression-depth limit for nested views/subqueries
+	// (SQLITE_LIMIT_EXPR_DEPTH). Each view expansion counts as one level.
+	e.nestDepth++
+	defer func() { e.nestDepth-- }()
+	if e.nestDepth >= e.exprDepthLimit {
+		return &Result{Error: fmt.Errorf("VIEWs and/or subqueries nested too deep")}
+	}
+	// Pin unqualified name resolution to the view's own schema while the body
+	// runs (SQLite sqlite3FixSrcList semantics). Non-temp views cannot see
+	// temp objects; temp view bodies use the normal temp-then-main search.
+	prevPin := e.schemaPin
+	prevTempView := e.expandingTempView
+	prevExpandingView := e.expandingView
+	e.expandingView = true
+	if viewCtx != nil && !viewCtx.IsTemp {
+		e.schemaPin = viewCtx
+	} else if viewCtx != nil && viewCtx.IsTemp {
+		e.expandingTempView = true
+	}
+	// A view body has its own scope: CTEs defined in the outer query must NOT
+	// be visible inside the view (SQLite resolves the view's FROM names
+	// against the base objects at CREATE time). Save and clear the outer CTE
+	// scopes so a CTE with the same name as a base table cannot shadow it.
+	prevCTEScopes := e.cteScopes
+	e.cteScopes = nil
 	viewResult := e.execSelectView(viewEntry)
+	e.cteScopes = prevCTEScopes
+	e.schemaPin = prevPin
+	e.expandingTempView = prevTempView
+	e.expandingView = prevExpandingView
 	if viewResult.Error != nil {
 		return viewResult
 	}
@@ -1183,6 +1228,10 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 				}
 			}
 		}
+	} else if terr != nil {
+		// Column-resolution errors (e.g. declared column count mismatch) are
+		// fatal: SQLite reports them when the view is used.
+		return &Result{Error: terr}
 	} else if declared := viewDeclaredColumns(viewEntry.SQL); len(declared) > 0 {
 		for _, colName := range declared {
 			viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
@@ -1216,6 +1265,10 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 				rowMap[viewQual+"."+cd.Name] = mapped
 			}
 		}
+		// Retain the positional row so SELECT * can output duplicate-named
+		// view columns (e.g. three columns aliased '') in order; a name-keyed
+		// map cannot distinguish them.
+		rowMap[positionalRowKey] = row
 		rowMaps = append(rowMaps, rowMap)
 	}
 
@@ -1489,13 +1542,26 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 
 	// Build colDefs from subquery column names, carrying the subquery's
 	// expression affinities so row-map values wrap correctly (e.g. CAST(...
-	// AS REAL) produces a REAL-affinity column).
-	subqAff := subqueryColumnAffinities(s.From.Subquery)
+	// AS REAL) produces a REAL-affinity column; a table column reference
+	// inherits the table column's declared type; a function call has no
+	// affinity, matching SQLite sqlite3ExprAffinity).
 	colDefs := make([]sql.ColumnDef, len(subqResult.Columns))
+	subqDefs := e.viewColumnDefsFromSelect(s.From.Subquery)
+	subqAff := subqueryColumnAffinities(s.From.Subquery)
 	for i, col := range subqResult.Columns {
 		colDefs[i] = sql.ColumnDef{Name: col}
-		if i < len(subqAff) && subqAff[i] != 0 {
-			colDefs[i].Type = affinityTypeName(subqAff[i])
+		if i < len(subqDefs) {
+			colDefs[i].Type = subqDefs[i].Type
+			colDefs[i].Collate = subqDefs[i].Collate
+		} else if i < len(subqAff) {
+			if subqAff[i] != 0 {
+				colDefs[i].Type = affinityTypeName(subqAff[i])
+			} else {
+				// No affinity (expression result such as a function call):
+				// carry the NONE sentinel so row values wrap with affinity 0
+				// (SQLite sqlite3ExprAffinity returns NONE for functions).
+				colDefs[i].Type = util.AffinityNone
+			}
 		}
 	}
 
@@ -1905,6 +1971,9 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		maxIter = 100000 // SQLite test builds default
 	}
 	for iter := 0; iter < maxIter; iter++ {
+		if err := e.checkProgress(); err != nil {
+			return &Result{Error: err}
+		}
 		var newRows [][]interface{}
 		for _, row := range currentRows {
 			rowMap := buildRowMapFromValues(row, colDefs, int64(len(allRows)+1))
@@ -6178,6 +6247,15 @@ func isSchemaTable(name string) bool {
 		upper == "MAIN.SQLITE_MASTER" || upper == "MAIN.SQLITE_SCHEMA"
 }
 
+// isSQLiteSequence reports whether name refers to the sqlite_sequence system
+// table (case-insensitive, with or without a main. prefix). Unqualified
+// references always resolve to the MAIN schema's sqlite_sequence, never the
+// temp schema's synthetic fallback.
+func isSQLiteSequence(name string) bool {
+	upper := strings.ToUpper(name)
+	return upper == "SQLITE_SEQUENCE" || upper == "MAIN.SQLITE_SEQUENCE"
+}
+
 // isHiddenSystemTable returns true if the table name is an internal system table
 // that should not appear in sqlite_master queries. SQLite exposes sqlite_stat1
 // and sqlite_stat4 as ordinary entries in sqlite_schema (they can be read and
@@ -6431,13 +6509,25 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 				}
 				continue
 			}
+			posIdx := 0
 			for _, cd := range colDefs {
 				if cd.Dropped {
 					continue
 				}
+				if pos, ok := row.Get(positionalRowKey); ok {
+					// Duplicate-named columns (e.g. a view aliasing several
+					// columns '') cannot be distinguished by name; use the
+					// retained positional slice when the colDef index matches.
+					if pv, ok := pos.([]interface{}); ok && posIdx < len(pv) {
+						outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(pv[posIdx])))
+						posIdx++
+						continue
+					}
+				}
 				if val, exists := row.Get(cd.Name); exists {
 					outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(val)))
 				}
+				posIdx++
 			}
 		} else {
 			v, err := e.evalExpr(col.Expr, row)

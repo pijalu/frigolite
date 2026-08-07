@@ -143,7 +143,7 @@ func Test_fts3fault2(t *testing.T) {
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 8.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ... (unsupported command, not transpiled)
-	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 unable to open a temporary database file for storing temporary tables" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	// do_faultsim_test 8.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ... (unsupported command, not transpiled)
 	db.Close()

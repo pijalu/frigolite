@@ -171,7 +171,7 @@ func Test_mmap1(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		db.Close()
 		os.Remove("test.db")

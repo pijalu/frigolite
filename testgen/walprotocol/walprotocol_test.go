@@ -174,7 +174,7 @@ func Test_walprotocol(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO b VALUES('Gilan');\n    INSERT INTO b VALUES('Ardabil');\n  ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// testvfs T -default 1 (unsupported command, not transpiled)
 	// faultsim_restore_and_reopen (unsupported command, not transpiled)

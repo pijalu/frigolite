@@ -257,7 +257,7 @@ func Test_walnoshm(t *testing.T) {
 		}
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "3.2"
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
@@ -272,7 +272,7 @@ func Test_walnoshm(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// tvfs delete (unsupported command, not transpiled)
 	// tvfsshm delete (unsupported command, not transpiled)
 }

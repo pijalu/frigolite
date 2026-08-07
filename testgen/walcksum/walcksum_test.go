@@ -194,7 +194,7 @@ func Test_walcksum(t *testing.T) {
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".7.0"
-			r = db2.Query(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
+			r = db.Query(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			}
@@ -240,7 +240,7 @@ func Test_walcksum(t *testing.T) {
 			// log_checksum_verify test.db-wal 3 $native (unsupported command, not transpiled)
 		}
 		{ // do_test "walcksum-1." + endian + ".9"
-			r = db2.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
+			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			}

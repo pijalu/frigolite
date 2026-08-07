@@ -144,7 +144,7 @@ func Test_tkt2409(t *testing.T) {
 	}
 	{ // do_test "tkt2409-3.1"
 		db.Close()
-		DB = func() string { db, err = frigolite.Open("test.db;"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
+		DB = func() string { db, err = frigolite.Open("test.db"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		// sqlite3_extended_result_codes $::DB 1 (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")

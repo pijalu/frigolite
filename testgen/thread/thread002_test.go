@@ -120,7 +120,7 @@ func Test_thread002(t *testing.T) {
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return ii_n < NTHREAD_n }() {
-		order = tclLIndex(order_list, "")
+		order = tclLIndex(order_list, tclExprWith("$ii%6", map[string]string{"ii": ii}))
 		_ = order // suppress unused warning
 		// thread_spawn finished($ii) $thread_procs set order {$order} $thread_program (unsupported command, not transpiled)
 		// incr ii 1

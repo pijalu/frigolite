@@ -179,7 +179,7 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			db2.Close()
-			db3.Close()
+			_ = db3 // close db3: aliased to db, no-op
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
@@ -243,7 +243,7 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			db2.Close()
-			db3.Close()
+			_ = db3 // close db3: aliased to db, no-op
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
@@ -345,7 +345,7 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.4.3"
-				_res = db3.Exec(" DROP INDEX i1 ")
+				_res = db.Exec(" DROP INDEX i1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ")
 				}
@@ -405,7 +405,7 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.5.3"
-				_res = db3.Exec(" DROP TABLE c1 ")
+				_res = db.Exec(" DROP TABLE c1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c1 ")
 				}

@@ -122,7 +122,6 @@ func Test_values(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 4 (unsupported command, not transpiled)
 	{ // "1.2.2"
 		r = db.Query("\n  DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5) \n  UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;\n")
 		if r.Error != nil {
@@ -194,7 +193,6 @@ func Test_values(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
-	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 3 (unsupported command, not transpiled)
 	{ // "2.1.1"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10, 10)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "all VALUES must have the same number of terms") {
@@ -207,7 +205,6 @@ func Test_values(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", _res.Error, "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		}
 	}
-	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 0 (unsupported command, not transpiled)
 	{ // "2.2"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		if _res.Error != nil {
@@ -286,7 +283,6 @@ func Test_values(t *testing.T) {
 		iLimit := _items0[_idx0+1]
 		_ = iLimit // suppress unused warning
 		_ = _idx0
-			// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT $iLimit (unsupported command, not transpiled)
 			{ // "4.1.1"
 				_res = db.Exec("\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
 				if _res.Error != nil {

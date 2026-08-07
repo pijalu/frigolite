@@ -84,7 +84,7 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3shared-1.3"
-		_res = db2.Exec("  \n    BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars' \n  ")
+		_res = db.Exec("  \n    BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars' \n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "fts3shared-1.4"

@@ -2368,7 +2368,7 @@ func Test_json102(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 null json {} null {} null 2 123 json 123 integer 123 integer 3 4.5 json 4.5 real 4.5 real 4 {\"six\"} json six text six text 5 {" + "7,8" + "} json {" + "7,8" + "} text {" + "7,8" + "} json 6 {{\"b\":9}} json {{\"b\":9}} text {{\"b\":9}} json 7 {} null {} null {} null"
+			want := "1 null json  null  null 2 123 json 123 integer 123 integer 3 4.5 json 4.5 real 4.5 real 4 \"six\" json six text six text 5 " + "7,8" + " json " + "7,8" + " text " + "7,8" + " json 6 {\"b\":9} json {\"b\":9} text {\"b\":9} json 7  null  null  null"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2380,7 +2380,7 @@ func Test_json102(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0 null json {} null {} null 1 123 json 123 integer 123 integer 2 4.5 json 4.5 real 4.5 real 3 {\"six\"} json six text six text 4 {" + "7,8" + "} json {" + "7,8" + "} text {" + "7,8" + "} json 5 {{\"b\":9}} json {{\"b\":9}} text {{\"b\":9}} json 6 {} null {} null {} null"
+			want := "0 null json  null  null 1 123 json 123 integer 123 integer 2 4.5 json 4.5 real 4.5 real 3 \"six\" json six text six text 4 " + "7,8" + " json " + "7,8" + " text " + "7,8" + " json 5 {\"b\":9} json {\"b\":9} text {\"b\":9} json 6  null  null  null"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -2392,7 +2392,7 @@ func Test_json102(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0 null json {} null {} null 1 123 json 123 integer 123 integer 2 4.5 json 4.5 real 4.5 real 3 {\"six\"} json six text six text 4 {" + "7,8" + "} json {" + "7,8" + "} text {" + "7,8" + "} json 5 {{\"b\":9}} json {{\"b\":9}} text {{\"b\":9}} json 6 {} null {} null {} null"
+			want := "0 null json  null  null 1 123 json 123 integer 123 integer 2 4.5 json 4.5 real 4.5 real 3 \"six\" json six text six text 4 " + "7,8" + " json " + "7,8" + " text " + "7,8" + " json 5 {\"b\":9} json {\"b\":9} text {\"b\":9} json 6  null  null  null"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

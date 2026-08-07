@@ -131,7 +131,7 @@ func Test_exclusive2(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive2-1.5"
-		_res = db2.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
+		_res = db.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b=a, a=0;\n  ")
 		}
@@ -155,7 +155,7 @@ func Test_exclusive2(t *testing.T) {
 	{ // do_test "exclusive2-1.11"
 		// expr [t1sig] eq $::sig (not evaluated)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "exclusive2-2.1"
 		r = db.Query("PRAGMA cache_size=1000;")
 		if r.Error != nil {

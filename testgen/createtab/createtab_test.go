@@ -177,7 +177,6 @@ func Test_createtab(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// sqlite3_limit db SQLITE_LIMIT_SCHEMA 5 (unsupported command, not transpiled)
 	{ // "createtab-4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c UNIQUE);\n  CREATE INDEX x1 ON t1(a);\n  CREATE VIEW v1 AS SELECT a+b AS x FROM t1;\n")
 		if _res.Error != nil {

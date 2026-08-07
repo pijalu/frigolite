@@ -127,13 +127,13 @@ func Test_dbstatus(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n  ")
 		}
-		sz1 = tclLIndex("sqlite3_db_status", "db")
+		sz1 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0", "1")
 		_ = sz1 // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t2(y);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(y);\n  ")
 		}
-		sz2 = tclLIndex("sqlite3_db_status", "db")
+		sz2 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0", "1")
 		_ = sz2 // suppress unused warning
 		PAGESZ = tclExprWith("$sz2-$sz1", map[string]string{"sz2": sz2, "sz1": sz1}) // TCL namespace variable
 		_ = PAGESZ // suppress unused warning
@@ -179,7 +179,7 @@ func Test_dbstatus(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				nAlloc1 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+				nAlloc1 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 				_ = nAlloc1 // suppress unused warning
 				// incr nAlloc1 lookaside db
 				{
@@ -188,11 +188,14 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc1 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema1 = tclLIndex("sqlite3_db_status", "db")
+				nSchema1 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema1 // suppress unused warning
 				_res = db.Exec("PRAGMA foreign_keys = OFF")
 				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				}
+				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
@@ -205,7 +208,7 @@ func Test_dbstatus(t *testing.T) {
 					}
 				}
 				_res = db.Exec("PRAGMA foreign_keys = ON")
-				nAlloc2 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+				nAlloc2 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 				_ = nAlloc2 // suppress unused warning
 				// incr nAlloc2 lookaside db
 				{
@@ -214,13 +217,13 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc2 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema2 = tclLIndex("sqlite3_db_status", "db")
+				nSchema2 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema2 // suppress unused warning
 				_res = db.Exec(schema)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				nAlloc3 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+				nAlloc3 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 				_ = nAlloc3 // suppress unused warning
 				// incr nAlloc3 lookaside db
 				{
@@ -229,11 +232,14 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc3 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema3 = tclLIndex("sqlite3_db_status", "db")
+				nSchema3 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema3 // suppress unused warning
 				_res = db.Exec("PRAGMA foreign_keys = OFF")
 				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				}
+				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
@@ -246,7 +252,7 @@ func Test_dbstatus(t *testing.T) {
 					}
 				}
 				_res = db.Exec("PRAGMA foreign_keys = ON")
-				nAlloc4 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+				nAlloc4 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 				_ = nAlloc4 // suppress unused warning
 				// incr nAlloc4 lookaside db
 				{
@@ -255,7 +261,7 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc4 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema4 = tclLIndex("sqlite3_db_status", "db")
+				nSchema4 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema4 // suppress unused warning
 				nFree = tclExprWith("$nAlloc1-$nAlloc2", map[string]string{"nAlloc1": nAlloc1, "nAlloc2": nAlloc2})
 				_ = nFree // suppress unused warning
@@ -310,7 +316,7 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc1 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+					nAlloc1 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 					_ = nAlloc1 // suppress unused warning
 					// incr nAlloc1 lookaside db
 					{
@@ -319,13 +325,13 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc1 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt1 = tclLIndex("sqlite3_db_status", "db")
+					nStmt1 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0", "1")
 					_ = nStmt1 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc2 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+					nAlloc2 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 					_ = nAlloc2 // suppress unused warning
 					// incr nAlloc2 lookaside db
 					{
@@ -334,13 +340,13 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc2 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt2 = tclLIndex("sqlite3_db_status", "db")
+					nStmt2 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0", "1")
 					_ = nStmt2 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc3 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+					nAlloc3 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 					_ = nAlloc3 // suppress unused warning
 					// incr nAlloc3 lookaside db
 					{
@@ -349,13 +355,13 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc3 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt3 = tclLIndex("sqlite3_db_status", "db")
+					nStmt3 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0", "1")
 					_ = nStmt3 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc4 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
+					nAlloc4 = tclLIndex("sqlite3_status SQLITE_STATUS_MEMORY_USED 0", "1")
 					_ = nAlloc4 // suppress unused warning
 					// incr nAlloc4 lookaside db
 					{
@@ -364,7 +370,7 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc4 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt4 = tclLIndex("sqlite3_db_status", "db")
+					nStmt4 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0", "1")
 					_ = nStmt4 // suppress unused warning
 					nFree = tclExprWith("$nAlloc1-$nAlloc2", map[string]string{"nAlloc1": nAlloc1, "nAlloc2": nAlloc2})
 					_ = nFree // suppress unused warning

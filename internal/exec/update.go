@@ -51,7 +51,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 
 	colIndex := buildColumnIndex(colDefs)
 
-	changes, err := e.collectUpdateChanges(tableEntry.Name, tableEntry.RootPage, colIndex, colDefs, s)
+	changes, err := e.collectUpdateChanges(s.Table, tableEntry.RootPage, colIndex, colDefs, s)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -119,7 +119,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 				}
 			}
 		}
-		result = e.applyUpdateChanges(tableEntry.Name, tableEntry.RootPage, changes)
+		result = e.applyUpdateChanges(s.Table, tableEntry.RootPage, changes)
 	}
 	if result.Error != nil {
 		return result

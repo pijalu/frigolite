@@ -178,7 +178,7 @@ func Test_e_wal(t *testing.T) {
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // "2.3.1"
 		r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -215,7 +215,7 @@ func Test_e_wal(t *testing.T) {
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	{ // do_test "3.0"
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -269,7 +269,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.4"
-		_res = db2.Exec(" SELECT * FROM t1 ")
+		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // "3.2.5"
@@ -278,7 +278,7 @@ func Test_e_wal(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(7, 8);\n")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	{ // do_test "3.4.1"
 		_dbtmp2, err := frigolite.Open("test.db")

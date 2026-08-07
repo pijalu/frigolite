@@ -7,6 +7,7 @@ package subquery
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -169,8 +170,8 @@ func Test_subquery2(t *testing.T) {
 		_ = _idx0
 			{ // "4." + tn
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after UNION ALL not before") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after UNION ALL not before", _res.Error, sql)
 				}
 			}
 		}

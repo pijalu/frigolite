@@ -185,7 +185,6 @@ func Test_basexx1(t *testing.T) {
 	}
 	inLimit = "sqlite3_limit db SQLITE_LIMIT_LENGTH -1"
 	_ = inLimit // suppress unused warning
-	// sqlite3_limit db SQLITE_LIMIT_LENGTH 1300 (unsupported command, not transpiled)
 	{ // "109"
 		_res = db.Exec("\n  SELECT len, base64(b) FROM rb WHERE len>200;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "blob expanded to base64 too big") {
@@ -204,7 +203,6 @@ func Test_basexx1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", _res.Error, "\n  SELECT length(base85(b))=1335 FROM rb WHERE len=1054;\n")
 		}
 	}
-	// sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit (unsupported command, not transpiled)
 	{ // "112"
 		r = db.Query("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
 		if r.Error != nil {

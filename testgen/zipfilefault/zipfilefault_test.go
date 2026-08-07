@@ -76,7 +76,6 @@ func Test_zipfilefault(t *testing.T) {
 		}
 	}
 	// do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test....} -... (unsupported command, not transpiled)
-	// do_faultsim_test 2.2 -faults oom* -body {\n    execsql { \n      SELECT json_extract( zipfi...} -... (unsupported command, not transpiled)
 	os.Remove("test.zip")
 	db.Close()
 	os.Remove("test.db")

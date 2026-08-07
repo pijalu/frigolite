@@ -138,6 +138,9 @@ func Test_tkt_80ba201079(t *testing.T) {
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+	}
 	for _, _t := range db.Query("PRAGMA database_list").Rows {
 		if len(_t) > 1 {
 			dbname := fmt.Sprint(_t[1])

@@ -87,7 +87,7 @@ func Test_sharedA(t *testing.T) {
 		_res = db1.Exec("\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    ROLLBACK;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	db1.Close()
+	_ = db1 // close db1: aliased to db, no-op
 	os.Remove("test.db")
 	{ // do_test "1.1"
 		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
@@ -104,12 +104,12 @@ func Test_sharedA(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db1.Exec("\n    BEGIN; DROP INDEX i1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 		_res = db2.Exec(" SELECT * FROM t1 ORDER BY x; ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.3"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	// testvfs tvfs (unsupported command, not transpiled)
 	{ // do_test "2.1"
@@ -144,8 +144,8 @@ func Test_sharedA(t *testing.T) {
 		_list := tclList([]string{thread_result, ""})
 		_ = _list
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	// tvfs delete (unsupported command, not transpiled)
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

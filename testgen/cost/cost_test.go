@@ -256,7 +256,7 @@ func Test_cost(t *testing.T) {
 		nRow := _items0[_idx0+2]
 		_ = nRow // suppress unused warning
 		_ = _idx0
-			w = strings.Join(tclSplitList("lrange"), L)
+			w = strings.Join(tclSplitList("lrange $L 0 [expr $nTerm-1]"), " AND ")
 			_ = w // suppress unused warning
 			p1 = tclExprWith("($nRow-1) / 100.0", map[string]string{"nRow": nRow})
 			_ = p1 // suppress unused warning

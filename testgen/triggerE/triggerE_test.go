@@ -149,19 +149,4 @@ func Test_triggerE(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		db.Close()
-		// sqlite3_shutdown (unsupported command, not transpiled)
-		// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
-		// sqlite3_initialize (unsupported command, not transpiled)
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		{ // "3.0"
-			_res = db.Exec("\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")
-			}
-		}
 }

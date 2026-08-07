@@ -51,7 +51,4 @@ func Test_session(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// run_test_suite session_eec (unsupported command, not transpiled)
-	// run_test_suite session (unsupported command, not transpiled)
-	// run_test_suite session_strm (unsupported command, not transpiled)
 }

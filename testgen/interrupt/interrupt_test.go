@@ -134,9 +134,9 @@ func Test_interrupt(t *testing.T) {
 		_ = interrupt_count // suppress unused warning
 		sql = "EXPLAIN SELECT max(a,b), a, b FROM t1"
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -211,9 +211,9 @@ func Test_interrupt(t *testing.T) {
 	_ = sql // suppress unused warning
 	sqlite_interrupt_count = "1000000"
 	_ = sqlite_interrupt_count // suppress unused warning
-	_res = db.Exec(sql)
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+	r = db.Query(sql)
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 	}
 	max_count = tclExprWith("1000000-$sqlite_interrupt_count", map[string]string{"sqlite_interrupt_count": sqlite_interrupt_count})
 	_ = max_count // suppress unused warning

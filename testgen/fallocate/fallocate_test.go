@@ -202,13 +202,13 @@ func Test_fallocate(t *testing.T) {
 			// file size test.db
 		}
 		{ // do_test "fallocate-2.7"
-			r = db2.Query(" SELECT count(b) FROM t1 ")
+			r = db.Query(" SELECT count(b) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(b) FROM t1 ")
 			}
 		}
 		{ // do_test "fallocate-2.8"
-			_res = db2.Exec(" COMMIT ")
+			_res = db.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}

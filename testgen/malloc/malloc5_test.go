@@ -134,7 +134,7 @@ func Test_malloc5(t *testing.T) {
 		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.6"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE def(d, e, f);\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE def(d, e, f);\n    SELECT * FROM abc;\n  ")
@@ -148,7 +148,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "malloc5-1.8"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// sqlite3_release_memory 500 (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.8"
@@ -196,7 +196,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		}
-		r = db2.Query("\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
+		r = db.Query("\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		}
@@ -209,7 +209,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	_putsMsg := "Highwater mark: " + "sqlite3_memory_highwater"
 	_ = _putsMsg
 	soft_limit = "sqlite3_soft_heap_limit -1" // TCL namespace variable
@@ -330,7 +330,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "malloc5-6.2.1"
-		r = db2.Query("SELECT * FROM abc")
+		r = db.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
@@ -345,7 +345,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.2.3"
-		r = db2.Query(" SELECT * FROM abc ")
+		r = db.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
@@ -353,7 +353,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.3.1"
-		_res = db2.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
+		_res = db.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
 		}
@@ -392,7 +392,7 @@ func Test_malloc5(t *testing.T) {
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
 	// test_restore_config_pagecache (unsupported command, not transpiled)
 	{

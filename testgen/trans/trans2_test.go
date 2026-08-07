@@ -157,7 +157,7 @@ func Test_trans2(t *testing.T) {
 		}
 		data = "lrange $data [expr {$n+1}] end"
 		_ = data // suppress unused warning
-		max1 = tclLIndex("", data)
+		max1 = tclLIndex(tclLIndex(data, "0"), "0")
 		_ = max1 // suppress unused warning
 		for _, rec := range tclSplitList(data) {
 		_ = rec // suppress unused warning

@@ -344,7 +344,7 @@ func Test_alter4(t *testing.T) {
 				}
 			}
 		}
-		sql = "CREATE TABLE t4(" + strings.Join(tclSplitList(cols), "{,") + ")" // TCL namespace variable
+		sql = "CREATE TABLE t4(" + strings.Join(tclSplitList(cols), ", ") + ")" // TCL namespace variable
 		_ = sql // suppress unused warning
 	}
 	{ // do_test "alter4-8.2"

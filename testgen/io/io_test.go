@@ -202,12 +202,12 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		r = db2.Query(" SELECT * FROM abc ")
+		r = db.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "io-2.5.1"
 		_res = db.Exec(" CREATE TABLE def(d, e) ")
 		if _res.Error != nil {

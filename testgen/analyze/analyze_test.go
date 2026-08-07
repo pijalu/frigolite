@@ -204,9 +204,9 @@ func Test_analyze(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze-3.10"
-		r = db.Query("\n    CREATE TABLE " + sqlLiteral("silly \" name") + "(a, b, c);\n    CREATE INDEX 'foolish '' name' ON " + sqlLiteral("silly \" name") + "(a, b);\n    CREATE INDEX 'another foolish '' name' ON " + sqlLiteral("silly \" name") + "(c);\n    INSERT INTO " + sqlLiteral("silly \" name") + " VALUES(1, 2, 3);\n    INSERT INTO " + sqlLiteral("silly \" name") + " VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		r = db.Query("\n    CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE " + sqlLiteral("silly \" name") + "(a, b, c);\n    CREATE INDEX 'foolish '' name' ON " + sqlLiteral("silly \" name") + "(a, b);\n    CREATE INDEX 'another foolish '' name' ON " + sqlLiteral("silly \" name") + "(c);\n    INSERT INTO " + sqlLiteral("silly \" name") + " VALUES(1, 2, 3);\n    INSERT INTO " + sqlLiteral("silly \" name") + " VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		}
 	}
 	{ // do_test "analyze-3.11"

@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -93,7 +92,7 @@ func Test_quota2(t *testing.T) {
 	_ = dir // suppress unused warning
 		// file mkdir $dir
 	}
-	quota_pwd = strings.ReplaceAll("get_pwd", "\\", "/") // TCL namespace variable
+	quota_pwd = "get_pwd" // TCL namespace variable
 	_ = quota_pwd // suppress unused warning
 	quota_mapping = quota_pwd + " PWD" // TCL namespace variable
 	_ = quota_mapping // suppress unused warning

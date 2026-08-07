@@ -723,6 +723,9 @@ func Test_analyze9(t *testing.T) {
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
@@ -816,6 +819,9 @@ func Test_analyze9(t *testing.T) {
 				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 				}
+				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
 						dbname := fmt.Sprint(_t[1])
@@ -901,6 +907,9 @@ func Test_analyze9(t *testing.T) {
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
@@ -972,6 +981,9 @@ func Test_analyze9(t *testing.T) {
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
@@ -1026,6 +1038,9 @@ func Test_analyze9(t *testing.T) {
 			_res = db.Exec("PRAGMA foreign_keys = OFF")
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
+			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
@@ -1188,6 +1203,9 @@ func Test_analyze9(t *testing.T) {
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
@@ -1339,7 +1357,7 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ");\n    ANALYZE;\n  ")
 				}
-				nByte = tclLIndex("sqlite3_db_status", "db")
+				nByte = tclLIndex("sqlite3_db_status db SCHEMA_USED 0", "1")
 				_ = nByte // suppress unused warning
 				db.Close()
 				os.Remove("test.db")
@@ -1350,7 +1368,7 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(two) + ");\n    ANALYZE;\n  ")
 				}
-				nByte2 = tclLIndex("sqlite3_db_status", "db")
+				nByte2 = tclLIndex("sqlite3_db_status db SCHEMA_USED 0", "1")
 				_ = nByte2 // suppress unused warning
 				_putsMsg := "-nonewline"
 				_ = _putsMsg

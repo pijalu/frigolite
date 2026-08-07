@@ -461,7 +461,7 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.3"
-		_res = db2.Exec("COMMIT")
+		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -471,7 +471,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.5"
-		_res = db2.Exec("INSERT INTO t3 VALUES(10);")
+		_res = db.Exec("INSERT INTO t3 VALUES(10);")
 		_ = _res // catchsql
 	}
 	{ // do_test "capi2-6.6"
@@ -479,7 +479,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.7"
-		r = db2.Query("SELECT * FROM t2")
+		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
@@ -572,40 +572,67 @@ func Test_capi2(t *testing.T) {
 	_res = db.Exec("ROLLBACK")
 	_ = _res // catchsql
 	{ // do_test "capi2-7.1"
-		// stepsql $DB {\n    SELECT * FROM t1\n  } (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT * FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+		}
 	}
 	{ // do_test "capi2-7.2"
-		// stepsql $DB {\n    PRAGMA count_changes=on\n  } (unsupported command, not transpiled)
+		r = db.Query("\n    PRAGMA count_changes=on\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=on\n  ")
+		}
 	}
 	{ // do_test "capi2-7.3"
-		// stepsql $DB {\n    UPDATE t1 SET a=a+10;\n  } (unsupported command, not transpiled)
+		_res = db.Exec("\n    UPDATE t1 SET a=a+10;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a=a+10;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.4"
-		// stepsql $DB {\n    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;\n...} (unsupported command, not transpiled)
+		_res = db.Exec("\n    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.4b"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.5"
-		// stepsql $DB {\n    UPDATE t1 SET a=a+10;\n  } (unsupported command, not transpiled)
+		_res = db.Exec("\n    UPDATE t1 SET a=a+10;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a=a+10;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.5b"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.6"
-		// stepsql $DB {\n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.7"
-		// stepsql $DB {\n    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;\n...} (unsupported command, not transpiled)
+		_res = db.Exec("\n    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.8"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.9"
-		// stepsql $DB {\n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.10"
-		// stepsql $DB {\n    UPDATE t1 SET a=a-20;\n    SELECT * FROM t1;...} (unsupported command, not transpiled)
+		r = db.Query("\n    UPDATE t1 SET a=a-20;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a=a-20;\n    SELECT * FROM t1;\n  ")
+		}
 	}
 	{ // do_test "capi2-7.11"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
@@ -745,5 +772,5 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-13.11"
 		// check_origins {select * from (select * from tab1 limit 10 offset ...} (unsupported command, not transpiled)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 }

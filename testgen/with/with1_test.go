@@ -753,14 +753,6 @@ func Test_with1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "recursive aggregate queries not supported", _res.Error, "\n  WITH RECURSIVE\n    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)\n  SELECT * FROM i;\n")
 		}
 	}
-	{ // "16.2" — skipped: window functions not supported
-		_res = db.Exec("\n    WITH RECURSIVE\n      i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i)\n      SELECT * FROM i;\n  ")
-		_ = _res
-	}
-	{ // "16.3" — skipped: window functions not supported
-		_res = db.Exec("\n    WITH RECURSIVE\n      t(id, parent) AS (VALUES(1,2)),\n      q(id, parent, rn) AS (\n          VALUES(1,2,3)\n          UNION ALL\n          SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n          FROM q JOIN t ON t.parent = q.id\n          )\n        SELECT * FROM q;\n  ")
-		_ = _res
-	}
 	{ // "17.1"
 		r = db.Query("\n  WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x\n")
 		if r.Error != nil {

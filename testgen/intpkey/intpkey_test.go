@@ -607,9 +607,9 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // "intpkey-16.0"
-		_res = db.Exec("\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b " + sqlLiteral("TEXT") + ", c `INT`);\n")
+		_res = db.Exec("\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b [TEXT], c `INT`);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b " + sqlLiteral("TEXT") + ", c `INT`);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b [TEXT], c `INT`);\n")
 		}
 	}
 	{ // "intpkey-16.1"

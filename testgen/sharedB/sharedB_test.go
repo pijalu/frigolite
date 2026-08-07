@@ -94,7 +94,7 @@ func Test_sharedB(t *testing.T) {
 			}
 		}
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

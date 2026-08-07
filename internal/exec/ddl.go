@@ -12,6 +12,7 @@ import (
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -186,7 +187,13 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
 		prefix := rawName[:dotIdx]
 		schemaUpper := strings.ToUpper(prefix)
-		if schemaUpper != "MAIN" && schemaUpper != "TEMP" && schemaUpper != "TEMPORARY" {
+		if schemaUpper == "TEMP" || schemaUpper == "TEMPORARY" {
+			if tc := e.getDB("temp"); tc != nil {
+				ctx = tc
+			} else {
+				return &Result{Error: fmt.Errorf("unknown database %s", prefix)}
+			}
+		} else if schemaUpper != "MAIN" {
 			if db := e.getDB(prefix); db != nil {
 				ctx = db
 			} else {
@@ -194,6 +201,11 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 			}
 		}
 		tableName = rawName[dotIdx+1:]
+	} else if s.Temporary {
+		// CREATE TEMP TABLE (no prefix): route to the temp schema.
+		if tc := e.getDB("temp"); tc != nil {
+			ctx = tc
+		}
 	}
 
 	if err := e.authorize(auth.ActionCreateTable, tableName, "", "", ""); err != nil {
@@ -373,7 +385,11 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 
 	// Handle CREATE TABLE ... AS SELECT
 	if s.AsSelect != nil {
-		return e.execCreateTableAsSelect(s)
+		// The schema prefix is resolved above (ctx/tableName); the AS SELECT
+		// path must register the table under the unqualified name in the
+		// target schema (SQLite stores "CREATE TABLE t1(...)", never
+		// "CREATE TABLE aux.t1(...)").
+		return e.execCreateTableAsSelect(s, ctx, tableName)
 	}
 
 	return &Result{Changes: 0}
@@ -488,11 +504,49 @@ func (e *Engine) isSyntheticSystemEntry(entry *schema.Entry, name string) bool {
 // createTableSQL returns the SQL text to store in sqlite_schema for a table.
 // The original statement text is preferred (matching SQLite's verbatim
 // storage); the AST serialization is only a fallback when raw text is absent.
+// SQLite strips the TEMP/TEMPORARY keyword from the stored text (a temp table
+// is stored as "CREATE TABLE t(...)" in sqlite_temp_schema).
 func (e *Engine) createTableSQL(s *sql.CreateTableStmt) string {
 	if strings.TrimSpace(s.RawSQL) != "" {
-		return strings.TrimSpace(s.RawSQL)
+		return stripCreateTempKeyword(strings.TrimSpace(s.RawSQL))
 	}
 	return e.buildCreateTableSQL(s)
+}
+
+// stripCreateTempKeyword removes a leading CREATE TEMP [TABLE] / CREATE
+// TEMPORARY [TABLE] keyword from stored schema SQL, matching SQLite which
+// records temp objects as "CREATE TABLE ..." (without TEMP) in
+// sqlite_temp_schema. It also strips a schema prefix from the table name
+// ("CREATE TABLE aux.t1(...)" is stored as "CREATE TABLE t1(...)", matching
+// SQLite's sqlite_schema storage).
+func stripCreateTempKeyword(sqlStr string) string {
+	upper := strings.ToUpper(sqlStr)
+	tableIdx := -1
+	switch {
+	case strings.HasPrefix(upper, "CREATE TEMP TABLE"), strings.HasPrefix(upper, "CREATE TEMPORARY TABLE"):
+		// Find the start of "TABLE".
+		rest := sqlStr[len("CREATE "):]
+		idx := strings.Index(strings.ToUpper(rest), "TABLE")
+		if idx >= 0 {
+			sqlStr = "CREATE " + rest[idx:]
+			tableIdx = len("CREATE TABLE ")
+		}
+	case strings.HasPrefix(upper, "CREATE TABLE "):
+		tableIdx = len("CREATE TABLE ")
+	}
+	if tableIdx >= 0 && tableIdx < len(sqlStr) {
+		// The table name is the next token (up to whitespace or '(').
+		nameStart := tableIdx
+		nameEnd := nameStart
+		for nameEnd < len(sqlStr) && sqlStr[nameEnd] != ' ' && sqlStr[nameEnd] != '\t' && sqlStr[nameEnd] != '(' && sqlStr[nameEnd] != '\n' && sqlStr[nameEnd] != '\r' {
+			nameEnd++
+		}
+		name := sqlStr[nameStart:nameEnd]
+		if dot := strings.Index(name, "."); dot >= 0 {
+			sqlStr = sqlStr[:nameStart] + name[dot+1:] + sqlStr[nameEnd:]
+		}
+	}
+	return sqlStr
 }
 
 // defaultContainsNonConstant reports whether a DEFAULT expression contains
@@ -566,7 +620,7 @@ func defaultContainsNonConstant(expr sql.Expr) bool {
 	return false
 }
 
-func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
+func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *DatabaseContext, tableName string) *Result {
 	e.invalidateTableCaches()
 	// Execute the SELECT query
 	result := e.execSelect(s.AsSelect)
@@ -580,12 +634,12 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
 			for _, col := range result.Columns {
 				s.Columns = append(s.Columns, sql.ColumnDef{Name: col})
 			}
-			e.colCache[s.Name] = s.Columns
+			e.colCache[tableName] = s.Columns
 		}
 	}
 
 	// Get the table entry that was just created
-	tableEntry, dbCtx, err := e.findTable(s.Name)
+	tableEntry, dbCtx, err := e.findTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -597,7 +651,7 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
 	// columns unresolvable.
 	if len(s.Columns) > 0 {
 		derivedSQL := e.buildCreateTableSQL(s)
-		if rerr := dbCtx.Schema.RenameEntryWithSQL(s.Name, s.Name, derivedSQL); rerr == nil {
+		if rerr := dbCtx.Schema.RenameEntryWithSQL(tableName, tableName, derivedSQL); rerr == nil {
 			tableEntry.SQL = derivedSQL
 		}
 	}
@@ -731,6 +785,23 @@ func formatTableConstraint(buf *strings.Builder, tc sql.TableConstraint) {
 	case sql.ConstraintForeignKey:
 		buf.WriteString("FOREIGN KEY ... REFERENCES ...")
 	}
+}
+
+// stripTriggerTempKeyword removes a leading CREATE TEMP [TRIGGER] / CREATE
+// TEMPORARY [TRIGGER] keyword from stored trigger SQL, matching SQLite which
+// records temp triggers as "CREATE TRIGGER ..." (without TEMP) in
+// sqlite_temp_schema.
+func stripTriggerTempKeyword(sqlStr string) string {
+	upper := strings.ToUpper(sqlStr)
+	if strings.HasPrefix(upper, "CREATE TEMP TRIGGER") || strings.HasPrefix(upper, "CREATE TEMPORARY TRIGGER") {
+		// Find the start of "TRIGGER".
+		rest := sqlStr[len("CREATE "):]
+		idx := strings.Index(strings.ToUpper(rest), "TRIGGER")
+		if idx >= 0 {
+			return "CREATE " + rest[idx:]
+		}
+	}
+	return sqlStr
 }
 
 // --- CREATE INDEX ---
@@ -935,6 +1006,11 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 	}
 	entry, ctx, err := e.findTable(s.Name)
 	if err != nil {
+		// The name is not a table. If it is a view, SQLite rejects rather
+		// than deleting the wrong object ("use DROP VIEW to delete view v1").
+		if _, _, vErr := e.findView(s.Name); vErr == nil && !s.IfExists {
+			return &Result{Error: fmt.Errorf("use DROP VIEW to delete view %s", s.Name)}
+		}
 		if s.IfExists {
 			return &Result{}
 		}
@@ -1006,9 +1082,19 @@ func (e *Engine) execDropView(s *sql.DropViewStmt) *Result {
 	// Find the view to get its database context
 	_, ctx, err := e.findView(s.Name)
 	if err != nil {
-		// If view not found, try removing from main schema (backward compat)
-		if err := e.schema.RemoveEntry(s.Name); err != nil && !s.IfExists {
-			return &Result{Error: err}
+		// The name is not a view. If a table or other object with that name
+		// exists, SQLite rejects the statement rather than deleting the
+		// wrong object ("use DROP TABLE to delete table t1").
+		if te, _, terr := e.findTable(s.Name); terr == nil {
+			_ = te
+			if !s.IfExists {
+				return &Result{Error: fmt.Errorf("use DROP TABLE to delete table %s", s.Name)}
+			}
+			return &Result{}
+		}
+		// Not a view and not a table (e.g. no such view).
+		if !s.IfExists {
+			return &Result{Error: fmt.Errorf("no such view: %s", s.Name)}
 		}
 		return &Result{}
 	}
@@ -1085,15 +1171,29 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 	if err := e.authorize(auth.ActionCreateView, s.Name, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
-	// Resolve schema prefix
+	// Resolve schema prefix. CREATE TEMP VIEW (no explicit prefix) goes to
+	// the temp schema, matching SQLite.
 	rawName := s.Name
 	ctx := e.mainDB
 	viewName := rawName
 
+	if s.Temporary {
+		if tc := e.getDB("temp"); tc != nil {
+			ctx = tc
+		}
+	}
+
 	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
 		prefix := rawName[:dotIdx]
 		schemaUpper := strings.ToUpper(prefix)
-		if schemaUpper != "MAIN" && schemaUpper != "TEMP" && schemaUpper != "TEMPORARY" {
+		switch schemaUpper {
+		case "MAIN":
+			ctx = e.mainDB
+		case "TEMP", "TEMPORARY":
+			if tc := e.getDB("temp"); tc != nil {
+				ctx = tc
+			}
+		default:
 			if db := e.getDB(prefix); db != nil {
 				ctx = db
 			}
@@ -1133,12 +1233,30 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 		Name:     viewName,
 		TblName:  viewName,
 		RootPage: 0,
-		SQL:      sqlStr,
+	}
+	// SQLite strips the "IF NOT EXISTS" prefix from stored CREATE VIEW SQL
+	// (the object exists, so the clause is redundant). Match that so the
+	// stored schema round-trips identically. A keyword inadvertently used as
+	// the view name (e.g. "CREATE VIEW IF NOT EXISTS IF AS ..." → stored
+	// "CREATE VIEW IF AS ...") then fails to re-parse, which SQLite reports
+	// as a malformed schema entry.
+	entry.SQL = stripIfNotExists(sqlStr)
+	if _, err := parse.ParseSQL(entry.SQL); err != nil {
+		return &Result{Error: fmt.Errorf("malformed database schema (%s) - %v", viewName, err)}
 	}
 	if err := ctx.Schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
 	return &Result{}
+}
+
+// stripIfNotExists removes an "IF NOT EXISTS" clause that follows the
+// CREATE keyword, matching SQLite's behavior of storing object-creation SQL
+// without the redundant clause ("CREATE TABLE IF NOT EXISTS t(a)" is stored
+// as "CREATE TABLE t(a)").
+func stripIfNotExists(sqlStr string) string {
+	re := regexp.MustCompile(`(?i)(CREATE\s+(?:TEMP\s+|TEMPORARY\s+)?(?:TABLE|VIEW|INDEX|TRIGGER)\s+)IF\s+NOT\s+EXISTS\s+`)
+	return re.ReplaceAllString(sqlStr, "$1")
 }
 
 // stripViewSchemaPrefix removes a "<schema>." prefix from the view name in a
@@ -1183,7 +1301,11 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
 		prefix := tableName[:dotIdx]
 		schemaUpper := strings.ToUpper(prefix)
-		if schemaUpper != "MAIN" && schemaUpper != "TEMP" && schemaUpper != "TEMPORARY" {
+		if schemaUpper == "TEMP" || schemaUpper == "TEMPORARY" {
+			if tc := e.getDB("temp"); tc != nil {
+				ctx = tc
+			}
+		} else if schemaUpper != "MAIN" {
 			if db := e.getDB(prefix); db != nil {
 				ctx = db
 			}
@@ -1196,6 +1318,26 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		// If not a table, check if it's a view (for INSTEAD OF triggers)
 		if _, _, err2 := e.findView(tableName); err2 != nil {
 			return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+		}
+	}
+
+	// A trigger on a TEMP table (resolved via the temp-first lookup or an
+	// explicit temp. prefix) lives in the TEMP schema, matching SQLite.
+	if ctx == e.mainDB {
+		if tc := e.getDB("temp"); tc != nil {
+			if _, tctx, terr := e.findTable(tableName); terr == nil && tctx == tc {
+				ctx = tc
+			}
+		}
+	}
+	// CREATE TEMP TRIGGER always lives in the TEMP schema, even when its ON
+	// table is in an ATTACHed database (SQLite stores the trigger in
+	// sqlite_temp_schema; altertab-9.4 creates a TEMP trigger on aux.t1).
+	isTempTrigger := strings.HasPrefix(strings.ToUpper(strings.TrimSpace(s.RawSQL)), "CREATE TEMP TRIGGER") ||
+		strings.HasPrefix(strings.ToUpper(strings.TrimSpace(s.RawSQL)), "CREATE TEMPORARY TRIGGER")
+	if isTempTrigger {
+		if tc := e.getDB("temp"); tc != nil {
+			ctx = tc
 		}
 	}
 	tableUpper := strings.ToUpper(tableName)
@@ -1218,7 +1360,7 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	// body survives; otherwise rebuild from the AST.
 	sqlStr := buildTriggerSQL(triggerName, s.Time, s.Event, tableName, s.When, s.Statements)
 	if strings.TrimSpace(s.RawSQL) != "" {
-		sqlStr = strings.TrimSpace(s.RawSQL)
+		sqlStr = stripTriggerTempKeyword(strings.TrimSpace(s.RawSQL))
 	}
 
 	entry := &schema.Entry{

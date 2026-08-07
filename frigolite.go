@@ -61,6 +61,25 @@ func (db *DB) SetAuthorizer(a auth.Authorizer) {
 	}
 }
 
+// SetExprDepthLimit sets the maximum view/subquery nesting depth
+// (SQLITE_LIMIT_EXPR_DEPTH). A negative value queries (and returns) the
+// current limit without changing it.
+func (db *DB) SetExprDepthLimit(n int) int {
+	if db != nil && db.engine != nil {
+		return db.engine.SetExprDepthLimit(n)
+	}
+	return 0
+}
+
+// SetProgressHandler registers a progress callback invoked after every n
+// engine operations. A true return interrupts the running statement with an
+// "interrupted" error (SQLite sqlite3_progress_handler).
+func (db *DB) SetProgressHandler(n int, fn func() bool) {
+	if db != nil && db.engine != nil {
+		db.engine.SetProgressHandler(n, fn)
+	}
+}
+
 // SetDQS configures SQLite's double-quoted-string (DQS) behavior.
 // ddl=true allows double-quoted strings in DDL statements (CREATE TABLE
 // CHECK/DEFAULT expressions, CREATE INDEX keys); dml=true allows them in DML

@@ -200,7 +200,7 @@ func Test_vacuum(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "vacuum-2.7"
-		r = db3.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+		r = db.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
 		}
@@ -214,17 +214,17 @@ func Test_vacuum(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "vacuum-2.10"
-		r = db3.Query("\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
+		r = db.Query("\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	db3.Close()
+	_ = db3 // close db3: aliased to db, no-op
 	{ // do_test "vacuum-3.1"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// delete_file test.db (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -286,7 +286,7 @@ func Test_vacuum(t *testing.T) {
 	{ // do_test "vacuum-7.0"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		_res = db2.Exec("\n    CREATE TABLE t1(t);\n    VACUUM;\n  ")
+		_res = db.Exec("\n    CREATE TABLE t1(t);\n    VACUUM;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(t);\n    VACUUM;\n  ")
 		}
@@ -298,13 +298,13 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum-7.2"
-		r = db2.Query("\n    VACUUM;\n    pragma integrity_check;\n  ")
+		r = db.Query("\n    VACUUM;\n    pragma integrity_check;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    VACUUM;\n    pragma integrity_check;\n  ")
 		}
 	}
 	{ // do_test "vacuum-7.3"
-		r = db2.Query(" PRAGMA freelist_count; ")
+		r = db.Query(" PRAGMA freelist_count; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA freelist_count; ")
 		}
@@ -339,18 +339,18 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "vacuum-8.1"
 		os.Remove("a'z.db")
 		os.Remove("a'z.db-journal")
 		db2, err = frigolite.Open("a'z.db")
 		if err != nil { t.Fatal(err) }
-		_res = db2.Exec("\n    CREATE TABLE t1(t);\n    VACUUM;\n  ")
+		_res = db.Exec("\n    CREATE TABLE t1(t);\n    VACUUM;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(t);\n    VACUUM;\n  ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "vacuum-9.1"
 		_res = db.Exec("\n      DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;\n    ")
 		if _res.Error != nil {

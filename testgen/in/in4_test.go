@@ -666,29 +666,6 @@ func Test_in4(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	{ // "7.2"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n    CREATE TABLE t2(d INTEGER, e INT);\n    INSERT INTO t2(e) VALUES(1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n    CREATE TABLE t2(d INTEGER, e INT);\n    INSERT INTO t2(e) VALUES(1);\n  ")
-		}
-	}
-	{ // "7.3"
-		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t1 ON c IN (d) AND b IN (10,10,10);\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t1 ON c IN (d) AND b IN (10,10,10);\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "{} 1 {} {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
 		if _res.Error != nil {

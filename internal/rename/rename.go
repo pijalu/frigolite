@@ -223,6 +223,12 @@ func collectExprRange(expr sql.Expr, ctx *RenameContext, ranges *[]RenameRange) 
 		for _, arg := range e.Args {
 			collectExprRange(arg, ctx, ranges)
 		}
+		// The FILTER (WHERE ...) clause references columns and must be
+		// renamed (altertab3-13.2: "SELECT a() FILTER (WHERE a>0)" renames
+		// the WHERE's a but not the function name a).
+		if e.Filter != nil {
+			collectExprRange(e.Filter, ctx, ranges)
+		}
 	case *sql.ParenExpr:
 		collectExprRange(e.Expr, ctx, ranges)
 	case *sql.CaseExpr:
@@ -257,7 +263,21 @@ func collectExprRange(expr sql.Expr, ctx *RenameContext, ranges *[]RenameRange) 
 		collectExprRange(e.Low, ctx, ranges)
 		collectExprRange(e.High, ctx, ranges)
 	case *sql.InList:
-		collectExprRange(e.Operand, ctx, ranges)
+		// SQLite's rename machinery does not rewrite a BARE column operand
+		// of an empty IN list ("b IN ()" stays "b" after renaming b,
+		// altertab3-3.2), but it still walks function-call operands and
+		// subquery operands whose inner references are renamed
+		// (altertab3-8.2.2: LIKELIHOOD(c0, 1.0) IN () renames c0;
+		// altertab3-10.2 keeps the subquery's table because the empty-IN
+		// operand's subquery is a separate scope SQLite does not descend
+		// into for the rename).
+		if len(e.List) > 0 {
+			collectExprRange(e.Operand, ctx, ranges)
+		} else if _, isCol := e.Operand.(*sql.ColumnRef); !isCol {
+			if _, isSubq := e.Operand.(*sql.Subquery); !isSubq {
+				collectExprRange(e.Operand, ctx, ranges)
+			}
+		}
 		for _, item := range e.List {
 			collectExprRange(item, ctx, ranges)
 		}

@@ -741,6 +741,10 @@ func Test_func(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT upper(a), lower(a) FROM t2")
 		}
 	}
+	{ // do_test "func-5.4"
+		_res = db.Exec("SELECT upper(a,5) FROM t2")
+		_ = _res // catchsql
+	}
 	{ // do_test "func-5.5"
 		_res = db.Exec("SELECT upper(*) FROM t2")
 		_ = _res // catchsql
@@ -1778,7 +1782,7 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-29.2"
-			x = tclLIndex("sqlite3_db_status", "db")
+			x = tclLIndex("sqlite3_db_status db CACHE_MISS 1", "1")
 			_ = x // suppress unused warning
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 				x = "1"
@@ -1808,7 +1812,7 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-29.6"
-			x = tclLIndex("sqlite3_db_status", "db")
+			x = tclLIndex("sqlite3_db_status db CACHE_MISS 1", "1")
 			_ = x // suppress unused warning
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 				x = "1"
@@ -2117,7 +2121,7 @@ func Test_func(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN INSERT INTO t33b(x,y) VALUES(testdirectonly(new.aaa),new.b); END"
+			want := "CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.aaa),new.b);\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

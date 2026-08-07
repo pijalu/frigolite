@@ -714,7 +714,6 @@ func Test_without_rowid1(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
-			// sqlite3_limit db SQLITE_LIMIT_COLUMN 8 (unsupported command, not transpiled)
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
 				if _res.Error != nil {

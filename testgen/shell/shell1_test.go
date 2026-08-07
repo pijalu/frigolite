@@ -663,9 +663,9 @@ func Test_shell1(t *testing.T) {
 		os.Remove("test2.db")
 		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE " + sqlLiteral("table") + "(x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO " + sqlLiteral("table") + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		_res = db.Exec("\n    CREATE TABLE [table](x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO [table] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE " + sqlLiteral("table") + "(x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO " + sqlLiteral("table") + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE [table](x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO [table] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		}
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
@@ -674,9 +674,9 @@ func Test_shell1(t *testing.T) {
 		os.Remove("test2.db")
 		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE " + sqlLiteral("ta<>ble") + "(x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO " + sqlLiteral("ta<>ble") + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		_res = db.Exec("\n    CREATE TABLE [ta<>ble](x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO [ta<>ble] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE " + sqlLiteral("ta<>ble") + "(x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO " + sqlLiteral("ta<>ble") + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE [ta<>ble](x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO [ta<>ble] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		}
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}

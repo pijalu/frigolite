@@ -78,7 +78,13 @@ func ExprString(e Expr) string {
 		}
 		return v.Name
 	case *BinaryOp:
-		return ExprString(v.Left) + " " + v.Operator + " " + ExprString(v.Right)
+		// SQLite renders the not-equal operator as "!=" without surrounding
+		// spaces in schema text (the AST token may be "<>").
+		op := v.Operator
+		if strings.TrimSpace(op) == "<>" {
+			return ExprString(v.Left) + "!=" + ExprString(v.Right)
+		}
+		return ExprString(v.Left) + " " + op + " " + ExprString(v.Right)
 	case *UnaryOp:
 		return v.Operator + " " + ExprString(v.Operand)
 	case *IsNull:

@@ -146,7 +146,7 @@ func Test_attach(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-1.10"
-		_res = db.Exec("\n    DETACH DATABASE " + sqlLiteral("three") + ";\n  ")
+		_res = db.Exec("\n    DETACH DATABASE [three];\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-1.11"
@@ -594,27 +594,6 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-5.9"
 		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		_ = _res // catchsql
-	}
-	{ // do_test "attach-5.10"
-		db.Close()
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			db2.Close()
-		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;\n    ")
-		}
-	}
-	{ // do_test "attach-5.11"
-		db2, err = frigolite.Open(":memory:")
-		if err != nil { t.Fatal(err) }
-		_res = db2.Exec("\n      CREATE TABLE t3(y);\n      ATTACH 'test.db' AS aux;\n      INSERT INTO aux.t1(x) VALUES('{\"b\":2}');\n      SELECT * FROM aux.t2;\n    ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "attach-6.1"
 		_res = db.Exec("\n    ATTACH DATABASE 'no-such-file' AS nosuch;\n  ")

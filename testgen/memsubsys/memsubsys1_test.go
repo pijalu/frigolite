@@ -92,14 +92,14 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-1.3"
-		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
+		pg_used = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "2")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-1.4"
-		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
+		s_used = tclLIndex("sqlite3_status SQLITE_STATUS_SCRATCH_USED 0", "2")
 		_ = s_used // suppress unused warning
 	}
-	max_pagecache = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
+	max_pagecache = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0", "2")
 	_ = max_pagecache // suppress unused warning
 	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -110,11 +110,11 @@ func Test_memsubsys1(t *testing.T) {
 	MEMORY_MANAGEMENT = sqlite_options_memorymanage
 	_ = MEMORY_MANAGEMENT // suppress unused warning
 	{ // do_test "memsubsys1-2.4"
-		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
+		pg_used = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "2")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-2.5"
-		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
+		s_used = tclLIndex("sqlite3_status SQLITE_STATUS_SCRATCH_USED 0", "2")
 		_ = s_used // suppress unused warning
 	}
 	db.Close()
@@ -125,16 +125,16 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-3.1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-3.1.3"
-		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
+		pg_used = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "2")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-3.1.4"
-		overflow = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
+		overflow = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0", "2")
 		_ = overflow // suppress unused warning
 		// expr $overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05 (not evaluated)
 	}
 	{ // do_test "memsubsys1-3.1.5"
-		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
+		s_used = tclLIndex("sqlite3_status SQLITE_STATUS_SCRATCH_USED 0", "2")
 		_ = s_used // suppress unused warning
 	}
 	db.Close()
@@ -156,11 +156,11 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-3.2.4"
-		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
+		pg_used = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "2")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-3.2.5"
-		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
+		s_used = tclLIndex("sqlite3_status SQLITE_STATUS_SCRATCH_USED 0", "2")
 		_ = s_used // suppress unused warning
 	}
 	db.Close()
@@ -170,16 +170,16 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-4 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-4.3"
-		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
+		pg_used = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "2")
 		_ = pg_used // suppress unused warning
 		// expr $pg_used>=45 && $pg_used<=50 (not evaluated)
 	}
 	{ // do_test "memsubsys1-4.4"
-		pg_ovfl = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
+		pg_ovfl = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0", "2")
 		_ = pg_ovfl // suppress unused warning
 	}
 	{ // do_test "memsubsys1-4.5"
-		maxreq = tclLIndex("sqlite3_status", "SQLITE_STATUS_MALLOC_SIZE")
+		maxreq = tclLIndex("sqlite3_status SQLITE_STATUS_MALLOC_SIZE 0", "2")
 		_ = maxreq // suppress unused warning
 		// expr $maxreq<9000 (not evaluated)
 	}

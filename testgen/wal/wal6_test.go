@@ -115,7 +115,7 @@ func Test_wal6(t *testing.T) {
 			}
 		}
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		os.Remove("test.db")
 	}
 	db.Close()
@@ -138,7 +138,7 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		r = db2.Query("\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
+		r = db.Query("\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 		}
@@ -185,7 +185,7 @@ func Test_wal6(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v_2_6_4) + "")
 	}
 	{ // do_test "2.x"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	// proc definition (not transpiled)
 	db.Close()
@@ -208,7 +208,7 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.1"
-		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
+		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
 		}
@@ -216,7 +216,7 @@ func Test_wal6(t *testing.T) {
 	// test4 3.2.2 (unsupported command, not transpiled)
 	// db function test4 (variable-reader, inlined)
 	{ // do_test "3.3.1"
-		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
+		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		}
@@ -226,7 +226,7 @@ func Test_wal6(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v_3_3_2) + "")
 	}
 	{ // do_test "3.x"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -269,17 +269,17 @@ func Test_wal6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// hexio_write test.db-wal 0 [string repeat 00 2000] (unsupported command, not transpiled)
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 	}
 	{ // do_test "4.4.1"
-		_res = db2.Exec(" SELECT * FROM t1 ")
+		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "4.4.2"
-		_res = db2.Exec(" SELECT * FROM t2 ")
+		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
 	}
 	db.Close()

@@ -514,7 +514,7 @@ func Test_e_expr(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\"" + as + bs + "\""
+									want := as + bs
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -2297,6 +2297,18 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		{ // "e_expr-14.5.2"
+																			r = db.Query("SELECT 'Æ' LIKE 'æ'")
+																			if r.Error != nil {
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'Æ' LIKE 'æ'")
+																				return
+																			}
+																			got := flatten(r)
+																			want := "0"
+																			if got != want {
+																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+																			}
+																		}
 																		{ // "e_expr-14.6.1"
 																			_res = db.Exec(" \n  SELECT 'A' LIKE 'a' ESCAPE '12' \n")
 																			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ESCAPE expression must be a single character") {
@@ -2316,9 +2328,9 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																		{ // "e_expr-14.6.4"
-																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
+																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE 'æ'")
 																			if _res.Error != nil {
-																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
+																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE 'æ'")
 																			}
 																		}
 																		{ // "e_expr-14.7.1"
@@ -2890,6 +2902,18 @@ func Test_e_expr(t *testing.T) {
 																		_dbtmp21, err := frigolite.Open("test.db")
 																		_ = _dbtmp21 // sqlite3 db connection
 																		if err != nil { t.Fatal(err) }
+																		{ // "e_expr-18.1.1"
+																			_res = db.Exec(" \n    SELECT regexp('abc', 'def') \n  ")
+																			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: regexp") {
+																				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: regexp", _res.Error, " \n    SELECT regexp('abc', 'def') \n  ")
+																			}
+																		}
+																		{ // "e_expr-18.1.2"
+																			_res = db.Exec(" \n    SELECT 'abc' REGEXP 'def'\n  ")
+																			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: REGEXP") {
+																				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: REGEXP", _res.Error, " \n    SELECT 'abc' REGEXP 'def'\n  ")
+																			}
+																		}
 																		// proc definition (not transpiled)
 																		// db function regexp (variable-reader, inlined)
 																		regexpargs = "" // TCL namespace variable

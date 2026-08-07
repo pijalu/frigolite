@@ -462,7 +462,7 @@ func Test_misc1(t *testing.T) {
 				msg = ""
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "misc1-12.1"

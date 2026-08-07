@@ -7,6 +7,7 @@ package vtabI
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -100,7 +101,7 @@ func Test_vtabI(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 				}
-				idx = "lsearch -exact $::echo_module xFilter"
+				idx = strconv.Itoa(strings.Index(echo_module, "xFilter"))
 				_ = idx // suppress unused warning
 				_ = tclLIndex(echo_module, tclExprWith("$idx+1", map[string]string{"idx": idx})) // lindex result
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), filter) {
@@ -139,7 +140,7 @@ func Test_vtabI(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 					}
-					idx = "lsearch -exact $::echo_module xFilter"
+					idx = strconv.Itoa(strings.Index(echo_module, "xFilter"))
 					_ = idx // suppress unused warning
 					_ = tclLIndex(echo_module, tclExprWith("$idx+1", map[string]string{"idx": idx})) // lindex result
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), filter) {

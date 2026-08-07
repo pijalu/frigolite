@@ -243,7 +243,7 @@ func Test_win32lock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32lock-3.2"
-		_res = db2.Exec("\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(5);\n    COMMIT;\n  ")
+		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(5);\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "win32lock-3.3"
@@ -253,7 +253,7 @@ func Test_win32lock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32lock-3.4"
-		handle = tclLIndex("file_control_win32_set_handle", "db")
+		handle = tclLIndex("file_control_win32_set_handle db 0", "end")
 		_ = handle // suppress unused warning
 		_list := tclList([]string{"catchsql {\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(6);\n    COMMIT;\n  }", "file_control_win32_set_handle db $handle", "sqlite3_extended_errcode db"})
 		_ = _list

@@ -115,7 +115,7 @@ func Test_symlink(t *testing.T) {
 		_ = db2
 	}
 	{ // do_test "1.1.4"
-		_res = db2.Exec("ATTACH 'test.db2' AS aux1;")
+		_res = db.Exec("ATTACH 'test.db2' AS aux1;")
 		_ = _res // catchsql
 	}
 	{ // do_test "1.2.1"
@@ -136,7 +136,7 @@ func Test_symlink(t *testing.T) {
 	{ // do_test "1.2.3"
 		// sqlite3_db_filename db2 main (unsupported command, not transpiled)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "1.3"
 		os.Remove("test.db")
 		// exec ln -s test.db2 test.db (unsupported command, not transpiled)

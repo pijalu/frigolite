@@ -263,7 +263,6 @@ func Test_fts3defer(t *testing.T) {
 		}
 		tokenizers = "1 simple"
 		_ = tokenizers // suppress unused warning
-		tokenizers = tclListAppend(tokenizers, "2", "icu en_US")
 		// foreach {tn tokenizer} tokenizers
 		_items1 := tclSplitList(tokenizers)
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
@@ -330,7 +329,7 @@ func Test_fts3defer(t *testing.T) {
 					}
 				}
 				L = tclListAppend(L, "common", "rare")
-				val = strings.Join(tclSplitList(L), "\"")
+				val = strings.Join(tclSplitList(L), " ")
 				_ = val // suppress unused warning
 				_res = db.Exec("\n      INSERT INTO ft VALUES(\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ",\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + "\n      );\n    COMMIT;\n  ")
 				if _res.Error != nil {

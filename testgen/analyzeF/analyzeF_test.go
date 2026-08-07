@@ -154,7 +154,6 @@ func Test_analyzeF(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;\n")
 				}
 			}
-			// sqlite3_limit db SQLITE_LIMIT_LENGTH 1000000 (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// db function dstr (variable-reader, inlined)
 			{ // "4.3"

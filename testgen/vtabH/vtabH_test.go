@@ -131,225 +131,245 @@ func Test_vtabH(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		}
 	}
-	// register_tclvar_module db (unsupported command, not transpiled)
-	xyz = "10" // TCL namespace variable
-	_ = xyz // suppress unused warning
-	{ // "2.0"
-		r = db.Query("\n  CREATE VIRTUAL TABLE vars USING tclvar;\n  SELECT name, arrayname, value FROM vars WHERE name = 'xyz';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE vars USING tclvar;\n  SELECT name, arrayname, value FROM vars WHERE name = 'xyz';\n")
-			return
-		}
-		got := flatten(r)
-		want := "xyz {} 10"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	x1 = "aback"
-	_ = x1 // suppress unused warning
-	x2 = "abaft"
-	_ = x2 // suppress unused warning
-	x3 = "abandon"
-	_ = x3 // suppress unused warning
-	x4 = "abandonint"
-	_ = x4 // suppress unused warning
-	x5 = "babble"
-	_ = x5 // suppress unused warning
-	x6 = "baboon"
-	_ = x6 // suppress unused warning
-	x7 = "backbone"
-	_ = x7 // suppress unused warning
-	x8 = "backarrow"
-	_ = x8 // suppress unused warning
-	x9 = "castle"
-	_ = x9 // suppress unused warning
-	// db function glob (variable-reader, inlined)
-	// proc definition (not transpiled)
-	// db function like (variable-reader, inlined)
-	// proc definition (not transpiled)
-	// db function regexp (variable-reader, inlined)
-	// proc definition (not transpiled)
-	for _, tclvar_set_omit := range tclSplitList("0 1") {
-	_ = tclvar_set_omit // suppress unused warning
-		// foreach {tn expr res cnt} "1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000"
-		_items0 := tclSplitList("1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000")
-		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-			tn := _items0[_idx0+0]
-			_ = tn // suppress unused warning
-			expr := _items0[_idx0+1]
-			_ = expr // suppress unused warning
-			res := _items0[_idx0+2]
-			_ = res // suppress unused warning
-			cnt := _items0[_idx0+3]
-			_ = cnt // suppress unused warning
-			_ = _idx0
-				gfunc = "0" // TCL namespace variable
-				_ = gfunc // suppress unused warning
-				if tclBool(tclvar_set_omit) {
-					cnt = "0"
-					_ = cnt // suppress unused warning
+	// foreach {tn sql expect} "1 \"SELECT * FROM e6 WHERE b LIKE '8abc'\" {\n      xBestIndex \n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?}\n      xFilter\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?}\n         8ABC 8abd 8abc\n    }\n  \n    2 \"SELECT * FROM e6 WHERE b GLOB '8abc'\" {\n       xBestIndex\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b glob ?}\n       xFilter\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b glob ?}\n         8abc 8abd 8abc\n    }\n    3 \"SELECT * FROM e6 WHERE b LIKE '8e/'\" {\n      xBestIndex {SELECT rowid, a, b FROM 't6' WHERE b like ?}\n      xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8e/\n    }\n    4 \"SELECT * FROM e6 WHERE b GLOB '8e/'\" {\n      xBestIndex {SELECT rowid, a, b FROM 't6' WHERE b glob ?}\n      xFilter {SELECT rowid, a, b FROM 't6' WHERE b glob ?} 8e/\n    }"
+	_items0 := tclSplitList("1 \"SELECT * FROM e6 WHERE b LIKE '8abc'\" {\n      xBestIndex \n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?}\n      xFilter\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?}\n         8ABC 8abd 8abc\n    }\n  \n    2 \"SELECT * FROM e6 WHERE b GLOB '8abc'\" {\n       xBestIndex\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b glob ?}\n       xFilter\n         {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b glob ?}\n         8abc 8abd 8abc\n    }\n    3 \"SELECT * FROM e6 WHERE b LIKE '8e/'\" {\n      xBestIndex {SELECT rowid, a, b FROM 't6' WHERE b like ?}\n      xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8e/\n    }\n    4 \"SELECT * FROM e6 WHERE b GLOB '8e/'\" {\n      xBestIndex {SELECT rowid, a, b FROM 't6' WHERE b glob ?}\n      xFilter {SELECT rowid, a, b FROM 't6' WHERE b glob ?} 8e/\n    }")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
+		_ = tn // suppress unused warning
+		sql := _items0[_idx0+1]
+		_ = sql // suppress unused warning
+		expect := _items0[_idx0+2]
+		_ = expect // suppress unused warning
+		_ = _idx0
+			{ // do_test "1." + tn
+				echo_module = ""
+				_ = echo_module // suppress unused warning
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
-				{ // do_test "2." + tclvar_set_omit + "." + tn + ".1"
-					r = db.Query("SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
+				_ = echo_module // TCL namespace variable (query)
+			}
+		}
+		// register_tclvar_module db (unsupported command, not transpiled)
+		xyz = "10" // TCL namespace variable
+		_ = xyz // suppress unused warning
+		{ // "2.0"
+			r = db.Query("\n  CREATE VIRTUAL TABLE vars USING tclvar;\n  SELECT name, arrayname, value FROM vars WHERE name = 'xyz';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE vars USING tclvar;\n  SELECT name, arrayname, value FROM vars WHERE name = 'xyz';\n")
+				return
+			}
+			got := flatten(r)
+			want := "xyz {} 10"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		x1 = "aback"
+		_ = x1 // suppress unused warning
+		x2 = "abaft"
+		_ = x2 // suppress unused warning
+		x3 = "abandon"
+		_ = x3 // suppress unused warning
+		x4 = "abandonint"
+		_ = x4 // suppress unused warning
+		x5 = "babble"
+		_ = x5 // suppress unused warning
+		x6 = "baboon"
+		_ = x6 // suppress unused warning
+		x7 = "backbone"
+		_ = x7 // suppress unused warning
+		x8 = "backarrow"
+		_ = x8 // suppress unused warning
+		x9 = "castle"
+		_ = x9 // suppress unused warning
+		// db function glob (variable-reader, inlined)
+		// proc definition (not transpiled)
+		// db function like (variable-reader, inlined)
+		// proc definition (not transpiled)
+		// db function regexp (variable-reader, inlined)
+		// proc definition (not transpiled)
+		for _, tclvar_set_omit := range tclSplitList("0 1") {
+		_ = tclvar_set_omit // suppress unused warning
+			// foreach {tn expr res cnt} "1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000"
+			_items1 := tclSplitList("1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000")
+			for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+				tn := _items1[_idx1+0]
+				_ = tn // suppress unused warning
+				expr := _items1[_idx1+1]
+				_ = expr // suppress unused warning
+				res := _items1[_idx1+2]
+				_ = res // suppress unused warning
+				cnt := _items1[_idx1+3]
+				_ = cnt // suppress unused warning
+				_ = _idx1
+					gfunc = "0" // TCL namespace variable
+					_ = gfunc // suppress unused warning
+					if tclBool(tclvar_set_omit) {
+						cnt = "0"
+						_ = cnt // suppress unused warning
+					}
+					{ // do_test "2." + tclvar_set_omit + "." + tn + ".1"
+						r = db.Query("SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
+						}
+						if flatten(r) != res {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "2." + tclvar_set_omit + "." + tn + ".1")
+						}
+					}
+					{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"
+						_ = gfunc // TCL namespace variable (query)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), cnt) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cnt, _res.Error, "2." + tclvar_set_omit + "." + tn + ".2")
+						}
+					}
+				}
+			}
+			if tcl_platform_platform == "windows" {
+				drive = tclStringRange("pwd", "0", "1")
+				_ = drive // suppress unused warning
+				env_fstreeDrive = drive // TCL namespace variable
+				_ = env_fstreeDrive // suppress unused warning
+			}
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			// register_fs_module db (unsupported command, not transpiled)
+			if tclBool(tcl_platform_platform + " != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
+				{ // "3.0"
+					r = db.Query("\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
+						return
 					}
-					if flatten(r) != res {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "2." + tclvar_set_omit + "." + tn + ".1")
-					}
-				}
-				{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"
-					_ = gfunc // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), cnt) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cnt, _res.Error, "2." + tclvar_set_omit + "." + tn + ".2")
+					got := flatten(r)
+					want := "test.db ."
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-			}
-		}
-		if tcl_platform_platform == "windows" {
-			drive = tclStringRange("pwd", "0", "1")
-			_ = drive // suppress unused warning
-			env_fstreeDrive = drive // TCL namespace variable
-			_ = env_fstreeDrive // suppress unused warning
-		}
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		// register_fs_module db (unsupported command, not transpiled)
-		if tclBool(tcl_platform_platform + " != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
-			{ // "3.0"
-				r = db.Query("\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
-					return
-				}
-				got := flatten(r)
-				want := "test.db ."
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			// proc definition (not transpiled)
-			// proc definition (not transpiled)
-			// proc definition (not transpiled)
-			res = ""
-			_ = res // suppress unused warning
-			root_files = "list_root_files"
-			_ = root_files // suppress unused warning
-			for _, p := range tclSplitList(root_files) {
-			_ = p // suppress unused warning
-				if tcl_platform_platform == "windows" {
-					if tclBool("!" + "regexp {\\$} $p") {
-						res = tclListAppend(res, p)
-					}
-				} else {
-					res = tclListAppend(res, "/" + p)
-				}
-			}
-			num_root_files = "llength $res"
-			_ = num_root_files // suppress unused warning
-			{ // do_test "3.1"
-				// sort_files [execsql {\n      SELECT path FROM fstree WHERE pa... true (unsupported command, not transpiled)
-			}
-			// proc definition (not transpiled)
-			pwd = "pwd" + "/*"
-			_ = pwd // suppress unused warning
-			res = "contents $pwd"
-			_ = res // suppress unused warning
-			{ // "3.2"
-				r = db.Query("\n    SELECT path FROM fstree WHERE path GLOB " + sqlLiteral(pwd) + " ORDER BY 1\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT path FROM fstree WHERE path GLOB " + sqlLiteral(pwd) + " ORDER BY 1\n  ")
-					return
-				}
-				got := flatten(r)
-				want := "sort_files $res"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			{ // do_test "3.3"
-				{
-					var _catchErr error
-					_ = _catchErr // suppress unused warning
-					os.Remove("-force")
-				}
-				// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
-				_items0 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")
-				for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-					path := _items0[_idx0+0]
-					_ = path // suppress unused warning
-					sz := _items0[_idx0+1]
-					_ = sz // suppress unused warning
-					_ = _idx0
-						dir = "file dirname $path"
-						_ = dir // suppress unused warning
-						{
-							var _catchErr error
-							_ = _catchErr // suppress unused warning
-							// file mkdir $dir
+				// proc definition (not transpiled)
+				// proc definition (not transpiled)
+				// proc definition (not transpiled)
+				res = ""
+				_ = res // suppress unused warning
+				root_files = "list_root_files"
+				_ = root_files // suppress unused warning
+				for _, p := range tclSplitList(root_files) {
+				_ = p // suppress unused warning
+					if tcl_platform_platform == "windows" {
+						if tclBool("!" + "regexp {\\$} $p") {
+							res = tclListAppend(res, p)
 						}
-						fd = "open $path w"
-						_ = fd // suppress unused warning
-						_putsMsg := "-nonewline"
-						_ = _putsMsg
-						// close $fd
+					} else {
+						res = tclListAppend(res, "/" + p)
 					}
 				}
-				pwd = "pwd"
+				num_root_files = "llength $res"
+				_ = num_root_files // suppress unused warning
+				{ // do_test "3.1"
+					// sort_files [execsql {\n      SELECT path FROM fstree WHERE pa... true (unsupported command, not transpiled)
+				}
+				// proc definition (not transpiled)
+				pwd = "pwd" + "/*"
 				_ = pwd // suppress unused warning
-				if tclBool("!" + "{*[_%]*} $pwd") {
-					{ // "3.5"
-						r = db.Query("\n      SELECT path, size FROM fstree \n       WHERE path GLOB " + sqlLiteral(pwd) + " || '/subdir/*' ORDER BY 1\n    ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree \n       WHERE path GLOB " + sqlLiteral(pwd) + " || '/subdir/*' ORDER BY 1\n    ")
-							return
-						}
-						got := flatten(r)
-						want := "\"" + pwd + "/subdir/x1.txt\" 143 \"" + pwd + "/subdir/x2.txt\" 153"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				res = "contents $pwd"
+				_ = res // suppress unused warning
+				{ // "3.2"
+					r = db.Query("\n    SELECT path FROM fstree WHERE path GLOB " + sqlLiteral(pwd) + " ORDER BY 1\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT path FROM fstree WHERE path GLOB " + sqlLiteral(pwd) + " ORDER BY 1\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "sort_files $res"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "3.3"
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+						os.Remove("-force")
+					}
+					// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
+					_items0 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")
+					for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+						path := _items0[_idx0+0]
+						_ = path // suppress unused warning
+						sz := _items0[_idx0+1]
+						_ = sz // suppress unused warning
+						_ = _idx0
+							dir = "file dirname $path"
+							_ = dir // suppress unused warning
+							{
+								var _catchErr error
+								_ = _catchErr // suppress unused warning
+								// file mkdir $dir
+							}
+							fd = "open $path w"
+							_ = fd // suppress unused warning
+							_putsMsg := "-nonewline"
+							_ = _putsMsg
+							// close $fd
 						}
 					}
-					{ // "3.6"
-						r = db.Query("\n      SELECT path, size FROM fstree\n       WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%' ORDER BY 1\n    ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree\n       WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%' ORDER BY 1\n    ")
-							return
+					pwd = "pwd"
+					_ = pwd // suppress unused warning
+					if tclBool("!" + "{*[_%]*} $pwd") {
+						{ // "3.5"
+							r = db.Query("\n      SELECT path, size FROM fstree \n       WHERE path GLOB " + sqlLiteral(pwd) + " || '/subdir/*' ORDER BY 1\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree \n       WHERE path GLOB " + sqlLiteral(pwd) + " || '/subdir/*' ORDER BY 1\n    ")
+								return
+							}
+							got := flatten(r)
+							want := pwd + "/subdir/x1.txt 143 " + pwd + "/subdir/x2.txt 153"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-						got := flatten(r)
-						want := "\"" + pwd + "/subdir/x1.txt\" 143 \"" + pwd + "/subdir/x2.txt\" 153"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						{ // "3.6"
+							r = db.Query("\n      SELECT path, size FROM fstree\n       WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%' ORDER BY 1\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree\n       WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%' ORDER BY 1\n    ")
+								return
+							}
+							got := flatten(r)
+							want := pwd + "/subdir/x1.txt 143 " + pwd + "/subdir/x2.txt 153"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-					}
-					{ // "3.7"
-						r = db.Query("\n      SELECT sum(size) FROM fstree WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%'\n    ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(size) FROM fstree WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%'\n    ")
-							return
+						{ // "3.7"
+							r = db.Query("\n      SELECT sum(size) FROM fstree WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%'\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(size) FROM fstree WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%'\n    ")
+								return
+							}
+							got := flatten(r)
+							want := "296"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-						got := flatten(r)
-						want := "296"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "3.8"
-						r = db.Query("\n      SELECT size FROM fstree WHERE path = " + sqlLiteral(pwd) + " || '/subdir/x1.txt'\n    ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT size FROM fstree WHERE path = " + sqlLiteral(pwd) + " || '/subdir/x1.txt'\n    ")
-							return
-						}
-						got := flatten(r)
-						want := "143"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						{ // "3.8"
+							r = db.Query("\n      SELECT size FROM fstree WHERE path = " + sqlLiteral(pwd) + " || '/subdir/x1.txt'\n    ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT size FROM fstree WHERE path = " + sqlLiteral(pwd) + " || '/subdir/x1.txt'\n    ")
+								return
+							}
+							got := flatten(r)
+							want := "143"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
 					}
 				}
-			}
 }

@@ -79,7 +79,7 @@ func Test_quote(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.2.2"
-		_res = db.Exec("SELECT * FROM " + sqlLiteral("@abc"))
+		_res = db.Exec("SELECT * FROM [@abc]")
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.2.3"
@@ -99,7 +99,7 @@ func Test_quote(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.3.3"
-		_res = db.Exec("\n    SELECT " + sqlLiteral("!pqr") + ", `#xyz`+5 FROM '@abc'\n  ")
+		_res = db.Exec("\n    SELECT [!pqr], `#xyz`+5 FROM '@abc'\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.3.4"

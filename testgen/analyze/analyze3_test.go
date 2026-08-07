@@ -195,9 +195,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.5"
-		l = tclStringRange("\"200\"", "0", "end")
+		l = tclStringRange("200", "0", "end")
 		_ = l // suppress unused warning
-		u = tclStringRange("\"300\"", "0", "end")
+		u = tclStringRange("300", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -212,9 +212,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.8"
-		l = tclStringRange("\"0\"", "0", "end")
+		l = tclStringRange("0", "0", "end")
 		_ = l // suppress unused warning
-		u = tclStringRange("\"1100\"", "0", "end")
+		u = tclStringRange("1100", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -259,9 +259,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>12 AND x<20 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.5"
-		l = tclStringRange("\"12\"", "0", "end")
+		l = tclStringRange("12", "0", "end")
 		_ = l // suppress unused warning
-		u = tclStringRange("\"20\"", "0", "end")
+		u = tclStringRange("20", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
@@ -276,9 +276,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>0 AND x<99 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.8"
-		l = tclStringRange("\"0\"", "0", "end")
+		l = tclStringRange("0", "0", "end")
 		_ = l // suppress unused warning
-		u = tclStringRange("\"99\"", "0", "end")
+		u = tclStringRange("99", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
@@ -323,9 +323,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.5"
-		l = tclStringRange("\"200\"", "0", "end")
+		l = tclStringRange("200", "0", "end")
 		_ = l // suppress unused warning
-		u = tclStringRange("\"300\"", "0", "end")
+		u = tclStringRange("300", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -340,9 +340,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.8"
-		l = tclStringRange("\"0\"", "0", "end")
+		l = tclStringRange("0", "0", "end")
 		_ = l // suppress unused warning
-		u = tclStringRange("\"1100\"", "0", "end")
+		u = tclStringRange("1100", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -356,6 +356,9 @@ func Test_analyze3(t *testing.T) {
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
+	for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 	}
 	for _, _t := range db.Query("PRAGMA database_list").Rows {
 		if len(_t) > 1 {
@@ -378,9 +381,9 @@ func Test_analyze3(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			_t = ""
 			_ = _t // suppress unused warning
-			_t += tclLIndex("{a", "b")
-			_t += tclLIndex("{a", "b")
-			_t += tclLIndex("{a", "b")
+			_t += tclLIndex("a b c d e f g h i j", tclExprWith("$i/100", map[string]string{"i": i}))
+			_t += tclLIndex("a b c d e f g h i j", tclExprWith("($i/10)%10", map[string]string{"i": i}))
+			_t += tclLIndex("a b c d e f g h i j", tclExprWith("($i%10)", map[string]string{"i": i}))
 			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(_t) + ") ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(_t) + ") ")
@@ -450,6 +453,9 @@ func Test_analyze3(t *testing.T) {
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
+	for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 	}
 	for _, _t := range db.Query("PRAGMA database_list").Rows {
 		if len(_t) > 1 {
@@ -715,6 +721,9 @@ func Test_analyze3(t *testing.T) {
 		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
+		for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 		}
 		for _, _t := range db.Query("PRAGMA database_list").Rows {
 			if len(_t) > 1 {

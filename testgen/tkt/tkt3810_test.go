@@ -68,7 +68,7 @@ func Test_tkt3810(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3810-3"
-		_res = db2.Exec("DROP TABLE t1")
+		_res = db.Exec("DROP TABLE t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 		}
@@ -90,7 +90,7 @@ func Test_tkt3810(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3810-6"
-		_res = db2.Exec("CREATE TABLE t1(x)")
+		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}
@@ -103,7 +103,7 @@ func Test_tkt3810(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_temp_master;\n  ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

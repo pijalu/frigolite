@@ -111,13 +111,13 @@ func Test_shmlock(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		r = db2.Query(" SELECT * FROM t1 ")
+		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "1.2"
-		r = db3.Query(" SELECT * FROM t1 ")
+		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -135,9 +135,9 @@ func Test_shmlock(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "1.3." + tn
-				_res = db.Exec("vfs_shmlock " + dbhandle + " main {*}" + cmd)
+				_res = db.Exec("vfs_shmlock " + dbhandle + " main * " + cmd)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "vfs_shmlock " + dbhandle + " main {*}" + cmd)
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "vfs_shmlock " + dbhandle + " main * " + cmd)
 				}
 			}
 		}
@@ -245,7 +245,7 @@ func Test_shmlock(t *testing.T) {
 			}
 		}
 		{ // do_test "3.2"
-			r = db1.Query(" SELECT * FROM t1 ")
+			r = db.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 			}

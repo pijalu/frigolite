@@ -84,7 +84,7 @@ func Test_tkt3093(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     BEGIN;\n     INSERT INTO t1 VALUES(2);\n  ")
 		}
-		_res = db2.Exec("\n     UPDATE t1 SET x=x+1;\n  ")
+		_res = db.Exec("\n     UPDATE t1 SET x=x+1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3093.4"
@@ -103,5 +103,5 @@ func Test_tkt3093(t *testing.T) {
 		_res = db2.Exec("SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 }

@@ -542,7 +542,7 @@ func Test_incrvacuum(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "incrvacuum-12.3"
-		_res = db2.Exec(" ROLLBACK; ")
+		_res = db.Exec(" ROLLBACK; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK; ")
 		}
@@ -570,7 +570,7 @@ func Test_incrvacuum(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -585,7 +585,7 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-13.2"
 		STMT = "sqlite3_prepare $::DB {PRAGMA auto_vacuum = 2} -1 DUMMY" // TCL namespace variable
 		_ = STMT // suppress unused warning
-		r = db2.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
 		}
@@ -621,7 +621,7 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	{ // do_test "incrvacuum-15.1"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

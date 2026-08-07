@@ -160,8 +160,6 @@ func Test_e_fts3(t *testing.T) {
 			// read_test 1.1.4.2 {\n  PRAGMA table_info(papers)\n} {0 author {} 0 {} 0 1 document {} 0 {}... (unsupported command, not transpiled)
 			// ddl_test 1.1.5.1 {\n  CREATE VIRTUAL TABLE simpledata USING fts3(tok...} (unsupported command, not transpiled)
 			// read_test 1.1.5.2 {\n  PRAGMA table_info(simpledata)\n} {0 content {} 0 {} 0} (unsupported command, not transpiled)
-			// ddl_test 1.1.6.1 {\n    CREATE VIRTUAL TABLE names USING fts3(a, b, ...} (unsupported command, not transpiled)
-			// read_test 1.1.6.2 {\n    PRAGMA table_info(names)\n  } {0 a {} 0 {} 0 1 b {} 0 {} 0} (unsupported command, not transpiled)
 			// ddl_test 1.1.7.1 {DROP TABLE data} (unsupported command, not transpiled)
 			// ddl_test 1.1.7.2 {DROP TABLE pages} (unsupported command, not transpiled)
 			// ddl_test 1.1.7.3 {DROP TABLE mail} (unsupported command, not transpiled)

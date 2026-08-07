@@ -124,10 +124,10 @@ func Test_ioerr4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	tclFileCopy("test.db", "test.db-bu")
 	// do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete t...} -tclbo... (unsupported command, not transpiled)
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db-bu")
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

@@ -704,7 +704,7 @@ func Test_incrblob(t *testing.T) {
 			_ = _putsMsg
 		}
 		{ // do_test "incrblob-6.11"
-			_res = db2.Exec("\n      COMMIT;\n    ")
+			_res = db.Exec("\n      COMMIT;\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "incrblob-6.12"
@@ -717,7 +717,7 @@ func Test_incrblob(t *testing.T) {
 			// close $::blob
 		}
 		{ // do_test "incrblob-6.14"
-			_res = db2.Exec("\n      COMMIT;\n    ")
+			_res = db.Exec("\n      COMMIT;\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "incrblob-6.15"
@@ -726,7 +726,7 @@ func Test_incrblob(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM blobs WHERE rowid = 4;\n    ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 	{ // do_test "incrblob-7.1.0"

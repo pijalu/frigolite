@@ -123,7 +123,7 @@ func Test_shared9(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "2.2"
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 		_res = db2.Exec("INSERT INTO t1 VALUES('abc', 'def', 'ghi')")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -140,7 +140,7 @@ func Test_shared9(t *testing.T) {
 		_ = invoked_mycollate_db1 // suppress unused warning
 		_res = db1.Exec("\n    CREATE TABLE t1(a COLLATE mycollate, CHECK (a IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	{ // do_test "2.4"
@@ -148,7 +148,7 @@ func Test_shared9(t *testing.T) {
 		_ = invoked_mycollate_db1 // suppress unused warning
 		_res = db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
@@ -161,7 +161,7 @@ func Test_shared9(t *testing.T) {
 		_ = invoked_mycollate_db1 // suppress unused warning
 		_res = db1.Exec("\n    CREATE TABLE t1(a, CHECK (a COLLATE mycollate IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	{ // do_test "2.14"
@@ -169,7 +169,7 @@ func Test_shared9(t *testing.T) {
 		_ = invoked_mycollate_db1 // suppress unused warning
 		_res = db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	os.Remove("test.db")

@@ -3420,9 +3420,9 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-3.1"
-		r = db.Query("SELECT 'u01C0' LIKE '%\x80'")
+		r = db.Query("SELECT 'ǀ' LIKE '%\x80'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'u01C0' LIKE '%\x80'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'ǀ' LIKE '%\x80'")
 			return
 		}
 		got := flatten(r)
@@ -3432,9 +3432,9 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-3.2"
-		r = db.Query("SELECT 'u0080' LIKE '%\x80'")
+		r = db.Query("SELECT '\u0080' LIKE '%\x80'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'u0080' LIKE '%\x80'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '\u0080' LIKE '%\x80'")
 			return
 		}
 		got := flatten(r)

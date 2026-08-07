@@ -156,7 +156,7 @@ func Test_autovacuum(t *testing.T) {
 			}
 			for _, d := range tclSplitList(delete) {
 			_ = d // suppress unused warning
-				idx = "lsearch $::tbl_data [make_str $d $ENTRY_LEN]"
+				idx = strconv.Itoa(strings.Index(tbl_data, "[make_str"))
 				_ = idx // suppress unused warning
 				tbl_data = "lreplace $::tbl_data $idx $idx" // TCL namespace variable
 				_ = tbl_data // suppress unused warning

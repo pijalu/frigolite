@@ -87,12 +87,6 @@ func Test_autoindex5(t *testing.T) {
 	}
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	{ // "3.0" — skipped: window functions not supported
-		_res = db.Exec("\n  -- This is the original test case reported on the mailing list\n  CREATE TABLE artists (\n    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n    name varchar(255)\n  );\n  CREATE TABLE albums (\n    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n    name varchar(255),\n    artist_id integer REFERENCES artists\n  );\n  INSERT INTO artists (name) VALUES ('Ar');\n  INSERT INTO albums (name, artist_id) VALUES ('Al', 1);\n  SELECT artists.*\n  FROM artists\n  INNER JOIN artists AS 'b' ON (b.id = artists.id)\n  WHERE (artists.id IN (\n    SELECT albums.artist_id\n    FROM albums\n    WHERE ((name = 'Al')\n      AND (albums.artist_id IS NOT NULL)\n      AND (albums.id IN (\n        SELECT id\n        FROM (\n          SELECT albums.id,\n                 row_number() OVER (\n                   PARTITION BY albums.artist_id\n                   ORDER BY name\n                 ) AS 'x'\n          FROM albums\n          WHERE (name = 'Al')\n        ) AS 't1'\n        WHERE (x = 1)\n      ))\n      AND (albums.id IN (1, 2)))\n  ));\n")
-		_ = _res
-	}
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t1 (a); INSERT INTO t1 (a) VALUES (104);\n  CREATE TABLE t2 (b); INSERT INTO t2 (b) VALUES (104);\n  CREATE TABLE t3 (c); INSERT INTO t3 (c) VALUES (104);\n  CREATE TABLE t4 (d); INSERT INTO t4 (d) VALUES (104);\n  SELECT *\n  FROM t1 CROSS JOIN t2 ON (t1.a = t2.b) WHERE t2.b IN (\n    SELECT t3.c\n    FROM t3\n    WHERE t3.c IN (\n      SELECT d FROM (SELECT DISTINCT d FROM t4) AS x WHERE x.d=104\n    )\n  );\n")
 		if r.Error != nil {

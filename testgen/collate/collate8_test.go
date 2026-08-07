@@ -94,9 +94,9 @@ func Test_collate8(t *testing.T) {
 		}
 	}
 	{ // do_test "collate8-1.13"
-		r = db.Query("\n    SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY " + sqlLiteral("x") + "\n  ")
+		r = db.Query("\n    SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY [x]\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY " + sqlLiteral("x") + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY [x]\n  ")
 		}
 	}
 	{ // do_test "collate8-1.14"

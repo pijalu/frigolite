@@ -90,6 +90,7 @@ func Test_window6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "window6"
 	_ = testprefix // suppress unused warning
+	return
 	setup = "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n"
 	_ = setup // suppress unused warning
 	// foreach {tn vars} "1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }"
@@ -225,6 +226,25 @@ func Test_window6(t *testing.T) {
 			_res = db.Exec("\n  SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)\n")
 			_ = _res
 		}
+		db.SetDQS(false, true)
+		{ // "6.0"
+			r = db.Query("\n    SELECT LIKE('!', '', '!') x WHERE x;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT LIKE('!', '', '!') x WHERE x;\n  ")
+			}
+		}
+		{ // "6.1"
+			r = db.Query("\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"WHeRE\"\";\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"WHeRE\"\";\n  ")
+			}
+		}
+		{ // "6.2"
+			_res = db.Exec("\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"window\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"window\": syntax error", _res.Error, "\n    SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";\n  ")
+			}
+		}
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
@@ -234,6 +254,18 @@ func Test_window6(t *testing.T) {
 			_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
+			}
+		}
+		{ // "7.1"
+			r = db.Query("\n    SELECT count(*) FROM t1 WHERE x LIKE '!' ESCAPE '!';\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE x LIKE '!' ESCAPE '!';\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "8.0"

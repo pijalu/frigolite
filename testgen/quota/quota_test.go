@@ -221,7 +221,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-3.1.6"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// sqlite3_quota_set *test.db 0 {} (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-3.2.1"
@@ -376,7 +376,7 @@ func Test_quota(t *testing.T) {
 		// quota_list (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.1.11"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// quota_list (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.1.12"

@@ -129,7 +129,7 @@ func Test_pager2(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;\n        ")
 					}
 				}
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			} else {
 				if func() bool { now_n, _now_e := strconv.Atoi(now); if _now_e != nil { return false }; x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return now_n > x_n }() {
 					if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; lowpoint_n, _lowpoint_e := strconv.Atoi(lowpoint); if _lowpoint_e != nil { return false }; return x_n >= lowpoint_n }() {

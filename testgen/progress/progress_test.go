@@ -78,6 +78,7 @@ func Test_progress(t *testing.T) {
 	{ // do_test "progress-1.0"
 		counter = "0"
 		_ = counter // suppress unused warning
+		db.SetProgressHandler(toInt(1), func() bool { return true })
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
@@ -104,6 +105,7 @@ func Test_progress(t *testing.T) {
 	{ // do_test "progress-1.1"
 		counter = "0"
 		_ = counter // suppress unused warning
+		db.SetProgressHandler(toInt(1), func() bool { return true })
 	_ = rc // suppress unused warning
 	var _catchErrMsg string
 	_ = _catchErrMsg // suppress unused warning
@@ -123,16 +125,19 @@ func Test_progress(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "progress-1.2"
+		db.SetProgressHandler(toInt(1), func() bool { return true })
 		five_rows = "0"
 		_ = five_rows // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 SELECT a+10 FROM t1 WHERE a < 6\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 SELECT a+10 FROM t1 WHERE a < 6\n  ")
 		}
+		db.SetProgressHandler(toInt(0), func() bool { return true })
 		_res = db.Exec("\n    DELETE FROM t1 WHERE a > 10\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a > 10\n  ")
 		}
+		db.SetProgressHandler(toInt(five_rows), func() bool { return true })
 		_res = db.Exec("\n    INSERT INTO t1 SELECT a+10 FROM t1 WHERE a < 9\n  ")
 		_ = _res // catchsql
 		r = db.Query("\n    SELECT count(*) FROM t1\n  ")
@@ -141,6 +146,7 @@ func Test_progress(t *testing.T) {
 		}
 	}
 	{ // do_test "progress-1.3"
+		db.SetProgressHandler(toInt(0), func() bool { return true })
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
@@ -149,8 +155,10 @@ func Test_progress(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(11)\n  ")
 		}
+		db.SetProgressHandler(toInt(1), func() bool { return true })
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(12)\n  ")
 		_ = _res // catchsql
+		db.SetProgressHandler(toInt(0), func() bool { return true })
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
@@ -163,15 +171,18 @@ func Test_progress(t *testing.T) {
 	{ // do_test "progress-1.4"
 		counter = "0"
 		_ = counter // suppress unused warning
+		db.SetProgressHandler(toInt(0), func() bool { return true })
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
 		}
 	}
+	db.SetProgressHandler(toInt(0), func() bool { return true })
 	{ // do_test "progress-1.5"
 		rx = "0"
 		_ = rx // suppress unused warning
 		// proc definition (not transpiled)
+		db.SetProgressHandler(toInt(10), func() bool { return true })
 		_res = db.Exec("\n    SELECT sum(a) FROM t1\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT sum(a) FROM t1\n  ")

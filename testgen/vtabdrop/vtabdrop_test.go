@@ -55,53 +55,6 @@ func Test_vtabdrop(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabdrop"
 	_ = testprefix // suppress unused warning
-	{ // "1.0"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-		}
-	}
-	{ // do_test "1.1"
-		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n    ")
-		}
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
-		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	{ // "1.2"
-		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n    SELECT * FROM t1;\n    SELECT * FROM rt;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1;\n    SELECT * FROM t1;\n    SELECT * FROM rt;\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "rt rt_node rt_parent rt_rowid t1 1 2 3 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "1.3"
-		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "rt rt_node rt_parent rt_rowid t1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

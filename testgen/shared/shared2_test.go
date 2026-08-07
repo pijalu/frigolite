@@ -75,7 +75,7 @@ func Test_shared2(t *testing.T) {
 		}
 	}
 	{ // do_test "shared2-1.2"
-		r = db2.Query("\n    pragma read_uncommitted = 1;\n  ")
+		r = db.Query("\n    pragma read_uncommitted = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma read_uncommitted = 1;\n  ")
 		}
@@ -87,7 +87,7 @@ func Test_shared2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shared2-1.3"
-		_res = db1.Exec("\n    ROLLBACK;\n  ")
+		_res = db.Exec("\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
@@ -98,8 +98,8 @@ func Test_shared2(t *testing.T) {
 		_list := tclList([]string{a, count})
 		_ = _list
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "shared2-3.2"
 		// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	}
@@ -122,13 +122,13 @@ func Test_shared2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b FROM t0 ")
 		}
-		_res = db2.Exec(" INSERT INTO t1(a) VALUES(1) ")
+		_res = db.Exec(" INSERT INTO t1(a) VALUES(1) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(a) VALUES(1) ")
 		}
 	}
 	{ // do_test "shared2-4.3"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
 	}
 	{ // do_test "shared2-5.1"

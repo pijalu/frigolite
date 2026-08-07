@@ -283,7 +283,6 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.5.1"
-			// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH / 10] (unsupported command, not transpiled)
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + tclExprWith("($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -316,7 +315,6 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.6.1"
-			// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1 (unsupported command, not transpiled)
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH * 2", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -348,7 +346,6 @@ func Test_triggerC(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH $SQLITE_MAX_TRIGGER_DEPTH (unsupported command, not transpiled)
 		{ // do_test "triggerC-4.1.1"
 			_res = db.Exec(" DROP TABLE log ")
 			_ = _res // catchsql
@@ -787,7 +784,6 @@ func Test_triggerC(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
-							// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 4 (unsupported command, not transpiled)
 							{ // "18.3"
 								_res = db.Exec("\n  INSERT INTO t1(a) VALUES(2);\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "triggers nested too deep") {

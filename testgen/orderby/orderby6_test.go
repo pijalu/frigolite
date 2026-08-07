@@ -273,7 +273,7 @@ func Test_orderby6(t *testing.T) {
 				_ = _idx5
 					sql1 = "SELECT a FROM t1 ORDER BY " + orderby + " LIMIT " + limit + " OFFSET " + offset + ";"
 					_ = sql1 // suppress unused warning
-					sql2 = strings.ReplaceAll(sql1, "+", "{}")
+					sql2 = strings.ReplaceAll(sql1, "+", "")
 					_ = sql2 // suppress unused warning
 					{ // do_test tn + ".21." + tx
 						_res = db.Exec(sql2)

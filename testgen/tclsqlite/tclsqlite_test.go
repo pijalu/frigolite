@@ -369,6 +369,7 @@ func Test_tclsqlite(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
+			db.SetProgressHandler(toInt(1), func() bool { return true })
 			if _catchErr != nil {
 				v = "1"
 				msg = _catchErr.Error()
@@ -581,25 +582,25 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	{ // do_test "tcl-2.1"
-		_res = db.Exec("CREATE TABLE tu0123x(a int, bu1235 float)")
+		_res = db.Exec("CREATE TABLE tģx(a int, bስ float)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tu0123x(a int, bu1235 float)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tģx(a int, bስ float)")
 		}
 	}
 	{ // do_test "tcl-2.2"
-		r = db.Query("PRAGMA table_info(tu0123x)")
+		r = db.Query("PRAGMA table_info(tģx)")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(tu0123x)")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(tģx)")
 		}
 	}
 	{ // do_test "tcl-2.3"
-		_res = db.Exec("INSERT INTO tu0123x VALUES(1,2.3)")
+		_res = db.Exec("INSERT INTO tģx VALUES(1,2.3)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tu0123x VALUES(1,2.3)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tģx VALUES(1,2.3)")
 		}
-		_res = db.Exec("SELECT * FROM tu0123x")
+		_res = db.Exec("SELECT * FROM tģx")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM tu0123x")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM tģx")
 		}
 	}
 	{ // do_test "tcl-3.1"
@@ -1206,7 +1207,7 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "tcl-10.21"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		_res = db.Exec("BEGIN ; COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN ; COMMIT")
@@ -1216,7 +1217,7 @@ func Test_tclsqlite(t *testing.T) {
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "tcl-11.1"
 		_res = db.Exec("INSERT INTO t4 VALUES(6)")
 		if _res.Error != nil {

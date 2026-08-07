@@ -1409,17 +1409,6 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	{ // "33.0"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE f USING fts3(a,b,tokenize=icu);\n    CREATE TABLE 'f_docsize'(docid INTEGER PRIMARY KEY, size BLOB);\n    CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n    INSERT INTO f VALUES (1, '1234');\n    INSERT INTO f_stat VALUES (1,x'0000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003bc502fffffffffb8b2afbfb6565f0740100650000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003b8b00c5c5c5c5c5bfc5');\n    INSERT INTO f(f) VALUES ('merge=198,49');\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE VIRTUAL TABLE f USING fts3(a,b,tokenize=icu);\n    CREATE TABLE 'f_docsize'(docid INTEGER PRIMARY KEY, size BLOB);\n    CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n    INSERT INTO f VALUES (1, '1234');\n    INSERT INTO f_stat VALUES (1,x'0000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003bc502fffffffffb8b2afbfb6565f0740100650000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003b8b00c5c5c5c5c5bfc5');\n    INSERT INTO f(f) VALUES ('merge=198,49');\n  ")
-		}
-	}
-	db.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "34.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00');\n  INSERT INTO f_content VALUES (255,0,x'ff');\n  INSERT INTO f_segdir VALUES (1,255,16,0,'1 255',x'00');\n")
 		if _res.Error != nil {

@@ -109,7 +109,7 @@ func Test_tkt4018(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt4018-2.3"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		_res = db.Exec("COMMIT")
@@ -119,5 +119,5 @@ func Test_tkt4018(t *testing.T) {
 		_res = db.Exec("INSERT INTO t1 VALUES(5, 6)")
 		_ = _res // catchsql
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 }

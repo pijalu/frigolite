@@ -582,7 +582,7 @@ func Test_table(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("\n    CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      " + sqlLiteral("14_vac") + " boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )\n  ")
+			_res = db.Exec("\n    CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      [14_vac] boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				v = "1"
@@ -625,15 +625,15 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-8.2"
-		r = db.Query("\n    CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO " + sqlLiteral("t3\"xyz") + " VALUES(1,2,3);\n    SELECT * FROM " + sqlLiteral("t3\"xyz") + ";\n  ")
+		r = db.Query("\n    CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO [t3\"xyz] VALUES(1,2,3);\n    SELECT * FROM [t3\"xyz];\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO " + sqlLiteral("t3\"xyz") + " VALUES(1,2,3);\n    SELECT * FROM " + sqlLiteral("t3\"xyz") + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO [t3\"xyz] VALUES(1,2,3);\n    SELECT * FROM [t3\"xyz];\n  ")
 		}
 	}
 	{ // do_test "table-8.3"
-		r = db.Query("\n    CREATE TABLE " + sqlLiteral("t4\"abc") + " AS SELECT count(*) as cnt, max(b+c) FROM " + sqlLiteral("t3\"xyz") + ";\n    SELECT * FROM " + sqlLiteral("t4\"abc") + ";\n  ")
+		r = db.Query("\n    CREATE TABLE [t4\"abc] AS SELECT count(*) as cnt, max(b+c) FROM [t3\"xyz];\n    SELECT * FROM [t4\"abc];\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE " + sqlLiteral("t4\"abc") + " AS SELECT count(*) as cnt, max(b+c) FROM " + sqlLiteral("t3\"xyz") + ";\n    SELECT * FROM " + sqlLiteral("t4\"abc") + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE [t4\"abc] AS SELECT count(*) as cnt, max(b+c) FROM [t3\"xyz];\n    SELECT * FROM [t4\"abc];\n  ")
 		}
 	}
 	{ // do_test "table-8.3.1"
@@ -643,18 +643,18 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-8.4"
-		r = db.Query("\n      CREATE TEMPORARY TABLE t5 AS SELECT count(*) AS " + sqlLiteral("y'all") + " FROM " + sqlLiteral("t3\"xyz") + ";\n      SELECT * FROM t5;\n    ")
+		r = db.Query("\n      CREATE TEMPORARY TABLE t5 AS SELECT count(*) AS [y'all] FROM [t3\"xyz];\n      SELECT * FROM t5;\n    ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMPORARY TABLE t5 AS SELECT count(*) AS " + sqlLiteral("y'all") + " FROM " + sqlLiteral("t3\"xyz") + ";\n      SELECT * FROM t5;\n    ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMPORARY TABLE t5 AS SELECT count(*) AS [y'all] FROM [t3\"xyz];\n      SELECT * FROM t5;\n    ")
 		}
 	}
 	{ // do_test "table-8.5"
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query("\n    SELECT * FROM " + sqlLiteral("t4\"abc") + ";\n  ")
+		r = db.Query("\n    SELECT * FROM [t4\"abc];\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM " + sqlLiteral("t4\"abc") + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM [t4\"abc];\n  ")
 		}
 	}
 	{ // do_test "table-8.6"
@@ -672,9 +672,9 @@ func Test_table(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "table-8.9"
-		r = db.Query("\n    CREATE TABLE t10(\"col.1\" " + sqlLiteral("char.3") + ");\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';\n  ")
+		r = db.Query("\n    CREATE TABLE t10(\"col.1\" [char.3]);\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t10(\"col.1\" " + sqlLiteral("char.3") + ");\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t10(\"col.1\" [char.3]);\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';\n  ")
 		}
 	}
 	{ // do_test "table-8.10"

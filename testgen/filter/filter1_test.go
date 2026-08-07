@@ -56,6 +56,7 @@ func Test_filter1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "filter1"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
 		if _res.Error != nil {

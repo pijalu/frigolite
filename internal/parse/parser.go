@@ -784,6 +784,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.CreateTableStmt{
 			Name:        name,
 			IfNotExists: getBool(getRHS(p, ruleNo, 4)),
+			Temporary:   getBool(getRHS(p, ruleNo, 2)),
 			Columns:     nil, // will be filled by create_table_args
 		}
 
@@ -1182,9 +1183,10 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		sel := getSelectStmt(getRHS(p, ruleNo, 9))
 		cols := getStringList(getRHS(p, ruleNo, 7))
 		return &sql.CreateViewStmt{
-			Name:    name,
-			Columns: cols,
-			Select:  sel,
+			Name:      name,
+			Columns:   cols,
+			Select:    sel,
+			Temporary: getBool(getRHS(p, ruleNo, 2)), // temp nonterminal: TEMP/TEMPORARY
 		}
 
 	// Rule 83: cmd ::= DROP VIEW ifexists fullname
@@ -2524,11 +2526,25 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 244: eidlist ::= eidlist COMMA nm collate sortorder
 	case 244:
 		acc := getStringList(getRHS(p, ruleNo, 1))
-		return append(acc, getString(getRHS(p, ruleNo, 3)))
+		name := getString(getRHS(p, ruleNo, 3))
+		// SQLite rejects a COLLATE clause or ASC/DESC in an identifier list
+		// (eidlist), used by CREATE VIEW / CTE column lists and FK reference
+		// lists (parserAddExprIdListTerm raises "syntax error after column
+		// name").
+		if getString(getRHS(p, ruleNo, 4)) != "" || getBool(getRHS(p, ruleNo, 5)) {
+			p.SemanticErr = fmt.Errorf("syntax error after column name %q", name)
+			return acc
+		}
+		return append(acc, name)
 
 	// Rule 245: eidlist ::= nm collate sortorder
 	case 245:
-		return []string{getString(getRHS(p, ruleNo, 1))}
+		name := getString(getRHS(p, ruleNo, 1))
+		if getString(getRHS(p, ruleNo, 2)) != "" || getBool(getRHS(p, ruleNo, 3)) {
+			p.SemanticErr = fmt.Errorf("syntax error after column name %q", name)
+			return []string{name}
+		}
+		return []string{name}
 
 	// Rule 248: cmd ::= DROP INDEX ifexists fullname
 	case 248:

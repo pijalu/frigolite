@@ -110,11 +110,11 @@ func Test_lookaside(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(w,x,y,z);")
 		}
 		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0" (no body)
-		p = tclLIndex("sqlite3_db_status", "db")
+		p = tclLIndex("sqlite3_db_status db DBSTATUS_LOOKASIDE_HIT 0", "2")
 		_ = p // suppress unused warning
-		q = tclLIndex("sqlite3_db_status", "db")
+		q = tclLIndex("sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_SIZE 0", "2")
 		_ = q // suppress unused warning
-		_r = tclLIndex("sqlite3_db_status", "db")
+		_r = tclLIndex("sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_FULL 0", "2")
 		_ = _r // suppress unused warning
 		// expr $x==0 && $y<$z && $z==18 && $p>0 && $q>0 && $r>0 (not evaluated)
 	}

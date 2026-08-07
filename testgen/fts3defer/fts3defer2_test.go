@@ -141,7 +141,7 @@ func Test_fts3defer2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a b c d " + "e" + " " + "f" + " " + "a" + " x y} {0 1 8 1 0 0 10 1 0 2 12 1} " + "3 1 1 1 1 1 1 1 1 1 1 8 5001 9"
+		want := "a b c d " + "e" + " " + "f" + " " + "a" + " x y 0 1 8 1 0 0 10 1 0 2 12 1 " + "3 1 1 1 1 1 1 1 1 1 1 8 5001 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -153,7 +153,7 @@ func Test_fts3defer2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{" + "a" + " b c d " + "e" + " " + "f" + " " + "a" + " x y} {0 2 0 1 0 1 8 1 0 0 10 1 0 2 12 1} " + "3 1 1 1 1 1 1 1 2 2 1 8 5001 9"
+		want := "a" + " b c d " + "e" + " " + "f" + " " + "a" + " x y 0 2 0 1 0 1 8 1 0 0 10 1 0 2 12 1 " + "3 1 1 1 1 1 1 1 2 2 1 8 5001 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

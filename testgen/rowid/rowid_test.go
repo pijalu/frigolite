@@ -135,41 +135,41 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.3"
 		sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid_1
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 	}
 	{ // do_test "rowid-1.4"
 		sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid_3
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 	}
 	{ // do_test "rowid-1.5"
 		sql = "SELECT x FROM t1 WHERE oid==" + x2rowid_1
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 	}
 	{ // do_test "rowid-1.6"
 		sql = "SELECT x FROM t1 WHERE OID==" + x2rowid_3
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 	}
 	{ // do_test "rowid-1.7"
 		sql = "SELECT x FROM t1 WHERE _rowid_==" + x2rowid_1
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 	}
 	{ // do_test "rowid-1.7.1"
@@ -232,9 +232,9 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-2.7"
 		sql = "UPDATE t1 SET x=2 WHERE OID==" + x2rowid_3
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 		r = db.Query("SELECT x FROM t1 ORDER BY x")
 		if r.Error != nil {
@@ -244,9 +244,9 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-2.8"
 		sql = "UPDATE t1 SET x=3 WHERE _rowid_==" + x2rowid_3
 		_ = sql // suppress unused warning
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		r = db.Query(sql)
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 		}
 		r = db.Query("SELECT x FROM t1 ORDER BY x")
 		if r.Error != nil {

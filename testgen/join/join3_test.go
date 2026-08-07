@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -98,12 +97,12 @@ func Test_join3(t *testing.T) {
 					}
 				}
 			}
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			r = db.Query(sql)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "join3-1." + N)
+			if flatten(r) != result {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), result, "join3-1." + N)
 			}
 		}
 		// incr N 1
@@ -151,12 +150,12 @@ func Test_join3(t *testing.T) {
 					}
 				}
 			}
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			r = db.Query(sql)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "join3-2." + N)
+			if flatten(r) != result {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), result, "join3-2." + N)
 			}
 		}
 		// incr N 1

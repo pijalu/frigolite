@@ -1526,8 +1526,15 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 					if len(subRow) > 0 {
 						if util.UnwrapColumnValue(subRow[0]) == nil {
 							sawNull = true
-						} else if util.CompareValues(operand, subRow[0]) == 0 {
-							found = true
+						} else {
+							// The IN (subquery) comparison affinity is the merge of
+							// the subquery column's affinity and the LHS affinity
+							// (SQLite exprINAffinity / sqlite3CompareAffinity).
+							subqAff := e.subqueryOutputAffinity(subq.Select, 0)
+							lhsAff := util.ColumnAffinity(operand)
+							if compareWithAffinity(operand, subRow[0], mergeINAffinity(subqAff, lhsAff)) == 0 {
+								found = true
+							}
 						}
 					}
 				}
@@ -1576,7 +1583,10 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 				}
 			}
 		} else {
-			equal = util.CompareValues(operand, ival) == 0
+			// IN-list equality is a storage-class comparison (SQLite applies no
+			// affinity conversion for an IN list; e.g. 0 IN ('0') is false even
+			// when the item is a TEXT-affinity column of a derived table).
+			equal = util.CompareValues(util.UnwrapColumnValue(operand), util.UnwrapColumnValue(ival)) == 0
 		}
 		if equal {
 			found = true
@@ -1616,6 +1626,92 @@ func (e *Engine) evalSubqueryRows(subq *sql.Subquery, row Row) ([][]interface{},
 		return nil, result.Error
 	}
 	return result.Rows, nil
+}
+
+// subqueryOutputAffinity returns the affinity of output column i of a
+// subquery used as the RHS of an IN operator, matching SQLite's
+// exprINAffinity: the affinity of the subquery's first result expression,
+// resolved through CTE/table/expression column types.
+func (e *Engine) subqueryOutputAffinity(sel *sql.SelectStmt, i int) rune {
+	if sel == nil || i >= len(sel.Columns) {
+		return 0
+	}
+	return e.exprOutputAffinity(sel, sel.Columns[i].Expr, i)
+}
+
+// exprOutputAffinity resolves the affinity of a subquery output column
+// expression. Column references resolve through the FROM source (CTE, table,
+// view, or derived-table subquery); numeric/string/cast expressions contribute
+// their expression affinity; anything else (functions, arithmetic) has none.
+func (e *Engine) exprOutputAffinity(sel *sql.SelectStmt, expr sql.Expr, i int) rune {
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		defs := e.fromSourceColumnDefsGuard(sel.From, nil)
+		if v.Name == "*" {
+			// A bare * expands to the first column of the FROM source.
+			if len(defs) > 0 {
+				return util.Affinity(defs[0].Type)
+			}
+			if cte, ok := e.findCTE(sel, sel.From.Name); ok {
+				return e.compoundColumnAffinity(cte.Select, 0)
+			}
+			return 0
+		}
+		// A named column reference: match by column name (and optional
+		// table qualifier) against the FROM source's column definitions.
+		for _, cd := range defs {
+			if cd.Name == v.Name || (v.Table != "" && cd.Name == v.Table+"."+v.Name) {
+				return util.Affinity(cd.Type)
+			}
+		}
+		if cte, ok := e.findCTE(sel, sel.From.Name); ok {
+			if i < len(cte.Columns) && len(cte.Columns) > 0 && cte.Columns[i] == v.Name {
+				return e.compoundColumnAffinity(cte.Select, i)
+			}
+		}
+		return 0
+	case *sql.CastExpr:
+		return util.Affinity(v.AsType)
+	case *sql.NumericLit:
+		return 'N'
+	case *sql.StringLit:
+		return 'T'
+	case *sql.BlobLit:
+		return 'B'
+	case *sql.NullLit:
+		return 'B'
+	default:
+		return 0
+	}
+}
+
+// mergeINAffinity mirrors SQLite's sqlite3CompareAffinity as used by
+// exprINAffinity for the IN (subquery) operator: when both the subquery
+// column and the LHS have affinity, a numeric affinity wins and otherwise the
+// result is BLOB (no conversion); when only one side has affinity, that
+// affinity is used.
+func mergeINAffinity(subqAff, lhsAff rune) rune {
+	if subqAff != 0 && lhsAff != 0 {
+		if subqAff == 'N' || subqAff == 'R' || subqAff == 'I' || lhsAff == 'N' || lhsAff == 'R' || lhsAff == 'I' {
+			return 'N'
+		}
+		return 'B'
+	}
+	if subqAff != 0 {
+		return subqAff
+	}
+	return lhsAff
+}
+
+// compareWithAffinity compares two values after applying the given affinity
+// to both (SQLite applies the IN comparison affinity to both operands). A
+// zero affinity means no conversion: values compare by storage class.
+func compareWithAffinity(a, b interface{}, aff rune) int {
+	if aff != 0 {
+		a = &util.ColumnValue{Value: util.UnwrapColumnValue(a), Affinity: aff}
+		b = &util.ColumnValue{Value: util.UnwrapColumnValue(b), Affinity: aff}
+	}
+	return util.CompareValues(a, b)
 }
 
 func (e *Engine) evalBool(expr sql.Expr, row Row) (bool, error) {
@@ -1817,7 +1913,7 @@ func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
 	if cached, ok := e.nextRowIDCache[rootPage]; ok {
 		return cached + 1
 	}
-	tree := btree.NewBTree(e.pager, e.rootPage(tableName, rootPage), true)
+	tree := btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, rootPage), true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 1

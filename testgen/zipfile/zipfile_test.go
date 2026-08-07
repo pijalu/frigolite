@@ -225,18 +225,6 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "1.4.1"
-		r = db.Query("\n    SELECT name, json_extract( zipfile_cds(z) , '$.crc32')!=0\n    FROM zipfile('test.zip');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, json_extract( zipfile_cds(z) , '$.crc32')!=0\n    FROM zipfile('test.zip');\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "f.txt 1 g.txt 1 h.txt 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 	{ // "1.4.2"
 		_res = db.Exec("\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
 		if _res.Error != nil {

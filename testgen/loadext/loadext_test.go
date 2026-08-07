@@ -153,15 +153,15 @@ func Test_loadext(t *testing.T) {
 	}
 	{ // do_test "loadext-1.4"
 		// sqlite3_load_extension db2 $testextension testloadext_init (unsupported command, not transpiled)
-		_res = db2.Exec("\n    SELECT half(1.0);\n  ")
+		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.5"
 		db.Close()
-		_res = db2.Exec("\n    SELECT half(1.0);\n  ")
+		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }

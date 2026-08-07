@@ -167,7 +167,7 @@ func Test_snapshot2(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -369,7 +369,7 @@ func Test_snapshot2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		r = db2.Query(" \n    SELECT * FROM t2;\n    BEGIN;\n  ")
+		r = db.Query(" \n    SELECT * FROM t2;\n    BEGIN;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t2;\n    BEGIN;\n  ")
 		}
@@ -379,7 +379,7 @@ func Test_snapshot2(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "5.2"
-		_res = db2.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -392,7 +392,7 @@ func Test_snapshot2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint = RESTART ")
 		}
-		_res = db2.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -405,7 +405,7 @@ func Test_snapshot2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('jkl') ")
 		}
-		_res = db2.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}

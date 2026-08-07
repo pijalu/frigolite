@@ -139,11 +139,11 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.8"
-		r = db2.Query(" PRAGMA journal_mode = truncate ")
+		r = db.Query(" PRAGMA journal_mode = truncate ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")
 		}
-		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5, 6)  ")
 		}
@@ -155,7 +155,7 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.10"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// db function a_string (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64\n  ")
 		if _res.Error != nil {
@@ -180,10 +180,10 @@ func Test_journal2(t *testing.T) {
 		// tvfs filter {xOpen xClose xDelete xWrite xTruncate} (unsupported command, not transpiled)
 		tvfs_error_on_write = "1" // TCL namespace variable
 		_ = tvfs_error_on_write // suppress unused warning
-		_res = db2.Exec(" COMMIT ")
+		_res = db.Exec(" COMMIT ")
 		_ = _res // catchsql
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	tclFileCopy("test.db", "testX.db")
 	{ // do_test "journal2-1.14"
 		// file exists "test.db-journal"
@@ -208,7 +208,7 @@ func Test_journal2(t *testing.T) {
 		// expr [catchsql { PRAGMA integrity_check } db2] == "0 ok" (not evaluated)
 	}
 	{ // do_test "journal2-1.21"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	db.Close()
 	if tclBool("wal_is_capable") {

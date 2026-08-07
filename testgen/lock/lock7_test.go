@@ -67,43 +67,43 @@ func Test_lock7(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock7-1.2"
-		r = db1.Query(" PRAGMA lock_status ")
+		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.3"
-		r = db2.Query(" PRAGMA lock_status ")
+		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.4"
-		_res = db1.Exec(" INSERT INTO t1 VALUES(1, 1) ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(1, 1) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock7-1.5"
-		_res = db2.Exec(" INSERT INTO t1 VALUES(2, 2) ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(2, 2) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock7-1.6"
-		r = db1.Query(" PRAGMA lock_status ")
+		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.7"
-		r = db2.Query(" PRAGMA lock_status ")
+		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.8"
-		_res = db1.Exec(" COMMIT ")
+		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 }

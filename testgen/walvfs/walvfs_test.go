@@ -491,7 +491,7 @@ func Test_walvfs(t *testing.T) {
 	// tvfs script xShmMap (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "9.1"
-		_res = db2.Exec(" SELECT count(*) FROM t1 ")
+		_res = db.Exec(" SELECT count(*) FROM t1 ")
 		_ = _res // catchsql
 	}
 	db.Close()

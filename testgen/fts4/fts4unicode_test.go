@@ -262,13 +262,13 @@ func Test_fts4unicode(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "4.1"
-			a = "abcuFFFEdef"
+			a = "abc\ufffedef"
 			_ = a // suppress unused warning
-			b = "abcuD800def"
+			b = "abc�def"
 			_ = b // suppress unused warning
-			c = "uFFFEdef"
+			c = "\ufffedef"
 			_ = c // suppress unused warning
-			d = "uD800def"
+			d = "�def"
 			_ = d // suppress unused warning
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(a) + ");\n    INSERT INTO t1 VALUES(" + sqlLiteral(b) + ");\n    INSERT INTO t1 VALUES(" + sqlLiteral(c) + ");\n    INSERT INTO t1 VALUES(" + sqlLiteral(d) + ");\n  ")
 			if _res.Error != nil {
@@ -318,7 +318,6 @@ func Test_fts4unicode(t *testing.T) {
 		// proc definition (not transpiled)
 		tokenizers = "unicode61"
 		_ = tokenizers // suppress unused warning
-		tokenizers = tclListAppend(tokenizers, "icu")
 		for _, T := range tclSplitList(tokenizers) {
 		_ = T // suppress unused warning
 			// do_isspace_test 6.$T.1 $T 32 (unsupported command, not transpiled)

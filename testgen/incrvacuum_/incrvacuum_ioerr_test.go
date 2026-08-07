@@ -98,7 +98,7 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // do_test "incrvacuum-ioerr-4.0"
-		r = db1.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
+		r = db.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
 		}
@@ -117,11 +117,11 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 				}
 			}
 		}
-		_res = db1.Exec("COMMIT")
+		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		_res = db1.Exec("DELETE FROM a WHERE oid")
+		_res = db.Exec("DELETE FROM a WHERE oid")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM a WHERE oid")
 		}

@@ -468,7 +468,7 @@ func Test_pagerfault(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	FAULTSIM_custom = "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall" // TCL namespace variable
+	FAULTSIM_custom = "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {1 {disk I/O error}} -injectuninstall custom_injectuninstall" // TCL namespace variable
 	_ = FAULTSIM_custom // suppress unused warning
 	{ // do_test "pagerfault-29-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)

@@ -14,6 +14,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // --- ALTER TABLE ---
@@ -52,29 +53,55 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: fmt.Errorf("table %s may not be altered", oldName)}
 	}
 
-	// Reject renaming to a name that already exists as a table or index.
-	// SQLite: "there is already another table or index with this name: %s"
-	if _, err := e.schema.FindTable(newName); err == nil {
+	// Find the table entry first so the conflict checks below are scoped to
+	// the schema that owns the table. SQLite checks the new name only within
+	// the renamed table's schema: renaming aux.t4 to t5 succeeds even when a
+	// t5 exists in main.
+	entry, entryCtx, err := e.findTable(oldName)
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	// A virtual table whose module is a NoopModule stub (echo, rtree, ...)
+	// cannot be renamed — SQLite reports "no such module: %s" when the module
+	// is unavailable (altertab-2.2: after a reopen the echo module is gone).
+	if e.isVirtualTable(entry) {
+		if mod := vtabModuleName(entry.SQL); mod != "" {
+			if m, ok := e.vtabs.Find(mod); !ok {
+				return &Result{Error: fmt.Errorf("no such module: %s", mod)}
+			} else if _, isNoop := m.(*vtab.NoopModule); isNoop {
+				return &Result{Error: fmt.Errorf("no such module: %s", mod)}
+			}
+		}
+	}
+
+	// Reject renaming to a name that already exists as a table or index in
+	// the same schema. SQLite: "there is already another table or index with
+	// this name: %s"
+	if _, err := entryCtx.Schema.FindTable(newName); err == nil {
 		return &Result{Error: fmt.Errorf("there is already another table or index with this name: %s", newName)}
 	}
 	if newName != oldName {
-		if _, err := e.schema.FindIndex(newName); err == nil {
+		if _, err := entryCtx.Schema.FindIndex(newName); err == nil {
 			return &Result{Error: fmt.Errorf("there is already another table or index with this name: %s", newName)}
 		}
 	}
 
-	// Find the table entry and validate it for broken references
-	// (writable_schema bypasses this validation).
+	// Validate the rename for broken references (writable_schema bypasses
+	// this validation). The view-ambiguity check is skipped in legacy mode
+	// (SQLite's legacy rename does not re-validate view dependencies,
+	// alterlegacy-5.3).
 	if !e.writableSchema {
 		if err := e.validateRename(oldName, newName); err != nil {
 			return &Result{Error: err}
 		}
-	}
-
-	// Pre-process: apply token-level rename to the table's own CREATE SQL
-	entry, entryCtx, err := e.findTable(oldName)
-	if err != nil {
-		return &Result{Error: err}
+		// A rename that would make a view's qualified references ambiguous
+		// is rejected (altertab-5.3).
+		if !e.legacyAlterTable {
+			if amb := e.checkRenameAmbiguity(oldName, newName); amb != nil && amb.Error != nil {
+				return amb
+			}
+		}
 	}
 
 	if e.legacyAlterTable {
@@ -145,9 +172,12 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	// Update views, triggers, and indexes that reference the renamed table.
 	// writable_schema performs a raw rename that does NOT rewrite dependent
 	// objects (SQLite leaves view/trigger SQL untouched when sqlite_schema
-	// is directly editable).
+	// is directly editable). Use the unqualified table name (entry.Name) so
+	// the per-schema rewrite matches references in that schema (e.g.
+	// "ALTER TABLE aux.p1 RENAME TO ppp" rewrites "REFERENCES p1" in aux's
+	// child tables, not the literal "aux.p1").
 	if !e.writableSchema {
-		e.renameUpdateRelatedEntries(oldName, newName)
+		e.renameUpdateRelatedEntries(entry.Name, newName)
 	}
 
 	return &Result{}
@@ -657,25 +687,33 @@ func (e *Engine) renameColumnInIndexes(tableName, oldColName, newColName string)
 // Views store their own name in TblName, so they are matched by SQL content
 // referencing the table rather than by TblName.
 func (e *Engine) renameColumnInViews(tableName, oldColName, newColName string) {
-	entries, err := e.schema.GetEntries("")
-	if err != nil {
-		return
-	}
-	for _, entry := range entries {
-		if entry.Type != schema.TypeView {
+	// Views may live in any schema (main or temp); a TEMP view whose body
+	// references the renamed column must be rewritten too (altercol-16.2.3:
+	// a temp view over t1 is updated when t1 renames its column).
+	for _, dbCtx := range e.databases {
+		if dbCtx == nil {
 			continue
 		}
-		if !refTableInTrigger(entry.SQL, tableName) {
+		entries, err := dbCtx.Schema.GetEntries("")
+		if err != nil {
 			continue
 		}
-		if !strings.Contains(entry.SQL, oldColName) &&
-			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldColName)) {
-			continue
-		}
-		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
-		if newSQL != entry.SQL && newSQL != "" {
-			entry.SQL = newSQL
-			_ = e.schema.UpdateEntry(entry.Name, newSQL)
+		for _, entry := range entries {
+			if entry.Type != schema.TypeView {
+				continue
+			}
+			if !refTableInTrigger(entry.SQL, tableName) {
+				continue
+			}
+			if !strings.Contains(entry.SQL, oldColName) &&
+				!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldColName)) {
+				continue
+			}
+			newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+			if newSQL != entry.SQL && newSQL != "" {
+				entry.SQL = newSQL
+				_ = dbCtx.Schema.UpdateEntry(entry.Name, newSQL)
+			}
 		}
 	}
 }
@@ -718,13 +756,15 @@ func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName stri
 		if rErr == nil && len(ranges) > 0 {
 			newSQL := ApplyRenames(entry.SQL, ranges, newColName)
 			if newSQL != entry.SQL && newSQL != "" {
-				// Apply string-regex as a complementary pass
-				newSQL = replaceColumnNameInSQL(newSQL, oldColName, newColName)
-				if newSQL != entry.SQL {
-					entry.SQL = newSQL
-					_ = e.schema.UpdateEntry(entry.Name, newSQL)
-					continue
-				}
+				// The token walker already renamed every column reference;
+				// a string pass would over-rename (e.g. a function name that
+				// shares the column's name, altertab3-13.2: "SELECT a()
+				// FILTER (WHERE a>0)" keeps the function name a). Only the
+				// token-level result is authoritative when the parse
+				// succeeds.
+				entry.SQL = newSQL
+				_ = e.schema.UpdateEntry(entry.Name, newSQL)
+				continue
 			}
 		}
 
@@ -756,10 +796,32 @@ func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
 		return sqlStr
 	}
 	quoteNew := sqlNameNeedsQuoting(newColName)
+	emptyInSpans := emptyINBareOperandSpans(sqlStr)
+	inSpan := func(pos int) bool {
+		for _, sp := range emptyInSpans {
+			if pos >= sp[0] && pos < sp[1] {
+				return true
+			}
+		}
+		return false
+	}
 	var b strings.Builder
 	last := 0
 	for _, idx := range idxs {
 		start, end := idx[0], idx[1]
+		// Skip matches that are the operand of an empty IN list (SQLite
+		// leaves "b IN ()" untouched, altertab3-3.2).
+		if inSpan(start) {
+			continue
+		}
+		// Skip matches that are a function-call name (identifier immediately
+		// followed by "(", allowing whitespace) — the function name must not
+		// be renamed, only column references are (altertab3-13.2:
+		// "SELECT a() FILTER (WHERE a>0)" keeps the function name a while
+		// renaming the column a in the FILTER).
+		if funcNameAt(sqlStr, start, end) {
+			continue
+		}
 		// Skip matches that fall inside a larger double-quoted identifier
 		// (e.g. the f in "big f" after the definition was already renamed to
 		// the quoted new name) — unless the match IS the quoted identifier
@@ -820,10 +882,14 @@ func refTableInTrigger(sqlStr, tableName string) bool {
 // no CHECK constraints or index WHERE clauses reference the old table name,
 // and that no views have circular references.
 func (e *Engine) validateRename(oldName, newName string) error {
-	tableEntry, _, err := e.findTable(oldName)
+	tableEntry, tableCtx, err := e.findTable(oldName)
 	if err != nil {
 		return err
 	}
+	// A table entry belongs to the TEMP schema when its owning database
+	// context is the temp database (its stored SQL is "CREATE TABLE ..."
+	// without the TEMP keyword, matching SQLite's sqlite_temp_schema).
+	isTempTable := tableCtx != nil && strings.EqualFold(tableCtx.Name, "temp")
 
 	if e.legacyAlterTable {
 		// In legacy mode, the CREATE SQL is NOT updated with token-level rename.
@@ -851,21 +917,44 @@ func (e *Engine) validateRename(oldName, newName string) error {
 	// Non-legacy mode: the token-level rename will update qualified references in
 	// the table's own SQL and indexes. Only check triggers and views for references
 	// to tables OTHER than the one being renamed (which won't be updated).
+	// SQLite validates the schema objects in the schema that contains the renamed
+	// table (plus temp when the table is non-temp): renaming a TEMP table only
+	// re-validates TEMP objects, while a main/attached rename re-validates those
+	// plus temp (altercol-17.3: a broken main-schema trigger does not block a
+	// TEMP table's rename column; alter-18.1: a broken main trigger blocks a
+	// main table's rename column).
 	entries, err := e.schema.GetEntries("")
 	if err != nil {
 		return nil
 	}
-	// Check all triggers for references to non-existent tables
-	// Only check references to tables OTHER than the one being renamed.
+	if isTempTable {
+		// A TEMP table rename validates only TEMP schema objects.
+		if tc := e.getDB("temp"); tc != nil {
+			entries, err = tc.Schema.GetEntries("")
+			if err != nil {
+				return nil
+			}
+		}
+	} else {
+		// A non-temp rename validates main + temp (temp first? SQLite reports
+		// the first broken object in sqlite_master rowid order across the
+		// schemas it visits; append temp entries after main so main errors
+		// surface first, matching the observed behavior).
+		if tc := e.getDB("temp"); tc != nil {
+			tempEntries, tErr := tc.Schema.GetEntries("")
+			if tErr == nil {
+				entries = append(entries, tempEntries...)
+			}
+		}
+	}
+	// Check all triggers for references to non-existent tables. SQLite
+	// re-parses every schema object during ALTER TABLE RENAME (table or
+	// column), so ALL triggers are validated — a broken trigger on an
+	// unrelated table blocks the rename (altertab3-4.1.2, alter-18.1). The
+	// schema filtering below (temp vs main) already restricts which schema's
+	// objects are examined; within that set every trigger is checked.
 	for _, entry := range entries {
 		if entry.Type == schema.TypeTrigger {
-			// Only triggers ON the renamed table or whose body references the
-			// renamed table are re-validated by SQLite; triggers on unrelated
-			// tables must not block the rename.
-			if !strings.EqualFold(entry.TblName, oldName) &&
-				!refTableInTrigger(entry.SQL, oldName) {
-				continue
-			}
 			// Extract the trigger body and check for table references
 			bodyRefs := findTableRefsInTrigger(entry.SQL)
 			for _, ref := range bodyRefs {
@@ -912,12 +1001,48 @@ func (e *Engine) validateRename(oldName, newName string) error {
 			if hasViewCircularRef(entry.SQL, entry.Name) {
 				return fmt.Errorf("error in view %s: view %s is circularly defined", entry.Name, entry.Name)
 			}
+			// A view whose FROM clause names a non-existent table blocks the
+			// rename (SQLite re-parses every view: "error in view %s: no such
+			// table: main.%s", altertab-9.1).
+			if missing := e.viewMissingTable(entry); missing != "" {
+				refName := missing
+				if !strings.Contains(missing, ".") {
+					refName = "main." + missing
+				}
+				return fmt.Errorf("error in view %s: no such table: %s", entry.Name, refName)
+			}
 		}
 	}
-	// Check all triggers for column references that don't exist in their ON table.
-	// SQLite does this during ALTER TABLE RENAME to catch broken trigger definitions.
+	// Check triggers related to the renamed table for column references that
+	// don't exist in their ON table. SQLite only re-validates a trigger's
+	// column references when the trigger references the renamed table
+	// (directly ON it, or its body names it), including through a view that
+	// depends on the table (altertab2-8.2: a trigger on t3 doing
+	// "SELECT a FROM v1" where v1 = SELECT * FROM t1 blocks renaming
+	// t1.a). An unrelated broken trigger must not block an unrelated rename
+	// (altertab2-8.5: that same trigger does not block ALTER TABLE t4
+	// RENAME a TO c).
+	viewNames := make(map[string]bool)
+	for _, entry := range entries {
+		if entry.Type == schema.TypeView && refTableInTrigger(entry.SQL, oldName) {
+			viewNames[strings.ToUpper(entry.Name)] = true
+		}
+	}
 	for _, entry := range entries {
 		if entry.Type == schema.TypeTrigger {
+			related := strings.EqualFold(entry.TblName, oldName) ||
+				refTableInTrigger(entry.SQL, oldName)
+			if !related {
+				for vn := range viewNames {
+					if refTableInTrigger(entry.SQL, vn) {
+						related = true
+						break
+					}
+				}
+			}
+			if !related {
+				continue
+			}
 			if err := e.checkTriggerColRefs(entry); err != nil {
 				return err
 			}
@@ -926,9 +1051,89 @@ func (e *Engine) validateRename(oldName, newName string) error {
 	return nil
 }
 
+// viewMissingTable returns the name of the first table referenced by a view's
+// FROM clause that does not exist (in any schema), or "" if all resolve.
+func (e *Engine) viewMissingTable(view *schema.Entry) string {
+	if view == nil {
+		return ""
+	}
+	upperSQL := strings.ToUpper(view.SQL)
+	fromIdx := strings.Index(upperSQL, " FROM ")
+	if fromIdx < 0 {
+		return ""
+	}
+	// Split the ORIGINAL-case FROM text so the reported name matches SQLite's
+	// casing (splitFromTables needs the original text; the keyword boundary
+	// search uses the uppercase copy).
+	// A view whose body declares CTEs has its own table scope; the FROM
+	// parser cannot reliably distinguish CTE names from tables, so skip the
+	// missing-table validation for CTE views (they are validated at USE time,
+	// and rename tests with CTEs expect the rename to proceed).
+	if strings.Contains(upperSQL, " WITH ") {
+		return ""
+	}
+	origFrom := strings.TrimSpace(view.SQL[fromIdx+6:])
+	// Only validate views whose body is a simple single-table SELECT (no
+	// subqueries, JOINs, VALUES, or CTEs). Complex FROM clauses (parenthesized
+	// joins, subquery operands) cannot be reliably parsed by splitFromTables
+	// and would produce false positives (altertab3-30.1: a view with a
+	// VALUES-in-subquery body must not block the rename).
+	if strings.ContainsAny(origFrom, "()") ||
+		strings.Contains(strings.ToUpper(origFrom), " JOIN ") ||
+		strings.Contains(strings.ToUpper(origFrom), " VALUES") ||
+		strings.Contains(strings.ToUpper(origFrom), ",") {
+		return ""
+	}
+	fromNames := splitFromTables(origFrom)
+	for _, ft := range fromNames {
+		if ft == "" {
+			continue
+		}
+		// Strip double-quote characters from quoted identifiers ("idx2"
+		// resolves as idx2).
+		ft = strings.Trim(ft, `"`)
+		if _, _, err := e.findTable(ft); err == nil {
+			continue
+		}
+		if _, _, err := e.findView(ft); err == nil {
+			continue
+		}
+		return ft
+	}
+	return ""
+}
+
+// triggerReferencesView reports whether a trigger body references any view
+// (a FROM/INSERT/UPDATE target that resolves to a view rather than a table).
+// Such references are rewritten by RENAME COLUMN, so a column resolved through
+// them is broken by the rename ("after rename" wording).
+func (e *Engine) triggerReferencesView(entry *schema.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	for _, ref := range findTableRefsInTrigger(entry.SQL) {
+		if _, _, err := e.findView(ref); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// isTempTable reports whether the given table entry lives in the TEMP schema
+// (created with CREATE TEMP TABLE or CREATE TEMPORARY TABLE).
+func (e *Engine) isTempTable(entry *schema.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	upper := strings.ToUpper(entry.SQL)
+	return strings.Contains(upper, "CREATE TEMP TABLE") || strings.Contains(upper, "CREATE TEMPORARY TABLE")
+}
+
 // isTempTrigger reports whether a trigger lives in the TEMP schema. A trigger
 // is temp if it was created with CREATE TEMP TRIGGER or if its ON table is a
-// temp table (CREATE TEMP TABLE).
+// temp table (CREATE TEMP TABLE). The stored SQL strips the TEMP keyword, so
+// the owning schema is detected by looking up the ON table in the temp
+// database context.
 func (e *Engine) isTempTrigger(entry *schema.Entry) bool {
 	if entry == nil {
 		return false
@@ -939,6 +1144,11 @@ func (e *Engine) isTempTrigger(entry *schema.Entry) bool {
 	}
 	// Check if the ON table is a temp table.
 	if entry.TblName != "" {
+		if tc := e.getDB("temp"); tc != nil {
+			if te, err := tc.Schema.FindTable(entry.TblName); err == nil && te != nil {
+				return true
+			}
+		}
 		if te, err := e.schema.FindTable(entry.TblName); err == nil && te != nil {
 			if strings.Contains(strings.ToUpper(te.SQL), "CREATE TEMP TABLE") ||
 				strings.Contains(strings.ToUpper(te.SQL), "CREATE TEMPORARY TABLE") {
@@ -994,8 +1204,19 @@ func (e *Engine) checkTriggerColRefs(entry *schema.Entry) error {
 		if isSQLKeywordOrPseudo(upperName) {
 			continue
 		}
+		// Skip empty-name references (e.g. a double-quoted empty string ""
+		// parsed as a DQS identifier with no name).
+		if ref.Name == "" {
+			continue
+		}
 		// Unqualified column reference - check against ON table's columns
 		if !onColMap[upperName] {
+			// A reference that resolves through a VIEW over the renamed table is
+			// broken BY the rename (SQLite: "after rename"); a direct missing
+			// column is a pre-existing break (plain wording).
+			if e.triggerReferencesView(entry) {
+				return fmt.Errorf("error in trigger %s after rename: no such column: %s", entry.Name, ref.Name)
+			}
 			return fmt.Errorf("error in trigger %s: no such column: %s", entry.Name, ref.Name)
 		}
 	}
@@ -1457,6 +1678,82 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 	}
 }
 
+// checkRenameAmbiguity verifies that renaming a table does not make any
+// view's qualified column references ambiguous. SQLite re-parses each view
+// after a table rename; if the new table name collides with an existing alias
+// or table in a view's FROM clause, the view's qualified references become
+// ambiguous and the rename fails with
+// "error in view %s after rename: ambiguous column name: %s"
+// (altertab-5.3: renaming t2 to one when a view has "FROM t1 AS one, t2"
+// makes one.a ambiguous).
+func (e *Engine) checkRenameAmbiguity(oldName, newName string) *Result {
+	if strings.EqualFold(oldName, newName) {
+		return nil
+	}
+	for _, dbCtx := range e.databases {
+		if dbCtx == nil {
+			continue
+		}
+		views, err := dbCtx.Schema.GetEntries(schema.TypeView)
+		if err != nil {
+			continue
+		}
+		for _, view := range views {
+			if !refTableInTrigger(view.SQL, oldName) {
+				continue
+			}
+			// Collect the FROM-clause table names and aliases (after the
+			// rename, the renamed table is known by newName).
+			upperSQL := strings.ToUpper(view.SQL)
+			fromIdx := strings.Index(upperSQL, " FROM ")
+			if fromIdx < 0 {
+				continue
+			}
+			fromRest := strings.TrimSpace(upperSQL[fromIdx+6:])
+			// Determine if the renamed table (oldName) appears in the view's
+			// FROM with an alias equal to newName, OR if another table is
+			// aliased to newName already.
+			fields := strings.Fields(fromRest)
+			hasNewName := false
+			hasOldName := false
+			for i, f := range fields {
+				ff := strings.TrimSuffix(f, ",")
+				if strings.EqualFold(ff, newName) {
+					hasNewName = true
+				}
+				if strings.EqualFold(ff, oldName) {
+					hasOldName = true
+				}
+				// AS alias
+				if strings.EqualFold(f, "AS") && i+1 < len(fields) {
+					alias := strings.TrimSuffix(fields[i+1], ",")
+					if strings.EqualFold(alias, newName) {
+						hasNewName = true
+					}
+				}
+			}
+			if hasNewName && hasOldName {
+				// The renamed table's own name counts toward ambiguity if the
+				// view qualifies references with it. SQLite reports the first
+				// ambiguous qualified reference.
+				return &Result{Error: fmt.Errorf("error in view %s after rename: ambiguous column name: %s.%s",
+					view.Name, newName, firstQualifiedRef(view.SQL, newName))}
+			}
+		}
+	}
+	return nil
+}
+
+// firstQualifiedRef returns the first "alias.column" reference in a view body
+// whose alias matches the given name (used for the ambiguity error message).
+func firstQualifiedRef(viewSQL, alias string) string {
+	re := regexp.MustCompile(`(?i)\b` + regexp.QuoteMeta(alias) + `\.([a-zA-Z_][a-zA-Z0-9_]*)`)
+	if m := re.FindStringSubmatch(viewSQL); len(m) > 1 {
+		return m[1]
+	}
+	return ""
+}
+
 // renameUpdateRelatedEntriesInSchema applies the table rename to every schema
 // entry in one database's schema manager.
 func (e *Engine) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, oldName, newName, quotedNew string, ctx *RenameContext) {
@@ -1506,7 +1803,13 @@ func (e *Engine) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, o
 			}
 		case schema.TypeTable:
 			// Update child tables that reference the old table name via FOREIGN KEY
-			// Also update the table's own CREATE TABLE SQL
+			// Also update the table's own CREATE TABLE SQL. SQLite skips FK
+			// rewrites only when BOTH legacy_alter_table is on AND foreign_keys
+			// is off (altertab2-2.2 vs 2.3: turning foreign_keys on re-enables
+			// the rewrite).
+			if e.legacyAlterTable && !e.foreignKeys {
+				continue
+			}
 		default:
 			continue
 		}
@@ -1524,6 +1827,13 @@ func (e *Engine) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, o
 					entry.SQL = newSQL
 					_ = schemaMgr.RemoveEntry(entry.Name)
 					_ = schemaMgr.AddEntry(entry)
+					// Invalidate cached column/constraint metadata for this entry
+					// so FK enforcement and column resolution re-parse the
+					// updated SQL (altertab-8.2: a child's REFERENCES clause is
+					// rewritten p1 → "ppp" and the FK check must see the new
+					// parent name).
+					delete(e.colCache, entry.Name)
+					delete(e.tcCache, entry.Name)
 					continue
 				}
 			}
@@ -1535,6 +1845,8 @@ func (e *Engine) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, o
 			entry.SQL = newSQL
 			_ = schemaMgr.RemoveEntry(entry.Name)
 			_ = schemaMgr.AddEntry(entry)
+			delete(e.colCache, entry.Name)
+			delete(e.tcCache, entry.Name)
 		}
 	}
 }
@@ -1571,9 +1883,193 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 	if re.MatchString(sql) {
 		return re.ReplaceAllString(sql, quotedNew)
 	}
-	// Fallback: replace unquoted occurrences with word boundaries, adding quotes
+	// Fallback: replace unquoted occurrences with word boundaries, adding quotes.
+	// SQLite's rename machinery leaves the operand of an empty IN list untouched
+	// ("t2 IN ()" and "(SELECT ... FROM t2) IN ()" keep their names,
+	// altertab3-10.2). Compute the byte spans of every empty-IN operand and
+	// skip replacements inside them.
+	emptyInSpans := emptyINOperandSpans(sql)
 	re = regexp.MustCompile(`\b` + quotedOld + `\b`)
-	return re.ReplaceAllString(sql, quotedNew)
+	idxs := re.FindAllStringIndex(sql, -1)
+	if len(idxs) == 0 {
+		return sql
+	}
+	inSpan := func(pos int) bool {
+		for _, sp := range emptyInSpans {
+			if pos >= sp[0] && pos < sp[1] {
+				return true
+			}
+		}
+		return false
+	}
+	// A match that is the tail of a schema-qualified name ("aux.t2",
+	// "temp.t2") belongs to a different schema's table and must NOT be
+	// rewritten when renaming the unqualified table (SQLite keeps "aux.t2"
+	// when renaming "main.t2", altertab-9.5). A "main.t2" qualifier IS
+	// rewritten. Check the character before the match: a '.' means the
+	// match is schema-qualified.
+	qualifiedOtherSchema := func(pos int) bool {
+		if pos <= 0 {
+			return false
+		}
+		p := pos - 1
+		for p >= 0 && (sql[p] == ' ' || sql[p] == '\t') {
+			p--
+		}
+		if p < 0 || sql[p] != '.' {
+			return false
+		}
+		// Find the qualifier start.
+		q := p - 1
+		for q >= 0 && (isIdentByte(sql[q])) {
+			q--
+		}
+		qual := strings.ToUpper(sql[q+1 : p])
+		return qual != "MAIN"
+	}
+	var b strings.Builder
+	last := 0
+	changed := false
+	for _, idx := range idxs {
+		if inSpan(idx[0]) {
+			continue // leave the empty-IN operand untouched
+		}
+		if qualifiedOtherSchema(idx[0]) {
+			continue // leave aux./temp.-qualified references untouched
+		}
+		b.WriteString(sql[last:idx[0]])
+		b.WriteString(quotedNew)
+		last = idx[1]
+		changed = true
+	}
+	if !changed {
+		return sql
+	}
+	b.WriteString(sql[last:])
+	return b.String()
+}
+
+// funcNameAt reports whether the identifier at byte range [start, end) in
+// sqlStr is immediately followed by "(" (allowing whitespace), i.e. it is a
+// function-call name rather than a column reference.
+func funcNameAt(sqlStr string, start, end int) bool {
+	p := end
+	for p < len(sqlStr) && (sqlStr[p] == ' ' || sqlStr[p] == '\t' || sqlStr[p] == '\n' || sqlStr[p] == '\r') {
+		p++
+	}
+	return p < len(sqlStr) && sqlStr[p] == '('
+}
+
+// emptyINBareOperandSpans returns the byte spans of the bare identifier
+// operands of empty IN lists ("b IN ()" → the span covering b). SQLite's
+// rename machinery leaves a bare column operand of an empty IN untouched, but
+// still renames references inside function-call operands
+// (altertab3-8.2.2: LIKELIHOOD(c0, 1.0) IN () renames c0).
+func emptyINBareOperandSpans(sql string) [][2]int {
+	var spans [][2]int
+	up := strings.ToUpper(sql)
+	for i := 0; i < len(sql); i++ {
+		if i+2 <= len(sql) && up[i] == 'I' && up[i+1] == 'N' {
+			j := i + 2
+			for j < len(sql) && (sql[j] == ' ' || sql[j] == '\t' || sql[j] == '\n' || sql[j] == '\r') {
+				j++
+			}
+			if j < len(sql) && sql[j] == '(' {
+				k := j + 1
+				for k < len(sql) && (sql[k] == ' ' || sql[k] == '\t' || sql[k] == '\n' || sql[k] == '\r') {
+					k++
+				}
+				if k < len(sql) && sql[k] == ')' {
+					// "IN ()" found at i. The operand is a bare identifier if the
+					// character before it is not ')' (a parenthesized/function
+					// operand).
+					p := i - 1
+					for p >= 0 && (sql[p] == ' ' || sql[p] == '\t' || sql[p] == '\n' || sql[p] == '\r') {
+						p--
+					}
+					if p >= 0 && sql[p] == ')' {
+						i = k
+						continue
+					}
+					// Walk back to the identifier start.
+					for p >= 0 && (isIdentByte(sql[p]) || sql[p] == '.' || sql[p] == '"') {
+						p--
+					}
+					spans = append(spans, [2]int{p + 1, i})
+					i = k
+				}
+			}
+		}
+	}
+	return spans
+}
+
+// emptyINOperandSpans returns the byte spans [start, end) of every operand
+// of an empty IN list ("x IN ()", "(expr) IN ()") in the SQL text. SQLite's
+// rename machinery does not rewrite names inside these operands.
+func emptyINOperandSpans(sql string) [][2]int {
+	var spans [][2]int
+	up := strings.ToUpper(sql)
+	for i := 0; i < len(sql); i++ {
+		// Find "IN" followed by "()" with optional whitespace.
+		if i+2 <= len(sql) && up[i] == 'I' && up[i+1] == 'N' {
+			j := i + 2
+			for j < len(sql) && (sql[j] == ' ' || sql[j] == '\t' || sql[j] == '\n' || sql[j] == '\r') {
+				j++
+			}
+			if j < len(sql) && sql[j] == '(' {
+				k := j + 1
+				for k < len(sql) && (sql[k] == ' ' || sql[k] == '\t' || sql[k] == '\n' || sql[k] == '\r') {
+					k++
+				}
+				if k < len(sql) && sql[k] == ')' {
+					// Found "IN ()" at i. Walk backward to find the operand
+					// start: the matching open paren for a parenthesized
+					// operand, or the start of the bare identifier/expression.
+					start := i
+					depth := 0
+					p := i - 1
+					for ; p >= 0; p-- {
+						switch sql[p] {
+						case ')':
+							depth++
+						case '(':
+							if depth > 0 {
+								depth--
+								if depth == 0 {
+									// This open paren matches the operand's
+									// closing paren — the operand starts here.
+									start = p
+									p = -2
+								}
+							} else {
+								start = p
+								p = -2
+							}
+						}
+						if p < 0 {
+							break
+						}
+					}
+					if start == i {
+						// No enclosing paren: the operand is the bare identifier
+						// immediately before IN. Walk back to its start.
+						p = i - 1
+						for p >= 0 && (sql[p] == ' ' || sql[p] == '\t') {
+							p--
+						}
+						for p >= 0 && (isIdentByte(sql[p]) || sql[p] == '.') {
+							p--
+						}
+						start = p + 1
+					}
+					spans = append(spans, [2]int{start, i})
+					i = k
+				}
+			}
+		}
+	}
+	return spans
 }
 
 // validateAddColumnConstraints evaluates a newly added column's CHECK and
@@ -1601,6 +2097,20 @@ func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs 
 			}
 		}
 	}
+
+	// STRICT tables: a DEFAULT whose value is incompatible with the declared
+	// column type is rejected when the table already has rows (SQLite:
+	// "type mismatch on DEFAULT"). An empty table accepts the column; the
+	// mismatch surfaces on the first INSERT.
+	if isStrictTable(tableEntry.SQL) && newCol.Default != nil && e.tableHasRows(tableEntry) {
+		defVal, derr := e.evalColumnExpr(newCol)
+		if derr == nil && defVal != nil {
+			if err := enforceStrictType(tableEntry.Name, newCol.Name, newCol.Type, defVal); err != nil {
+				return &Result{Error: fmt.Errorf("type mismatch on DEFAULT")}
+			}
+		}
+	}
+
 	if newCol.Check == nil && !newCol.NotNull {
 		return &Result{}
 	}
@@ -1631,6 +2141,15 @@ func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs 
 		return &Result{}
 	}
 
+	// SQLite re-parses the new column's CHECK expression during ADD COLUMN,
+	// resolving function and column references regardless of row count. An
+	// unknown function (e.g. sqlite_fail) is reported even when the table is
+	// empty (alter-22.2). Evaluate the expression once with an empty row to
+	// surface resolve errors.
+	if _, verr := e.evalExpr(newCol.Check, nil); verr != nil {
+		return &Result{Error: fmt.Errorf("error in table %s after add column: %v", tableEntry.Name, verr)}
+	}
+
 	// Evaluate CHECK against existing rows. Each existing row gets the new
 	// column set to its default value (matching SQLite).
 	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
@@ -1650,7 +2169,13 @@ func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs 
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
 		row[newCol.Name] = defVal
 		checkVal, verr := e.evalExpr(newCol.Check, row)
-		if verr == nil && checkVal != nil && !toBool(checkVal) {
+		if verr != nil {
+			// SQLite re-parses the CHECK expression during ADD COLUMN and
+			// reports a resolve error (e.g. an unknown function) as
+			// "error in table %s after add column: %s" (alter-22.2).
+			return &Result{Error: fmt.Errorf("error in table %s after add column: %v", tableEntry.Name, verr)}
+		}
+		if checkVal != nil && !toBool(checkVal) {
 			checkText := e.checkConstraintText(tableEntry.SQL, newCol.Name, newCol.Check)
 			return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", checkText)}
 		}
@@ -1713,12 +2238,12 @@ func (e *Engine) validateGeneratedAddColumn(tableEntry *schema.Entry, colDefs []
 // validateAddConstraint evaluates a table-level constraint added by
 // ALTER TABLE ... ADD CONSTRAINT against the table's existing rows. SQLite
 // rejects the ALTER if any existing row violates the new constraint.
-func (e *Engine) validateAddConstraint(tableEntry *schema.Entry, tc *sql.TableConstraint) *Result {
+func (e *Engine) validateAddConstraint(tableName string, tableEntry *schema.Entry, tc *sql.TableConstraint) *Result {
 	if tc == nil || tc.Type != sql.ConstraintCheck || tc.Expr == nil {
 		return &Result{}
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
-	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableName, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{}
@@ -1734,7 +2259,13 @@ func (e *Engine) validateAddConstraint(tableEntry *schema.Entry, tc *sql.TableCo
 		}
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
 		checkVal, verr := e.evalExpr(tc.Expr, row)
-		if verr == nil && checkVal != nil && !toBool(checkVal) {
+		if verr != nil {
+			// A resolve error (e.g. an unknown function) is reported as-is
+			// (altercons-10.2: ADD CONSTRAINT CHECK(sqlite_drop_column(...))
+			// fails with "no such function: sqlite_drop_column").
+			return &Result{Error: verr}
+		}
+		if checkVal != nil && !toBool(checkVal) {
 			name := tc.Name
 			if name == "" {
 				name = sql.ExprString(tc.Expr)
@@ -1774,8 +2305,8 @@ func (e *Engine) tableHasRows(entry *schema.Entry) bool {
 
 // columnHasNull reports whether any existing row of the table has NULL in the
 // named column. Used by ALTER TABLE ... ALTER COLUMN ... SET NOT NULL.
-func (e *Engine) columnHasNull(entry *schema.Entry, colDefs []sql.ColumnDef, colName string) bool {
-	tree := e.tableBTreeForName(entry.Name, entry.RootPage, true)
+func (e *Engine) columnHasNull(tableName string, entry *schema.Entry, colDefs []sql.ColumnDef, colName string) bool {
+	tree := e.tableBTreeForName(tableName, entry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false
@@ -1813,11 +2344,17 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// SQLite: virtual tables may not be altered (ALTER TABLE ADD COLUMN on a
+	// virtual table reports "virtual tables may not be altered").
+	if e.isVirtualTable(tableEntry) {
+		return &Result{Error: fmt.Errorf("virtual tables may not be altered")}
+	}
+
 	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr): append a table-level
 	// constraint to the stored CREATE TABLE SQL and invalidate caches.
 	if s.NewConstraint != nil {
 		// Validate the constraint against existing rows before committing.
-		if vres := e.validateAddConstraint(tableEntry, s.NewConstraint); vres.Error != nil {
+		if vres := e.validateAddConstraint(tableName, tableEntry, s.NewConstraint); vres.Error != nil {
 			return vres
 		}
 		newSQL := addConstraintToCreateTableSQL(tableEntry.SQL, s.NewConstraint)
@@ -1905,9 +2442,13 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 		if constraintName == "" {
 			return &Result{}
 		}
-		tableEntry, err := e.schema.FindTable(tableName)
+		tableEntry, tableCtx, err := e.findTable(tableName)
 		if err != nil {
 			return &Result{Error: err}
+		}
+		schemaMgr := e.schema
+		if tableCtx != nil && tableCtx.Schema != nil {
+			schemaMgr = tableCtx.Schema
 		}
 		// Remove the named constraint from the CREATE TABLE SQL
 		if !sqlHasConstraintName(tableEntry.SQL, constraintName) {
@@ -1917,16 +2458,16 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 		if newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
 			// Invalidate cached column/constraint info for this table.
-			delete(e.colCache, tableName)
-			delete(e.tcCache, tableName)
+			delete(e.colCache, tableEntry.Name)
+			delete(e.tcCache, tableEntry.Name)
 			delete(e.tableCache, tableName)
-			_ = e.schema.RemoveEntry(tableEntry.Name)
-			if err := e.schema.AddEntry(tableEntry); err != nil {
+			_ = schemaMgr.RemoveEntry(tableEntry.Name)
+			if err := schemaMgr.AddEntry(tableEntry); err != nil {
 				return &Result{Error: fmt.Errorf("failed to re-add entry after DROP CONSTRAINT: %w", err)}
 			}
 			// Verify the entry was re-added
-			if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-				if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+			if _, err := schemaMgr.FindTable(tableEntry.Name); err != nil {
+				if retryErr := schemaMgr.AddEntry(tableEntry); retryErr != nil {
 					return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DROP CONSTRAINT", tableEntry.Name)}
 				}
 			}
@@ -2051,7 +2592,103 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 		}
 	}
 
+	// Rebuild the table's rows: SQLite's DROP COLUMN copies every row into a
+	// fresh table without the dropped column, so the on-disk records no longer
+	// contain a slot for it. Rewriting the records here (rather than relying on
+	// the Dropped-flag position mapping) keeps reads correct even after the
+	// colCache is invalidated by a later statement (e.g. PRAGMA page_count,
+	// altertab3-31.2).
+	droppedIsGenerated := false
+	for _, c := range newColDefs {
+		if c.Dropped && c.Generated != nil {
+			droppedIsGenerated = true
+		}
+	}
+	e.rebuildRowsAfterDrop(tableEntry, newColDefs, s.Column)
+
+	// After a STORED column is rebuilt out of the records, the colCache must
+	// hold the visible definitions (no Dropped flag — the reader would
+	// otherwise skip the dropped slot that no longer exists). A VIRTUAL
+	// generated column is never stored, so the reader keeps the Dropped flag
+	// to skip the slot that was never in the record.
+	if !droppedIsGenerated {
+		e.colCache[tableName] = sqlColDefs
+	}
+
 	return &Result{}
+}
+
+// rebuildRowsAfterDrop rewrites every row of a table after DROP COLUMN,
+// removing the dropped column's value from each record. The dropped column is
+// identified by its name (it is the only Dropped-flagged definition in
+// colDefs).
+func (e *Engine) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.ColumnDef, droppedName string) {
+	// Find the dropped column's index in the OLD record layout.
+	dropIdx := -1
+	for i, cd := range colDefs {
+		if cd.Name == droppedName {
+			dropIdx = i
+			break
+		}
+	}
+	if dropIdx < 0 {
+		return
+	}
+	// A VIRTUAL generated column is computed, not stored in the record, so
+	// dropping it does not shift any on-disk values (alterdropcol-2.5:
+	// "my table" has c AS (a+b) and dropping c leaves the (a, b, d) records
+	// intact).
+	if colDefs[dropIdx].Generated != nil {
+		return
+	}
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return
+	}
+	type rewrite struct {
+		rowID  int64
+		values []interface{}
+	}
+	var rewrites []rewrite
+	for {
+		cell, cerr := cursor.ReadCell()
+		if cerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		// A record may have fewer values than the table's column count (short
+		// rows written before ADD COLUMN); remove the dropped slot only when
+		// present.
+		if dropIdx < len(rec.Values) {
+			values := make([]interface{}, 0, len(rec.Values)-1)
+			values = append(values, rec.Values[:dropIdx]...)
+			values = append(values, rec.Values[dropIdx+1:]...)
+			rewrites = append(rewrites, rewrite{rowID: cell.RowID, values: values})
+		}
+		ok, nerr := cursor.Next()
+		if nerr != nil || !ok {
+			break
+		}
+	}
+	for _, rw := range rewrites {
+		newRecord, err := storage.EncodeRecord(rw.values)
+		if err != nil {
+			continue
+		}
+		if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return c.RowID == rw.rowID
+		}); err != nil {
+			continue
+		}
+		e.invalidateRowIDCache(tableEntry.RootPage)
+		newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: rw.rowID, Payload: newRecord}
+		_ = tree.InsertCell(newCell)
+		e.bumpRowIDCache(tableEntry.RootPage, rw.rowID)
+	}
 }
 
 func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
@@ -2060,7 +2697,16 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 		return &Result{}
 	}
 	tableName := s.Table
-	tableEntry, err := e.schema.FindTable(tableName)
+	// SQLite protects its internal tables ("table sqlite_schema may not be
+	// altered") and rejects ALTER COLUMN on a view ("cannot edit constraints
+	// of view").
+	if isProtectedSystemTable(tableName) {
+		return &Result{Error: fmt.Errorf("table %s may not be altered", tableName)}
+	}
+	if _, _, vErr := e.findView(tableName); vErr == nil {
+		return &Result{Error: fmt.Errorf("cannot edit constraints of view %q", tableName)}
+	}
+	tableEntry, tableCtx, err := e.findTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -2069,7 +2715,7 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	// available; a writable_schema edit may corrupt the stored SQL but the
 	// in-memory table definition stays valid. Only report malformed when the
 	// SQL is fundamentally broken AND no cached definition exists.
-	colDefs := e.colCache[tableName]
+	colDefs := e.colCache[tableEntry.Name]
 	if colDefs == nil {
 		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	}
@@ -2085,7 +2731,7 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 			case "SET NOT NULL":
 				// SQLite: SET NOT NULL fails with "constraint failed" if any
 				// existing row has NULL in this column.
-				if e.columnHasNull(tableEntry, colDefs, c.Name) {
+				if e.columnHasNull(tableName, tableEntry, colDefs, c.Name) {
 					return &Result{Error: fmt.Errorf("constraint failed")}
 				}
 				colDefs[i].NotNull = true
@@ -2099,7 +2745,7 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	if !found {
 		return &Result{Error: fmt.Errorf("no such column: \"%s\"", s.Column)}
 	}
-	e.colCache[tableName] = colDefs
+	e.colCache[tableEntry.Name] = colDefs
 
 	// Rebuild the CREATE TABLE SQL with updated column definitions
 	// Filter out dropped columns
@@ -2113,19 +2759,56 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
 		delete(e.tableCache, tableName)
-		_ = e.schema.RemoveEntry(tableEntry.Name)
-		if err := e.schema.AddEntry(tableEntry); err != nil {
+		schemaMgr := e.schema
+		if tableCtx != nil && tableCtx.Schema != nil {
+			schemaMgr = tableCtx.Schema
+		}
+		_ = schemaMgr.RemoveEntry(tableEntry.Name)
+		if err := schemaMgr.AddEntry(tableEntry); err != nil {
 			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
 		}
 		// Verify the entry was re-added
-		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+		if _, err := schemaMgr.FindTable(tableEntry.Name); err != nil {
+			if retryErr := schemaMgr.AddEntry(tableEntry); retryErr != nil {
 				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
 			}
 		}
 	}
 
 	return &Result{}
+}
+
+// skipSQLWhitespaceAndComments advances i past whitespace and SQL comments
+// (/* ... */ and -- ...) starting at or after position i in s.
+func skipSQLWhitespaceAndComments(s string, i int) int {
+	for i < len(s) {
+		if s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r' {
+			i++
+			continue
+		}
+		if i+1 < len(s) && s[i] == '/' && s[i+1] == '*' {
+			// Block comment: find the closing */.
+			j := i + 2
+			for j+1 < len(s) && !(s[j] == '*' && s[j+1] == '/') {
+				j++
+			}
+			if j+1 < len(s) {
+				i = j + 2
+				continue
+			}
+			i = len(s)
+			continue
+		}
+		if i+1 < len(s) && s[i] == '-' && s[i+1] == '-' {
+			// Line comment: skip to end of line.
+			for i < len(s) && s[i] != '\n' {
+				i++
+			}
+			continue
+		}
+		break
+	}
+	return i
 }
 
 // removeLeadingConstraintClause removes the first CONSTRAINT <name> clause
@@ -2141,10 +2824,9 @@ func removeLeadingConstraintClause(rest, constraintName, quotedName, upperName, 
 		nameEnd = len(constraintName)
 	}
 	i := nameEnd
-	// Skip whitespace after the name.
-	for i < len(rest) && (rest[i] == ' ' || rest[i] == '\t') {
-		i++
-	}
+	// Skip whitespace and comments after the name (e.g.
+	// "CONSTRAINT abc /* hello */ CHECK(...)").
+	i = skipSQLWhitespaceAndComments(rest, i)
 	// If the next token is CONSTRAINT, the removed clause had no type keyword
 	// (bare "CONSTRAINT abc" in a chain) — the remainder starts here.
 	if strings.HasPrefix(strings.ToUpper(rest[i:]), "CONSTRAINT") {
@@ -2152,13 +2834,14 @@ func removeLeadingConstraintClause(rest, constraintName, quotedName, upperName, 
 	}
 	// The next token is the constraint type keyword (CHECK, UNIQUE, ...).
 	// Skip it.
+	kwStart := i
 	for i < len(rest) && rest[i] != ' ' && rest[i] != '(' {
 		i++
 	}
-	// Skip whitespace, then the parenthesized expression (CHECK(...)).
-	for i < len(rest) && (rest[i] == ' ' || rest[i] == '\t') {
-		i++
-	}
+	kwUpper := strings.ToUpper(strings.TrimSpace(rest[kwStart:i]))
+	// Skip whitespace and comments, then the parenthesized expression
+	// (CHECK(...)).
+	i = skipSQLWhitespaceAndComments(rest, i)
 	if i < len(rest) && rest[i] == '(' {
 		pdepth := 0
 		for i < len(rest) {
@@ -2172,6 +2855,58 @@ func removeLeadingConstraintClause(rest, constraintName, quotedName, upperName, 
 				}
 			}
 			i++
+		}
+	}
+	// FOREIGN KEY (cols) REFERENCES <table>(cols): after the keyword pair and
+	// column list, skip the REFERENCES target too so the whole clause is
+	// removed (altercons3-4.2/4.3).
+	if kwUpper == "FOREIGN" {
+		// Skip the KEY token (part of FOREIGN KEY).
+		for i < len(rest) && rest[i] != ' ' && rest[i] != '(' {
+			i++
+		}
+		i = skipSQLWhitespaceAndComments(rest, i)
+		// Skip the parenthesized column list.
+		if i < len(rest) && rest[i] == '(' {
+			pdepth := 0
+			for i < len(rest) {
+				if rest[i] == '(' {
+					pdepth++
+				} else if rest[i] == ')' {
+					pdepth--
+					if pdepth == 0 {
+						i++
+						break
+					}
+				}
+				i++
+			}
+		}
+		i = skipSQLWhitespaceAndComments(rest, i)
+		if strings.HasPrefix(strings.ToUpper(rest[i:]), "REFERENCES") {
+			// Skip the REFERENCES keyword.
+			i += len("REFERENCES")
+			i = skipSQLWhitespaceAndComments(rest, i)
+			// Skip the target table name.
+			for i < len(rest) && rest[i] != ' ' && rest[i] != '(' {
+				i++
+			}
+			// Skip the optional parenthesized column list.
+			if i < len(rest) && rest[i] == '(' {
+				pdepth := 0
+				for i < len(rest) {
+					if rest[i] == '(' {
+						pdepth++
+					} else if rest[i] == ')' {
+						pdepth--
+						if pdepth == 0 {
+							i++
+							break
+						}
+					}
+					i++
+				}
+			}
 		}
 	}
 	// Everything after the removed clause is the remainder (a following
@@ -2260,10 +2995,15 @@ parenLoop2:
 			continue
 		}
 		upperPart := strings.ToUpper(part)
+		// The CONSTRAINT keyword may be preceded by a comment (e.g.
+		// "/* world */ CONSTRAINT abc ..."); skip leading comments before
+		// detecting the constraint clause.
+		constraintStart := skipSQLWhitespaceAndComments(part, 0)
+		constraintUpper := strings.ToUpper(part[constraintStart:])
 		// Check if this part is a CONSTRAINT clause with the matching name
-		if strings.HasPrefix(upperPart, "CONSTRAINT ") {
+		if strings.HasPrefix(constraintUpper, "CONSTRAINT ") {
 			// Extract the constraint name from the part
-			rest := strings.TrimSpace(part[11:]) // after "CONSTRAINT "
+			rest := strings.TrimSpace(part[constraintStart+11:]) // after "CONSTRAINT "
 			restUpper := strings.ToUpper(rest)
 			if strings.HasPrefix(restUpper, upperName) || strings.HasPrefix(restUpper, upperQuotedName) {
 				// This is the constraint to drop. Remove the matched CONSTRAINT
@@ -2309,7 +3049,21 @@ parenLoop2:
 				for kwStart < len(tail) && tail[kwStart] != ' ' && tail[kwStart] != '(' {
 					kwStart++
 				}
+				kwUpper := strings.ToUpper(strings.TrimSpace(tail[clauseStart:kwStart]))
 				clauseStart = kwStart
+				// For REFERENCES <table>[(cols)] the target table name follows
+				// the keyword; skip it and its optional parenthesized column
+				// list so "CONSTRAINT fk REFERENCES p1(a)" removes the whole
+				// reference (altercons3-4.x).
+				if kwUpper == "REFERENCES" {
+					for clauseStart < len(tail) && (tail[clauseStart] == ' ' || tail[clauseStart] == '\t') {
+						clauseStart++
+					}
+					for clauseStart < len(tail) && tail[clauseStart] != ' ' && tail[clauseStart] != '(' &&
+						tail[clauseStart] != '\t' && tail[clauseStart] != '\n' && tail[clauseStart] != '\r' {
+						clauseStart++
+					}
+				}
 				// Skip any parenthesized expression.
 				for clauseStart < len(tail) && (tail[clauseStart] == ' ' || tail[clauseStart] == '\t') {
 					clauseStart++
@@ -2397,7 +3151,7 @@ addLoop:
 	if parenEnd > parenStart && !strings.HasSuffix(strings.TrimRight(origSQL[:parenEnd], " \t\n"), ",") {
 		buf.WriteString(",")
 	}
-	buf.WriteString("\n")
+	buf.WriteString(" ")
 	if tc.Name != "" {
 		buf.WriteString("CONSTRAINT ")
 		buf.WriteString(tc.Name)
@@ -2405,7 +3159,7 @@ addLoop:
 	}
 	switch tc.Type {
 	case sql.ConstraintCheck:
-		buf.WriteString("CHECK(")
+		buf.WriteString("CHECK (")
 		if tc.Expr != nil {
 			buf.WriteString(sql.ExprString(tc.Expr))
 		}
@@ -2634,7 +3388,7 @@ parenLoop3:
 // addColumnToCreateTableSQL adds a new column definition to a CREATE TABLE SQL string.
 func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
 	upper := strings.ToUpper(strings.TrimSpace(origSQL))
-	if !strings.HasPrefix(upper, "CREATE TABLE") {
+	if !strings.HasPrefix(upper, "CREATE TABLE") && !strings.HasPrefix(upper, "CREATE TEMP TABLE") && !strings.HasPrefix(upper, "CREATE TEMPORARY TABLE") {
 		return ""
 	}
 
@@ -2670,8 +3424,39 @@ parenLoop4:
 		return origSQL
 	}
 
-	// Insert the new column definition before the closing paren
-	result := origSQL[:parenEnd] + ", " + colText + origSQL[parenEnd:]
+	// Find the insertion point. SQLite stores an ADD COLUMN before the
+	// table-level constraints (e.g. "CREATE TABLE t(a, b, d DEFAULT 'x',
+	// PRIMARY KEY(a,b))"), so insert before the first top-level constraint
+	// keyword (PRIMARY/UNIQUE/CHECK/FOREIGN/CONSTRAINT). With no constraints
+	// the new column goes before the closing paren.
+	insertAt := parenEnd
+	depth2 := 0
+forInsert:
+	for i := parenStart + 1; i < parenEnd; i++ {
+		switch origSQL[i] {
+		case '(':
+			depth2++
+		case ')':
+			depth2--
+		case ',':
+			if depth2 != 0 {
+				continue
+			}
+			rest := strings.ToUpper(strings.TrimSpace(origSQL[i+1 : parenEnd]))
+			if strings.HasPrefix(rest, "PRIMARY") || strings.HasPrefix(rest, "UNIQUE") ||
+				strings.HasPrefix(rest, "CHECK") || strings.HasPrefix(rest, "FOREIGN") ||
+				strings.HasPrefix(rest, "CONSTRAINT") {
+				// Insert at the comma position so the new column lands
+				// between the last column and the constraint.
+				insertAt = i
+				break forInsert
+			}
+		}
+	}
+
+	// Insert the new column definition before the closing paren (or before
+	// the first table-level constraint).
+	result := origSQL[:insertAt] + ", " + colText + origSQL[insertAt:]
 	return result
 }
 
@@ -3264,10 +4049,16 @@ func (e *Engine) checkViewRenameDependencies(tableName string, oldColName, newCo
 			}
 			// A view that references a virtual table whose module is not
 			// registered cannot be re-validated; SQLite reports
-			// "no such module: %s" on rename.
+			// "no such module: %s" on rename. The engine's NoopModule stubs
+			// (echo, rtree, etc.) count as unavailable — they exist only so
+			// CREATE VIRTUAL TABLE parses without crashing.
 			if e.isVirtualTable(entry) {
 				if mod := vtabModuleName(entry.SQL); mod != "" {
-					if _, ok := e.vtabs.Find(mod); !ok {
+					m, ok := e.vtabs.Find(mod)
+					if !ok {
+						return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", view.Name, mod)}
+					}
+					if _, isNoop := m.(*vtab.NoopModule); isNoop {
 						return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", view.Name, mod)}
 					}
 				}

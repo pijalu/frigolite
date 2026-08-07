@@ -110,9 +110,9 @@ func Test_without_rowid3(t *testing.T) {
 	FkeySimpleTests = "\n  1.1  \"INSERT INTO t2 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  1.2  \"INSERT INTO t1 VALUES(1, 2)\"      {0 {}}\n  1.3  \"INSERT INTO t2 VALUES(1, 3)\"      {0 {}}\n  1.4  \"INSERT INTO t2 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  1.5  \"INSERT INTO t2 VALUES(NULL, 4)\"   {0 {}}\n  1.6  \"UPDATE t2 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  1.7  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.9  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.10 \"UPDATE t2 SET c=NULL WHERE d=4\"   {0 {}}\n  1.11 \"DELETE FROM t1 WHERE a=1\"         {1 {FOREIGN KEY constraint failed}}\n  1.12 \"UPDATE t1 SET a = 2\"              {1 {FOREIGN KEY constraint failed}}\n  1.13 \"UPDATE t1 SET a = 1\"              {0 {}}\n\n  2.1  \"INSERT INTO t4 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  2.2  \"INSERT INTO t3 VALUES(1, 2)\"      {0 {}}\n  2.3  \"INSERT INTO t4 VALUES(1, 3)\"      {0 {}}\n\n  4.1  \"INSERT INTO t8 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  4.2  \"INSERT INTO t7 VALUES(2, 1)\"      {0 {}}\n  4.3  \"INSERT INTO t8 VALUES(1, 3)\"      {0 {}}\n  4.4  \"INSERT INTO t8 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  4.5  \"INSERT INTO t8 VALUES(NULL, 4)\"   {0 {}}\n  4.6  \"UPDATE t8 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  4.7  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.9  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.10 \"UPDATE t8 SET c=NULL WHERE d=4\"   {0 {}}\n  4.11 \"DELETE FROM t7 WHERE b=1\"         {1 {FOREIGN KEY constraint failed}}\n  4.12 \"UPDATE t7 SET b = 2\"              {1 {FOREIGN KEY constraint failed}}\n  4.13 \"UPDATE t7 SET b = 1\"              {0 {}}\n  4.14 \"INSERT INTO t8 VALUES('a', 'b')\"  {1 {FOREIGN KEY constraint failed}}\n  4.15 \"UPDATE t7 SET b = 5\"              {1 {FOREIGN KEY constraint failed}}\n  4.17 \"UPDATE t7 SET a = 10\"             {0 {}}\n\n  5.1  \"INSERT INTO t9 VALUES(1, 3)\"      {1 {no such table: main.nosuchtable}}\n  5.2  \"INSERT INTO t10 VALUES(1, 3)\"  \n                            {1 {foreign key mismatch - \"t10\" referencing \"t9\"}}\n"
 	_ = FkeySimpleTests // suppress unused warning
 	{ // do_test "without_rowid3-1.1.0"
-		_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
+		_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", ""))
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", ""))
 		}
 	}
 	// foreach {tn zSql res} FkeySimpleTests
@@ -173,6 +173,9 @@ func Test_without_rowid3(t *testing.T) {
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+		}
 		for _, _t := range db.Query("PRAGMA database_list").Rows {
 			if len(_t) > 1 {
 				dbname := fmt.Sprint(_t[1])
@@ -185,9 +188,9 @@ func Test_without_rowid3(t *testing.T) {
 		}
 		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // do_test "without_rowid3-1.2.0"
-			_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{DEFERRABLE"))
+			_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "DEFERRABLE INITIALLY DEFERRED"))
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{DEFERRABLE"))
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "DEFERRABLE INITIALLY DEFERRED"))
 			}
 		}
 		// foreach {tn zSql res} FkeySimpleTests
@@ -248,6 +251,9 @@ func Test_without_rowid3(t *testing.T) {
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
@@ -260,9 +266,9 @@ func Test_without_rowid3(t *testing.T) {
 			}
 			_res = db.Exec("PRAGMA foreign_keys = ON")
 			{ // do_test "without_rowid3-1.3.0"
-				_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
+				_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", ""))
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", ""))
 				}
 				r = db.Query(" PRAGMA count_changes = 1 ")
 				if r.Error != nil {
@@ -335,6 +341,9 @@ func Test_without_rowid3(t *testing.T) {
 				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 				}
+				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
 						dbname := fmt.Sprint(_t[1])
@@ -347,9 +356,9 @@ func Test_without_rowid3(t *testing.T) {
 				}
 				_res = db.Exec("PRAGMA foreign_keys = ON")
 				{ // do_test "without_rowid3-1.4.0"
-					_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
+					_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", ""))
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", ""))
 					}
 					r = db.Query(" PRAGMA count_changes = 1 ")
 					if r.Error != nil {
@@ -394,6 +403,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -418,6 +430,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -444,6 +459,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -466,6 +484,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -577,6 +598,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -650,6 +674,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -703,6 +730,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -748,6 +778,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -768,6 +801,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -824,6 +860,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -855,6 +894,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -921,6 +963,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -946,6 +991,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -964,6 +1012,9 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
@@ -984,6 +1035,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -1003,6 +1057,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -1020,6 +1077,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -1041,6 +1101,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -1099,6 +1162,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -1144,6 +1210,9 @@ func Test_without_rowid3(t *testing.T) {
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
@@ -1188,6 +1257,9 @@ func Test_without_rowid3(t *testing.T) {
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
+					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
@@ -1242,6 +1314,9 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
@@ -1301,6 +1376,9 @@ func Test_without_rowid3(t *testing.T) {
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
@@ -1359,6 +1437,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -1415,6 +1496,9 @@ func Test_without_rowid3(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
@@ -1474,6 +1558,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -1530,6 +1617,9 @@ func Test_without_rowid3(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
@@ -1589,6 +1679,9 @@ func Test_without_rowid3(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
@@ -1692,6 +1785,9 @@ func Test_without_rowid3(t *testing.T) {
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
@@ -1731,6 +1827,9 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
 						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
+						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
@@ -1799,6 +1898,9 @@ func Test_without_rowid3(t *testing.T) {
 								for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 									db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 								}
+								for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+									db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+								}
 								for _, _t := range db.Query("PRAGMA database_list").Rows {
 									if len(_t) > 1 {
 										dbname := fmt.Sprint(_t[1])
@@ -1856,6 +1958,9 @@ func Test_without_rowid3(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
@@ -1984,6 +2089,9 @@ func Test_without_rowid3(t *testing.T) {
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
@@ -2072,6 +2180,9 @@ func Test_without_rowid3(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
@@ -2254,6 +2365,9 @@ func Test_without_rowid3(t *testing.T) {
 							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 							}
+							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
@@ -2383,6 +2497,9 @@ func Test_without_rowid3(t *testing.T) {
 									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 									}
+									for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+									}
 									for _, _t := range db.Query("PRAGMA database_list").Rows {
 										if len(_t) > 1 {
 											dbname := fmt.Sprint(_t[1])
@@ -2494,6 +2611,9 @@ func Test_without_rowid3(t *testing.T) {
 									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 									}
+									for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+									}
 									for _, _t := range db.Query("PRAGMA database_list").Rows {
 										if len(_t) > 1 {
 											dbname := fmt.Sprint(_t[1])
@@ -2544,6 +2664,9 @@ func Test_without_rowid3(t *testing.T) {
 									_res = db.Exec("PRAGMA foreign_keys = OFF")
 									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									}
+									for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
 									}
 									for _, _t := range db.Query("PRAGMA database_list").Rows {
 										if len(_t) > 1 {

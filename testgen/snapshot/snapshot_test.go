@@ -212,11 +212,11 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				_res = db2.Exec("COMMIT")
+				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 			}
 			{ // do_test tn + ".2.3.1"
 				_res = db.Exec(" DELETE FROM t1 WHERE a>6 ")
@@ -449,7 +449,7 @@ func Test_snapshot(t *testing.T) {
 			_res = db2.Exec(" PRAGMA wal_checkpoint ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			db.Close()
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			// tvfs delete (unsupported command, not transpiled)
 			// snapshot_free $snapshot (unsupported command, not transpiled)
 			db.Close()
@@ -487,7 +487,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test tn + ".6.4"
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
 				_res = db2.Exec("PRAGMA application_id")
@@ -499,7 +499,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test tn + ".6.5"
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
 				_res = db2.Exec("BEGIN")

@@ -108,7 +108,7 @@ func Test_backup4(t *testing.T) {
 		db1, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		// db1.backup (db command)
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 		// file size test.db
 	}
 	{ // do_test "2.4"
@@ -132,7 +132,7 @@ func Test_backup4(t *testing.T) {
 		db1, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		// db1.backup (db command)
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 		// file size test.db
 	}
 	{ // do_test "3.4"

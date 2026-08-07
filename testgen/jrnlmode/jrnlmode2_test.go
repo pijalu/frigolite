@@ -89,7 +89,7 @@ func Test_jrnlmode2(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "jrnlmode2-1.6"
-		_res = db2.Exec(" SELECT * FROM t1 ")
+		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-1.7"
@@ -97,11 +97,11 @@ func Test_jrnlmode2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		_res = db2.Exec(" SELECT * FROM t1 ")
+		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.1"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		r = db.Query(" PRAGMA journal_mode = truncate ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")

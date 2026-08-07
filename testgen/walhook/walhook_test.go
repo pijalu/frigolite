@@ -110,7 +110,7 @@ func Test_walhook(t *testing.T) {
 		}
 		// file size test.db
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

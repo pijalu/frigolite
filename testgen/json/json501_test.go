@@ -130,7 +130,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{{\"MNO_123" + xyz + "\":789}}"
+		want := "{\"MNO_123" + xyz + "\":789}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

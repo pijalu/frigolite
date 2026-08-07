@@ -174,7 +174,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "sqlite_autoindex_t3_1 {} 5 {} 32 3898 1065 132 {} 5120 sqlite_schema {} 1 {} 2 84 824 49 {} 1024 t3 {} 17 {} 47 11188 5815 370 {} 17408"
+		want := "sqlite_autoindex_t3_1  5  32 3898 1065 132  5120 sqlite_schema  1  2 84 824 49  1024 t3  17  47 11188 5815 370  17408"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -216,7 +216,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "i4 {} 9 {} 1 7782 1386 7782 {} 9216 | sqlite_schema {} 1 {} 2 74 834 40 {} 1024 | t4 {} 8 {} 1 7780 367 7780 {} 8192 |"
+		want := "i4  9  1 7782 1386 7782  9216 | sqlite_schema  1  2 74 834 40  1024 | t4  8  1 7780 367 7780  8192 |"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

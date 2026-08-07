@@ -109,6 +109,7 @@ func Test_cursorhint2(t *testing.T) {
 		// do_extract_hints_test 2.8 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE...} {\n    x2 {EQ(c0,r[2... (unsupported command, not transpiled)
 		// do_extract_hints_test 2.9 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x)\n    ...} {\n    x2 {EQ(c0,r[2... (unsupported command, not transpiled)
 		// do_extract_hints_test 2.10 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE...} {\n    x2 {AND(EQ(c... (unsupported command, not transpiled)
+		// do_extract_hints_test 2.11 {\n      SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHE...} {\n      x2 {AND(ex... (unsupported command, not transpiled)
 	}
 	// do_extract_hints_test 2.12 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE c...} {\n  x2 {EQ(c0,r[2]... (unsupported command, not transpiled)
 	db.Close()

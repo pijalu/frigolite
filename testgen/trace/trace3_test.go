@@ -184,9 +184,9 @@ func Test_trace3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		stmt = tclLIndex("", stmtlist_record)
+		stmt = tclLIndex(tclLIndex(stmtlist_record, "0"), "0")
 		_ = stmt // suppress unused warning
-		ns = tclLIndex("", stmtlist_record)
+		ns = tclLIndex(tclLIndex(stmtlist_record, "0"), "1")
 		_ = ns // suppress unused warning
 		_list := tclList([]string{stmt, tclExprWith("$ns >= 0 && $ns <= 9999999", map[string]string{"ns": ns})})
 		_ = _list
@@ -201,9 +201,9 @@ func Test_trace3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a, b FROM t1 ORDER BY a;\n    ")
 			}
-			stmt = tclLIndex("", stmtlist_record)
+			stmt = tclLIndex(tclLIndex(stmtlist_record, "0"), "0")
 			_ = stmt // suppress unused warning
-			ns = tclLIndex("", stmtlist_record)
+			ns = tclLIndex(tclLIndex(stmtlist_record, "0"), "1")
 			_ = ns // suppress unused warning
 			if tclBool(ns + "<0 || " + ns + ">9999999") {
 				// incr cnt 1

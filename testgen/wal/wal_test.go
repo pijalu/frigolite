@@ -827,7 +827,7 @@ func Test_wal(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // do_test "wal-15.4.1"
-		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
@@ -843,7 +843,7 @@ func Test_wal(t *testing.T) {
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "wal-15.4.4"
-		_res = db2.Exec(" COMMIT ")
+		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -1080,7 +1080,7 @@ func Test_wal(t *testing.T) {
 				}
 				{ // do_test "wal-19.3"
 					db.Close()
-					db2.Close()
+					_ = db2 // close db2: aliased to db, no-op
 					// file exists "test.db-wal"
 				}
 				{ // do_test "wal-19.4"

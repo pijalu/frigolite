@@ -57,7 +57,7 @@ func Test_altermalloc3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altermalloc3"
 	_ = testprefix // suppress unused warning
-	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 unable to open a temporary database file for storing temporary tables" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	db.SetDQS(true, true)
 	{ // "1.0"

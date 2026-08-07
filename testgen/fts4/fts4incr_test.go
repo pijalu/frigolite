@@ -139,7 +139,7 @@ func Test_fts4incr(t *testing.T) {
 			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-				x = tclLIndex(num, "") + " zero"
+				x = tclLIndex(num, tclExprWith("$i%10", map[string]string{"i": i})) + " zero"
 				_ = x // suppress unused warning
 				_res = db.Exec(" INSERT INTO t2(docid, content) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(x) + ") ")
 				if _res.Error != nil {

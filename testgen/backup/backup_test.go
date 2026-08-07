@@ -802,7 +802,7 @@ func Test_backup(t *testing.T) {
 			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.1.3"
-			_res = db3.Exec(" ROLLBACK ")
+			_res = db.Exec(" ROLLBACK ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 			}
@@ -832,21 +832,21 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "backup-7.3.1"
 			db2.Close()
-			db3.Close()
+			_ = db3 // close db3: aliased to db, no-op
 			os.Remove("test2.db")
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
-			_res = db3.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
+			_res = db.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; CREATE TABLE t2(a, b); ")
 			}
 			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.3.2"
-			_res = db3.Exec(" COMMIT ")
+			_res = db.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}

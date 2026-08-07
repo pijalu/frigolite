@@ -98,7 +98,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-1.2.3"
-		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 4) ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, 4) ")
 		}
@@ -114,7 +114,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-1.3"
-		_res = db2.Exec(" BEGIN; CREATE TABLE t3(a, b); ROLLBACK; ")
+		_res = db.Exec(" BEGIN; CREATE TABLE t3(a, b); ROLLBACK; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; CREATE TABLE t3(a, b); ROLLBACK; ")
 		}
@@ -204,7 +204,7 @@ func Test_temptrigger(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db2.Exec(" CREATE TABLE t2(a, b) ")
+		_res = db.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a, b) ")
 		}
@@ -226,7 +226,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-3.3.1"
-		_res = db2.Exec(" CREATE TABLE t3(a, b) ")
+		_res = db.Exec(" CREATE TABLE t3(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t3(a, b) ")
 		}
@@ -321,7 +321,7 @@ func Test_temptrigger(t *testing.T) {
 	{ // do_test "6.1"
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		_res = db2.Exec(" CREATE TABLE t1(a, b, c); ")
+		_res = db.Exec(" CREATE TABLE t1(a, b, c); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b, c); ")
 		}

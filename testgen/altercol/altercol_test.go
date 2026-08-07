@@ -308,9 +308,9 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		{ // "6.2"
-			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO " + sqlLiteral("where") + ";\n")
+			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO " + sqlLiteral("where") + ";\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
 			}
 		}
 		{ // "6.3"
@@ -1053,7 +1053,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN SELECT d NOT NULL FROM t1; END"
+						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

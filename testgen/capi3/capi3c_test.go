@@ -884,7 +884,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-18.5"
 			_res = db2.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		{ // do_test "capi3c-19.1"
 			_res = db.Exec("\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
@@ -954,12 +954,13 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-20.4"
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-21.1"
 			STMT = ""
 			_ = STMT // suppress unused warning
+			db.SetProgressHandler(toInt(5), func() bool { return true })
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-21.2"
@@ -971,6 +972,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-21.4"
 			STMT = "sqlite3_prepare $DB {SELECT * FROM t3} -1 TAIL"
 			_ = STMT // suppress unused warning
+			db.SetProgressHandler(toInt(5), func() bool { return true })
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-21.5"
@@ -986,6 +988,7 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_extended_errcode $DB (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-22.1"
+			db.SetProgressHandler(toInt(0), func() bool { return true })
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_step $STMT (unsupported command, not transpiled)

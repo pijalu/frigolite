@@ -476,8 +476,22 @@ func parseFloat(s string) (float64, error) {
 	return strconv.ParseFloat(s, 64)
 }
 // SQLite affinities: TEXT, NUMERIC, INTEGER, REAL, BLOB.
+// AffinityNone is the type name used to mark a value/column with NO affinity
+// (SQLite SQLITE_AFF_NONE = 0). It is distinct from BLOB affinity: a view
+// column whose defining expression has no affinity (e.g. AVG(...), or any
+// function call) carries NONE, and SQLite's comparison-affinity rules treat
+// "no affinity" differently from BLOB (sqlite3CompareAffinity: an operand
+// with NONE defers to the other operand's affinity; BLOB does not).
+const AffinityNone = "!NONE!"
+
+// Affinity returns the SQLite affinity class for a declared type name.
+// An empty type name is BLOB affinity (a real table column with no declared
+// type stores values as-is). The AffinityNone sentinel maps to 0 (NONE).
 func Affinity(typeName string) rune {
 	upper := strings.ToUpper(strings.TrimSpace(typeName))
+	if upper == AffinityNone {
+		return 0
+	}
 	if strings.Contains(upper, "INT") {
 		return 'I' // INTEGER
 	}
@@ -532,14 +546,25 @@ func stringCompare(a, b, collation string) int {
 func applyIntAffinity(val interface{}) interface{} {
 	switch v := val.(type) {
 	case float64:
-		return int64(v)
+		// Convert a REAL to INTEGER only when it fits exactly in int64. Go's
+		// float64→int64 conversion saturates (2^63 → MaxInt64), so a range
+		// check must guard it: values >= 2^63 stay REAL, matching SQLite's
+		// sqlite3VdbeIntValue (e.g. INTEGER DEFAULT -(-9223372036854775808)
+		// evaluates to real 9.22337203685478e+18, not a wrapped integer).
+		if v >= -9.223372036854776e18 && v < 9.223372036854776e18 {
+			return int64(v)
+		}
+		return v
 	case string:
 		t := strings.TrimSpace(v)
 		if i, err := parseInt(t); err == nil {
 			return i
 		}
 		if f, err := parseFloat(t); err == nil {
-			return int64(f)
+			if f >= -9.223372036854776e18 && f < 9.223372036854776e18 {
+				return int64(f)
+			}
+			return f
 		}
 		return val
 	default:

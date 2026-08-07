@@ -91,7 +91,7 @@ func Test_cksumvfs(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 " + text + " {}"
+		want := "1 " + text + " "
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

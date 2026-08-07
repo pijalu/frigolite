@@ -107,7 +107,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".6"
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			// do_changes_test 1.$tn.7 {\n    CREATE UNIQUE INDEX i2 ON t1(a);\n  } 4 (unsupported command, not transpiled)
 			{ // "1." + tn + ".8"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);\n  ")

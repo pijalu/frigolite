@@ -299,6 +299,7 @@ type CreateTableStmt struct {
 	Constraints  []TableConstraint // table-level constraints
 	WithoutRowid bool              // WITHOUT ROWID option
 	Strict       bool              // STRICT tables (type-enforced)
+	Temporary    bool              // CREATE TEMP TABLE
 
 	// RawSQL is the original CREATE TABLE statement text as written by the
 	// user. It is stored verbatim in sqlite_schema (matching SQLite) so that
@@ -377,6 +378,9 @@ type CreateViewStmt struct {
 	Columns []string  // optional declared column list: CREATE VIEW v(c0, c1) AS ...
 	Select  *SelectStmt
 	RawSQL  string // verbatim CREATE VIEW text (preserves CTEs)
+
+	// Temporary is set for CREATE TEMP VIEW (or CREATE TEMPORARY VIEW).
+	Temporary bool
 }
 
 func (s *CreateViewStmt) stmt() {}

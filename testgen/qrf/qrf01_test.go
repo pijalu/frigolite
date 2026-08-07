@@ -350,7 +350,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.92"
-		result = "\n" + "db format -style jobject {SELECT *, unistr('abcu000a123u000du000axyz') AS xyz FROM t1}"
+		result = "\n" + "db format -style jobject {SELECT *, unistr('abc\n123\r\nxyz') AS xyz FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.93"

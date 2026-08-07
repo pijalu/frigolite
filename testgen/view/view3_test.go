@@ -63,6 +63,7 @@ func Test_view3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "1.2"
+		db.SetProgressHandler(toInt(1000), func() bool { return true })
 		_res = db.Exec("\n      SELECT * FROM v32768;\n    ")
 		_ = _res // catchsql
 	}

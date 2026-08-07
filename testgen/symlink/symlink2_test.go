@@ -111,7 +111,7 @@ func Test_symlink2(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4"
-		db3.Close()
+		_ = db3 // close db3: aliased to db, no-op
 	}
 	{ // do_test "3.5"
 		_list := tclList([]string{"0", res})

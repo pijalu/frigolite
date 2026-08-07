@@ -113,7 +113,7 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "lock5-dotfile.5"
-			r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
@@ -126,7 +126,7 @@ func Test_lock5(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "lock5-dotfile.8"
-			r = db2.Query("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+			r = db.Query("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
 			}
@@ -139,7 +139,7 @@ func Test_lock5(t *testing.T) {
 			// file exists "test.db.lock"
 		}
 		{ // do_test "lock5-dotfile.X"
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			_res = db.Exec("BEGIN EXCLUSIVE")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
@@ -225,7 +225,7 @@ func Test_lock5(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;\n  ")
 				}
-				_res = db2.Exec("\n    SELECT * FROM t1\n  ")
+				_res = db.Exec("\n    SELECT * FROM t1\n  ")
 				_ = _res // catchsql
 			}
 			if tclBool("permutation" + "!=\"inmemory_journal\"") {
@@ -243,7 +243,7 @@ func Test_lock5(t *testing.T) {
 				}
 			}
 			db.Close()
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		db.Close()
 		os.Remove("test.db")
@@ -272,13 +272,13 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "lock5-none.3"
-			r = db2.Query(" SELECT * FROM t1; ")
+			r = db.Query(" SELECT * FROM t1; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
 			}
 		}
 		{ // do_test "lock5-none.4"
-			r = db2.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			r = db.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
@@ -288,7 +288,7 @@ func Test_lock5(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
-			r = db2.Query("SELECT * FROM t1")
+			r = db.Query("SELECT * FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 			}
@@ -304,7 +304,7 @@ func Test_lock5(t *testing.T) {
 		}
 		{ // do_test "lock5-none.X"
 			db.Close()
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		env_SQLITE_FORCE_PROXY_LOCKING = using_proxy
 		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning

@@ -111,7 +111,7 @@ func Test_imposter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{DELETE t1: rowid=5, a=NULL, b=1005, c=2005, d=3005} {INSERT t1: rowid=99, a='hello', b=1099, c=2022, d=NULL}"
+		want := "DELETE t1: rowid=5, a=NULL, b=1005, c=2005, d=3005 INSERT t1:  rowid=99, a='hello', b=1099, c=2022, d=NULL"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

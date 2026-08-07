@@ -194,53 +194,6 @@ func Test_fts3atoken(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer_test('porter', 'I don''t see how');\n  ")
 		}
 	}
-	{ // do_test "fts3atoken-3.3"
-		r = db.Query("\n      SELECT fts3_tokenizer_test('icu', 'I don''t see how');\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT fts3_tokenizer_test('icu', 'I don''t see how');\n    ")
-		}
-	}
-	// proc definition (not transpiled)
-	// do_icu_test fts3atoken-4.1 en_US {} {} (unsupported command, not transpiled)
-	// do_icu_test fts3atoken-4.2 en_US {Test cases fts3} [list \\n    0 test Test 1 cases cases 2 ... (unsupported command, not transpiled)
-	input = "u0e2du0e30u0e44u0e23u0e19u0e30u0e04u0e23u0e31u0e1a"
-	_ = input // suppress unused warning
-	output = "0 u0e2du0e30u0e44u0e23 u0e2du0e30u0e44u0e23 "
-	_ = output // suppress unused warning
-	output += "1 u0e19u0e30 u0e19u0e30 "
-	output += "2 u0e04u0e23u0e31u0e1a u0e04u0e23u0e31u0e1a"
-	// do_icu_test fts3atoken-4.3 th_TH $input $output (unsupported command, not transpiled)
-	// do_icu_test fts3atoken-4.4 en_US $input $output (unsupported command, not transpiled)
-	// do_icu_test fts3atoken-4.5 MiddleOfTheOcean $input $output (unsupported command, not transpiled)
-	longtoken = "AReallyReallyLongTokenOneThatWillSurelyRequire"
-	_ = longtoken // suppress unused warning
-	longtoken += "AReallocInTheIcuTokenizerCode"
-	input = "short tokens then "
-	_ = input // suppress unused warning
-	input += longtoken
-	output = "0 short short "
-	_ = output // suppress unused warning
-	output += "1 tokens tokens "
-	output += "2 then then "
-	output += "3 " + strings.ToLower(longtoken) + " " + longtoken
-	// do_icu_test fts3atoken-4.6 MiddleOfTheOcean $input $output (unsupported command, not transpiled)
-	// do_icu_test fts3atoken-4.7 th_TH $input $output (unsupported command, not transpiled)
-	// do_icu_test fts3atoken-4.8 en_US $input $output (unsupported command, not transpiled)
-	{ // "5.1"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING fts3(name,TOKENIZE icu en_US);\n    insert into x1 (name) values (NULL);\n    insert into x1 (name) values (NULL);\n    delete from x1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING fts3(name,TOKENIZE icu en_US);\n    insert into x1 (name) values (NULL);\n    insert into x1 (name) values (NULL);\n    delete from x1;\n  ")
-		}
-	}
-	// proc definition (not transpiled)
-	{ // do_test "5.2"
-		str = "cp_to_str {19968 26085 32822 32645 27874 23433 20986}"
-		_ = str // suppress unused warning
-		_res = db.Exec(" INSERT INTO x1 VALUES(" + sqlLiteral(str) + ") ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + sqlLiteral(str) + ") ")
-		}
-	}
 	{ // do_test "fts3atoken-internal"
 		r = db.Query(" SELECT fts3_tokenizer_internal_test() ")
 		if r.Error != nil {

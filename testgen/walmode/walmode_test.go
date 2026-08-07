@@ -201,7 +201,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.8"
-		r = db2.Query(" SELECT * FROM t1 ")
+		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -217,7 +217,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.11"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		r = db.Query(" PRAGMA journal_mode = delete ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
@@ -248,7 +248,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.17"
-		r = db2.Query(" PRAGMA main.journal_mode ")
+		r = db.Query(" PRAGMA main.journal_mode ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 		}
@@ -647,12 +647,12 @@ func Test_walmode(t *testing.T) {
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "walmode-8.19"
-				r = db2.Query(" PRAGMA main.journal_mode ")
+				r = db.Query(" PRAGMA main.journal_mode ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 				}
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			{ // "walmode-8.20"
 				r = db.Query(" PRAGMA journal_mode = DELETE ")
 				if r.Error != nil {

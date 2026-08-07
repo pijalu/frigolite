@@ -170,15 +170,15 @@ func Test_reindex(t *testing.T) {
 	{ // do_test "reindex-3.2"
 		// proc definition (not transpiled)
 		// db2.collation_needed (db command)
-		_res = db2.Exec("\n    REINDEX c1;\n  ")
+		_res = db.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.3"
-		_res = db2.Exec("\n    REINDEX;\n  ")
+		_res = db.Exec("\n    REINDEX;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.99"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	// foreach {tn wo} "1 \"\" 2 \"WITHOUT ROWID\""
 	_items0 := tclSplitList("1 \"\" 2 \"WITHOUT ROWID\"")

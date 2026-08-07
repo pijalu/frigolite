@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -211,8 +210,10 @@ func Test_walsetlk(t *testing.T) {
 	}
 	{ // do_test "3.2"
 		// expr $::sleep_count > 0 (not evaluated)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), bExpect) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bExpect, _res.Error, "3.2")
+		got := sleep_count != "-1"
+		want := tclBool(bExpect)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "3.2")
 		}
 	}
 	sleep_count = "0" // TCL namespace variable
@@ -240,8 +241,10 @@ func Test_walsetlk(t *testing.T) {
 	}
 	{ // do_test "3.5"
 		// expr $::sleep_count > 0 (not evaluated)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), bExpect) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bExpect, _res.Error, "3.5")
+		got := sleep_count != "-1"
+		want := tclBool(bExpect)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "3.5")
 		}
 	}
 	{ // "3.6"
@@ -273,8 +276,10 @@ func Test_walsetlk(t *testing.T) {
 	}
 	{ // do_test "3.8"
 		// expr $::sleep_count > 0 (not evaluated)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), bExpect) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bExpect, _res.Error, "3.8")
+		got := sleep_count != "-1"
+		want := tclBool(bExpect)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "3.8")
 		}
 	}
 	{ // "3.9"

@@ -97,13 +97,13 @@ func Test_win32nolock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32nolock-1.4"
-		r = db2.Query(" SELECT * FROM t1; ")
+		r = db.Query(" SELECT * FROM t1; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
 		}
 	}
 	{ // do_test "win32nolock-1.5"
-		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
@@ -113,7 +113,7 @@ func Test_win32nolock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		r = db2.Query("SELECT * FROM t1")
+		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
@@ -127,7 +127,7 @@ func Test_win32nolock(t *testing.T) {
 	}
 	{ // do_test "win32nolock-1.8"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.9.1"
 		_dbtmp2, err := frigolite.Open("test.db")
@@ -140,7 +140,7 @@ func Test_win32nolock(t *testing.T) {
 	}
 	{ // do_test "win32nolock-1.9.2"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.10.1"
 		_dbtmp3, err := frigolite.Open("test.db")
@@ -153,7 +153,7 @@ func Test_win32nolock(t *testing.T) {
 	}
 	{ // do_test "win32nolock-1.10.2"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.11.1"
 		_dbtmp4, err := frigolite.Open("test.db")
@@ -166,7 +166,7 @@ func Test_win32nolock(t *testing.T) {
 	}
 	{ // do_test "win32nolock-1.11.2"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.12.1"
 		_dbtmp5, err := frigolite.Open("test.db")
@@ -179,6 +179,6 @@ func Test_win32nolock(t *testing.T) {
 	}
 	{ // do_test "win32nolock-1.12.2"
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 }

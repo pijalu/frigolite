@@ -116,7 +116,7 @@ func Test_e_reindex(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{wrong # of entries in index i2} {wrong # of entries in index i1} {row 3 missing from index i2} {row 3 missing from index i1} {row 4 missing from index i2} {row 4 missing from index i1}"
+		want := "wrong # of entries in index i2 wrong # of entries in index i1 row 3 missing from index i2 row 3 missing from index i1 row 4 missing from index i2 row 4 missing from index i1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

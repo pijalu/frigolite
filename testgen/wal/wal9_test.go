@@ -76,7 +76,7 @@ func Test_wal9(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		r = db2.Query("SELECT * FROM t")
+		r = db.Query("SELECT * FROM t")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t")
 		}
@@ -102,7 +102,7 @@ func Test_wal9(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.7"
-		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;\n  ")
+		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;\n  ")
 		}

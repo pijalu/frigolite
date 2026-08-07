@@ -111,9 +111,9 @@ func Test_index3(t *testing.T) {
 		}
 	}
 	{ // "index3-2.4"
-		_res = db.Exec("\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c(" + sqlLiteral("a") + " integer, b, PRIMARY KEY(" + sqlLiteral("a") + "));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
+		_res = db.Exec("\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c(" + sqlLiteral("a") + " integer, b, PRIMARY KEY(" + sqlLiteral("a") + "));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));\n")
 		}
 	}
 	{ // "index3-2.5"

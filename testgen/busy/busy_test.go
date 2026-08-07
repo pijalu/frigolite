@@ -102,7 +102,7 @@ func Test_busy(t *testing.T) {
 	}
 	{ // do_test "busy-2.2"
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -136,7 +136,7 @@ func Test_busy(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "3.4"
-		r = db2.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		r = db.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}
@@ -147,7 +147,7 @@ func Test_busy(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "3.6"
-		_res = db2.Exec(" COMMIT ")
+		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -155,7 +155,7 @@ func Test_busy(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
 		}
-		r = db2.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		r = db.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}

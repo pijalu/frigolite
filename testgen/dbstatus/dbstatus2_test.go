@@ -215,7 +215,7 @@ func Test_dbstatus2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b FROM data ORDER BY a ")
 			}
-			nTmpSpill = tclLIndex("db_temp_spill", "db")
+			nTmpSpill = tclLIndex("db_temp_spill db 1", "1")
 			_ = nTmpSpill // suppress unused warning
 			// expr ($nTmpSpill>7*1000*1000) && ($nTmpSpill<10*1000*1000)?"ok":$nTmpSpill (not evaluated)
 		}
@@ -227,7 +227,7 @@ func Test_dbstatus2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON data(a) ")
 			}
-			nTmpSpill = tclLIndex("db_temp_spill", "db")
+			nTmpSpill = tclLIndex("db_temp_spill db 1", "1")
 			_ = nTmpSpill // suppress unused warning
 			// expr ($nTmpSpill>384*1000) && ($nTmpSpill<768*1000)?"ok":$nTmpSpill (not evaluated)
 		}

@@ -205,7 +205,7 @@ func Test_blob(t *testing.T) {
 	}
 	{ // do_test "blob-3.1"
 		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "blob-3.2"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")

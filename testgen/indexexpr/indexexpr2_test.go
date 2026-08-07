@@ -168,24 +168,6 @@ func Test_indexexpr2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x);\n")
 		}
 	}
-	{ // "3.3.1"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT json_extract(x, '$.b') FROM t2 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT json_extract(x, '$.b') FROM t2 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
-		}
-	}
-	{ // "3.3.2"
-		_res = db.Exec("\n    CREATE INDEX i3 ON t3(json_extract(x, '$.a'), json_extract(x, '$.b'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i3 ON t3(json_extract(x, '$.a'), json_extract(x, '$.b'));\n  ")
-		}
-	}
-	{ // "3.3.3"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT json_extract(x, '$.b') FROM t3 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT json_extract(x, '$.b') FROM t3 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
-		}
-	}
 	{ // "3.4.0"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('.ABC', 1);\n  INSERT INTO t4 VALUES('.abc', 2);\n  INSERT INTO t4 VALUES('.ABC', 3);\n  INSERT INTO t4 VALUES('.abc', 4);\n")
 		if _res.Error != nil {

@@ -89,6 +89,25 @@ type Engine struct {
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
 	currentDMLTable   string                           // table being INSERTed/UPDATEd (for qualified refs in CHECK/defaults)
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
+	// schemaPin, when non-nil, restricts unqualified table/view name
+	// resolution to a single schema (view-body name resolution, matching
+	// SQLite sqlite3FixSrcList semantics).
+	schemaPin *DatabaseContext
+	// expandingTempView is true while a TEMP-schema view body is being
+	// expanded (SQLite reports missing tables in temp views without the
+	// "main." prefix).
+	expandingTempView bool
+	// expandingView is true while any view body is being expanded (used to
+	// scope the "main." prefix on missing-table errors to view bodies).
+	expandingView bool
+	exprDepthLimit int // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
+	nestDepth      int // current view/subquery nesting depth
+	// Progress handler (db progress N fn): after every progressPeriod
+	// operations the callback runs; a true return interrupts the statement
+	// with an "interrupted" error (SQLite sqlite3_progress_handler).
+	progressPeriod   int
+	progressCallback func() bool
+	progressCounter  int
 	inCompoundMember  bool                             // executing a SELECT member of a compound query
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
@@ -152,6 +171,12 @@ func (r *structRow) Get(name string) (interface{}, bool) {
 // RowMap implements Row for map-backed row stores.
 type RowMap map[string]interface{}
 
+// positionalRowKey is a reserved RowMap key holding the row's original
+// positional value slice. It lets SELECT * output duplicate-named columns
+// (e.g. a view with three columns aliased '') in order, which a name-keyed
+// map cannot distinguish. The NUL byte cannot appear in a column name.
+const positionalRowKey = "\x00frigolite_positional"
+
 func (m RowMap) Get(name string) (interface{}, bool) {
 	v, ok := m[name]
 	return v, ok
@@ -166,6 +191,42 @@ func (e *Engine) LastInsertRowID() int64 {
 // A nil authorizer allows all operations (default behavior).
 func (e *Engine) SetAuthorizer(a auth.Authorizer) {
 	e.authorizer = a
+}
+
+// SetExprDepthLimit sets the maximum view/subquery nesting depth
+// (SQLITE_LIMIT_EXPR_DEPTH). A negative value queries the current limit.
+func (e *Engine) SetExprDepthLimit(n int) int {
+	if n >= 0 {
+		e.exprDepthLimit = n
+	}
+	return e.exprDepthLimit
+}
+
+// SetProgressHandler registers a progress callback invoked after every n
+// engine operations (n <= 0 disables it). A true return interrupts the
+// running statement with an "interrupted" error, matching SQLite's
+// sqlite3_progress_handler.
+func (e *Engine) SetProgressHandler(n int, fn func() bool) {
+	e.progressPeriod = n
+	e.progressCallback = fn
+	e.progressCounter = 0
+}
+
+// checkProgress counts engine operations and, every progressPeriod calls,
+// runs the registered callback. Returns a non-nil "interrupted" error when
+// the callback requests an abort. A nil callback is a no-op.
+func (e *Engine) checkProgress() error {
+	if e.progressCallback == nil || e.progressPeriod <= 0 {
+		return nil
+	}
+	e.progressCounter++
+	if e.progressCounter >= e.progressPeriod {
+		e.progressCounter = 0
+		if e.progressCallback() {
+			return fmt.Errorf("interrupted")
+		}
+	}
+	return nil
 }
 
 // SetDQS configures SQLite's double-quoted-string (DQS) behavior.
@@ -269,7 +330,7 @@ func (e *Engine) restorePager(pg *pager.Pager, snap *pager.PagerState) {
 }
 
 func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
-	return btree.NewBTree(e.pager, e.rootPage(tableName, schemaRoot), isTable)
+	return btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
 }
 
 // tableBTreeForName resolves the table's owning database context and builds a
@@ -566,10 +627,29 @@ func NewEngine(pg *pager.Pager) *Engine {
 		IsTemp:   false,
 	}
 
+	tempCtx := (*DatabaseContext)(nil)
+
+	// Create the real temp database: an in-memory schema separate from main.
+	// SQLite's temp database shadows main for unqualified name resolution
+	// (temp-first), so a temp view/table with the same name as a main object
+	// takes precedence for unqualified references.
+	if tempPg := pager.OpenInMemory(pager.DefaultPageSize); tempPg != nil {
+		tc := &DatabaseContext{
+			Name:     "temp",
+			Pager:    tempPg,
+			Schema:   schema.NewManager(tempPg),
+			FilePath: "",
+			IsMemory: true,
+			IsTemp:   true,
+		}
+		if err := tc.Schema.Init(); err == nil {
+			tempCtx = tc
+		}
+	}
+
 	e := &Engine{
 		databases: map[string]*DatabaseContext{
 			"MAIN": mainCtx,
-			"TEMP": mainCtx, // TEMP is an alias for main (no true temp db support yet)
 		},
 		dbList:            []*DatabaseContext{mainCtx},
 		mainDB:            mainCtx,
@@ -586,9 +666,15 @@ func NewEngine(pg *pager.Pager) *Engine {
 		hasTriggersCache:  make(map[string]bool),
 		encoding:          "UTF-8",
 		recursiveCTELimit: 100000,
+		exprDepthLimit:    1000, // SQLite default SQLITE_LIMIT_EXPR_DEPTH
 		dqsDDL:            true, // SQLite default: double-quoted strings allowed in DDL
 		dqsDML:            true, // SQLite default: double-quoted strings allowed in DML
 		ftsTables:         make(map[string]*fts.FTS3Table),
+	}
+	if tempCtx != nil {
+		e.databases["TEMP"] = tempCtx
+		e.databases["TEMPORARY"] = tempCtx
+		e.dbList = append(e.dbList, tempCtx)
 	}
 	e.vtabs.RegisterDefaults()
 	// Register FTS modules (overrides NoopModule defaults)
@@ -655,11 +741,46 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 		}
 		entry, err := ctx.Schema.FindTable(objName)
 		if err != nil {
-			return nil, nil, err
+			// SQLite reports the schema-qualified name when a qualified
+			// reference fails ("no such table: main.txx"), not just the
+			// bare object name.
+			return nil, nil, fmt.Errorf("no such table: %s.%s", schemaName, objName)
 		}
 		e.ensureFTSForTable(entry)
 		e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: ctx}
 		return entry, ctx, nil
+	}
+
+	// A schema pin (view being expanded in its own schema) restricts
+	// unqualified name resolution to that schema, matching SQLite's
+	// sqlite3FixSrcList: the body of a non-temp view cannot see temp/other
+	// schema objects of the same name.
+	if e.schemaPin != nil {
+		entry, err := e.schemaPin.Schema.FindTable(name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("no such table: %s", name)
+		}
+		e.ensureFTSForTable(entry)
+		e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: e.schemaPin}
+		return entry, e.schemaPin, nil
+	}
+
+	// No schema prefix: search temp first (temp shadows main), then main,
+	// then attached databases. A temp VIEW with this name shadows a main
+	// TABLE: return an error so the caller falls through to view resolution
+	// (SQLite resolves the temp view first and reports circularity when the
+	// view's body re-enters its own name). Schema tables (sqlite_master/etc)
+	// and sqlite_sequence always resolve to their native (main) schema,
+	// never to the temp schema's synthetic fallback.
+	if tc := e.getDB("temp"); tc != nil && tc != e.mainDB && !isSchemaTable(name) && !isSQLiteSequence(name) {
+		if entry, err := tc.Schema.FindTable(name); err == nil {
+			e.ensureFTSForTable(entry)
+			e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: tc}
+			return entry, tc, nil
+		}
+		if _, vErr := tc.Schema.FindView(name); vErr == nil {
+			return nil, nil, fmt.Errorf("no such table: %s", name)
+		}
 	}
 
 	// No schema prefix: search main first, then attached databases
@@ -729,6 +850,23 @@ func (e *Engine) findView(name string) (*schema.Entry, *DatabaseContext, error) 
 			return nil, nil, err
 		}
 		return entry, ctx, nil
+	}
+
+	// A schema pin (view being expanded in its own schema) restricts
+	// unqualified view resolution to that schema (SQLite sqlite3FixSrcList).
+	if e.schemaPin != nil {
+		entry, err := e.schemaPin.Schema.FindView(name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("no such view: %s", name)
+		}
+		return entry, e.schemaPin, nil
+	}
+
+	// Search the temp schema first (temp shadows main for unqualified names).
+	if tc := e.getDB("temp"); tc != nil && tc != e.mainDB {
+		if entry, err := tc.Schema.FindView(name); err == nil {
+			return entry, tc, nil
+		}
 	}
 
 	entry, err := e.mainDB.Schema.FindView(name)

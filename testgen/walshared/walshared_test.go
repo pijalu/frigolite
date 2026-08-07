@@ -77,7 +77,7 @@ func Test_walshared(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "walshared-1.3"
-		_res = db2.Exec(" PRAGMA wal_checkpoint ")
+		_res = db.Exec(" PRAGMA wal_checkpoint ")
 		_ = _res // catchsql
 	}
 	{ // do_test "walshared-1.4"
@@ -85,7 +85,7 @@ func Test_walshared(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		r = db2.Query(" PRAGMA integrity_check ")
+		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}

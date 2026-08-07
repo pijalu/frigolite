@@ -1176,14 +1176,8 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		}
 	}
-	{ // "18.2.0"
-		r = db.Query("  PRAGMA case_sensitive_like = ON ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "  PRAGMA case_sensitive_like = ON ")
-		}
-	}
-	// foreach {tn sql res filter} "2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}"
-	_items1 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
+	// foreach {tn sql res filter} "1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}"
+	_items1 := tclSplitList("1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}")
 	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
@@ -1209,264 +1203,297 @@ func Test_vtab1(t *testing.T) {
 				}
 			}
 		}
-		{ // "18.2.x"
-			r = db.Query("  PRAGMA case_sensitive_like = OFF ")
+		{ // "18.2.0"
+			r = db.Query("  PRAGMA case_sensitive_like = ON ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "  PRAGMA case_sensitive_like = OFF ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "  PRAGMA case_sensitive_like = ON ")
 			}
 		}
-		{ // do_test "19.1"
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
-		}
-		{ // do_test "19.2"
-			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
-		}
-		{ // do_test "19.3"
-			db2.Close()
-		}
-		{ // "20.1"
-			_res = db.Exec("\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
-			}
-		}
-		{ // do_test "20.2"
-			i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				_res = db.Exec("INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
+		// foreach {tn sql res filter} "2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}"
+		_items2 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
+		for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+			tn := _items2[_idx2+0]
+			_ = tn // suppress unused warning
+			sql := _items2[_idx2+1]
+			_ = sql // suppress unused warning
+			res := _items2[_idx2+2]
+			_ = res // suppress unused warning
+			filter := _items2[_idx2+3]
+			_ = filter // suppress unused warning
+			_ = _idx2
+				echo_module = ""
+				_ = echo_module // suppress unused warning
+				{ // "18." + tn + ".1"
+					_res = db.Exec(sql)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					}
 				}
-				_res = db.Exec("INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
+				{ // do_test "18." + tn + ".2"
+					_ = tclLRange(echo_module, "2", "end") // lrange result
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), filter) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", filter, _res.Error, "18." + tn + ".2")
 					}
 				}
 			}
-		}
-		{ // "20.3"
-			r = db.Query("\n  SELECT a, b FROM (\n      SELECT a, b FROM t7 WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8 WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
+			{ // "18.2.x"
+				r = db.Query("  PRAGMA case_sensitive_like = OFF ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "  PRAGMA case_sensitive_like = OFF ")
+				}
+			}
+			{ // do_test "19.1"
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
+				// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
+			}
+			{ // do_test "19.2"
+				// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
+			}
+			{ // do_test "19.3"
+				_ = db2 // close db2: aliased to db, no-op
+			}
+			{ // "20.1"
+				_res = db.Exec("\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
+				}
+			}
+			{ // do_test "20.2"
+				i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+					_res = db.Exec("INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
+					}
+					_res = db.Exec("INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			{ // "20.3"
+				r = db.Query("\n  SELECT a, b FROM (\n      SELECT a, b FROM t7 WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8 WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, b FROM (\n      SELECT a, b FROM t7 WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8 WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
+					return
+				}
+				got := flatten(r)
+				want := "5 5 6 6 11 11 12 12"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "20.4"
+				r = db.Query("\n  SELECT a, b FROM (\n      SELECT a, b FROM t7v WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8v WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, b FROM (\n      SELECT a, b FROM t7v WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8v WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
+					return
+				}
+				got := flatten(r)
+				want := "5 5 6 6 11 11 12 12"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "21.1"
+				_res = db.Exec("\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
+				}
+			}
+			{ // "21.2"
+				r = db.Query("\n  SELECT * FROM t9v WHERE a<b;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t9v WHERE a<b;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "21.3"
+				r = db.Query("\n  SELECT * FROM t9v WHERE a=b;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t9v WHERE a=b;\n")
+					return
+				}
+				got := flatten(r)
+				want := "2 2 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			os.Remove("test.db2")
+			nm = "abcdefghij 100"
+			_ = nm // suppress unused warning
+			{ // "22.1"
+				_res = db.Exec("\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
+				}
+			}
+			r = db.Query("SELECT * FROM sqlite_master")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, b FROM (\n      SELECT a, b FROM t7 WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8 WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
-				return
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
 			}
-			got := flatten(r)
-			want := "5 5 6 6 11 11 12 12"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "22.2"
+				_res = db.Exec("CREATE VIRTUAL TABLE " + nm + ".t1 USING fts4")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + nm + ".t1 USING fts4")
+				}
 			}
-		}
-		{ // "20.4"
-			r = db.Query("\n  SELECT a, b FROM (\n      SELECT a, b FROM t7v WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8v WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, b FROM (\n      SELECT a, b FROM t7v WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8v WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;\n")
-				return
+			{ // do_test "22.3.1"
+				sql = "CREATE VIRTUAL TABLE " + nm + ".t2 USING fts4"
+				_ = sql // suppress unused warning
+				stmt = ""
+				_ = stmt // suppress unused warning
+				// sqlite3_step $stmt (unsupported command, not transpiled)
 			}
-			got := flatten(r)
-			want := "5 5 6 6 11 11 12 12"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "22.3.2"
+				// sqlite3_finalize $stmt (unsupported command, not transpiled)
 			}
-		}
-		{ // "21.1"
-			_res = db.Exec("\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);\n")
+			{ // do_test "22.4.1"
+				sql = "CREATE VIRTUAL TABLE " + nm + ".t3 USING fts4"
+				_ = sql // suppress unused warning
+				n = strconv.Itoa(len(sql))
+				_ = n // suppress unused warning
+				stmt = "sqlite3_prepare db \"${sql}xyz\" $n dummy"
+				_ = stmt // suppress unused warning
+				// sqlite3_step $stmt (unsupported command, not transpiled)
 			}
-		}
-		{ // "21.2"
-			r = db.Query("\n  SELECT * FROM t9v WHERE a<b;\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t9v WHERE a<b;\n")
-				return
+			{ // do_test "22.4.2"
+				// sqlite3_finalize $stmt (unsupported command, not transpiled)
 			}
-			got := flatten(r)
-			want := "1 2 3"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			// load_static_extension db wholenumber (unsupported command, not transpiled)
+			// load_static_extension db eval (unsupported command, not transpiled)
+			// register_echo_module db (unsupported command, not transpiled)
+			{ // do_test "23.1"
+				_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING wholenumber ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING wholenumber ")
+				}
+				res = ""
+				_ = res // suppress unused warning
+				_res = db.Exec(" SELECT value FROM t1 WHERE value<10 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT value FROM t1 WHERE value<10 ")
+				}
 			}
-		}
-		{ // "21.3"
-			r = db.Query("\n  SELECT * FROM t9v WHERE a=b;\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t9v WHERE a=b;\n")
-				return
+			{ // do_test "23.2"
+				_res = db.Exec(" \n    CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);\n  ")
+				}
+				res2 = "0" + " " + msg
+				_ = res2 // suppress unused warning
+				_list := tclList([]string{res1, res2})
+				_ = _list
 			}
-			got := flatten(r)
-			want := "2 2 2"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "23.3.1"
+				_res = db.Exec(" CREATE VIRTUAL TABLE t1e USING echo(t2) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1e USING echo(t2) ")
+				}
+				_res = db.Exec(" INSERT INTO t1e SELECT 4 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1e SELECT 4 ")
+				}
+				_res = db.Exec(" INSERT INTO t1e SELECT eval('DROP TABLE t1e') ")
+				_ = _res // catchsql
 			}
-		}
-		os.Remove("test.db2")
-		nm = "abcdefghij 100"
-		_ = nm // suppress unused warning
-		{ // "22.1"
-			_res = db.Exec("\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
+			{ // "23.3.2"
+				r = db.Query(" SELECT * FROM t1e ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1e ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-		}
-		r = db.Query("SELECT * FROM sqlite_master")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
-		}
-		{ // "22.2"
-			_res = db.Exec("CREATE VIRTUAL TABLE " + nm + ".t1 USING fts4")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + nm + ".t1 USING fts4")
+			{ // "24.0"
+				r = db.Query("\n    CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;\n  ")
+				}
 			}
-		}
-		{ // do_test "22.3.1"
-			sql = "CREATE VIRTUAL TABLE " + nm + ".t2 USING fts4"
-			_ = sql // suppress unused warning
-			stmt = ""
-			_ = stmt // suppress unused warning
-			// sqlite3_step $stmt (unsupported command, not transpiled)
-		}
-		{ // do_test "22.3.2"
-			// sqlite3_finalize $stmt (unsupported command, not transpiled)
-		}
-		{ // do_test "22.4.1"
-			sql = "CREATE VIRTUAL TABLE " + nm + ".t3 USING fts4"
-			_ = sql // suppress unused warning
-			n = strconv.Itoa(len(sql))
-			_ = n // suppress unused warning
-			stmt = "sqlite3_prepare db \"${sql}xyz\" $n dummy"
-			_ = stmt // suppress unused warning
-			// sqlite3_step $stmt (unsupported command, not transpiled)
-		}
-		{ // do_test "22.4.2"
-			// sqlite3_finalize $stmt (unsupported command, not transpiled)
-		}
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		// load_static_extension db wholenumber (unsupported command, not transpiled)
-		// load_static_extension db eval (unsupported command, not transpiled)
-		// register_echo_module db (unsupported command, not transpiled)
-		{ // do_test "23.1"
-			_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING wholenumber ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING wholenumber ")
+			{ // "24.1"
+				r = db.Query(" SELECT * FROM t4 WHERE t4 MATCH 'b' ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 WHERE t4 MATCH 'b' ")
+				}
 			}
-			res = ""
-			_ = res // suppress unused warning
-			_res = db.Exec(" SELECT value FROM t1 WHERE value<10 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT value FROM t1 WHERE value<10 ")
+			{ // "24.2"
+				_res = db.Exec(" INSERT INTO t4(t4) VALUES('integrity-check') ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4(t4) VALUES('integrity-check') ")
+				}
 			}
-		}
-		{ // do_test "23.2"
-			_res = db.Exec(" \n    CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);\n  ")
+			{ // "24.3"
+				_res = db.Exec("\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
+				}
 			}
-			res2 = "0" + " " + msg
-			_ = res2 // suppress unused warning
-			_list := tclList([]string{res1, res2})
-			_ = _list
-		}
-		{ // do_test "23.3.1"
-			_res = db.Exec(" CREATE VIRTUAL TABLE t1e USING echo(t2) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1e USING echo(t2) ")
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			// register_echo_module db (unsupported command, not transpiled)
+			{ // "25.0"
+				_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
+				}
 			}
-			_res = db.Exec(" INSERT INTO t1e SELECT 4 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1e SELECT 4 ")
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			// load_static_extension db wholenumber (unsupported command, not transpiled)
+			{ // "26.1"
+				_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
+				}
 			}
-			_res = db.Exec(" INSERT INTO t1e SELECT eval('DROP TABLE t1e') ")
-			_ = _res // catchsql
-		}
-		{ // "23.3.2"
-			r = db.Query(" SELECT * FROM t1e ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1e ")
-				return
+			{ // do_test "26.2"
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
+				_res = db2.Exec(" CREATE TABLE ty(x, y) ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				_ = db2 // close db2: aliased to db, no-op
 			}
-			got := flatten(r)
-			want := "1 2 3 4"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "26.3"
+				r = db.Query("\n  SELECT value FROM t1 WHERE value<5\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM t1 WHERE value<5\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-		}
-		{ // "24.0"
-			r = db.Query("\n    CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;\n  ")
-			}
-		}
-		{ // "24.1"
-			r = db.Query(" SELECT * FROM t4 WHERE t4 MATCH 'b' ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 WHERE t4 MATCH 'b' ")
-			}
-		}
-		{ // "24.2"
-			_res = db.Exec(" INSERT INTO t4(t4) VALUES('integrity-check') ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4(t4) VALUES('integrity-check') ")
-			}
-		}
-		{ // "24.3"
-			_res = db.Exec("\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT a;\n    CREATE VIRTUAL TABLE t5 USING fts3();\n    SAVEPOINT b;\n    ROLLBACK TO a;\n    SAVEPOINT c;\n    RELEASE a;\n  ")
-			}
-		}
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		// register_echo_module db (unsupported command, not transpiled)
-		{ // "25.0"
-			_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
-			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
-			}
-		}
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		// load_static_extension db wholenumber (unsupported command, not transpiled)
-		{ // "26.1"
-			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
-			}
-		}
-		{ // do_test "26.2"
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			_res = db2.Exec(" CREATE TABLE ty(x, y) ")
-			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			_ = db2 // close db2: aliased to db, no-op
-		}
-		{ // "26.3"
-			r = db.Query("\n  SELECT value FROM t1 WHERE value<5\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM t1 WHERE value<5\n")
-				return
-			}
-			got := flatten(r)
-			want := "1 2 3 4"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
 }

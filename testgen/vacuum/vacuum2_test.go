@@ -136,7 +136,7 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-3.6"
-		r = db2.Query("PRAGMA integrity_check")
+		r = db.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
@@ -167,7 +167,7 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-3.16"
-		r = db2.Query("PRAGMA integrity_check")
+		r = db.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}

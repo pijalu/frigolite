@@ -194,7 +194,7 @@ func Test_skipscan5(t *testing.T) {
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 						for _, _var := range tclSplitList("a b c d") {
 						_ = _var // suppress unused warning
-							_var = tclLIndex(vocab_var, "")
+							_var = tclLIndex(vocab_var, tclExprWith("$i % [llength $vocab($var)]", map[string]string{"i": i, "vocab": vocab, "var": _var}))
 							_ = _var // suppress unused warning
 						}
 						_res = db.Exec(" INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(d) + ") ")

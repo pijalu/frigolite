@@ -132,7 +132,7 @@ func Test_cacheflush(t *testing.T) {
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.4"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
@@ -198,7 +198,7 @@ func Test_cacheflush(t *testing.T) {
 		// diskquery test.db2 { SELECT * FROM t4; } (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2.6"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
 		// diskquery test.db { SELECT * FROM t1; } (unsupported command, not transpiled)
 	}

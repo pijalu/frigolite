@@ -127,7 +127,7 @@ func Test_e_insert(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{*}" + data
+				want := "* " + data
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

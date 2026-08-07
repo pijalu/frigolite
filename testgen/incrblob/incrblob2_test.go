@@ -349,22 +349,22 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob2-5.2"
-		_res = db2.Exec(" INSERT INTO t1 VALUES(2, 'fghij') ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(2, 'fghij') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.3"
 		blob = "db incrblob t1 data 1"
 		_ = blob // suppress unused warning
-		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.4"
 		// close $blob
-		_res = db2.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		_res = db2.Exec(" INSERT INTO t1 VALUES(4, 'pqrst') ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(4, 'pqrst') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.5"
@@ -393,13 +393,13 @@ func Test_incrblob2(t *testing.T) {
 		// read $blob (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-5.7"
-		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.8"
 		// close $blob
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	_dbtmp1, err := frigolite.Open("test.db")

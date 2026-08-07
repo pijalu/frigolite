@@ -93,7 +93,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		_res = db2.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -102,7 +102,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		_res = db2.Exec("END")
+		_res = db.Exec("END")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "END")
 		}
@@ -110,7 +110,7 @@ func Test_snapshot3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		_res = db2.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -131,7 +131,7 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		_res = db3.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -154,15 +154,15 @@ func Test_snapshot3(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "1.8"
-		_res = db3.Exec("BEGIN")
+		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	db3.Close()
-	db2.Close()
+	_ = db3 // close db3: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -236,7 +236,7 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_res = db3.Exec(" BEGIN ")
+		_res = db.Exec(" BEGIN ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}

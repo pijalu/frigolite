@@ -154,7 +154,7 @@ func Test_wal3(t *testing.T) {
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		{ // do_test "wal3-1." + i + ".2"
-			r = db2.Query(" SELECT count(*) FROM t1 ")
+			r = db.Query(" SELECT count(*) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 			}
@@ -169,7 +169,7 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".4"
-			r = db2.Query(" PRAGMA integrity_check ")
+			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
@@ -181,7 +181,7 @@ func Test_wal3(t *testing.T) {
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "wal3-1." + i + ".5"
-			r = db2.Query(" SELECT count(*) FROM t1 ")
+			r = db.Query(" SELECT count(*) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 			}
@@ -196,7 +196,7 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".7"
-			r = db2.Query(" PRAGMA integrity_check ")
+			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
@@ -355,7 +355,7 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-6.1.3"
-			r = db2.Query(" PRAGMA wal_checkpoint ")
+			r = db.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 			}
@@ -387,7 +387,7 @@ func Test_wal3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
-			r = db2.Query(" PRAGMA wal_checkpoint ")
+			r = db.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 			}
@@ -407,8 +407,8 @@ func Test_wal3(t *testing.T) {
 			_ = sz2 // suppress unused warning
 			// expr $sz2==$sz1 (not evaluated)
 		}
-		db3.Close()
-		db2.Close()
+		_ = db3 // close db3: aliased to db, no-op
+		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
 		{ // do_test "wal3-6.2.1"
 			os.Remove("test.db")
@@ -469,7 +469,7 @@ func Test_wal3(t *testing.T) {
 			_ = sz2 // suppress unused warning
 			// expr $sz2 == $sz1 (not evaluated)
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
 		// T delete (unsupported command, not transpiled)
 		{
@@ -503,7 +503,7 @@ func Test_wal3(t *testing.T) {
 		_ = locks // suppress unused warning
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.1.3"
-			r = db2.Query(" SELECT * FROM blue ")
+			r = db.Query(" SELECT * FROM blue ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
 			}
@@ -515,7 +515,7 @@ func Test_wal3(t *testing.T) {
 		_ = locks // suppress unused warning
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.2.1"
-			r = db2.Query(" SELECT * FROM blue ")
+			r = db.Query(" SELECT * FROM blue ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
 			}
@@ -524,7 +524,7 @@ func Test_wal3(t *testing.T) {
 			_ = locks // TCL namespace variable (query)
 		}
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// T delete (unsupported command, not transpiled)
 		nConn = "50"
 		_ = nConn // suppress unused warning

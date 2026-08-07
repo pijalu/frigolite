@@ -279,7 +279,7 @@ func Test_walcrash(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
-		pgsz = tclLIndex("{512", "1024")
+		pgsz = tclLIndex("512 1024 2048 4096 8192 16384", tclExprWith("$i%6", map[string]string{"i": i}))
 		_ = pgsz // suppress unused warning
 		{ // do_test "walcrash-7." + i + ".1"
 			// crashsql -delay 3 -file test.db -seed [incr seed] -blocksize 512 \n      PRAGMA page_size... (unsupported command, not transpiled)

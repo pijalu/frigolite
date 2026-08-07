@@ -1528,7 +1528,7 @@ func Test_pager1(t *testing.T) {
 								}
 							}
 							{ // do_test "pager1-11.4"
-								db2.Close()
+								_ = db2 // close db2: aliased to db, no-op
 								// file exists "test.db-journal"
 							}
 							{ // "pager1-11.5"
@@ -1582,7 +1582,7 @@ func Test_pager1(t *testing.T) {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
 									}
 								}
-								db2.Close()
+								_ = db2 // close db2: aliased to db, no-op
 							}
 							db.Close()
 							// tv delete (unsupported command, not transpiled)
@@ -1912,7 +1912,7 @@ func Test_pager1(t *testing.T) {
 								_res = db.Exec(" SELECT * FROM ko ")
 								_ = _res // catchsql
 							}
-							db2.Close()
+							_ = db2 // close db2: aliased to db, no-op
 							// tv delete (unsupported command, not transpiled)
 							{ // do_test "pager1-21.2"
 								// testvfs tv -iversion 1 (unsupported command, not transpiled)
@@ -1921,7 +1921,7 @@ func Test_pager1(t *testing.T) {
 								_res = db.Exec(" SELECT * FROM ko ")
 								_ = _res // catchsql
 							}
-							db2.Close()
+							_ = db2 // close db2: aliased to db, no-op
 							// tv delete (unsupported command, not transpiled)
 							{ // do_test "pager1-22.1.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)

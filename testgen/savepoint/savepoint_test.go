@@ -764,7 +764,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    RELEASE one;\n    DETACH aux;\n  ")
 		}
 	}
-	templockstate = tclLIndex("db", "eval")
+	templockstate = tclLIndex("db eval {PRAGMA lock_status}", "3")
 	_ = templockstate // suppress unused warning
 	if tclBool("wal_is_wal_mode" + "==0") {
 		{ // do_test "savepoint-10.2.1"

@@ -86,7 +86,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt-f3e5abed55-1.5"
-		_res = db2.Exec("COMMIT")
+		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -103,7 +103,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		os.Remove(f)
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		// testvfs tvfs -default 1 (unsupported command, not transpiled)
 		// tvfs script xDelete (unsupported command, not transpiled)
@@ -121,7 +121,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 			}
 		}
 		{ // do_test "tkt-f3e5abed55-2.2"
-			r = db2.Query(" BEGIN; SELECT * FROM t1 ")
+			r = db.Query(" BEGIN; SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN; SELECT * FROM t1 ")
 			}
@@ -131,7 +131,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "tkt-f3e5abed55-2.4"
-			_res = db2.Exec("COMMIT")
+			_res = db.Exec("COMMIT")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
@@ -142,7 +142,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		}
 		{ // do_test "tkt-f3e5abed55-2.5"
 			db.Close()
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			// faultsim_restore_and_reopen (unsupported command, not transpiled)
 			r = db.Query("\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
 			if r.Error != nil {

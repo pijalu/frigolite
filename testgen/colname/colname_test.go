@@ -293,9 +293,9 @@ func Test_colname(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t6(a, " + sqlLiteral("'a'") + ", " + sqlLiteral("\"a\"") + ", \"" + sqlLiteral("a") + "\", " + sqlLiteral("`a`") + ");\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
+		_res = db.Exec("\n    CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, " + sqlLiteral("'a'") + ", " + sqlLiteral("\"a\"") + ", \"" + sqlLiteral("a") + "\", " + sqlLiteral("`a`") + ");\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
 		}
 		r = db.Query("SELECT * FROM t6")
 		if r.Error != nil {
@@ -303,21 +303,21 @@ func Test_colname(t *testing.T) {
 		}
 	}
 	{ // do_test "colname-6.2"
-		r = db.Query("SELECT " + sqlLiteral("'a'") + ", " + sqlLiteral("`a`") + ", \"" + sqlLiteral("a") + "\", " + sqlLiteral("a") + ", " + sqlLiteral("\"a\"") + " FROM t6")
+		r = db.Query("SELECT ['a'], [`a`], \"[a]\", [a], [\"a\"] FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + sqlLiteral("'a'") + ", " + sqlLiteral("`a`") + ", \"" + sqlLiteral("a") + "\", " + sqlLiteral("a") + ", " + sqlLiteral("\"a\"") + " FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ['a'], [`a`], \"[a]\", [a], [\"a\"] FROM t6")
 		}
 	}
 	{ // do_test "colname-6.3"
-		r = db.Query("SELECT \"'a'\", \"`a`\", \"" + sqlLiteral("a") + "\", \"a\", \"\"\"a\"\"\" FROM t6")
+		r = db.Query("SELECT \"'a'\", \"`a`\", \"[a]\", \"a\", \"\"\"a\"\"\" FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT \"'a'\", \"`a`\", \"" + sqlLiteral("a") + "\", \"a\", \"\"\"a\"\"\" FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT \"'a'\", \"`a`\", \"[a]\", \"a\", \"\"\"a\"\"\" FROM t6")
 		}
 	}
 	{ // do_test "colname-6.4"
-		r = db.Query("SELECT `'a'`, ```a```, `" + sqlLiteral("a") + "`, `a`, `\"a\"` FROM t6")
+		r = db.Query("SELECT `'a'`, ```a```, `[a]`, `a`, `\"a\"` FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT `'a'`, ```a```, `" + sqlLiteral("a") + "`, `a`, `\"a\"` FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT `'a'`, ```a```, `[a]`, `a`, `\"a\"` FROM t6")
 		}
 	}
 	{ // do_test "colname-6.11"
@@ -339,9 +339,9 @@ func Test_colname(t *testing.T) {
 		}
 	}
 	{ // do_test "colname-6.14"
-		r = db.Query("SELECT " + sqlLiteral("a") + ", max(a) AS m FROM t6")
+		r = db.Query("SELECT [a], max(a) AS m FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + sqlLiteral("a") + ", max(a) AS m FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT [a], max(a) AS m FROM t6")
 		}
 	}
 	{ // do_test "colname-6.15"
@@ -351,27 +351,27 @@ func Test_colname(t *testing.T) {
 		}
 	}
 	{ // do_test "colname-6.16"
-		r = db.Query("SELECT " + sqlLiteral("'a'") + ", max(" + sqlLiteral("'a'") + ") AS m FROM t6")
+		r = db.Query("SELECT ['a'], max(['a']) AS m FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + sqlLiteral("'a'") + ", max(" + sqlLiteral("'a'") + ") AS m FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ['a'], max(['a']) AS m FROM t6")
 		}
 	}
 	{ // do_test "colname-6.17"
-		r = db.Query("SELECT " + sqlLiteral("\"a\"") + ", max(" + sqlLiteral("\"a\"") + ") AS m FROM t6")
+		r = db.Query("SELECT [\"a\"], max([\"a\"]) AS m FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + sqlLiteral("\"a\"") + ", max(" + sqlLiteral("\"a\"") + ") AS m FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT [\"a\"], max([\"a\"]) AS m FROM t6")
 		}
 	}
 	{ // do_test "colname-6.18"
-		r = db.Query("SELECT \"" + sqlLiteral("a") + "\", max(\"" + sqlLiteral("a") + "\") AS m FROM t6")
+		r = db.Query("SELECT \"[a]\", max(\"[a]\") AS m FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT \"" + sqlLiteral("a") + "\", max(\"" + sqlLiteral("a") + "\") AS m FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT \"[a]\", max(\"[a]\") AS m FROM t6")
 		}
 	}
 	{ // do_test "colname-6.19"
-		r = db.Query("SELECT \"`a`\", max(" + sqlLiteral("`a`") + ") AS m FROM t6")
+		r = db.Query("SELECT \"`a`\", max([`a`]) AS m FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT \"`a`\", max(" + sqlLiteral("`a`") + ") AS m FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT \"`a`\", max([`a`]) AS m FROM t6")
 		}
 	}
 	{ // do_test "colname-7.1"
@@ -426,9 +426,9 @@ func Test_colname(t *testing.T) {
 		}
 	}
 	{ // do_test "colname-9.130"
-		r = db.Query("SELECT v2.x, " + sqlLiteral("v2") + "." + sqlLiteral("y") + " FROM v2 WHERE 1")
+		r = db.Query("SELECT v2.x, [v2].[y] FROM v2 WHERE 1")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT v2.x, " + sqlLiteral("v2") + "." + sqlLiteral("y") + " FROM v2 WHERE 1")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT v2.x, [v2].[y] FROM v2 WHERE 1")
 		}
 	}
 	{ // do_test "colname-9.140"

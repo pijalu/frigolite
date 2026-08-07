@@ -92,7 +92,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.6.1"
-		r = db2.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
+		r = db.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		}
@@ -113,7 +113,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.8"
-		_res = db2.Exec("ROLLBACK")
+		_res = db.Exec("ROLLBACK")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
@@ -127,7 +127,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.10"
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.11"

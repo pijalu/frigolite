@@ -133,9 +133,9 @@ func Test_zipfile2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile(" + sqlLiteral("testzip") + ");\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile(" + sqlLiteral("testzip") + ");\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
 		}
 	}
 	{ // do_test "2.0"

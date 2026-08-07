@@ -165,7 +165,7 @@ func Test_misc7(t *testing.T) {
 		_ = delay // suppress unused warning
 		result = tclListAppend(result, tclExprWith("$delay>1500000 && $delay<4000000", map[string]string{"delay": delay}))
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "misc7-7.1"
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")

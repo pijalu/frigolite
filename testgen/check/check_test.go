@@ -439,23 +439,23 @@ func Test_check(t *testing.T) {
 		}
 	}
 	{ // do_test "7.5"
-		_res = db2.Exec(" INSERT INTO t6 VALUES(8) ")
+		_res = db.Exec(" INSERT INTO t6 VALUES(8) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "7.6"
-		_res = db2.Exec(" CREATE TABLE t7(a CHECK (myfunc(a))) ")
+		_res = db.Exec(" CREATE TABLE t7(a CHECK (myfunc(a))) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "7.7"
 		// db2.func (db command)
-		_res = db2.Exec(" INSERT INTO t6 VALUES(8) ")
+		_res = db.Exec(" INSERT INTO t6 VALUES(8) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(8) ")
 		}
 	}
 	{ // do_test "7.8"
 		// db2.func (db command)
-		_res = db2.Exec(" INSERT INTO t6 VALUES(12) ")
+		_res = db.Exec(" INSERT INTO t6 VALUES(12) ")
 		_ = _res // catchsql
 	}
 	{ // "8.1"
@@ -483,7 +483,7 @@ func Test_check(t *testing.T) {
 		}
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

@@ -184,12 +184,4 @@ func Test_json103(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "json103-400" — skipped: window functions not supported
-		_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES\n      (1),\n      ('a,b'),\n      (3),\n      ('x\"y'),\n      (5),\n      (6),\n      (7);\n    SELECT json_group_array(x) OVER (ROWS 2 PRECEDING) FROM t4;\n  ")
-		_ = _res
-	}
-	{ // "json103-410" — skipped: window functions not supported
-		_res = db.Exec("\n    SELECT json_group_object(rowid, x) OVER (ROWS 2 PRECEDING) FROM t4;\n  ")
-		_ = _res
-	}
 }

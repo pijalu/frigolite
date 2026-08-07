@@ -70,11 +70,11 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	// db1.update_hook (db command)
 	// db2.update_hook (db command)
 	{ // do_test "tkt-f7b4edec-1"
-		_res = db1.Exec(" CREATE TABLE t1(x, y); ")
+		_res = db.Exec(" CREATE TABLE t1(x, y); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x, y); ")
 		}
-		_res = db1.Exec(" INSERT INTO t1 VALUES(1, 2) ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2) ")
 		}
@@ -83,7 +83,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	{ // do_test "tkt-f7b4edec-2"
-		_res = db2.Exec("\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
+		_res = db.Exec("\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
 		}
@@ -92,7 +92,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	{ // do_test "tkt-f7b4edec-3"
-		_res = db1.Exec(" INSERT INTO t1 VALUES(1, 2) ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2) ")
 		}

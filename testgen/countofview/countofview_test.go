@@ -123,6 +123,7 @@ func Test_countofview(t *testing.T) {
 		}
 	}
 	// proc progress_stop returns constant 1 (registered via db func)
+	db.SetProgressHandler(toInt(1000), func() bool { return true })
 	{ // "3.1"
 		_res = db.Exec("\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c)\n    SELECT count(*) FROM c;\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "interrupted") {

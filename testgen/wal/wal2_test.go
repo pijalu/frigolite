@@ -242,7 +242,7 @@ func Test_wal2(t *testing.T) {
 		}
 	}
 	{ // do_test "wal2-1.1"
-		r = db2.Query(" SELECT count(a), sum(a) FROM t1 ")
+		r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 		}
@@ -295,7 +295,7 @@ func Test_wal2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// tvfs delete (unsupported command, not transpiled)
 		os.Remove("test.db")
 		WRITER = "0 1 lock exclusive"
@@ -322,7 +322,7 @@ func Test_wal2(t *testing.T) {
 			}
 		}
 		{ // do_test "wal2-2.1"
-			r = db2.Query(" SELECT count(a), sum(a) FROM t1 ")
+			r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 			}
@@ -395,7 +395,7 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			db.Close()
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 			// tvfs delete (unsupported command, not transpiled)
 			os.Remove("test.db")
 			if false {
@@ -821,7 +821,7 @@ func Test_wal2(t *testing.T) {
 					_ = _res // catchsql
 				}
 				{ // do_test "wal2-6.6.2"
-					db2.Close()
+					_ = db2 // close db2: aliased to db, no-op
 					// T filter {} (unsupported command, not transpiled)
 					_res = db.Exec(" INSERT INTO t2 VALUES('IX', 'X') ")
 					if _res.Error != nil {
@@ -835,7 +835,7 @@ func Test_wal2(t *testing.T) {
 					_ = _res // catchsql
 				}
 				db.Close()
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				// T delete (unsupported command, not transpiled)
 				os.Remove("test.db")
 				{ // do_test "wal2-7.1.1"
@@ -862,17 +862,17 @@ func Test_wal2(t *testing.T) {
 				{ // do_test "wal2-7.1.3"
 					db2, err = frigolite.Open("test2.db")
 					if err != nil { t.Fatal(err) }
-					r = db2.Query(" PRAGMA wal_checkpoint ")
+					r = db.Query(" PRAGMA wal_checkpoint ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 					}
-					r = db2.Query(" SELECT * FROM sqlite_master ")
+					r = db.Query(" SELECT * FROM sqlite_master ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sqlite_master ")
 					}
 				}
 				db.Close()
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				os.Remove("test.db")
 				{ // do_test "wal2-8.1.2"
 					_dbtmp10, err := frigolite.Open("test.db")
@@ -905,7 +905,7 @@ func Test_wal2(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 					}
 				}
-				db2.Close()
+				_ = db2 // close db2: aliased to db, no-op
 				db.Close()
 				// proc definition (not transpiled)
 				// testvfs tvfs (unsupported command, not transpiled)
@@ -958,7 +958,7 @@ func Test_wal2(t *testing.T) {
 							}
 						}
 					}
-					db2.Close()
+					_ = db2 // close db2: aliased to db, no-op
 					db.Close()
 					{ // do_test "wal2-10.1.1"
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -1026,9 +1026,9 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					if tcl_version >= "8.5" {
-						blob = tclStringRange("tvfs", "shm", filename + "]")
+						blob = tclStringRange("tvfs shm $::filename", "0", "16383")
 						_ = blob // suppress unused warning
-						I = tclStringRange("tvfs", "shm", filename + "]")
+						I = tclStringRange("tvfs shm $::filename", "16384", "end")
 						_ = I // suppress unused warning
 						// binary scan $I t* L (test infra, not transpiled)
 						I = ""
@@ -1043,7 +1043,7 @@ func Test_wal2(t *testing.T) {
 							_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 							_ = _res // catchsql
 						}
-						blob = tclStringRange("tvfs", "shm", filename + "]")
+						blob = tclStringRange("tvfs shm $::filename", "0", "16383")
 						_ = blob // suppress unused warning
 						blob += "[binary format c 55] 16384"
 						// tvfs shm $::filename $blob (unsupported command, not transpiled)
@@ -1053,7 +1053,7 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					db.Close()
-					db2.Close()
+					_ = db2 // close db2: aliased to db, no-op
 					// tvfs delete (unsupported command, not transpiled)
 					if tcl_platform_os != "Windows NT" {
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)

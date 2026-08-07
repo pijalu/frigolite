@@ -270,7 +270,7 @@ func Test_main(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.4"
-		_res = db.Exec("select " + sqlLiteral("abc"))
+		_res = db.Exec("select [abc")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.5"
@@ -314,13 +314,13 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.2.14"
 		hi_u1234x = "987"
 		_ = hi_u1234x // suppress unused warning
-		_res = db.Exec("select " + hiu1234x)
+		_res = db.Exec("select " + hi + "ሴx")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select " + hiu1234x)
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select " + hi + "ሴx")
 		}
 	}
 	{ // do_test "main-3.2.15"
-		_res = db.Exec("select 456u1234")
+		_res = db.Exec("select 456ሴ")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.16"

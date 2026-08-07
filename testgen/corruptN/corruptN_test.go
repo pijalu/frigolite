@@ -131,25 +131,6 @@ func Test_corruptN(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// db function strreplace (variable-reader, inlined)
-	// proc definition (not transpiled)
-	{ // "5.0"
-		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
-		}
-	}
-	if tclBool("info exists ::G(perm:presql)" + "==0 || " + G_perm_presql + "==\"\"") {
-		db.Close()
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		{ // "5.1"
-			r = db.Query("\n      PRAGMA writable_schema = 1;\n      SELECT * FROM t1\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA writable_schema = 1;\n      SELECT * FROM t1\n    ")
-			}
-		}
-	}
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

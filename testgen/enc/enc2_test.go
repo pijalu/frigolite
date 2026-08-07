@@ -524,7 +524,7 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// proc definition (not transpiled)
 	{ // do_test "enc2-8.1"
 		// sqlite3_complete16 [utf16 "SELECT * FROM t1;"] (unsupported command, not transpiled)
