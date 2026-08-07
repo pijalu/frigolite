@@ -1565,6 +1565,12 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		sqlStr = stripTriggerTempKeyword(strings.TrimSpace(s.RawSQL))
 	}
 
+	// SQLite rejects bound parameters (?NNN) in trigger bodies at CREATE
+	// time with "trigger cannot use variables". Match that behavior.
+	if hasBindParameter(sqlStr) {
+		return &Result{Error: fmt.Errorf("trigger cannot use variables")}
+	}
+
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,
 		Name:     triggerName,
@@ -1588,6 +1594,77 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	}
 
 	return &Result{}
+}
+
+// hasBindParameter reports whether a SQL statement contains a bound
+// parameter placeholder (?NNN, ?name, :name, @name, $name) outside string
+// literals. SQLite rejects these in trigger bodies at CREATE time with
+// "trigger cannot use variables".
+func hasBindParameter(sqlStr string) bool {
+	i := 0
+	for i < len(sqlStr) {
+		c := sqlStr[i]
+		switch c {
+		case '\'', '"', '`':
+			// Skip string literals (and quoted identifiers) so ? inside
+			// them is not counted.
+			quote := c
+			i++
+			for i < len(sqlStr) {
+				if sqlStr[i] == quote {
+					if i+1 < len(sqlStr) && sqlStr[i+1] == quote {
+						i += 2
+						continue
+					}
+					i++
+					break
+				}
+				if sqlStr[i] == '\\' && i+1 < len(sqlStr) {
+					i += 2
+					continue
+				}
+				i++
+			}
+		case '[':
+			// Skip bracket-quoted identifiers.
+			for i < len(sqlStr) && sqlStr[i] != ']' {
+				i++
+			}
+			i++
+		case '-':
+			// Skip line comments.
+			if i+1 < len(sqlStr) && sqlStr[i+1] == '-' {
+				for i < len(sqlStr) && sqlStr[i] != '\n' {
+					i++
+				}
+			} else {
+				i++
+			}
+		case '?':
+			// A ? followed by a digit or a name is a bind parameter.
+			if i+1 < len(sqlStr) && (isDigit(sqlStr[i+1]) || isIdentStart(sqlStr[i+1])) {
+				return true
+			}
+			i++
+		case ':', '@', '$':
+			// Named parameters :name, @name, $name.
+			if i+1 < len(sqlStr) && isIdentStart(sqlStr[i+1]) {
+				return true
+			}
+			i++
+		default:
+			i++
+		}
+	}
+	return false
+}
+
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
+func isIdentStart(c byte) bool {
+	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
 // buildTriggerSQL constructs the full CREATE TRIGGER SQL text including the body.

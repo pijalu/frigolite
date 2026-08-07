@@ -344,6 +344,25 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 			return trigResult
 		}
+		// A BEFORE trigger may have inserted rows into this same table,
+		// consuming the rowid we pre-allocated. SQLite assigns the
+		// statement's rowid after the BEFORE triggers run, so re-allocate
+		// when the pre-computed rowid is no longer the next free one.
+		if !withoutRowid && nextRowID < e.findNextRowID(tableEntry.Name, tableEntry.RootPage) {
+			oldID := nextRowID
+			nextRowID = e.findNextRowID(tableEntry.Name, tableEntry.RootPage)
+			e.lastRowID = nextRowID
+			// If an INTEGER PRIMARY KEY column holds the old rowid, update
+			// it to the re-allocated value.
+			for i, cd := range colDefs {
+				if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+					i < len(values) && values[i] != nil {
+					if v, ok := values[i].(int64); ok && v == oldID {
+						values[i] = nextRowID
+					}
+				}
+			}
+		}
 	}
 
 	// Unwrap collation wrappers (a trigger body may pass a column value
@@ -2273,6 +2292,12 @@ func (e *Engine) evalTuple(tableName string, tuple []sql.Expr, columns []string,
 		if len(values) != len(columns) {
 			return nil, fmt.Errorf("table %s has %d values for %d columns",
 				tableName, len(values), len(columns))
+		}
+		if colDefs == nil {
+			// No column definitions (e.g. view INSERT): return the values
+			// as-is; the caller maps them to the view's output columns by
+			// the column names.
+			return values, nil
 		}
 		// Start with default values for all columns, then override with provided values
 		mapped := make([]interface{}, len(colDefs))
