@@ -2641,6 +2641,8 @@ func (e *Engine) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.Co
 	if colDefs[dropIdx].Generated != nil {
 		return
 	}
+	// The scan and rewrite must use the schema-qualified table name so the
+	// correct pager is used for an ATTACHed table.
 	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -2651,6 +2653,7 @@ func (e *Engine) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.Co
 		values []interface{}
 	}
 	var rewrites []rewrite
+	var rowIDs map[int64]bool
 	for {
 		cell, cerr := cursor.ReadCell()
 		if cerr != nil || cell == nil {
@@ -2668,23 +2671,33 @@ func (e *Engine) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.Co
 			values = append(values, rec.Values[:dropIdx]...)
 			values = append(values, rec.Values[dropIdx+1:]...)
 			rewrites = append(rewrites, rewrite{rowID: cell.RowID, values: values})
+			if rowIDs == nil {
+				rowIDs = make(map[int64]bool)
+			}
+			rowIDs[cell.RowID] = true
 		}
 		ok, nerr := cursor.Next()
 		if nerr != nil || !ok {
 			break
 		}
 	}
+	if len(rewrites) == 0 {
+		return
+	}
+	// Delete all rewritten rows in a single pass, then re-insert (avoiding
+	// the O(n²) per-row delete+insert that made DROP COLUMN on large tables
+	// take minutes, alterdropcol-9.x: 50000 rows).
+	if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+		return rowIDs[c.RowID]
+	}); err != nil {
+		return
+	}
+	e.invalidateRowIDCache(tableEntry.RootPage)
 	for _, rw := range rewrites {
 		newRecord, err := storage.EncodeRecord(rw.values)
 		if err != nil {
 			continue
 		}
-		if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
-			return c.RowID == rw.rowID
-		}); err != nil {
-			continue
-		}
-		e.invalidateRowIDCache(tableEntry.RootPage)
 		newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: rw.rowID, Payload: newRecord}
 		_ = tree.InsertCell(newCell)
 		e.bumpRowIDCache(tableEntry.RootPage, rw.rowID)
