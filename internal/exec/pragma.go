@@ -37,6 +37,12 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 	}
 
 	if name != "" {
+		// ANALYZE schema-name (bare "main" / "temp") analyzes all tables in
+		// that schema; ANALYZE schema.table analyzes one table.
+		upperName := strings.ToUpper(name)
+		if upperName == "MAIN" || upperName == "TEMP" || upperName == "TEMPORARY" {
+			return e.analyzeAllTables()
+		}
 		// Handle schema.table prefix
 		tableName := name
 		if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
@@ -636,6 +642,12 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			// no row; only the bare PRAGMA (getter) returns the value.
 		case "COUNT_CHANGES":
 			e.countChanges = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+		case "MMAP_SIZE":
+			// SQLite returns the effective mmap size after assignment. In a
+			// build with SQLITE_MAX_MMAP_SIZE=0 (mmap compiled out) the
+			// result is always 0; Frigolite has no mmap support, so report
+			// 0 (matching the SQLite test-suite expectation).
+			return &Result{Rows: [][]interface{}{{int64(0)}}}
 		}
 		// When setting a PRAGMA value, don't also return the value
 		return &Result{}

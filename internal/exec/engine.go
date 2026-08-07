@@ -26,6 +26,11 @@ type Result struct {
 	Error           error           // execution error
 	LastInsertRowID int64           // rowid of the last inserted row
 	Row             []interface{}   // final row written by the statement (used by upsert RETURNING)
+	// rowMaps carries the per-row column→value maps for statements that
+	// materialize joined results (derived tables). It is internal: the public
+	// API ignores it, but execJoins uses it to preserve qualified column keys
+	// (t4.a) when a derived table is joined again.
+	rowMaps []RowMap
 }
 
 // DatabaseContext holds all per-database state for a single database connection.
@@ -77,6 +82,8 @@ type Engine struct {
 	outerRow          Row                              // outer query row for correlated subquery resolution
 	outerRowStack     []Row                            // stack of enclosing outer rows for multi-level correlation
 	outerRows         []RowMap                         // all outer rows for correlated aggregate evaluation
+	aliasStack        []map[string]sql.Expr            // output-column alias maps from enclosing SELECTs (innermost last)
+	aliasResolving    map[string]bool                  // alias names currently being resolved (recursion guard)
 	cteScopes         [][]sql.CTEDef                   // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[string]bool                  // CTEs currently being resolved (circular reference detection)
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
@@ -107,6 +114,11 @@ type Engine struct {
 	// (SQLite test1.c selectH_counter). It resets at the start of each
 	// statement so unused-column pruning tests are unaffected by prior calls.
 	counterVal int64
+	// nondeterVal is the backing state for the test-only nondeter() SQL
+	// function (SQLite having.test): it increments per call and returns
+	// counter%2. Resets at statement start (having.test sets ::nondeter_ret 0
+	// before each query, and each query is a separate statement).
+	nondeterVal int64
 }
 
 // Row provides column value lookup for expression evaluation.
@@ -811,6 +823,7 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// resetting per-statement keeps the results consistent (counter() values
 	// within a single statement start from 1).
 	e.counterVal = 0
+	e.nondeterVal = 0
 
 	// SQLite guarantees statement atomicity: when a statement fails (a
 	// constraint violation, a trigger error, etc.) every change it made is

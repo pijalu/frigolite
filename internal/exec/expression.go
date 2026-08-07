@@ -436,11 +436,24 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 			if val, ok := row.Get(tableQual + "." + v.Name); ok {
 				return val, nil
 			}
+			// Qualified rowid alias (t1.rowid, t1._rowid_, t1.oid) resolves
+			// against the qualified rowid key stored for joined rows.
+			if isRowIDName(v.Name) {
+				if val, ok := row.Get(fullQual + ".rowid"); ok {
+					return val, nil
+				}
+				if val, ok := row.Get(tableQual + ".rowid"); ok {
+					return val, nil
+				}
+			}
 			// If the qualified key is not found and the qualifier matches the
 			// table currently being scanned, resolve via unqualified name.
 			// Row maps store unqualified column names, so "t1.a" in a query
-			// scanning table t1 resolves to row["a"].
-			if e.currentScanTable != "" && strings.EqualFold(tableQual, e.currentScanTable) {
+			// scanning table t1 resolves to row["a"]. Join result maps store
+			// qualified keys (t1.a), so the fallback must NOT apply there:
+			// t4.id in a joined row must resolve exactly, not to the merged
+			// id column.
+			if e.currentScanTable != "" && strings.EqualFold(tableQual, e.currentScanTable) && !rowHasQualifiedKeys(row) {
 				if val, ok := row.Get(v.Name); ok {
 					return val, nil
 				}
@@ -524,6 +537,26 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 			return val, nil
 		}
 	}
+	// Output-column aliases: when the name is not a table column, SQLite
+	// resolves an unqualified reference to the SELECT-list alias expression
+	// (e.g. "SELECT a AS x ... WHERE x>3" → WHERE evaluates the expression a).
+	// A guard prevents infinite recursion when an alias expression refers back
+	// to its own name (e.g. "SELECT x AS x" with no table column x).
+	if !v.Quoted {
+		if expr, ok := e.resolveAliasRef(v.Name); ok {
+			name := strings.ToLower(v.Name)
+			if e.aliasResolving == nil {
+				e.aliasResolving = make(map[string]bool)
+			}
+			if e.aliasResolving[name] {
+				return nil, nil
+			}
+			e.aliasResolving[name] = true
+			val, err := e.evalExpr(expr, row)
+			delete(e.aliasResolving, name)
+			return val, err
+		}
+	}
 	// RETURNING strict resolution: an unqualified reference must name a column
 	// of the modified table (or rowid/oid/_rowid_). Unknown columns are errors.
 	if e.returningStrict && e.currentScanTable == "" {
@@ -554,6 +587,30 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 // isRowIDName reports whether a column name is one of the rowid aliases.
 func isRowIDName(name string) bool {
 	return strings.EqualFold(name, "rowid") || strings.EqualFold(name, "_rowid_") || strings.EqualFold(name, "oid")
+}
+
+// rowHasQualifiedKeys reports whether a row map contains any table-qualified
+// keys ("t1.a"), indicating it came from a join result rather than a bare
+// single-table scan.
+func rowHasQualifiedKeys(row Row) bool {
+	if row == nil {
+		return false
+	}
+	if rm, ok := row.(RowMap); ok {
+		for k := range rm {
+			if strings.Contains(k, ".") {
+				return true
+			}
+		}
+	}
+	if sr, ok := row.(*structRow); ok && sr.index != nil {
+		for k := range sr.index {
+			if strings.Contains(k, ".") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // outerRowsForResolution returns the correlated-scope rows visible to the
@@ -638,7 +695,7 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 	// AND/OR need Kleene logic (handled in evalArithmeticOp).
 	// IS / IS NOT are NULL-safe: NULL IS NULL is true.
 	if v.Operator != "AND" && v.Operator != "OR" && v.Operator != "IS" && v.Operator != "IS NOT" {
-		if left == nil || right == nil {
+		if isSQLNull(left) || isSQLNull(right) {
 			return nil, nil
 		}
 	}
@@ -1337,12 +1394,16 @@ func (e *Engine) evalIsDistinctFrom(v *sql.IsDistinctFrom, row Row) (interface{}
 		return nil, err
 	}
 	// IS DISTINCT FROM: 0 if equal (including NULL==NULL), 1 otherwise
-	if left == nil && right == nil {
+	lNull := isSQLNull(left)
+	rNull := isSQLNull(right)
+	if lNull && rNull {
 		return int64(0), nil
 	}
-	if left == nil || right == nil {
+	if lNull || rNull {
 		return int64(1), nil
 	}
+	left = util.UnwrapColumnValue(left)
+	right = util.UnwrapColumnValue(right)
 	cmp := util.CompareValuesCollate(left, right, "BINARY")
 	if cmp == 0 {
 		return int64(0), nil
@@ -1360,12 +1421,16 @@ func (e *Engine) evalIsNotDistinctFrom(v *sql.IsNotDistinctFrom, row Row) (inter
 		return nil, err
 	}
 	// IS NOT DISTINCT FROM: 1 if equal (including NULL==NULL), 0 otherwise
-	if left == nil && right == nil {
+	lNull := isSQLNull(left)
+	rNull := isSQLNull(right)
+	if lNull && rNull {
 		return int64(1), nil
 	}
-	if left == nil || right == nil {
+	if lNull || rNull {
 		return int64(0), nil
 	}
+	left = util.UnwrapColumnValue(left)
+	right = util.UnwrapColumnValue(right)
 	cmp := util.CompareValuesCollate(left, right, "BINARY")
 	if cmp == 0 {
 		return int64(1), nil
@@ -1452,11 +1517,18 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 					} else if equal {
 						found = true
 					}
-				} else if len(subRow) > 0 {
-					if util.UnwrapColumnValue(subRow[0]) == nil {
-						sawNull = true
-					} else if util.CompareValues(operand, subRow[0]) == 0 {
-						found = true
+				} else {
+					// A scalar operand with a multi-column subquery is an error
+					// (SQLite: "sub-select returns N columns - expected 1").
+					if len(subRow) > 1 {
+						return nil, fmt.Errorf("sub-select returns %d columns - expected 1", len(subRow))
+					}
+					if len(subRow) > 0 {
+						if util.UnwrapColumnValue(subRow[0]) == nil {
+							sawNull = true
+						} else if util.CompareValues(operand, subRow[0]) == 0 {
+							found = true
+						}
 					}
 				}
 			}
@@ -1554,6 +1626,42 @@ func (e *Engine) evalBool(expr sql.Expr, row Row) (bool, error) {
 	return toBool(v), nil
 }
 
+// affinityOfValue reports the affinity of a value for the test-only affinity()
+// function: a ColumnValue wrapper carries the declared column affinity (from a
+// table scan or materialized subquery/CTE column), while a bare value reports
+// its storage class (the fallback for literals).
+func affinityOfValue(v interface{}) string {
+	if v == nil {
+		return "none"
+	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		switch cv.Affinity {
+		case 'I':
+			return "integer"
+		case 'R':
+			return "real"
+		case 'T':
+			return "text"
+		case 'N':
+			return "numeric"
+		default:
+			return "blob"
+		}
+	}
+	switch v.(type) {
+	case int64:
+		return "integer"
+	case float64:
+		return "real"
+	case string:
+		return "text"
+	case []byte:
+		return "blob"
+	default:
+		return "none"
+	}
+}
+
 func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 	// Engine-specific functions that need engine state
 	upper := strings.ToUpper(f.Name)
@@ -1564,6 +1672,20 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 		return e.lastRowID, nil
 	case "RAISE":
 		return e.evalRaiseFuncCall(f, row)
+	case "AFFINITY":
+		// Test-only affinity(X): reports the affinity of the column X refers
+		// to (SQLite's column-affinity reports). The ColumnValue wrapper
+		// carries the declared column affinity; evaluate WITHOUT unwrapping so
+		// the function can see it. A non-column argument falls back to the
+		// value's storage class.
+		if len(f.Args) == 1 {
+			v, err := e.evalExpr(f.Args[0], row)
+			if err != nil {
+				return nil, err
+			}
+			return affinityOfValue(v), nil
+		}
+		return nil, fmt.Errorf("function affinity expects 1 argument, got %d", len(f.Args))
 	case "COUNTER":
 		// Test-only counter(N) function (SQLite test1.c selectH_counter):
 		// increments the engine counter by N and returns the new value.
@@ -1576,6 +1698,14 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 		}
 		e.counterVal += amt
 		return e.counterVal, nil
+	case "NONDETER":
+		// Test-only nondeter() function (SQLite having.test): a non-
+		// deterministic function that increments a counter per call and
+		// returns counter%2. The counter resets at statement start so each
+		// query begins from 0, matching the TCL harness's
+		// `set ::nondeter_ret 0` before each query.
+		e.nondeterVal++
+		return e.nondeterVal % 2, nil
 	}
 
 	fn, ok := e.funcs.Find(f.Name)
@@ -1603,6 +1733,11 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 		}
 		// Unwrap BlobColumnValue so functions see the raw value.
 		v = util.UnwrapColumnValue(v)
+		// Unwrap collatedValue wrappers (column values with a collation) so
+		// functions receive the raw scalar, not the collation marker.
+		if cv, ok := v.(*collatedValue); ok {
+			v = util.UnwrapColumnValue(cv.value)
+		}
 		// For UTF-16 encoding, truncate odd-length blobs (ignore last byte)
 		// to ensure valid UTF-16 byte sequences. (SQLite ticket 9eda2697f5cc1aba)
 		if b, ok := v.([]byte); ok && len(b)%2 == 1 {
@@ -1823,12 +1958,60 @@ func toBool(v interface{}) bool {
 	case float64:
 		return x != 0
 	case string:
-		return x != ""
+		// SQLite's sqlite3VdbeBooleanValue converts TEXT/BLOB to REAL and
+		// checks != 0.0: 'a' and '0.0' are FALSE, '5' and '5x' are TRUE.
+		return sqliteRealValue(x) != 0.0
 	case []byte:
-		return len(x) > 0
+		return sqliteRealValue(string(x)) != 0.0
 	default:
 		return true
 	}
+}
+
+// sqliteRealValue converts a text value to REAL like SQLite's
+// sqlite3VdbeRealValue: the numeric prefix is parsed (an empty or
+// non-numeric string yields 0.0).
+func sqliteRealValue(s string) float64 {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return 0.0
+	}
+	// Parse the leading numeric prefix; stop at the first non-numeric char.
+	i := 0
+	if i < len(trimmed) && (trimmed[i] == '+' || trimmed[i] == '-') {
+		i++
+	}
+	dot := false
+	exp := false
+	for ; i < len(trimmed); i++ {
+		c := trimmed[i]
+		if c >= '0' && c <= '9' {
+			continue
+		}
+		if c == '.' && !dot && !exp {
+			dot = true
+			continue
+		}
+		if (c == 'e' || c == 'E') && !exp {
+			exp = true
+			dot = true
+			// Optional sign after e/E.
+			if i+1 < len(trimmed) && (trimmed[i+1] == '+' || trimmed[i+1] == '-') {
+				i++
+			}
+			continue
+		}
+		break
+	}
+	prefix := trimmed[:i]
+	if prefix == "" || prefix == "+" || prefix == "-" || prefix == "." || prefix == "+." || prefix == "-." {
+		return 0.0
+	}
+	f, err := strconv.ParseFloat(prefix, 64)
+	if err != nil {
+		return 0.0
+	}
+	return f
 }
 
 func addValues(a, b interface{}) (interface{}, error) {

@@ -993,6 +993,20 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 	row := make(RowMap)
 	for i, v := range values {
 		if i < len(colDefs) {
+			// Wrap the value with its column's affinity so comparisons and
+			// affinity-reporting functions (affinity()) see the declared
+			// affinity, matching how scanned table rows are wrapped. Only wrap
+			// when the column declares an explicit type (an empty type is the
+			// generic no-affinity case, where the raw value is used).
+			if colDefs[i].Type != "" {
+				cv := &util.ColumnValue{Value: v, Affinity: util.Affinity(colDefs[i].Type)}
+				if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+					row[colDefs[i].Name] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+				} else {
+					row[colDefs[i].Name] = cv
+				}
+				continue
+			}
 			// Wrap values whose column declares a collation (e.g. NOCASE) so
 			// comparisons against them use that collation (SQLite column
 			// collation rules). Only non-BINARY collations are wrapped.

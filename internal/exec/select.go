@@ -55,7 +55,7 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 	keyVals := make(map[string][]interface{})
 	var keyOrder []string
 
-	groupBy := resolveGroupByOrdinals(s)
+	groupBy := resolveGroupByOrdinals(s, colDefs)
 	for _, row := range rowMaps {
 		key, vals := e.computeGroupByKeyValues(groupBy, row)
 		if _, exists := groups[key]; !exists {
@@ -69,6 +69,7 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 	var outRows [][]interface{}
 	for _, key := range keyOrder {
 		groupRows := groups[key]
+		groupVals := keyVals[key]
 		// Apply HAVING filter
 		if s.Having != nil {
 			match, err := e.evalHaving(s.Having, groupRows)
@@ -76,9 +77,19 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 				continue
 			}
 		}
-		// Use the first row of the group as the representative for non-aggregated columns
+		// Use the first row of the group as the representative for non-aggregated
+		// columns. Output columns that are themselves GROUP BY expressions use
+		// the group's key value (re-evaluating would break non-deterministic
+		// expressions like random() and float formatting).
 		row := groupRows[0]
 		outRow := e.buildOutputRow(s.Columns, colDefs, row)
+		for ci := range s.Columns {
+			if gi := matchGroupByExpr(groupBy, s.Columns[ci].Expr); gi >= 0 && gi < len(groupVals) {
+				if ci < len(outRow) {
+					outRow[ci] = groupVals[gi]
+				}
+			}
+		}
 		outRows = append(outRows, outRow)
 	}
 
@@ -165,6 +176,16 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
 
+	// Push this statement's output-column aliases (SELECT expr AS x) so the
+	// WHERE/GROUP BY/HAVING clauses can reference them when the name is not a
+	// table column (SQLite resolves such references to the alias expression).
+	// Aliases are pushed before sub-query dispatch so every execution path
+	// (scan, JOIN, materialized, no-FROM) sees them during WHERE evaluation.
+	if aliasMap := selectAliasMap(s); len(aliasMap) > 0 {
+		e.aliasStack = append(e.aliasStack, aliasMap)
+		defer func() { e.aliasStack = e.aliasStack[:len(e.aliasStack)-1] }()
+	}
+
 	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
 	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
 		return e.execSelectNoFrom(s)
@@ -189,6 +210,15 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// Table-valued pragma functions: FROM pragma_table_info('t1')
 	if isPragmaTableFunc(s.From.Name) {
 		return e.execPragmaTableValued(s)
+	}
+
+	// Table-valued virtual-table function: FROM generate_series(1,256)
+	if len(s.From.Args) > 0 {
+		if colDefs, rows, err := e.materializeVtabTableFunc(s.From); err == nil {
+			return e.execSelectOverMaterialized(s, colDefs, rows)
+		} else if !isNoSuchVtabErr(err) {
+			return &Result{Error: err}
+		}
 	}
 
 	tableEntry, dbCtx, err := e.findTable(s.From.Name)
@@ -405,6 +435,14 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return result
 	}
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	// Preserve the joined row maps (with qualified keys like t4.a) for
+	// derived-table materialization when the query joins tables. Only do this
+	// when the SELECT projects plain columns (the join maps align with the
+	// output); computed expressions (coalesce(b,3) AS b2) are NOT in the join
+	// maps, so reusing them would lose the projected column.
+	if len(s.Joins) > 0 && selectProjectsPlainColumns(s.Columns) {
+		result.rowMaps = allRowMaps
+	}
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
@@ -414,7 +452,7 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 	// leftmost SELECT member (SQLite's compound column collation rule).
 	colls := e.selectOutputCollations(s)
 	if s.Distinct {
-		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps, colls)
+		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps, colls, s)
 	}
 	// Handle UNION before ORDER BY (ORDER BY on compound SELECT applies to the merged result).
 	// The parser attaches a trailing ORDER BY / LIMIT / OFFSET to the LAST member
@@ -500,8 +538,29 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 		}
 		e.sortRowsWithMaps(result, orderBy, rowMaps)
 	}
-	result.Rows = applyLimitOffset(result.Rows, limit, offset)
+	result.Rows = applyLimitOffset(result.Rows, e.evalLimitExpr(limit), e.evalLimitExpr(offset))
 	return result
+}
+
+// evalLimitExpr evaluates a LIMIT/OFFSET expression (which may be a scalar
+// subquery) to a numeric literal so applyLimitOffset can consume it. When
+// evaluation fails or the value is not numeric (e.g. a correlated expression),
+// the raw expression is returned unchanged.
+func (e *Engine) evalLimitExpr(expr sql.Expr) sql.Expr {
+	if expr == nil {
+		return nil
+	}
+	v, err := e.evalExpr(expr, nil)
+	if err != nil {
+		return expr
+	}
+	switch n := v.(type) {
+	case int64:
+		return &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
+	case float64:
+		return &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}
+	}
+	return expr
 }
 
 func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op sql.SetOp, unionAll bool) [][]interface{} {
@@ -523,17 +582,49 @@ func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool, co
 			// UNION ALL: concatenate without dedup
 			return append(rows, rightRows...)
 		}
-		// UNION: deduplicate combined rows
-		return dedupeRows(append(rows, rightRows...), colls)
+		// UNION: deduplicate combined rows; SQLite's temp b-tree emits
+		// the unique rows in sorted key order.
+		return sortSetOpRows(dedupeRows(append(rows, rightRows...), colls), colls)
 	case sql.SetIntersect:
 		// INTERSECT: rows that appear in both sets
-		return intersectRows(rows, rightRows, colls)
+		return sortSetOpRows(intersectRows(rows, rightRows, colls), colls)
 	case sql.SetExcept:
 		// EXCEPT: rows in left but not in right
-		return exceptRows(rows, rightRows, colls)
+		return sortSetOpRows(exceptRows(rows, rightRows, colls), colls)
 	default:
 		return append(rows, rightRows...)
 	}
+}
+
+// sortSetOpRows sorts compound SELECT (UNION/INTERSECT/EXCEPT) output rows
+// by their result values, matching SQLite's ephemeral b-tree ordering
+// (NULL first, then INTEGER/REAL, then TEXT, then BLOB, with the leftmost
+// result column's collation applied to text comparisons).
+func sortSetOpRows(rows [][]interface{}, colls []string) [][]interface{} {
+	if len(rows) < 2 {
+		return rows
+	}
+	out := make([][]interface{}, len(rows))
+	copy(out, rows)
+	sort.SliceStable(out, func(i, j int) bool {
+		a, b := out[i], out[j]
+		n := len(a)
+		if len(b) < n {
+			n = len(b)
+		}
+		for k := 0; k < n; k++ {
+			coll := ""
+			if colls != nil && k < len(colls) {
+				coll = colls[k]
+			}
+			cmp := util.CompareValuesCollate(util.UnwrapColumnValue(a[k]), util.UnwrapColumnValue(b[k]), coll)
+			if cmp != 0 {
+				return cmp < 0
+			}
+		}
+		return false
+	})
+	return out
 }
 
 // compoundSelectColCount returns the declared output column count of a
@@ -547,7 +638,10 @@ func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 		ref, ok := col.Expr.(*sql.ColumnRef)
 		if ok && ref.Name == "*" {
 			// Star expansion: count the columns of the referenced table or
-			// subquery.
+			// subquery. When the FROM clause joins multiple tables, count
+			// every joined table's columns (SQLite expands * across all
+			// tables; USING/NATURAL merges happen at execution time, and the
+			// merged column still appears once from the left table).
 			var n int
 			if ref.Table != "" {
 				cols, err := e.tableColumnNames(ref.Table)
@@ -567,6 +661,67 @@ func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 					return 0, err
 				}
 				n = len(cols)
+				leftColNames := cols
+				for _, j := range s.Joins {
+					var jcols []string
+					if j.Table.Subquery != nil {
+						// Derive the subquery's real column names when possible
+						// (so USING/NATURAL merge detection works); fall back to
+						// generic names for the count.
+						subCols, err := e.compoundSelectColCount(j.Table.Subquery)
+						if err != nil {
+							return 0, err
+						}
+						for _, col := range j.Table.Subquery.Columns {
+							if col.As != "" {
+								jcols = append(jcols, col.As)
+							} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+								jcols = append(jcols, ref.Name)
+							} else {
+								jcols = append(jcols, "")
+							}
+						}
+						// If the subquery is a bare * (e.g. SELECT * FROM t13),
+						// expand its FROM table's columns.
+						var expanded []string
+						for _, n := range jcols {
+							if n == "*" {
+								if names, err := e.tableColumnNames(j.Table.Subquery.From.Name); err == nil {
+									expanded = append(expanded, names...)
+								}
+							} else {
+								expanded = append(expanded, n)
+							}
+						}
+						if len(expanded) > 0 {
+							jcols = expanded
+						} else {
+							for i := 0; i < subCols; i++ {
+								jcols = append(jcols, fmt.Sprintf("_c%d", i))
+							}
+						}
+					} else {
+						jcols, err = e.tableColumnNames(j.Table.Name)
+						if err != nil {
+							return 0, err
+						}
+					}
+					n += len(jcols)
+					// USING/NATURAL joins merge their columns: the output
+					// excludes the merged column from the right side.
+					if len(j.Using) > 0 || isNaturalJoinType(j.JoinType) {
+						leftNames := map[string]bool{}
+						for _, c := range leftColNames {
+							leftNames[c] = true
+						}
+						for _, c := range jcols {
+							if leftNames[c] {
+								n--
+							}
+						}
+					}
+					leftColNames = append(leftColNames, jcols...)
+				}
 			} else {
 				return 0, fmt.Errorf("no tables specified")
 			}
@@ -620,6 +775,11 @@ func (e *Engine) tableColumnNames(tableName string) ([]string, error) {
 	if err != nil {
 		// Views are resolved through a different path; try the main schema.
 		if v, verr := e.mainDB.Schema.FindView(tableName); verr == nil && v != nil {
+			// Prefer the view's declared column list (CREATE VIEW v(c0) AS ...);
+			// otherwise derive names from the SELECT body.
+			if declared := viewDeclaredColumns(v.SQL); len(declared) > 0 {
+				return declared, nil
+			}
 			return e.viewSelectColumnNames(v)
 		}
 		return nil, fmt.Errorf("no such table: %s", tableName)
@@ -650,6 +810,18 @@ func (e *Engine) viewSelectColumnNames(entry *schema.Entry) ([]string, error) {
 		return nil, fmt.Errorf("exec: view parse error: %v", err)
 	}
 	if sel, ok := stmts[0].(*sql.SelectStmt); ok {
+		// Prefer the declared column list, then typed defs (which expand
+		// stars); fall back to derived names.
+		if declared := viewDeclaredColumns(entry.SQL); len(declared) > 0 {
+			return declared, nil
+		}
+		if defs := e.viewColumnDefsFromSelect(sel); len(defs) > 0 {
+			names := make([]string, len(defs))
+			for i, cd := range defs {
+				names[i] = cd.Name
+			}
+			return names, nil
+		}
 		return e.viewColumnNames(sel), nil
 	}
 	return nil, fmt.Errorf("exec: view does not contain SELECT")
@@ -707,9 +879,41 @@ func (e *Engine) selectOutputCollations(s *sql.SelectStmt) []string {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "*" {
 			coll = colByName[strings.ToLower(ref.Name)]
 		}
+		// An explicit COLLATE in the select expression takes precedence over
+		// the column's declared collation (e.g. "SELECT DISTINCT b COLLATE
+		// nocase FROM t1"). COLLATE is a BinaryOp{Operator:"COLLATE"}.
+		if exprColl := exprCollation(col.Expr); exprColl != "" {
+			coll = exprColl
+		}
 		colls = append(colls, coll)
 	}
 	return colls
+}
+
+// exprCollation returns the collation named by an explicit COLLATE operator
+// at the top of an expression, or "" when the expression is not a COLLATE.
+func exprCollation(e sql.Expr) string {
+	if b, ok := e.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
+		if lit, ok := b.Right.(*sql.StringLit); ok {
+			return strings.ToUpper(lit.Value)
+		}
+	}
+	return ""
+}
+
+// orderByTermCollation returns the COLLATE name applied to an ORDER BY term
+// expression (e.g. "ORDER BY x COLLATE nocase"), or "" for BINARY.
+func orderByTermCollation(e sql.Expr) string {
+	return exprCollation(e)
+}
+
+// stripCollate removes a top-level COLLATE operator from an expression,
+// returning the underlying operand (the value to evaluate).
+func stripCollate(e sql.Expr) sql.Expr {
+	if b, ok := e.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
+		return b.Left
+	}
+	return e
 }
 
 // setOpName returns the SQL keyword for a compound set operator, used in
@@ -942,10 +1146,30 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 	if viewResult.Error != nil {
 		return viewResult
 	}
+	// The view body is fully materialized now; clear its circular-reference
+	// guard so a JOIN referencing the same view through ANOTHER view (e.g.
+	// FROM v1 JOIN (v2 ...) where v2 = SELECT ... FROM v1) does not report
+	// v1 as circular. Only a view referencing ITSELF while being expanded is
+	// truly circular.
+	delete(e.resolvingViews, viewEntry.Name)
 	// Build colDefs from view result's column names, preferring the view's
-	// declared column list (CREATE VIEW v(c0, c1) AS ...) when present.
+	// declared column list (CREATE VIEW v(c0, c1) AS ...) when present. Use
+	// typed defs (viewColumnDefs) so row values carry their affinity for
+	// WHERE/ON comparisons.
 	var viewColDefs []sql.ColumnDef
-	if declared := viewDeclaredColumns(viewEntry.SQL); len(declared) > 0 {
+	if typed, terr := e.viewColumnDefs(viewEntry); terr == nil && len(typed) > 0 {
+		viewColDefs = typed
+		if declared := viewDeclaredColumns(viewEntry.SQL); len(declared) > 0 {
+			// Override names with the declared column list, keeping types.
+			for i, colName := range declared {
+				if i < len(viewColDefs) {
+					viewColDefs[i].Name = colName
+				} else {
+					viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
+				}
+			}
+		}
+	} else if declared := viewDeclaredColumns(viewEntry.SQL); len(declared) > 0 {
 		for _, colName := range declared {
 			viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
 		}
@@ -954,13 +1178,28 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 			viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
 		}
 	}
-	// Build rowMaps from view result rows for expression evaluation
+	// Build rowMaps from view result rows for expression evaluation, wrapping
+	// each value with its column affinity (matching buildRowMap). Also add
+	// table-qualified keys (view.c0) so qualified references resolve, matching
+	// the derived-table alias handling in the subquery path.
+	viewQual := s.From.Name
+	if s.From.As != "" {
+		viewQual = s.From.As
+	}
 	var rowMaps []RowMap
 	for _, row := range viewResult.Rows {
 		rowMap := make(RowMap)
 		for i, val := range row {
 			if i < len(viewColDefs) {
-				rowMap[viewColDefs[i].Name] = val
+				cd := viewColDefs[i]
+				aff := util.Affinity(cd.Type)
+				cv := &util.ColumnValue{Value: val, Affinity: aff}
+				var mapped interface{} = cv
+				if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+					mapped = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+				}
+				rowMap[cd.Name] = mapped
+				rowMap[viewQual+"."+cd.Name] = mapped
 			}
 		}
 		rowMaps = append(rowMaps, rowMap)
@@ -974,19 +1213,21 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 		if err != nil {
 			return &Result{Error: err}
 		}
-		if s.Where != nil {
-			filtered := rowMaps[:0]
-			for _, rowMap := range rowMaps {
-				pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
-				if err != nil {
-					return &Result{Error: err}
-				}
-				if pass {
-					filtered = append(filtered, rowMap)
-				}
+	}
+	// Apply the outer WHERE to the view's rows. This must happen for the
+	// no-join case too (FROM view WHERE ...), not just joined views.
+	if s.Where != nil {
+		filtered := rowMaps[:0]
+		for _, rowMap := range rowMaps {
+			pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+			if err != nil {
+				return &Result{Error: err}
 			}
-			rowMaps = filtered
+			if pass {
+				filtered = append(filtered, rowMap)
+			}
 		}
+		rowMaps = filtered
 	}
 	// Handle aggregates in outer SELECT
 	if aggResult := e.handleSelectAggregates(s, rowMaps, viewColDefs); aggResult != nil {
@@ -1000,6 +1241,10 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 	result := &Result{
 		Columns: e.buildColumnNames(s.Columns, viewColDefs),
 		Rows:    allRows,
+	}
+	// Preserve joined row maps (qualified keys) for derived-table reuse.
+	if len(s.Joins) > 0 && selectProjectsPlainColumns(s.Columns) {
+		result.rowMaps = rowMaps
 	}
 	return e.finalizeSelectResult(result, s, rowMaps)
 }
@@ -1155,6 +1400,21 @@ func (e *Engine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) {
 		}
 	}
 	if len(orderBy) > 0 {
+		// Compound queries restrict ORDER BY terms to result column names or
+		// ordinals (SQLite: "Nth ORDER BY term does not match any column in
+		// the result set"). The no-FROM path merges compounds too (e.g.
+		// VALUES(2) EXCEPT SELECT '' ORDER BY abc), so validate the same way
+		// finalizeSelectResult does.
+		if err := validateOrderBy(orderBy, len(result.Columns)); err != nil {
+			result.Error = err
+			return
+		}
+		if s.Union != nil {
+			if err := e.validateCompoundOrderBy(s, orderBy); err != nil {
+				result.Error = err
+				return
+			}
+		}
 		rowMaps := e.buildNoFromRowMaps(result.Rows, result.Columns)
 		e.sortRowsWithMaps(result, orderBy, rowMaps)
 	}
@@ -1208,13 +1468,36 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 		return subqResult
 	}
 
-	// Build colDefs from subquery column names
+	// Build colDefs from subquery column names, carrying the subquery's
+	// expression affinities so row-map values wrap correctly (e.g. CAST(...
+	// AS REAL) produces a REAL-affinity column).
+	subqAff := subqueryColumnAffinities(s.From.Subquery)
 	colDefs := make([]sql.ColumnDef, len(subqResult.Columns))
 	for i, col := range subqResult.Columns {
 		colDefs[i] = sql.ColumnDef{Name: col}
+		if i < len(subqAff) && subqAff[i] != 0 {
+			colDefs[i].Type = affinityTypeName(subqAff[i])
+		}
 	}
 
 	return e.execSelectOverMaterialized(s, colDefs, subqResult.Rows)
+}
+
+// affinityTypeName returns a type name whose util.Affinity equals aff, used to
+// carry a computed expression affinity through column definitions.
+func affinityTypeName(aff rune) string {
+	switch aff {
+	case 'T':
+		return "TEXT"
+	case 'I':
+		return "INTEGER"
+	case 'R':
+		return "REAL"
+	case 'N':
+		return "NUMERIC"
+	default:
+		return "BLOB"
+	}
 }
 
 // execSelectOverMaterialized runs the outer SELECT pipeline (WHERE, JOINs,
@@ -1225,19 +1508,45 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 	// Build rowMaps from result rows
 	allRows := rows
 	if len(allRows) == 0 {
-		return &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: [][]interface{}{}}
+		// An aggregate query over an empty input still yields one row (e.g.
+		// SELECT avg(b) FROM (empty) → NULL). Let the aggregate handler
+		// produce that row; only short-circuit when there are no aggregates.
+		if !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 {
+			return &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: [][]interface{}{}}
+		}
 	}
 	allRowMaps := make([]RowMap, len(allRows))
+	subqAff := subqueryColumnAffinities(s)
+	// A derived-table alias (FROM (SELECT ...) AS d) makes qualified
+	// references like d.a resolvable; add the qualified keys alongside the
+	// unqualified ones.
+	alias := ""
+	if s.From.Subquery != nil && s.From.As != "" {
+		alias = s.From.As
+	}
 	for i, row := range allRows {
 		rowMap := make(RowMap)
 		for j, val := range row {
 			if j < len(colDefs) {
-				rowMap[colDefs[j].Name] = val
+				aff := 'B'
+				if j < len(subqAff) && subqAff[j] != 0 {
+					aff = subqAff[j]
+				} else {
+					aff = util.Affinity(colDefs[j].Type)
+				}
+				cv := &util.ColumnValue{Value: val, Affinity: aff}
+				rowMap[colDefs[j].Name] = cv
+				if alias != "" {
+					rowMap[alias+"."+colDefs[j].Name] = cv
+				}
 			}
 		}
 		// Materialized tables (subquery-in-FROM, pragma table-valued
 		// functions) have implicit rowids 1..N, like SQLite.
 		rowMap["rowid"] = int64(i + 1)
+		if alias != "" {
+			rowMap[alias+".rowid"] = int64(i + 1)
+		}
 		allRowMaps[i] = rowMap
 	}
 
@@ -1290,7 +1599,7 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 
 	// Apply DISTINCT
 	if s.Distinct {
-		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s))
+		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s), s)
 	}
 
 	// Apply ORDER BY
@@ -1302,7 +1611,7 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 	}
 
 	// Apply LIMIT / OFFSET
-	result.Rows = applyLimitOffset(result.Rows, s.Limit, s.Offset)
+	result.Rows = applyLimitOffset(result.Rows, e.evalLimitExpr(s.Limit), e.evalLimitExpr(s.Offset))
 
 	// Handle UNION / INTERSECT / EXCEPT
 	if s.Union != nil {
@@ -1340,6 +1649,13 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	colDefs := make([]sql.ColumnDef, len(cteResult.Columns))
 	for i, colName := range cteResult.Columns {
 		colDefs[i] = sql.ColumnDef{Name: colName}
+		// Carry the CTE body's output column affinity so values read through
+		// the CTE keep the compound column's affinity (SQLite's
+		// selectAddColumnTypeAndCollation: the CTE column's type comes from
+		// its SELECT body, which for a compound is the merged member type).
+		if aff := e.compoundColumnAffinity(cte.Select, i); aff != 0 {
+			colDefs[i].Type = affinityTypeName(aff)
+		}
 	}
 	if len(cte.Columns) > 0 {
 		for i := 0; i < len(colDefs) && i < len(cte.Columns); i++ {
@@ -1573,8 +1889,20 @@ func (e *Engine) filterSubqueryRows(allRows [][]interface{}, allRowMaps []RowMap
 	return filteredRows, filteredMaps, nil
 }
 
+// isNaturalJoinType reports whether a join type string includes NATURAL
+// (e.g. "NATURAL", "NATURAL LEFT", "NATURAL RIGHT").
+func isNaturalJoinType(joinType string) bool {
+	return strings.Contains(joinType, "NATURAL")
+}
+
+// joinTypeHas reports whether a join type string includes the given type
+// keyword (e.g. "NATURAL LEFT" has LEFT).
+func joinTypeHas(joinType, typ string) bool {
+	return strings.Contains(joinType, typ)
+}
+
 func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.ColumnDef) ([]RowMap, []sql.ColumnDef, error) {
-	if err := validateJoinOnClauses(s); err != nil {
+	if err := e.validateJoinOnClauses(s); err != nil {
 		return nil, nil, err
 	}
 	plainNames := map[string]bool{}
@@ -1606,6 +1934,11 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 
 		// Handle derived table (subquery) in JOIN: JOIN (SELECT ...) AS t
 		if join.Table.Subquery != nil {
+			// A derived table cannot reference tables outside its own FROM
+			// (no correlation). Validate its refs resolve within its scope.
+			if bad := derivedTableBadColumnRef(join.Table.Subquery); bad != "" {
+				return nil, nil, fmt.Errorf("no such column: %s", bad)
+			}
 			subqResult := e.execSelect(join.Table.Subquery)
 			if subqResult.Error != nil {
 				return nil, nil, subqResult.Error
@@ -1618,15 +1951,47 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			if join.Table.As != "" {
 				tableName = join.Table.As
 			}
-			// Build row maps from subquery result rows
-			for _, row := range subqResult.Rows {
-				rightRowMap := make(RowMap)
-				for i, val := range row {
-					if i < len(rightDefs) {
-						rightRowMap[rightDefs[i].Name] = val
+			// An unaliased derived table (JOIN (SELECT ...) USING(id)) has no
+			// name for qualified column keys. Give it a synthetic name so its
+			// columns are stored under distinct keys and the USING ON clause
+			// (id = synth.id) can match the two sides.
+			synthetic := tableName == ""
+			if synthetic {
+				tableName = fmt.Sprintf("_subq%d", len(currentDefs)+1)
+			}
+			// Build row maps from subquery result rows. When the subquery itself
+			// joined tables (a parenthesized group), reuse its qualified row
+			// maps so outer references like t4.a resolve; otherwise build
+			// plain maps from the projected rows, wrapping each value with the
+			// column affinity (matching buildRowMap) so ON/WHERE comparisons
+			// apply SQLite affinity rules.
+			if len(subqResult.rowMaps) > 0 && len(subqResult.rowMaps) == len(subqResult.Rows) {
+				rightMaps = subqResult.rowMaps
+			} else {
+				subqAff := subqueryColumnAffinities(join.Table.Subquery)
+				for _, row := range subqResult.Rows {
+					rightRowMap := make(RowMap)
+					for i, val := range row {
+						if i < len(rightDefs) {
+							cd := rightDefs[i]
+							aff := 'B'
+							if i < len(subqAff) && subqAff[i] != 0 {
+								aff = subqAff[i]
+							} else {
+								aff = util.Affinity(cd.Type)
+							}
+							cv := &util.ColumnValue{Value: val, Affinity: aff}
+							rightRowMap[rightDefs[i].Name] = cv
+							if synthetic {
+								// Also store under the synthetic qualified key so the
+								// USING ON clause (id = _subq.id) can match the right
+								// side independently of the merged plain column.
+								rightRowMap[tableName+"."+rightDefs[i].Name] = val
+							}
+						}
 					}
+					rightMaps = append(rightMaps, rightRowMap)
 				}
-				rightMaps = append(rightMaps, rightRowMap)
 			}
 		} else if isPragmaTableFunc(join.Table.Name) {
 			// Table-valued pragma function in a JOIN: pragma_table_info('t1') AS t
@@ -1671,12 +2036,29 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				return nil, nil, viewResult.Error
 			}
 			// Build column defs from the view's declared column list when
-			// present, otherwise from the view result column names.
+			// present, otherwise from the view result column names. Use typed
+			// defs (viewColumnDefs) so row values carry their affinity; when the
+			// view declares explicit column names (CREATE VIEW v(c0) AS ...)
+			// those names override the expression-derived names.
+			viewDefs, vdErr := e.viewColumnDefs(viewEntry)
+			if vdErr != nil {
+				return nil, nil, vdErr
+			}
 			declared := viewDeclaredColumns(viewEntry.SQL)
 			if len(declared) > 0 {
-				for _, colName := range declared {
-					rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
+				// Rebuild with declared names, keeping the computed types.
+				named := make([]sql.ColumnDef, 0, len(declared))
+				for i, colName := range declared {
+					cd := sql.ColumnDef{Name: colName}
+					if i < len(viewDefs) {
+						cd.Type = viewDefs[i].Type
+						cd.Collate = viewDefs[i].Collate
+					}
+					named = append(named, cd)
 				}
+				rightDefs = named
+			} else if len(viewDefs) > 0 {
+				rightDefs = viewDefs
 			} else {
 				for _, colName := range viewResult.Columns {
 					rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
@@ -1686,12 +2068,23 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			if join.Table.As != "" {
 				tableName = join.Table.As
 			}
-			// Build row maps from view result rows
+			// Build row maps from view result rows, wrapping each value with
+			// its column affinity (matching buildRowMap for real tables) so
+			// ON/WHERE comparisons apply SQLite affinity rules. Also add
+			// table-qualified keys (view.c0) so qualified references resolve.
 			for _, row := range viewResult.Rows {
 				rightRowMap := make(RowMap)
 				for i, val := range row {
 					if i < len(rightDefs) {
-						rightRowMap[rightDefs[i].Name] = val
+						cd := rightDefs[i]
+						aff := util.Affinity(cd.Type)
+						cv := &util.ColumnValue{Value: val, Affinity: aff}
+						var mapped interface{} = cv
+						if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+							mapped = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+						}
+						rightRowMap[cd.Name] = mapped
+						rightRowMap[tableName+"."+cd.Name] = mapped
 					}
 				}
 				rightMaps = append(rightMaps, rightRowMap)
@@ -1732,7 +2125,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		// NATURAL JOIN: auto-generate USING conditions for all common columns.
 		effectiveOn := join.On
 		var naturalCols map[string]bool
-		if join.JoinType == "NATURAL" {
+		if isNaturalJoinType(join.JoinType) {
 			naturalCols = naturalJoinCommonCols(currentDefs, rightDefs)
 			effectiveOn = e.generateNaturalJoinOn(currentDefs, rightDefs, leftName, tableName)
 		}
@@ -1749,7 +2142,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		for _, d := range rightDefs {
 			plainNames[d.Name] = true
 		}
-		if join.JoinType == "LEFT" || join.JoinType == "RIGHT" {
+		if joinTypeHas(join.JoinType, "LEFT") || joinTypeHas(join.JoinType, "RIGHT") {
 			if err := validateOnColumnRefs(effectiveOn, plainNames); err != nil {
 				return nil, nil, err
 			}
@@ -1758,22 +2151,49 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		// Build ephemeral hash index for equi-join optimization.
 		// Detect simple "left.col = right.col" patterns in the ON clause
 		// and create a temporary index on the right table's column.
-		var autoIndex map[interface{}][]RowMap
+		var autoIndex map[interface{}][]joinIndexEntry
 		_, rightColName := extractEquiJoinCols(effectiveOn, leftName, tableName)
 		if rightColName != "" && len(rightMaps) > 0 {
-			autoIndex = make(map[interface{}][]RowMap)
-			for _, rm := range rightMaps {
+			autoIndex = make(map[interface{}][]joinIndexEntry)
+			for ri, rm := range rightMaps {
 				if val, ok := rm[rightColName]; ok {
-					// Unwrap *ColumnValue so the map key compares by value,
-					// not by pointer identity. Without this, two rows with
-					// equal column values but different *ColumnValue pointers
-					// never match in the hash lookup.
-					autoIndex[util.UnwrapColumnValue(val)] = append(autoIndex[util.UnwrapColumnValue(val)], rm)
+					// Unwrap ColumnValue (and collatedValue) wrappers so the map
+					// key compares by value, not by pointer identity. Normalize
+					// numeric text (e.g. '0' vs 0) so affinity-aware equality
+					// matches.
+					key := joinIndexKey(val)
+					autoIndex[key] = append(autoIndex[key], joinIndexEntry{row: rm, idx: ri})
 				}
 			}
 		}
 		// Track autoindex usage for EXPLAIN QUERY PLAN output
 		e.usingAutoIndex = autoIndex != nil
+
+		// Pre-filter the right table when the ON references ONLY right-table
+		// columns (e.g. LEFT JOIN t2 ON t2.x>0): the condition is independent
+		// of the left row, so filter rightMaps once instead of per left row.
+		// RIGHT/FULL joins keep the original right rows for unmatched tracking.
+		if effectiveOn != nil && !joinTypeHas(join.JoinType, "RIGHT") && !joinTypeHas(join.JoinType, "FULL") &&
+			joinONReferencesOnlyRight(effectiveOn, tableName) {
+			var filtered []RowMap
+			for _, rm := range rightMaps {
+				// Evaluate against a map that also exposes the right table's
+				// qualified keys (t2.x) for view/subquery operands whose rows
+				// are keyed unqualified.
+				probe := make(RowMap, len(rm)+2)
+				for k, v := range rm {
+					probe[k] = v
+					if tableName != "" && !strings.Contains(k, ".") {
+						probe[tableName+"."+k] = v
+					}
+				}
+				if e.evalOnCondition(effectiveOn, probe) {
+					filtered = append(filtered, rm)
+				}
+			}
+			rightMaps = filtered
+			effectiveOn = nil
+		}
 
 		// Nested-loop join (for both table and view)
 		var combinedMaps []RowMap
@@ -1792,11 +2212,10 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 
 		// Track which right rows were matched — needed for RIGHT/FULL JOIN
 		// to find unmatched right rows that must be included with NULL left side.
-		isRightOrFull := join.JoinType == "RIGHT" || join.JoinType == "FULL"
+		isRightOrFull := joinTypeHas(join.JoinType, "RIGHT") || joinTypeHas(join.JoinType, "FULL")
 		matchedRight := make([]bool, len(rightMaps))
 
 		for leftIdx, leftMap := range currentMaps {
-			// Use the effective ON (NATURAL JOIN may have generated conditions)
 			effectiveJoin := join
 			if effectiveOn != join.On {
 				effectiveJoin.On = effectiveOn
@@ -1804,7 +2223,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			matched := e.processJoinRowTrackingRight(
 				leftMap, rightMaps, &combinedMaps, tableName, effectiveJoin, s, rightDefs, autoIndex,
 				isRightOrFull, matchedRight, leftIdx)
-			if !matched && (join.JoinType == "LEFT" || join.JoinType == "FULL") {
+			if !matched && (joinTypeHas(join.JoinType, "LEFT") || joinTypeHas(join.JoinType, "FULL")) {
 				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName, leftName))
 			}
 		}
@@ -1826,6 +2245,14 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 	return currentMaps, currentDefs, nil
 }
 
+// joinIndexEntry pairs a right row with its index in rightMaps, used by the
+// ephemeral equi-join hash index so RIGHT/FULL joins can track which right
+// rows matched.
+type joinIndexEntry struct {
+	row RowMap
+	idx int
+}
+
 // processJoinRowTrackingRight processes a single left row against all right rows
 // for a JOIN, optionally tracking which right rows were matched (for RIGHT/FULL JOIN).
 // When trackMatchedRight is true, disables the autoIndex hash optimization so that
@@ -1835,7 +2262,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 func (e *Engine) processJoinRowTrackingRight(
 	leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap,
 	tableName string, join sql.JoinClause, s *sql.SelectStmt,
-	rightDefs []sql.ColumnDef, autoIndex map[interface{}][]RowMap,
+	rightDefs []sql.ColumnDef, autoIndex map[interface{}][]joinIndexEntry,
 	trackMatchedRight bool, matchedRight []bool, leftIdx int,
 ) bool {
 	// The left table's qualified-name prefix uses its alias when present.
@@ -1844,23 +2271,37 @@ func (e *Engine) processJoinRowTrackingRight(
 		leftName = s.From.As
 	}
 	matched := false
-	// For RIGHT/FULL JOIN tracking, we must iterate right rows by index.
-	// Skip autoIndex optimization when tracking.
-	if autoIndex != nil && !trackMatchedRight {
+	if autoIndex != nil {
 		leftColName, _ := extractEquiJoinCols(join.On, leftName, tableName)
 		leftColVal, leftOK := leftMap[leftColName]
+		// The unqualified key may be absent in a chained join (the left
+		// result stores the column under qualified keys like t1.d); try the
+		// qualified key as a fallback.
+		if !leftOK && leftColName != "" && leftName != "" {
+			leftColVal, leftOK = leftMap[leftName+"."+leftColName]
+		}
 		// If the extracted left column isn't present (e.g., unqualified
 		// columns guessed the wrong side), fall back to the nested-loop.
 		if leftOK {
-			if rightRows, ok := autoIndex[util.UnwrapColumnValue(leftColVal)]; ok {
-				for _, rightMap := range rightRows {
-					combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
+			uv := joinIndexKey(leftColVal)
+			if rightRows, ok := autoIndex[uv]; ok {
+				for _, entry := range rightRows {
+					combinedMap := e.buildCombinedRowMap(leftMap, entry.row, tableName, leftName)
 					if e.evalOnCondition(join.On, combinedMap) {
 						matched = true
 						*combinedMaps = append(*combinedMaps, combinedMap)
+						if trackMatchedRight {
+							matchedRight[entry.idx] = true
+						}
 					}
 				}
 			}
+			// The hash index is authoritative for the equi-condition (keys are
+			// affinity- and collation-normalized, so a miss means no
+			// equi-match): skip the nested loop that would only re-scan right
+			// rows finding none. Only when the extracted column was absent
+			// (leftOK false) do we fall back to the nested loop.
+			return matched
 		}
 		if !matched {
 			// Fall through to the nested-loop when the hash lookup produced no
@@ -1890,7 +2331,8 @@ func (e *Engine) processJoinRowTrackingRight(
 			}
 		}
 	}
-	// CROSS JOIN: always produces a match
+	// CROSS JOIN: always produces a match. A NATURAL CROSS JOIN still applies
+	// its generated equality condition, so it must not take this fallback.
 	if !matched && join.JoinType == "CROSS" {
 		for ri, rightMap := range rightMaps {
 			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName))
@@ -1901,13 +2343,6 @@ func (e *Engine) processJoinRowTrackingRight(
 		matched = true
 	}
 	return matched
-}
-
-// processJoinRow processes a single left row against all right rows for a JOIN.
-// Returns true if at least one match was found (for the ON condition).
-// When autoIndex is non-nil, uses hash-index lookup instead of full scan.
-func (e *Engine) processJoinRow(leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap, tableName string, join sql.JoinClause, s *sql.SelectStmt, rightDefs []sql.ColumnDef, autoIndex map[interface{}][]RowMap) bool {
-	return e.processJoinRowTrackingRight(leftMap, rightMaps, combinedMaps, tableName, join, s, rightDefs, autoIndex, false, nil, 0)
 }
 
 // buildRightJoinUnmatched creates a combined row for an unmatched right row
@@ -1937,11 +2372,104 @@ func (e *Engine) buildRightJoinUnmatched(rightMap RowMap, leftDefs, rightDefs []
 			}
 		}
 	}
-	// Also copy all right map keys with table prefix
+	// Merged USING/NATURAL columns (filtered out of rightDefs) still carry
+	// the right row's value for unmatched right rows: an unmatched right row
+	// of t1 FULL JOIN t2 USING(id) has a real id from t2. Only overwrite
+	// columns that were MERGED (present in the left defs but absent from the
+	// right defs) — same-named columns of a plain ON join (t1.c vs t3.c)
+	// must stay separate.
+	rightDefNames := make(map[string]bool)
+	for _, cd := range rightDefs {
+		base := cd.Name
+		if idx := strings.Index(base, "."); idx >= 0 {
+			base = base[idx+1:]
+		}
+		rightDefNames[base] = true
+	}
 	for k, v := range rightMap {
-		combined[tableName+"."+k] = v
+		if _, isLeft := combined[k]; isLeft && k != "rowid" && !rightDefNames[k] {
+			combined[k] = v
+		}
+	}
+	// Copy the right row's qualified keys as-is (a derived table's row map
+	// carries keys like t3.a and t4.a that must survive re-materialization),
+	// and add the table-name prefix for unqualified keys.
+	for k, v := range rightMap {
+		if k == "rowid" {
+			continue
+		}
+		if strings.Contains(k, ".") {
+			if _, exists := combined[k]; !exists {
+				combined[k] = v
+			}
+		} else if tableName != "" {
+			combined[tableName+"."+k] = v
+		}
 	}
 	return combined
+}
+
+// joinIndexKey unwraps a row value's ColumnValue and collatedValue wrappers
+// and normalizes it for use as an ephemeral equi-join hash key. A NOCASE
+// collation lowercases the key so 'ABC' and 'abc' match.
+func joinIndexKey(v interface{}) interface{} {
+	coll := ""
+	if cv, ok := v.(*collatedValue); ok {
+		coll = cv.collation
+		v = cv.value
+	}
+	key := normalizeJoinKey(util.UnwrapColumnValue(v))
+	if coll == "NOCASE" {
+		if s, ok := key.(string); ok {
+			return strings.ToLower(s)
+		}
+		if b, ok := key.([]byte); ok {
+			return strings.ToLower(string(b))
+		}
+	}
+	return key
+}
+
+// normalizeJoinKey converts a value to a canonical key for the ephemeral
+// equi-join hash index: numeric text (e.g. "0", "1.5") becomes its numeric
+// value so a text '0' right key matches an integer 0 left key (SQLite's
+// affinity-aware equality). Non-numeric values are returned unchanged.
+func normalizeJoinKey(v interface{}) interface{} {
+	switch t := v.(type) {
+	case string:
+		if n, err := strconv.ParseInt(strings.TrimSpace(t), 10, 64); err == nil {
+			return n
+		}
+		if f, err := strconv.ParseFloat(strings.TrimSpace(t), 64); err == nil {
+			return f
+		}
+		return t
+	case []byte:
+		return normalizeJoinKey(string(t))
+	default:
+		return v
+	}
+}
+
+// joinONReferencesOnlyRight reports whether every column reference in a join
+// ON expression is qualified to the RIGHT table (none unqualified, none to
+// the left or other tables). Such a condition is independent of the left row
+// and can be pre-filtered once on the right rows.
+func joinONReferencesOnlyRight(on sql.Expr, rightName string) bool {
+	if on == nil {
+		return false
+	}
+	onlyRight := true
+	walkJoinOnExpr(on, func(e sql.Expr) {
+		cr, ok := e.(*sql.ColumnRef)
+		if !ok {
+			return
+		}
+		if cr.Table == "" || !strings.EqualFold(cr.Table, rightName) {
+			onlyRight = false
+		}
+	})
+	return onlyRight
 }
 
 // naturalJoinCommonCols returns the set of column names common to the left
@@ -1972,10 +2500,14 @@ func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef, left
 	var onExpr sql.Expr
 	for _, cd := range leftDefs {
 		if rightNames[cd.Name] {
-			// Generate qualified "left.col = right.col" so each side resolves
-			// to its own table's column in the combined row map.
+			// Generate an equality whose LEFT side is UNQUALIFIED: in a chained
+			// natural join the merged column (stored unqualified in the combined
+			// row map) is the value from whichever side supplied it, while the
+			// qualified left-table name can be NULL for rows that only matched
+			// on a deeper table (t1 FULL JOIN t2 FULL JOIN t3 must match
+			// t2-only rows of the first join against t3 on the merged id).
 			eq := &sql.BinaryOp{
-				Left:     &sql.ColumnRef{Table: leftName, Name: cd.Name},
+				Left:     &sql.ColumnRef{Name: cd.Name},
 				Right:    &sql.ColumnRef{Table: rightName, Name: cd.Name},
 				Operator: "=",
 			}
@@ -1995,9 +2527,20 @@ func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef, left
 func (e *Engine) generateUsingJoinOn(cols []string, leftName, rightName string) sql.Expr {
 	var onExpr sql.Expr
 	for _, col := range cols {
+		// The LEFT side is UNQUALIFIED: in a chained join the immediate left
+		// "table" may be a JOIN result whose merged column is stored under
+		// the plain name, while the qualified name (e.g. dual.id for
+		// t3 JOIN dual FULL JOIN t4 USING(id)) may not exist. The merged
+		// column always resolves via the unqualified key. When the right side
+		// is a derived table without an alias (rightName == ""), its column
+		// is also unqualified.
+		right := &sql.ColumnRef{Table: rightName, Name: col}
+		if rightName == "" {
+			right = &sql.ColumnRef{Name: col}
+		}
 		eq := &sql.BinaryOp{
-			Left:     &sql.ColumnRef{Table: leftName, Name: col},
-			Right:    &sql.ColumnRef{Table: rightName, Name: col},
+			Left:     &sql.ColumnRef{Name: col},
+			Right:    right,
 			Operator: "=",
 		}
 		if onExpr == nil {
@@ -2018,8 +2561,27 @@ func extractEquiJoinCols(on sql.Expr, leftTableName, rightTableName string) (str
 	if on == nil {
 		return "", ""
 	}
+	// IS NOT DISTINCT FROM is a NULL-safe equality: usable as an equi-join
+	// index key (NULL keys are handled by the index).
+	if ndf, ok := on.(*sql.IsNotDistinctFrom); ok {
+		return extractEquiJoinCols(
+			&sql.BinaryOp{Left: ndf.Left, Right: ndf.Right, Operator: "="},
+			leftTableName, rightTableName)
+	}
 	bop, ok := on.(*sql.BinaryOp)
-	if !ok || bop.Operator != "=" {
+	if !ok {
+		return "", ""
+	}
+	if bop.Operator == "AND" {
+		// Search an AND chain for a usable equality (e.g. ON t1.d=t4.d AND
+		// t4.z>0): the equality drives the hash index, the rest is still
+		// evaluated per row by evalOnCondition.
+		if l, r := extractEquiJoinCols(bop.Left, leftTableName, rightTableName); l != "" {
+			return l, r
+		}
+		return extractEquiJoinCols(bop.Right, leftTableName, rightTableName)
+	}
+	if bop.Operator != "=" && bop.Operator != "IS NOT DISTINCT FROM" && bop.Operator != "IS" {
 		return "", ""
 	}
 	leftCol, leftOK := bop.Left.(*sql.ColumnRef)
@@ -2055,7 +2617,10 @@ func (e *Engine) buildCombinedRowMap(leftMap, rightMap RowMap, tableName, leftTa
 	for k, v := range leftMap {
 		combined[k] = v
 		if !strings.Contains(k, ".") && k != "rowid" {
-			combined[leftTableName+"."+k] = v
+			qk := leftTableName + "." + k
+			if _, exists := combined[qk]; !exists {
+				combined[qk] = v
+			}
 		}
 	}
 	for k, v := range rightMap {
@@ -2169,7 +2734,10 @@ func (e *Engine) buildLeftJoinRow(leftMap RowMap, rightDefs []sql.ColumnDef, tab
 	for k, v := range leftMap {
 		combined[k] = v
 		if leftTableName != "" && !strings.Contains(k, ".") && k != "rowid" {
-			combined[leftTableName+"."+k] = v
+			qk := leftTableName + "." + k
+			if _, exists := combined[qk]; !exists {
+				combined[qk] = v
+			}
 		}
 	}
 	for _, cd := range rightDefs {
@@ -2261,9 +2829,13 @@ func (e *Engine) exprHasAggregate(expr sql.Expr) bool {
 		}
 		return false
 	case *sql.Subquery:
-		return e.selectHasAggregate(v.Select)
+		// Aggregates inside a scalar subquery are scoped to that subquery;
+		// they do not make the OUTER query an aggregate query
+		// (SELECT (SELECT count(*) FROM t) FROM u returns one row per u
+		// row, not a single collapsed row).
+		return false
 	case *sql.ExistsExpr:
-		return e.selectHasAggregate(v.Select)
+		return false
 	case *sql.RowValue:
 		for _, sub := range v.Values {
 			if e.exprHasAggregate(sub) {
@@ -2276,19 +2848,186 @@ func (e *Engine) exprHasAggregate(expr sql.Expr) bool {
 	}
 }
 
-// selectHasAggregate reports whether any SELECT list column of s contains an
-// aggregate function.
-func (e *Engine) selectHasAggregate(s *sql.SelectStmt) bool {
-	if s == nil {
-		return false
+// minMaxAggregate describes a single-argument MIN or MAX aggregate function
+// call. It is used to resolve the source row for bare columns in aggregate
+// queries: SQLite evaluates bare columns against the input row that produced
+// the last min/max aggregate in the result set.
+type minMaxAggregate struct {
+	name string // "MIN" or "MAX" (uppercased)
+	arg  sql.Expr
+}
+
+// lastMinMaxAggregate returns the last (rightmost) single-argument MIN/MAX
+// aggregate function call found in the SELECT columns, scanning left to right
+// and descending into nested expressions. Returns nil when the result set has
+// no min/max aggregate.
+func (e *Engine) lastMinMaxAggregate(columns []sql.SelectColumn) *minMaxAggregate {
+	var last *minMaxAggregate
+	for _, col := range columns {
+		if mm := lastMinMaxInExpr(col.Expr, e.funcs); mm != nil {
+			last = mm
+		}
 	}
-	if e.hasAggregates(s.Columns) {
-		return true
+	return last
+}
+
+// lastMinMaxInExpr walks an expression tree depth-first, left-to-right, and
+// returns the last single-argument MIN/MAX aggregate function call found.
+func lastMinMaxInExpr(expr sql.Expr, funcs *function.Registry) *minMaxAggregate {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		// A single-argument MIN/MAX is an aggregate; with two or more
+		// arguments MIN/MAX is a scalar function (SQLite semantics) and
+		// does not determine bare-column rows.
+		if len(v.Args) == 1 && (strings.EqualFold(v.Name, "MIN") || strings.EqualFold(v.Name, "MAX")) {
+			if fn, ok := funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
+				// Nested occurrences inside the argument (e.g. an aggregate
+				// in an expression argument) come earlier in traversal
+				// order, so check them first.
+				if inner := lastMinMaxInExpr(v.Args[0], funcs); inner != nil {
+					return inner
+				}
+				return &minMaxAggregate{name: strings.ToUpper(v.Name), arg: v.Args[0]}
+			}
+		}
+		// Not a single-arg min/max aggregate: scan the arguments.
+		var last *minMaxAggregate
+		for _, arg := range v.Args {
+			if mm := lastMinMaxInExpr(arg, funcs); mm != nil {
+				last = mm
+			}
+		}
+		return last
+	case *sql.BinaryOp:
+		if mm := lastMinMaxInExpr(v.Left, funcs); mm != nil {
+			return mm
+		}
+		return lastMinMaxInExpr(v.Right, funcs)
+	case *sql.UnaryOp:
+		return lastMinMaxInExpr(v.Operand, funcs)
+	case *sql.ParenExpr:
+		return lastMinMaxInExpr(v.Expr, funcs)
+	case *sql.CastExpr:
+		return lastMinMaxInExpr(v.Operand, funcs)
+	case *sql.IsNull:
+		return lastMinMaxInExpr(v.Operand, funcs)
+	case *sql.IsNotNull:
+		return lastMinMaxInExpr(v.Operand, funcs)
+	case *sql.IsTrue:
+		return lastMinMaxInExpr(v.Operand, funcs)
+	case *sql.IsFalse:
+		return lastMinMaxInExpr(v.Operand, funcs)
+	case *sql.IsDistinctFrom:
+		if mm := lastMinMaxInExpr(v.Left, funcs); mm != nil {
+			return mm
+		}
+		return lastMinMaxInExpr(v.Right, funcs)
+	case *sql.IsNotDistinctFrom:
+		if mm := lastMinMaxInExpr(v.Left, funcs); mm != nil {
+			return mm
+		}
+		return lastMinMaxInExpr(v.Right, funcs)
+	case *sql.Between:
+		if mm := lastMinMaxInExpr(v.Operand, funcs); mm != nil {
+			return mm
+		}
+		if mm := lastMinMaxInExpr(v.Low, funcs); mm != nil {
+			return mm
+		}
+		return lastMinMaxInExpr(v.High, funcs)
+	case *sql.InList:
+		if mm := lastMinMaxInExpr(v.Operand, funcs); mm != nil {
+			return mm
+		}
+		for _, item := range v.List {
+			if mm := lastMinMaxInExpr(item, funcs); mm != nil {
+				return mm
+			}
+		}
+		return nil
+	case *sql.CaseExpr:
+		if v.Operand != nil {
+			if mm := lastMinMaxInExpr(v.Operand, funcs); mm != nil {
+				return mm
+			}
+		}
+		for _, w := range v.Whens {
+			if mm := lastMinMaxInExpr(w.When, funcs); mm != nil {
+				return mm
+			}
+			if mm := lastMinMaxInExpr(w.Then, funcs); mm != nil {
+				return mm
+			}
+		}
+		if v.Else != nil {
+			return lastMinMaxInExpr(v.Else, funcs)
+		}
+		return nil
+	case *sql.RowValue:
+		for _, sub := range v.Values {
+			if mm := lastMinMaxInExpr(sub, funcs); mm != nil {
+				return mm
+			}
+		}
+		return nil
+	default:
+		return nil
 	}
-	if s.Union != nil && e.selectHasAggregate(s.Union) {
-		return true
+}
+
+// minMaxSourceRow evaluates a single-argument MIN/MAX aggregate's argument
+// over the given rows and returns the index of the row that produced the
+// extreme value (the first row on ties). When every argument is NULL the
+// aggregate yields NULL and bare columns take the last row, matching SQLite.
+// Returns -1 when rows is empty.
+func (e *Engine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) int {
+	if len(rowMaps) == 0 {
+		return -1
 	}
-	return false
+	bestIdx := -1
+	var bestVal interface{}
+	for i, row := range rowMaps {
+		val, err := e.evalExpr(mm.arg, row)
+		if err != nil || val == nil {
+			continue
+		}
+		val = util.UnwrapColumnValue(val)
+		if bestIdx < 0 {
+			bestIdx = i
+			bestVal = val
+			continue
+		}
+		cmp := util.CompareValues(val, bestVal)
+		if (mm.name == "MIN" && cmp < 0) || (mm.name == "MAX" && cmp > 0) {
+			bestIdx = i
+			bestVal = val
+		}
+	}
+	if bestIdx < 0 {
+		// All arguments NULL (or empty rows): bare columns come from the
+		// last row.
+		return len(rowMaps) - 1
+	}
+	return bestIdx
+}
+
+// reorderRowsForMinMax moves the row that produced the last min/max aggregate
+// to the front of rowMaps so bare columns in an aggregate query evaluate from
+// the correct source row. Returns the reordered slice (a copy is not made
+// unless reordering is needed).
+func (e *Engine) reorderRowsForMinMax(columns []sql.SelectColumn, rowMaps []RowMap) []RowMap {
+	mm := e.lastMinMaxAggregate(columns)
+	if mm == nil || len(rowMaps) <= 1 {
+		return rowMaps
+	}
+	idx := e.minMaxSourceRow(mm, rowMaps)
+	if idx <= 0 {
+		return rowMaps
+	}
+	rows := make([]RowMap, len(rowMaps))
+	copy(rows, rowMaps)
+	rows[0], rows[idx] = rows[idx], rows[0]
+	return rows
 }
 
 // aggregateName returns the name of the first aggregate function found in the
@@ -2445,6 +3184,14 @@ func (e *Engine) selectHasCorrelatedAggSubquery(s *sql.SelectStmt) bool {
 			if e.selectHasCorrelatedAggSubquery(subq.Select) {
 				return true
 			}
+		}
+	}
+	// Check compound (UNION/INTERSECT/EXCEPT) members: an aggregate
+	// referencing outer columns may live in any member (e.g.
+	// (SELECT 'mmm' UNION SELECT max(outer.col) ORDER BY 1)).
+	for m := s.Union; m != nil; m = m.Union {
+		if e.selectHasCorrelatedAggSubquery(m) {
+			return true
 		}
 	}
 	return false
@@ -2734,6 +3481,12 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 		rowMaps = sortedMaps
 	}
 
+	// Bare columns in an aggregate query take their values from the row
+	// that produced the last min/max aggregate (SQLite semantics), not from
+	// an arbitrary first row. Reorder so that row is first; aggregates
+	// still evaluate over all rows.
+	rowMaps = e.reorderRowsForMinMax(s.Columns, rowMaps)
+
 	columns := e.buildColumnNames(s.Columns, nil)
 	var outRow []interface{}
 	for _, col := range s.Columns {
@@ -2785,7 +3538,7 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 	keyVals := make(map[string][]interface{})
 	var keyOrder []string
 
-	groupBy := resolveGroupByOrdinals(s)
+	groupBy := resolveGroupByOrdinals(s, colDefs)
 	for _, row := range rowMaps {
 		key, vals := e.computeGroupByKeyValues(groupBy, row)
 		if _, exists := groups[key]; !exists {
@@ -2801,19 +3554,37 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 
 	columns := e.buildColumnNames(s.Columns, colDefs)
 	var outRows [][]interface{}
+	var outMaps []RowMap
 
 	for _, key := range keyOrder {
 		groupRows := groups[key]
+		groupVals := keyVals[key]
+
+		// Bare columns within each group take their values from the row
+		// that produced the last min/max aggregate of the group (SQLite
+		// semantics). Reorder so that row is first.
+		groupRows = e.reorderRowsForMinMax(s.Columns, groupRows)
 
 		// Evaluate output row for this group
 		e.aggRowMaps = groupRows
 		var outRow []interface{}
-		for _, col := range s.Columns {
+		for ci, col := range s.Columns {
+			// If this output column is structurally the same expression as a
+			// GROUP BY term, emit the group's key value (SQLite reuses the
+			// grouping value; re-evaluating would break non-deterministic
+			// expressions like random() and float formatting).
+			if gi := matchGroupByExpr(groupBy, col.Expr); gi >= 0 {
+				if gi < len(groupVals) {
+					outRow = append(outRow, groupVals[gi])
+					continue
+				}
+			}
 			v, err := e.evalAggregateExpr(col.Expr, groupRows)
 			if err != nil {
 				return &Result{Error: err}
 			}
 			outRow = append(outRow, util.UnwrapColumnValue(v))
+			_ = ci
 		}
 		e.aggRowMaps = nil
 
@@ -2826,17 +3597,23 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 		}
 
 		outRows = append(outRows, outRow)
+		if len(groupRows) > 0 {
+			outMaps = append(outMaps, groupRows[0])
+		}
 	}
 
 	if len(outRows) == 0 {
 		return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{}}, s, nil)
 	}
-	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, nil)
+	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, outMaps)
 }
 
 // resolveGroupByOrdinals maps numeric GROUP BY terms (e.g., GROUP BY 2) to
-// the corresponding SELECT column expression (1-based ordinal).
-func resolveGroupByOrdinals(s *sql.SelectStmt) []sql.Expr {
+// the corresponding SELECT column expression (1-based ordinal). When the
+// ordinal's SELECT column is a bare star (*), the ordinal groups by the first
+// output column of the result (SQLite resolves GROUP BY N against result
+// columns positionally), so it resolves to a reference to that column.
+func resolveGroupByOrdinals(s *sql.SelectStmt, colDefs []sql.ColumnDef) []sql.Expr {
 	if len(s.GroupBy) == 0 {
 		return nil
 	}
@@ -2846,7 +3623,13 @@ func resolveGroupByOrdinals(s *sql.SelectStmt) []sql.Expr {
 			var ord int64
 			fmt.Sscanf(num.Value, "%d", &ord)
 			if ord >= 1 && int(ord) <= len(s.Columns) {
-				resolved[i] = s.Columns[ord-1].Expr
+				col := s.Columns[ord-1]
+				if ref, isStar := col.Expr.(*sql.ColumnRef); isStar && ref.Name == "*" && ref.Table == "" && len(colDefs) > 0 {
+					// GROUP BY 1 on SELECT * groups by the first result column.
+					resolved[i] = &sql.ColumnRef{Name: colDefs[0].Name}
+				} else {
+					resolved[i] = col.Expr
+				}
 				continue
 			}
 		}
@@ -2855,11 +3638,63 @@ func resolveGroupByOrdinals(s *sql.SelectStmt) []sql.Expr {
 	return resolved
 }
 
-// computeGroupByKey serializes the GROUP BY expression values for a row into a
-// string key used to partition rows into groups.
-func (e *Engine) computeGroupByKey(groupBy []sql.Expr, row Row) string {
-	key, _ := e.computeGroupByKeyValues(groupBy, row)
-	return key
+// matchGroupByExpr returns the index of the GROUP BY term that matches the
+// given output-column expression (same AST node or structurally identical),
+// or -1 when no term matches. SQLite reuses the grouping value for output
+// columns that are GROUP BY expressions, so non-deterministic functions
+// (random()) and formatting stay consistent.
+func matchGroupByExpr(groupBy []sql.Expr, col sql.Expr) int {
+	for i, g := range groupBy {
+		if g == col {
+			return i
+		}
+		if exprStructurallyEqual(g, col) {
+			return i
+		}
+	}
+	return -1
+}
+
+// exprStructurallyEqual reports whether two expressions have identical
+// structure (operator, operand kinds, column names, literals). Pointer
+// fields (e.g. subquery ASTs) are compared by structural equality only for
+// the leaf kinds used in GROUP BY columns.
+func exprStructurallyEqual(a, b sql.Expr) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	switch x := a.(type) {
+	case *sql.ColumnRef:
+		y, ok := b.(*sql.ColumnRef)
+		return ok && x.Name == y.Name && x.Table == y.Table
+	case *sql.NumericLit:
+		y, ok := b.(*sql.NumericLit)
+		return ok && x.Value == y.Value
+	case *sql.StringLit:
+		y, ok := b.(*sql.StringLit)
+		return ok && x.Value == y.Value
+	case *sql.BlobLit:
+		y, ok := b.(*sql.BlobLit)
+		return ok && string(x.Value) == string(y.Value)
+	case *sql.BinaryOp:
+		y, ok := b.(*sql.BinaryOp)
+		return ok && x.Operator == y.Operator && exprStructurallyEqual(x.Left, y.Left) && exprStructurallyEqual(x.Right, y.Right)
+	case *sql.UnaryOp:
+		y, ok := b.(*sql.UnaryOp)
+		return ok && x.Operator == y.Operator && exprStructurallyEqual(x.Operand, y.Operand)
+	case *sql.FuncCall:
+		y, ok := b.(*sql.FuncCall)
+		if !ok || !strings.EqualFold(x.Name, y.Name) || len(x.Args) != len(y.Args) {
+			return false
+		}
+		for i := range x.Args {
+			if !exprStructurallyEqual(x.Args[i], y.Args[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // computeGroupByKeyValues evaluates each GROUP BY expression for a row,
@@ -3092,12 +3927,14 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}
 		copy(rows, rowMaps)
 		sort.SliceStable(rows, func(i, j int) bool {
 			for _, ob := range v.OrderBy {
-				vi, errI := e.evalExpr(ob.Expr, rows[i])
-				vj, errJ := e.evalExpr(ob.Expr, rows[j])
+				coll := orderByTermCollation(ob.Expr)
+				obExpr := stripCollate(ob.Expr)
+				vi, errI := e.evalExpr(obExpr, rows[i])
+				vj, errJ := e.evalExpr(obExpr, rows[j])
 				if errI != nil || errJ != nil {
 					continue
 				}
-				cmp := util.CompareValues(vi, vj)
+				cmp := util.CompareValuesCollate(vi, vj, coll)
 				if cmp != 0 {
 					if ob.Desc {
 						return cmp > 0
@@ -3476,6 +4313,40 @@ func (e *Engine) subqueryColumnCount(s *sql.SelectStmt) int {
 // (select list, WHERE, GROUP BY, HAVING, ORDER BY) resolves to a column of
 // the scanned table. SQLite reports unknown columns at prepare time; without
 // this check an unknown column would silently evaluate to NULL.
+//
+// selectAliasMap builds the output-column alias map for a SELECT statement:
+// alias name → select-list expression (e.g. "SELECT a AS x" maps x → a). The
+// map is used at evaluation time so WHERE/GROUP BY/HAVING can reference an
+// alias when the name is not a table column (SQLite resolves the reference to
+// the alias's expression). Returns nil when the SELECT has no aliases.
+func selectAliasMap(s *sql.SelectStmt) map[string]sql.Expr {
+	if s == nil {
+		return nil
+	}
+	var m map[string]sql.Expr
+	for _, col := range s.Columns {
+		if col.As != "" {
+			if m == nil {
+				m = make(map[string]sql.Expr)
+			}
+			m[strings.ToLower(col.As)] = col.Expr
+		}
+	}
+	return m
+}
+
+// resolveAliasRef looks up an unqualified column reference in the enclosing
+// SELECTs' output-column alias maps (innermost first). It returns the alias
+// expression and true when found.
+func (e *Engine) resolveAliasRef(name string) (sql.Expr, bool) {
+	for i := len(e.aliasStack) - 1; i >= 0; i-- {
+		if expr, ok := e.aliasStack[i][strings.ToLower(name)]; ok {
+			return expr, true
+		}
+	}
+	return nil, false
+}
+
 func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef, tableName, fromAlias string) error {
 	colByName := make(map[string]bool, len(colDefs))
 	for _, cd := range colDefs {
@@ -3550,14 +4421,23 @@ func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.Colum
 		if expr == nil || checkErr != nil {
 			return
 		}
-		walkExprFull(expr, func(e sql.Expr) {
+		walkExprFull(expr, func(e2 sql.Expr) {
 			if checkErr != nil {
 				return
 			}
-			if ref, ok := e.(*sql.ColumnRef); ok && aliasNames[strings.ToLower(ref.Name)] {
+			if ref, ok := e2.(*sql.ColumnRef); ok && aliasNames[strings.ToLower(ref.Name)] {
 				return
 			}
-			if ref, ok := e.(*sql.ColumnRef); ok {
+			// An unqualified reference may name an output-column alias of an
+			// ENCLOSING SELECT (e.g. an inner subquery's WHERE referencing the
+			// outer query's "SELECT expr AS aaa"); such references resolve
+			// through the alias stack at evaluation time, so skip them here.
+			if ref, ok := e2.(*sql.ColumnRef); ok && ref.Table == "" {
+				if _, found := e.resolveAliasRef(ref.Name); found {
+					return
+				}
+			}
+			if ref, ok := e2.(*sql.ColumnRef); ok {
 				checkErr = checkRef(ref)
 			}
 		})
@@ -3598,8 +4478,18 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 		if err := e.validateExprOrderBy(col.Expr); err != nil {
 			return err
 		}
+		// SQLite: ORDER BY clauses are limited to SQLITE_MAX_ORDER_BY_LENGTH
+		// (default 1000) terms; function-call ORDER BY (e.g. group_concat(w
+		// ORDER BY a,b,...)) counts against the same limit.
+		if err := validateOrderByLength(col.Expr, 1000); err != nil {
+			return err
+		}
 		// Check column expressions for subqueries with UNION ALL aggregates
 		if err := e.validateExprSubqueries(col.Expr); err != nil {
+			return err
+		}
+		// SQLite: DISTINCT aggregates must have exactly one argument
+		if err := validateDistinctAggArgs(col.Expr); err != nil {
 			return err
 		}
 	}
@@ -3610,9 +4500,20 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 		if err := e.validateExprSubqueries(s.Having); err != nil {
 			return err
 		}
+		if err := validateDistinctAggArgs(s.Having); err != nil {
+			return err
+		}
 	}
 	if s.Where != nil {
 		if err := e.validateExprSubqueries(s.Where); err != nil {
+			return err
+		}
+		if err := validateDistinctAggArgs(s.Where); err != nil {
+			return err
+		}
+	}
+	for _, ob := range s.OrderBy {
+		if err := validateDistinctAggArgs(ob.Expr); err != nil {
 			return err
 		}
 	}
@@ -3672,12 +4573,320 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 	return nil
 }
 
+// validateOrderByLength walks an expression tree and returns SQLite's
+// "too many terms in ORDER BY clause" error when any function call carries
+// more than limit ORDER BY terms.
+func validateOrderByLength(expr sql.Expr, limit int) error {
+	if expr == nil {
+		return nil
+	}
+	if fn, ok := expr.(*sql.FuncCall); ok {
+		if len(fn.OrderBy) > limit {
+			return fmt.Errorf("too many terms in ORDER BY clause")
+		}
+		for _, a := range fn.Args {
+			if err := validateOrderByLength(a, limit); err != nil {
+				return err
+			}
+		}
+	}
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		if err := validateOrderByLength(v.Left, limit); err != nil {
+			return err
+		}
+		return validateOrderByLength(v.Right, limit)
+	case *sql.UnaryOp:
+		return validateOrderByLength(v.Operand, limit)
+	case *sql.IsNull:
+		return validateOrderByLength(v.Operand, limit)
+	case *sql.IsNotNull:
+		return validateOrderByLength(v.Operand, limit)
+	case *sql.Between:
+		if err := validateOrderByLength(v.Operand, limit); err != nil {
+			return err
+		}
+		if err := validateOrderByLength(v.Low, limit); err != nil {
+			return err
+		}
+		return validateOrderByLength(v.High, limit)
+	case *sql.InList:
+		if err := validateOrderByLength(v.Operand, limit); err != nil {
+			return err
+		}
+		for _, item := range v.List {
+			if err := validateOrderByLength(item, limit); err != nil {
+				return err
+			}
+		}
+	case *sql.CaseExpr:
+		if err := validateOrderByLength(v.Operand, limit); err != nil {
+			return err
+		}
+		for _, w := range v.Whens {
+			if err := validateOrderByLength(w.When, limit); err != nil {
+				return err
+			}
+			if err := validateOrderByLength(w.Then, limit); err != nil {
+				return err
+			}
+		}
+		return validateOrderByLength(v.Else, limit)
+	}
+	return nil
+}
+
+// validateDistinctAggArgs walks an expression tree and reports an error for
+// any aggregate function used with DISTINCT but no arguments (SQLite:
+// "DISTINCT aggregates must have exactly one argument"). Subqueries are not
+// descended into — they have their own validation.
+func validateDistinctAggArgs(expr sql.Expr) error {
+	if expr == nil {
+		return nil
+	}
+	if fn, ok := expr.(*sql.FuncCall); ok {
+		if fn.Distinct && len(fn.Args) != 1 {
+			return fmt.Errorf("DISTINCT aggregates must have exactly one argument")
+		}
+		for _, a := range fn.Args {
+			if err := validateDistinctAggArgs(a); err != nil {
+				return err
+			}
+		}
+	}
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		if err := validateDistinctAggArgs(v.Left); err != nil {
+			return err
+		}
+		return validateDistinctAggArgs(v.Right)
+	case *sql.UnaryOp:
+		return validateDistinctAggArgs(v.Operand)
+	case *sql.IsNull:
+		return validateDistinctAggArgs(v.Operand)
+	case *sql.IsNotNull:
+		return validateDistinctAggArgs(v.Operand)
+	case *sql.IsDistinctFrom:
+		if err := validateDistinctAggArgs(v.Left); err != nil {
+			return err
+		}
+		return validateDistinctAggArgs(v.Right)
+	case *sql.IsNotDistinctFrom:
+		if err := validateDistinctAggArgs(v.Left); err != nil {
+			return err
+		}
+		return validateDistinctAggArgs(v.Right)
+	case *sql.Between:
+		if err := validateDistinctAggArgs(v.Operand); err != nil {
+			return err
+		}
+		if err := validateDistinctAggArgs(v.Low); err != nil {
+			return err
+		}
+		return validateDistinctAggArgs(v.High)
+	case *sql.InList:
+		if err := validateDistinctAggArgs(v.Operand); err != nil {
+			return err
+		}
+		for _, item := range v.List {
+			if err := validateDistinctAggArgs(item); err != nil {
+				return err
+			}
+		}
+	case *sql.CaseExpr:
+		if err := validateDistinctAggArgs(v.Operand); err != nil {
+			return err
+		}
+		for _, w := range v.Whens {
+			if err := validateDistinctAggArgs(w.When); err != nil {
+				return err
+			}
+			if err := validateDistinctAggArgs(w.Then); err != nil {
+				return err
+			}
+		}
+		return validateDistinctAggArgs(v.Else)
+	}
+	return nil
+}
+
+// subqueryOuterAggRef returns the name of an aggregate function in the given
+// SELECT that references a column outside the subquery's own FROM tables
+// (a correlated/outer reference), or "" if none. SQLite rejects such
+// aggregates in IN-subquery contexts with "misuse of aggregate".
+func (e *Engine) subqueryOuterAggRef(s *sql.SelectStmt) string {
+	if s == nil {
+		return ""
+	}
+	// Collect column names available in the subquery's FROM tables.
+	inner := make(map[string]bool)
+	innerTables := make(map[string]bool) // lower-cased table names + aliases
+	addTable := func(name string) {
+		if name == "" {
+			return
+		}
+		if cols, err := e.tableColumnNames(name); err == nil {
+			for _, c := range cols {
+				inner[strings.ToLower(c)] = true
+			}
+		}
+	}
+	if s.From.Name != "" {
+		addTable(s.From.Name)
+		innerTables[strings.ToLower(s.From.Name)] = true
+		if s.From.As != "" {
+			innerTables[strings.ToLower(s.From.As)] = true
+		}
+	}
+	for _, j := range s.Joins {
+		if j.Table.Name != "" {
+			addTable(j.Table.Name)
+			innerTables[strings.ToLower(j.Table.Name)] = true
+			if j.Table.As != "" {
+				innerTables[strings.ToLower(j.Table.As)] = true
+			}
+		}
+	}
+	for _, col := range s.Columns {
+		if name := e.aggRefsOuter(col.Expr, inner, innerTables); name != "" {
+			return name
+		}
+	}
+	for _, ob := range s.OrderBy {
+		if name := e.aggRefsOuter(ob.Expr, inner, innerTables); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+// aggRefsOuter walks an expression for an aggregate function whose argument
+// references a column not present in the inner column set. Returns the
+// aggregate name or "".
+func (e *Engine) aggRefsOuter(expr sql.Expr, inner map[string]bool, innerTables map[string]bool) string {
+	if expr == nil {
+		return ""
+	}
+	if fn, ok := expr.(*sql.FuncCall); ok {
+		if reg, found := e.funcs.Find(fn.Name); found && reg.Type == function.TypeAggregate {
+			for _, a := range fn.Args {
+				if e.exprRefsOuterCol(a, inner, innerTables) {
+					return fn.Name
+				}
+			}
+		}
+		for _, a := range fn.Args {
+			if name := e.aggRefsOuter(a, inner, innerTables); name != "" {
+				return name
+			}
+		}
+	}
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		if name := e.aggRefsOuter(v.Left, inner, innerTables); name != "" {
+			return name
+		}
+		return e.aggRefsOuter(v.Right, inner, innerTables)
+	case *sql.UnaryOp:
+		return e.aggRefsOuter(v.Operand, inner, innerTables)
+	case *sql.IsNull:
+		return e.aggRefsOuter(v.Operand, inner, innerTables)
+	case *sql.IsNotNull:
+		return e.aggRefsOuter(v.Operand, inner, innerTables)
+	case *sql.Between:
+		if name := e.aggRefsOuter(v.Operand, inner, innerTables); name != "" {
+			return name
+		}
+		if name := e.aggRefsOuter(v.Low, inner, innerTables); name != "" {
+			return name
+		}
+		return e.aggRefsOuter(v.High, inner, innerTables)
+	case *sql.CaseExpr:
+		if name := e.aggRefsOuter(v.Operand, inner, innerTables); name != "" {
+			return name
+		}
+		for _, w := range v.Whens {
+			if name := e.aggRefsOuter(w.When, inner, innerTables); name != "" {
+				return name
+			}
+			if name := e.aggRefsOuter(w.Then, inner, innerTables); name != "" {
+				return name
+			}
+		}
+		return e.aggRefsOuter(v.Else, inner, innerTables)
+	}
+	return ""
+}
+
+// exprRefsOuterCol reports whether an expression references a column outside
+// the subquery's own FROM tables (ignoring subqueries). A qualified reference
+// (t.col) is outer when t is not one of the subquery's tables; an unqualified
+// reference is outer when the name is not an inner column.
+func (e *Engine) exprRefsOuterCol(expr sql.Expr, inner map[string]bool, innerTables map[string]bool) bool {
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		if v.Name == "*" {
+			return false
+		}
+		if v.Table != "" {
+			t := strings.ToLower(v.Table)
+			if dot := strings.Index(t, "."); dot >= 0 {
+				t = t[dot+1:]
+			}
+			return !innerTables[t]
+		}
+		return !inner[strings.ToLower(v.Name)]
+	case *sql.BinaryOp:
+		return e.exprRefsOuterCol(v.Left, inner, innerTables) || e.exprRefsOuterCol(v.Right, inner, innerTables)
+	case *sql.UnaryOp:
+		return e.exprRefsOuterCol(v.Operand, inner, innerTables)
+	case *sql.IsNull:
+		return e.exprRefsOuterCol(v.Operand, inner, innerTables)
+	case *sql.IsNotNull:
+		return e.exprRefsOuterCol(v.Operand, inner, innerTables)
+	case *sql.Between:
+		return e.exprRefsOuterCol(v.Operand, inner, innerTables) || e.exprRefsOuterCol(v.Low, inner, innerTables) || e.exprRefsOuterCol(v.High, inner, innerTables)
+	case *sql.CaseExpr:
+		if e.exprRefsOuterCol(v.Operand, inner, innerTables) {
+			return true
+		}
+		for _, w := range v.Whens {
+			if e.exprRefsOuterCol(w.When, inner, innerTables) || e.exprRefsOuterCol(w.Then, inner, innerTables) {
+				return true
+			}
+		}
+		return e.exprRefsOuterCol(v.Else, inner, innerTables)
+	case *sql.FuncCall:
+		for _, a := range v.Args {
+			if e.exprRefsOuterCol(a, inner, innerTables) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // validateExprSubqueries walks an expression tree looking for subqueries and
-// checking them for invalid patterns like aggregates inside UNION ALL.
+// checking them for invalid patterns like aggregates inside UNION ALL. A
+// scalar subquery must return exactly one column (SQLite: "sub-select returns
+// N columns - expected 1"); subqueries used in row-value comparisons or IN
+// lists may return multiple columns, so those contexts pass rowValueOK=true.
 func (e *Engine) validateExprSubqueries(expr sql.Expr) error {
+	return e.validateExprSubqueriesCtx(expr, false)
+}
+
+func (e *Engine) validateExprSubqueriesCtx(expr sql.Expr, rowValueOK bool) error {
 	switch v := expr.(type) {
 	case *sql.Subquery:
 		if v.Select != nil {
+			// A scalar subquery must return exactly one column. Row-value
+			// contexts (the subquery is compared against a row value or used
+			// as an IN-list operand) allow multiple columns.
+			if !rowValueOK {
+				if n := e.subqueryColumnCount(v.Select); n > 1 {
+					return fmt.Errorf("sub-select returns %d columns - expected 1", n)
+				}
+			}
 			// Validate the subquery's SELECT statement
 			if err := e.validateSelectExprs(v.Select); err != nil {
 				return err
@@ -3691,65 +4900,108 @@ func (e *Engine) validateExprSubqueries(expr sql.Expr) error {
 		}
 	case *sql.FuncCall:
 		for _, arg := range v.Args {
-			if err := e.validateExprSubqueries(arg); err != nil {
+			if err := e.validateExprSubqueriesCtx(arg, false); err != nil {
 				return err
 			}
 		}
 	case *sql.BinaryOp:
-		if err := e.validateExprSubqueries(v.Left); err != nil {
+		// A comparison between a row value and a subquery treats the
+		// subquery as a row value: (a,b) = (SELECT x,y) is legal. Detect
+		// that pattern and allow the subquery side multiple columns.
+		_, leftRow := v.Left.(*sql.RowValue)
+		_, rightRow := v.Right.(*sql.RowValue)
+		_, leftSub := v.Left.(*sql.Subquery)
+		_, rightSub := v.Right.(*sql.Subquery)
+		if leftSub && rightRow {
+			if err := e.validateExprSubqueriesCtx(v.Left, true); err != nil {
+				return err
+			}
+			return e.validateExprSubqueriesCtx(v.Right, false)
+		}
+		if rightSub && leftRow {
+			if err := e.validateExprSubqueriesCtx(v.Left, false); err != nil {
+				return err
+			}
+			return e.validateExprSubqueriesCtx(v.Right, true)
+		}
+		if err := e.validateExprSubqueriesCtx(v.Left, false); err != nil {
 			return err
 		}
-		return e.validateExprSubqueries(v.Right)
+		return e.validateExprSubqueriesCtx(v.Right, false)
 	case *sql.UnaryOp:
-		return e.validateExprSubqueries(v.Operand)
+		return e.validateExprSubqueriesCtx(v.Operand, false)
 	case *sql.CaseExpr:
 		if v.Operand != nil {
-			if err := e.validateExprSubqueries(v.Operand); err != nil {
+			if err := e.validateExprSubqueriesCtx(v.Operand, false); err != nil {
 				return err
 			}
 		}
 		for _, w := range v.Whens {
-			if err := e.validateExprSubqueries(w.When); err != nil {
+			if err := e.validateExprSubqueriesCtx(w.When, false); err != nil {
 				return err
 			}
-			if err := e.validateExprSubqueries(w.Then); err != nil {
+			if err := e.validateExprSubqueriesCtx(w.Then, false); err != nil {
 				return err
 			}
 		}
 		if v.Else != nil {
-			return e.validateExprSubqueries(v.Else)
+			return e.validateExprSubqueriesCtx(v.Else, false)
 		}
 	case *sql.Between:
-		if err := e.validateExprSubqueries(v.Operand); err != nil {
+		if err := e.validateExprSubqueriesCtx(v.Operand, false); err != nil {
 			return err
 		}
-		if err := e.validateExprSubqueries(v.Low); err != nil {
+		if err := e.validateExprSubqueriesCtx(v.Low, false); err != nil {
 			return err
 		}
-		return e.validateExprSubqueries(v.High)
+		return e.validateExprSubqueriesCtx(v.High, false)
 	case *sql.InList:
-		if err := e.validateExprSubqueries(v.Operand); err != nil {
+		if err := e.validateExprSubqueriesCtx(v.Operand, false); err != nil {
 			return err
 		}
+		_, opIsRow := v.Operand.(*sql.RowValue)
 		for _, val := range v.List {
-			if err := e.validateExprSubqueries(val); err != nil {
+			// IN-list subquery items may return multiple columns (row-value
+			// comparisons); a scalar operand with a multi-column subquery is
+			// an error (SQLite: "sub-select returns N columns - expected 1").
+			if subq, ok := val.(*sql.Subquery); ok && subq.Select != nil {
+				if !opIsRow {
+					if n := e.subqueryColumnCount(subq.Select); n > 1 {
+						return fmt.Errorf("sub-select returns %d columns - expected 1", n)
+					}
+				}
+				if err := e.validateSelectExprs(subq.Select); err != nil {
+					return err
+				}
+				// SQLite: an aggregate in an IN-subquery that references a column
+				// outside the subquery's own FROM (an outer/correlated reference)
+				// is a "misuse of aggregate" error (e.g. x IN (SELECT count(t.x)
+				// FROM other)). The correlated aggregate cannot be evaluated per
+				// row in the IN context.
+				if name := e.subqueryOuterAggRef(subq.Select); name != "" {
+					return fmt.Errorf("misuse of aggregate: %s()", name)
+				}
+				continue
+			}
+			if err := e.validateExprSubqueriesCtx(val, false); err != nil {
 				return err
 			}
 		}
+		return nil
 	case *sql.IsNull:
-		return e.validateExprSubqueries(v.Operand)
+		return e.validateExprSubqueriesCtx(v.Operand, false)
 	case *sql.IsNotNull:
-		return e.validateExprSubqueries(v.Operand)
+		return e.validateExprSubqueriesCtx(v.Operand, false)
 	case *sql.IsDistinctFrom:
-		if err := e.validateExprSubqueries(v.Left); err != nil {
+		if err := e.validateExprSubqueriesCtx(v.Left, false); err != nil {
 			return err
 		}
-		return e.validateExprSubqueries(v.Right)
+		return e.validateExprSubqueriesCtx(v.Right, false)
 	case *sql.IsNotDistinctFrom:
-		if err := e.validateExprSubqueries(v.Left); err != nil {
+		if err := e.validateExprSubqueriesCtx(v.Left, false); err != nil {
 			return err
 		}
-		return e.validateExprSubqueries(v.Right)
+		return e.validateExprSubqueriesCtx(v.Right, false)
 	}
 	return nil
 }
@@ -3842,7 +5094,31 @@ func (e *Engine) validateNoFromColumnRefs(s *sql.SelectStmt) error {
 	for _, col := range s.Columns {
 		check(col.Expr)
 	}
-	check(s.Where)
+	// Output-column aliases (e.g. "SELECT 1 AS x WHERE x") are usable in the
+	// WHERE clause of a no-FROM SELECT; skip references that name an alias.
+	aliasNames := make(map[string]bool)
+	for _, col := range s.Columns {
+		if col.As != "" {
+			aliasNames[strings.ToLower(col.As)] = true
+		}
+	}
+	if s.Where != nil {
+		walkExprFull(s.Where, func(e2 sql.Expr) {
+			if checkErr != nil {
+				return
+			}
+			ref, ok := e2.(*sql.ColumnRef)
+			if !ok {
+				return
+			}
+			if aliasNames[strings.ToLower(ref.Name)] {
+				return
+			}
+			check(ref)
+		})
+	} else {
+		check(s.Where)
+	}
 	return checkErr
 }
 
@@ -4007,12 +5283,14 @@ func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []RowMap) interf
 	if len(v.OrderBy) > 0 && len(uniqueRows) > 1 {
 		sort.SliceStable(uniqueRows, func(i, j int) bool {
 			for _, ob := range v.OrderBy {
-				vi, errI := e.evalExpr(ob.Expr, uniqueRows[i])
-				vj, errJ := e.evalExpr(ob.Expr, uniqueRows[j])
+				coll := orderByTermCollation(ob.Expr)
+				obExpr := stripCollate(ob.Expr)
+				vi, errI := e.evalExpr(obExpr, uniqueRows[i])
+				vj, errJ := e.evalExpr(obExpr, uniqueRows[j])
 				if errI != nil || errJ != nil {
 					continue
 				}
-				cmp := util.CompareValues(vi, vj)
+				cmp := util.CompareValuesCollate(vi, vj, coll)
 				if cmp != 0 {
 					if ob.Desc {
 						return cmp > 0
@@ -4072,10 +5350,15 @@ func applyLimitOffset(rows [][]interface{}, limit, offset sql.Expr) [][]interfac
 // distinctRows removes duplicate rows from a result set,
 // keeping the corresponding rowMaps in sync. colls holds the collation of
 // each result column (nil → BINARY).
-func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap, colls []string) ([][]interface{}, []RowMap) {
+func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap, colls []string, s *sql.SelectStmt) ([][]interface{}, []RowMap) {
 	if len(rows) == 0 {
 		return rows, rowMaps
 	}
+	// When a covering index exists for the DISTINCT columns, SQLite satisfies
+	// DISTINCT by scanning that index, so the output follows the index key
+	// order (not insertion order). Determine the index columns so the
+	// deduplicated rows can be sorted the same way.
+	idxCols := e.coveringIndexForDistinct(s)
 	seen := make(map[string]bool)
 	var newRows [][]interface{}
 	var newMaps []RowMap
@@ -4089,7 +5372,112 @@ func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap, colls []st
 			}
 		}
 	}
+	if len(idxCols) > 0 && len(newMaps) == len(newRows) {
+		type pair struct {
+			row []interface{}
+			m   RowMap
+		}
+		pairs := make([]pair, len(newRows))
+		for i := range newRows {
+			pairs[i] = pair{newRows[i], newMaps[i]}
+		}
+		sort.SliceStable(pairs, func(i, j int) bool {
+			for _, col := range idxCols {
+				vi := lookupRowMapValue(pairs[i].m, col)
+				vj := lookupRowMapValue(pairs[j].m, col)
+				cmp := util.CompareValues(util.UnwrapColumnValue(vi), util.UnwrapColumnValue(vj))
+				if cmp != 0 {
+					return cmp < 0
+				}
+			}
+			return false
+		})
+		for i := range pairs {
+			newRows[i] = pairs[i].row
+			newMaps[i] = pairs[i].m
+		}
+	}
 	return newRows, newMaps
+}
+
+// coveringIndexForDistinct returns the column list of an index that fully
+// covers the DISTINCT output columns of s (a single-table query), so the
+// DISTINCT rows can be emitted in index order like SQLite. Returns nil when
+// no such index exists or the query is not a simple single-table scan.
+func (e *Engine) coveringIndexForDistinct(s *sql.SelectStmt) []string {
+	if s == nil || s.From.Name == "" || len(s.Joins) > 0 || s.From.Subquery != nil {
+		return nil
+	}
+	tableName := s.From.Name
+	if dot := strings.Index(tableName, "."); dot >= 0 {
+		tableName = tableName[dot+1:]
+	}
+	alias := s.From.As
+	if alias == "" {
+		alias = tableName
+	}
+	// Collect the table column names referenced by the DISTINCT output.
+	var need []string
+	for _, col := range s.Columns {
+		ref, ok := col.Expr.(*sql.ColumnRef)
+		if !ok || ref.Name == "*" {
+			return nil
+		}
+		if ref.Table != "" && !strings.EqualFold(ref.Table, alias) && !strings.EqualFold(ref.Table, tableName) {
+			return nil
+		}
+		need = append(need, ref.Name)
+	}
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || !strings.EqualFold(entry.TblName, tableName) {
+			continue
+		}
+		cols := parseIndexColumns(entry.SQL)
+		if len(cols) == 0 {
+			continue
+		}
+		// The index's leading columns (restricted to the DISTINCT output
+		// columns) provide the sort order SQLite's index scan yields. The
+		// index need not cover every output column — remaining columns are
+		// fetched from the table and act as a stable secondary key.
+		needSet := make(map[string]bool)
+		for _, n := range need {
+			needSet[strings.ToLower(n)] = true
+		}
+		var order []string
+		for _, c := range cols {
+			if needSet[strings.ToLower(strings.TrimSpace(c))] {
+				order = append(order, strings.TrimSpace(c))
+			}
+		}
+		if len(order) == 0 {
+			continue
+		}
+		return order
+	}
+	return nil
+}
+
+// lookupRowMapValue fetches a column value from a RowMap, trying both the
+// qualified (alias.col / table.col) and unqualified forms.
+func lookupRowMapValue(m RowMap, col string) interface{} {
+	if m == nil {
+		return nil
+	}
+	if v, ok := m[col]; ok {
+		return v
+	}
+	// Try unqualified key (row maps may store "a" instead of "t1.a").
+	for k, v := range m {
+		if strings.HasSuffix(strings.ToLower(k), "."+strings.ToLower(col)) {
+			return v
+		}
+	}
+	return nil
 }
 
 // selectNeedsRowMaps returns true if the query requires per-row RowMap
@@ -4202,6 +5590,43 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 	if len(s.OrderBy) > 0 {
 		for _, ob := range s.OrderBy {
 			collectRefs(ob.Expr)
+		}
+	}
+	// JOIN ON clauses reference columns that need affinity wrappers for the
+	// join comparison (e.g. t1 JOIN t3 ON t1.c0=t3.c0 must wrap t1.c0 so the
+	// INTEGER-affinity comparison with t3.c0 applies). USING columns and
+	// NATURAL join columns are also compared, so mark them too.
+	for i := range s.Joins {
+		j := &s.Joins[i]
+		if j.On != nil {
+			collectRefs(j.On)
+		}
+		for _, uc := range j.Using {
+			if affinityCols == nil {
+				affinityCols = make(map[string]bool)
+			}
+			affinityCols[uc] = true
+		}
+		// NATURAL joins compare all common columns; mark the join table's
+		// columns (and, conservatively, the base's columns with the same
+		// names) so the generated ON applies affinity.
+		if isNaturalJoinType(j.JoinType) {
+			if names, err := e.tableColumnNames(j.Table.Name); err == nil {
+				if affinityCols == nil {
+					affinityCols = make(map[string]bool)
+				}
+				for _, n := range names {
+					affinityCols[n] = true
+				}
+			}
+			// Mark the base FROM table's columns too.
+			if s.From.Name != "" {
+				if names, err := e.tableColumnNames(s.From.Name); err == nil {
+					for _, n := range names {
+						affinityCols[n] = true
+					}
+				}
+			}
 		}
 	}
 	if affinityCols == nil && needMaps {
@@ -4451,8 +5876,8 @@ func (e *Engine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
 
 	// Try ColumnRef OP Literal
 	if colRef, ok := bop.Left.(*sql.ColumnRef); ok {
-		val, exists := row.Get(colRef.Name)
-		if !exists || val == nil {
+		val, exists := fastEvalColRef(colRef, row)
+		if !exists || isSQLNull(val) {
 			return false, false // let slow path handle NULL
 		}
 		litVal, ok := e.evalLiteralFast(bop.Right)
@@ -4474,8 +5899,8 @@ func (e *Engine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
 
 	// Try Literal OP ColumnRef
 	if colRef, ok := bop.Right.(*sql.ColumnRef); ok {
-		val, exists := row.Get(colRef.Name)
-		if !exists || val == nil {
+		val, exists := fastEvalColRef(colRef, row)
+		if !exists || isSQLNull(val) {
 			return false, false
 		}
 		litVal, ok := e.evalLiteralFast(bop.Left)
@@ -4496,6 +5921,36 @@ func (e *Engine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
 	}
 
 	return false, false
+}
+
+// fastEvalColRef resolves a column reference against a row for the fast
+// comparison path, honoring the qualifier: a qualified ref (t1.a) looks up
+// the qualified key first, falling back to the unqualified key only when the
+// qualifier matches the row's table or the row has no qualified keys.
+func fastEvalColRef(cr *sql.ColumnRef, row Row) (interface{}, bool) {
+	if cr.Table != "" {
+		// Strip a schema prefix (main.t4.a) and try the qualified key.
+		tableQual := cr.Table
+		if dot := strings.Index(tableQual, "."); dot >= 0 {
+			tableQual = tableQual[dot+1:]
+		}
+		if val, ok := row.Get(tableQual + "." + cr.Name); ok {
+			return val, true
+		}
+		if val, ok := row.Get(cr.Table + "." + cr.Name); ok {
+			return val, true
+		}
+		// No qualified key: fall back to the unqualified name only when the
+		// row is NOT a join result (join maps store qualified keys).
+		if !rowHasQualifiedKeys(row) {
+			if val, ok := row.Get(cr.Name); ok {
+				return val, true
+			}
+		}
+		return nil, false
+	}
+	val, ok := row.Get(cr.Name)
+	return val, ok
 }
 
 // evalLiteralFast evaluates a literal expression (NumericLit, StringLit, etc.)
@@ -4891,21 +6346,38 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			if ref.Table != "" {
-				// Qualified star (t.*): only that table's columns.
-				var tblNames []string
-				for _, cd := range colDefs {
-					if cd.Dropped {
-						continue
-					}
-					if strings.HasPrefix(cd.Name, ref.Table+".") {
-						tblNames = append(tblNames, strings.TrimPrefix(cd.Name, ref.Table+"."))
+				// Qualified star (t.*): only that table's columns. Use the
+				// colDefs prefixed names when present (conflicting columns are
+				// stored as table.col in join colDefs); a non-conflicting
+				// column stays unprefixed in colDefs, so fall back to the
+				// schema column list for the complete set.
+				schemaNames, _ := e.tableColumnNames(ref.Table)
+				if len(schemaNames) == 0 {
+					for _, cd := range colDefs {
+						if cd.Dropped {
+							continue
+						}
+						if strings.HasPrefix(cd.Name, ref.Table+".") {
+							schemaNames = append(schemaNames, strings.TrimPrefix(cd.Name, ref.Table+"."))
+						}
 					}
 				}
-				if len(tblNames) == 0 {
-					// The table's columns were unprefixed (no name conflicts);
-					// derive them from the schema.
-					if names2, err := e.tableColumnNames(ref.Table); err == nil && len(names2) > 0 {
-						tblNames = names2
+				var tblNames []string
+				for _, n := range schemaNames {
+					// Use the prefixed name when the column conflicted with a
+					// same-named column elsewhere (colDefs stores it as
+					// table.col), so result column names stay unique.
+					prefixed := ref.Table + "." + n
+					found := false
+					for _, cd := range colDefs {
+						if cd.Name == prefixed {
+							tblNames = append(tblNames, prefixed)
+							found = true
+							break
+						}
+					}
+					if !found {
+						tblNames = append(tblNames, n)
 					}
 				}
 				names = append(names, tblNames...)
@@ -4943,6 +6415,25 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 		}
 	}
 	return names
+}
+
+// selectProjectsPlainColumns reports whether every SELECT column is a bare
+// column reference or star (no computed expressions, aliases, or aggregates).
+// When true, a query's joined row maps align with its output rows, so they can
+// be reused when the query is materialized as a derived table.
+func selectProjectsPlainColumns(columns []sql.SelectColumn) bool {
+	for _, col := range columns {
+		if col.As != "" {
+			return false
+		}
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+			if ref.Name == "*" || ref.Name != "" {
+				continue
+			}
+		}
+		return false
+	}
+	return true
 }
 
 // validateOrderBy checks that any positional ORDER BY terms (integer literals)
@@ -5207,11 +6698,102 @@ func resultColumnIndex(resultCols []string, name string) int {
 	return -1
 }
 
+// addSubqueryFromCols adds the column names of a subquery's FROM tables (and
+// nested derived tables) to the given set, so ON clauses referencing a derived
+// table's inner columns (ON c=b with (SELECT * FROM t2, t3)) validate.
+func (e *Engine) addSubqueryFromCols(s *sql.SelectStmt, out map[string]bool) {
+	if s == nil {
+		return
+	}
+	if s.From.Name != "" {
+		if names, err := e.tableColumnNames(s.From.Name); err == nil {
+			for _, n := range names {
+				out[n] = true
+			}
+		}
+	}
+	if s.From.Subquery != nil {
+		e.addSubqueryFromCols(s.From.Subquery, out)
+	}
+	for i := range s.Joins {
+		j := &s.Joins[i]
+		if j.Table.Subquery != nil {
+			e.addSubqueryFromCols(j.Table.Subquery, out)
+		} else if j.Table.Name != "" {
+			if names, err := e.tableColumnNames(j.Table.Name); err == nil {
+				for _, n := range names {
+					out[n] = true
+				}
+			}
+		}
+	}
+}
+
+// collectFromTableNames adds the table names visible in a SELECT's FROM
+// clause (base table and all joined tables, recursing into derived tables) to
+// the given set. Used by ON-clause validation so a right-side subquery's inner
+// tables are considered available.
+func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
+	if s == nil {
+		return
+	}
+	tn := s.From.Name
+	if s.From.As != "" {
+		tn = s.From.As
+	}
+	if tn != "" {
+		out[tn] = true
+	}
+	if s.From.Subquery != nil {
+		collectFromTableNames(s.From.Subquery, out)
+	}
+	for _, j := range s.Joins {
+		jn := j.Table.Name
+		if j.Table.As != "" {
+			jn = j.Table.As
+		}
+		if jn != "" {
+			out[jn] = true
+		}
+		if j.Table.Subquery != nil {
+			collectFromTableNames(j.Table.Subquery, out)
+		}
+	}
+}
+
 // validateJoinOnClauses checks that each join's ON clause only references
 // tables that have already been joined (to its left). SQLite raises
-// "ON clause references tables to its right" otherwise.
-func validateJoinOnClauses(s *sql.SelectStmt) error {
+// "ON clause references tables to its right" otherwise. OUTER joins always
+// require this; when the query contains a RIGHT or FULL join, every join's ON
+// is validated (RIGHT/FULL forces strict left-to-right processing).
+func (e *Engine) validateJoinOnClauses(s *sql.SelectStmt) error {
+	hasRightOrFull := false
+	for _, j := range s.Joins {
+		if joinTypeHas(j.JoinType, "RIGHT") || joinTypeHas(j.JoinType, "FULL") {
+			hasRightOrFull = true
+			break
+		}
+	}
 	available := map[string]bool{}
+	availableCols := map[string]bool{}
+	// leftTables tracks the tables joined so far and their column names, for
+	// the RIGHT/FULL NATURAL/USING ambiguity check.
+	type tableCols struct {
+		cols map[string]bool
+	}
+	leftTables := []tableCols{}
+	addLeftTable := func(tn string) {
+		if tn == "" {
+			return
+		}
+		cols := map[string]bool{}
+		if names, err := e.tableColumnNames(tn); err == nil {
+			for _, n := range names {
+				cols[n] = true
+			}
+		}
+		leftTables = append(leftTables, tableCols{cols: cols})
+	}
 	if s.From.Name != "" || s.From.As != "" {
 		tn := s.From.Name
 		if s.From.As != "" {
@@ -5219,7 +6801,33 @@ func validateJoinOnClauses(s *sql.SelectStmt) error {
 		}
 		if tn != "" {
 			available[tn] = true
+			// Column names come from the REAL table (the alias may not be a
+			// schema-resolvable name), and are also available under the alias.
+			colNames := s.From.Name
+			if colNames == "" {
+				colNames = tn
+			}
+			if names, err := e.tableColumnNames(colNames); err == nil {
+				for _, n := range names {
+					availableCols[n] = true
+				}
+			}
+			addLeftTable(tn)
 		}
+	}
+	// A base FROM subquery contributes its output columns (e.g. FROM
+	// (SELECT c+333 AS y FROM t1) RIGHT JOIN ... ON x=y resolves y), and its
+	// inner FROM tables' columns resolve through it (ON x with FROM (SELECT *
+	// FROM y1) LEFT JOIN y2).
+	if s.From.Subquery != nil {
+		for _, col := range s.From.Subquery.Columns {
+			if col.As != "" {
+				availableCols[col.As] = true
+			} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+				availableCols[ref.Name] = true
+			}
+		}
+		e.addSubqueryFromCols(s.From.Subquery, availableCols)
 	}
 	for _, join := range s.Joins {
 		tn := join.Table.Name
@@ -5228,9 +6836,115 @@ func validateJoinOnClauses(s *sql.SelectStmt) error {
 		}
 		if tn != "" {
 			available[tn] = true
+			// The current right table's columns are resolvable from its ON
+			// clause (ON c for t2 FULL JOIN t1 resolves c to t1). For CTEs,
+			// use the CTE's declared column names. Column names come from the
+			// REAL table (an alias may not be schema-resolvable).
+			colNames := join.Table.Name
+			if colNames == "" {
+				colNames = tn
+			}
+			if names, err := e.tableColumnNames(colNames); err == nil {
+				for _, n := range names {
+					availableCols[n] = true
+				}
+			} else if cteDef, ok := e.findCTE(s, join.Table.Name); ok {
+				if len(cteDef.Columns) > 0 {
+					for _, n := range cteDef.Columns {
+						availableCols[n] = true
+					}
+				} else if cteDef.Select != nil {
+					for _, col := range cteDef.Select.Columns {
+						if col.As != "" {
+							availableCols[col.As] = true
+						} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+							availableCols[ref.Name] = true
+						}
+					}
+				}
+			}
 		}
+		// A derived table (subquery) contributes its inner table names: an
+		// ON clause may reference any table visible inside the subquery
+		// (e.g. FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c references
+		// t1's c, which lives inside the right-side subquery).
+		if join.Table.Subquery != nil {
+			collectFromTableNames(join.Table.Subquery, available)
+			// The subquery's result columns are also resolvable via the alias
+			// (ON (x=z) where z is the subquery's output column z), and the
+			// inner FROM tables' columns resolve through the derived table
+			// (ON c=b references t2.c inside (SELECT * FROM t2, t3)).
+			for _, col := range join.Table.Subquery.Columns {
+				if col.As != "" {
+					availableCols[col.As] = true
+				} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+					availableCols[ref.Name] = true
+				}
+			}
+			e.addSubqueryFromCols(join.Table.Subquery, availableCols)
+		}
+		// NATURAL/USING ambiguity: with a RIGHT/FULL join present, a USING (or
+		// NATURAL) column that appears in TWO or more tables on the left side
+		// (outside a prior USING) is ambiguous — SQLite errors with
+		// "ambiguous reference to X in USING()".
+		if hasRightOrFull && (len(join.Using) > 0 || isNaturalJoinType(join.JoinType)) {
+			var usingCols []string
+			if len(join.Using) > 0 {
+				usingCols = join.Using
+			} else {
+				// NATURAL: common columns between the accumulated left and the
+				// current right table.
+				rightCols := map[string]bool{}
+				if names, err := e.tableColumnNames(tn); err == nil {
+					for _, n := range names {
+						rightCols[n] = true
+					}
+				}
+				for _, tc := range leftTables {
+					for c := range tc.cols {
+						if rightCols[c] {
+							usingCols = append(usingCols, c)
+						}
+					}
+				}
+			}
+			for _, uc := range usingCols {
+				count := 0
+				for _, tc := range leftTables {
+					if tc.cols[uc] {
+						count++
+					}
+				}
+				if count > 1 {
+					return fmt.Errorf("ambiguous reference to %s in USING()", uc)
+				}
+			}
+		}
+
 		// Only OUTER joins restrict ON-clause references to their left.
-		if join.On == nil || (join.JoinType != "LEFT" && join.JoinType != "RIGHT") {
+		// With a RIGHT/FULL join present, all joins are validated.
+		// Record this join's table as available for the NEXT join's checks
+		// before the ON validation may short-circuit. After a USING/NATURAL
+		// join, the merged columns collapse into a single accumulated table
+		// (SQLite merges them, so a later USING on the same column is not
+		// ambiguous).
+		if len(join.Using) > 0 || isNaturalJoinType(join.JoinType) {
+			merged := map[string]bool{}
+			for _, tc := range leftTables {
+				for c := range tc.cols {
+					merged[c] = true
+				}
+			}
+			if names, err := e.tableColumnNames(tn); err == nil {
+				for _, n := range names {
+					merged[n] = true
+				}
+			}
+			leftTables = []tableCols{{cols: merged}}
+		} else {
+			addLeftTable(tn)
+		}
+		if join.On == nil || (!joinTypeHas(join.JoinType, "LEFT") && !joinTypeHas(join.JoinType, "RIGHT") && !hasRightOrFull) {
 			continue
 		}
 		var bad string
@@ -5239,6 +6953,91 @@ func validateJoinOnClauses(s *sql.SelectStmt) error {
 				bad = cr.Table
 			}
 		})
+		// Subqueries in the ON clause may reference their OWN FROM tables OR
+		// the outer tables joined so far; a reference to an outer table that
+		// comes later (to the right) is an error (SQLite: ON (SELECT 1 FROM
+		// t2 RIGHT JOIN t3 ON t4.y) CROSS JOIN t4 rejects t4.y).
+		if bad == "" {
+			walkJoinOnExpr(join.On, func(e2 sql.Expr) {
+				switch e2.(type) {
+				case *sql.Subquery, *sql.ExistsExpr:
+					var sel *sql.SelectStmt
+					if sub, ok := e2.(*sql.Subquery); ok {
+						sel = sub.Select
+					} else if ex, ok := e2.(*sql.ExistsExpr); ok {
+						sel = ex.Select
+					}
+					if sel == nil {
+						return
+					}
+					// Local tables of the subquery are always available, and each
+					// of the subquery's joins is validated left-to-right (its ON
+					// may only reference tables to its left within the subquery
+					// or outer tables joined so far).
+					local := map[string]bool{}
+					collectFromTableNames(sel, local)
+					walkSelectJoinExprs(sel, func(e3 sql.Expr) {
+						cr, ok := e3.(*sql.ColumnRef)
+						if !ok || cr.Table == "" {
+							return
+						}
+						if local[cr.Table] || available[cr.Table] {
+							return
+						}
+						bad = cr.Table
+					})
+					// Reject references inside the subquery's join ON clauses to
+					// tables that are joined LATER within the subquery (e.g. ON
+					// max(0,t5.z) CROSS JOIN t5 references t5 before its join).
+					subAvail := map[string]bool{}
+					if sel.From.Name != "" {
+						subAvail[sel.From.Name] = true
+						if sel.From.As != "" {
+							subAvail[sel.From.As] = true
+						}
+					}
+					for i := range sel.Joins {
+						j := &sel.Joins[i]
+						jn := j.Table.Name
+						if j.Table.As != "" {
+							jn = j.Table.As
+						}
+						if jn != "" {
+							subAvail[jn] = true
+						}
+						if j.On == nil {
+							continue
+						}
+						walkJoinOnExpr(j.On, func(e3 sql.Expr) {
+							cr, ok := e3.(*sql.ColumnRef)
+							if !ok || cr.Table == "" {
+								return
+							}
+							if subAvail[cr.Table] || available[cr.Table] {
+								return
+							}
+							bad = cr.Table
+						})
+					}
+				}
+			})
+		}
+		if bad == "" && (hasRightOrFull || joinTypeHas(join.JoinType, "LEFT")) {
+			// With RIGHT/FULL joins, unqualified ON references must also
+			// resolve among the tables joined so far (SQLite resolves them
+			// left-to-right and errors if a column belongs to a table that
+			// comes later, e.g. t1 JOIN t2 ON d>b RIGHT JOIN t3 where d is
+			// t3's column).
+			walkJoinOnExpr(join.On, func(e2 sql.Expr) {
+				if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table == "" && !availableCols[cr.Name] {
+					// TRUE/FALSE are boolean literals, not column references.
+					if strings.EqualFold(cr.Name, "TRUE") || strings.EqualFold(cr.Name, "FALSE") {
+						return
+					}
+					bad = cr.Name
+				}
+			})
+		}
 		if bad != "" {
 			return fmt.Errorf("ON clause references tables to its right")
 		}
@@ -5304,6 +7103,243 @@ func walkJoinOnExpr(expr sql.Expr, fn func(sql.Expr)) {
 		for _, a := range e.Args {
 			walkJoinOnExpr(a, fn)
 		}
+		for _, ob := range e.OrderBy {
+			walkJoinOnExpr(ob.Expr, fn)
+		}
+	case *sql.CaseExpr:
+		if e.Operand != nil {
+			walkJoinOnExpr(e.Operand, fn)
+		}
+		for _, w := range e.Whens {
+			walkJoinOnExpr(w.When, fn)
+			walkJoinOnExpr(w.Then, fn)
+		}
+		if e.Else != nil {
+			walkJoinOnExpr(e.Else, fn)
+		}
+	case *sql.CastExpr:
+		walkJoinOnExpr(e.Operand, fn)
+	case *sql.IsNull:
+		walkJoinOnExpr(e.Operand, fn)
+	case *sql.IsNotNull:
+		walkJoinOnExpr(e.Operand, fn)
+	case *sql.IsTrue:
+		walkJoinOnExpr(e.Operand, fn)
+	case *sql.IsFalse:
+		walkJoinOnExpr(e.Operand, fn)
+	case *sql.IsDistinctFrom:
+		walkJoinOnExpr(e.Left, fn)
+		walkJoinOnExpr(e.Right, fn)
+	case *sql.IsNotDistinctFrom:
+		walkJoinOnExpr(e.Left, fn)
+		walkJoinOnExpr(e.Right, fn)
+	case *sql.RowValue:
+		for _, v := range e.Values {
+			walkJoinOnExpr(v, fn)
+		}
+	case *sql.Subquery:
+		// Visit the subquery node itself (so ON-clause validation can inspect
+		// its inner references) but do NOT descend into its children here:
+		// their references resolve against the subquery's own FROM tables
+		// first (handled in validateJoinOnClauses with local-table awareness).
+	case *sql.ExistsExpr:
+	}
+}
+
+// derivedTableBadColumnRef returns the first column reference in a derived
+// table (subquery in FROM/JOIN) that does NOT resolve to a table within the
+// subquery's own FROM scope. Derived tables cannot be correlated: a reference
+// like t6.a inside (SELECT ... FROM t7 JOIN t8 ON t6.a) is "no such column".
+func derivedTableBadColumnRef(s *sql.SelectStmt) string {
+	if s == nil {
+		return ""
+	}
+	local := map[string]bool{}
+	collectFromTableNames(s, local)
+	bad := ""
+	walkSelectJoinExprs(s, func(e sql.Expr) {
+		if bad != "" {
+			return
+		}
+		cr, ok := e.(*sql.ColumnRef)
+		if !ok || cr.Table == "" {
+			return
+		}
+		if !local[cr.Table] {
+			bad = cr.Table + "." + cr.Name
+		}
+	})
+	return bad
+}
+
+// subqueryColumnAffinities returns the affinity rune for each output column of
+// a subquery's SELECT, derived from the expression (CAST, column refs, etc.).
+// A zero rune means "unknown" (caller falls back to the column def type).
+func subqueryColumnAffinities(s *sql.SelectStmt) []rune {
+	if s == nil {
+		return nil
+	}
+	affs := make([]rune, len(s.Columns))
+	for i, col := range s.Columns {
+		affs[i] = exprAffinitySimple(col.Expr)
+	}
+	return affs
+}
+
+// exprAffinitySimple computes a coarse affinity for an expression used as a
+// subquery output column (CAST and numeric/string literals). Returns 0 when
+// the affinity cannot be determined simply.
+func exprAffinitySimple(e sql.Expr) rune {
+	switch v := e.(type) {
+	case *sql.CastExpr:
+		return util.Affinity(v.AsType)
+	case *sql.NumericLit:
+		return 'R' // numeric literals behave like REAL in SQLite
+	case *sql.ColumnRef:
+		return 0 // resolved through the table at runtime
+	default:
+		return 0
+	}
+}
+
+// compoundColumnAffinity returns the affinity of output column i of a compound
+// SELECT (UNION/INTERSECT/EXCEPT), matching SQLite's selectAddColumnTypeAnd-
+// Collation: each member's expression contributes an affinity (a table column
+// contributes its declared affinity; literals contribute their expression
+// affinity), and the affinities are merged. A TEXT affinity combined with a
+// NUMERIC-family affinity (INTEGER/REAL/NUMERIC) yields BLOB (the affinities
+// are incompatible); otherwise the most specific non-BLOB affinity wins
+// (INTEGER > REAL > NUMERIC > TEXT, then BLOB). The merge is order-independent,
+// matching SQLite (both "lit UNION col" and "col UNION lit" give the same
+// result column affinity). Returns 0 when the affinity cannot be determined
+// (no members / unknown).
+func (e *Engine) compoundColumnAffinity(s *sql.SelectStmt, i int) rune {
+	var affs []rune
+	for cur := s; cur != nil; cur = cur.Union {
+		if i >= len(cur.Columns) {
+			continue
+		}
+		affs = append(affs, e.memberExprAffinity(cur, i))
+	}
+	if len(affs) == 0 {
+		return 0
+	}
+	hasText := false
+	hasNumeric := false
+	best := rune(0)
+	for _, a := range affs {
+		switch a {
+		case 'T':
+			hasText = true
+		case 'I', 'R', 'N':
+			hasNumeric = true
+		}
+		if affinityPrecedence(a) > affinityPrecedence(best) {
+			best = a
+		}
+	}
+	if hasText && hasNumeric {
+		return 'B'
+	}
+	return best
+}
+
+// affinityPrecedence orders affinities so the most specific column affinity
+// wins when merging compound members: INTEGER > REAL > NUMERIC > TEXT > BLOB.
+func affinityPrecedence(a rune) int {
+	switch a {
+	case 'I':
+		return 5
+	case 'R':
+		return 4
+	case 'N':
+		return 3
+	case 'T':
+		return 2
+	case 'B':
+		return 1
+	default:
+		return 0
+	}
+}
+
+// memberExprAffinity returns the affinity contribution of a compound member's
+// expression at column index i: a column reference contributes its declared
+// column affinity (resolved through the member's FROM table), literals
+// contribute their expression affinity (string → TEXT, numeric → NUMERIC,
+// blob → BLOB, NULL → BLOB/neutral), and CAST contributes its target type.
+// Returns 0 (unknown → treated as BLOB) for everything else.
+func (e *Engine) memberExprAffinity(member *sql.SelectStmt, i int) rune {
+	if member == nil || i >= len(member.Columns) {
+		return 0
+	}
+	expr := member.Columns[i].Expr
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		if v.Name == "*" {
+			return 0
+		}
+		if aff, ok := e.memberFromColumnAffinity(member, v.Name); ok {
+			return aff
+		}
+		return 0
+	case *sql.CastExpr:
+		return util.Affinity(v.AsType)
+	case *sql.NumericLit:
+		return 'N'
+	case *sql.StringLit:
+		return 'T'
+	case *sql.BlobLit:
+		return 'B'
+	case *sql.NullLit:
+		return 'B'
+	default:
+		return 0
+	}
+}
+
+// memberFromColumnAffinity resolves a column reference in a compound member
+// against the member's FROM table (or, for a member whose FROM is a subquery,
+// the subquery's output column affinity). Returns (aff, true) when the
+// column's declared affinity is known.
+func (e *Engine) memberFromColumnAffinity(member *sql.SelectStmt, colName string) (rune, bool) {
+	if member == nil || member.From.Name == "" {
+		return 0, false
+	}
+	entry, _, err := e.findTable(member.From.Name)
+	if err != nil {
+		return 0, false
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, colName) {
+			aff := util.Affinity(cd.Type)
+			return aff, true
+		}
+	}
+	return 0, false
+}
+
+// walkSelectJoinExprs walks a SELECT's columns, WHERE, HAVING, and each join's
+// ON expression, used to detect outer-table references inside subqueries of a
+// join ON clause.
+func walkSelectJoinExprs(s *sql.SelectStmt, fn func(sql.Expr)) {
+	if s == nil {
+		return
+	}
+	for _, col := range s.Columns {
+		walkJoinOnExpr(col.Expr, fn)
+	}
+	walkJoinOnExpr(s.Where, fn)
+	walkJoinOnExpr(s.Having, fn)
+	for i := range s.Joins {
+		walkJoinOnExpr(s.Joins[i].On, fn)
+	}
+	for _, g := range s.GroupBy {
+		walkJoinOnExpr(g, fn)
+	}
+	for _, ob := range s.OrderBy {
+		walkJoinOnExpr(ob.Expr, fn)
 	}
 }
 

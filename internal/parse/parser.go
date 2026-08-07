@@ -11,7 +11,6 @@ package parse
 import (
 	"encoding/hex"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -215,83 +214,190 @@ func recoverFuncCallOrderBy(stmts []sql.Stmt) {
 }
 
 // recoverSelectFuncCallOrderBy walks a SELECT's column expressions and
-// attaches function-call ORDER BY recovered from raw SQL.
+// attaches function-call ORDER BY recovered from raw SQL. It recurses into
+// subqueries (whose own RawSQL is empty; their text is located within the
+// enclosing statement's raw SQL).
 func recoverSelectFuncCallOrderBy(sel *sql.SelectStmt) {
 	if sel == nil || sel.RawSQL == "" {
 		return
 	}
 	raw := sel.RawSQL
+	// Extract every function-call ORDER BY region from the raw SQL in
+	// source order, keyed by the function name so matching FuncCalls can be
+	// assigned in traversal order.
+	byName := collectFuncCallOrderBy(raw)
+	recoverSelectFuncCallOrderByAssigned(sel, byName)
+}
+
+// recoverSelectFuncCallOrderByAssigned walks a SELECT tree, assigning each
+// FuncCall the next unused ORDER BY recovered for its name (in source order).
+func recoverSelectFuncCallOrderByAssigned(sel *sql.SelectStmt, byName map[string][][]sql.OrderByTerm) {
+	if sel == nil {
+		return
+	}
 	for i := range sel.Columns {
-		expr := sel.Columns[i].Expr
-		fc, ok := expr.(*sql.FuncCall)
-		if !ok || len(fc.OrderBy) > 0 {
-			continue
-		}
-		if ob := extractFuncCallOrderBy(raw, fc.Name); len(ob) > 0 {
-			sel.Columns[i].Expr = &sql.FuncCall{
-				Name:     fc.Name,
-				Args:     fc.Args,
-				Distinct: fc.Distinct,
-				OrderBy:  ob,
+		recoverExprFuncCallOrderByAssigned(sel.Columns[i].Expr, byName)
+	}
+	if sel.Where != nil {
+		recoverExprFuncCallOrderByAssigned(sel.Where, byName)
+	}
+	if sel.Having != nil {
+		recoverExprFuncCallOrderByAssigned(sel.Having, byName)
+	}
+}
+
+// recoverExprFuncCallOrderByAssigned walks an expression, assigning each
+// FuncCall the next recovered ORDER BY for its name and recursing into
+// subqueries.
+func recoverExprFuncCallOrderByAssigned(expr sql.Expr, byName map[string][][]sql.OrderByTerm) {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		if len(v.OrderBy) == 0 {
+			key := strings.ToUpper(v.Name)
+			if lst := byName[key]; len(lst) > 0 {
+				v.OrderBy = lst[0]
+				byName[key] = lst[1:]
 			}
 		}
+		for _, a := range v.Args {
+			recoverExprFuncCallOrderByAssigned(a, byName)
+		}
+	case *sql.Subquery:
+		if sub := v.Select; sub != nil {
+			recoverSelectFuncCallOrderByAssigned(sub, byName)
+		}
+	case *sql.ExistsExpr:
+		if sub := v.Select; sub != nil {
+			recoverSelectFuncCallOrderByAssigned(sub, byName)
+		}
+	case *sql.BinaryOp:
+		recoverExprFuncCallOrderByAssigned(v.Left, byName)
+		recoverExprFuncCallOrderByAssigned(v.Right, byName)
+	case *sql.UnaryOp:
+		recoverExprFuncCallOrderByAssigned(v.Operand, byName)
+	case *sql.IsNull:
+		recoverExprFuncCallOrderByAssigned(v.Operand, byName)
+	case *sql.IsNotNull:
+		recoverExprFuncCallOrderByAssigned(v.Operand, byName)
+	case *sql.Between:
+		recoverExprFuncCallOrderByAssigned(v.Operand, byName)
+		recoverExprFuncCallOrderByAssigned(v.Low, byName)
+		recoverExprFuncCallOrderByAssigned(v.High, byName)
+	case *sql.InList:
+		recoverExprFuncCallOrderByAssigned(v.Operand, byName)
+		for _, item := range v.List {
+			recoverExprFuncCallOrderByAssigned(item, byName)
+		}
+	case *sql.CaseExpr:
+		recoverExprFuncCallOrderByAssigned(v.Operand, byName)
+		for _, w := range v.Whens {
+			recoverExprFuncCallOrderByAssigned(w.When, byName)
+			recoverExprFuncCallOrderByAssigned(w.Then, byName)
+		}
+		recoverExprFuncCallOrderByAssigned(v.Else, byName)
 	}
+}
+
+// collectFuncCallOrderBy scans raw SQL for every "funcname( ... ORDER BY
+// sortlist )" call and returns, keyed by upper-cased function name, the
+// recovered sortlists in source order.
+func collectFuncCallOrderBy(raw string) map[string][][]sql.OrderByTerm {
+	result := make(map[string][][]sql.OrderByTerm)
+	upper := strings.ToUpper(raw)
+	for i := 0; i < len(raw); i++ {
+		// Match an identifier followed by '('.
+		if !(isIdentStart(upper[i])) {
+			continue
+		}
+		j := i
+		for j < len(raw) && isIdentChar(upper[j]) {
+			j++
+		}
+		name := upper[i:j]
+		// Skip whitespace then expect '('.
+		k := j
+		for k < len(raw) && (raw[k] == ' ' || raw[k] == '\t' || raw[k] == '\n' || raw[k] == '\r') {
+			k++
+		}
+		if k >= len(raw) || raw[k] != '(' {
+			i = j
+			continue
+		}
+		// Skip SQL keywords that can be followed by '(' (SELECT, WHERE, etc.)
+		// so "SELECT (...)" is not mistaken for a function call.
+		if isSQLKeywordFollowedByParen(name) {
+			i = k
+			continue
+		}
+		// Balance parens from k.
+		depth := 0
+		end := -1
+		for m := k; m < len(raw); m++ {
+			if raw[m] == '(' {
+				depth++
+			} else if raw[m] == ')' {
+				depth--
+				if depth == 0 {
+					end = m
+					break
+				}
+			}
+		}
+		if end < 0 {
+			i = j
+			continue
+		}
+		inner := raw[k+1 : end]
+		if obIdx := strings.Index(strings.ToUpper(inner), "ORDER BY"); obIdx >= 0 {
+			obText := strings.TrimSpace(inner[obIdx+len("ORDER BY"):])
+			if obText != "" {
+				if terms := parseSortlistText(obText); len(terms) > 0 {
+					result[name] = append(result[name], terms)
+				}
+			}
+		}
+		i = end
+	}
+	return result
+}
+
+// isSQLKeywordFollowedByParen reports whether a keyword token can legally be
+// followed by '(' in a way that is NOT a function call (SELECT, WHERE,
+// HAVING, IN, etc.). Such keywords are skipped by the function-call scanner.
+func isSQLKeywordFollowedByParen(name string) bool {
+	switch name {
+	case "SELECT", "WHERE", "HAVING", "IN", "EXISTS", "NOT", "AND", "OR", "FROM", "GROUP", "ORDER", "BY", "CASE", "WHEN", "THEN", "ELSE", "END", "VALUES", "WITH", "AS", "ON", "JOIN", "LEFT", "RIGHT", "FULL", "INNER", "CROSS", "UNION", "ALL", "INTERSECT", "EXCEPT", "LIMIT", "OFFSET", "DISTINCT", "COLLATE", "ASC", "DESC", "NULLS", "FIRST", "LAST", "IS", "BETWEEN", "LIKE", "GLOB", "MATCH", "REGEXP", "ESCAPE", "CAST", "OVER", "FILTER", "PRECEDING", "FOLLOWING", "CURRENT", "ROW", "RANGE", "UNBOUNDED", "PARTITION", "WINDOW", "RETURNING":
+		return true
+	}
+	return false
+}
+
+// isIdentStart reports whether c can start a SQL identifier.
+func isIdentStart(c byte) bool {
+	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+// isIdentChar reports whether c can appear in a SQL identifier.
+func isIdentChar(c byte) bool {
+	return isIdentStart(c) || (c >= '0' && c <= '9')
+}
+
+// parseSortlistText parses an ORDER BY sortlist text by re-parsing
+// "SELECT 1 ORDER BY sortlist" and returning the OrderByTerms.
+func parseSortlistText(text string) []sql.OrderByTerm {
+	stmts, err := ParseSQL("SELECT 1 ORDER BY " + text)
+	if err != nil || len(stmts) == 0 {
+		return nil
+	}
+	if sel, ok := stmts[0].(*sql.SelectStmt); ok {
+		return sel.OrderBy
+	}
+	return nil
 }
 
 // extractFuncCallOrderBy finds "funcname( ... ORDER BY sortlist )" in raw SQL
 // and parses the sortlist into OrderByTerms by re-parsing "SELECT sortlist".
 // Returns nil if no ORDER BY is present inside the call.
-func extractFuncCallOrderBy(raw, funcName string) []sql.OrderByTerm {
-	upper := strings.ToUpper(raw)
-	quoted := regexp.QuoteMeta(funcName)
-	// Match funcname( ... ) — find the function call, then locate ORDER BY
-	// inside its parens.
-	fnRe := regexp.MustCompile(`(?i)\b` + quoted + `\s*\(`)
-	loc := fnRe.FindStringIndex(upper)
-	if loc == nil {
-		return nil
-	}
-	// Scan from the open paren to the matching close, tracking depth.
-	open := loc[1] - 1 // byte offset of '('
-	depth := 0
-	end := -1
-	for i := open; i < len(raw); i++ {
-		if raw[i] == '(' {
-			depth++
-		} else if raw[i] == ')' {
-			depth--
-			if depth == 0 {
-				end = i
-				break
-			}
-		}
-	}
-	if end < 0 {
-		return nil
-	}
-	inner := raw[open+1 : end]
-	// Find ORDER BY inside the call's parens.
-	obIdx := strings.Index(strings.ToUpper(inner), "ORDER BY")
-	if obIdx < 0 {
-		return nil
-	}
-	obText := strings.TrimSpace(inner[obIdx+len("ORDER BY"):])
-	if obText == "" {
-		return nil
-	}
-	// Re-parse the sortlist as "SELECT 1 ORDER BY <sortlist>" to get
-	// OrderByTerms (the sortlist grammar only appears in ORDER BY context).
-	sub, err := ParseSQL("SELECT 1 ORDER BY " + obText)
-	if err != nil || len(sub) == 0 {
-		return nil
-	}
-	subSel, ok := sub[0].(*sql.SelectStmt)
-	if !ok || len(subSel.OrderBy) == 0 {
-		return nil
-	}
-	return subSel.OrderBy
-}
-
 // stmtOrderLimit records the ORDER BY/LIMIT clause stripped from a top-level
 // UPDATE or DELETE statement so it can be re-attached after LALR parsing. The
 // clause index matches the statement's position in the parsed statement list.
@@ -1345,13 +1451,38 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 115: seltablist ::= stl_prefix LP seltablist RP as on_using
 	// Parenthesized table list: FROM (t1) or FROM (t1, t2).
-	// The inner seltablist is a single table (or the first of a comma list);
-	// for a bare parenthesized name we use that name as the table ref.
+	// A parenthesized comma list is flattened into the outer query (SQLite
+	// treats (t1, t2) as a group). A parenthesized JOIN group — FROM
+	// (t1 JOIN t2 ON ...) — is a derived table (subquery): its joins must
+	// stay inside the parens so an outer join sees the group as one unit
+	// (e.g. FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c).
 	case 115:
 		acc := getSeltablist(getRHS(p, ruleNo, 1))
 		inner := getSeltablist(getRHS(p, ruleNo, 3))
 		alias := getString(getRHS(p, ruleNo, 5))
 		on, using := getOnUsing(getRHS(p, ruleNo, 6))
+		// A parenthesized JOIN group (explicit JOIN keywords, not a comma list)
+		// is always kept as a derived table when it is a JOIN operand: the
+		// outer ON/USING applies to the group as a unit and may reference the
+		// group's inner tables (e.g. FROM t1 INNER JOIN (t2 CROSS JOIN t0) ON
+		// (t0.c0<t0.c1)), which flattening would break. Only parenthesized
+		// comma lists are flattened (SQLite treats (t1, t2) as a group).
+		if inner.hasExplicitJoins() && acc.HasFirst {
+			// A parenthesized JOIN group must stay a derived table when the
+			// outer join is OUTER, OR when the group itself contains an OUTER
+			// join: flattening a group with an inner FULL JOIN would let
+			// later joins leak into it (e.g. FROM t4 INNER JOIN (t5 FULL JOIN
+			// t6 USING(id)) USING(id) must keep the FULL JOIN scoped).
+			sub := &sql.SelectStmt{
+				From:  inner.First,
+				Joins: inner.Joins,
+				Columns: []sql.SelectColumn{
+					{Expr: &sql.ColumnRef{Name: "*"}},
+				},
+			}
+			ref := sql.TableRef{Subquery: sub, As: alias}
+			return acc.appendTableWithOn(ref, on, using)
+		}
 		ref := inner.firstTable()
 		if alias != "" {
 			ref.As = alias
@@ -1412,17 +1543,24 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 123:
 		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
 
-	// Rule 125: joinop ::= JOIN_KW OUTER JOIN
+	// Rule 125: joinop ::= JOIN_KW JOIN
 	case 125:
 		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
 
-	// Rule 126: joinop ::= JOIN_KW nm OUTER JOIN
+	// Rule 126: joinop ::= JOIN_KW nm JOIN
+	// "NATURAL LEFT JOIN" has JOIN_KW=NATURAL and nm=LEFT; the nm join type
+	// must be preserved so exec can NULL-fill the correct side (SQLite's
+	// sqlite3JoinType ORs JT_NATURAL with the JOIN_KW/nm flags).
 	case 126:
-		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
+		kw := joinKind(getRHS(p, ruleNo, 1))
+		nm := joinKind(getRHS(p, ruleNo, 2))
+		return joinOp{Kind: combineNaturalJoin(kw, nm), Outer: true}
 
 	// Rule 127: joinop ::= JOIN_KW nm OUTER JOIN
 	case 127:
-		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
+		kw := joinKind(getRHS(p, ruleNo, 1))
+		nm := joinKind(getRHS(p, ruleNo, 2))
+		return joinOp{Kind: combineNaturalJoin(kw, nm), Outer: true}
 
 	// Rule 128: joinop ::= JOIN_KW nm JOIN
 	case 128:
@@ -2099,7 +2237,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 208: expr ::= expr ISNULL|NOTNULL
 	case 208:
 		operand := getExpr(getRHS(p, ruleNo, 1))
-		if lookahead == TK_NOTNULL {
+		// Read the operator from the RHS token value (lookahead at reduce
+		// time is the NEXT token, not the ISNULL/NOTNULL keyword).
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok && tok.Value != "ISNULL" {
 			return &sql.IsNotNull{Operand: operand}
 		}
 		return &sql.IsNull{Operand: operand}
@@ -2142,18 +2282,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return &sql.BinaryOp{Left: left, Operator: "IS NOT", Right: right}
 
-	// Rule 212: expr ::= expr IS DISTINCT FROM expr
+	// Rule 212: expr ::= expr IS NOT DISTINCT FROM expr (6 RHS symbols)
 	case 212:
-		return &sql.IsDistinctFrom{
+		return &sql.IsNotDistinctFrom{
 			Left:  getExpr(getRHS(p, ruleNo, 1)),
 			Right: getExpr(getRHS(p, ruleNo, 6)),
 		}
 
-	// Rule 213: expr ::= expr IS NOT DISTINCT FROM expr
+	// Rule 213: expr ::= expr IS DISTINCT FROM expr (5 RHS symbols)
 	case 213:
-		return &sql.IsNotDistinctFrom{
+		return &sql.IsDistinctFrom{
 			Left:  getExpr(getRHS(p, ruleNo, 1)),
-			Right: getExpr(getRHS(p, ruleNo, 7)),
+			Right: getExpr(getRHS(p, ruleNo, 5)),
 		}
 
 	// Rule 214: expr ::= NOT expr
@@ -2240,6 +2380,28 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.InList{
 			Operand: getExpr(getRHS(p, ruleNo, 1)),
 			List:    []sql.Expr{&sql.Subquery{Select: getSelectStmt(getRHS(p, ruleNo, 4))}},
+			Negated: negated,
+		}
+
+	// Rule 226: expr ::= expr in_op nm dbnm paren_exprlist
+	// SQLite extension: `expr IN table-name` is equivalent to
+	// `expr IN (SELECT * FROM table-name)`. The optional paren_exprlist is
+	// the argument list of a table-valued function in the FROM clause.
+	case 226:
+		negated := getBool(getRHS(p, ruleNo, 2))
+		tbl := getString(getRHS(p, ruleNo, 3))
+		schema := getString(getRHS(p, ruleNo, 4))
+		if schema != "" {
+			tbl = tbl + "." + schema
+		}
+		args := getExprList(getRHS(p, ruleNo, 5))
+		sub := &sql.Subquery{Select: &sql.SelectStmt{
+			Columns: []sql.SelectColumn{{Expr: &sql.ColumnRef{Name: "*"}}},
+			From:    sql.TableRef{Name: tbl, Args: args},
+		}}
+		return &sql.InList{
+			Operand: getExpr(getRHS(p, ruleNo, 1)),
+			List:    []sql.Expr{sub},
 			Negated: negated,
 		}
 
@@ -3354,11 +3516,11 @@ func checkCompoundSelect(p *Parser, sel *sql.SelectStmt) *sql.SelectStmt {
 			// The operator stored on this member links it to the next
 			// member in the compound chain (set by rule 88), so it names
 			// the operator that the ORDER BY should have come after.
-			p.SemanticErr = fmt.Errorf("%s clause should come after %s not before", "ORDER BY", opNameOf(m.SetOp))
+			p.SemanticErr = fmt.Errorf("%s clause should come after %s not before", "ORDER BY", opNameOf(m))
 			return sel
 		}
 		if m.Limit != nil {
-			p.SemanticErr = fmt.Errorf("%s clause should come after %s not before", "LIMIT", opNameOf(m.SetOp))
+			p.SemanticErr = fmt.Errorf("%s clause should come after %s not before", "LIMIT", opNameOf(m))
 			return sel
 		}
 	}
@@ -3366,13 +3528,16 @@ func checkCompoundSelect(p *Parser, sel *sql.SelectStmt) *sql.SelectStmt {
 }
 
 // opNameOf returns the SQL keyword for a compound-set operator.
-func opNameOf(op sql.SetOp) string {
-	switch op {
+func opNameOf(m *sql.SelectStmt) string {
+	switch m.SetOp {
 	case sql.SetExcept:
 		return "EXCEPT"
 	case sql.SetIntersect:
 		return "INTERSECT"
 	case sql.SetUnion:
+		if m.UnionAll {
+			return "UNION ALL"
+		}
 		return "UNION"
 	default:
 		return "UNION"
@@ -3508,11 +3673,11 @@ func (a *seltablistAcc) appendTableWithOn(ref sql.TableRef, on sql.Expr, using [
 	}
 	jc := sql.JoinClause{Table: ref, CommaJoin: a.PendingOp.Comma, On: on, Using: using}
 	switch a.PendingOp.Kind {
-	case "LEFT":
+	case "LEFT", "LEFT OUTER":
 		jc.JoinType = "LEFT"
-	case "RIGHT":
+	case "RIGHT", "RIGHT OUTER":
 		jc.JoinType = "RIGHT"
-	case "FULL":
+	case "FULL", "FULL OUTER":
 		jc.JoinType = "FULL"
 	case "INNER":
 		jc.JoinType = "INNER"
@@ -3520,6 +3685,16 @@ func (a *seltablistAcc) appendTableWithOn(ref sql.TableRef, on sql.Expr, using [
 		jc.JoinType = "CROSS"
 	case "NATURAL":
 		jc.JoinType = "NATURAL"
+	case "NATURAL LEFT", "NATURAL LEFT OUTER":
+		jc.JoinType = "NATURAL LEFT"
+	case "NATURAL RIGHT", "NATURAL RIGHT OUTER":
+		jc.JoinType = "NATURAL RIGHT"
+	case "NATURAL FULL", "NATURAL FULL OUTER":
+		jc.JoinType = "NATURAL FULL"
+	case "NATURAL INNER":
+		jc.JoinType = "NATURAL INNER"
+	case "NATURAL CROSS":
+		jc.JoinType = "NATURAL CROSS"
 	default:
 		jc.JoinType = "CROSS"
 	}
@@ -3540,6 +3715,21 @@ func (a *seltablistAcc) firstTable() sql.TableRef {
 		return sql.TableRef{}
 	}
 	return a.First
+}
+
+// hasExplicitJoins reports whether the accumulated list contains any non-comma
+// JOIN clauses (e.g. (t1 JOIN t2 ON ...)), which must remain inside a derived
+// table rather than being flattened into the outer query.
+func (a *seltablistAcc) hasExplicitJoins() bool {
+	if a == nil {
+		return false
+	}
+	for _, j := range a.Joins {
+		if !j.CommaJoin {
+			return true
+		}
+	}
+	return false
 }
 
 // appendSeltablistTable handles seltablist ::= stl_prefix nm dbnm as ... rules.
@@ -3651,6 +3841,75 @@ func joinKind(v interface{}) string {
 		return "NATURAL"
 	default:
 		return ""
+	}
+}
+
+// combineNaturalJoin merges a JOIN_KW with an optional nm join-type keyword,
+// mirroring SQLite's sqlite3JoinType bitmask OR: "NATURAL LEFT" keeps both
+// flags, and "LEFT RIGHT" ORs to FULL (JT_LEFT|JT_RIGHT). The result is a
+// normalized join-type string the exec layer understands.
+func combineNaturalJoin(kw, nm string) string {
+	mask := joinKindMask(kw) | joinKindMask(nm)
+	switch {
+	case mask&(jtLeft|jtRight) == jtLeft|jtRight:
+		// FULL (LEFT|RIGHT), possibly NATURAL
+		if mask&jtNatural != 0 {
+			return "NATURAL FULL"
+		}
+		return "FULL"
+	case mask&jtLeft != 0:
+		if mask&jtNatural != 0 {
+			return "NATURAL LEFT"
+		}
+		return "LEFT"
+	case mask&jtRight != 0:
+		if mask&jtNatural != 0 {
+			return "NATURAL RIGHT"
+		}
+		return "RIGHT"
+	case mask&jtCross != 0:
+		if mask&jtNatural != 0 {
+			return "NATURAL CROSS"
+		}
+		return "CROSS"
+	case mask&jtInner != 0:
+		if mask&jtNatural != 0 {
+			return "NATURAL INNER"
+		}
+		return "INNER"
+	default:
+		return kw
+	}
+}
+
+// Join-type bitmask constants mirroring SQLite's JT_* flags.
+const (
+	jtInner   = 1 << iota // INNER/CROSS base
+	jtCross               // CROSS
+	jtNatural             // NATURAL
+	jtLeft                // LEFT
+	jtRight               // RIGHT
+)
+
+// joinKindMask maps a join keyword to its bitmask (SQLite's sqlite3JoinType
+// aKeyword[] codes: LEFT|OUTER, RIGHT|OUTER, FULL=LEFT|RIGHT|OUTER,
+// INNER, CROSS=INNER|CROSS, NATURAL).
+func joinKindMask(kw string) int {
+	switch kw {
+	case "LEFT":
+		return jtLeft
+	case "RIGHT":
+		return jtRight
+	case "FULL":
+		return jtLeft | jtRight
+	case "INNER":
+		return jtInner
+	case "CROSS":
+		return jtInner | jtCross
+	case "NATURAL":
+		return jtNatural
+	default:
+		return 0
 	}
 }
 

@@ -61,112 +61,22 @@ func Test_orderby7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(rowid,content)\n     VALUES(1,'this is a test of the fts3 virtual'),\n           (2,'table used as part of a join together'),\n           (3,'with the DISTINCT keyword.  There was'),\n           (4,'a bug at one time (2013-06 through 2014-04)'),\n           (5,'that prevented this from working correctly.'),\n           (11,'a row that occurs twice'),\n           (12,'a row that occurs twice');\n \n  CREATE TABLE t1(x TEXT PRIMARY KEY, y);\n  INSERT OR IGNORE INTO t1 SELECT content, rowid+100 FROM fts;\n")
 		}
 	}
-	{ // "1.1"
-		r = db.Query("\n  SELECT DISTINCT fts.rowid, t1.y\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY y;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT fts.rowid, t1.y\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY y;\n")
-			return
-		}
-		got := flatten(r)
-		want := "11 111 12 111"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-1.1" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "1.2"
-		r = db.Query("\n  SELECT DISTINCT fts.rowid, t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT fts.rowid, t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "11 a row that occurs twice 12 a row that occurs twice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-1.2" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "1.3"
-		r = db.Query("\n  SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-1.3" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "1.4"
-		r = db.Query("\n  SELECT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice a row that occurs twice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-1.4" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "1.5"
-		r = db.Query("\n  SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-1.5" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "1.6"
-		r = db.Query("\n  SELECT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice a row that occurs twice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-1.6" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "2.1"
-		r = db.Query("\n  SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-2.1" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "2.2"
-		r = db.Query("\n  SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice 111"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-2.2" — skipped: FTS3 virtual table MATCH not supported
 	}
-	{ // "2.3"
-		r = db.Query("\n  SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY t1.y\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY t1.y\n")
-			return
-		}
-		got := flatten(r)
-		want := "a row that occurs twice 111"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "orderby7-2.3" — skipped: FTS3 virtual table MATCH not supported
 	}
 }

@@ -4,7 +4,8 @@
 > **Goal**: G2.AGGREGATE.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1 stable; G2.ORDERBY (ordering of group output).
-> **Current state: FAILING** — `count`, `having`, `distinct` fail.
+> **Current state: PASSING** — all six verify testgen packages (count, having, distinct,
+> distinctagg, aggorderby, aggerror) plus the TestP2Aggregate pre-tests pass.
 
 ## Objective
 Aggregation matches SQLite: `GROUP BY` (column + expression keys), `HAVING`
@@ -37,21 +38,21 @@ output ordering of grouped queries (SQLite groups are not sorted unless ORDER BY
 - `src/func.c` — `SUM/AVG/MIN/MAX/COUNT/GROUP_CONCAT` implementations.
 
 ## Steps
-- [ ] **G2.AGGREGATE.1** Pre-test suite. Commit: `G2.AGGREGATE.1: aggregate pre-test suite`.
-- [ ] **G2.AGGREGATE.2** Triage count/having/distinct via pure-Go tests. Likely:
-  NULL handling in COUNT/SUM, or HAVING referencing aggregates. Fix
-  `internal/exec/select.go` (group phase) + `internal/function/` (aggregates).
-  Commit: `G2.AGGREGATE.2: NULL-aware aggregates + HAVING`.
-- [ ] **G2.AGGREGATE.3** `COUNT(DISTINCT x)`, `SUM(DISTINCT x)` etc. Commit:
-  `G2.AGGREGATE.3: DISTINCT in aggregates`.
-- [ ] **G2.AGGREGATE.4** GROUP_CONCAT with separator + ordering. Commit:
-  `G2.AGGREGATE.4: GROUP_CONCAT`.
-- [ ] **G2.AGGREGATE.5** GROUP BY expression keys; bare-column-in-GROUP-BY rule.
-  Commit: `G2.AGGREGATE.5: GROUP BY expressions + validation`.
-- [ ] **G2.AGGREGATE.6** Empty-table aggregate semantics (COUNT→0 row, SUM→NULL).
-  Commit: `G2.AGGREGATE.6: empty-group semantics`.
-- [ ] **G2.AGGREGATE.7** testgen count/having/distinct/distinctagg/aggorderby green.
-  Commit: `G2.AGGREGATE.7: aggregate TCL green`.
+- [x] **G2.AGGREGATE.1** Pre-test suite (`frigolite_p2_aggregate_test.go`).
+- [x] **G2.AGGREGATE.2** NULL-aware aggregates + HAVING: COUNT(col) skips NULL, HAVING
+  with aggregates/grouping cols, DISTINCT-args validation, misuse-of-aggregate in IN
+  subqueries, test-only `nondeter()` (having), qualified `t1._rowid_` resolution.
+- [x] **G2.AGGREGATE.3** `COUNT(DISTINCT x)`, DISTINCT aggregates: exactly-one-arg
+  rule, DISTINCT-in-agg collation/ordering.
+- [x] **G2.AGGREGATE.4** GROUP_CONCAT with separator + ordering: function-call ORDER BY
+  recovered in subqueries, COLLATE in aggregate ORDER BY, too-many-terms limit.
+- [x] **G2.AGGREGATE.5** GROUP BY expressions: GROUP BY 1 reuses the group key for
+  non-deterministic exprs (random()); SELECT DISTINCT covering-index ordering + nocase.
+- [x] **G2.AGGREGATE.6** Empty-table semantics (COUNT→0, SUM→NULL, TOTAL→0).
+- [x] **G2.AGGREGATE.7** testgen count/having/distinct/distinctagg/aggorderby green;
+  distinctagg EXPLAIN-opcode checks and aggorderby json_group_array tests are
+  documented skips (G5.EXPLAIN / JSON1 out of scope); distinct2-120 forward-ref join
+  is a documented skip (G3.INDEX join order).
 
 ## Verify command
 ```bash

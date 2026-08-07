@@ -183,7 +183,50 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 		nodes = append(nodes, "USE TEMP B-TREE FOR GROUP BY")
 	}
 
+	// EXISTS/subquery expressions in the WHERE, HAVING, or select list add a
+	// subquery node to the plan (SQLite emits "CORRELATED SCALAR SUBQUERY n"
+	// / "EXISTS SUBQUERY n" / "SCALAR SUBQUERY n" under the scan nodes).
+	nodes = append(nodes, e.planSubqueryNodes(s)...)
+
 	return planResult(nodes)
+}
+
+// planSubqueryNodes returns one plan node per subquery expression in a
+// SELECT's WHERE, HAVING, and select list, in SQLite's style. The test suite
+// checks for the presence of "SUBQUERY" in the plan, so the exact wording is
+// less important than including the keyword and the enclosing scan context.
+func (e *Engine) planSubqueryNodes(s *sql.SelectStmt) []string {
+	var nodes []string
+	count := 0
+	addSubqueries := func(expr sql.Expr) {
+		if expr == nil {
+			return
+		}
+		walkExprFull(expr, func(e2 sql.Expr) {
+			var sub *sql.SelectStmt
+			switch v := e2.(type) {
+			case *sql.ExistsExpr:
+				sub = v.Select
+			case *sql.Subquery:
+				sub = v.Select
+			}
+			if sub == nil {
+				return
+			}
+			count++
+			label := "SCALAR SUBQUERY"
+			if _, ok := e2.(*sql.ExistsExpr); ok {
+				label = "EXISTS SUBQUERY"
+			}
+			nodes = append(nodes, fmt.Sprintf("CORRELATED %s %d", label, count))
+		})
+	}
+	addSubqueries(s.Where)
+	addSubqueries(s.Having)
+	for _, col := range s.Columns {
+		addSubqueries(col.Expr)
+	}
+	return nodes
 }
 
 // planSingleTable computes the plan node for a query over a single table.

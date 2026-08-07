@@ -1782,20 +1782,18 @@ func joinClausesToString(joins []sql.JoinClause) string {
 			}
 			continue
 		}
-		switch j.JoinType {
-		case "LEFT":
+		switch {
+		case strings.Contains(j.JoinType, "FULL"):
+			result += " FULL JOIN "
+		case strings.Contains(j.JoinType, "LEFT"):
 			result += " LEFT JOIN "
-		case "LEFT OUTER":
-			result += " LEFT OUTER JOIN "
-		case "RIGHT":
+		case strings.Contains(j.JoinType, "RIGHT"):
 			result += " RIGHT JOIN "
-		case "RIGHT OUTER":
-			result += " RIGHT OUTER JOIN "
-		case "CROSS":
+		case strings.Contains(j.JoinType, "CROSS") && !strings.Contains(j.JoinType, "NATURAL"):
 			result += " CROSS JOIN "
-		case "NATURAL":
+		case strings.Contains(j.JoinType, "NATURAL"):
 			result += " NATURAL JOIN "
-		case "INNER":
+		case strings.Contains(j.JoinType, "INNER"):
 			result += " INNER JOIN "
 		default:
 			result += " JOIN "

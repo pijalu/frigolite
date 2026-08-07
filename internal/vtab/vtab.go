@@ -20,6 +20,12 @@ type VirtualTable interface {
 	Open() (Cursor, error)
 }
 
+// ColumnInfo is implemented by virtual tables that can report their column
+// names (used by table-valued functions like generate_series).
+type ColumnInfo interface {
+	Columns() []string
+}
+
 // Module creates virtual table instances.
 type Module interface {
 	Create(args []string) (VirtualTable, error)
@@ -107,6 +113,11 @@ func (m *GenerateSeriesModule) Connect(args []string) (VirtualTable, error) {
 
 func (v *generateSeriesVTab) BestIndex(input []byte) ([]byte, error) {
 	return nil, nil
+}
+
+// Columns reports the generate_series column names (value).
+func (v *generateSeriesVTab) Columns() []string {
+	return []string{"value"}
 }
 
 func (v *generateSeriesVTab) Open() (Cursor, error) {

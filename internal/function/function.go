@@ -329,7 +329,7 @@ func (m *minAgg) Step(args []interface{}) error {
 		if arg == nil {
 			continue
 		}
-		if !m.set || less(arg, m.min) {
+		if !m.set || util.CompareValues(arg, m.min) < 0 {
 			m.min = arg
 			m.set = true
 		}
@@ -351,7 +351,7 @@ func (m *maxAgg) Step(args []interface{}) error {
 		if arg == nil {
 			continue
 		}
-		if !m.set || less(m.max, arg) {
+		if !m.set || util.CompareValues(m.max, arg) < 0 {
 			m.max = arg
 			m.set = true
 		}
@@ -713,12 +713,30 @@ func fnTYPEOF(args []interface{}) (interface{}, error) {
 }
 
 // fnAFFINITY implements the test-only affinity() function from the SQLite TCL
-// test suite. It reports the storage-class affinity of its argument's value
-// (integer/real/text/blob/none), matching the column-affinity reports the
-// test suite expects for values that survived column affinity conversion.
+// test suite. It reports the affinity of the column its argument refers to
+// (integer/real/text/blob/none): a ColumnValue wrapper carries the declared
+// column affinity (from a table scan or materialized subquery/CTE column),
+// while a bare value reports its storage class (the fallback for literals).
 func fnAFFINITY(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return "none", nil
+	}
+	// A ColumnValue wrapper carries the declared column affinity; report it
+	// even when the stored value has a different storage class (SQLite's
+	// affinity() reports the column affinity, not the value type).
+	if cv, ok := args[0].(*util.ColumnValue); ok {
+		switch cv.Affinity {
+		case 'I':
+			return "integer", nil
+		case 'R':
+			return "real", nil
+		case 'T':
+			return "text", nil
+		case 'N':
+			return "numeric", nil
+		default:
+			return "blob", nil
+		}
 	}
 	switch args[0].(type) {
 	case int64:
@@ -958,38 +976,6 @@ func toFloat64(v interface{}) (float64, error) {
 	default:
 		return 0, fmt.Errorf("cannot convert %T to number", v)
 	}
-}
-
-func less(a, b interface{}) bool {
-	// Unwrap ColumnValue if present
-	if cv, ok := a.(*util.ColumnValue); ok {
-		a = cv.Value
-	}
-	if cv, ok := b.(*util.ColumnValue); ok {
-		b = cv.Value
-	}
-	// Simple comparison for aggregates
-	switch x := a.(type) {
-	case int64:
-		switch y := b.(type) {
-		case int64:
-			return x < y
-		case float64:
-			return float64(x) < y
-		}
-	case float64:
-		switch y := b.(type) {
-		case int64:
-			return x < float64(y)
-		case float64:
-			return x < y
-		}
-	case string:
-		if y, ok := b.(string); ok {
-			return x < y
-		}
-	}
-	return false
 }
 
 // GlobMatch implements SQLite GLOB matching (* and ? wildcards).

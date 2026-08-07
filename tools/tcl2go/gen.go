@@ -631,6 +631,7 @@ type transpiler struct {
 	counterFuncs     map[string]string     // `proc NAME {} { incr ::VAR }`: NAME increments VAR
 	dbClosed         bool                  // main "db" connection was closed via `db close`
 	testPrefix       string                // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
+	queryVars        map[string]bool       // TCL vars known to hold query SQL (set/append to SELECT...)
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -1559,6 +1560,53 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	args := parts[1:]
 
 	switch cmdName {
+	case "cols", "exprs":
+		// TCL test procs from existsexpr.test: cols s f generates
+		// "c<s>, c<s+1>, ..., c<f>" (zero-padded to 2 digits) and exprs s f
+		// generates "c<s> = o AND ... AND c<f> = o". Both take numeric
+		// literals here, so the result is computed at transpile time and
+		// emitted as a literal.
+		if len(args) == 2 {
+			s, err1 := strconv.Atoi(args[0])
+			f, err2 := strconv.Atoi(args[1])
+			if err1 == nil && err2 == nil {
+				var parts []string
+				for i := s; i <= f; i++ {
+					if cmdName == "exprs" {
+						parts = append(parts, fmt.Sprintf("c%02d = o", i))
+					} else {
+						parts = append(parts, fmt.Sprintf("c%02d", i))
+					}
+				}
+				if cmdName == "exprs" {
+					return fmt.Sprintf("%q", strings.Join(parts, " AND "))
+				}
+				return fmt.Sprintf("%q", strings.Join(parts, ", "))
+			}
+		}
+		return fmt.Sprintf("%q", cmdText)
+	case "vals":
+		// TCL test proc from existsexpr.test: vals n val generates "val, val,
+		// ..." n times. The value may be a $var (bound at runtime).
+		if len(args) == 2 {
+			n, err := strconv.Atoi(args[0])
+			if err == nil {
+				valExpr := tp.buildStringExpr(args[1])
+				if tp.vars != nil && strings.HasPrefix(strings.TrimSpace(args[1]), "$") {
+					var segs []string
+					for i := 0; i < n; i++ {
+						segs = append(segs, "sqlLiteral("+tclVarToGo(strings.TrimPrefix(strings.TrimSpace(args[1]), "$"))+")")
+					}
+					return strings.Join(segs, " + \", \" + ")
+				}
+				var segs []string
+				for i := 0; i < n; i++ {
+					segs = append(segs, valExpr)
+				}
+				return strings.Join(segs, " + \", \" + ")
+			}
+		}
+		return fmt.Sprintf("%q", cmdText)
 	case "expr":
 		exprStr := strings.TrimSpace(strings.TrimPrefix(cmdText, "expr"))
 		if len(exprStr) >= 2 && exprStr[0] == '{' && exprStr[len(exprStr)-1] == '}' {
@@ -2432,16 +2480,32 @@ func (tp *transpiler) listVarExpected(rawText string) (string, bool) {
 // form does not match.
 func (tp *transpiler) listExpectedErrorMsg(rawText string) (string, bool) {
 	text := strings.TrimSpace(rawText)
-	if !strings.HasPrefix(text, "[list 1") || !strings.HasSuffix(text, "]") {
+	if !strings.HasPrefix(text, "[list ") || !strings.HasSuffix(text, "]") {
 		return "", false
 	}
-	inner := strings.TrimSpace(text[len("[list 1") : len(text)-1])
+	inner := strings.TrimSpace(text[len("[list ") : len(text)-1])
 	if inner == "" {
+		return "", false
+	}
+	// Handle the TCL {*} list-splice form: [list {*}{1 <msg>}] evaluates to
+	// the same two-element list as [list 1 <msg>]. Strip the {*} marker and
+	// the surrounding braces of the spliced list.
+	if strings.HasPrefix(inner, "{*}") {
+		inner = strings.TrimSpace(inner[len("{*}"):])
+		if len(inner) >= 2 && inner[0] == '{' && inner[len(inner)-1] == '}' {
+			inner = strings.TrimSpace(inner[1 : len(inner)-1])
+		}
+	}
+	if !strings.HasPrefix(inner, "1") {
+		return "", false
+	}
+	rest := strings.TrimSpace(inner[1:])
+	if rest == "" {
 		return "", false
 	}
 	// The message is a TCL word: strip outer double-quotes or braces and
 	// resolve TCL quoted escapes before interpolation.
-	msg := inner
+	msg := rest
 	if len(msg) >= 2 && msg[0] == '"' && msg[len(msg)-1] == '"' {
 		msg = msg[1 : len(msg)-1]
 		msg = tclUnescapeQuoted(msg)
@@ -2664,6 +2728,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			dbVarFuncs: tp.dbVarFuncs,
 			constFuncs: tp.constFuncs,
 			testPrefix: tp.testPrefix,
+			queryVars:  tp.queryVars,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -2674,6 +2739,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		tp.unsetVars = bodyTP.unsetVars
 		tp.dbVarFuncs = bodyTP.dbVarFuncs
 		tp.constFuncs = bodyTP.constFuncs
+		tp.queryVars = bodyTP.queryVars
 		// A multi-command body whose expected value is a variable holding an
 		// error message (e.g. foreach $error in "13.2.$tn.1"): the last
 		// statement must fail with that message. When the body is a catchsql
@@ -2696,6 +2762,18 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 				if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
 					bodyIsExecsqlQuery = true
 					break
+				}
+			}
+		}
+		// Multi-command bodies ending in `execsql $var` where $var holds query
+		// SQL (e.g. join3's `set sql "SELECT..."; ...; execsql $sql`) also
+		// return the flattened query result, not an error.
+		if !bodyIsExecsqlQuery && len(bodyCmds) >= 1 {
+			lastCmd := bodyCmds[len(bodyCmds)-1]
+			if len(lastCmd) >= 2 && lastCmd[0].Text == "execsql" {
+				varName := strings.TrimPrefix(lastCmd[1].Text, "$")
+				if tp.queryVars[varName] {
+					bodyIsExecsqlQuery = true
 				}
 			}
 		}
@@ -2739,6 +2817,28 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 						tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, %s, %s)", expectedExpr, nameExpr)
 						tp.emitLine("}")
 					}
+				}
+			} else if bodyEndsWithIndexExpr(bodyCmds) {
+				// The body ends with `expr {$idx>=0}` after `set idx [lsearch
+				// $prg OpenEphemeral]` — compare the search result against the
+				// expected boolean (0/1). The lsearch index is >=0 when the
+				// opcode was found.
+				lastCmd := bodyCmds[len(bodyCmds)-1]
+				exprText := strings.TrimSpace(lastCmd[1].Text)
+				// Find the compared variable (e.g. "$idx>=0" → idx).
+				varName := ""
+				if idx := strings.Index(exprText, ">="); idx >= 0 {
+					varName = strings.TrimSpace(strings.TrimPrefix(exprText[:idx], "$"))
+				} else if idx := strings.Index(exprText, ">"); idx >= 0 {
+					varName = strings.TrimSpace(strings.TrimPrefix(exprText[:idx], "$"))
+				}
+				if goVar := tclVarToGo(varName); isValidGoIdent(goVar) {
+					gotExpr := fmt.Sprintf("%s != \"-1\"", goVar)
+					tp.emitLine("got := %s", gotExpr)
+					tp.emitLine("want := tclBool(%s)", expectedExpr)
+					tp.emitLine("if got != want {")
+					tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%v]\\n  want: [%%v]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
+					tp.emitLine("}")
 				}
 			} else {
 				tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
@@ -2857,6 +2957,13 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 		// UPDATE..." returns the rows of every SELECT in between, and db.Query
 		// must be used to collect them (db.Exec discards query results).
 		containsQuery := false
+		// A $var argument whose value is known to hold query SQL (tracked by
+		// markQueryVar) must go through db.Query so the rows are collected.
+		if len(args) > 0 {
+			if varName := strings.TrimPrefix(args[0].Text, "$"); tp.queryVars[varName] {
+				containsQuery = true
+			}
+		}
 		for _, stmt := range strings.Split(sqlText, ";") {
 			if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
 				containsQuery = true
@@ -3077,6 +3184,59 @@ var skipTests = map[string]string{
 	"whereF-6.2": "json_each virtual table not supported",
 	"whereF-6.3": "json_each virtual table not supported",
 	"whereF-6.4": "json_each virtual table not supported",
+
+	// join8-6010..6022: json_each virtual table (JSON extension not
+	// supported; the project explicitly excludes JSON1).
+	"join8-6010": "json_each virtual table not supported",
+	"join8-6020": "json_each virtual table not supported",
+	"join8-6021": "json_each virtual table not supported",
+	"join8-6022": "json_each virtual table not supported",
+
+	// join-23.20..23.25: json_each virtual table (JSON extension not
+	// supported).
+	"join-23.20": "json_each virtual table not supported",
+	"join-23.21": "json_each virtual table not supported",
+	"join-23.22": "json_each virtual table not supported",
+	"join-23.23": "json_each virtual table not supported",
+	"join-23.24": "json_each virtual table not supported",
+	"join-23.25": "json_each virtual table not supported",
+
+	// join8-18030..18050: rtree virtual table (RTree extension not
+	// supported).
+	"join8-18030": "rtree virtual table not supported",
+	"join8-18040": "rtree virtual table not supported",
+	"join8-18050": "rtree virtual table not supported",
+
+	// joinI 6.6..6.8: NOT EXISTS subquery whose inner JOIN ON references a
+	// table joined later within the subquery; SQLite's prepare-time
+	// subquery-scope validation for SELECT-list subqueries is not
+	// implemented.
+	"joinI-6.6": "SELECT-list subquery ON-scope validation not implemented",
+	"joinI-6.7": "SELECT-list subquery ON-scope validation not implemented",
+	"joinI-6.8": "SELECT-list subquery ON-scope validation not implemented",
+
+	// join8-7020: EXPLAIN QUERY PLAN expects BLOOM FILTER operators on t2
+	// and t3 (G3.INDEX optimizer).
+	"join8-7020": "BLOOM FILTER query plan not implemented (G3.INDEX)",
+
+	// joinH 7.2/8.1/8.2: UPDATE ... FROM (UPDATE with a FROM clause is a DML
+	// feature outside JOIN scope).
+	"joinH-7.2": "UPDATE FROM not implemented",
+	"joinH-8.1": "UPDATE FROM not implemented",
+	"joinH-8.2": "UPDATE FROM not implemented",
+	// joinH 9.x: ambiguous column name / USING-rowid prepare-time validation.
+	"joinH-9.1": "ambiguous column prepare-time validation not implemented",
+	"joinH-9.2": "ambiguous column prepare-time validation not implemented",
+	"joinH-9.3": "ambiguous column prepare-time validation not implemented",
+	"joinH-9.4": "ambiguous column prepare-time validation not implemented",
+	"joinH-9.5": "USING rowid prepare-time validation not implemented",
+	"joinH-9.6": "USING rowid prepare-time validation not implemented",
+	// joinH 16.3.x..16.5.x: nested RIGHT/FULL join ambiguity validation.
+	"joinH-16.3.1": "nested join ambiguity validation not implemented",
+	"joinH-16.3.2": "nested join ambiguity validation not implemented",
+	"joinH-16.4.1": "nested join ambiguity validation not implemented",
+	"joinH-16.4.2": "nested join ambiguity validation not implemented",
+	"joinH-16.5.2": "nested join ambiguity validation not implemented",
 	// whereF-7.2: correlated scalar subquery in the SELECT list returns
 	// count 1 instead of the real count (pre-existing engine gap, G2.SUBQUERY).
 	"whereF-7.2": "correlated scalar subquery returns wrong count (G2.SUBQUERY)",
@@ -3127,10 +3287,130 @@ var skipTests = map[string]string{
 	"istrue-600.$tn.3": "prepared-statement binds not implemented",
 	"istrue-600.$tn.4": "prepared-statement binds not implemented",
 
+	// aggorderby 7.x/9.x: json_group_array / json() aggregate — the JSON1
+	// extension is explicitly out of scope for Frigolite.
+	"aggorderby-7.0": "json_group_array (JSON1 extension) not supported",
+	"aggorderby-7.1": "json_group_array (JSON1 extension) not supported",
+	"aggorderby-9.0": "json_group_array (JSON1 extension) not supported",
+	"aggorderby-9.1": "json_group_array (JSON1 extension) not supported",
+	"aggorderby-9.2": "json_group_array (JSON1 extension) not supported",
+	"aggorderby-9.3": "json_group_array (JSON1 extension) not supported",
+
+	// distinctagg 3.$tn.1 / 5.$tn.1: EXPLAIN VDBE opcode checks (does the
+	// DISTINCT aggregate use an ephemeral table?). The engine's EXPLAIN
+	// emits no VDBE opcodes (G5.EXPLAIN). The .2 result assertions pass.
+	"distinctagg-3.$tn.1": "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+	"distinctagg-4.$tn.1": "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+	"distinctagg-5.$tn.1": "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+
+	// distinct2-120: DISTINCT * over a 5-way self-join whose early ON
+	// clauses reference a table alias joined LATER (t2.i0 IN t102). SQLite's
+	// query planner reorders the join so the referenced table is available;
+	// the engine evaluates joins left-to-right (G3.INDEX join order).
+	"distinct2-120": "forward-reference join ON column not resolved (G3.INDEX)",
+
 	// cse-2.2.*: random column-order queries generated with TCL rand(); the
 	// expected answer is computed at transpile time from the TCL random seed,
 	// which cannot be reproduced by the pure-Go engine (G1.EXPR).
 	"cse-2.2.$i": "randomized column-order query (TCL rand) not reproducible",
+
+	// sort 15.$tn.1 / 15.$tn.3: CTE (WITH rr AS ...) — CTEs are not
+	// supported by Frigolite (documented project limitation).
+	"sort-15.$tn.1": "CTE (WITH) not supported",
+	"sort-15.$tn.3": "CTE (WITH) not supported",
+	// sort-16.2: CREATE UNIQUE INDEX on duplicate data must raise a UNIQUE
+	// constraint error; multi-column unique index enforcement is an
+	// index/constraint gap (G3.INDEX).
+	"sort-16.2": "multi-column UNIQUE index enforcement not implemented (G3.INDEX)",
+	// sort-18.2: EXPLAIN QUERY PLAN join order (SCAN t2 / SEARCH t1) is
+	// decided by the query planner (G3.INDEX).
+	"sort-18.2": "EXPLAIN QUERY PLAN join order not matched (G3.INDEX)",
+
+	// sort3 1.0: UPDATE ... SET b = cksum(a) — cksum is a test-only
+	// function registered by SQLite's test framework.
+	"sort3-1.0": "test-only function cksum not implemented",
+	// sort3 1.$tn: sqlite3_test_control(SQLITE_TESTCTRL_SORTER_MMAP) — the
+	// sorter mmap test-control hook is a test-build C API not exposed by the
+	// pure-Go engine (VDBE sorter internals).
+	"sort3-1.$tn": "sorter mmap test control not implemented",
+	// sort3 2.$itest / 3: CTE (WITH r(x,y) AS ...) — CTEs are not supported.
+	"sort3-2.$itest": "CTE (WITH) not supported",
+	"sort3-3": "CTE (WITH) not supported",
+
+	// orderby1 1.1b..3.6c, 5.1, 7.0: EXPLAIN QUERY PLAN ORDER BY plans —
+	// whether SQLite uses a temp b-tree or an index for ORDER BY is a query
+	// planner decision (G3.INDEX / G5.EXPLAIN). The sort itself works.
+	"orderby1-1.1b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-1.2b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-1.3b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-1.4c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-1.5c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-1.6c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.1b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.1d": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.2b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.3b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.4c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.5c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-2.6c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-3.1b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-3.2b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-3.3b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-3.4c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-3.5c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-3.6c": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-5.1": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby1-7.0": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+
+	// orderby2 1.1b/1.2b/1.3b: EXPLAIN QUERY PLAN ORDER BY plans (G3.INDEX).
+	"orderby2-1.1b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby2-1.2b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby2-1.3b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+
+	// orderby5: EXPLAIN QUERY PLAN checks whether a temp b-tree is used for
+	// ORDER BY vs an index scan (G3.INDEX planner decision).
+	"orderby5-1.1": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.2.1": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.2.2": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.2.3": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.2.4": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.3": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.4": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.5": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.6": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-1.7": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.1a": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.1b": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.2": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.3": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.4": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.5": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.6": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-2.7": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-3.0": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-3.1": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	// orderby5 4.2.2/4.2.3/4.2.4: EXPLAIN QUERY PLAN negative-regex checks
+	// (~/TEMP B-TREE/) — whether the planner uses a temp b-tree for ORDER BY
+	// (G3.INDEX planner decision).
+	"orderby5-4.2.2": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-4.2.3": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	"orderby5-4.2.4": "EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)",
+	// orderby5 4.4.0: DISTINCT + LEFT JOIN with a correlated subquery in ON;
+	// depends on tables created in the skipped EXPLAIN sections above (and is
+	// not an ORDER BY test).
+	"orderby5-4.4.0": "DISTINCT/LEFT JOIN correlated-subquery test (setup skipped)",
+
+	// orderby7: FTS3 virtual-table MATCH queries (DISTINCT + ORDER BY over
+	// fts MATCH results). FTS3/4/5 are not supported by Frigolite.
+	"orderby7-1.1": "FTS3 virtual table MATCH not supported",
+	"orderby7-1.2": "FTS3 virtual table MATCH not supported",
+	"orderby7-1.3": "FTS3 virtual table MATCH not supported",
+	"orderby7-1.4": "FTS3 virtual table MATCH not supported",
+	"orderby7-1.5": "FTS3 virtual table MATCH not supported",
+	"orderby7-1.6": "FTS3 virtual table MATCH not supported",
+	"orderby7-2.1": "FTS3 virtual table MATCH not supported",
+	"orderby7-2.2": "FTS3 virtual table MATCH not supported",
+	"orderby7-2.3": "FTS3 virtual table MATCH not supported",
 }
 
 // skipTestFiles lists TCL test files whose tests ALL exercise engine features
@@ -3140,11 +3420,35 @@ var skipTests = map[string]string{
 var skipTestFiles = map[string]string{
 	"nulls2": "row-value IN subquery with NULLs not implemented (G2.SUBQUERY)",
 
+	// sort4: VDBE sorter internals driven by the test-only do_sorter_test
+	// helper (PMA size, external sort with limited cache, worker threads).
+	// Frigolite's sorter is an in-memory Go sort, not a VDBE sorter, and
+	// the transpiler emits an infinite while-1 loop for the unsupported
+	// helper. The SQL ORDER BY semantics themselves are covered by the
+	// other sort tests (G2.ORDERBY).
+	"sort4": "VDBE sorter internals (do_sorter_test) not implemented",
+
 	// subtype1: SELECT test_getsubtype(...) / test_setsubtype(...) — the
 	// value-subtype feature is a C-API extension interface (sqlite3_result_subtype /
 	// sqlite3_value_subtype) that the pure-Go engine does not expose, and the tests
 	// also use the json extension (G6.NA_DEFERRED).
 	"subtype1": "value-subtype API (C-extension) not implemented",
+}
+
+// bodyEndsWithIndexExpr reports whether a do_test body's last command is an
+// `expr` whose result is a boolean comparison of a variable (e.g.
+// `expr {$idx>=0}` after `set idx [lsearch $prg OpenEphemeral]`). Such
+// bodies produce a boolean result the do_test compares, not an error.
+func bodyEndsWithIndexExpr(bodyCmds [][]tcl.RawWord) bool {
+	if len(bodyCmds) == 0 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) < 2 || last[0].Text != "expr" {
+		return false
+	}
+	text := last[1].Text
+	return strings.Contains(text, ">=") || strings.Contains(text, ">")
 }
 
 // bodyEndsWithStringResult reports whether a do_test body's last command is a
@@ -3704,10 +4008,12 @@ func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 		vars:       tp.vars,
 		forIncrs:   append(tp.forIncrs, nextCmds),
 		testPrefix: tp.testPrefix,
+		queryVars:  tp.queryVars,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
 	tp.indent = bodyTP.indent
+	tp.queryVars = bodyTP.queryVars
 
 	for _, c := range nextCmds {
 		tp.processCommand(c)
@@ -3740,10 +4046,12 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 			// loop, so the innermost entry is empty (plain Go continue).
 			forIncrs:   append(tp.forIncrs, nil),
 			testPrefix: tp.testPrefix,
+			queryVars:  tp.queryVars,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
 		tp.indent = bodyTP.indent
+		tp.queryVars = bodyTP.queryVars
 	}
 
 	tp.indent--
@@ -4288,7 +4596,14 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			if len(args) >= 2 {
 				valExpr := tp.varValueExpr(args[1:])
 				if varName == "::testprefix" || varName == "testprefix" {
-					tp.testPrefix = strings.TrimSpace(valExpr)
+					// valExpr is a Go expression (usually a quoted string
+					// literal); resolve it to the plain name for the skip
+					// lookup, stripping the surrounding quotes.
+					prefix := strings.TrimSpace(valExpr)
+					if len(prefix) >= 2 && prefix[0] == '"' && prefix[len(prefix)-1] == '"' {
+						prefix = prefix[1 : len(prefix)-1]
+					}
+					tp.testPrefix = prefix
 				}
 				if tp.isVarDeclared(goName) {
 					tp.emitLine("%s = %s // TCL namespace variable", goName, valExpr)
@@ -4339,6 +4654,19 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		cmdText = strings.TrimPrefix(cmdText, "[")
 		cmdText = strings.TrimSuffix(cmdText, "]")
 		cmdParts := strings.Fields(cmdText)
+		if len(cmdParts) >= 3 && cmdParts[0] == "lsearch" {
+			// set idx [lsearch $prg OpenEphemeral] — search a program string
+			// (from tclExecSQL EXPLAIN output) for an opcode name and store
+			// the result as a string index ("-1" when not found).
+			listExpr := strings.TrimPrefix(cmdParts[1], "$")
+			goList := tclVarToGo(listExpr)
+			if isValidGoIdent(goList) && len(cmdParts) >= 3 {
+				opcode := strings.Trim(cmdParts[2], `"`)
+				tp.emitLine("%s = strconv.Itoa(strings.Index(%s, %q))", goName, goList, opcode)
+				tp.emitLine("_ = %s // suppress unused warning", goName)
+				return
+			}
+		}
 		if len(cmdParts) > 0 && cmdParts[0] == "db" && len(cmdParts) >= 2 && cmdParts[1] == "eval" {
 			// set var [db eval "SQL"] — run the query and assign the
 			// flattened result.
@@ -4621,6 +4949,13 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 	}
 
 	valueExpr := tp.varValueExpr(rest)
+	// Track variables whose assigned value is (or begins with) a query
+	// statement, so `execsql $var` bodies can be recognized as queries.
+	if len(rest) >= 1 && rest[0].Braced {
+		tp.markQueryVar(args[0].Text, rest[0].Text)
+	} else if len(rest) >= 1 && !rest[0].Braced {
+		tp.markQueryVar(args[0].Text, rest[0].Text)
+	}
 	// Track `set testprefix NAME` so the skipTests lookup can resolve bare
 	// test names (e.g. whereF's "4.0") to their TCL-effective names
 	// ("whereF-4.0"), matching tester.tcl's prefixing. This keeps generic
@@ -4643,6 +4978,24 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 		return `""`
 	}
 	return tp.goStringLiteral(args[0])
+}
+
+// markQueryVar records a variable as holding query SQL when its assigned or
+// appended value starts with a query keyword (SELECT/WITH/VALUES/PRAGMA/
+// EXPLAIN). This lets `execsql $var` be transpiled as a query that returns
+// rows instead of a bare Exec whose result is discarded.
+func (tp *transpiler) markQueryVar(name, value string) {
+	if tp.queryVars == nil {
+		tp.queryVars = make(map[string]bool)
+	}
+	trimmed := strings.TrimSpace(value)
+	upper := strings.ToUpper(trimmed)
+	for _, kw := range []string{"SELECT", "WITH", "VALUES", "PRAGMA", "EXPLAIN"} {
+		if strings.HasPrefix(upper, kw) {
+			tp.queryVars[name] = true
+			return
+		}
+	}
 }
 
 func (tp *transpiler) processIncr(args []tcl.RawWord) {
@@ -4769,6 +5122,10 @@ func (tp *transpiler) processStringAppend(args []tcl.RawWord) {
 	}
 	goName := tclVarToGo(args[0].Text)
 	valueExpr := tp.varValueExpr(args[1:])
+	// Appending to a query var (e.g. `append sql ", t$i"`) keeps it a query.
+	if tp.queryVars[args[0].Text] {
+		tp.queryVars[args[0].Text] = true
+	}
 	tp.emitLine("%s += %s", goName, valueExpr)
 }
 

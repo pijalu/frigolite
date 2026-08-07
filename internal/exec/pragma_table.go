@@ -13,7 +13,9 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/value"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // isPragmaTableFunc reports whether name refers to a table-valued pragma
@@ -25,6 +27,70 @@ func isPragmaTableFunc(name string) bool {
 		lower = lower[dot+1:]
 	}
 	return strings.HasPrefix(lower, "pragma_")
+}
+
+// isNoSuchVtabErr reports whether err is a "no such module" error from
+// materializeVtabTableFunc (meaning the FROM name is an ordinary table, not a
+// table-valued function).
+func isNoSuchVtabErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), "no such module")
+}
+
+// materializeVtabTableFunc materializes a table-valued virtual-table function
+// reference (e.g. FROM generate_series(1,256)) into column definitions and
+// rows. It returns an error wrapping "no such module" when the name is not a
+// registered vtab module, so callers can fall back to ordinary table lookup.
+func (e *Engine) materializeVtabTableFunc(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	module, ok := e.vtabs.Find(strings.ToLower(ref.Name))
+	if !ok {
+		return nil, nil, fmt.Errorf("no such module: %s", ref.Name)
+	}
+	// Evaluate the argument expressions to strings.
+	args := make([]string, 0, len(ref.Args))
+	for _, a := range ref.Args {
+		v, err := e.evalExpr(a, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+		args = append(args, fmt.Sprintf("%v", util.UnwrapColumnValue(v)))
+	}
+	vt, err := module.Create(args)
+	if err != nil {
+		return nil, nil, err
+	}
+	cur, err := vt.Open()
+	if err != nil {
+		return nil, nil, err
+	}
+	defer cur.Close()
+	var rows [][]interface{}
+	for cur.Next() {
+		var row []interface{}
+		for i := 0; ; i++ {
+			val, err := cur.Column(i)
+			if err != nil {
+				break
+			}
+			row = append(row, val)
+		}
+		rows = append(rows, row)
+	}
+	// Build column defs from the vtab's declared columns.
+	var colDefs []sql.ColumnDef
+	if ci, ok := vt.(vtab.ColumnInfo); ok {
+		for _, c := range ci.Columns() {
+			colDefs = append(colDefs, sql.ColumnDef{Name: c})
+		}
+	}
+	if len(colDefs) == 0 && len(rows) > 0 {
+		for i := range rows[0] {
+			colDefs = append(colDefs, sql.ColumnDef{Name: fmt.Sprintf("c%d", i)})
+		}
+	}
+	return colDefs, rows, nil
 }
 
 // execPragmaTableValued executes a SELECT whose FROM clause is a table-valued
@@ -211,15 +277,23 @@ func (e *Engine) viewColumnDefsFromSelect(sel *sql.SelectStmt) []sql.ColumnDef {
 			srcDefs = e.parseColumnDefs(te.Name, te.SQL)
 		}
 	}
-	defs := make([]sql.ColumnDef, len(sel.Columns))
+	var defs []sql.ColumnDef
 	for i, col := range sel.Columns {
+		// A bare * expands to every column of the FROM source (a single
+		// table, or a joined result).
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
+			for _, sd := range srcDefs {
+				defs = append(defs, sql.ColumnDef{Name: sd.Name, Type: sd.Type, Collate: sd.Collate})
+			}
+			continue
+		}
 		name := col.As
 		if name == "" {
 			if ref, ok := col.Expr.(*sql.ColumnRef); ok {
 				name = ref.Name
 			}
 		}
-		defs[i] = sql.ColumnDef{Name: name, Type: e.viewColumnType(sel, i, srcDefs)}
+		defs = append(defs, sql.ColumnDef{Name: name, Type: e.viewColumnType(sel, i, srcDefs)})
 	}
 	return defs
 }
