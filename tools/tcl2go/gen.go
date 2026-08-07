@@ -117,6 +117,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	constFuncs := collectConstFuncs(cmds)
 	counterFuncs := collectCounterFuncs(cmds)
 	predFuncs := collectPredFuncs(cmds)
+	queryFuncs := collectQueryFuncs(cmds)
 
 	// Merge: pre-declare all set variables + referenced-but-not-global variables
 	var preDeclared []string
@@ -170,6 +171,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		constFuncs:   constFuncs,
 		counterFuncs: counterFuncs,
 		predFuncs:    predFuncs,
+		queryFuncs:   queryFuncs,
 	}
 	tp.processCommands(cmds)
 
@@ -202,6 +204,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 
 // detectImports scans generated code for package references and returns only the needed imports.
 var allStandardImports = []struct{ name, path string }{
+	{"errors", "errors"},
 	{"fmt", "fmt"},
 	{"os", "os"},
 	{"path/filepath", "path/filepath"},
@@ -639,6 +642,62 @@ func collectPredFuncs(cmds [][]tcl.RawWord) map[string]string {
 	return result
 }
 
+// queryProcValue extracts the SQL from a query-proc body like
+// "{ return [db eval {SELECT count(*), md5sum(x) FROM t3}] }" (trans.test's
+// `proc signature {}`). Returns the SQL text, or "" when the body is not a
+// single db-eval query.
+func queryProcValue(body string) string {
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	lower := strings.ToLower(body)
+	if !strings.HasPrefix(lower, "return [db eval ") {
+		return ""
+	}
+	rest := strings.TrimSpace(body[len("return [db eval "):])
+	// rest is either {SQL}] or "SQL"] — strip the trailing ] and the
+	// surrounding braces/quotes.
+	if strings.HasSuffix(rest, "]") {
+		rest = strings.TrimSuffix(rest, "]")
+	}
+	rest = strings.TrimSpace(rest)
+	if len(rest) >= 2 && ((rest[0] == '{' && rest[len(rest)-1] == '}') || (rest[0] == '"' && rest[len(rest)-1] == '"')) {
+		rest = rest[1 : len(rest)-1]
+	}
+	if strings.TrimSpace(rest) == "" {
+		return ""
+	}
+	return rest
+}
+
+// collectQueryFuncs scans all TCL commands for query procs (`proc NAME {} {
+// return [db eval {SQL}] }`) and returns a map of proc name → SQL.
+func collectQueryFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "proc" && len(cmd) >= 4 {
+				// cmd: proc NAME PARAMS BODY
+				if val := queryProcValue(cmd[3].Text); val != "" {
+					result[cmd[1].Text] = val
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
 func collectRefVars(src string) []string {
 	var names []string
 	seen := make(map[string]bool)
@@ -711,9 +770,11 @@ type transpiler struct {
 	constFuncs       map[string]string     // `proc NAME {args} { return CONST }`: NAME returns CONST
 	counterFuncs     map[string]string     // `proc NAME {} { incr ::VAR }`: NAME increments VAR
 	predFuncs        map[string]string     // `proc NAME {x} { expr $x < N }`: NAME compares its arg
+	queryFuncs       map[string]string     // `proc NAME {} { return [db eval {SQL}] }`: NAME returns a query result
 	dbClosed         bool                  // main "db" connection was closed via `db close`
 	testPrefix       string                // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
 	queryVars        map[string]bool       // TCL vars known to hold query SQL (set/append to SELECT...)
+	rollbackFlag     string                // when set, `db eval ROLLBACK` also assigns this Go bool var (db eval {SQL} {body} callback abort)
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -2671,6 +2732,16 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			tp.processDBForName(cmdName, args)
 			break
 		}
+		// A bare query-proc call (e.g. `signature` where `proc signature {}
+		// { return [db eval {SQL}] }`) returns the query result; inline it
+		// so a do_test body ending in `signature` compares the result.
+		if len(tp.queryFuncs) > 0 {
+			if sql, ok := tp.queryFuncs[cmdName]; ok {
+				sqlExpr := tp.buildSQLStringExpr(sql)
+				tp.emitLine("_r = tclExecSQL(db, %s)", sqlExpr)
+				break
+			}
+		}
 		// Unsupported command — emit as comment to avoid test failures
 		if len(args) > 0 {
 			tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, sanitizeTCLComment(describeArgsShort(args)))
@@ -3274,6 +3345,8 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			unsetVars:  tp.unsetVars,
 			dbVarFuncs: tp.dbVarFuncs,
 			constFuncs: tp.constFuncs,
+			predFuncs:  tp.predFuncs,
+			queryFuncs: tp.queryFuncs,
 			testPrefix: tp.testPrefix,
 			queryVars:  tp.queryVars,
 			dbAliases:  tp.dbAliases,
@@ -3350,6 +3423,13 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			if bodyIsCatchsql {
 				tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
 				tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", _res.Error, %s, %s)", expectedExpr, nameExpr)
+				tp.emitLine("}")
+			} else if bodyEndsWithQueryFunc(bodyCmds, tp.queryFuncs) {
+				// The body ends with a query-proc call (e.g. `execsql {...}
+				// signature`); the last command's query result is in `_r` and
+				// the expected value is that result list.
+				tp.emitLine("if _r != %s {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", _r, %s, %s)", expectedExpr, nameExpr)
 				tp.emitLine("}")
 			} else if bodyIsExecsqlQuery {
 				// The body's SQL contains a query; processCommands ran it through
@@ -3623,6 +3703,16 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 			tp.emitLine("tcl_nullvalue = %s", tp.goStringLiteral(rest[0]))
 		}
 	case "eval":
+		// db eval {SQL} {body}: TCL's row-callback form. SQLite steps the
+		// SELECT row by row, running the braced body for each row. A ROLLBACK
+		// executed inside the body succeeds but aborts the active SELECT with
+		// "abort due to ROLLBACK" (SQLite's sqlite3_step returns SQLITE_ABORT
+		// after a ROLLBACK invalidates the statement). Other statements
+		// (COMMIT, DML) inside the body do not abort the iteration.
+		if len(rest) >= 2 && rest[1].Braced {
+			tp.emitDBEvalCallback(rest)
+			break
+		}
 		sqlExpr := tp.collectSQLExpression(rest)
 		if sqlExpr != `""` {
 			sqlText := ""
@@ -3633,6 +3723,11 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 				tp.emitLine("// db eval skipped: %s", reason)
 			} else {
 				tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+				if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
+					// A ROLLBACK executed inside a db eval callback aborts the
+					// enclosing row iteration (SQLite "abort due to ROLLBACK").
+					tp.emitLine("%s = true", tp.rollbackFlag)
+				}
 				if tp.catchMode {
 					tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
 				} else {
@@ -3742,6 +3837,68 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 	default:
 		// no-op for other db subcommands
 	}
+}
+
+// isRollbackStmt reports whether the SQL text is a plain ROLLBACK statement
+// (with optional whitespace/trailing semicolon).
+func isRollbackStmt(sqlText string) bool {
+	s := strings.TrimSpace(strings.ToUpper(strings.TrimSpace(sqlText)))
+	s = strings.TrimSuffix(s, ";")
+	return strings.TrimSpace(s) == "ROLLBACK"
+}
+
+// emitDBEvalCallback transpiles the TCL row-callback form
+// `db eval {SQL} {body}`: the SELECT is executed (eagerly — the engine
+// materializes rows), then the braced body runs once per row. A ROLLBACK
+// executed inside the body aborts the iteration with SQLite's
+// "abort due to ROLLBACK" error (trans3.test). The body's `db eval ROLLBACK`
+// sets a shared Go bool via the rollbackFlag field.
+func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
+	sqlExpr := tp.collectSQLExpression(rest)
+	if sqlExpr == `""` {
+		return
+	}
+	rowsVar := fmt.Sprintf("_dbevalRows%d", tp.varCount)
+	tp.varCount++
+	rbFlag := fmt.Sprintf("_dbevalRb%d", tp.varCount)
+	tp.varCount++
+	iterErr := fmt.Sprintf("_dbevalErr%d", tp.varCount)
+	tp.varCount++
+	tp.emitLine("%s := db.Query(%s)", rowsVar, sqlExpr)
+	tp.emitLine("var %s bool", rbFlag)
+	tp.emitLine("var %s error", iterErr)
+	tp.emitLine("for _ri := 0; _ri < len(%s.Rows) && %s == nil; _ri++ {", rowsVar, iterErr)
+	tp.indent++
+	// Transpile the body with the rollback flag wired: `db eval ROLLBACK`
+	// inside the body sets rbFlag, and the loop aborts on it.
+	bodyTP := &transpiler{
+		sb:           tp.sb,
+		indent:       tp.indent,
+		dbVar:        tp.dbVar,
+		t:            tp.t,
+		varCount:     tp.varCount,
+		vars:         tp.vars,
+		forIncrs:     tp.forIncrs,
+		testPrefix:   tp.testPrefix,
+		queryVars:    tp.queryVars,
+		queryFuncs:   tp.queryFuncs,
+		rollbackFlag: rbFlag,
+	}
+	bodyTP.processCommands(parseCommands(rest[1].Text))
+	tp.varCount = bodyTP.varCount
+	tp.indent = bodyTP.indent
+	tp.emitLine("if %s { %s = errors.New(\"abort due to ROLLBACK\") }", rbFlag, iterErr)
+	tp.indent--
+	tp.emitLine("}")
+	tp.emitLine("if %s != nil {", iterErr)
+	tp.indent++
+	if tp.catchMode {
+		tp.emitLine("_catchErr = %s", iterErr)
+	} else {
+		tp.emitLine("t.Errorf(\"db eval callback error: %%v\", %s)", iterErr)
+	}
+	tp.indent--
+	tp.emitLine("}")
 }
 
 // processDBForName handles dbN commands (db2, db3, etc.) — secondary DB connections.
@@ -4457,6 +4614,22 @@ func bodyEndsWithStringResult(bodyCmds [][]tcl.RawWord) bool {
 	return false
 }
 
+// bodyEndsWithQueryFunc reports whether a do_test body's last command is a
+// bare query-proc call (e.g. `signature` where proc signature returns a
+// db-eval result). The last command's query result is what the do_test
+// compares against the expected value.
+func bodyEndsWithQueryFunc(bodyCmds [][]tcl.RawWord, queryFuncs map[string]string) bool {
+	if len(bodyCmds) == 0 || len(queryFuncs) == 0 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) == 0 {
+		return false
+	}
+	_, ok := queryFuncs[last[0].Text]
+	return ok
+}
+
 // isTestCommand reports whether cmdName is a TCL test command whose first
 // argument is the test name (after an optional "-db NAME" prefix).
 func isTestCommand(cmdName string) bool {
@@ -4785,6 +4958,7 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		// so the innermost entry is empty (plain Go continue).
 		forIncrs:   append(tp.forIncrs, nil),
 		testPrefix: tp.testPrefix,
+		queryFuncs: tp.queryFuncs,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -5049,11 +5223,13 @@ func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 		forIncrs:   append(tp.forIncrs, nextCmds),
 		testPrefix: tp.testPrefix,
 		queryVars:  tp.queryVars,
+		queryFuncs: tp.queryFuncs,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
 	tp.indent = bodyTP.indent
 	tp.queryVars = bodyTP.queryVars
+	tp.queryFuncs = bodyTP.queryFuncs
 
 	for _, c := range nextCmds {
 		tp.processCommand(c)
@@ -5151,6 +5327,25 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 		}
 		cond := args[idx].Text
 		idx++
+		// if {[catch {BODY} var]} — a runtime catch as the condition. The
+		// body must execute at runtime (e.g. `if {[catch {db eval ROLLBACK}
+		// errmsg]}` in trans3.test: the ROLLBACK runs and the condition is
+		// whether it errored).
+		if catchVar := tp.catchCondVar(cond); catchVar != "" {
+			tp.emitCatchForCondition(catchVar, cond)
+			bodyCmds := tp.parseBracedBody(args, idx)
+			idx++
+			tp.emitLine("if %s == \"1\" {", catchVar)
+			tp.indent++
+			if bodyCmds != nil {
+				bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+				bodyTP.processCommands(bodyCmds)
+				tp.indent = bodyTP.indent
+			}
+			tp.indent--
+			first = false
+			continue
+		}
 		goCond := tp.tclCondToGo(cond)
 		bodyCmds := tp.parseBracedBody(args, idx)
 		idx++
@@ -5172,6 +5367,113 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 		first = false
 	}
 
+	tp.emitLine("}")
+}
+
+// catchCondVar reports whether the condition text is a runtime catch command
+// `[catch {BODY} var]` and returns the Go name of the result variable.
+// Returns "" for other conditions.
+func (tp *transpiler) catchCondVar(cond string) string {
+	c := strings.TrimSpace(cond)
+	if !strings.HasPrefix(c, "[") || !strings.HasSuffix(c, "]") {
+		return ""
+	}
+	inner := strings.TrimSpace(c[1 : len(c)-1])
+	if !strings.HasPrefix(inner, "catch ") {
+		return ""
+	}
+	rest := strings.TrimSpace(inner[len("catch "):])
+	// rest is {BODY} [var] — find the trailing variable name after the body.
+	if !strings.HasPrefix(rest, "{") {
+		return ""
+	}
+	depth := 0
+	for i := 0; i < len(rest); i++ {
+		switch rest[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				tail := strings.TrimSpace(rest[i+1:])
+				if tail == "" {
+					return ""
+				}
+				fields := strings.Fields(tail)
+				if len(fields) == 0 {
+					return ""
+				}
+				return tclVarToGo(strings.TrimPrefix(fields[0], "::"))
+			}
+		}
+	}
+	return ""
+}
+
+// emitCatchForCondition transpiles `[catch {BODY} var]` used as an if
+// condition: the body runs at runtime (catch mode), the result variable
+// holds "1" (error) or "0" (ok), and the if uses it. The body's
+// `db eval ROLLBACK` sets the enclosing callback's rollback flag.
+func (tp *transpiler) emitCatchForCondition(resultVar, cond string) {
+	inner := strings.TrimSpace(strings.TrimSpace(cond)[1 : len(strings.TrimSpace(cond))-1])
+	rest := strings.TrimSpace(inner[len("catch "):])
+	// Extract the braced body and the optional result/error variable name.
+	depth := 0
+	bodyStart := -1
+	varName := ""
+	for i := 0; i < len(rest); i++ {
+		switch rest[i] {
+		case '{':
+			depth++
+			if bodyStart < 0 {
+				bodyStart = i + 1
+			}
+		case '}':
+			depth--
+			if depth == 0 && bodyStart >= 0 {
+				bodyText := strings.TrimSpace(rest[bodyStart:i])
+				tail := strings.TrimSpace(rest[i+1:])
+				if tail != "" {
+					fields := strings.Fields(tail)
+					if len(fields) > 0 {
+						varName = tclVarToGo(strings.TrimPrefix(fields[0], "::"))
+					}
+				}
+				emitCatchBody(bodyText, varName, resultVar, tp)
+				return
+			}
+		}
+	}
+}
+
+// emitCatchBody emits a Go block that runs a catch body at runtime and sets
+// the result variable ("1" on error, "0" on success) plus the error message
+// variable. Used for `[catch {BODY} var]` conditions inside if statements.
+func emitCatchBody(bodyText, varName, resultVar string, tp *transpiler) {
+	tp.emitLine("var %s string", resultVar)
+	tp.emitLine("{")
+	tp.indent++
+	tp.emitLine("var _catchErr error")
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, queryVars: tp.queryVars, queryFuncs: tp.queryFuncs, rollbackFlag: tp.rollbackFlag, varCount: tp.varCount}
+	bodyTP.processCommands(parseCommands(bodyText))
+	tp.varCount = bodyTP.varCount
+	tp.indent = bodyTP.indent
+	tp.emitLine("if _catchErr != nil {")
+	tp.indent++
+	tp.emitLine("%s = \"1\"", resultVar)
+	if varName != "" {
+		tp.emitLine("%s = _catchErr.Error()", varName)
+	}
+	tp.indent--
+	tp.emitLine("} else {")
+	tp.indent++
+	tp.emitLine("%s = \"0\"", resultVar)
+	if varName != "" {
+		tp.emitLine("%s = \"\"", varName)
+	}
+	tp.indent--
+	tp.emitLine("}")
+	tp.indent--
 	tp.emitLine("}")
 }
 
@@ -5634,6 +5936,27 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				return
 			}
 			if len(args) >= 2 {
+				// set ::var [queryProc] — inline the query result (e.g.
+				// `set ::sig [signature]` where signature returns a db-eval
+				// result).
+				if len(args[1].Text) >= 2 && strings.HasPrefix(args[1].Text, "[") && strings.HasSuffix(args[1].Text, "]") && len(tp.queryFuncs) > 0 {
+					innerCmd := strings.TrimSuffix(strings.TrimPrefix(args[1].Text, "["), "]")
+					cmdParts := strings.Fields(innerCmd)
+					if sql, ok := tp.queryFuncs[cmdParts[0]]; ok {
+						sqlExpr := tp.buildSQLStringExpr(sql)
+						dbEvalVar := fmt.Sprintf("_dbeval%d", tp.varCount)
+						tp.varCount++
+						tp.emitLine("%s := tclExecSQL(db, %s)", dbEvalVar, sqlExpr)
+						if tp.isVarDeclared(goName) {
+							tp.emitLine("%s = %s", goName, dbEvalVar)
+						} else {
+							tp.emitLine("var %s = %s", goName, dbEvalVar)
+							tp.vars = append(tp.vars, goName)
+						}
+						tp.emitLine("_ = %s // suppress unused warning", goName)
+						return
+					}
+				}
 				valExpr := tp.varValueExpr(args[1:])
 				if varName == "::testprefix" || varName == "testprefix" {
 					// valExpr is a Go expression (usually a quoted string
@@ -5712,6 +6035,25 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 					tp.emitLine("_ = %s // suppress unused warning", goName)
 					return
 				}
+			}
+		}
+		if len(cmdParts) > 0 && len(tp.queryFuncs) > 0 {
+			if sql, ok := tp.queryFuncs[cmdParts[0]]; ok {
+				// set var [queryProc] — the proc returns a db-eval result
+				// (e.g. `proc signature {} { return [db eval {SELECT ...}] }`);
+				// inline the query and assign the flattened result.
+				sqlExpr := tp.buildSQLStringExpr(sql)
+				dbEvalVar := fmt.Sprintf("_dbeval%d", tp.varCount)
+				tp.varCount++
+				tp.emitLine("%s := tclExecSQL(db, %s)", dbEvalVar, sqlExpr)
+				if tp.isVarDeclared(goName) {
+					tp.emitLine("%s = %s", goName, dbEvalVar)
+				} else {
+					tp.emitLine("var %s = %s", goName, dbEvalVar)
+					tp.vars = append(tp.vars, goName)
+				}
+				tp.emitLine("_ = %s // suppress unused warning", goName)
+				return
 			}
 		}
 		if len(cmdParts) > 0 && cmdParts[0] == "db" && len(cmdParts) >= 2 && cmdParts[1] == "eval" {
