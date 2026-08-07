@@ -2529,18 +2529,18 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// later CREATE TABLE statements start fresh (matches the TCL helper,
 		// which turns foreign_keys OFF and iterates PRAGMA database_list).
 		tp.emitLine("_res = db.Exec(\"PRAGMA foreign_keys = OFF\")")
-		tp.emitLine("for _, _t := range db.Query(\"SELECT name FROM sqlite_master WHERE type='table'\").Rows {")
-		tp.emitLine("\tdb.Exec(\"DROP TABLE \" + fmt.Sprint(_t[0]))")
+		tp.emitLine("for _, _t := range db.Query(\"SELECT name, type FROM sqlite_master WHERE type IN('table','view')\").Rows {")
+		tp.emitLine("\tdb.Exec(\"DROP \" + fmt.Sprint(_t[1]) + \" \" + fmt.Sprint(_t[0]))")
 		tp.emitLine("}")
-		tp.emitLine("for _, _t := range db.Query(\"SELECT name FROM temp.sqlite_master WHERE type='table'\").Rows {")
-		tp.emitLine("\tdb.Exec(\"DROP TABLE temp.\" + fmt.Sprint(_t[0]))")
+		tp.emitLine("for _, _t := range db.Query(\"SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')\").Rows {")
+		tp.emitLine("\tdb.Exec(\"DROP \" + fmt.Sprint(_t[1]) + \" temp.\" + fmt.Sprint(_t[0]))")
 		tp.emitLine("}")
 		tp.emitLine("for _, _t := range db.Query(\"PRAGMA database_list\").Rows {")
 		tp.emitLine("\tif len(_t) > 1 {")
 		tp.emitLine("\t\tdbname := fmt.Sprint(_t[1])")
 		tp.emitLine("\t\tif dbname != \"main\" && dbname != \"temp\" {")
-		tp.emitLine("\t\t\tfor _, _u := range db.Query(\"SELECT name FROM \" + dbname + \".sqlite_master WHERE type='table'\").Rows {")
-		tp.emitLine("\t\t\t\tdb.Exec(\"DROP TABLE \" + dbname + \".\" + fmt.Sprint(_u[0]))")
+		tp.emitLine("\t\t\tfor _, _u := range db.Query(\"SELECT name, type FROM \" + dbname + \".sqlite_master WHERE type IN('table','view')\").Rows {")
+		tp.emitLine("\t\t\t\tdb.Exec(\"DROP \" + fmt.Sprint(_u[1]) + \" \" + dbname + \".\" + fmt.Sprint(_u[0]))")
 		tp.emitLine("\t\t\t}")
 		tp.emitLine("\t\t}")
 		tp.emitLine("\t}")
@@ -3013,6 +3013,19 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 	nameExpr := tp.goStringLiteral(args[0])
 	bodyCmds := tp.parseBracedBody(args, 1)
 
+	// A do_test body that exercises VDBE-internal state (statement journal
+	// usage, prepared-statement stepping) cannot be transpiled: the commands
+	// are emitted as comments below, but the assertion would then compare
+	// the LAST sqlite3_exec result against a boolean/state value that has no
+	// SQL equivalent. Emit the whole block as a no-op (matching how
+	// sqlite3_db_status assertions are skipped) so the generated test does
+	// not fail on a meaningless comparison.
+	if bodyCmds != nil && doTestBodyUnsupported(bodyCmds) {
+		tp.emitLine("{ // %s (uses_stmt_journal/prepare-step internals, not transpiled)", nameExpr)
+		tp.emitLine("}")
+		return
+	}
+
 	// A braced body that is only TCL comments (e.g. temptrigger-1.5's
 	// "# Before the bug was fixed ...") has no commands; parseCommands
 	// returns nil. Emit a no-op instead of treating the comment text as SQL.
@@ -3350,6 +3363,23 @@ func (tp *transpiler) processDoEQPTest(args []tcl.RawWord) {
 	tp.emitLine("}")
 	tp.indent--
 	tp.emitLine("}")
+}
+
+// doTestBodyUnsupported reports whether a do_test body exercises VDBE-internal
+// state that has no SQL equivalent (uses_stmt_journal, prepared-statement
+// stepping, sqlite3_db_status). Such bodies are emitted as no-ops so the
+// generated test does not compare a meaningless value.
+func doTestBodyUnsupported(bodyCmds [][]tcl.RawWord) bool {
+	for _, cmd := range bodyCmds {
+		if len(cmd) == 0 {
+			continue
+		}
+		switch cmd[0].Text {
+		case "uses_stmt_journal", "sqlite3_prepare_v2", "sqlite3_step", "sqlite3_finalize", "sqlite3_db_status":
+			return true
+		}
+	}
+	return false
 }
 
 // ---- SQL execution handlers ----
