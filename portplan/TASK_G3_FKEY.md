@@ -34,17 +34,17 @@ Parent must have a PK or UNIQUE index on the referenced columns.
 - `internal/exec/fk.go` — frigolite FK code.
 
 ## Steps
-- [ ] **G3.FKEY.1** Pre-test suite. Commit: `G3.FKEY.1: fkey pre-test suite`.
-- [ ] **G3.FKEY.2** Triage `fkey` failure via pure-Go test. Commit per fix:
+- [x] **G3.FKEY.1** Pre-test suite. Commit: `G3.FKEY.1: fkey pre-test suite`.
+- [x] **G3.FKEY.2** Triage `fkey` failure via pure-Go test. Commit per fix:
       `G3.FKEY.2.<n>: <fix>`.
-- [ ] **G3.FKEY.3** ON DELETE/UPDATE actions (CASCADE/SET NULL/SET DEFAULT/
+- [x] **G3.FKEY.3** ON DELETE/UPDATE actions (CASCADE/SET NULL/SET DEFAULT/
       RESTRICT/NO ACTION). Commit: `G3.FKEY.3: FK ON actions`.
-- [ ] **G3.FKEY.4** `PRAGMA foreign_keys` toggle (default OFF). Commit:
+- [x] **G3.FKEY.4** `PRAGMA foreign_keys` toggle (default OFF). Commit:
       `G3.FKEY.4: foreign_keys pragma`.
-- [ ] **G3.FKEY.5** Deferred FK checks at commit. Commit: `G3.FKEY.5: deferred FK`.
-- [ ] **G3.FKEY.6** Parent-key resolution + mismatch errors. Commit:
+- [x] **G3.FKEY.5** Deferred FK checks at commit. Commit: `G3.FKEY.5: deferred FK`.
+- [x] **G3.FKEY.6** Parent-key resolution + mismatch errors. Commit:
       `G3.FKEY.6: parent key resolution + errors`.
-- [ ] **G3.FKEY.7** fkey + fkey_ green. Commit: `G3.FKEY.7: fkey TCL green`.
+- [x] **G3.FKEY.7** fkey + fkey_ green. Commit: `G3.FKEY.7: fkey TCL green`.
 
 ## Verify command
 ```bash
