@@ -398,7 +398,7 @@ func (e *Engine) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entr
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
 
 		for bi, br := range branches {
-			if !orRowMatchesPrefix(row, br.prefix) {
+			if !e.orRowMatchesPrefix(row, br.prefix) {
 				continue
 			}
 			keyVals := make([]interface{}, 0, len(br.indexCols)+1)
@@ -480,7 +480,7 @@ func (e *Engine) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entr
 
 // orRowMatchesPrefix reports whether the row satisfies every prefix
 // constraint of an OR branch (all equalities; NULL never matches).
-func orRowMatchesPrefix(row RowMap, prefix []orConstraint) bool {
+func (e *Engine) orRowMatchesPrefix(row RowMap, prefix []orConstraint) bool {
 	for _, pc := range prefix {
 		colVal, exists := row[pc.col]
 		if !exists || colVal == nil {
@@ -492,9 +492,9 @@ func orRowMatchesPrefix(row RowMap, prefix []orConstraint) bool {
 		}
 		var cmp int
 		if pc.applyAffinity {
-			cmp = compareValuesWithCollate(colVal, pc.val)
+			cmp = e.compareValuesWithCollate(colVal, pc.val)
 		} else {
-			cmp = compareValuesWithCollate(raw, pc.val)
+			cmp = e.compareValuesWithCollate(raw, pc.val)
 		}
 		if cmp != 0 {
 			return false

@@ -49,6 +49,12 @@ type Engine struct {
 	// Authorization
 	authorizer auth.Authorizer // authorization callback (nil = allow all)
 
+	// User-registered custom collation sequences (sqlite3_create_collation).
+	// Keys are upper-cased collation names; values compare two strings and
+	// return -1/0/1. Built-in BINARY/NOCASE/RTRIM are handled by util and are
+	// not stored here.
+	collations map[string]func(a, b string) int
+
 	// Multi-database support
 	databases map[string]*DatabaseContext // schema_name -> context (upper-cased key)
 	dbList    []*DatabaseContext          // attached databases in ATTACH order (main first)
@@ -289,6 +295,43 @@ func (e *Engine) SetDQS(ddl, dml bool) {
 // (e.g. `db func f f` where f returns a constant).
 func (e *Engine) RegisterFunction(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
 	e.funcs.Register(name, fn, minArgs, maxArgs)
+}
+
+// RegisterCollation registers a custom collation sequence for this engine
+// (sqlite3_create_collation). The function compares two strings and returns
+// -1/0/1. Collation names are case-insensitive; registering a name that is a
+// built-in (BINARY/NOCASE/RTRIM) replaces the built-in for this connection,
+// matching SQLite (the user collation shadows the built-in of the same name).
+func (e *Engine) RegisterCollation(name string, fn func(a, b string) int) {
+	if e == nil || fn == nil {
+		return
+	}
+	if e.collations == nil {
+		e.collations = make(map[string]func(a, b string) int)
+	}
+	e.collations[strings.ToUpper(name)] = fn
+}
+
+// lookupCollation returns a registered custom collation function for name
+// (case-insensitive), or nil if name is not registered.
+func (e *Engine) lookupCollation(name string) func(a, b string) int {
+	if e == nil || e.collations == nil {
+		return nil
+	}
+	return e.collations[strings.ToUpper(name)]
+}
+
+// compareValuesCollate compares two SQL values with a collation name,
+// consulting this engine's registered custom collations in addition to the
+// built-in BINARY/NOCASE/RTRIM. An empty or unknown collation falls back to
+// BINARY (SQLite's default), matching util.CompareValuesCollate.
+func (e *Engine) compareValuesCollate(a, b interface{}, collation string) int {
+	return util.CompareValuesCollateFn(a, b, collation, func(name string) (util.CollationFunc, bool) {
+		if f := e.lookupCollation(name); f != nil {
+			return util.CollationFunc(f), true
+		}
+		return nil, false
+	})
 }
 
 // authorize checks whether an operation is allowed by the authorizer.
@@ -701,6 +744,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		schema:            mainCtx.Schema,
 		funcs:             function.NewRegistry(),
 		vtabs:             vtab.NewRegistry(),
+		collations:        make(map[string]func(a, b string) int),
 		colCache:          make(map[string][]sql.ColumnDef),
 		stmtCache:         make(map[string][]sql.Stmt),
 		tableRootPages:    make(map[string]uint32),

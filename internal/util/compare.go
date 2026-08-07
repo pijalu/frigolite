@@ -45,6 +45,10 @@ func FormatSQLiteReal(f float64) string {
 	return s
 }
 
+// CollationFunc is a custom collation sequence: it compares two strings and
+// returns -1 if a < b, 0 if equal, 1 if a > b (sqlite3_create_collation).
+type CollationFunc func(a, b string) int
+
 // CompareValues compares two SQL values according to SQLite affinity rules.
 // Returns -1 if a < b, 0 if a == b, 1 if a > b.
 //
@@ -90,6 +94,15 @@ func ColumnAffinity(v interface{}) rune {
 // CompareValuesCollate compares two SQL values with an optional collation.
 // collation can be "NOCASE", "RTRIM", "BINARY", or "" (defaults to BINARY).
 func CompareValuesCollate(a, b interface{}, collation string) int {
+	return CompareValuesCollateFn(a, b, collation, nil)
+}
+
+// CompareValuesCollateFn is CompareValuesCollate with support for custom
+// collation sequences: when the resolved collation is not a built-in
+// (BINARY/NOCASE/RTRIM/""), lookup is consulted for a CollationFunc to apply
+// to TEXT comparisons. A nil lookup or an unknown collation falls back to
+// BINARY, matching SQLite's default.
+func CompareValuesCollateFn(a, b interface{}, collation string, lookup func(string) (CollationFunc, bool)) int {
 	if a == nil && b == nil {
 		return 0
 	}
@@ -196,10 +209,10 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 		}
 		// NONE: compare as TEXT by converting numeric to string
 		if ta == typeText && isNumeric(tb) {
-			return stringCompare(toString(a), formatNumeric(b), collation)
+			return stringCompareFn(toString(a), formatNumeric(b), collation, lookup)
 		}
 		if tb == typeText && isNumeric(ta) {
-			return stringCompare(formatNumeric(a), toString(b), collation)
+			return stringCompareFn(formatNumeric(a), toString(b), collation, lookup)
 		}
 	}
 
@@ -211,7 +224,7 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 	// Same type: compare by value
 	switch ta {
 	case typeText:
-		return stringCompare(toStr(a), toStr(b), collation)
+		return stringCompareFn(toStr(a), toStr(b), collation, lookup)
 	case typeBlob:
 		return bytes.Compare(toBytes(a), toBytes(b))
 	default:
@@ -572,12 +585,24 @@ func Affinity(typeName string) rune {
 // Supported collations: "NOCASE" (case-insensitive), "RTRIM" (right-trim),
 // "BINARY" or "" (byte-wise comparison with SQLite BINARY semantics).
 func stringCompare(a, b, collation string) int {
+	return stringCompareFn(a, b, collation, nil)
+}
+
+// stringCompareFn is stringCompare with custom collation lookup support: when
+// the collation is not a built-in, lookup is consulted for a CollationFunc;
+// an unknown collation (or nil lookup) falls back to BINARY.
+func stringCompareFn(a, b, collation string, lookup func(string) (CollationFunc, bool)) int {
 	switch strings.ToUpper(collation) {
 	case "NOCASE":
 		return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
 	case "RTRIM":
 		return strings.Compare(strings.TrimRight(a, " "), strings.TrimRight(b, " "))
 	default:
+		if lookup != nil {
+			if fn, ok := lookup(collation); ok {
+				return fn(a, b)
+			}
+		}
 		// BINARY or empty: standard byte-wise comparison
 		// SQLite BINARY compares using memcmp with the shortest string's length first
 		minLen := len(a)

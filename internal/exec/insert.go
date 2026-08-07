@@ -678,7 +678,7 @@ func (e *Engine) checkCompositeUnique(tableEntry *schema.Entry, colDefs []sql.Co
 		if err != nil || rec == nil {
 			break
 		}
-		if allMatch(colDefs, rec.Values, group, values) {
+		if e.allMatch(colDefs, rec.Values, group, values) {
 			// Build error message with all constraint column names
 			var names []string
 			seen := make(map[string]bool)
@@ -704,7 +704,7 @@ func (e *Engine) checkCompositeUnique(tableEntry *schema.Entry, colDefs []sql.Co
 // allMatch returns true if ALL columns in the group match between the existing
 // record and the new values. NULL values never match (NULL != NULL). Each
 // column's declared collation is applied to its comparison.
-func allMatch(colDefs []sql.ColumnDef, recValues []interface{}, group []int, values []interface{}) bool {
+func (e *Engine) allMatch(colDefs []sql.ColumnDef, recValues []interface{}, group []int, values []interface{}) bool {
 	for _, idx := range group {
 		if idx >= len(recValues) || idx >= len(values) {
 			return false
@@ -716,7 +716,7 @@ func allMatch(colDefs []sql.ColumnDef, recValues []interface{}, group []int, val
 		if idx < len(colDefs) {
 			coll = colDefs[idx].Collate
 		}
-		if util.CompareValuesCollate(recValues[idx], values[idx], coll) != 0 {
+		if e.compareValuesCollate(recValues[idx], values[idx], coll) != 0 {
 			return false
 		}
 	}
@@ -971,7 +971,7 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 			match := true
 			for i, cn := range idxCols {
 				kv, ok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, erow)
-				if !ok || compareValuesWithCollate(kv, key[i]) != 0 {
+				if !ok || e.compareValuesWithCollate(kv, key[i]) != 0 {
 					match = false
 					break
 				}
@@ -1043,7 +1043,7 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 			match := true
 			for i, cn := range idxCols {
 				kv, ok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, erow)
-				if !ok || compareValuesWithCollate(kv, key[i]) != 0 {
+				if !ok || e.compareValuesWithCollate(kv, key[i]) != 0 {
 					match = false
 					break
 				}
@@ -1208,7 +1208,7 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 			// generic no-affinity case, where the raw value is used).
 			if colDefs[i].Type != "" {
 				cv := &util.ColumnValue{Value: v, Affinity: util.Affinity(colDefs[i].Type)}
-				if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+				if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 					row[colDefs[i].Name] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
 				} else {
 					row[colDefs[i].Name] = cv
@@ -1218,7 +1218,7 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 			// Wrap values whose column declares a collation (e.g. NOCASE) so
 			// comparisons against them use that collation (SQLite column
 			// collation rules). Only non-BINARY collations are wrapped.
-			if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+			if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 				row[colDefs[i].Name] = &collatedValue{value: v, collation: strings.ToUpper(coll)}
 			} else {
 				row[colDefs[i].Name] = v
@@ -1428,7 +1428,7 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 				if err != nil || rec == nil {
 					break
 				}
-				if allMatch(colDefs, rec.Values, group, values) {
+				if e.allMatch(colDefs, rec.Values, group, values) {
 					return cell.RowID, rec.Values, group[0], true
 				}
 				hasNext, err := cursor.Next()

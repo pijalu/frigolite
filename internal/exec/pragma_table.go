@@ -469,9 +469,48 @@ func (e *Engine) viewColumnDefsFromSelectGuard(sel *sql.SelectStmt, resolving ma
 				name = ref.Name
 			}
 		}
-		defs = append(defs, sql.ColumnDef{Name: name, Type: e.viewColumnType(sel, i, srcDefs)})
+		// Carry the declared collation of the underlying column so outer
+		// comparisons use it (SQLite view/subquery column collation rules).
+		// For compound queries the leftmost member's column collation wins.
+		coll := ""
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+			if c := sourceColumnCollation(ref.Name, srcDefs); c != "" {
+				coll = c
+			}
+		}
+		if coll == "" {
+			// Compound (UNION) members: the leftmost member with a collation
+			// for this column determines the output collation (matching
+			// selectOutputCollations' leftmost-member rule).
+			for p := sel.Union; p != nil; p = p.Union {
+				if i < len(p.Columns) {
+					if ref, ok := p.Columns[i].Expr.(*sql.ColumnRef); ok {
+						if c := sourceColumnCollation(ref.Name, srcDefs); c != "" {
+							coll = c
+							break
+						}
+					}
+				}
+			}
+		}
+		defs = append(defs, sql.ColumnDef{Name: name, Type: e.viewColumnType(sel, i, srcDefs), Collate: coll})
 	}
 	return defs
+}
+
+// sourceColumnCollation returns the declared collation of a column reference
+// resolved against a set of source column definitions (case-insensitive), or
+// "" when the column is not found or has no declared collation.
+func sourceColumnCollation(name string, srcDefs []sql.ColumnDef) string {
+	for _, sd := range srcDefs {
+		if strings.EqualFold(sd.Name, name) {
+			if sd.Collate != "" && !strings.EqualFold(sd.Collate, "BINARY") {
+				return sd.Collate
+			}
+			return ""
+		}
+	}
+	return ""
 }
 
 // fromSourceColumnDefsGuard returns the column definitions of a single FROM

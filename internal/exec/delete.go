@@ -256,7 +256,7 @@ func (e *Engine) sortDeleteRows(rows []RowMap, orderBy []sql.OrderByTerm) {
 		for _, ob := range orderBy {
 			left, _ := e.evalExpr(ob.Expr, rows[i])
 			right, _ := e.evalExpr(ob.Expr, rows[j])
-			cmp := compareOrderByValues(left, right, ob)
+			cmp := e.compareOrderByValues(left, right, ob)
 			if cmp < 0 {
 				return true
 			} else if cmp > 0 {

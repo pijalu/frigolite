@@ -111,6 +111,17 @@ func (db *DB) RegisterFunction(name string, fn func(args []interface{}) (interfa
 	}
 }
 
+// RegisterCollation registers a custom collation sequence for this database
+// connection (sqlite3_create_collation). The function compares two strings
+// and returns -1/0/1. Collation names are case-insensitive; registering a
+// name that shadows a built-in (BINARY/NOCASE/RTRIM) replaces the built-in
+// for this connection, matching SQLite.
+func (db *DB) RegisterCollation(name string, fn func(a, b string) int) {
+	if db != nil && db.engine != nil {
+		db.engine.RegisterCollation(name, fn)
+	}
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 func Open(path string) (*DB, error) {
 	var pg *pager.Pager

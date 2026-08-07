@@ -58,6 +58,37 @@ func (e *Engine) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 	}
 }
 
+// evalExprWithCollation evaluates an expression and applies the compile-time
+// collation propagation (SQLite sqlite3ExprCollSeq): when the expression's
+// subtree contains an explicit COLLATE that propagates up through a function
+// call, CASE, or ||, the result is wrapped in an explicit collatedValue so an
+// enclosing comparison uses that collation (collate8 semantics).
+func (e *Engine) evalExprWithCollation(expr sql.Expr, row Row) (interface{}, error) {
+	v, err := e.evalExpr(expr, row)
+	if err != nil || v == nil {
+		return v, err
+	}
+	// Only wrap expressions whose compile-time collation is explicit: a
+	// COLLATE operator at the top, or an explicit COLLATE propagating up from
+	// a function argument / CASE branch / || operand. Column collations are
+	// already carried by the runtime collatedValue marker (explicit=false).
+	coll, explicit := exprCollation(expr)
+	if explicit && coll != "" {
+		// A CASE expression's runtime value is the selected branch (which may
+		// carry that branch's collation marker). The compile-time collation
+		// wins over the runtime-selected branch (SQLite resolves CASE
+		// collation from the source THEN/ELSE lists, not the taken branch), so
+		// override an existing marker rather than skipping the wrap.
+		if cv, ok := v.(*collatedValue); ok {
+			cv.collation = coll
+			cv.explicit = true
+			return v, nil
+		}
+		return &collatedValue{value: v, collation: coll, explicit: true}, nil
+	}
+	return v, nil
+}
+
 func (e *Engine) evalComplexExpr(expr sql.Expr, row Row) (interface{}, error) {
 	switch v := expr.(type) {
 	case *sql.ParenExpr:
@@ -231,7 +262,7 @@ func (e *Engine) evalCaseWithOperand(v *sql.CaseExpr, row Row) (interface{}, err
 			if err != nil {
 				return nil, err
 			}
-			if compareValuesWithCollate(operand, when) == 0 {
+			if e.compareValuesWithCollate(operand, when) == 0 {
 				return e.evalExpr(w.Then, row)
 			}
 		}
@@ -657,11 +688,11 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return e.evalMatchOp(v, row)
 	}
 
-	left, err := e.evalExpr(v.Left, row)
+	left, err := e.evalExprWithCollation(v.Left, row)
 	if err != nil {
 		return nil, err
 	}
-	right, err := e.evalExpr(v.Right, row)
+	right, err := e.evalExprWithCollation(v.Right, row)
 	if err != nil {
 		return nil, err
 	}
@@ -712,10 +743,10 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		// Row-value IS: NULL-safe element-wise equality, e.g.
 		// (a,b,c) IS (x,y,z). Delegate when either side is a row value.
 		if _, lok := left.([]interface{}); lok {
-			return evalRowValueIs(v.Operator, left, right)
+			return e.evalRowValueIs(v.Operator, left, right)
 		}
 		if _, rok := right.([]interface{}); rok {
-			return evalRowValueIs(v.Operator, left, right)
+			return e.evalRowValueIs(v.Operator, left, right)
 		}
 		// Unwrap ColumnValue wrappers so IS NULL works on joined values.
 		left = util.UnwrapColumnValue(left)
@@ -726,15 +757,15 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		if left == nil || right == nil {
 			return int64(0), nil
 		}
-		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) == 0), nil
 	}
 	if v.Operator == "IS NOT" {
 		// Row-value IS NOT: NULL-safe element-wise inequality.
 		if _, lok := left.([]interface{}); lok {
-			return evalRowValueIs(v.Operator, left, right)
+			return e.evalRowValueIs(v.Operator, left, right)
 		}
 		if _, rok := right.([]interface{}); rok {
-			return evalRowValueIs(v.Operator, left, right)
+			return e.evalRowValueIs(v.Operator, left, right)
 		}
 		left = util.UnwrapColumnValue(left)
 		right = util.UnwrapColumnValue(right)
@@ -744,15 +775,15 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		if left == nil || right == nil {
 			return int64(1), nil
 		}
-		return boolToInt(compareValuesWithCollate(left, right) != 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) != 0), nil
 	}
-	return evalBinaryOpValues(v.Operator, left, right)
+	return e.evalBinaryOpValues(v.Operator, left, right)
 }
 
 // evalRowValueIs implements NULL-safe row-value IS / IS NOT comparison.
 // Each element pair is compared with IS semantics (NULL IS NULL is true);
 // the whole row value is equal when every element is IS-equal.
-func evalRowValueIs(op string, left, right interface{}) (interface{}, error) {
+func (e *Engine) evalRowValueIs(op string, left, right interface{}) (interface{}, error) {
 	lv, lok := left.([]interface{})
 	rv, rok := right.([]interface{})
 	if !lok || !rok {
@@ -774,7 +805,7 @@ func evalRowValueIs(op string, left, right interface{}) (interface{}, error) {
 			equal = false
 			break
 		}
-		if compareValuesWithCollate(lv[i], rv[i]) != 0 {
+		if e.compareValuesWithCollate(lv[i], rv[i]) != 0 {
 			equal = false
 			break
 		}
@@ -892,7 +923,7 @@ func unwrapCollatedValue(v interface{}) interface{} {
 }
 
 // compareValuesWithCollate compares two values using the collation from either side.
-func compareValuesWithCollate(left, right interface{}) int {
+func (e *Engine) compareValuesWithCollate(left, right interface{}) int {
 	lv, lc := extractValue(left)
 	rv, rc := extractValue(right)
 	// SQLite collation resolution for a binary comparison (datatype3.html):
@@ -909,20 +940,20 @@ func compareValuesWithCollate(left, right interface{}) int {
 	// 3. Only when the left operand is NOT a column (literal/expression)
 	//    does the right operand's column collation apply, e.g. `'abc' > b`.
 	if le, ok := left.(*collatedValue); ok && le.explicit {
-		return util.CompareValuesCollate(lv, rv, le.collation)
+		return e.compareValuesCollate(lv, rv, le.collation)
 	}
 	if re, ok := right.(*collatedValue); ok && re.explicit {
-		return util.CompareValuesCollate(lv, rv, re.collation)
+		return e.compareValuesCollate(lv, rv, re.collation)
 	}
 	leftIsColumn := isColumnValue(left)
 	if leftIsColumn {
-		return util.CompareValuesCollate(lv, rv, lc)
+		return e.compareValuesCollate(lv, rv, lc)
 	}
 	collation := lc
 	if collation == "" {
 		collation = rc
 	}
-	return util.CompareValuesCollate(lv, rv, collation)
+	return e.compareValuesCollate(lv, rv, collation)
 }
 
 // isColumnValue reports whether v is a column value (a *util.ColumnValue
@@ -957,7 +988,7 @@ func extractCollatedValues(op string, left, right interface{}) (interface{}, int
 // and "row value comparison with different number of terms" for arity
 // mismatch). NULL elements propagate NULL like scalar comparisons: if the
 // elements compared so far are equal and one is NULL, the result is NULL.
-func evalRowValueCompare(op string, lv []interface{}, right interface{}) (interface{}, error) {
+func (e *Engine) evalRowValueCompare(op string, lv []interface{}, right interface{}) (interface{}, error) {
 	rv, ok := right.([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("row value misused")
@@ -984,7 +1015,7 @@ func evalRowValueCompare(op string, lv []interface{}, right interface{}) (interf
 			}
 			break
 		}
-		cmp = compareValuesWithCollate(l, r)
+		cmp = e.compareValuesWithCollate(l, r)
 		if cmp != 0 {
 			break
 		}
@@ -1007,7 +1038,7 @@ func evalRowValueCompare(op string, lv []interface{}, right interface{}) (interf
 	}
 }
 
-func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error) {
+func (e *Engine) evalBinaryOpValues(op string, left, right interface{}) (interface{}, error) {
 	// Row-value comparison: (a,b,c) OP (x,y,z) compares element-wise
 	// lexicographically with SQLite's row-value semantics. A row value
 	// compared with a scalar (or a row value of different arity) is an
@@ -1015,10 +1046,10 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 	// number of terms"). Note: a row value is only valid in comparison and
 	// IN contexts; comparing via =, <>, <, >, <=, >= is allowed.
 	if lv, lok := left.([]interface{}); lok {
-		return evalRowValueCompare(op, lv, right)
+		return e.evalRowValueCompare(op, lv, right)
 	}
 	if rv, rok := right.([]interface{}); rok {
-		return evalRowValueCompare(op, rv, left)
+		return e.evalRowValueCompare(op, rv, left)
 	}
 	// Extract collation-wrapped values for non-comparison operators.
 	// Comparison operators use compareValuesWithCollate which handles this internally.
@@ -1034,20 +1065,20 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 		if !typesMatchForEquality(left, right) {
 			return int64(0), nil
 		}
-		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) == 0), nil
 	case "<>", "!=":
 		if !typesMatchForEquality(left, right) {
 			return int64(1), nil
 		}
-		return boolToInt(compareValuesWithCollate(left, right) != 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) != 0), nil
 	case "<":
-		return boolToInt(compareValuesWithCollate(left, right) < 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) < 0), nil
 	case ">":
-		return boolToInt(compareValuesWithCollate(left, right) > 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) > 0), nil
 	case "<=":
-		return boolToInt(compareValuesWithCollate(left, right) <= 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) <= 0), nil
 	case ">=":
-		return boolToInt(compareValuesWithCollate(left, right) >= 0), nil
+		return boolToInt(e.compareValuesWithCollate(left, right) >= 0), nil
 	case "LIKE":
 		return boolToInt(likeValues(left, right)), nil
 	case "GLOB":
@@ -1088,6 +1119,9 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 			case "", "BINARY", "NOCASE", "RTRIM":
 				return &collatedValue{value: left, collation: rightStr, explicit: true}, nil
 			default:
+				if e.lookupCollation(rightStr) != nil {
+					return &collatedValue{value: left, collation: rightStr, explicit: true}, nil
+				}
 				return nil, fmt.Errorf("no such collation sequence: %s", rightStr)
 			}
 		}
@@ -1464,7 +1498,7 @@ func (e *Engine) evalBetween(v *sql.Between, row Row) (interface{}, error) {
 		// SQLite: any NULL bound makes the whole BETWEEN NULL.
 		return nil, nil
 	}
-	result := compareValuesWithCollate(operand, low) >= 0 && compareValuesWithCollate(operand, high) <= 0
+	result := e.compareValuesWithCollate(operand, low) >= 0 && e.compareValuesWithCollate(operand, high) <= 0
 	if v.Negated {
 		result = !result
 	}

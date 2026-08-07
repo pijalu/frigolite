@@ -320,7 +320,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 			allMatch := true
 			for i, cidx := range childIdxs {
 				if cidx >= len(rec.Values) || rec.Values[cidx] == nil || oldVals[i] == nil ||
-					util.CompareValuesCollate(rec.Values[cidx], oldVals[i], parentColDefs[parentIdxs[i]].Collate) != 0 {
+					e.compareValuesCollate(rec.Values[cidx], oldVals[i], parentColDefs[parentIdxs[i]].Collate) != 0 {
 					allMatch = false
 					break
 				}
@@ -891,7 +891,7 @@ func (e *Engine) fkCheckChildTable(entry *schema.Entry, ctx *DatabaseContext) ([
 				for ci, pcol := range rfk.parentCols {
 					pidx := parentIndex[pcol]
 					if pidx < 0 || pidx >= len(pRec.Values) || pRec.Values[pidx] == nil ||
-						util.CompareValuesCollate(pRec.Values[pidx], childKey[ci], rfk.parentDefs[pidx].Collate) != 0 {
+						e.compareValuesCollate(pRec.Values[pidx], childKey[ci], rfk.parentDefs[pidx].Collate) != 0 {
 						allMatch = false
 						break
 					}
@@ -1148,7 +1148,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 			allMatch := true
 			for i, pi := range parentIdx {
 				if pi >= len(rec.Values) || rec.Values[pi] == nil ||
-					util.CompareValuesCollate(rec.Values[pi], childKey[i], parentDefs[i].Collate) != 0 {
+					e.compareValuesCollate(rec.Values[pi], childKey[i], parentDefs[i].Collate) != 0 {
 					allMatch = false
 					break
 				}

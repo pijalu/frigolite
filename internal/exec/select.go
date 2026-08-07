@@ -521,7 +521,7 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 				if memberResult.Error != nil {
 					return memberResult
 				}
-				result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll, colls)
+				result.Rows = e.applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll, colls)
 				// Skip the VALUES group's internal tuple nodes (links that
 				// are UNION ALL); stop at the next real compound member.
 				for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
@@ -542,7 +542,7 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 			if len(memberResult.Columns) != len(result.Columns) {
 				return &Result{Error: fmt.Errorf("SELECTs to the left and right of %s do not have the same number of result columns", setOpName(cur.SetOp, cur.UnionAll))}
 			}
-			result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll, colls)
+			result.Rows = e.applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll, colls)
 			cur = member
 		}
 		last := cur
@@ -613,14 +613,14 @@ func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op 
 	if unionResult.Error != nil {
 		return rows
 	}
-	return applySetOp(rows, unionResult.Rows, op, unionAll, nil)
+	return e.applySetOp(rows, unionResult.Rows, op, unionAll, nil)
 }
 
 // applySetOp combines left and right row sets with a compound set operator.
 // colls holds the collation of each result column (from the leftmost member
 // of the compound query), used to deduplicate/intersect with SQLite's column
 // collation semantics; nil means BINARY for all columns.
-func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool, colls []string) [][]interface{} {
+func (e *Engine) applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool, colls []string) [][]interface{} {
 	switch op {
 	case sql.SetUnion:
 		if unionAll {
@@ -629,13 +629,13 @@ func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool, co
 		}
 		// UNION: deduplicate combined rows; SQLite's temp b-tree emits
 		// the unique rows in sorted key order.
-		return sortSetOpRows(dedupeRows(append(rows, rightRows...), colls), colls)
+		return e.sortSetOpRows(e.dedupeRows(append(rows, rightRows...), colls), colls)
 	case sql.SetIntersect:
 		// INTERSECT: rows that appear in both sets
-		return sortSetOpRows(intersectRows(rows, rightRows, colls), colls)
+		return e.sortSetOpRows(e.intersectRows(rows, rightRows, colls), colls)
 	case sql.SetExcept:
 		// EXCEPT: rows in left but not in right
-		return sortSetOpRows(exceptRows(rows, rightRows, colls), colls)
+		return e.sortSetOpRows(e.exceptRows(rows, rightRows, colls), colls)
 	default:
 		return append(rows, rightRows...)
 	}
@@ -645,7 +645,7 @@ func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool, co
 // by their result values, matching SQLite's ephemeral b-tree ordering
 // (NULL first, then INTEGER/REAL, then TEXT, then BLOB, with the leftmost
 // result column's collation applied to text comparisons).
-func sortSetOpRows(rows [][]interface{}, colls []string) [][]interface{} {
+func (e *Engine) sortSetOpRows(rows [][]interface{}, colls []string) [][]interface{} {
 	if len(rows) < 2 {
 		return rows
 	}
@@ -662,7 +662,7 @@ func sortSetOpRows(rows [][]interface{}, colls []string) [][]interface{} {
 			if colls != nil && k < len(colls) {
 				coll = colls[k]
 			}
-			cmp := util.CompareValuesCollate(util.UnwrapColumnValue(a[k]), util.UnwrapColumnValue(b[k]), coll)
+			cmp := e.compareValuesCollate(util.UnwrapColumnValue(a[k]), util.UnwrapColumnValue(b[k]), coll)
 			if cmp != 0 {
 				return cmp < 0
 			}
@@ -943,7 +943,7 @@ func (e *Engine) selectOutputCollations(s *sql.SelectStmt) []string {
 		// An explicit COLLATE in the select expression takes precedence over
 		// the column's declared collation (e.g. "SELECT DISTINCT b COLLATE
 		// nocase FROM t1"). COLLATE is a BinaryOp{Operator:"COLLATE"}.
-		if exprColl := exprCollation(col.Expr); exprColl != "" {
+		if exprColl, _ := exprCollation(col.Expr); exprColl != "" {
 			coll = exprColl
 		}
 		colls = append(colls, coll)
@@ -951,21 +951,118 @@ func (e *Engine) selectOutputCollations(s *sql.SelectStmt) []string {
 	return colls
 }
 
-// exprCollation returns the collation named by an explicit COLLATE operator
-// at the top of an expression, or "" when the expression is not a COLLATE.
-func exprCollation(e sql.Expr) string {
-	if b, ok := e.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
-		if lit, ok := b.Right.(*sql.StringLit); ok {
-			return strings.ToUpper(lit.Value)
-		}
-	}
-	return ""
-}
-
 // orderByTermCollation returns the COLLATE name applied to an ORDER BY term
 // expression (e.g. "ORDER BY x COLLATE nocase"), or "" for BINARY.
 func orderByTermCollation(e sql.Expr) string {
-	return exprCollation(e)
+	c, _ := exprCollation(e)
+	return c
+}
+
+// exprCollation computes the compile-time collation of an expression node,
+// mirroring SQLite's sqlite3ExprCollSeq. It returns the collation name, or ""
+// for BINARY/no collation. The second return value reports whether the
+// collation is "explicit" (comes from a COLLATE operator, or propagates up
+// from an explicit COLLATE through a function call / CASE / ||), which makes
+// it win over a column collation on the other side of a comparison.
+//
+// SQLite propagation rules (expr.c sqlite3ExprCollSeq):
+//   - COLLATE operator: its collation (explicit).
+//   - Function call: the first argument with a known collation.
+//   - CASE: the first THEN branch with a known collation, else ELSE.
+//   - || (concat): the right operand's collation if explicit, else the left's.
+//   - Column reference: the column's declared collation (not explicit).
+func exprCollation(e sql.Expr) (string, bool) {
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		if strings.EqualFold(v.Operator, "COLLATE") {
+			if lit, ok := v.Right.(*sql.StringLit); ok {
+				return strings.ToUpper(lit.Value), true
+			}
+			return "", false
+		}
+		if strings.EqualFold(v.Operator, "||") {
+			if rc, rx := exprCollation(v.Right); rx {
+				return rc, true
+			}
+			if lc, lx := exprCollation(v.Left); lc != "" {
+				return lc, lx
+			}
+			return "", false
+		}
+		return "", false
+	case *sql.FuncCall:
+		for _, a := range v.Args {
+			if c, x := exprCollation(a); c != "" {
+				return c, x
+			}
+		}
+		return "", false
+	case *sql.CaseExpr:
+		for _, w := range v.Whens {
+			if c, x := exprCollation(w.Then); c != "" {
+				return c, x
+			}
+		}
+		if v.Else != nil {
+			if c, x := exprCollation(v.Else); c != "" {
+				return c, x
+			}
+		}
+		return "", false
+	case *sql.UnaryOp:
+		// UPLUS propagates the operand's collation (SQLite TK_UPLUS).
+		return exprCollation(v.Operand)
+	case *sql.CastExpr:
+		// CAST drops the operand's collation (SQLite TK_CAST returns the
+		// operand's collation only when the type has no affinity; Frigolite
+		// approximates by not propagating — matches common usage).
+		return "", false
+	case *sql.ColumnRef:
+		// The column's declared collation is resolved at evaluation time by
+		// the collatedValue marker; the compile-time name is unknown here
+		// (no schema access), so report no collation. Runtime markers handle
+		// column collations.
+		return "", false
+	default:
+		return "", false
+	}
+}
+
+// exprHasExplicitCollate reports whether the expression tree contains an
+// explicit COLLATE operator anywhere (SQLite's EP_Collate flag semantics).
+// Used to decide whether a propagated collation should win over a column
+// collation on the other side of a comparison.
+func exprHasExplicitCollate(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		if strings.EqualFold(v.Operator, "COLLATE") {
+			return true
+		}
+		return exprHasExplicitCollate(v.Left) || exprHasExplicitCollate(v.Right)
+	case *sql.FuncCall:
+		for _, a := range v.Args {
+			if exprHasExplicitCollate(a) {
+				return true
+			}
+		}
+		return false
+	case *sql.CaseExpr:
+		for _, w := range v.Whens {
+			if exprHasExplicitCollate(w.When) || exprHasExplicitCollate(w.Then) {
+				return true
+			}
+		}
+		if v.Else != nil {
+			return exprHasExplicitCollate(v.Else)
+		}
+		return false
+	case *sql.UnaryOp:
+		return exprHasExplicitCollate(v.Operand)
+	case *sql.CastExpr:
+		return exprHasExplicitCollate(v.Operand)
+	default:
+		return false
+	}
 }
 
 // stripCollate removes a top-level COLLATE operator from an expression,
@@ -1021,7 +1118,7 @@ func (e *Engine) execValuesGroup(head *sql.SelectStmt) *Result {
 
 // dedupeRows removes duplicate rows using CompareValues-based keys.
 // colls holds the collation of each column (nil → BINARY).
-func dedupeRows(rows [][]interface{}, colls []string) [][]interface{} {
+func (e *Engine) dedupeRows(rows [][]interface{}, colls []string) [][]interface{} {
 	if len(rows) == 0 {
 		return rows
 	}
@@ -1039,7 +1136,7 @@ func dedupeRows(rows [][]interface{}, colls []string) [][]interface{} {
 
 // intersectRows returns rows that exist in both a and b (INTERSECT).
 // colls holds the collation of each column (nil → BINARY).
-func intersectRows(a, b [][]interface{}, colls []string) [][]interface{} {
+func (e *Engine) intersectRows(a, b [][]interface{}, colls []string) [][]interface{} {
 	if len(a) == 0 || len(b) == 0 {
 		return [][]interface{}{}
 	}
@@ -1063,7 +1160,7 @@ func intersectRows(a, b [][]interface{}, colls []string) [][]interface{} {
 
 // exceptRows returns rows in a that are not in b (EXCEPT).
 // colls holds the collation of each column (nil → BINARY).
-func exceptRows(a, b [][]interface{}, colls []string) [][]interface{} {
+func (e *Engine) exceptRows(a, b [][]interface{}, colls []string) [][]interface{} {
 	if len(a) == 0 {
 		return [][]interface{}{}
 	}
@@ -1299,7 +1396,7 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 				aff := util.Affinity(cd.Type)
 				cv := &util.ColumnValue{Value: val, Affinity: aff}
 				var mapped interface{} = cv
-				if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+				if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 					mapped = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
 				}
 				rowMap[cd.Name] = mapped
@@ -1433,7 +1530,7 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 				if memberResult.Error != nil {
 					return memberResult
 				}
-				rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll, nil)
+				rows = e.applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll, nil)
 				for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
 					member = member.Union
 				}
@@ -1446,7 +1543,7 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 			if memberResult.Error != nil {
 				return memberResult
 			}
-			rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll, nil)
+			rows = e.applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll, nil)
 			cur = member
 		}
 		result := &Result{Columns: columns, Rows: rows}
@@ -1661,9 +1758,17 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 					aff = util.Affinity(colDefs[j].Type)
 				}
 				cv := &util.ColumnValue{Value: val, Affinity: aff}
-				rowMap[colDefs[j].Name] = cv
+				var mapped interface{} = cv
+				// Carry the derived column's declared collation (e.g. a
+				// subquery column that inherits a COLLATE NOCASE base column)
+				// so outer comparisons use it (SQLite column collation
+				// rules). BINARY needs no marker.
+				if coll := colDefs[j].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
+					mapped = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+				}
+				rowMap[colDefs[j].Name] = mapped
 				if alias != "" {
-					rowMap[alias+"."+colDefs[j].Name] = cv
+					rowMap[alias+"."+colDefs[j].Name] = mapped
 				}
 			}
 		}
@@ -2337,7 +2442,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 						aff := util.Affinity(cd.Type)
 						cv := &util.ColumnValue{Value: val, Affinity: aff}
 						var mapped interface{} = cv
-						if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+						if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 							mapped = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
 						}
 						rightRowMap[cd.Name] = mapped
@@ -4065,7 +4170,7 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []RowMap) (interface{},
 				return nil, nil
 			}
 		}
-		return evalBinaryOpValues(v.Operator, left, right)
+		return e.evalBinaryOpValues(v.Operator, left, right)
 	case *sql.UnaryOp:
 		return e.evalHavingUnary(v, groupRows)
 	case *sql.IsNull:
@@ -4248,7 +4353,7 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}
 				if errI != nil || errJ != nil {
 					continue
 				}
-				cmp := util.CompareValuesCollate(vi, vj, coll)
+				cmp := e.compareValuesCollate(vi, vj, coll)
 				if cmp != 0 {
 					if ob.Desc {
 						return cmp > 0
@@ -5636,7 +5741,7 @@ func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []RowMap) interf
 				if errI != nil || errJ != nil {
 					continue
 				}
-				cmp := util.CompareValuesCollate(vi, vj, coll)
+				cmp := e.compareValuesCollate(vi, vj, coll)
 				if cmp != 0 {
 					if ob.Desc {
 						return cmp > 0
@@ -6249,7 +6354,7 @@ func (e *Engine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
 				return applyIntComparison(bop.Operator, a, b), true
 			}
 		}
-		cmp := compareValuesWithCollate(val, litVal)
+		cmp := e.compareValuesWithCollate(val, litVal)
 		return applyComparisonOp(bop.Operator, cmp), true
 	}
 
@@ -6272,7 +6377,7 @@ func (e *Engine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
 				return applyIntComparison(bop.Operator, a, b), true
 			}
 		}
-		cmp := compareValuesWithCollate(litVal, val)
+		cmp := e.compareValuesWithCollate(litVal, val)
 		return applyComparisonOp(bop.Operator, cmp), true
 	}
 
@@ -6454,7 +6559,7 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 			// Wrap with the declared collation so comparisons use it (SQLite
 			// column collation rules). compareValuesWithCollate extracts the
 			// collation from collatedValue wrappers.
-			if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+			if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 				row[colDefs[i].Name] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
 			} else {
 				row[colDefs[i].Name] = cv
@@ -6487,7 +6592,7 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 			if cd := &colDefs[i]; cd.Default != nil && !cd.Dropped {
 				aff := util.Affinity(cd.Type)
 				cv := &util.ColumnValue{Value: vals[i], Affinity: aff}
-				if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+				if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 					row[cd.Name] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
 				} else {
 					row[cd.Name] = cv
@@ -6558,7 +6663,7 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 				cv := &util.ColumnValue{Value: values[i], Affinity: aff}
 				// Wrap with the declared collation so comparisons use it,
 				// matching buildRowMap (SQLite column collation rules).
-				if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+				if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
 					values[i] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
 				} else {
 					values[i] = cv
@@ -7048,11 +7153,15 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 				}
 			}
 		}
+		// ORDER BY 1 COLLATE nocase: strip the COLLATE operator to reveal the
+		// positional operand; the term's collation is applied by
+		// compareOrderByValues via orderByTermCollation.
+		obExpr = stripCollate(obExpr)
 		if nl, ok := obExpr.(*sql.NumericLit); ok {
 			if pos, err := strconv.ParseInt(nl.Value, 10, 64); err == nil && pos >= 1 && pos <= int64(len(rows[i])) {
 				left := rows[i][pos-1]
 				right := rows[j][pos-1]
-				cmp := compareOrderByValues(left, right, ob)
+				cmp := e.compareOrderByValues(left, right, ob)
 				if cmp < 0 {
 					return true
 				} else if cmp > 0 {
@@ -7063,12 +7172,13 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 		}
 		// An ORDER BY term that names a result column (alias or column name)
 		// resolves to that column's value in the output row (SQLite rules:
-		// aliases in the SELECT list can be referenced by ORDER BY).
-		if ref, ok := obExpr.(*sql.ColumnRef); ok {
+		// aliases in the SELECT list can be referenced by ORDER BY). Strip a
+		// COLLATE operator so `ORDER BY alias COLLATE nocase` still resolves.
+		if ref, ok := stripCollate(obExpr).(*sql.ColumnRef); ok {
 			if pos := resultColumnIndex(resultCols, ref.Name); pos >= 0 && pos < len(rows[i]) {
 				left := rows[i][pos]
 				right := rows[j][pos]
-				cmp := compareOrderByValues(left, right, ob)
+				cmp := e.compareOrderByValues(left, right, ob)
 				if cmp < 0 {
 					return true
 				} else if cmp > 0 {
@@ -7079,7 +7189,7 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 		}
 		left, _ := e.evalExpr(ob.Expr, rowMaps[i])
 		right, _ := e.evalExpr(ob.Expr, rowMaps[j])
-		cmp := compareOrderByValues(left, right, ob)
+		cmp := e.compareOrderByValues(left, right, ob)
 		if cmp < 0 {
 			return true
 		} else if cmp > 0 {
@@ -7092,7 +7202,10 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 // compareOrderByValues compares two values for an ORDER BY term, applying
 // the term's direction and explicit NULLS FIRST/LAST rules. SQLite defaults:
 // NULLs sort first for ASC, last for DESC; explicit NULLS FIRST/LAST win.
-func compareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
+// The ORDER BY term's explicit COLLATE (e.g. "ORDER BY x COLLATE nocase")
+// is applied when the compared values do not already carry a collation
+// marker (e.g. positional/alias ORDER BY terms resolve to output values).
+func (e *Engine) compareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
 	leftNull := isSQLNull(left)
 	rightNull := isSQLNull(right)
 	if leftNull || rightNull {
@@ -7120,11 +7233,37 @@ func compareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
 		}
 		return -1
 	}
-	cmp := compareValuesWithCollate(left, right)
+	coll := orderByTermCollation(ob.Expr)
+	if coll != "" {
+		// Explicit COLLATE in the ORDER BY term. SQLite resolves the term's
+		// collation as: explicit COLLATE wins; otherwise the column's
+		// collation (carried by the value marker). compareValuesWithCollate
+		// already applies the explicit COLLATE on either side; when the
+		// values carry no marker (output rows), apply the term's collation.
+		lc, _ := extractValue(left)
+		rc, _ := extractValue(right)
+		leftHasCol := isColumnValue(left) || isExplicitCollated(left)
+		rightHasCol := isColumnValue(right) || isExplicitCollated(right)
+		if !leftHasCol && !rightHasCol {
+			cmp := e.compareValuesCollate(lc, rc, coll)
+			if ob.Desc {
+				cmp = -cmp
+			}
+			return cmp
+		}
+	}
+	cmp := e.compareValuesWithCollate(left, right)
 	if ob.Desc {
 		cmp = -cmp
 	}
 	return cmp
+}
+
+// isExplicitCollated reports whether v carries an explicit COLLATE marker
+// (from the COLLATE operator), as opposed to a column's declared collation.
+func isExplicitCollated(v interface{}) bool {
+	cv, ok := v.(*collatedValue)
+	return ok && cv.explicit
 }
 
 // isSQLNull reports whether v is a SQL NULL value.

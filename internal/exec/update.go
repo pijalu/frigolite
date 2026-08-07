@@ -482,7 +482,7 @@ func (e *Engine) sortUpdateChanges(changes []updateChange, rowMaps []RowMap, ord
 		for _, ob := range orderBy {
 			left, _ := e.evalExpr(ob.Expr, pairs[i].row)
 			right, _ := e.evalExpr(ob.Expr, pairs[j].row)
-			cmp := compareOrderByValues(left, right, ob)
+			cmp := e.compareOrderByValues(left, right, ob)
 			if cmp < 0 {
 				return true
 			} else if cmp > 0 {
