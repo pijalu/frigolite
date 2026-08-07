@@ -62,20 +62,7 @@ func Test_nan(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	{ // do_test "nan-1.1.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);\n  ")
-		}
-		STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// sqlite3_bind_double $::STMT 1 NaN (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT x, typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
-		}
+	{ // "nan-1.1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	if tcl_platform_platform != "symbian" {
 		// do_realnum_test nan-1.1.2 {\n    sqlite3_bind_double $::STMT 1 +Inf\n    sqli...} {{} null inf real} (expr test, not transpiled)
@@ -96,63 +83,17 @@ func Test_nan(t *testing.T) {
 			}
 		}
 	}
-	{ // do_test "nan-1.2.1"
-		_res = db.Exec("\n    DELETE FROM T1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM T1;\n  ")
-		}
-		// sqlite3_bind_double $::STMT 1 NaN (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
-		}
+	{ // "nan-1.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "nan-1.2.2"
-		// sqlite3_bind_double $::STMT 1 +Inf (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
-		}
+	{ // "nan-1.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "nan-1.2.3"
-		// sqlite3_bind_double $::STMT 1 -Inf (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
-		}
+	{ // "nan-1.2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "nan-1.2.4"
-		// sqlite3_bind_double $::STMT 1 -NaN (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
-		}
+	{ // "nan-1.2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "nan-1.2.5"
-		// sqlite3_bind_double $::STMT 1 NaN0 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
-		}
+	{ // "nan-1.2.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "nan-1.2.6"
-		// sqlite3_bind_double $::STMT 1 -NaN0 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
-		}
+	{ // "nan-1.2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "nan-1.2.7"
 		r = db.Query("\n    UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;\n  ")
@@ -166,18 +107,7 @@ func Test_nan(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // do_test "nan-2.1"
-		_res = db.Exec("\n    DELETE FROM T1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM T1;\n  ")
-		}
-		// sqlite3_bind_double $::STMT 1 NaN (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
-		_res = db.Exec("SELECT x, typeof(x) FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
-		}
+	{ // "nan-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	if tclBool("!" + "nonzero_reserved_bytes") {

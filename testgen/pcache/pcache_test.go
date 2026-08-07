@@ -61,8 +61,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA cache_size=12;\n    PRAGMA auto_vacuum=0;\n    PRAGMA mmap_size=0;\n  ")
 		if r.Error != nil {

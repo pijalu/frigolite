@@ -251,8 +251,7 @@ func Test_exclusive2(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	{ // do_test "exclusive2-3.0"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;\n  ")
 		if _res.Error != nil {

@@ -157,8 +157,7 @@ func Test_walcksum(t *testing.T) {
 		{ // do_test "walcksum-1." + endian + ".4.1"
 			tclFileCopy("test2.db", "test.db")
 			tclFileCopy("test2.db-wal", "test.db-wal")
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT a FROM t1 ")
 			if r.Error != nil {

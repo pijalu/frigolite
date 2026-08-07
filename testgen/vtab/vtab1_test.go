@@ -170,33 +170,13 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		}
 	}
-	{ // do_test "vtab1-1.2152.1"
-		DB = "sqlite3_connection_pointer db"
-		_ = DB // suppress unused warning
-		sql = "CREATE VIRTUAL TABLE t2152a USING echo(t2152b)"
-		_ = sql // suppress unused warning
-		STMT = ""
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "vtab1-1.2152.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "vtab-1.2152.2"
-		// sqlite3_reset $STMT (unsupported command, not transpiled)
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "vtab-1.2152.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "vtab-1.2152.3"
-		// sqlite3_reset $STMT (unsupported command, not transpiled)
-		_res = db.Exec("CREATE TABLE t2152b(x,y)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2152b(x,y)")
-		}
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "vtab-1.2152.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "vtab-1.2152.4"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		_res = db.Exec("DROP TABLE t2152a; DROP TABLE t2152b")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2152a; DROP TABLE t2152b")
-		}
+	{ // "vtab-1.2152.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "vtab1-1.7.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE sqlite_master USING echo;\n  ")
@@ -295,8 +275,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-2.4"
 		echo_module = ""
 		_ = echo_module // suppress unused warning
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "vtab1.2.6"
@@ -1179,17 +1158,17 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res filter} "1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}"
-	_items1 := tclSplitList("1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}")
-	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items1[_idx1+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		filter := _items1[_idx1+3]
+		filter := _items0[_idx0+3]
 		_ = filter // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			echo_module = ""
 			_ = echo_module // suppress unused warning
 			{ // "18." + tn + ".1"
@@ -1212,17 +1191,17 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 		// foreach {tn sql res filter} "2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}"
-		_items2 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
-		for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
-			tn := _items2[_idx2+0]
+		_items1 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items2[_idx2+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			res := _items2[_idx2+2]
+			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
-			filter := _items2[_idx2+3]
+			filter := _items1[_idx1+3]
 			_ = filter // suppress unused warning
-			_ = _idx2
+			_ = _idx1
 				echo_module = ""
 				_ = echo_module // suppress unused warning
 				{ // "18." + tn + ".1"
@@ -1355,27 +1334,13 @@ func Test_vtab1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + nm + ".t1 USING fts4")
 				}
 			}
-			{ // do_test "22.3.1"
-				sql = "CREATE VIRTUAL TABLE " + nm + ".t2 USING fts4"
-				_ = sql // suppress unused warning
-				stmt = ""
-				_ = stmt // suppress unused warning
-				// sqlite3_step $stmt (unsupported command, not transpiled)
+			{ // "22.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
-			{ // do_test "22.3.2"
-				// sqlite3_finalize $stmt (unsupported command, not transpiled)
+			{ // "22.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
-			{ // do_test "22.4.1"
-				sql = "CREATE VIRTUAL TABLE " + nm + ".t3 USING fts4"
-				_ = sql // suppress unused warning
-				n = strconv.Itoa(len(sql))
-				_ = n // suppress unused warning
-				stmt = "sqlite3_prepare db \"${sql}xyz\" $n dummy"
-				_ = stmt // suppress unused warning
-				// sqlite3_step $stmt (unsupported command, not transpiled)
+			{ // "22.4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
-			{ // do_test "22.4.2"
-				// sqlite3_finalize $stmt (unsupported command, not transpiled)
+			{ // "22.4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 			db.Close()
 			os.Remove("test.db")

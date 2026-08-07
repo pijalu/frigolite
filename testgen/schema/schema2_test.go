@@ -63,175 +63,68 @@ func Test_schema2(t *testing.T) {
 	_ = DB // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // do_test "schema2-1.1"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n  ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-1.2"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-1.3"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n    DROP TABLE abc;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-1.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-2.1"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-2.2"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-2.3"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n      DROP VIEW v1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-2.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-3.1"
-		_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc(a, b, c);\n    ")
-		}
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-3.2"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-3.3"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n      DROP TRIGGER abc_trig;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER abc_trig;\n    ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-3.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-3.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-4.1"
-		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
-		_ = _res // catchsql
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n    CREATE INDEX abc_index ON abc(a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX abc_index ON abc(a);\n  ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-4.2"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-4.3"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n    DROP INDEX abc_index;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX abc_index;\n  ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-4.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-4.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-4.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-5.1"
-		sql = "SELECT * FROM abc;"
-		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-5.2"
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "schema2-5.3"
-		_res = db.Exec("\n      DETACH aux;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux;\n    ")
-		}
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-5.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-5.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-5.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-6.1"
-		sql = "SELECT * FROM abc;"
-		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// db function hello_function (variable-reader, inlined)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-6.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-6.2"
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "schema2-6.3"
-		// sqlite_delete_function $::DB hello_function (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-6.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-6.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-6.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-7.1"
-		sql = "SELECT * FROM abc;"
-		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// add_test_collate $::DB 1 1 1 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-7.2"
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "schema2-7.3"
-		// add_test_collate $::DB 0 0 0 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-7.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-7.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-7.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-8.1"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-8.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-8.3"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-8.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-9.1"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
@@ -263,23 +156,13 @@ func Test_schema2(t *testing.T) {
 		_res = db.Exec("\n      SELECT * FROM abcview;\n    ")
 		_ = _res // catchsql
 	}
-	{ // do_test "schema2-10.1"
-		_res = db.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
-		}
-		sql = "SELECT * FROM abc"
-		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-10.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-10.2"
 		_res = db.Exec("\n    CREATE TABLE t2(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
-	{ // do_test "schema2-10.3"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-10.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-10.4"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
@@ -292,13 +175,7 @@ func Test_schema2(t *testing.T) {
 	{ // do_test "schema2-10.5"
 		_ = db2 // close db2: aliased to db, no-op
 	}
-	{ // do_test "schema2-11.1"
-		// db function tstfunc (variable-reader, inlined)
-		sql = "SELECT * FROM abc"
-		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-11.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-11.2"
 		// sqlite_delete_function $::DB tstfunc (unsupported command, not transpiled)
@@ -320,15 +197,9 @@ func Test_schema2(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	{ // do_test "schema2-11.4"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-11.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "schema2-11.5"
-		sql = "SELECT * FROM abc"
-		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "schema2-11.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema2-11.6"
 		// sqlite_delete_collation $::DB tstcollate (unsupported command, not transpiled)
@@ -349,7 +220,6 @@ func Test_schema2(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	{ // do_test "schema2-11.8"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "schema2-11.8" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 }

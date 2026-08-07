@@ -117,8 +117,7 @@ func Test_index5(t *testing.T) {
 	// tvfs script write_cb (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		write_list = "" // TCL namespace variable
 		_ = write_list // suppress unused warning

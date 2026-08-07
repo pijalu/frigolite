@@ -307,8 +307,7 @@ func Test_fts3d(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO xyz(xyz) VALUES('merge=2,2') ")
 		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" \n    ALTER TABLE xyz RENAME TO ott;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
 		if r.Error != nil {

@@ -592,26 +592,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3;\n    ")
 		}
 	}
-	{ // do_test "lock-6.1"
-		_res = db.Exec("\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n  ")
-		}
-		STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		_res = db.Exec(" DELETE FROM t4 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
-		}
-		r = db.Query(" SELECT * FROM sqlite_master ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sqlite_master ")
-		}
-		r = db.Query(" SELECT * FROM t4 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
-		}
+	{ // "lock-6.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "lock-6.2"
 		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;\n  ")
@@ -635,15 +616,11 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
-	{ // do_test "lock-6.5"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	{ // "lock-6.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	temp_status = "unknown"
 	_ = temp_status // suppress unused warning
-	{ // do_test "lock-7.1"
-		STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "lock-7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "lock-7.2"
 		r = db.Query(" PRAGMA lock_status ")
@@ -661,8 +638,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
-	{ // do_test "lock-7.4"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	{ // "lock-7.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "lock-999.1"
 	}

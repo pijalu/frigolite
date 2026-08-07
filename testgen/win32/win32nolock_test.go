@@ -78,8 +78,7 @@ func Test_win32nolock(t *testing.T) {
 	}
 	db.Close()
 	{ // do_test "win32nolock-1.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -132,8 +131,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.9.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -145,8 +143,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.10.1"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -158,8 +155,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.11.1"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -171,8 +167,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "win32nolock-1.12.1"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2

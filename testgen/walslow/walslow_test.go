@@ -263,8 +263,7 @@ func Test_walslow(t *testing.T) {
 		_putsMsg := fd
 		_ = _putsMsg
 		// close $fd
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
@@ -276,8 +275,7 @@ func Test_walslow(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "4.2.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT count(*) FROM t2 ")
 		if r.Error != nil {

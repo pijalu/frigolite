@@ -165,7 +165,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-2.21"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=1")
 		if err != nil { t.Fatal(err) }
@@ -177,7 +177,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-2.31"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=1")
 		if err != nil { t.Fatal(err) }
@@ -189,7 +189,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-3.1"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// tvfs devchar immutable (unsupported command, not transpiled)
 		// tvfs_reset (unsupported command, not transpiled)
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db

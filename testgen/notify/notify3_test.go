@@ -7,7 +7,6 @@ package notify
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -206,8 +205,8 @@ func Test_notify3(t *testing.T) {
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					_res = db.Exec("ATTACH 'test.db2' AS two")
 					_ = _res // catchsql
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "notify3-2." + tn + ".1")
+					if !tclCatchsqlMatches(_res, result) {
+						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, result, "notify3-2." + tn + ".1")
 					}
 				}
 				{ // do_test "notify3-2." + tn + ".2"

@@ -165,47 +165,9 @@ func Test_attach2(t *testing.T) {
 		_res = db.Exec("\n    COMMIT\n  ")
 		_ = _res // catchsql
 	}
-	{ // do_test "attach2-3.1"
-		DB = "sqlite3_connection_pointer db"
-		_ = DB // suppress unused warning
-	_ = rc // suppress unused warning
-	_ = VM // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			// sqlite3_prepare $DB ATTACH 'test2.db' AS t2 -1 TAIL (unsupported command, not transpiled)
-			if _catchErr != nil {
-				rc = "1"
-				VM = _catchErr.Error()
-			} else {
-				rc = "0"
-				VM = ""
-			}
-		}
-		if tclBool(rc) {
-			rc = tclListAppend(rc, VM)
-		}
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "attach2-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "attach2-3.2"
-	_ = rc // suppress unused warning
-	_ = VM // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			// sqlite3_prepare $DB DETACH t2 -1 TAIL (unsupported command, not transpiled)
-			if _catchErr != nil {
-				rc = "1"
-				VM = _catchErr.Error()
-			} else {
-				rc = "0"
-				VM = ""
-			}
-		}
-		if tclBool(rc) {
-			rc = tclListAppend(rc, VM)
-		}
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "attach2-3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	db.Close()
 	i = "2"
@@ -228,8 +190,7 @@ func Test_attach2(t *testing.T) {
 	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -363,8 +324,7 @@ func Test_attach2(t *testing.T) {
 		os.Remove(f)
 	}
 	{ // do_test "attach2-5.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n  ")
 		if _res.Error != nil {

@@ -68,11 +68,7 @@ func Test_tkt_26ff0c2d1e(t *testing.T) {
 	{ // do_test "bug-20100512-2"
 		// sqlite3_bind_parameter_count $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "bug-20100512-3"
-		// sqlite3_bind_int $STMT 1 123 (unsupported command, not transpiled)
-		// sqlite3_bind_int $STMT 2 456 (unsupported command, not transpiled)
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
+	{ // "bug-20100512-3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	// sqlite3_finalize $STMT (unsupported command, not transpiled)
 }

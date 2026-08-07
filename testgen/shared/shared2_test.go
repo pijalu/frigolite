@@ -134,8 +134,7 @@ func Test_shared2(t *testing.T) {
 		db.Close()
 	}
 	{ // do_test "shared2-5.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2

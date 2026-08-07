@@ -75,12 +75,7 @@ func Test_backup5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    INSERT INTO t1 VALUES(zeroblob(1000), zeroblob(1000));\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n  ")
 		}
 	}
-	{ // do_test "1.2"
-		db2, err = frigolite.Open("test.db2")
-		if err != nil { t.Fatal(err) }
-		stmt = ""
-		_ = stmt // suppress unused warning
-		// sqlite3_step $stmt (unsupported command, not transpiled)
+	{ // "1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "1.3"
 		_list := tclList([]string{"0", msg})

@@ -7,7 +7,6 @@ package mmap
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -228,14 +227,7 @@ func Test_mmap1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "4.2"
-			STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
-			_ = STMT // suppress unused warning
-			// sqlite3_step $::STMT (unsupported command, not transpiled)
-			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), aaa) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", aaa, _res.Error, "4.2")
-			}
+		{ // "4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "4.3"
 			for _, _r := range tclSplitList("2 3 4") {
@@ -252,8 +244,7 @@ func Test_mmap1(t *testing.T) {
 				res = tclListAppend(res, "")
 			}
 		}
-		{ // do_test "4.4"
-			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+		{ // "4.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // "4.5"
 			_res = db.Exec(" COMMIT ")
@@ -282,14 +273,7 @@ func Test_mmap1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "5.2"
-			STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
-			_ = STMT // suppress unused warning
-			// sqlite3_step $::STMT (unsupported command, not transpiled)
-			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), aaa) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", aaa, _res.Error, "5.2")
-			}
+		{ // "5.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // "5.3"
 			_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
@@ -297,15 +281,9 @@ func Test_mmap1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
 			}
 		}
-		{ // do_test "5.4"
-			// sqlite3_step $::STMT (unsupported command, not transpiled)
-			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), bbb) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bbb, _res.Error, "5.4")
-			}
+		{ // "5.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
-		{ // do_test "5.5"
-			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+		{ // "5.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")

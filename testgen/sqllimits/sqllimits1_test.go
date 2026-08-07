@@ -133,8 +133,6 @@ func Test_sqllimits1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 	var SQLITE_MAX_xxx string
 	_ = SQLITE_MAX_xxx // pre-declared from TCL source
-	var SQLITE_MAX_TRIGGER_DEPTH string
-	_ = SQLITE_MAX_TRIGGER_DEPTH // pre-declared from TCL source
 	var SQLITE_MAX_WORKER_THREADS string
 	_ = SQLITE_MAX_WORKER_THREADS // pre-declared from TCL source
 	var SQLITE_MAX_SCHEMA string
@@ -199,6 +197,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	{ // do_test "sqllimits1-1.11"
+		db.SetTriggerDepthLimit(toInt(-1))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_TRIGGER_DEPTH) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_TRIGGER_DEPTH, _res.Error, "sqllimits1-1.11")
 		}
@@ -502,8 +501,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = STMT // suppress unused warning
 		// sqlite3_bind_zeroblob $::STMT 1 [expr {$SQLITE_LIMIT_LENGTH + 1}] (unsupported command, not transpiled)
 	}
-	{ // do_test "sqllimits1-5.14.2"
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "sqllimits1-5.14.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "sqllimits1-5.14.3"
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
@@ -1274,23 +1272,9 @@ func Test_sqllimits1(t *testing.T) {
 		{ // do_test "19.1"
 			_ = strconv.Itoa(len(bigstr16)) // string length result
 		}
-		{ // do_test "19.2"
-			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
-			_ = stmt // suppress unused warning
-			// sqlite3_bind_text16 $::stmt 1 $bigstr16 100000 (unsupported command, not transpiled)
-			// sqlite3_step $::stmt (unsupported command, not transpiled)
-			val = "0"
-			_ = val // suppress unused warning
-			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		{ // "19.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
-		{ // do_test "19.3"
-			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
-			_ = stmt // suppress unused warning
-			// sqlite3_bind_text16 $::stmt 1 $bigstr16 100000 (unsupported command, not transpiled)
-			// sqlite3_step $::stmt (unsupported command, not transpiled)
-			val = "0"
-			_ = val // suppress unused warning
-			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		{ // "19.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "19.4"
 			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable

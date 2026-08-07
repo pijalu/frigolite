@@ -545,8 +545,7 @@ func Test_jrnlmode(t *testing.T) {
 		_ = f // suppress unused warning
 			os.Remove(f)
 		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;\n    ")
 		if r.Error != nil {

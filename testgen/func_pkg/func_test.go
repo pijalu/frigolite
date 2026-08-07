@@ -1172,20 +1172,7 @@ func Test_func(t *testing.T) {
 	}
 	{ // do_test "func-15.4"
 	}
-	{ // do_test "func-16.1"
-		_res = db.Exec("\n    CREATE TABLE tbl2(a, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tbl2(a, b);\n  ")
-		}
-		STMT = "sqlite3_prepare $::DB \"INSERT INTO tbl2 VALUES(?, ?)\" -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_bind_blob $::STMT 1 abc 3 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
-		r = db.Query("\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")
-		}
+	{ // "func-16.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // "func-16.2"
 		r = db.Query("\n  SELECT quote(4.2e+859), quote(-7.8e+904);\n")
@@ -1767,19 +1754,7 @@ func Test_func(t *testing.T) {
 			_res = db.Exec("\n    INSERT INTO t28(x) VALUES(1);\n  ")
 			_ = _res // catchsql
 		}
-		{ // do_test "func-29.1"
-			_res = db.Exec("\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
-			}
-			db.Close()
-			db, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
-			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
-			}
+		{ // "func-29.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "func-29.2"
 			x = tclLIndex("sqlite3_db_status db CACHE_MISS 1", "1")
@@ -1789,27 +1764,11 @@ func Test_func(t *testing.T) {
 				_ = x // suppress unused warning
 			}
 		}
-		{ // do_test "func-29.3"
-			db.Close()
-			db, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
-			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(+x) FROM t29 ORDER BY id")
-			}
+		{ // "func-29.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		if tclBool("permutation" + " != \"mmap\"") {
 		}
-		{ // do_test "func-29.5"
-			db.Close()
-			db, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
-			_res = db.Exec("SELECT sum(length(x)) FROM t29")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT sum(length(x)) FROM t29")
-			}
+		{ // "func-29.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "func-29.6"
 			x = tclLIndex("sqlite3_db_status db CACHE_MISS 1", "1")

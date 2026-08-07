@@ -198,8 +198,7 @@ func Test_ioerr5(t *testing.T) {
 		}
 	}
 	{ // do_test "ioerr5-2.0"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON a(id, name); ")
 		if _res.Error != nil {
@@ -217,8 +216,8 @@ func Test_ioerr5(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
 			}
-			_dbone2 := tclExecSQL(db, "{SELECT count(*) FROM a}")
-			nRow = _dbone2
+			_dbone1 := tclExecSQL(db, "{SELECT count(*) FROM a}")
+			nRow = _dbone1
 			_ = nRow // suppress unused warning
 			{ // do_test "ioerr5-2." + locking_mode + "-" + iFail + ".1"
 				_res = db.Exec("\n        BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n      ")

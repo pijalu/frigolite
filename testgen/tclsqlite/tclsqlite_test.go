@@ -1594,8 +1594,7 @@ func Test_tclsqlite(t *testing.T) {
 		db.Close()
 	}
 	{ // do_test "21.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -1616,7 +1615,8 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc func1 returns constant 1 (registered via db func)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// db function closedb (variable-reader, inlined)
 	db.RegisterFunction("func1", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)

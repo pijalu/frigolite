@@ -164,8 +164,7 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	_ = db2 // close db2: aliased to db, no-op
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-2.1"

@@ -163,8 +163,7 @@ func Test_indexfault(t *testing.T) {
 	_ = nRead // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "4.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {

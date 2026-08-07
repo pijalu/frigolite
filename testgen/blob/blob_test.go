@@ -195,19 +195,9 @@ func Test_blob(t *testing.T) {
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
-	{ // do_test "blob-3.0"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		DB = "sqlite3_connection_pointer db2"
-		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $DB \"DELETE FROM t1 WHERE a = ?\" -1 DUMMY"
-		_ = STMT // suppress unused warning
-		// sqlite3_bind_blob $STMT 1 \x12\x34\x56 3 (unsupported command, not transpiled)
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "blob-3.0" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "blob-3.1"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		_ = db2 // close db2: aliased to db, no-op
+	{ // "blob-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "blob-3.2"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")

@@ -184,21 +184,15 @@ func Test_capi3d(t *testing.T) {
 		_ = STMT // suppress unused warning
 		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "capi3d-3.2"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
+	{ // "capi3d-3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3d-3.3"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
+	{ // "capi3d-3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi3d-3.4"
 		// sqlite3_reset $STMT (unsupported command, not transpiled)
 		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "capi3d-3.99"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		// sqlite3_stmt_busy 0 (unsupported command, not transpiled)
+	{ // "capi3d-3.99" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -211,10 +205,7 @@ func Test_capi3d(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")
 		}
 	}
-	{ // do_test "capi3d-4.2.1"
-		s1 = "" // TCL namespace variable
-		_ = s1 // suppress unused warning
-		// sqlite3_step $::s1 (unsupported command, not transpiled)
+	{ // "capi3d-4.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi3d-4.2.2"
 		// sqlite3_stmt_busy $::s1 (unsupported command, not transpiled)
@@ -234,7 +225,6 @@ func Test_capi3d(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  VACUUM\n")
 		}
 	}
-	{ // do_test "capi3d-4.2.6"
-		// sqlite3_finalize $::s1 (unsupported command, not transpiled)
+	{ // "capi3d-4.2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 }

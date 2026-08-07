@@ -89,10 +89,7 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".2"
 			// file size test.db
 		}
-		{ // do_test "createtab-" + av + ".3"
-			STMT = "sqlite3_prepare db {SELECT x FROM t1} -1 TAIL"
-			_ = STMT // suppress unused warning
-			// sqlite3_step $STMT (unsupported command, not transpiled)
+		{ // "createtab-" + av + ".3" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".4"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -106,8 +103,7 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".6"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // do_test "createtab-" + av + ".7"
-			// sqlite3_step $STMT (unsupported command, not transpiled)
+		{ // "createtab-" + av + ".7" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".8"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -121,8 +117,7 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".12"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // do_test "createtab-" + av + ".13"
-			// sqlite3_step $STMT (unsupported command, not transpiled)
+		{ // "createtab-" + av + ".13" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".14"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -136,17 +131,14 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".22"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // do_test "createtab-" + av + ".23"
-			// sqlite3_step $STMT (unsupported command, not transpiled)
+		{ // "createtab-" + av + ".23" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".24"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // do_test "createtab-" + av + ".30"
-			// sqlite3_step $STMT (unsupported command, not transpiled)
+		{ // "createtab-" + av + ".30" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
-		{ // do_test "createtab-" + av + ".31"
-			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		{ // "createtab-" + av + ".31" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".32"
 			r = db.Query("\n      SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1\n    ")

@@ -91,8 +91,7 @@ func Test_corruptI(t *testing.T) {
 		off = strconv.Itoa(2*1024 + toInt(offset) + 1)
 		_ = off // suppress unused warning
 		// hexio_write test.db $off 7f06 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 WHERE a = 10 ")
 		_ = _res // catchsql
@@ -114,8 +113,8 @@ func Test_corruptI(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE r(x);\n    INSERT INTO r VALUES('ABCDEFGHIJK');\n    CREATE INDEX r1 ON r(x);\n  ")
 		}
-		_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 'r1'}")
-		pg = _dbone1
+		_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 'r1'}")
+		pg = _dbone0
 		_ = pg // suppress unused warning
 	}
 	{ // do_test "2.1"
@@ -182,8 +181,8 @@ func Test_corruptI(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');\n")
 		}
 	}
-	_dbone2 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master}")
-	root = _dbone2
+	_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master}")
+	root = _dbone1
 	_ = root // suppress unused warning
 	offset = strconv.Itoa((toInt(root)-1) * 65536)
 	_ = offset // suppress unused warning
@@ -223,8 +222,8 @@ func Test_corruptI(t *testing.T) {
 				}
 			}
 		}
-		_dbone3 := tclExecSQL(db, "{PRAGMA page_count}")
-		nPage = _dbone3
+		_dbone2 := tclExecSQL(db, "{PRAGMA page_count}")
+		nPage = _dbone2
 		_ = nPage // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t100(x);\n    DROP TABLE t100;\n  ")
 		if _res.Error != nil {
@@ -248,8 +247,7 @@ func Test_corruptI(t *testing.T) {
 		// hexio_write test.db [expr 512*($nPage-1)] [\n    format "%.8X%.8X%.8X" 0 1 [expr $nPage+1]\n... (unsupported command, not transpiled)
 	}
 	{ // do_test "5.3"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE tx(x); ")
 		_ = _res // catchsql

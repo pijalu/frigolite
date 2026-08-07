@@ -1056,13 +1056,9 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 108;\n  ")
 			}
 		}
-		{ // do_test "pragma-8.1.9"
-			STMT = "sqlite3_prepare $::DB2 \"SELECT * FROM t4\" -1 DUMMY" // TCL namespace variable
-			_ = STMT // suppress unused warning
-			// sqlite3_step $::STMT (unsupported command, not transpiled)
+		{ // "pragma-8.1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
-		{ // do_test "pragma-8.1.10"
-			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+		{ // "pragma-8.1.10" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")
@@ -1100,13 +1096,9 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.schema_version = 206;\n    ")
 			}
 		}
-		{ // do_test "pragma-8.1.16"
-			STMT = "sqlite3_prepare $::DB2 \"SELECT * FROM aux.t1\" -1 DUMMY" // TCL namespace variable
-			_ = STMT // suppress unused warning
-			// sqlite3_step $::STMT (unsupported command, not transpiled)
+		{ // "pragma-8.1.16" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
-		{ // do_test "pragma-8.1.17"
-			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+		{ // "pragma-8.1.17" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "pragma-8.1.18"
 			_ = db2 // close db2: aliased to db, no-op
@@ -1673,7 +1665,7 @@ func Test_pragma(t *testing.T) {
 				_list := tclList([]string{"0", msg})
 				_ = _list
 			}
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			{ // do_test "pragma-16.8.1"
 				r = db.Query("\n      PRAGMA lock_proxy_file=\"yetanotherproxy\";\n      PRAGMA lock_proxy_file;\n    ")
 				if r.Error != nil {
@@ -1688,8 +1680,7 @@ func Test_pragma(t *testing.T) {
 			}
 			db.Close()
 			{ // do_test "pragma-16.9"
-				_dbtmp5, err := frigolite.Open("proxytest.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				db, err = frigolite.Open("proxytest.db")
 				if err != nil { t.Fatal(err) }
 				lockpath2 = tclExecSQL(db, "{\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    } db")
 				_ = lockpath2 // suppress unused warning
@@ -1700,13 +1691,13 @@ func Test_pragma(t *testing.T) {
 			sqlite_hostid_num = "0"
 			_ = sqlite_hostid_num // suppress unused warning
 			// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
-			_items6 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
-			for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-				autovac_setting := _items6[_idx6+0]
+			_items5 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
+			for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+				autovac_setting := _items5[_idx5+0]
 				_ = autovac_setting // suppress unused warning
-				val := _items6[_idx6+1]
+				val := _items5[_idx5+1]
 				_ = val // suppress unused warning
-				_ = _idx6
+				_ = _idx5
 					{ // do_test "pragma-17.1." + autovac_setting
 						{
 							var _catchErr error
@@ -1725,13 +1716,13 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
-				_items7 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
-				for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-					temp_setting := _items7[_idx7+0]
+				_items6 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
+				for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+					temp_setting := _items6[_idx6+0]
 					_ = temp_setting // suppress unused warning
-					val := _items7[_idx7+1]
+					val := _items6[_idx6+1]
 					_ = val // suppress unused warning
-					_ = _idx7
+					_ = _idx6
 						{ // do_test "pragma-18.1." + temp_setting
 							{
 								var _catchErr error

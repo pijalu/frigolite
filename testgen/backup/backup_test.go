@@ -345,8 +345,7 @@ func Test_backup(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test2.db")
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		iTab = "1"
 		_ = iTab // suppress unused warning
@@ -388,7 +387,8 @@ func Test_backup(t *testing.T) {
 	{ // do_test "backup-3." + iTest + ".2"
 		// B finish (unsupported command, not transpiled)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
@@ -484,8 +484,7 @@ func Test_backup(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
@@ -511,13 +510,13 @@ func Test_backup(t *testing.T) {
 	_ = iTest // suppress unused warning
 	os.Remove("bak.db-wal")
 	// foreach {writer file} "db test.db db3 test.db db :memory:"
-	_items3 := tclSplitList("db test.db db3 test.db db :memory:")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		writer := _items3[_idx3+0]
+	_items2 := tclSplitList("db test.db db3 test.db db :memory:")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		writer := _items2[_idx2+0]
 		_ = writer // suppress unused warning
-		file := _items3[_idx3+1]
+		file := _items2[_idx2+1]
 		_ = file // suppress unused warning
-		_ = _idx3
+		_ = _idx2
 			// incr iTest 1
 			{
 				_n, _err := strconv.Atoi(iTest)
@@ -537,8 +536,8 @@ func Test_backup(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				// delete_file $file (unsupported command, not transpiled)
 			}
-			_dbtmp4, err := frigolite.Open(file)
-			_ = _dbtmp4 // sqlite3 db connection
+			_dbtmp3, err := frigolite.Open(file)
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }
@@ -716,8 +715,7 @@ func Test_backup(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test2.db")
 			}
-			_dbtmp5, err := frigolite.Open("test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
@@ -781,8 +779,7 @@ func Test_backup(t *testing.T) {
 			}
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			_dbtmp6, err := frigolite.Open("test.db")
-			_ = _dbtmp6 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 SELECT a+ 1, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 2, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 4, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 8, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+16, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+32, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+64, randstr(1000,1000) FROM t1;\n  ")
 			if _res.Error != nil {
@@ -840,14 +837,14 @@ func Test_backup(t *testing.T) {
 			db3, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
-			_res = db.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
+			_res = db3.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; CREATE TABLE t2(a, b); ")
 			}
 			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.3.2"
-			_res = db.Exec(" COMMIT ")
+			_res = db3.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
@@ -867,7 +864,7 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_ = db3 // close db3: aliased to db, no-op
+			db3.Close()
 		}
 		{ // do_test "backup-8.1"
 			{
@@ -937,7 +934,7 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_ = db3 // close db3: aliased to db, no-op
+			db3.Close()
 		}
 		{ // do_test "backup-9.1.1"
 			db2, err = frigolite.Open("test2.db")
@@ -1016,18 +1013,18 @@ func Test_backup(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		// foreach {tn file rc} "1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK"
-		_items7 := tclSplitList("1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK")
-		for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
-			tn := _items7[_idx7+0]
+		_items4 := tclSplitList("1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK")
+		for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+			tn := _items4[_idx4+0]
 			_ = tn // suppress unused warning
-			file := _items7[_idx7+1]
+			file := _items4[_idx4+1]
 			_ = file // suppress unused warning
-			rc := _items7[_idx7+2]
+			rc := _items4[_idx4+2]
 			_ = rc // suppress unused warning
-			_ = _idx7
+			_ = _idx4
 				{ // do_test "backup-10." + tn + ".1"
-					_dbtmp8, err := frigolite.Open(file)
-					_ = _dbtmp8 // sqlite3 db connection
+					_dbtmp5, err := frigolite.Open(file)
+					_ = _dbtmp5 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" \n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n      BEGIN;\n        INSERT INTO t1 VALUES(NULL, randomblob(200));\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
 					if r.Error != nil {

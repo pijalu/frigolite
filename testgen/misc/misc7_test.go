@@ -472,8 +472,7 @@ func Test_misc7(t *testing.T) {
 			tclFileCopy("test.db", "tst/test.db")
 			// file attributes tst -permissions r-xr-xr-x
 		}
-		_dbtmp0, err := frigolite.Open("tst/test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("tst/test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "23.2"
 			r = db.Query("\n    SELECT * FROM t1;\n  ")

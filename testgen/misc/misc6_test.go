@@ -63,32 +63,12 @@ func Test_misc6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // do_test "misc6-1.1"
-		DB = "sqlite3_connection_pointer db"
-		_ = DB // suppress unused warning
-		// sqlite3_create_function $DB (unsupported command, not transpiled)
-		STMT = "sqlite3_prepare $DB {SELECT hex8(?)} -1 DUMMY"
-		_ = STMT // suppress unused warning
-		sqlite_static_bind_value = "0123456789"
-		_ = sqlite_static_bind_value // suppress unused warning
-		sqlite_static_bind_nbyte = "5"
-		_ = sqlite_static_bind_nbyte // suppress unused warning
-		// sqlite_bind $STMT 1 {} static-nbytes (unsupported command, not transpiled)
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "misc6-1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "misc6-1.2"
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
-	{ // do_test "misc6-1.3"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		STMT = "sqlite3_prepare $DB {SELECT hex16(?)} -1 DUMMY"
-		_ = STMT // suppress unused warning
-		sqlite_static_bind_value = "0123456789"
-		_ = sqlite_static_bind_value // suppress unused warning
-		sqlite_static_bind_nbyte = "5"
-		_ = sqlite_static_bind_nbyte // suppress unused warning
-		// sqlite_bind $STMT 1 {} static-nbytes (unsupported command, not transpiled)
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "misc6-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "misc6-1.4"
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)

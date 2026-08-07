@@ -472,33 +472,7 @@ func Test_autoinc(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE t8(x TEXT PRIMARY KEY AUTOINCREMENT);\n  ")
 		_ = _res // catchsql
 	}
-	{ // do_test "autoinc-8.1"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			db2.Close()
-		}
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			db.Close()
-		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		DB = "sqlite3_connection_pointer db"
-		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		r = db.Query("\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")
-		}
+	{ // "autoinc-8.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "autoinc-9.1"
 		r = db.Query("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")

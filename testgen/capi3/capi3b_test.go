@@ -92,26 +92,15 @@ func Test_capi3b(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	{ // do_test "capi3b-1.4"
-		VM = "sqlite3_prepare $DB2 {INSERT INTO t1 VALUES(3)} -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi3b-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-1.5.1"
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi3b-1.5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-1.5.2"
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi3b-1.5.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-1.6"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi3b-1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-1.7"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi3b-1.7" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi3b-1.8"
 		r = db.Query("SELECT * FROM t1")
@@ -125,50 +114,32 @@ func Test_capi3b(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	{ // do_test "capi3b-2.1"
-		VM1 = "sqlite3_prepare $DB {SELECT * FROM t1} -1 TAIL"
-		_ = VM1 // suppress unused warning
-		// sqlite3_step $VM1 (unsupported command, not transpiled)
+	{ // "capi3b-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi3b-2.2"
 		// sqlite3_column_text $VM1 0 (unsupported command, not transpiled)
 	}
-	{ // do_test "capi3b-2.3"
-		VM2 = "sqlite3_prepare $DB2 {INSERT INTO t1 VALUES(4)} -1 TAIL"
-		_ = VM2 // suppress unused warning
-		// sqlite3_step $VM2 (unsupported command, not transpiled)
+	{ // "capi3b-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-2.4"
-		// sqlite3_step $VM1 (unsupported command, not transpiled)
+	{ // "capi3b-2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi3b-2.5"
 		// sqlite3_column_text $VM1 0 (unsupported command, not transpiled)
 	}
-	{ // do_test "capi3b-2.6"
-		// sqlite3_step $VM2 (unsupported command, not transpiled)
+	{ // "capi3b-2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-2.7"
-		// sqlite3_step $VM1 (unsupported command, not transpiled)
+	{ // "capi3b-2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi3b-2.8"
 		// sqlite3_column_text $VM1 0 (unsupported command, not transpiled)
 	}
-	{ // do_test "capi3b-2.9"
-		// sqlite3_step $VM2 (unsupported command, not transpiled)
+	{ // "capi3b-2.9" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-2.10"
-		// sqlite3_step $VM1 (unsupported command, not transpiled)
+	{ // "capi3b-2.10" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-2.11"
-		// sqlite3_step $VM2 (unsupported command, not transpiled)
+	{ // "capi3b-2.11" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi3b-2.12"
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
-		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
-		r = db.Query("SELECT * FROM t1")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
-		}
+	{ // "capi3b-2.12" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{
 		var _catchErr error

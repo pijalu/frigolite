@@ -1131,10 +1131,7 @@ func Test_fts4content(t *testing.T) {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO aa VALUES('one two three');\n")
 									}
 								}
-								{ // do_test "13.2.2"
-									stmt = "sqlite3_prepare_v3 db     \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
-									_ = stmt // suppress unused warning
-									// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+								{ // "13.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 								}
 								{ // do_test "13.2.2"
 									_list := tclList([]string{"0", msg})

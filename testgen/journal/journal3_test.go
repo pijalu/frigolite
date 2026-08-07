@@ -105,8 +105,7 @@ func Test_journal3(t *testing.T) {
 					// file exists "test.db-journal"
 				}
 				{ // do_test "journal3-1.2." + tn + ".3"
-					_dbtmp1, err := frigolite.Open("test.db")
-					_ = _dbtmp1 // sqlite3 db connection
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
 					if _res.Error != nil {

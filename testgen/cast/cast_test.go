@@ -548,21 +548,12 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(NULL AS numeric)")
 		}
 	}
-	{ // do_test "cast-3.32.1"
-		blob = "1234567890"
-		_ = blob // suppress unused warning
-		DB = "sqlite3_connection_pointer db"
-		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $DB {SELECT CAST(? AS real)} -1 TAIL" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		// sqlite3_bind_blob -static $::STMT 1 $blob 5 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "cast-3.32.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "cast-3.32.2"
 		// sqlite3_column_int $::STMT 0 (unsupported command, not transpiled)
 	}
-	{ // do_test "cast-3.32.3"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "cast-3.32.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "cast-4.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc');\n    SELECT a, CAST(a AS integer) FROM t1;\n  ")

@@ -973,13 +973,7 @@ func Test_expr(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
 				}
 			}
-			{ // do_test "expr-15." + tn + ".2"
-				STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
-				_ = STMT // suppress unused warning
-				// sqlite3_bind_double $::STMT 1 $val (unsupported command, not transpiled)
-				// sqlite3_step $::STMT (unsupported command, not transpiled)
-				// sqlite3_reset $::STMT (unsupported command, not transpiled)
-				// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+			{ // "expr-15." + tn + ".2" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 			{ // "expr-15." + tn + ".3"
 				r = db.Query("\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);\n  ")

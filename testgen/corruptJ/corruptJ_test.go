@@ -73,8 +73,7 @@ func Test_corruptJ(t *testing.T) {
 	db.Close()
 	{ // do_test "1.2"
 		// hexio_write test.db [expr {2*1024-2}] 02 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DROP TABLE t1 ")
 		_ = _res // catchsql
@@ -95,8 +94,7 @@ func Test_corruptJ(t *testing.T) {
 	}
 	{ // do_test "2.2b"
 		// hexio_write test.db [expr {9*1024+391}] 00000002 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA secure_delete=ON; DROP TABLE t1; ")
 		_ = _res // catchsql

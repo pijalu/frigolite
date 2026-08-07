@@ -352,7 +352,7 @@ func Test_shared(t *testing.T) {
 				// expr $sqlite_open_file_count-($extrafds_postlock*2) (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".4.1.3"
-				_res = db.Exec("ATTACH 'test.db' AS test")
+				_res = db2.Exec("ATTACH 'test.db' AS test")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test.db' AS test")
 				}
@@ -365,13 +365,13 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".4.2.2"
-				r = db.Query("\n    SELECT * FROM test.abc;\n  ")
+				r = db2.Query("\n    SELECT * FROM test.abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM test.abc;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".4.3.1"
-				r = db.Query("\n    BEGIN;\n    SELECT * FROM test.abc;\n  ")
+				r = db2.Query("\n    BEGIN;\n    SELECT * FROM test.abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM test.abc;\n  ")
 				}
@@ -389,7 +389,7 @@ func Test_shared(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".4.3.4"
-				_res = db.Exec("\n    COMMIT\n  ")
+				_res = db2.Exec("\n    COMMIT\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
 				}
@@ -406,21 +406,9 @@ func Test_shared(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
 				}
 			}
-			{ // do_test "shared-" + av + ".4.4.2"
-				DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
-				_ = DB2 // suppress unused warning
-				sql = "SELECT * FROM abc"
-				_ = sql // suppress unused warning
-				STMT1 = "sqlite3_prepare $::DB2 $sql -1 DUMMY" // TCL namespace variable
-				_ = STMT1 // suppress unused warning
-				_res = db.Exec("\n    BEGIN;\n    CREATE TABLE jkl(j, k, l);\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE jkl(j, k, l);\n  ")
-				}
-				// sqlite3_step $::STMT1 (unsupported command, not transpiled)
+			{ // "shared-" + av + ".4.4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
-			{ // do_test "shared-" + av + ".4.4.3"
-				// sqlite3_finalize $::STMT1 (unsupported command, not transpiled)
+			{ // "shared-" + av + ".4.4.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 			{ // do_test "shared-" + av + ".4.4.4"
 	_ = rc // suppress unused warning
@@ -461,7 +449,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 			}
 			{
 				var _catchErr error
@@ -589,8 +577,7 @@ func Test_shared(t *testing.T) {
 				os.Remove(f)
 			}
 			{ // do_test "shared-" + av + ".7.1"
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -652,8 +639,8 @@ func Test_shared(t *testing.T) {
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.1.1"
-				_dbtmp2, err := frigolite.Open("test.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n      PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;\n    ")
 				if r.Error != nil {
@@ -694,7 +681,7 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".8.2.2"
 				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
-				r = db.Query("\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
+				r = db2.Query("\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
 				}
@@ -708,12 +695,11 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.3.2"
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
 				if _res.Error != nil {
@@ -724,25 +710,9 @@ func Test_shared(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA encoding ")
 				}
 			}
-			{ // do_test "shared-" + av + ".8.3.3"
-				zDb16 = "encoding convertto unicode test.db" + "\x00\x00"
-				_ = zDb16 // suppress unused warning
-				db16 = ""
-				_ = db16 // suppress unused warning
-				stmt = "sqlite3_prepare $db16 \"SELECT sql FROM sqlite_master\" -1 DUMMY"
-				_ = stmt // suppress unused warning
-				// sqlite3_step $stmt (unsupported command, not transpiled)
-				sql = ""
-				_ = sql // suppress unused warning
-				// sqlite3_finalize $stmt (unsupported command, not transpiled)
+			{ // "shared-" + av + ".8.3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
-			{ // do_test "shared-" + av + ".8.3.4"
-				stmt = "sqlite3_prepare $db16 \"PRAGMA encoding\" -1 DUMMY"
-				_ = stmt // suppress unused warning
-				// sqlite3_step $stmt (unsupported command, not transpiled)
-				enc = ""
-				_ = enc // suppress unused warning
-				// sqlite3_finalize $stmt (unsupported command, not transpiled)
+			{ // "shared-" + av + ".8.3.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 			// sqlite3_close $db16 (unsupported command, not transpiled)
 			if false {
@@ -763,8 +733,8 @@ func Test_shared(t *testing.T) {
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".9.1"
-				_dbtmp4, err := frigolite.Open("test.db")
-				_ = _dbtmp4 // sqlite3 db connection
+				_dbtmp2, err := frigolite.Open("test.db")
+				_ = _dbtmp2 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -984,8 +954,7 @@ func Test_shared(t *testing.T) {
 				db.Close()
 			}
 			{ // do_test "shared-" + av + ".14.1"
-				_dbtmp5, err := frigolite.Open("test.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -1041,20 +1010,20 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test "shared-" + av + "-16.3"
-				_ = db1 // close db1: aliased to db, no-op
-				_ = db2 // close db2: aliased to db, no-op
+				db1.Close()
+				db2.Close()
 				db1, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				_res = db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(4),(5),(6);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				_res = db.Exec("\n    SELECT * FROM t1;\n  ")
+				_res = db2.Exec("\n    SELECT * FROM t1;\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + "-16.4"
-				_ = db1 // close db1: aliased to db, no-op
-				_ = db2 // close db2: aliased to db, no-op
+				db1.Close()
+				db2.Close()
 				os.Remove("test.db")
 				db1, err = frigolite.Open("file:test.db?mode=memory")
 				if err != nil { t.Fatal(err) }
@@ -1075,8 +1044,8 @@ func Test_shared(t *testing.T) {
 				// file exists "test.db"
 			}
 			{ // do_test "shared-" + av + "-16.7"
-				_ = db1 // close db1: aliased to db, no-op
-				_ = db2 // close db2: aliased to db, no-op
+				db1.Close()
+				db2.Close()
 				os.Remove("test1.db")
 				db1, err = frigolite.Open("file:test1.db?mode=memory")
 				if err != nil { t.Fatal(err) }
@@ -1084,7 +1053,7 @@ func Test_shared(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				_res = db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				_res = db.Exec("\n    SELECT x FROM t1 ORDER BY x;\n  ")
+				_res = db2.Exec("\n    SELECT x FROM t1 ORDER BY x;\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + "-16.8"

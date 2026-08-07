@@ -73,8 +73,7 @@ func Test_rdonly(t *testing.T) {
 	}
 	{ // do_test "rdonly-1.3"
 		// hexio_write test.db 18 03 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {

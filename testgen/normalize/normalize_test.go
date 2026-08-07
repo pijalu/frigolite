@@ -107,8 +107,7 @@ func Test_normalize(t *testing.T) {
 		{ // do_test "202"
 			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 		}
-		{ // do_test "203"
-			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		{ // "203" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "210"
 			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 2 TAIL"
@@ -118,8 +117,7 @@ func Test_normalize(t *testing.T) {
 		{ // do_test "211"
 			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 		}
-		{ // do_test "212"
-			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		{ // "212" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "220"
 			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;\" -1 2 TAIL"
@@ -128,8 +126,7 @@ func Test_normalize(t *testing.T) {
 		{ // do_test "221"
 			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 		}
-		{ // do_test "222"
-			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		{ // "222" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "297"
 			_res = db.Exec("\n    DROP TABLE t1;\n  ")

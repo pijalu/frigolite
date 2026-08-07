@@ -186,8 +186,7 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared-1.12.2"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 			r = db.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
@@ -307,8 +306,8 @@ func Test_vtab_shared(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "2.2.1"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2

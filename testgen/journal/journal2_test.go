@@ -86,8 +86,7 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.1"
 		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {
@@ -210,7 +209,7 @@ func Test_journal2(t *testing.T) {
 		// expr [catchsql { PRAGMA integrity_check } db2] == "0 ok" (not evaluated)
 	}
 	{ // do_test "journal2-1.21"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	db.Close()
 	if tclBool("wal_is_capable") {

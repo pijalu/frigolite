@@ -662,8 +662,7 @@ func Test_delete(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	{ // do_test "delete-9.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(c, d);\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n    INSERT INTO t6 VALUES('a', 'b');\n    INSERT INTO t6 VALUES('c', 'd');\n    CREATE INDEX i5 ON t5(a);\n    CREATE INDEX i6 ON t6(c);\n  ")
 		if _res.Error != nil {

@@ -168,8 +168,7 @@ func Test_walfault(t *testing.T) {
 	}
 	// do_faultsim_test walfault-10 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    ...} -body ... (unsupported command, not transpiled)
 	{ // do_test "walfault-11-pre-1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
 		if r.Error != nil {

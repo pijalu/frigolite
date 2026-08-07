@@ -7,7 +7,6 @@ package carray
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -99,16 +98,7 @@ func Test_carray02(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			{ // do_test "2.2." + tn
-				STMT = ""
-				_ = STMT // suppress unused warning
-				// sqlite3_carray_bind -int32 $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
-				_r = "run_stmt $STMT"
-				_ = _r // suppress unused warning
-				// sqlite3_finalize $STMT (unsupported command, not transpiled)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2.2." + tn)
-				}
+			{ // "2.2." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 		}
 		// foreach {tn sql res} "1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}"
@@ -121,16 +111,7 @@ func Test_carray02(t *testing.T) {
 			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
 			_ = _idx1
-				{ // do_test "2.3." + tn
-					STMT = ""
-					_ = STMT // suppress unused warning
-					// bind_carray_intptr $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
-					_r = "run_stmt $STMT"
-					_ = _r // suppress unused warning
-					// sqlite3_finalize $STMT (unsupported command, not transpiled)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2.3." + tn)
-					}
+				{ // "2.3." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
 				}
 			}
 			// foreach {tn sql res} "1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}"
@@ -143,14 +124,7 @@ func Test_carray02(t *testing.T) {
 				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
 				_ = _idx2
-					{ // do_test "2.4." + tn
-						STMT = ""
-						_ = STMT // suppress unused warning
-						// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
-						// sqlite3_carray_bind $STMT 2 1 2 3 4 5 (unsupported command, not transpiled)
-						_r = "run_stmt $STMT"
-						_ = _r // suppress unused warning
-						// sqlite3_finalize $STMT (unsupported command, not transpiled)
+					{ // "2.4." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
 					}
 				}
 				{ // "3.0.0"
@@ -177,12 +151,6 @@ func Test_carray02(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;\n")
 					}
 				}
-				{ // do_test "3.1"
-					STMT = ""
-					_ = STMT // suppress unused warning
-					// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
-					// sqlite3_step $STMT (unsupported command, not transpiled)
-					_list := tclList([]string{"", ""})
-					_ = _list
+				{ // "3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 				}
 }

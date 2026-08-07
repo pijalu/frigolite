@@ -354,18 +354,18 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
-	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 	}
-	for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-		db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+	for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 	}
 	for _, _t := range db.Query("PRAGMA database_list").Rows {
 		if len(_t) > 1 {
 			dbname := fmt.Sprint(_t[1])
 			if dbname != "main" && dbname != "temp" {
-				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 				}
 			}
 		}
@@ -451,18 +451,18 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
-	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 	}
-	for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-		db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+	for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 	}
 	for _, _t := range db.Query("PRAGMA database_list").Rows {
 		if len(_t) > 1 {
 			dbname := fmt.Sprint(_t[1])
 			if dbname != "main" && dbname != "temp" {
-				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 				}
 			}
 		}
@@ -507,8 +507,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.2.4"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.5"
 		S = ""
@@ -519,8 +518,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.2.7"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.1"
 		S = ""
@@ -542,8 +540,7 @@ func Test_analyze3(t *testing.T) {
 	{ // do_test "analyze3-3.4.5"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.4.6"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.4.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.1"
 		S = ""
@@ -558,8 +555,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S 32 def 3 (unsupported command, not transpiled)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.5.5"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.5.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.1"
 		S = ""
@@ -574,8 +570,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S 33 def 3 (unsupported command, not transpiled)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.6.5"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.6.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.1"
 		S = ""
@@ -594,8 +589,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S 10 def 3 (unsupported command, not transpiled)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.7.6"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.7.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.1"
 		_res = db.Exec("\n    CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);\n  ")
@@ -644,93 +638,39 @@ func Test_analyze3(t *testing.T) {
 	{ // do_test "analyze3-3.8.13"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // do_test "analyze3-3.8.14"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-3.8.14" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.1.1"
-		S = ""
-		_ = S // suppress unused warning
-		// sqlite3_step $S (unsupported command, not transpiled)
+	{ // "analyze3-4.1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.1.2"
-		// sqlite3_reset $S (unsupported command, not transpiled)
-		// sqlite3_bind_text $S 2 abc 3 (unsupported command, not transpiled)
-		_res = db.Exec(" DROP TABLE t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
-		}
-		// sqlite3_step $S (unsupported command, not transpiled)
+	{ // "analyze3-4.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.1.3"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-4.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.2.1"
-		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
-		}
-		i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
-			}
-		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		_res = db.Exec("ANALYZE")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-		}
-		S = ""
-		_ = S // suppress unused warning
-		// sqlite3_step $S (unsupported command, not transpiled)
+	{ // "analyze3-4.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	// proc definition (not transpiled)
-	{ // do_test "analyze3-4.2.2"
-		// sqlite3_reset $S (unsupported command, not transpiled)
-		// sqlite3_bind_text $S 2 abc 3 (unsupported command, not transpiled)
-		// sqlite3_step $S (unsupported command, not transpiled)
+	{ // "analyze3-4.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.2.4"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-4.2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.3.1"
-		S = ""
-		_ = S // suppress unused warning
-		_res = db.Exec(" CREATE TABLE t2(d, e, f) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(d, e, f) ")
-		}
-		// sqlite3_step $S (unsupported command, not transpiled)
+	{ // "analyze3-4.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "analyze3-4.3.2"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-4.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-5.1.1"
 		_res = db.Exec("PRAGMA foreign_keys = OFF")
-		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+			db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 		}
-		for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-			db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+		for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+			db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 		}
 		for _, _t := range db.Query("PRAGMA database_list").Rows {
 			if len(_t) > 1 {
 				dbname := fmt.Sprint(_t[1])
 				if dbname != "main" && dbname != "temp" {
-					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 					}
 				}
 			}
@@ -767,8 +707,7 @@ func Test_analyze3(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
-	{ // do_test "analyze3-5.1.3"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "analyze3-5.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-5.1.1"
 		S1 = ""
@@ -801,9 +740,7 @@ func Test_analyze3(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
-	{ // do_test "analyze3-5.1.3"
-		// sqlite3_finalize $S2 (unsupported command, not transpiled)
-		// sqlite3_finalize $S1 (unsupported command, not transpiled)
+	{ // "analyze3-5.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "analyze3-6.1"
 		_res = db.Exec(" DROP TABLE IF EXISTS t1 ")

@@ -337,8 +337,7 @@ func Test_walbak(t *testing.T) {
 				}
 				os.Remove("test.db")
 				{ // do_test "walbak-4." + tn + ".1"
-					_dbtmp2, err := frigolite.Open("test.db")
-					_ = _dbtmp2 // sqlite3 db connection
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("PRAGMA journal_mode = " + src)
 					if _res.Error != nil {

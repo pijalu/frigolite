@@ -70,8 +70,7 @@ func Test_win32heap(t *testing.T) {
 		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		_ = _res // catchsql
@@ -95,8 +94,7 @@ func Test_win32heap(t *testing.T) {
 		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "1.6"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));\n  ")
 		_ = _res // catchsql

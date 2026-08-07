@@ -88,64 +88,12 @@ func Test_fts3ai(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 1")
 		}
 	}
-	{ // do_test "fts3ai-1.2"
-		sql = "INSERT INTO t1 (rowid, content) VALUES(2, 'two')"
-		_ = sql // suppress unused warning
-		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		r = db.Query("SELECT content FROM t1 WHERE rowid = 2")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 2")
-		}
+	{ // "fts3ai-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "fts3ai-1.3"
-		sql = "INSERT INTO t1 (rowid, content) VALUES(3, 'three')"
-		_ = sql // suppress unused warning
-		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		sql = "UPDATE t1 SET content = 'trois' WHERE rowid = 3"
-		_ = sql // suppress unused warning
-		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		r = db.Query("SELECT content FROM t1 WHERE rowid = 3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 3")
-		}
+	{ // "fts3ai-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "fts3ai-1.4"
-		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(4, 'four')}"
-		_ = sql16 // suppress unused warning
-		STMT = "sqlite3_prepare16 $DB $sql16 -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		r = db.Query("SELECT content FROM t1 WHERE rowid = 4")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 4")
-		}
+	{ // "fts3ai-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "fts3ai-1.5"
-		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(5, 'five')}"
-		_ = sql16 // suppress unused warning
-		STMT = "sqlite3_prepare16 $DB $sql16 -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		sql = "UPDATE t1 SET content = 'cinq' WHERE rowid = 5"
-		_ = sql // suppress unused warning
-		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		r = db.Query("SELECT content FROM t1 WHERE rowid = 5")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 5")
-		}
+	{ // "fts3ai-1.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 }

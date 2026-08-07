@@ -90,36 +90,24 @@ func Test_fkey8(t *testing.T) {
 		_ = schema // suppress unused warning
 		_ = _idx0
 			_res = db.Exec("PRAGMA foreign_keys = OFF")
-			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+				db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 			}
-			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+				db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
 					if dbname != "main" && dbname != "temp" {
-						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 						}
 					}
 				}
 			}
 			_res = db.Exec("PRAGMA foreign_keys = ON")
-			{ // do_test "1." + tn
-				_res = db.Exec(schema)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
-				}
-				stmt = ""
-				_ = stmt // suppress unused warning
-				ret = "uses_stmt_journal $stmt"
-				_ = ret // suppress unused warning
-				// sqlite3_finalize $stmt (unsupported command, not transpiled)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), use_stmt) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", use_stmt, _res.Error, "1." + tn)
-				}
+			{ // "1." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 		}
 		db.Close()

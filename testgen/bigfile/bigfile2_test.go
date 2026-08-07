@@ -83,8 +83,7 @@ func Test_bigfile2(t *testing.T) {
 	str = "k 30000"
 	_ = str // suppress unused warning
 	{ // do_test "1.3"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, " + sqlLiteral(str) + ") ")
 		if _res.Error != nil {

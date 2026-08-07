@@ -371,7 +371,7 @@ func Test_in(t *testing.T) {
 		}
 	}
 	{ // do_test "in-8.4"
-		db.SetDQS(false, true)
+		db.SetDQS(true, true)
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")

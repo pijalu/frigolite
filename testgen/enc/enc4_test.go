@@ -146,8 +146,7 @@ func Test_enc4(t *testing.T) {
 					}
 				}
 			}
-			{ // do_test "enc4-" + i + "." + j + ".5"
-				// sqlite3_finalize $S (unsupported command, not transpiled)
+			{ // "enc4-" + i + "." + j + ".5" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 			// incr j 1
 			{
@@ -181,34 +180,17 @@ func Test_enc4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // do_test "enc4-4.2.1"
-		S = ""
-		_ = S // suppress unused warning
-		// sqlite3_step $S (unsupported command, not transpiled)
-		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
+	{ // "enc4-4.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "enc4-4.2.2"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "enc4-4.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "enc4-4.3.1"
-		S = ""
-		_ = S // suppress unused warning
-		// sqlite3_bind_text $S 1 1. 2 (unsupported command, not transpiled)
-		// sqlite3_step $S (unsupported command, not transpiled)
-		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
+	{ // "enc4-4.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "enc4-4.3.2"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "enc4-4.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "enc4-4.4.1"
-		S = ""
-		_ = S // suppress unused warning
-		// sqlite3_bind_text $S 1 1.0 2 (unsupported command, not transpiled)
-		// sqlite3_step $S (unsupported command, not transpiled)
-		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
+	{ // "enc4-4.4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "enc4-4.4.2"
-		// sqlite3_finalize $S (unsupported command, not transpiled)
+	{ // "enc4-4.4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	db.Close()
 }

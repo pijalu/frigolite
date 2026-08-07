@@ -174,18 +174,18 @@ func Test_fkey2(t *testing.T) {
 			}
 		}
 		_res = db.Exec("PRAGMA foreign_keys = OFF")
-		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+			db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 		}
-		for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-			db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+		for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+			db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 		}
 		for _, _t := range db.Query("PRAGMA database_list").Rows {
 			if len(_t) > 1 {
 				dbname := fmt.Sprint(_t[1])
 				if dbname != "main" && dbname != "temp" {
-					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 					}
 				}
 			}
@@ -252,18 +252,18 @@ func Test_fkey2(t *testing.T) {
 				}
 			}
 			_res = db.Exec("PRAGMA foreign_keys = OFF")
-			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+				db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 			}
-			for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-				db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+			for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+				db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 			}
 			for _, _t := range db.Query("PRAGMA database_list").Rows {
 				if len(_t) > 1 {
 					dbname := fmt.Sprint(_t[1])
 					if dbname != "main" && dbname != "temp" {
-						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 						}
 					}
 				}
@@ -342,18 +342,18 @@ func Test_fkey2(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
 				}
 				_res = db.Exec("PRAGMA foreign_keys = OFF")
-				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 				}
-				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+				for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
 						dbname := fmt.Sprint(_t[1])
 						if dbname != "main" && dbname != "temp" {
-							for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+							for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 							}
 						}
 					}
@@ -404,18 +404,18 @@ func Test_fkey2(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -432,18 +432,18 @@ func Test_fkey2(t *testing.T) {
 						_ = _res // catchsql
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -460,18 +460,18 @@ func Test_fkey2(t *testing.T) {
 						_ = _res // catchsql
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -486,18 +486,18 @@ func Test_fkey2(t *testing.T) {
 						_ = _res // catchsql
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -599,18 +599,18 @@ func Test_fkey2(t *testing.T) {
 					// fkey2-2-test 74 0 INSERT INTO node(nodeid) SELECT DISTINCT parent FR... (unsupported command, not transpiled)
 					// fkey2-2-test 75 0 COMMIT (unsupported command, not transpiled)
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -675,18 +675,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -731,18 +731,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -817,18 +817,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -841,18 +841,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -903,18 +903,18 @@ func Test_fkey2(t *testing.T) {
 						_ = _res // catchsql
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -938,18 +938,18 @@ func Test_fkey2(t *testing.T) {
 					// fkey2-8-test 15 { PRAGMA foreign_keys = false } 0 (unsupported command, not transpiled)
 					// fkey2-8-test 16 { PRAGMA foreign_keys = true  } 1 (unsupported command, not transpiled)
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -1012,18 +1012,18 @@ func Test_fkey2(t *testing.T) {
 					for _, zSql := range tclSplitList("{\n  CREATE TABLE p(a PRIMARY KEY, b);\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
 					_ = zSql // suppress unused warning
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1040,18 +1040,18 @@ func Test_fkey2(t *testing.T) {
 					}
 					{ // do_test "fkey2-10.2.1"
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1062,18 +1062,18 @@ func Test_fkey2(t *testing.T) {
 					}
 					{ // do_test "fkey2-10.2.2"
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1084,18 +1084,18 @@ func Test_fkey2(t *testing.T) {
 					}
 					{ // do_test "fkey2-10.2.1"
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1106,18 +1106,18 @@ func Test_fkey2(t *testing.T) {
 					}
 					{ // do_test "fkey2-10.2.2"
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1127,18 +1127,18 @@ func Test_fkey2(t *testing.T) {
 						_ = _res // catchsql
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -1151,18 +1151,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -1211,18 +1211,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -1259,18 +1259,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -1307,18 +1307,18 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					_res = db.Exec("PRAGMA foreign_keys = OFF")
-					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 					}
-					for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-						db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+					for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+						db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 					}
 					for _, _t := range db.Query("PRAGMA database_list").Rows {
 						if len(_t) > 1 {
 							dbname := fmt.Sprint(_t[1])
 							if dbname != "main" && dbname != "temp" {
-								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 								}
 							}
 						}
@@ -1376,18 +1376,18 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1437,18 +1437,18 @@ func Test_fkey2(t *testing.T) {
 						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2.2.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -1498,18 +1498,18 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1558,18 +1558,18 @@ func Test_fkey2(t *testing.T) {
 						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2tmp.2.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -1619,18 +1619,18 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1679,18 +1679,18 @@ func Test_fkey2(t *testing.T) {
 						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2aux.2.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -1741,18 +1741,18 @@ func Test_fkey2(t *testing.T) {
 						}
 						{ // do_test "fkey-2.14.3.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -1846,18 +1846,18 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1889,18 +1889,18 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						_res = db.Exec("PRAGMA foreign_keys = OFF")
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 						}
-						for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+						for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+							db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 						}
 						for _, _t := range db.Query("PRAGMA database_list").Rows {
 							if len(_t) > 1 {
 								dbname := fmt.Sprint(_t[1])
 								if dbname != "main" && dbname != "temp" {
-									for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+									for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 									}
 								}
 							}
@@ -1959,18 +1959,18 @@ func Test_fkey2(t *testing.T) {
 							_ = zSchema // suppress unused warning
 							_ = _idx5
 								_res = db.Exec("PRAGMA foreign_keys = OFF")
-								for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+								for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 								}
-								for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-									db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+								for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+									db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 								}
 								for _, _t := range db.Query("PRAGMA database_list").Rows {
 									if len(_t) > 1 {
 										dbname := fmt.Sprint(_t[1])
 										if dbname != "main" && dbname != "temp" {
-											for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-												db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+											for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+												db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 											}
 										}
 									}
@@ -2020,18 +2020,18 @@ func Test_fkey2(t *testing.T) {
 								}
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -2047,18 +2047,13 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);\n  ")
 								}
 							}
-							{ // do_test "fkey2-17.1.2"
-								STMT = ""
-								_ = STMT // suppress unused warning
-								// sqlite3_step $STMT (unsupported command, not transpiled)
+							{ // "fkey2-17.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							// verify_ex_errcode fkey2-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // do_test "fkey2-17.1.3"
-								// sqlite3_step $STMT (unsupported command, not transpiled)
+							{ // "fkey2-17.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							// verify_ex_errcode fkey2-17.1.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // do_test "fkey2-17.1.4"
-								// sqlite3_finalize $STMT (unsupported command, not transpiled)
+							{ // "fkey2-17.1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							// verify_ex_errcode fkey2-17.1.4b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "fkey2-17.1.5"
@@ -2095,35 +2090,30 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
 								}
 							}
-							{ // do_test "fkey2-17.1.11"
-								STMT = ""
-								_ = STMT // suppress unused warning
-								// sqlite3_step $STMT (unsupported command, not transpiled)
+							{ // "fkey2-17.1.11" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							{ // do_test "fkey2-17.1.12"
 								// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 							}
-							{ // do_test "fkey2-17.1.13"
-								// sqlite3_step $STMT (unsupported command, not transpiled)
+							{ // "fkey2-17.1.13" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							// verify_ex_errcode fkey2-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // do_test "fkey2-17.1.14"
-								// sqlite3_finalize $STMT (unsupported command, not transpiled)
+							{ // "fkey2-17.1.14" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							// verify_ex_errcode fkey2-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -2277,37 +2267,30 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE main(id INTEGER PRIMARY KEY);\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);\n  ")
 								}
 							}
-							{ // do_test "fkey2-19.2"
-								S = ""
-								_ = S // suppress unused warning
-								// sqlite3_bind_int $S 1 2 (unsupported command, not transpiled)
-								// sqlite3_step $S (unsupported command, not transpiled)
+							{ // "fkey2-19.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							// verify_ex_errcode fkey2-19.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "fkey2-19.3"
 								// sqlite3_reset $S (unsupported command, not transpiled)
 							}
 							// verify_ex_errcode fkey2-19.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // do_test "fkey2-19.4"
-								// sqlite3_bind_int $S 1 1 (unsupported command, not transpiled)
-								// sqlite3_step $S (unsupported command, not transpiled)
+							{ // "fkey2-19.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
-							{ // do_test "fkey2-19.4"
-								// sqlite3_finalize $S (unsupported command, not transpiled)
+							{ // "fkey2-19.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
-							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 							}
-							for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+							for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 							}
 							for _, _t := range db.Query("PRAGMA database_list").Rows {
 								if len(_t) > 1 {
 									dbname := fmt.Sprint(_t[1])
 									if dbname != "main" && dbname != "temp" {
-										for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-											db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+										for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+											db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 										}
 									}
 								}
@@ -2428,18 +2411,18 @@ func Test_fkey2(t *testing.T) {
 										}
 									}
 									_res = db.Exec("PRAGMA foreign_keys = OFF")
-									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 									}
-									for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+									for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 									}
 									for _, _t := range db.Query("PRAGMA database_list").Rows {
 										if len(_t) > 1 {
 											dbname := fmt.Sprint(_t[1])
 											if dbname != "main" && dbname != "temp" {
-												for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-													db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+												for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+													db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 												}
 											}
 										}
@@ -2542,18 +2525,18 @@ func Test_fkey2(t *testing.T) {
 										_ = _res // catchsql
 									}
 									_res = db.Exec("PRAGMA foreign_keys = OFF")
-									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 									}
-									for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+									for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 									}
 									for _, _t := range db.Query("PRAGMA database_list").Rows {
 										if len(_t) > 1 {
 											dbname := fmt.Sprint(_t[1])
 											if dbname != "main" && dbname != "temp" {
-												for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-													db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+												for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+													db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 												}
 											}
 										}
@@ -2596,18 +2579,18 @@ func Test_fkey2(t *testing.T) {
 										}
 									}
 									_res = db.Exec("PRAGMA foreign_keys = OFF")
-									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 									}
-									for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-										db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+									for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+										db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 									}
 									for _, _t := range db.Query("PRAGMA database_list").Rows {
 										if len(_t) > 1 {
 											dbname := fmt.Sprint(_t[1])
 											if dbname != "main" && dbname != "temp" {
-												for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-													db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+												for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+													db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 												}
 											}
 										}

@@ -91,8 +91,7 @@ func Test_capi2(t *testing.T) {
 		VM = "sqlite3_prepare $DB {SELECT name, rowid FROM sqlite_master} -1 TAIL"
 		_ = VM // suppress unused warning
 	}
-	{ // do_test "capi2-1.2"
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi2-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-1.3"
 		// sqlite3_data_count $VM (unsupported command, not transpiled)
@@ -103,15 +102,13 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-1.5"
 		// get_column_names $VM (unsupported command, not transpiled)
 	}
-	{ // do_test "capi2-1.6"
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi2-1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-1.7"
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
-	{ // do_test "capi2-1.8"
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi2-1.8" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-1.9"
 		// sqlite3_reset $VM (unsupported command, not transpiled)
@@ -121,8 +118,7 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-1.10"
 		// sqlite3_data_count $VM (unsupported command, not transpiled)
 	}
-	{ // do_test "capi2-1.11"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi2-1.11" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-2.1"
 		var SQL = "\n    SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end\n  "
@@ -140,8 +136,7 @@ func Test_capi2(t *testing.T) {
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
-	{ // do_test "capi2-2.4"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi2-2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-2.5"
 		VM = "sqlite3_prepare $DB $SQL -1 SQL"
@@ -152,8 +147,7 @@ func Test_capi2(t *testing.T) {
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
-	{ // do_test "capi2-2.7"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi2-2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-2.8"
 		VM = "sqlite3_prepare $DB $SQL -1 SQL"
@@ -261,8 +255,7 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
-	{ // do_test "capi2-3.8"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi2-3.8" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-3.9"
 		_res = db.Exec("CREATE UNIQUE INDEX i1 ON t1(a)")
@@ -280,8 +273,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.10b"
 	}
-	{ // do_test "capi2-3.11"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi2-3.11" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-3.11b"
 	}
@@ -325,16 +317,12 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE a1(message_id, name , UNIQUE(message_id, name) );\n    INSERT INTO a1 VALUES(1, 1);\n  ")
 		}
 	}
-	{ // do_test "capi2-3.21"
-		VM = "sqlite3_prepare $DB {INSERT INTO a1 VALUES(1, 1)} -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "capi2-3.21" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-3.22"
 		// sqlite3_errcode $DB (unsupported command, not transpiled)
 	}
-	{ // do_test "capi2-3.23"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "capi2-3.23" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-3.24"
 		_list := tclList([]string{"0", "sqlite3_extended_errcode $DB"})
@@ -362,8 +350,7 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
 		}
 	}
-	{ // do_test "capi2-4.6"
-		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
+	{ // "capi2-4.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-4.7"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM3", "get_column_names $VM3"})
@@ -375,8 +362,7 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
 		}
 	}
-	{ // do_test "capi2-4.9"
-		// sqlite3_finalize $VM3 (unsupported command, not transpiled)
+	{ // "capi2-4.9" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-4.10"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
@@ -388,8 +374,7 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
 		}
 	}
-	{ // do_test "capi2-4.12"
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
+	{ // "capi2-4.12" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-5.1"
 		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
@@ -425,15 +410,13 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM3", "get_column_names $VM3"})
 		_ = _list
 	}
-	{ // do_test "capi2-5.8"
-		// sqlite3_finalize $VM3 (unsupported command, not transpiled)
+	{ // "capi2-5.8" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-5.9"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
 	}
-	{ // do_test "capi2-5.10"
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
+	{ // "capi2-5.10" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-5.11"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM2", "get_column_names $VM2"})
@@ -443,8 +426,7 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM2", "get_column_names $VM2"})
 		_ = _list
 	}
-	{ // do_test "capi2-5.11"
-		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
+	{ // "capi2-5.11" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-6.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;\n  ")
@@ -566,8 +548,7 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
 	}
-	{ // do_test "capi2-6.99"
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
+	{ // "capi2-6.99" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	_res = db.Exec("ROLLBACK")
 	_ = _res // catchsql
@@ -648,19 +629,11 @@ func Test_capi2(t *testing.T) {
 		_ = x // suppress unused warning
 		_ = tclLIndex(x, "0") // lindex result
 	}
-	{ // do_test "capi2-8.1"
-		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
-		_ = VM1 // suppress unused warning
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
+	{ // "capi2-8.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi2-9.1"
-		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 DUMMY"
-		_ = VM1 // suppress unused warning
-		// sqlite3_step $VM1 (unsupported command, not transpiled)
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
+	{ // "capi2-9.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "capi2-10.1"
-		// sqlite3_finalize 0 (unsupported command, not transpiled)
+	{ // "capi2-10.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "capi2-10.2"
 		// sqlite3_reset 0 (unsupported command, not transpiled)

@@ -120,8 +120,7 @@ func Test_walmode(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "walmode-2.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// file exists "test.db-wal"
 	}
@@ -139,8 +138,7 @@ func Test_walmode(t *testing.T) {
 	sqlite_sync_count = "0"
 	_ = sqlite_sync_count // suppress unused warning
 	{ // do_test "walmode-3.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA journal_mode = wal ")
 		if r.Error != nil {
@@ -356,8 +354,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-5.3.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA temp.journal_mode ")
 		if r.Error != nil {
@@ -398,13 +395,13 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	// foreach {tn mode} "1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate"
-	_items3 := tclSplitList("1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		tn := _items3[_idx3+0]
+	_items0 := tclSplitList("1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mode := _items3[_idx3+1]
+		mode := _items0[_idx0+1]
 		_ = mode // suppress unused warning
-		_ = _idx3
+		_ = _idx0
 			{ // do_test "walmode-6." + tn
 				// faultsim_delete_and_reopen (unsupported command, not transpiled)
 				r = db.Query("\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
@@ -424,15 +421,15 @@ func Test_walmode(t *testing.T) {
 			}
 		}
 		// foreach {tn sql result} "1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal"
-		_items4 := tclSplitList("1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal")
-		for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-			tn := _items4[_idx4+0]
+		_items1 := tclSplitList("1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items4[_idx4+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			result := _items4[_idx4+2]
+			result := _items1[_idx1+2]
 			_ = result // suppress unused warning
-			_ = _idx4
+			_ = _idx1
 				{ // do_test "walmode-7." + tn
 					db.Close()
 					db, err = frigolite.Open("test.db")
@@ -649,12 +646,12 @@ func Test_walmode(t *testing.T) {
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "walmode-8.19"
-				r = db.Query(" PRAGMA main.journal_mode ")
+				r = db2.Query(" PRAGMA main.journal_mode ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 				}
 			}
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			{ // "walmode-8.20"
 				r = db.Query(" PRAGMA journal_mode = DELETE ")
 				if r.Error != nil {

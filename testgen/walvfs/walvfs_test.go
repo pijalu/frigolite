@@ -216,8 +216,7 @@ func Test_walvfs(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	{ // do_test "4.0"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(x);\n    PRAGMA journal_mode = wal;\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n    )\n    INSERT INTO t1 SELECT randomblob(750) FROM s;\n  ")
 		if r.Error != nil {

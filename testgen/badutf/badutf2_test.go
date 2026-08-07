@@ -169,14 +169,7 @@ func Test_badutf2(t *testing.T) {
 			}
 			if tclBool(i + "==5 && " + tcl_version + ">=8.7") {
 			} else {
-				{ // do_test "badutf2-4.1." + i
-					// sqlite3_reset $S (unsupported command, not transpiled)
-					// sqlite3_bind_text $S 1 $xstr $len (unsupported command, not transpiled)
-					// sqlite3_step $S (unsupported command, not transpiled)
-					// utf8_to_ustr2 [ sqlite3_column_text $S 0 ] (unsupported command, not transpiled)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), ustr) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ustr, _res.Error, "badutf2-4.1." + i)
-					}
+				{ // "badutf2-4.1." + i (uses_stmt_journal/prepare-step internals, not transpiled)
 				}
 			}
 			{ // do_test "badutf2-5.1." + i
@@ -186,7 +179,6 @@ func Test_badutf2(t *testing.T) {
 				}
 			}
 		}
-		{ // do_test "badutf2-4.2"
-			// sqlite3_finalize $S (unsupported command, not transpiled)
+		{ // "badutf2-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 }

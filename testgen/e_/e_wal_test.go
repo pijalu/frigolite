@@ -220,8 +220,7 @@ func Test_e_wal(t *testing.T) {
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	{ // do_test "3.0"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA journal_mode = WAL ")
 		if r.Error != nil {
@@ -230,8 +229,7 @@ func Test_e_wal(t *testing.T) {
 		db.Close()
 	}
 	{ // do_test "3.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -283,8 +281,7 @@ func Test_e_wal(t *testing.T) {
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	{ // do_test "3.4.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql

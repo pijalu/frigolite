@@ -7,7 +7,6 @@ package fts3
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -242,8 +241,8 @@ func Test_fts3shared(t *testing.T) {
 				}
 				_res = db.Exec("INSERT INTO t1 VALUES('p q r')")
 				_ = _res // catchsql
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.4." + tn)
+				if !tclCatchsqlMatches(_res, LOCKED) {
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.4." + tn)
 				}
 			}
 			_res = db.Exec("ROLLBACK")
@@ -278,8 +277,8 @@ func Test_fts3shared(t *testing.T) {
 					}
 					_res = db.Exec("INSERT INTO t2(rowid, a, b) VALUES(3, 's t u', 'v w x')")
 					_ = _res // catchsql
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.5." + tn)
+					if !tclCatchsqlMatches(_res, LOCKED) {
+						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.5." + tn)
 					}
 				}
 				_res = db.Exec("ROLLBACK")

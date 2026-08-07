@@ -193,18 +193,18 @@ func Test_dbstatus(t *testing.T) {
 				nSchema1 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema1 // suppress unused warning
 				_res = db.Exec("PRAGMA foreign_keys = OFF")
-				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 				}
-				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+				for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
 						dbname := fmt.Sprint(_t[1])
 						if dbname != "main" && dbname != "temp" {
-							for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+							for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 							}
 						}
 					}
@@ -237,18 +237,18 @@ func Test_dbstatus(t *testing.T) {
 				nSchema3 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema3 // suppress unused warning
 				_res = db.Exec("PRAGMA foreign_keys = OFF")
-				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + fmt.Sprint(_t[0]))
 				}
-				for _, _t := range db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'").Rows {
-					db.Exec("DROP TABLE temp." + fmt.Sprint(_t[0]))
+				for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + fmt.Sprint(_t[0]))
 				}
 				for _, _t := range db.Query("PRAGMA database_list").Rows {
 					if len(_t) > 1 {
 						dbname := fmt.Sprint(_t[1])
 						if dbname != "main" && dbname != "temp" {
-							for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
-								db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+							for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+								db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + fmt.Sprint(_u[0]))
 							}
 						}
 					}
@@ -444,13 +444,7 @@ func Test_dbstatus(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 				}
 			}
-			{ // do_test "5.1"
-				stmt = "sqlite3_prepare db \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
-				_ = stmt // suppress unused warning
-				// sqlite3_step $::stmt (unsupported command, not transpiled)
-				// sqlite3_step $::stmt (unsupported command, not transpiled)
-				// sqlite3_step $::stmt (unsupported command, not transpiled)
-				// sqlite3_reset $::stmt (unsupported command, not transpiled)
+			{ // "5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 			}
 			{ // do_test "5.2"
 				// sqlite3_stmt_status $::stmt -1 0 (unsupported command, not transpiled)

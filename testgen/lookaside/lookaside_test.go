@@ -91,17 +91,13 @@ func Test_lookaside(t *testing.T) {
 	{ // do_test "lookaside-1.2"
 		// sqlite3_db_config_lookaside db 1 18 18 (unsupported command, not transpiled)
 	}
-	{ // do_test "lookaside-1.3.1"
-		// sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0 (unsupported command, not transpiled)
+	{ // "lookaside-1.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "lookaside-1.3.2"
-		// sqlite3_db_status db DBSTATUS_LOOKASIDE_HIT 0 (unsupported command, not transpiled)
+	{ // "lookaside-1.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "lookaside-1.3.3"
-		// sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_SIZE 0 (unsupported command, not transpiled)
+	{ // "lookaside-1.3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "lookaside-1.3.4"
-		// sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_FULL 0 (unsupported command, not transpiled)
+	{ // "lookaside-1.3.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "lookaside-1.4"
 		_res = db.Exec("CREATE TABLE t1(w,x,y,z);")
@@ -133,8 +129,7 @@ func Test_lookaside(t *testing.T) {
 		// foreach x,y,z "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 1" (no body)
 		// expr $x==0 && $y==0 && $z<18 (not evaluated)
 	}
-	{ // do_test "lookaside-1.9"
-		// sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0 (unsupported command, not transpiled)
+	{ // "lookaside-1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "lookaside-2.1"
 		// sqlite3_db_config_lookaside db 0 100 1000 (unsupported command, not transpiled)
@@ -163,8 +158,7 @@ func Test_lookaside(t *testing.T) {
 	{ // do_test "lookaside-2.6"
 		// sqlite3_db_config_lookaside db 0 50 -1 (unsupported command, not transpiled)
 	}
-	{ // do_test "lookaside-3.1"
-		// sqlite3_db_status db 99999 0 (unsupported command, not transpiled)
+	{ // "lookaside-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "lookaside-4.1"
 		db.Close()

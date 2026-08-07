@@ -212,8 +212,7 @@ func Test_syscall(t *testing.T) {
 		db1.Close()
 	}
 	{ // do_test "6.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA temp_store = file;\n\n    PRAGMA main.cache_size = 10;\n    PRAGMA temp.cache_size = 10;\n    CREATE TABLE temp.tt(a, b);\n    INSERT INTO tt VALUES(randomblob(500), randomblob(600));\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n  ")
 		if r.Error != nil {
@@ -229,13 +228,13 @@ func Test_syscall(t *testing.T) {
 	os.Remove("test.db")
 	// proc definition (not transpiled)
 	// foreach {nByte res} "1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}"
-	_items2 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
-	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-		nByte := _items2[_idx2+0]
+	_items1 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		nByte := _items1[_idx1+0]
 		_ = nByte // suppress unused warning
-		res := _items2[_idx2+1]
+		res := _items1[_idx1+1]
 		_ = res // suppress unused warning
-		_ = _idx2
+		_ = _idx1
 			{ // do_test "7." + nByte
 				// create_db_file $nByte (unsupported command, not transpiled)
 				_list := tclList([]string{"0", msg})
@@ -257,22 +256,21 @@ func Test_syscall(t *testing.T) {
 		}
 		os.Remove("test.db")
 		{ // do_test "8.1"
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// file_control_chunksize_test db main 4096 (unsupported command, not transpiled)
 			// file size test.db
 		}
 		// foreach {tn hint size} "1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192"
-		_items4 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
-		for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-			tn := _items4[_idx4+0]
+		_items2 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
+		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			hint := _items4[_idx4+1]
+			hint := _items2[_idx2+1]
 			_ = hint // suppress unused warning
-			size := _items4[_idx4+2]
+			size := _items2[_idx2+2]
 			_ = size // suppress unused warning
-			_ = _idx4
+			_ = _idx2
 				{ // do_test "8.2." + tn
 					// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 					// file size test.db
@@ -290,15 +288,15 @@ func Test_syscall(t *testing.T) {
 				// file size test.db
 			}
 			// foreach {tn hint size} "1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64"
-			_items5 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
-			for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
-				tn := _items5[_idx5+0]
+			_items3 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
+			for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+				tn := _items3[_idx3+0]
 				_ = tn // suppress unused warning
-				hint := _items5[_idx5+1]
+				hint := _items3[_idx3+1]
 				_ = hint // suppress unused warning
-				size := _items5[_idx5+2]
+				size := _items3[_idx3+2]
 				_ = size // suppress unused warning
-				_ = _idx5
+				_ = _idx3
 					{ // do_test "8.4." + tn
 						// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 						// file size test.db

@@ -110,8 +110,7 @@ func Test_thread001(t *testing.T) {
 					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", shared_cache, _res.Error, "thread001." + tn + ".0")
 				}
 			}
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			dbconfig = ""
 			_ = dbconfig // suppress unused warning

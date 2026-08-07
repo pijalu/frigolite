@@ -93,8 +93,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		db.Close()
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-1.4.1"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp1;\n  ")

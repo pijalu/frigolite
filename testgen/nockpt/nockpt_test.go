@@ -86,8 +86,7 @@ func Test_nockpt(t *testing.T) {
 	{ // do_test "1.4"
 		// file exists "test.db-wal"
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.5"
 		_res = db.Exec("\n  INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);\n")
@@ -113,8 +112,7 @@ func Test_nockpt(t *testing.T) {
 	{ // do_test "1.11"
 		// file size test.db-wal
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.12"
 		r = db.Query("\n  SELECT * FROM c1\n")
@@ -233,14 +231,7 @@ func Test_nockpt(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT\n")
 			}
 		}
-		{ // do_test "2.5"
-			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
-			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-			_ = db3
-			r = db.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
-			}
+		{ // "2.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 	}
 }

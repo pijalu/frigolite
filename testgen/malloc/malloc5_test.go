@@ -308,8 +308,7 @@ func Test_malloc5(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	{ // do_test "malloc5-6.1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA default_cache_size=2;\n  ")
 		if r.Error != nil {
@@ -332,7 +331,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "malloc5-6.2.1"
-		r = db.Query("SELECT * FROM abc")
+		r = db2.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
@@ -347,7 +346,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.2.3"
-		r = db.Query(" SELECT * FROM abc ")
+		r = db2.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
@@ -355,7 +354,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.3.1"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
+		_res = db2.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
 		}
@@ -394,7 +393,7 @@ func Test_malloc5(t *testing.T) {
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
 	// test_restore_config_pagecache (unsupported command, not transpiled)
 	{

@@ -138,21 +138,14 @@ func Test_trace(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	{ // do_test "trace-2.1"
-		STMT = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(2,3)} -1 TAIL"
-		_ = STMT // suppress unused warning
-		// proc definition (not transpiled)
-		TRACE_OUT = ""
-		_ = TRACE_OUT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "trace-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "trace-2.2"
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		// sqlite3_reset $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "trace-2.3"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "trace-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "trace-2.4"
 		TRACE_OUT = ""
@@ -213,21 +206,14 @@ func Test_trace(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	{ // do_test "trace-4.1"
-		STMT = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"
-		_ = STMT // suppress unused warning
-		// proc definition (not transpiled)
-		TRACE_OUT = ""
-		_ = TRACE_OUT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "trace-4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "trace-4.2"
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		// sqlite3_reset $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "trace-4.3"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "trace-4.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "trace-4.4"
 		TRACE_OUT = ""

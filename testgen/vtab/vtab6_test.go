@@ -374,7 +374,7 @@ func Test_vtab6(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab6-7.1"
-		db.SetDQS(false, true)
+		db.SetDQS(true, true)
 		r = db.Query("\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")

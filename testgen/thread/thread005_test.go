@@ -97,8 +97,7 @@ func Test_thread005(t *testing.T) {
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "thread005-1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {
@@ -132,8 +131,7 @@ func Test_thread005(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "thread005-2.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {
@@ -174,8 +172,7 @@ func Test_thread005(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "thread005-2.3"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {

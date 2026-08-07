@@ -306,8 +306,7 @@ func Test_shared6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t5(a, b) ")
 		}
 	}
-	{ // do_test "shared6-4.2"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "shared6-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "shared6-4.X"
 		_ = db1 // close db1: aliased to db, no-op

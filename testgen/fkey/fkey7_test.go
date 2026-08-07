@@ -96,12 +96,7 @@ func Test_fkey7(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n    INSERT INTO cX VALUES(11, zeroblob(40));\n  ")
 		}
 	}
-	{ // do_test "2.2"
-		stmt = ""
-		_ = stmt // suppress unused warning
-		// sqlite3_bind_zeroblob $stmt 1 45 (unsupported command, not transpiled)
-		// sqlite3_step $stmt (unsupported command, not transpiled)
-		// sqlite3_finalize $stmt (unsupported command, not transpiled)
+	{ // "2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // "3.0"
 		_res = db.Exec("\n    CREATE TABLE p4 (id INTEGER NOT NULL PRIMARY KEY);\n    INSERT INTO p4 VALUES(1), (2), (3);\n\n    CREATE TABLE c4(x INTEGER REFERENCES p4(id) DEFERRABLE INITIALLY DEFERRED);\n    CREATE INDEX c4_x ON c4(x);\n    INSERT INTO c4 VALUES(1), (2), (3);\n\n    ANALYZE;\n    INSERT INTO p4(id) VALUES(4);\n  ")

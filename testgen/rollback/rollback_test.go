@@ -92,29 +92,22 @@ func Test_rollback(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;\n    ")
 		}
 	}
-	{ // do_test "rollback-1.3"
-		STMT = "sqlite3_prepare $DB \"SELECT a FROM t1\" -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "rollback-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "rollback-1.4"
 		_res = db.Exec("\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
 		_ = _res // catchsql
 	}
-	{ // do_test "rollback-1.5"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "rollback-1.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "rollback-1.6"
 		// sqlite3_reset $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "rollback-1.7"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "rollback-1.7" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "rollback-1.8"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
+	{ // "rollback-1.8" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "rollback-1.9"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	{ // "rollback-1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	if tclBool(tcl_platform_platform + " == \"unix\" \n && " + "permutation" + " != \"onefile\"\n && " + "permutation" + " != \"inmemory_journal\"\n && " + "permutation" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
 		{ // do_test "rollback-2.1"

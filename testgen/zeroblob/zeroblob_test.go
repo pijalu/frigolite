@@ -257,19 +257,12 @@ func Test_zeroblob(t *testing.T) {
 	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 	memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
-	{ // do_test "zeroblob-7.1"
-		STMT = "sqlite3_prepare $::DB \"SELECT length(?)\" -1 DUMMY" // TCL namespace variable
-		_ = STMT // suppress unused warning
-		sqlite3_max_blobsize = "0" // TCL namespace variable
-		_ = sqlite3_max_blobsize // suppress unused warning
-		// sqlite3_bind_zeroblob $::STMT 1 450000 (unsupported command, not transpiled)
-		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	{ // "zeroblob-7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "zeroblob-7.2"
 		// sqlite3_column_int $::STMT 0 (unsupported command, not transpiled)
 	}
-	{ // do_test "zeroblob-7.3"
-		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	{ // "zeroblob-7.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "zeroblob-7.4"
 		_ = sqlite3_max_blobsize // TCL namespace variable (query)
@@ -436,11 +429,7 @@ func Test_zeroblob(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	{ // do_test "12.5"
-		// sqlite3_step $stmt (unsupported command, not transpiled)
-		ret = "0"
-		_ = ret // suppress unused warning
-		// sqlite3_reset $stmt (unsupported command, not transpiled)
+	{ // "12.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	{ // "13.100"

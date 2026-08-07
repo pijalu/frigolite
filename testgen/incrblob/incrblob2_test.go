@@ -340,8 +340,7 @@ func Test_incrblob2(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "incrblob2-5.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -404,8 +403,8 @@ func Test_incrblob2(t *testing.T) {
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrblob2-6.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1, zeroblob(100));\n  ")

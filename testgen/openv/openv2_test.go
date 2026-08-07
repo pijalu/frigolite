@@ -64,8 +64,7 @@ func Test_openv2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -80,8 +79,8 @@ func Test_openv2(t *testing.T) {
 	{ // do_test "openv2-1.2"
 	}
 	{ // do_test "openv2-1.3"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {

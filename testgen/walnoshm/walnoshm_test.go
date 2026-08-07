@@ -244,8 +244,7 @@ func Test_walnoshm(t *testing.T) {
 	db2.Close()
 	db.Close()
 	{ // do_test "3.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		if r.Error != nil {
@@ -261,8 +260,7 @@ func Test_walnoshm(t *testing.T) {
 	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "3.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 		if r.Error != nil {

@@ -88,8 +88,7 @@ func Test_lock5(t *testing.T) {
 		env_SQLITE_FORCE_PROXY_LOCKING = "0"
 		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
 		{ // do_test "lock5-dotfile.1"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 			if _res.Error != nil {
@@ -206,8 +205,7 @@ func Test_lock5(t *testing.T) {
 				_ = db2 // close db2: aliased to db, no-op
 			}
 			{ // do_test "lock5-flock.9"
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    SELECT * FROM t1\n  ")
 				if r.Error != nil {
@@ -253,8 +251,7 @@ func Test_lock5(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "lock5-none.1"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2

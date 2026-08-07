@@ -88,8 +88,7 @@ func Test_misc4(t *testing.T) {
 		stmt = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = stmt // suppress unused warning
 	}
-	{ // do_test "misc4-1.3"
-		// sqlite3_step $stmt (unsupported command, not transpiled)
+	{ // "misc4-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "misc4-1.4"
 		r = db.Query("\n      SELECT * FROM temp.t2;\n    ")
@@ -97,16 +96,9 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM temp.t2;\n    ")
 		}
 	}
-	{ // do_test "misc4-1.5"
-		_res = db.Exec("DROP TABLE t2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
-		}
-		// sqlite3_reset $stmt (unsupported command, not transpiled)
-		// sqlite3_step $stmt (unsupported command, not transpiled)
+	{ // "misc4-1.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "misc4-1.6"
-		// sqlite3_finalize $stmt (unsupported command, not transpiled)
+	{ // "misc4-1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "misc4-2.1"
 		stmt = "sqlite3_prepare $DB {CREATE TABLE t3(x);} -1 TAIL"
@@ -114,11 +106,9 @@ func Test_misc4(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")
 		_ = _res // catchsql
 	}
-	{ // do_test "misc4-2.2"
-		// sqlite3_step $stmt (unsupported command, not transpiled)
+	{ // "misc4-2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "misc4-2.3"
-		// sqlite3_finalize $stmt (unsupported command, not transpiled)
+	{ // "misc4-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "misc4-2.4"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")

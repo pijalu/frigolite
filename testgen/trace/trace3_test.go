@@ -307,8 +307,7 @@ func Test_trace3(t *testing.T) {
 		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
 		_ = _list
 	}
-	{ // do_test "trace3-9.1"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	{ // "trace3-9.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "trace3-10.1"
 	}
@@ -354,12 +353,9 @@ func Test_trace3(t *testing.T) {
 		// sqlite3_bind_text $STMT 6 F 1 (unsupported command, not transpiled)
 		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "12.1.2"
-		// sqlite3_step $STMT (unsupported command, not transpiled)
-		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
+	{ // "12.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "12.1.3"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	{ // "12.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "12.2.0"
 		_res = db.Exec("\n    CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );\n  ")
@@ -379,8 +375,7 @@ func Test_trace3(t *testing.T) {
 		// sqlite3_bind_text $STMT 6 F 1 (unsupported command, not transpiled)
 		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
-	{ // do_test "12.1.2"
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	{ // "12.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	db.Close()
 	os.Remove("test.db")

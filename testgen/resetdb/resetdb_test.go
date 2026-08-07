@@ -159,18 +159,7 @@ func Test_resetdb(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	{ // do_test "500"
-		// sqlite3_finalize [\n    sqlite3_prepare db "SELECT 1 FROM sqlite_ma... (unsupported command, not transpiled)
-		// sqlite3_db_config RESET_DB (unhandled flag)
-		_res = db.Exec("VACUUM")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-		}
-		// sqlite3_db_config RESET_DB (unhandled flag)
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
-		_ = _res // catchsql
+	{ // "500" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()

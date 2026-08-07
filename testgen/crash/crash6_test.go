@@ -184,8 +184,7 @@ func Test_crash6(t *testing.T) {
 			// crashsql -file test.db \n       BEGIN;\n       SELECT random() FROM abc L... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash6-3." + ii + ".3"
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {

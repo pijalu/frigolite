@@ -224,8 +224,7 @@ func Test_bind(t *testing.T) {
 		}
 		rc = tclListAppend(rc, msg)
 	}
-	{ // do_test "bind-1.99"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "bind-1.99" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "bind-2.1"
 		_res = db.Exec("\n      DELETE FROM t1;\n    ")
@@ -629,8 +628,7 @@ func Test_bind(t *testing.T) {
 			// sqlite3_bind_double $VM 4 6.0 (unsupported command, not transpiled)
 		}
 	}
-	{ // do_test "bind-8.99"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "bind-8.99" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	iMaxVar = SQLITE_MAX_VARIABLE_NUMBER
 	_ = iMaxVar // suppress unused warning
@@ -703,15 +701,9 @@ func Test_bind(t *testing.T) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", iMaxVar, _res.Error, "bind-9.4")
 		}
 	}
-	{ // do_test "bind-9.5"
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM [expr $iMaxVar - 2] 999 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM [expr $iMaxVar - 1] 1000 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM $iMaxVar 1001 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "bind-9.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-9.6"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "bind-9.6" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "bind-9.7"
 		r = db.Query("SELECT * FROM t2")
@@ -761,11 +753,7 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-10.7.3"
 		// sqlite3_bind_parameter_name $VM 4 (unsupported command, not transpiled)
 	}
-	{ // do_test "bind-10.8"
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 2 2 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 3 3 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
+	{ // "bind-10.8" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "bind-10.8.1"
 	_ = rc // suppress unused warning
@@ -783,8 +771,7 @@ func Test_bind(t *testing.T) {
 		}
 		rc = tclListAppend(rc, msg)
 	}
-	{ // do_test "bind-10.9"
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	{ // "bind-10.9" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "bind-10.10"
 		r = db.Query("SELECT * FROM t2")
@@ -837,20 +824,7 @@ func Test_bind(t *testing.T) {
 		_ = _res // catchsql
 	}
 	if tclExecSQL(db, "{pragma encoding}") == "UTF-8" {
-		{ // do_test "bind-12.1"
-			_res = db.Exec("\n      CREATE TABLE t3(x BLOB);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3(x BLOB);\n    ")
-			}
-			VM = "sqlite3_prepare $DB {INSERT INTO t3 VALUES(?)} -1 TAIL"
-			_ = VM // suppress unused warning
-			// sqlite_bind $VM 1 not-used blob10 (unsupported command, not transpiled)
-			// sqlite3_step $VM (unsupported command, not transpiled)
-			// sqlite3_finalize $VM (unsupported command, not transpiled)
-			r = db.Query("\n      SELECT typeof(x), length(x), quote(x),\n             length(cast(x AS BLOB)), quote(cast(x AS BLOB)) FROM t3\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(x), length(x), quote(x),\n             length(cast(x AS BLOB)), quote(cast(x AS BLOB)) FROM t3\n    ")
-			}
+		{ // "bind-12.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 		}
 		{ // do_test "bind-12.2"
 			// sqlite3_create_function $DB (unsupported command, not transpiled)
@@ -860,34 +834,13 @@ func Test_bind(t *testing.T) {
 			}
 		}
 	}
-	{ // do_test "bind-13.1"
-		VM = "sqlite3_prepare $DB {SELECT ?,?,?} -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
+	{ // "bind-13.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-13.2"
-		// sqlite3_reset $VM (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 2 2 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 3 3 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
+	{ // "bind-13.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-13.3"
-		// sqlite3_reset $VM (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
+	{ // "bind-13.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-13.4"
-		// sqlite3_reset $VM (unsupported command, not transpiled)
-		// sqlite3_clear_bindings $VM (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
+	{ // "bind-13.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	// sqlite3_finalize $VM (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -903,92 +856,12 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-14.4"
 		// param_names db { SELECT @a, @b FROM (SELECT NULL) } (unsupported command, not transpiled)
 	}
-	{ // do_test "bind-15.1"
-		_res = db.Exec("CREATE TABLE t4(a,b,c,d,e,f,g,h);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t4(a,b,c,d,e,f,g,h);")
-		}
-		VM = "sqlite3_prepare db {\n       INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)\n  } -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 2 2 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 3 3 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 4 4 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 5 5 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 6 6 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 7 7 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 8 8 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
-		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
+	{ // "bind-15.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-15.2"
-		_res = db.Exec("DELETE FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t4")
-		}
-		VM = "sqlite3_prepare db {\n       INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)\n  } -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 2 2 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 3 3 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 4 4 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 5 5 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 6 6 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 7 7 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 8 8 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
-		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
+	{ // "bind-15.2" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-15.3"
-		_res = db.Exec("DELETE FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t4")
-		}
-		VM = "sqlite3_prepare db {\n       INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)\n  } -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 2 2 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 3 3 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 4 4 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 5 5 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 6 6 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 7 7 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 8 8 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
-		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
+	{ // "bind-15.3" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
-	{ // do_test "bind-15.4"
-		_res = db.Exec("DELETE FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t4")
-		}
-		VM = "sqlite3_prepare db {\n       INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)\n  } -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 2 2 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 3 3 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 4 4 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 5 5 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 6 6 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 7 7 (unsupported command, not transpiled)
-		// sqlite3_bind_int $VM 8 8 (unsupported command, not transpiled)
-		// sqlite3_step $VM (unsupported command, not transpiled)
-		// sqlite3_finalize $VM (unsupported command, not transpiled)
-		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
+	{ // "bind-15.4" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 }

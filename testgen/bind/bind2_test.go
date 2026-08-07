@@ -73,12 +73,7 @@ func Test_bind2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // do_test "1.1"
-		stmt = "sqlite3_prepare db \"SELECT ?\" -1 tail"
-		_ = stmt // suppress unused warning
-		// sqlite3_bind_value_from_select $stmt 1 SELECT a FROM t1 (unsupported command, not transpiled)
-		// sqlite3_step $stmt (unsupported command, not transpiled)
-		// sqlite3_column_text $stmt 0 (unsupported command, not transpiled)
+	{ // "1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	// proc definition (not transpiled)

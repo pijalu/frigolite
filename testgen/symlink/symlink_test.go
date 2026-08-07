@@ -137,7 +137,7 @@ func Test_symlink(t *testing.T) {
 	{ // do_test "1.2.3"
 		// sqlite3_db_filename db2 main (unsupported command, not transpiled)
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // do_test "1.3"
 		os.Remove("test.db")
 		// exec ln -s test.db2 test.db (unsupported command, not transpiled)
@@ -167,7 +167,7 @@ func Test_symlink(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")

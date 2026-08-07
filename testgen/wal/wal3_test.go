@@ -183,7 +183,7 @@ func Test_wal3(t *testing.T) {
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "wal3-1." + i + ".5"
-			r = db.Query(" SELECT count(*) FROM t1 ")
+			r = db2.Query(" SELECT count(*) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 			}
@@ -198,12 +198,12 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".7"
-			r = db.Query(" PRAGMA integrity_check ")
+			r = db2.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

@@ -90,8 +90,7 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(4, (... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-1." + i + ".5"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -123,8 +122,8 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 5 -file test.db-wal -seed [incr seed] {\n      PRAGMA journal_mode = WAL;... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-2." + i + ".2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -138,8 +137,7 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(6, (... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-2." + i + ".5"
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -172,8 +170,8 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 4 -file test.db-wal -seed [incr seed] -blocksize 4096 {\n      PRAGMA jou... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-4." + i + ".2"
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" \n      SELECT * FROM t1 WHERE a = 1;\n    ")
 			if r.Error != nil {
@@ -210,8 +208,8 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 13 -file test.db-wal -seed [incr seed] -blocksize 4096 {\n      PRAGMA jo... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-5." + i + ".2"
-			_dbtmp5, err := frigolite.Open("test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT count(*)==33 OR count(*)==34 FROM t1 WHERE x != 1 ")
 			if r.Error != nil {
@@ -248,8 +246,8 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 14 -file test.db-wal -seed [incr seed] -blocksize 512 {\n      PRAGMA jou... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-6." + i + ".2"
-			_dbtmp6, err := frigolite.Open("test.db")
-			_ = _dbtmp6 // sqlite3 db connection
+			_dbtmp4, err := frigolite.Open("test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT count(*) BETWEEN 34 AND 36 FROM t1 WHERE x != 1 ")
 			if r.Error != nil {
@@ -287,8 +285,8 @@ func Test_walcrash(t *testing.T) {
 			// crashsql -delay 3 -file test.db -seed [incr seed] -blocksize 512 \n      PRAGMA page_size... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-7." + i + ".2"
-			_dbtmp7, err := frigolite.Open("test.db")
-			_ = _dbtmp7 // sqlite3 db connection
+			_dbtmp5, err := frigolite.Open("test.db")
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT b FROM t1 WHERE a = 1 ")
 			if r.Error != nil {

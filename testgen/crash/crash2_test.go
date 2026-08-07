@@ -136,8 +136,7 @@ func Test_crash2(t *testing.T) {
 			// crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA ... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash2-2." + i + ".2"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
@@ -164,8 +163,7 @@ func Test_crash2(t *testing.T) {
 			// crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM ab... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash2-3." + i + ".2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {

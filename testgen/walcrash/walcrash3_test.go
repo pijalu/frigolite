@@ -139,8 +139,7 @@ func Test_walcrash3(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "2.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
 		if r.Error != nil {
@@ -179,8 +178,7 @@ func Test_walcrash3(t *testing.T) {
 			// crashsql -delay 2 -file test.db-wal -seed $i {\n      SELECT * FROM sqlite_master;\n     ... (unsupported command, not transpiled)
 		}
 		{ // do_test "2." + i + ".2"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {

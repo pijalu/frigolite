@@ -68,8 +68,7 @@ func Test_filefmt(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	{ // do_test "filefmt-1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
@@ -85,8 +84,7 @@ func Test_filefmt(t *testing.T) {
 	_ = _err_tcl // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				x = "1"

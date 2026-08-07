@@ -77,8 +77,7 @@ func Test_corruptA(t *testing.T) {
 	{ // do_test "corruptA-2.1"
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 19 $unreadable_version (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
