@@ -217,6 +217,12 @@ func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Res
 		return viewResult
 	}
 	viewCols := viewResult.Columns
+	// Apply the view's declared column list (CREATE VIEW v(a,b) AS ...) so
+	// INSTEAD OF trigger OLD/NEW rows are keyed by the declared names even
+	// when the SELECT produces expression columns without names.
+	if decl := e.viewDeclaredColumns(viewEntry); len(decl) > 0 {
+		viewCols = decl
+	}
 	var changed int64
 	for _, rowVals := range viewResult.Rows {
 		oldRow := make(RowMap)

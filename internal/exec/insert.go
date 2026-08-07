@@ -1786,6 +1786,28 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			}
 		}
 
+		// Fire BEFORE INSERT triggers — the row is not in the table yet.
+		if e.hasTriggersForTable(tableEntry.Name) {
+			newRow := make(RowMap)
+			for i, v := range values {
+				if i < len(colDefs) {
+					newRow[colDefs[i].Name] = v
+				}
+			}
+			// SQLite exposes new.rowid as -1 inside a BEFORE INSERT trigger.
+			if !rowHasRowIDColumn(colDefs) {
+				newRow["rowid"] = int64(-1)
+				newRow["_rowid_"] = int64(-1)
+				newRow["oid"] = int64(-1)
+			}
+			if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+				if trigResult.Error == errRaiseIgnore {
+					continue
+				}
+				return trigResult
+			}
+		}
+
 		record, err := storage.EncodeRecord(values)
 		if err != nil {
 			return &Result{Error: err}
@@ -1806,6 +1828,24 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		e.bumpRowIDCache(tableEntry.RootPage, rowID)
 		changes++
 		e.lastRowID = rowID
+
+		// Fire AFTER INSERT triggers.
+		if e.hasTriggersForTable(tableEntry.Name) {
+			newRow := make(RowMap)
+			for i, v := range values {
+				if i < len(colDefs) {
+					newRow[colDefs[i].Name] = v
+				}
+			}
+			if !rowHasRowIDColumn(colDefs) {
+				newRow["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+				newRow["_rowid_"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+				newRow["oid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+			}
+			if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
 
 		// Handle RETURNING clause — evaluate against the row that was written.
 		if s.HasReturning {
@@ -2510,6 +2550,22 @@ func (e *Engine) evalReturningExprs(ret sql.SelectColumn, row Row, colDefs []sql
 	}
 }
 
+// viewDeclaredColumns returns the explicit column list from a CREATE VIEW
+// declaration (CREATE VIEW v(a,b) AS ...). Returns nil when the view has no
+// declared column list.
+func (e *Engine) viewDeclaredColumns(viewEntry *schema.Entry) []string {
+	stmts, perr := parse.ParseSQL(viewEntry.SQL)
+	if perr != nil {
+		return nil
+	}
+	for _, st := range stmts {
+		if c, ok := st.(*sql.CreateViewStmt); ok {
+			return c.Columns
+		}
+	}
+	return nil
+}
+
 // execInsertView handles INSERT statements whose target is a view. SQLite
 // routes such statements through INSTEAD OF triggers; resolving the view's
 // columns (which validates collations in its SELECT) happens first.
@@ -2548,6 +2604,11 @@ func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Res
 	// the view's SELECT (aliases when present, else expression text), with
 	// bare "*" expanded through the view's FROM source.
 	viewCols := e.viewColumnNames(viewSelect)
+	// A declared column list (CREATE VIEW v(a,b) AS ...) overrides the
+	// SELECT-derived names for NEW-row mapping.
+	if decl := e.viewDeclaredColumns(viewEntry); len(decl) > 0 {
+		viewCols = decl
+	}
 
 	fire := func(row RowMap) *Result {
 		// Fire INSTEAD OF INSERT triggers; their bodies replace the insert.
