@@ -169,7 +169,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			} else if explicitRowID != nil {
 				fixed = explicitRowID
 			}
-			res := e.insertRow(dbCtx.Pager, tableEntry, colDefs, values, fixed)
+			res := e.insertRow(dbCtx.Pager, tableEntry, colDefs, values, fixed, s.OrConflict)
 			if res.Error != nil {
 				// INSERT OR IGNORE: silently skip UNIQUE / NOT NULL / CHECK
 				// constraint violations (SQLite's OR IGNORE applies to any
@@ -215,7 +215,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 	return &Result{Changes: totalChanges}
 }
 
-func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64) *Result {
+func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) *Result {
 	// Route FTS virtual table inserts directly to the FTS table
 	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
 		nextRowID := ftsTable.Insert(values)
@@ -245,12 +245,13 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// keys are never auto-generated).
 	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	for i, cd := range colDefs {
-		if !withoutRowid && cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+		if !withoutRowid && isIPKRowidAliasCol(cd) &&
 			i < len(values) && values[i] == nil {
 			values[i] = nextRowID
 			break
 		}
 	}
+
 
 	// STRICT table enforcement: check each value against its column's declared
 	// type BEFORE affinity is applied (affinity would convert the value to
@@ -303,29 +304,36 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	}
 
 	if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
-		// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
-		if e.isIgnoreableConflict(err, tableEntry, colDefs) {
-			return &Result{Changes: 0}
-		}
-		// Column-level ON CONFLICT REPLACE on a NOT NULL column: substitute the
-		// column's DEFAULT value for the NULL and re-validate (SQLite conflate.c
-		// OP_IsNull + ON CONFLICT REPLACE resolution). Without a DEFAULT the
-		// constraint error stands.
-		if cd := notNullReplaceColumn(err, colDefs); cd != nil && cd.Default != nil {
-			dv, derr := e.evalExpr(cd.Default, nil)
-			if derr != nil {
-				return &Result{Error: derr}
+		// Per-constraint ON CONFLICT only applies when the statement has no
+		// explicit OR clause — a statement-level OR overrides the per-constraint
+		// algorithm (verified against sqlite3 3.51: UNIQUE ON CONFLICT IGNORE
+		// + INSERT OR ABORT errors; UNIQUE ON CONFLICT ABORT + INSERT OR
+		// IGNORE skips). The caller applies the statement OR when present.
+		if orConflict == "" {
+			// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
+			if e.isIgnoreableConflict(err, tableEntry, colDefs) {
+				return &Result{Changes: 0}
 			}
-			idx := cdIndex(colDefs, cd.Name)
-			if idx >= 0 && idx < len(values) {
-				values[idx] = dv
-				if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
-					return &Result{Error: err}
+			// Column-level ON CONFLICT REPLACE on a NOT NULL column: substitute the
+			// column's DEFAULT value for the NULL and re-validate (SQLite conflate.c
+			// OP_IsNull + ON CONFLICT REPLACE resolution). Without a DEFAULT the
+			// constraint error stands.
+			if cd := notNullReplaceColumn(err, colDefs); cd != nil && cd.Default != nil {
+				dv, derr := e.evalExpr(cd.Default, nil)
+				if derr != nil {
+					return &Result{Error: derr}
+				}
+				idx := cdIndex(colDefs, cd.Name)
+				if idx >= 0 && idx < len(values) {
+					values[idx] = dv
+					if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
+						return &Result{Error: err}
+					}
 				}
 			}
-		} else {
 			return &Result{Error: err}
 		}
+		return &Result{Error: err}
 	}
 
 	// Compute any generated columns (b AS(expr)) that were not explicitly set.
@@ -389,7 +397,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 			// If an INTEGER PRIMARY KEY column holds the old rowid, update
 			// it to the re-allocated value.
 			for i, cd := range colDefs {
-				if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+				if isIPKRowidAliasCol(cd) &&
 					i < len(values) && values[i] != nil {
 					if v, ok := values[i].(int64); ok && v == oldID {
 						values[i] = nextRowID
@@ -532,7 +540,7 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 
 		// NOT NULL constraint — skip for INTEGER PRIMARY KEY columns of rowid
 		// tables, since they get their value from the auto-generated rowid.
-		pkAutoRowID := cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") && !withoutRowid
+		pkAutoRowID := isIPKRowidAliasCol(cd) && !withoutRowid
 		implicitNotNull := cd.NotNull || (withoutRowid && pkCols[cdIndex(colDefs, cd.Name)])
 		if implicitNotNull && val == nil && !pkAutoRowID {
 			return fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, e.originalColumnName(tableEntry.SQL, cd.Name))
@@ -1052,11 +1060,21 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 	return 0, nil, false
 }
 
+// isIPKRowidAliasCol reports whether a column is an INTEGER PRIMARY KEY
+// rowid-alias candidate: PRIMARY KEY, declared type exactly INTEGER
+// (case-insensitive), and NOT PRIMARY KEY DESC. SQLite treats INTEGER
+// PRIMARY KEY DESC as an ordinary (non-rowid) column (build.c
+// sqlite3AddPrimaryKey checks pCol->sortOrder), so DESC columns get a
+// separate autoindex and their own rowid.
+func isIPKRowidAliasCol(cd sql.ColumnDef) bool {
+	return cd.PrimaryKey && !cd.PKDesc && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER")
+}
+
 // rowIDConflictError builds the UNIQUE error for a rowid conflict. SQLite
 // names the INTEGER PRIMARY KEY column when one exists, else "rowid".
 func (e *Engine) rowIDConflictError(tableEntry *schema.Entry, colDefs []sql.ColumnDef) error {
 	for _, cd := range colDefs {
-		if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+		if isIPKRowidAliasCol(cd) {
 			return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, cd.Name)
 		}
 	}
@@ -1259,7 +1277,7 @@ func (e *Engine) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry,
 	}
 
 	if !found {
-		res := e.insertRow(pg, tableEntry, colDefs, values, nil)
+		res := e.insertRow(pg, tableEntry, colDefs, values, nil, s.OrConflict)
 		if res.Error != nil {
 			return res
 		}
@@ -1433,7 +1451,7 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 	if len(uniqueCols) == 1 {
 		idx := uniqueCols[0]
 		cd := colDefs[idx]
-		if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+		if isIPKRowidAliasCol(cd) {
 			if v, ok := values[idx].(int64); ok {
 				tree := e.tableBTreeForName(tableName, rootPage, true)
 				cursor, err := tree.OpenCursor()
@@ -1592,7 +1610,8 @@ func isUniqueConflictError(err error) bool {
 // isIgnoreableConstraintError reports whether the error is a constraint
 // violation that statement-level OR IGNORE silently skips: UNIQUE, NOT NULL,
 // and CHECK failures all yield a row skip under INSERT OR IGNORE / UPDATE OR
-// IGNORE (SQLite applies OR IGNORE to every constraint type).
+// IGNORE (verified against sqlite3 3.51: INSERT OR IGNORE suppresses UNIQUE,
+// NOT NULL, and CHECK violations; only ABORT/FAIL/REPLACE/ROLLBACK error).
 func isIgnoreableConstraintError(err error) bool {
 	if err == nil {
 		return false
@@ -1808,23 +1827,29 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			if orIgnore && isUniqueConflictError(err) {
 				continue
 			}
-			// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
-			if e.isIgnoreableConflict(err, tableEntry, colDefs) {
-				continue
-			}
-			// Column-level ON CONFLICT REPLACE: delete the conflicting row and
-			// fall through to insert the new one.
-			if isReplaceableConflict(err, colDefs) {
-				colIndex := buildColumnIndex(colDefs)
-				conflictRowID, _, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
-				if found {
-					tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
-					if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-						return cell.RowID == conflictRowID
-					}); derr != nil {
-						return &Result{Error: derr}
+			// Per-constraint ON CONFLICT only applies when the statement has no
+			// explicit OR clause (a statement OR overrides per-constraint).
+			if s.OrConflict == "" {
+				// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
+				if e.isIgnoreableConflict(err, tableEntry, colDefs) {
+					continue
+				}
+				// Column-level ON CONFLICT REPLACE: delete the conflicting row and
+				// fall through to insert the new one.
+				if isReplaceableConflict(err, colDefs) {
+					colIndex := buildColumnIndex(colDefs)
+					conflictRowID, _, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+					if found {
+						tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+						if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+							return cell.RowID == conflictRowID
+						}); derr != nil {
+							return &Result{Error: derr}
+						}
+						e.invalidateRowIDCache(tableEntry.RootPage)
+					} else {
+						return &Result{Error: err}
 					}
-					e.invalidateRowIDCache(tableEntry.RootPage)
 				} else {
 					return &Result{Error: err}
 				}
@@ -1974,7 +1999,7 @@ func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interf
 func (e *Engine) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, error) {
 	for i, cd := range colDefs {
 		if cd.PrimaryKey && i < len(values) && values[i] != nil {
-			if !withoutRowid && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+			if !withoutRowid && isIPKRowidAliasCol(cd) {
 				v := util.ApplyColumnAffinity(values[i], "NUMERIC")
 				if iv, ok := v.(int64); ok {
 					return iv, nil

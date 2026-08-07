@@ -591,7 +591,7 @@ func (e *Engine) fkParentKeyValid(parentCtx *DatabaseContext, parentEntry *schem
 	// Single-column FK mapping to the INTEGER PRIMARY KEY is always valid.
 	if len(parentCols) == 1 {
 		for _, cd := range parentColDefs {
-			if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+			if isIPKRowidAliasCol(cd) &&
 				strings.EqualFold(cd.Name, parentCols[0]) {
 				return true
 			}

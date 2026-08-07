@@ -943,6 +943,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 39:
 		cd := sql.ColumnDef{PrimaryKey: true}
 		cd.OnConflict = getString(getRHS(p, ruleNo, 4))
+		// sortorder reduces to a bool (rules 138-140: true for DESC) when the
+		// grammar runs to completion; a raw DESC token may appear in partial
+		// parse states. Either form means PRIMARY KEY DESC.
+		switch so := getRHS(p, ruleNo, 3).(type) {
+		case bool:
+			cd.PKDesc = so
+		case sql.Token:
+			cd.PKDesc = strings.EqualFold(so.Value, "DESC")
+		}
 		if getBool(getRHS(p, ruleNo, 5)) {
 			cd.AutoInc = true
 		}
@@ -1782,6 +1791,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 			OrFail:    strings.EqualFold(cmd, "FAIL"),
+			OrConflict: strings.ToUpper(cmd),
 			CTEs:      getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
 		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause and/or
@@ -1807,6 +1817,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 			OrFail:    strings.EqualFold(cmd, "FAIL"),
+			OrConflict: strings.ToUpper(cmd),
 		}
 		// The returning nonterminal (RHS 8) is either nil (rule 166) or a
 		// []sql.SelectColumn from `RETURNING selcollist` (rule 167).
@@ -2753,6 +2764,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 			OrFail:    strings.EqualFold(cmd, "FAIL"),
+			OrConflict: strings.ToUpper(cmd),
 		}
 		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause.
 		if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {
@@ -3690,6 +3702,7 @@ func mergeColumnConstraints(dst *sql.ColumnDef, cons []sql.ColumnDef) {
 	for _, c := range cons {
 		dst.NotNull = dst.NotNull || c.NotNull
 		dst.PrimaryKey = dst.PrimaryKey || c.PrimaryKey
+		dst.PKDesc = dst.PKDesc || c.PKDesc
 		dst.AutoInc = dst.AutoInc || c.AutoInc
 		dst.Unique = dst.Unique || c.Unique
 		if c.Collate != "" {

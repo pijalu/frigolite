@@ -222,7 +222,7 @@ func (e *Engine) insertStat4Row(tbl, idx string) *Result {
 	}
 	colDefs := e.parseColumnDefs("sqlite_stat4", tableEntry.SQL)
 	values := []interface{}{tbl, idx, nil, nil, nil, nil}
-	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil)
+	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil, "")
 }
 
 // computePKStat computes the stat1 string for a WITHOUT ROWID table's PRIMARY
@@ -462,7 +462,7 @@ func (e *Engine) insertStatRow(tbl, idx, stat string) *Result {
 	}
 	colDefs := e.parseColumnDefs("sqlite_stat1", tableEntry.SQL)
 	values := []interface{}{tbl, idx, stat}
-	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil)
+	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil, "")
 }
 
 // clearAllStats deletes all rows from sqlite_stat1 and sqlite_stat4.

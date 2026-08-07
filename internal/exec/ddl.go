@@ -380,6 +380,24 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		}
 	}
 
+	// Subqueries are prohibited in CHECK constraints at CREATE TABLE time
+	// (SQLite resolve.c sqlite3ResolveSelfReference: "subqueries prohibited
+	// in CHECK constraints"). Column-level and table-level CHECK alike.
+	for _, col := range s.Columns {
+		if col.Check != nil {
+			if err := validateCheckExpr(col.Check); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+	for _, tc := range s.Constraints {
+		if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
+			if err := validateCheckExpr(tc.Expr); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+
 	pg := ctx.Pager.AllocatePage()
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.
@@ -486,14 +504,25 @@ func (e *Engine) createAutoIndexes(ctx *DatabaseContext, tableName string, s *sq
 		}
 		return ""
 	}
+	// Column PK-DESC lookup by name (for INTEGER PRIMARY KEY DESC detection).
+	colPKDesc := func(name string) bool {
+		for _, cd := range s.Columns {
+			if strings.EqualFold(cd.Name, name) {
+				return cd.PKDesc
+			}
+		}
+		return false
+	}
 
 	seen := map[string]bool{}
 	seq := 0
 	for _, u := range uniq {
 		key := strings.Join(u.cols, ",")
-		// An INTEGER PRIMARY KEY is a rowid alias: no autoindex exists at
-		// all and no sequence slot is consumed (SQLite creates no index).
-		if u.isPK && len(u.cols) == 1 && strings.EqualFold(strings.TrimSpace(colType(u.cols[0])), "INTEGER") {
+		// An INTEGER PRIMARY KEY (not DESC) is a rowid alias: no autoindex
+		// exists at all and no sequence slot is consumed (SQLite creates no
+		// index). INTEGER PRIMARY KEY DESC is an ordinary column and DOES get
+		// an autoindex.
+		if u.isPK && len(u.cols) == 1 && isIPKRowidAliasCol(sql.ColumnDef{PrimaryKey: true, Type: colType(u.cols[0]), PKDesc: colPKDesc(u.cols[0])}) {
 			continue
 		}
 		seq++
@@ -703,7 +732,7 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *DatabaseCo
 
 	// Insert rows into the new table
 	for _, row := range result.Rows {
-		res := e.insertRow(dbCtx.Pager, tableEntry, s.Columns, row, nil)
+		res := e.insertRow(dbCtx.Pager, tableEntry, s.Columns, row, nil, "")
 		if res.Error != nil {
 			return res
 		}
@@ -1138,6 +1167,22 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	return &Result{Changes: 0}
+}
+
+// validateCheckExpr rejects constructs SQLite prohibits in CHECK constraints
+// (resolve.c sqlite3ResolveSelfReference): subqueries. Non-deterministic
+// functions are allowed in CHECK (they are evaluated per row at DML time).
+func validateCheckExpr(expr sql.Expr) error {
+	var err error
+	walkExprFull(expr, func(n sql.Expr) {
+		if err != nil {
+			return
+		}
+		if _, ok := n.(*sql.Subquery); ok {
+			err = fmt.Errorf("subqueries prohibited in CHECK constraints")
+		}
+	})
+	return err
 }
 
 // validateIndexKeyExpr rejects constructs SQLite prohibits in index key

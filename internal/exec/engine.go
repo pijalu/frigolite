@@ -548,6 +548,7 @@ func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, e
 				HasReturning: s.HasReturning,
 				IsReplace:    s.IsReplace,
 				OrIgnore:     s.OrIgnore,
+				OrConflict:   s.OrConflict,
 			}
 			// Clone values tuples
 			for vi, tuple := range s.Values {

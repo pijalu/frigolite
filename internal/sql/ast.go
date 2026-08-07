@@ -196,6 +196,7 @@ type InsertStmt struct {
 	IsReplace    bool // true for REPLACE INTO or INSERT OR REPLACE
 	OrIgnore     bool // true for INSERT OR IGNORE
 	OrFail       bool // true for INSERT OR FAIL (a failed row aborts the statement but earlier rows survive)
+	OrConflict   string // statement-level OR conflict action: "", "IGNORE", "REPLACE", "FAIL", "ABORT", "ROLLBACK" (overrides per-constraint ON CONFLICT)
 	Returning    SelectColumn
 	HasReturning bool
 }
@@ -323,6 +324,7 @@ type ColumnDef struct {
 	Type           string
 	NotNull        bool
 	PrimaryKey     bool
+	PKDesc         bool // PRIMARY KEY DESC (INTEGER PRIMARY KEY DESC is NOT a rowid alias)
 	AutoInc        bool
 	Unique         bool
 	OnConflict     string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE

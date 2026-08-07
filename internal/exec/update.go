@@ -691,7 +691,7 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 				// rowid changes the IPK column value too (and fires FK parent
 				// actions on it).
 				for i, cd := range colDefs {
-					if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+					if isIPKRowidAliasCol(cd) &&
 						i < len(values) {
 						values[i] = n
 					}
@@ -1596,7 +1596,7 @@ func (e *Engine) checkUpdateConstraints(tableEntry *schema.Entry, colDefs []sql.
 			// NOT NULL constraint — skip for INTEGER PRIMARY KEY columns of
 			// rowid tables (their value derives from the rowid, which is
 			// unchanged by an UPDATE).
-			pkAutoRowID := cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") && !withoutRowid
+			pkAutoRowID := isIPKRowidAliasCol(cd) && !withoutRowid
 			implicitNotNull := cd.NotNull || (withoutRowid && pkCols[cdIndex(colDefs, cd.Name)])
 			if implicitNotNull && val == nil && !pkAutoRowID {
 				return &Result{Error: fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, e.originalColumnName(tableEntry.SQL, cd.Name))}
