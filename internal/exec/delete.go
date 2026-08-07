@@ -107,6 +107,10 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		snap := dbCtx.Pager.Snapshot()
 		for _, row := range deletedRows {
 			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
+				// RAISE(IGNORE) in a BEFORE DELETE trigger skips this row's delete.
+				if trigResult.Error == errRaiseIgnore {
+					continue
+				}
 				return trigResult
 			}
 		}
@@ -162,6 +166,10 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
 
 		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
+			// RAISE(IGNORE) in a BEFORE DELETE trigger skips this row's delete.
+			if trigResult.Error == errRaiseIgnore {
+				continue
+			}
 			return trigResult
 		}
 

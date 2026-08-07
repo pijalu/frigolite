@@ -279,6 +279,7 @@ func knownGlobalVars() map[string]bool {
 		"MEMDEBUG": true, "sqlite_options": true, "_sqlite_options": true,
 		"SQLITE_MAX_LENGTH": true, "SQLITE_MAX_SQL_LENGTH": true,
 		"SQLITE_MAX_COLUMN": true, "SQLITE_MAX_EXPR_DEPTH": true,
+		"SQLITE_MAX_TRIGGER_DEPTH": true,
 		"SQLITE_MAX_COMPOUND_SELECT": true, "SQLITE_MAX_VDBE_OP": true,
 		"SQLITE_MAX_FUNCTION_ARG": true, "SQLITE_MAX_ATTACHED": true,
 		"SQLITE_MAX_LIKE_PATTERN_LENGTH": true, "SQLITE_MAX_VARIABLE_NUMBER": true,
@@ -2352,6 +2353,22 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 				tp.emitLine("db.SetExprDepthLimit(toInt(%s))", replaceVarRefsRaw(period))
 			}
 		}
+		if len(args) >= 3 && args[1].Text == "SQLITE_LIMIT_TRIGGER_DEPTH" {
+			period := strings.TrimSpace(args[2].Text)
+			varName := strings.TrimPrefix(period, "$")
+			if isIntegerLiteral(period) || (strings.HasPrefix(period, "$") && (tp.isVarDeclared(varName) || knownGlobalVars()[varName])) {
+				tp.emitLine("db.SetTriggerDepthLimit(toInt(%s))", replaceVarRefsRaw(period))
+			} else if strings.HasPrefix(period, "[expr ") {
+				// [expr $SQLITE_MAX_TRIGGER_DEPTH / 10] — resolve known
+				// constants at transpile time.
+				exprBody := strings.TrimSuffix(strings.TrimPrefix(period, "[expr "), "]")
+				if v, err := tcl.EvalExpr(exprBody, &tcl.Interp{}, map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": "1000"}); err == nil {
+					tp.emitLine("db.SetTriggerDepthLimit(toInt(%q))", v)
+				} else {
+					tp.emitLine("db.SetTriggerDepthLimit(toInt(tclExpr(%q)))", exprBody)
+				}
+			}
+		}
 	case "sqlite3_db_config":
 		tp.processDBConfig(args)
 	case "puts":
@@ -3127,7 +3144,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		// command, the expected value is a TCL {count message} list (e.g.
 		// "1 {FOREIGN KEY constraint failed}" or "0 {}"), so use the
 		// count-aware runtime comparison.
-		bodyIsCatchsql := len(bodyCmds) == 1 && len(bodyCmds[0]) >= 1 && bodyCmds[0][0].Text == "catchsql"
+		bodyIsCatchsql := len(bodyCmds) >= 1 && len(bodyCmds[len(bodyCmds)-1]) >= 1 && bodyCmds[len(bodyCmds)-1][0].Text == "catchsql"
 		// A single `execsql {SQL}` body whose SQL contains a query returns the
 		// flattened query results; a bare-ident expected is then a RESULT list
 		// (e.g. foreach $t232 in without_rowid4-3.2), not an error message.

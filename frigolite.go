@@ -71,6 +71,16 @@ func (db *DB) SetExprDepthLimit(n int) int {
 	return 0
 }
 
+// SetTriggerDepthLimit sets the maximum trigger nesting depth
+// (SQLITE_LIMIT_TRIGGER_DEPTH). A negative value queries (and returns) the
+// current limit without changing it.
+func (db *DB) SetTriggerDepthLimit(n int) int {
+	if db != nil && db.engine != nil {
+		return db.engine.SetTriggerDepthLimit(n)
+	}
+	return 0
+}
+
 // SetProgressHandler registers a progress callback invoked after every n
 // engine operations. A true return interrupts the running statement with an
 // "interrupted" error (SQLite sqlite3_progress_handler).

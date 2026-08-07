@@ -18,6 +18,7 @@ import (
 
 type updateChange struct {
 	rowID     int64
+	newRowID  *int64 // non-nil when the UPDATE sets rowid/_rowid_/oid to a new value
 	values    []interface{}
 	oldValues []interface{}
 }
@@ -480,6 +481,10 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 	oldValues := make([]interface{}, len(rec.Values))
 	copy(oldValues, rec.Values)
 
+	// Detect an explicit rowid assignment (SET rowid = N / _rowid_ / oid):
+	// the row is deleted at the old rowid and re-inserted at the new one.
+	var newRowID *int64
+
 	for _, a := range s.Assignments {
 		idx, ok := colIndex[a.Column]
 		if !ok {
@@ -488,6 +493,22 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 			idx = len(values)
 			values = append(values, nil)
 			colIndex[a.Column] = idx
+		}
+		if isRowIDName(a.Column) {
+			// SET rowid = N changes the cell's rowid, not a column value.
+			v, err := e.evalExpr(a.Value, row)
+			if err != nil {
+				return nil, fmt.Errorf("exec: failed to evaluate SET expression for %s: %w", a.Column, err)
+			}
+			nv := util.UnwrapColumnValue(v)
+			if nv != nil {
+				n, ok := toInt64(nv)
+				if !ok {
+					return nil, fmt.Errorf("datatype mismatch")
+				}
+				newRowID = &n
+			}
+			continue
 		}
 		v, err := e.evalExpr(a.Value, row)
 		if err != nil {
@@ -504,7 +525,7 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 			values[idx] = v
 		}
 	}
-	return &updateChange{cell.RowID, values, oldValues}, nil
+	return &updateChange{cell.RowID, newRowID, values, oldValues}, nil
 }
 
 func (e *Engine) rowMatchesWhere(where sql.Expr, row Row) (bool, error) {
@@ -547,15 +568,19 @@ func (e *Engine) applyUpdateChanges(tableName string, rootPage uint32, changes [
 		if err != nil {
 			return &Result{Error: err}
 		}
+		writeRowID := c.rowID
+		if c.newRowID != nil {
+			writeRowID = *c.newRowID
+		}
 		newCell := &storage.Cell{
 			Type:    storage.CellTableLeaf,
-			RowID:   c.rowID,
+			RowID:   writeRowID,
 			Payload: newRecord,
 		}
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		e.bumpRowIDCache(rootPage, c.rowID)
+		e.bumpRowIDCache(rootPage, writeRowID)
 	}
 
 	return &Result{Changes: int64(len(changes))}
@@ -586,9 +611,18 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 	var applied []updateChange
 
 	for _, ch := range changes {
-		newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		newRowID := ch.rowID
+		if ch.newRowID != nil {
+			newRowID = *ch.newRowID
+		}
+		newRow := buildRowMapFromValues(ch.values, colDefs, newRowID)
 		oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
 		if trigResult := e.fireBeforeUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+			// RAISE(IGNORE) in a BEFORE UPDATE trigger skips this row's update
+			// (no error); other rows continue.
+			if trigResult.Error == errRaiseIgnore {
+				continue
+			}
 			return trigResult
 		}
 		// If a BEFORE trigger deleted the row being updated, skip the write.
@@ -658,15 +692,19 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 		if err != nil {
 			return &Result{Error: err}
 		}
+		writeRowID := ch.rowID
+		if ch.newRowID != nil {
+			writeRowID = *ch.newRowID
+		}
 		newCell := &storage.Cell{
 			Type:    storage.CellTableLeaf,
-			RowID:   ch.rowID,
+			RowID:   writeRowID,
 			Payload: newRecord,
 		}
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		e.bumpRowIDCache(rootPage, ch.rowID)
+		e.bumpRowIDCache(rootPage, writeRowID)
 		changesMade++
 		applied = append(applied, ch)
 	}
@@ -674,7 +712,11 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 	// Fire AFTER UPDATE triggers phase-based (after all writes), matching the
 	// engine's behavior for UPDATEs without this per-row path.
 	for _, ch := range applied {
-		newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		newRowID := ch.rowID
+		if ch.newRowID != nil {
+			newRowID = *ch.newRowID
+		}
+		newRow := buildRowMapFromValues(ch.values, colDefs, newRowID)
 		oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
 		if trigResult := e.fireAfterUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
 			return trigResult
@@ -770,6 +812,10 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
 			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
 			if trigResult := e.fireBeforeUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+				// RAISE(IGNORE) in a BEFORE UPDATE trigger skips this row.
+				if trigResult.Error == errRaiseIgnore {
+					continue
+				}
 				return trigResult
 			}
 			stillExists, err := e.rowExists(tableName, rootPage, ch.rowID)
@@ -966,12 +1012,14 @@ func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.
 			break
 		}
 	}
-
 	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
 	for rowID, ci := range conflicts {
 		oldRow := buildRowMapFromValues(ci.values, colDefs, rowID)
 		if hasTriggers {
 			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+				if trigResult.Error == errRaiseIgnore {
+					continue
+				}
 				return trigResult
 			}
 		}
@@ -1089,6 +1137,9 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			oldRow := buildRowMapFromValues(cf.values, colDefs, cf.rowID)
 			if hasTriggers {
 				if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+					if trigResult.Error == errRaiseIgnore {
+						continue
+					}
 					return trigResult
 				}
 			}

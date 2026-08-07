@@ -70,6 +70,7 @@ type Engine struct {
 	autoIncSeq        map[uint32]int64                 // AUTOINCREMENT sequence: largest rowid ever used per root page
 	templateCache     map[string]*sqlTemplateEntry     // normalized SQL → cached AST template
 	triggerDepth      int                              // depth of trigger execution
+	triggerDepthLimit int                              // SQLITE_LIMIT_TRIGGER_DEPTH (0 = maxTriggerDepth)
 	triggerTables     []string                         // chain of tables currently in trigger programs
 	triggerNewRow     Row                              // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
@@ -201,6 +202,17 @@ func (e *Engine) SetExprDepthLimit(n int) int {
 		e.exprDepthLimit = n
 	}
 	return e.exprDepthLimit
+}
+
+// SetTriggerDepthLimit sets the maximum trigger nesting depth
+// (SQLITE_LIMIT_TRIGGER_DEPTH). A negative value queries the current limit.
+// The limit is stored on the engine and used by fireTrigger to abort
+// recursive trigger chains.
+func (e *Engine) SetTriggerDepthLimit(n int) int {
+	if n >= 0 {
+		e.triggerDepthLimit = n
+	}
+	return e.triggerDepthLimit
 }
 
 // SetProgressHandler registers a progress callback invoked after every n
@@ -954,6 +966,219 @@ func (e *Engine) findIndex(name string) (*schema.Entry, *DatabaseContext, error)
 	return nil, nil, fmt.Errorf("no such index: %s", name)
 }
 
+// validateNoRaiseOutsideTrigger walks a statement's expression trees and
+// rejects RAISE() expressions when not inside a trigger program (SQLite's
+// "RAISE() may only be used within a trigger-program"). This is a compile-
+// time check: the runtime evaluation in evalRaiseExpr would miss RAISE()
+// inside expressions that never execute (e.g. GROUP BY/HAVING over an empty
+// table).
+func (e *Engine) validateNoRaiseOutsideTrigger(stmt sql.Stmt) error {
+	var check func(expr sql.Expr) error
+	check = func(expr sql.Expr) error {
+		if expr == nil {
+			return nil
+		}
+		if _, ok := expr.(*sql.RaiseExpr); ok {
+			return fmt.Errorf("RAISE() may only be used within a trigger-program")
+		}
+		if f, ok := expr.(*sql.FuncCall); ok && strings.EqualFold(f.Name, "raise") {
+			return fmt.Errorf("RAISE() may only be used within a trigger-program")
+		}
+		// Recursively visit children.
+		switch v := expr.(type) {
+		case *sql.ParenExpr:
+			return check(v.Expr)
+		case *sql.BinaryOp:
+			if err := check(v.Left); err != nil {
+				return err
+			}
+			return check(v.Right)
+		case *sql.UnaryOp:
+			return check(v.Operand)
+		case *sql.FuncCall:
+			for _, a := range v.Args {
+				if err := check(a); err != nil {
+					return err
+				}
+			}
+		case *sql.CastExpr:
+			return check(v.Operand)
+		case *sql.CaseExpr:
+			if err := check(v.Operand); err != nil {
+				return err
+			}
+			for _, w := range v.Whens {
+				if err := check(w.When); err != nil {
+					return err
+				}
+				if err := check(w.Then); err != nil {
+					return err
+				}
+			}
+			return check(v.Else)
+		case *sql.Between:
+			if err := check(v.Operand); err != nil {
+				return err
+			}
+			if err := check(v.Low); err != nil {
+				return err
+			}
+			return check(v.High)
+		case *sql.InList:
+			if err := check(v.Operand); err != nil {
+				return err
+			}
+			for _, item := range v.List {
+				if err := check(item); err != nil {
+					return err
+				}
+			}
+		case *sql.RowValue:
+			for _, sub := range v.Values {
+				if err := check(sub); err != nil {
+					return err
+				}
+			}
+		case *sql.IsNull:
+			return check(v.Operand)
+		case *sql.IsNotNull:
+			return check(v.Operand)
+		case *sql.Subquery:
+			return e.checkSelectRaise(v.Select)
+		case *sql.ExistsExpr:
+			return e.checkSelectRaise(v.Select)
+		}
+		return nil
+	}
+
+	switch s := stmt.(type) {
+	case *sql.SelectStmt:
+		return e.checkSelectRaise(s)
+	case *sql.InsertStmt:
+		for _, tuple := range s.Values {
+			for _, expr := range tuple {
+				if err := check(expr); err != nil {
+					return err
+				}
+			}
+		}
+		if s.Select != nil {
+			return e.checkSelectRaise(s.Select)
+		}
+	case *sql.UpdateStmt:
+		for _, a := range s.Assignments {
+			if err := check(a.Value); err != nil {
+				return err
+			}
+		}
+		return check(s.Where)
+	case *sql.DeleteStmt:
+		return check(s.Where)
+	}
+	return nil
+}
+
+// checkSelectRaise walks a SELECT's columns, WHERE, GROUP BY, HAVING, ORDER
+// BY, and compound tails for RAISE() expressions.
+func (e *Engine) checkSelectRaise(s *sql.SelectStmt) error {
+	if s == nil {
+		return nil
+	}
+	var check func(expr sql.Expr) error
+	check = func(expr sql.Expr) error {
+		if expr == nil {
+			return nil
+		}
+		if _, ok := expr.(*sql.RaiseExpr); ok {
+			return fmt.Errorf("RAISE() may only be used within a trigger-program")
+		}
+		if f, ok := expr.(*sql.FuncCall); ok && strings.EqualFold(f.Name, "raise") {
+			return fmt.Errorf("RAISE() may only be used within a trigger-program")
+		}
+		switch v := expr.(type) {
+		case *sql.ParenExpr:
+			return check(v.Expr)
+		case *sql.BinaryOp:
+			if err := check(v.Left); err != nil {
+				return err
+			}
+			return check(v.Right)
+		case *sql.UnaryOp:
+			return check(v.Operand)
+		case *sql.FuncCall:
+			for _, a := range v.Args {
+				if err := check(a); err != nil {
+					return err
+				}
+			}
+		case *sql.CastExpr:
+			return check(v.Operand)
+		case *sql.CaseExpr:
+			if err := check(v.Operand); err != nil {
+				return err
+			}
+			for _, w := range v.Whens {
+				if err := check(w.When); err != nil {
+					return err
+				}
+				if err := check(w.Then); err != nil {
+					return err
+				}
+			}
+			return check(v.Else)
+		case *sql.Between:
+			if err := check(v.Operand); err != nil {
+				return err
+			}
+			if err := check(v.Low); err != nil {
+				return err
+			}
+			return check(v.High)
+		case *sql.InList:
+			if err := check(v.Operand); err != nil {
+				return err
+			}
+			for _, item := range v.List {
+				if err := check(item); err != nil {
+					return err
+				}
+			}
+		case *sql.RowValue:
+			for _, sub := range v.Values {
+				if err := check(sub); err != nil {
+					return err
+				}
+			}
+		case *sql.IsNull:
+			return check(v.Operand)
+		case *sql.IsNotNull:
+			return check(v.Operand)
+		case *sql.Subquery:
+			return e.checkSelectRaise(v.Select)
+		case *sql.ExistsExpr:
+			return e.checkSelectRaise(v.Select)
+		}
+		return nil
+	}
+	// Only GROUP BY and HAVING need the early check: SQLite validates ORDER
+	// BY column matching first ("1st ORDER BY term does not match any
+	// column", triggerC-16.1), and SELECT-column/WHERE RAISE() is caught by
+	// runtime evaluation when rows exist. GROUP BY/HAVING over an empty table
+	// never evaluates, hiding the error (triggerC-16.2).
+	for _, g := range s.GroupBy {
+		if err := check(g); err != nil {
+			return err
+		}
+	}
+	if err := check(s.Having); err != nil {
+		return err
+	}
+	if s.Union != nil {
+		return e.checkSelectRaise(s.Union)
+	}
+	return nil
+}
+
 // Exec executes a single SQL statement and returns the result.
 func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// Reset the test-only counter() function state at the start of each
@@ -988,6 +1213,15 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	}
 
 	var res *Result
+	// RAISE() is only valid inside a trigger program. SQLite rejects it at
+	// prepare time; the engine's runtime evaluation would miss it when the
+	// containing expression never executes (e.g. GROUP BY/HAVING over an
+	// empty table), so validate the whole statement here.
+	if e.triggerDepth == 0 {
+		if err := e.validateNoRaiseOutsideTrigger(stmt); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	switch s := stmt.(type) {
 	case *sql.SelectStmt:
 		res = e.execSelect(s)

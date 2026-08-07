@@ -342,6 +342,11 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 			}
 		}
 		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+			// RAISE(IGNORE) in a BEFORE trigger aborts the insert (the row is
+			// skipped, no error) — SQLite semantics.
+			if trigResult.Error == errRaiseIgnore {
+				return &Result{Changes: 0}
+			}
 			return trigResult
 		}
 		// A BEFORE trigger may have inserted rows into this same table,
@@ -1086,6 +1091,10 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 		oldRow := buildRowMapFromValues(conflictValues, colDefs, conflictRowID)
 		if hasTriggers {
 			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+				// RAISE(IGNORE) in a BEFORE DELETE trigger skips this row's delete.
+				if trigResult.Error == errRaiseIgnore {
+					continue
+				}
 				return trigResult
 			}
 		}
@@ -1891,6 +1900,11 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 			}
 		}
 		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+			// RAISE(IGNORE) in a BEFORE trigger aborts the insert (the row is
+			// skipped, no error) — SQLite semantics.
+			if trigResult.Error == errRaiseIgnore {
+				return &Result{Changes: 0}
+			}
 			return trigResult
 		}
 	}
@@ -2020,10 +2034,16 @@ const maxTriggerDepth = 1000
 // (including when the trigger does not match or its WHEN clause is false).
 func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldRow RowMap) *Result {
 	// Enforce SQLite's trigger nesting limit. Recursive trigger chains (with
-	// recursive_triggers ON) abort with "too many levels of trigger
-	// recursion" once the nesting exceeds the limit.
-	if e.triggerDepth >= maxTriggerDepth {
-		return &Result{Error: fmt.Errorf("too many levels of trigger recursion")}
+	// recursive_triggers ON) abort with "triggers nested too deep" once the
+	// nesting exceeds the limit (the message matches the SQLite TCL suite;
+	// newer SQLite CLI versions phrase it "too many levels of trigger
+	// recursion"). The limit can be lowered via SQLITE_LIMIT_TRIGGER_DEPTH.
+	limit := maxTriggerDepth
+	if e.triggerDepthLimit > 0 {
+		limit = e.triggerDepthLimit
+	}
+	if e.triggerDepth >= limit {
+		return &Result{Error: fmt.Errorf("triggers nested too deep")}
 	}
 
 	// Extract the declared timing and event from the trigger header. This is
@@ -2103,11 +2123,16 @@ func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldR
 	for _, stmt := range stmts {
 		res := e.Exec(stmt)
 		if res.Error != nil {
-			// RAISE(IGNORE) aborts the current statement without error and
-			// execution continues with the next statement in the trigger
-			// program (SQLite semantics).
+			// RAISE(IGNORE) aborts the trigger program: the statement that
+			// raised it is skipped and remaining statements in the program do
+			// not run. For BEFORE triggers this also aborts the triggering
+			// statement (the row is skipped, no error); for AFTER triggers the
+			// statement already committed, so just stop the program.
 			if res.Error == errRaiseIgnore {
-				continue
+				if timing == "BEFORE" {
+					return &Result{Error: errRaiseIgnore}
+				}
+				return nil
 			}
 			// Add "main." schema prefix for table-not-found errors during trigger execution,
 			// matching SQLite's behavior where trigger execution errors include the default schema.
@@ -2135,11 +2160,19 @@ func (e *Engine) parseTriggerWhen(triggerSQL string) sql.Expr {
 	if whenIdx < 0 {
 		return nil
 	}
-	beginIdx := strings.Index(upper[whenIdx:], " BEGIN")
+	// Find the BEGIN keyword after the WHEN expression, allowing any
+	// whitespace (space, newline, tab) before it.
+	beginIdx := -1
+	for i := whenIdx + len(" WHEN "); i < len(upper); i++ {
+		if upper[i] == 'B' && i+5 <= len(upper) && upper[i:i+5] == "BEGIN" {
+			beginIdx = i
+			break
+		}
+	}
 	if beginIdx < 0 {
 		return nil
 	}
-	exprText := triggerSQL[whenIdx+len(" WHEN ") : whenIdx+beginIdx]
+	exprText := triggerSQL[whenIdx+len(" WHEN ") : beginIdx]
 	exprText = strings.TrimSpace(exprText)
 	if exprText == "" {
 		return nil

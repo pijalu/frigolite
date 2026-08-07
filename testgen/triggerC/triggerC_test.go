@@ -76,8 +76,6 @@ func Test_triggerC(t *testing.T) {
 	_ = defaults // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
-	var SQLITE_MAX_TRIGGER_DEPTH string
-	_ = SQLITE_MAX_TRIGGER_DEPTH // pre-declared from TCL source
 	var a string
 	_ = a // pre-declared from TCL source
 
@@ -205,8 +203,8 @@ func Test_triggerC(t *testing.T) {
 				}
 				_res = db.Exec("\n      INSERT INTO t2 VALUES(10);\n      SELECT * FROM t2 ORDER BY rowid;\n    ")
 				_ = _res // catchsql
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "triggerC-2.1." + n)
+				if !tclCatchsqlMatches(_res, rc) {
+					t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, rc, "triggerC-2.1." + n)
 				}
 			}
 		}
@@ -285,6 +283,7 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.5.1"
+			db.SetTriggerDepthLimit(toInt("100"))
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + tclExprWith("($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -317,6 +316,7 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.6.1"
+			db.SetTriggerDepthLimit(toInt(1))
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH * 2", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -348,6 +348,7 @@ func Test_triggerC(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		db.SetTriggerDepthLimit(toInt(SQLITE_MAX_TRIGGER_DEPTH))
 		{ // do_test "triggerC-4.1.1"
 			_res = db.Exec(" DROP TABLE log ")
 			_ = _res // catchsql
@@ -786,6 +787,7 @@ func Test_triggerC(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
+							db.SetTriggerDepthLimit(toInt(4))
 							{ // "18.3"
 								_res = db.Exec("\n  INSERT INTO t1(a) VALUES(2);\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "triggers nested too deep") {

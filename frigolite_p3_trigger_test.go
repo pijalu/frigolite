@@ -317,8 +317,8 @@ func TestP3Trigger_Recursion(t *testing.T) {
 	exec(`DELETE FROM t`)
 	exec(`DELETE FROM log`)
 	r := db.Exec(`INSERT INTO t VALUES(1)`)
-	if r.Error == nil || !strings.Contains(r.Error.Error(), "recursion") {
-		t.Errorf("recursion ON: expected 'recursion' error, got: %v", r.Error)
+	if r.Error == nil || !strings.Contains(r.Error.Error(), "nested too deep") {
+		t.Errorf("recursion ON: expected 'nested too deep' error, got: %v", r.Error)
 	}
 	// The statement is rolled back completely.
 	if got := flattenQuery(t, db, `SELECT count(*) FROM t`); got != "0" {
