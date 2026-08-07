@@ -111,6 +111,7 @@ func Test_trans(t *testing.T) {
 		// sqlite3_txn_state db no-such-schema (unsupported command, not transpiled)
 	}
 	{ // do_test "trans-1.9"
+		var altdb *frigolite.DB
 		altdb = db // sqlite3 altdb test.db: alias to main in-memory db
 		_ = altdb
 		r = db.Query("SELECT b FROM one ORDER BY a")

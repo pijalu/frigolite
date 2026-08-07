@@ -2144,11 +2144,17 @@ func (tp *transpiler) exprCmdToGo(expr string) (string, bool) {
 				return "", false
 			}
 			cmdText := expr[i+1 : i+1+end]
-			// Special-case [string length $x] to a bare len(x) (int), since
-			// cmdExpr's string-length rendering is strconv.Itoa(len(x))
-			// (a string, not usable in int arithmetic).
+			// Special-case [string length $x] and [llength $x] to bare int
+			// expressions (len(x) / tclLLength(x)), since cmdExpr's string
+			// renderings are strconv.Itoa(...) (strings, not usable in int
+			// arithmetic).
 			if sl, ok := stringLengthExpr(cmdText); ok {
 				b.WriteString("(" + sl + ")")
+				i += end + 2
+				continue
+			}
+			if ll, ok := listLengthExpr(cmdText); ok {
+				b.WriteString("(" + ll + ")")
 				i += end + 2
 				continue
 			}
@@ -2193,6 +2199,24 @@ func (tp *transpiler) exprCmdToGo(expr string) (string, bool) {
 		}
 	}
 	return s, true
+}
+
+// listLengthExpr converts an "llength ..." command into a Go tclLLength()
+// int expression. Returns ("", false) when cmdText is not an llength
+// command or its operand is not resolvable.
+func listLengthExpr(cmdText string) (string, bool) {
+	fields := strings.Fields(strings.TrimSpace(cmdText))
+	if len(fields) < 2 || fields[0] != "llength" {
+		return "", false
+	}
+	if len(fields) != 2 || !strings.HasPrefix(fields[1], "$") {
+		return "", false
+	}
+	goVar := tclVarToGo(strings.TrimPrefix(fields[1], "$"))
+	if goVar == "" {
+		return "", false
+	}
+	return "tclLLength(" + goVar + ")", true
 }
 
 // stringLengthExpr converts a "string length ..." command into a Go len()
@@ -3673,6 +3697,13 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 // order / autoindex planning), G5.EXPLAIN (VDBE opcode output), TEMP-schema,
 // and corruption-detection follow-ups.
 var skipTests = map[string]string{
+	// fkey1 8.2/8.3: writable_schema corruption that renames a WITHOUT ROWID
+	// autoindex inside sqlite_schema. SQLite stores every autoindex as a
+	// schema entry so the rename creates a duplicate-name corruption that
+	// REINDEX reports; Frigolite synthesizes PK/UNIQUE autoindexes instead,
+	// so the corruption never forms.
+	"fkey1-8.2": "writable_schema autoindex-rename corruption not supported",
+	"fkey1-8.3": "writable_schema autoindex-rename corruption not supported",
 	// alter-9.*: sqlite_rename_table()/sqlite_rename_column() internal
 	// functions are only enabled by sqlite3_test_control
 	// SQLITE_TESTCTRL_INTERNAL_FUNCTIONS, a test-build C API the pure-Go
@@ -4348,6 +4379,15 @@ func unsupportedSQL(sql string) string {
 	if reWindow.MatchString(sql) {
 		return "window functions not supported"
 	}
+	// Corruption tests that rename index entries inside sqlite_schema via
+	// writable_schema rely on SQLite storing every WITHOUT ROWID autoindex as
+	// a schema entry; Frigolite synthesizes PK/UNIQUE autoindexes instead, so
+	// the duplicate-name corruption they create never forms and REINDEX
+	// cannot report it.
+	if strings.Contains(strings.ToUpper(sql), "UPDATE SQLITE_SCHEMA SET") &&
+		strings.Contains(strings.ToUpper(sql), "SQLITE_AUTOINDEX") {
+		return "writable_schema autoindex-rename corruption not supported"
+	}
 	return ""
 }
 
@@ -4513,6 +4553,34 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		rawList = rawList[len("list "):]
 	}
 	listExpr := tp.goStringLiteral(tcl.RawWord{Text: rawList})
+
+	// foreach {v1 v2 ...} $list break — unpack the FIRST list element into the
+	// variables (TCL destructuring idiom, e.g. trans2.test's
+	// `foreach {id u1 z u2} $rec break`) and exit immediately. The unbraced
+	// bare-break body makes parseBracedBody return nil, so without this the
+	// whole unpack is silently dropped and the loop variables stay empty.
+	if len(args) >= 3 && !args[2].Braced && strings.TrimSpace(args[2].Text) == "break" && len(varNames) > 1 {
+		itemsVar := fmt.Sprintf("_items%d", tp.varCount)
+		tp.varCount++
+		tp.emitLine("%s := tclSplitList(%s)", itemsVar, listExpr)
+		tp.emitLine("if len(%s) >= %d {", itemsVar, len(varNames))
+		tp.indent++
+		for i, vn := range varNames {
+			goVN := tclVarToGo(vn)
+			if goVN == "err" {
+				goVN = "_err_tcl"
+			}
+			if !tp.isVarDeclared(goVN) && !isPreDeclaredDB(goVN) && goVN != tp.dbVar {
+				tp.emitLine("var %s string", goVN)
+				tp.vars = append(tp.vars, goVN)
+			}
+			tp.emitLine("%s = %s[%d]", goVN, itemsVar, i)
+			tp.emitLine("_ = %s // suppress unused warning", goVN)
+		}
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
 
 	// foreach over a literal list of TCL "varset" scripts:
 	//   foreach v [list {set a 1 set b 2} {set a 3}] { eval $v ... }
@@ -6410,6 +6478,13 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 			tp.dbAliases = make(map[string]string)
 		}
 		tp.dbAliases[goName] = "db"
+		// The alias variable may not have been declared yet (e.g.
+		// "sqlite3 altdb test.db" in trans.test). Declare it as a DB
+		// pointer before assigning the alias so the generated code compiles.
+		if !isPreDeclaredDB(goName) && !tp.isVarDeclared(goName) {
+			tp.emitLine("var %s *frigolite.DB", goName)
+			tp.vars = append(tp.vars, goName)
+		}
 		tp.emitLine("%s = db // sqlite3 %s %s: alias to main in-memory db", goName, dbName, args[1].Text)
 		tp.emitLine("_ = %s", goName)
 		return // no err to check; alias assignment cannot fail

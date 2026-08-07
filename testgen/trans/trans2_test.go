@@ -133,7 +133,17 @@ func Test_trans2(t *testing.T) {
 		}
 		for _, rec := range tclSplitList("scramble $data") {
 		_ = rec // suppress unused warning
-			// foreach id,u1,z,u2 rec (no body)
+			_items0 := tclSplitList(rec)
+			if len(_items0) >= 4 {
+				id = _items0[0]
+				_ = id // suppress unused warning
+				u1 = _items0[1]
+				_ = u1 // suppress unused warning
+				z = _items0[2]
+				_ = z // suppress unused warning
+				u2 = _items0[3]
+				_ = u2 // suppress unused warning
+			}
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
@@ -149,7 +159,7 @@ func Test_trans2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		todel = ""
 		_ = todel // suppress unused warning
-		n = strconv.Itoa((strconv.Itoa(tclLLength(data)))/10)
+		n = strconv.Itoa((tclLLength(data))/10)
 		_ = n // suppress unused warning
 		data = "scramble $data"
 		_ = data // suppress unused warning
@@ -229,7 +239,17 @@ func Test_trans2(t *testing.T) {
 			}
 			for _, rec := range tclSplitList("scramble $newdata") {
 			_ = rec // suppress unused warning
-				// foreach id,u1,z,u2 rec (no body)
+				_items1 := tclSplitList(rec)
+				if len(_items1) >= 4 {
+					id = _items1[0]
+					_ = id // suppress unused warning
+					u1 = _items1[1]
+					_ = u1 // suppress unused warning
+					z = _items1[2]
+					_ = z // suppress unused warning
+					u2 = _items1[3]
+					_ = u2 // suppress unused warning
+				}
 				s = "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');"
 				_ = s // suppress unused warning
 				modsql += s + "\n"

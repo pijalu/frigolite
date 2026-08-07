@@ -2261,10 +2261,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 
 	// Rule 209: expr ::= expr NOT likeop expr (NOT LIKE / NOT GLOB /
-	// NOT REGEXP / NOT MATCH). The NOT negates the likeop result.
+	// NOT REGEXP / NOT MATCH) or expr ::= expr NOT NULL (the postfix
+	// NOT NULL operator, equivalent to IS NOT NULL). The NOT negates the
+	// likeop result; a trailing NULL keyword instead makes it IsNotNull.
 	case 209:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
+		if tok, ok := getRHS(p, ruleNo, 3).(sql.Token); ok && strings.EqualFold(tok.Value, "NULL") {
+			return &sql.IsNotNull{Operand: left}
+		}
 		op := "NOT LIKE"
 		if s, ok := getRHS(p, ruleNo, 2).(string); ok && s != "" {
 			switch s {

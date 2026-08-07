@@ -3775,6 +3775,11 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
 	columns := e.buildColumnNames(s.Columns, nil)
 	var outRow []interface{}
+	// Non-aggregate expressions in an aggregate query over zero rows are
+	// evaluated against a synthetic all-NULL row (SQLite semantics: the
+	// aggregate still emits one row, and bare expressions see NULL inputs,
+	// e.g. SELECT a IS NULL, count(*) FROM empty → 1 0).
+	emptyRow := RowMap{}
 	for _, col := range s.Columns {
 		if fn, ok := col.Expr.(*sql.FuncCall); ok {
 			if f, found := e.funcs.Find(fn.Name); found && f.Type == function.TypeAggregate {
@@ -3789,7 +3794,12 @@ func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
 				continue
 			}
 		}
-		outRow = append(outRow, nil)
+		v, err := e.evalExpr(col.Expr, emptyRow)
+		if err != nil {
+			outRow = append(outRow, nil)
+		} else {
+			outRow = append(outRow, util.UnwrapColumnValue(v))
+		}
 	}
 	if outRow != nil {
 		return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
