@@ -116,6 +116,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	// regardless of where the proc is defined relative to the registration.
 	constFuncs := collectConstFuncs(cmds)
 	counterFuncs := collectCounterFuncs(cmds)
+	predFuncs := collectPredFuncs(cmds)
 
 	// Merge: pre-declare all set variables + referenced-but-not-global variables
 	var preDeclared []string
@@ -168,6 +169,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		dqsDML:       true, // SQLite default: DQS allowed in DML
 		constFuncs:   constFuncs,
 		counterFuncs: counterFuncs,
+		predFuncs:    predFuncs,
 	}
 	tp.processCommands(cmds)
 
@@ -561,6 +563,82 @@ func collectCounterFuncs(cmds [][]tcl.RawWord) map[string]string {
 	return result
 }
 
+// predicateProcValue extracts a Go comparison expression from a predicate proc
+// body like "{ expr $x < 10 }" (used by check.test's `proc myfunc {x} {expr
+// $x < 10}`). Returns a Go expression "arg < 10" with the parameter name arg,
+// or "" when the body is not a single-variable comparison against a numeric
+// literal.
+func predicateProcValue(body string) string {
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	lower := strings.ToLower(body)
+	if !strings.HasPrefix(lower, "expr ") {
+		return ""
+	}
+	exprBody := strings.TrimSpace(body[len("expr "):])
+	// exprBody must be: $X OP NUMBER  (X the single parameter, OP a comparison)
+	if !strings.HasPrefix(exprBody, "$") {
+		return ""
+	}
+	sp := strings.IndexAny(exprBody, " 	")
+	if sp < 0 {
+		return ""
+	}
+	param := exprBody[1:sp]
+	_ = param // the parameter name must be a valid Go identifier, but only the comparison is emitted
+	rest := strings.TrimSpace(exprBody[sp:])
+	// Match: OP NUMBER, where OP is one of < <= > >= == != <>
+	var op string
+	for _, cand := range []string{"<=", ">=", "==", "!=", "<>", "<", ">"} {
+		if strings.HasPrefix(rest, cand) {
+			op = cand
+			rest = strings.TrimSpace(rest[len(cand):])
+			break
+		}
+	}
+	if op == "" {
+		return ""
+	}
+	if _, err := strconv.ParseFloat(rest, 64); err != nil {
+		return ""
+	}
+	if op == "<>" {
+		op = "!="
+	}
+	if op == "==" {
+		op = "=="
+	}
+	return fmt.Sprintf("%s %s %s", "arg", op, rest)
+}
+
+// collectPredFuncs scans all TCL commands for predicate procs and returns a
+// map of proc name → Go comparison expression.
+func collectPredFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "proc" && len(cmd) >= 3 {
+				if val := predicateProcValue(cmd[2].Text); val != "" {
+					result[cmd[1].Text] = val
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
 func collectRefVars(src string) []string {
 	var names []string
 	seen := make(map[string]bool)
@@ -632,6 +710,7 @@ type transpiler struct {
 	dbVarFuncs       map[string]bool       // `db function NAME proc` registrations: NAME reads a TCL var
 	constFuncs       map[string]string     // `proc NAME {args} { return CONST }`: NAME returns CONST
 	counterFuncs     map[string]string     // `proc NAME {} { incr ::VAR }`: NAME increments VAR
+	predFuncs        map[string]string     // `proc NAME {x} { expr $x < N }`: NAME compares its arg
 	dbClosed         bool                  // main "db" connection was closed via `db close`
 	testPrefix       string                // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
 	queryVars        map[string]bool       // TCL vars known to hold query SQL (set/append to SELECT...)
@@ -2499,6 +2578,22 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 					break
 				}
 			}
+			// Predicate procs: `proc NAME {x} { expr $x < N }` — a
+			// deterministic comparison used as a scalar SQL function (e.g.
+			// check.test's `proc myfunc {x} {expr $x < 10}` registered via
+			// `db func myfunc -deterministic myfunc`). Register a Go function
+			// that applies the comparison to its single argument.
+			if pred := predicateProcValue(body); pred != "" {
+				name := strings.TrimSpace(args[0].Text)
+				if name != "" {
+					if tp.predFuncs == nil {
+						tp.predFuncs = make(map[string]string)
+					}
+					tp.predFuncs[name] = pred
+					tp.emitLine("// proc %s predicate %s (registered via db func)", name, pred)
+					break
+				}
+			}
 		}
 		tp.emitLine("// proc definition (not transpiled)")
 	case "unset":
@@ -3590,7 +3685,17 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		//     inline the Go variable's value (see inlineVarFuncs).
 		if len(rest) >= 2 {
 			name := strings.TrimSpace(rest[0].Text)
-			procName := strings.TrimSpace(rest[1].Text)
+			// db func NAME [-deterministic] PROC — skip flag arguments between
+			// the SQL function name and the TCL proc name.
+			procName := ""
+			for _, a := range rest[1:] {
+				arg := strings.TrimSpace(a.Text)
+				if strings.HasPrefix(arg, "-") {
+					continue
+				}
+				procName = arg
+				break
+			}
 			if constVal, ok := tp.constFuncs[procName]; ok && name != "" {
 				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { return int64(%s), nil }, 0, -1)", tp.dbVar, name, constVal)
 				break
@@ -3599,6 +3704,18 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 				counterVar := goVar + "Counter"
 				tp.emitLine("var %s int64", counterVar)
 				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { %s++; return %s, nil }, 0, -1)", tp.dbVar, name, counterVar, counterVar)
+				break
+			}
+			if pred, ok := tp.predFuncs[procName]; ok && name != "" {
+				// Predicate proc: `proc myfunc {x} {expr $x < 10}` becomes a
+				// scalar SQL function applying the comparison to its first
+				// argument (numeric).
+				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+				tp.emitLine("	if len(args) < 1 || args[0] == nil { return nil, nil }")
+				tp.emitLine("	arg, _ := strconv.ParseFloat(tclStr(args[0]), 64)")
+				tp.emitLine("	if %s { return int64(1), nil }", pred)
+				tp.emitLine("	return int64(0), nil")
+				tp.emitLine("}, 0, -1)")
 				break
 			}
 		}

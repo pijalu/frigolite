@@ -222,14 +222,16 @@ func (e *Engine) evalCaseWithOperand(v *sql.CaseExpr, row Row) (interface{}, err
 	}
 	// Simple CASE uses = semantics (SQLite): a NULL operand never matches,
 	// even a NULL WHEN (CASE NULL WHEN NULL → ELSE). Non-NULL operands are
-	// compared with util.CompareValues.
+	// compared with the collation carried by either side (CASE operand
+	// COLLATE applies to the comparisons, matching SQLite's CASE expression
+	// collation resolution).
 	if operand != nil {
 		for _, w := range v.Whens {
 			when, err := e.evalExpr(w.When, row)
 			if err != nil {
 				return nil, err
 			}
-			if util.CompareValues(operand, when) == 0 {
+			if compareValuesWithCollate(operand, when) == 0 {
 				return e.evalExpr(w.Then, row)
 			}
 		}

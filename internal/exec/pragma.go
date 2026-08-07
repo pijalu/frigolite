@@ -675,6 +675,8 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			e.legacyAlterTable = s.Value == "1"
 		case "RECURSIVE_TRIGGERS":
 			e.recursiveTriggers = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+		case "IGNORE_CHECK_CONSTRAINTS":
+			e.ignoreCheckConstraints = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "FOREIGN_KEYS":
 			e.foreignKeys = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "DEFER_FOREIGN_KEYS":
@@ -1158,7 +1160,15 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 // Returns "ok" if no violations, or a description of the first violation.
 func (e *Engine) execQuickCheck(tableName string) *Result {
 	if tableName == "" {
-		// No table name: check all tables
+		// No table name: check all tables. Besides STRICT-type and NULL
+		// checks (per-table below), SQLite's integrity_check also verifies
+		// every CHECK constraint against the stored rows and reports the
+		// first table with a violation as "CHECK constraint failed in T"
+		// (this is how rows written under PRAGMA
+		// ignore_check_constraints=ON are caught).
+		if bad := e.firstCheckViolationTable(); bad != "" {
+			return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{fmt.Sprintf("CHECK constraint failed in %s", bad)}}}
+		}
 		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
 	}
 
@@ -1230,6 +1240,84 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	}
 
 	return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+}
+
+// firstCheckViolationTable scans every user table and returns the name of the
+// first one whose CHECK constraints are violated by a stored row, or "" if all
+// tables satisfy their CHECKs. Column-level and table-level CHECK constraints
+// are evaluated against each row's stored values (SQLite integrity_check
+// reports the FIRST violating table only).
+func (e *Engine) firstCheckViolationTable() string {
+	for _, dbCtx := range e.databases {
+		entries, err := dbCtx.Schema.GetEntries(schema.TypeTable)
+		if err != nil {
+			continue
+		}
+		for _, te := range entries {
+			if isSchemaTable(te.Name) {
+				continue
+			}
+			colDefs := e.parseColumnDefs(te.Name, te.SQL)
+			tcs := e.tableConstraints(te.Name, te.SQL)
+			hasCheck := false
+			for _, cd := range colDefs {
+				if cd.Check != nil {
+					hasCheck = true
+					break
+				}
+			}
+			if !hasCheck {
+				for _, tc := range tcs {
+					if tc.Type == sql.ConstraintCheck {
+						hasCheck = true
+						break
+					}
+				}
+			}
+			if !hasCheck {
+				continue
+			}
+			tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, true)
+			cursor, err := tree.OpenCursor()
+			if err != nil {
+				continue
+			}
+			for {
+				cell, err := cursor.ReadCell()
+				if err != nil || cell == nil {
+					break
+				}
+				rec, err := storage.DecodeRecord(cell.Payload)
+				if err != nil || rec == nil {
+					break
+				}
+				row := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
+				for _, cd := range colDefs {
+					if cd.Check == nil {
+						continue
+					}
+					checkVal, err := e.evalExpr(cd.Check, row)
+					if err == nil && checkVal != nil && !toBool(checkVal) {
+						return te.Name
+					}
+				}
+				for _, tc := range tcs {
+					if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+						continue
+					}
+					checkVal, err := e.evalExpr(tc.Expr, row)
+					if err == nil && checkVal != nil && !toBool(checkVal) {
+						return te.Name
+					}
+				}
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+			}
+		}
+	}
+	return ""
 }
 
 // checkStrictValueForQuickCheck validates a value against a STRICT column type

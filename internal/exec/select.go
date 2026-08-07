@@ -5989,6 +5989,16 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 		for name := range affinityCols {
 			if idx, ok := colIndex[name]; ok {
 				whereDecodeIndices[idx] = true
+				continue
+			}
+			// Case-insensitive fallback: the WHERE reference may use a
+			// different case than the declared column name (SQLite column
+			// names are case-insensitive).
+			for k, idx := range colIndex {
+				if strings.EqualFold(k, name) && idx >= 0 {
+					whereDecodeIndices[idx] = true
+					break
+				}
 			}
 		}
 		// Pre-compute the complement set for phase 2 decoding (avoids per-row map allocation)
@@ -6496,7 +6506,21 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 	// results differ when ORDER BY forced the structRow path.
 	if affinityCols != nil {
 		for i := 0; i < len(values); i++ {
-			if values[i] != nil && affinityCols[colDefs[i].Name] {
+			if values[i] == nil {
+				continue
+			}
+			// Case-insensitive: the reference in WHERE/SELECT may use a
+			// different case than the declared column name.
+			needAff := affinityCols[colDefs[i].Name]
+			if !needAff {
+				for name := range affinityCols {
+					if strings.EqualFold(name, colDefs[i].Name) {
+						needAff = true
+						break
+					}
+				}
+			}
+			if needAff {
 				aff := util.Affinity(colDefs[i].Type)
 				cv := &util.ColumnValue{Value: values[i], Affinity: aff}
 				// Wrap with the declared collation so comparisons use it,

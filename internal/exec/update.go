@@ -79,8 +79,12 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 
 	// Enforce NOT NULL and CHECK constraints on the new values (SQLite checks
 	// these per-row during UPDATE; a violation aborts the whole statement).
-	if res := e.checkUpdateConstraints(tableEntry, colDefs, changes); res.Error != nil {
-		return res
+	// UPDATE OR IGNORE skips violating rows instead of aborting, so the
+	// per-row check happens inside applyUpdateIgnore (below).
+	if !strings.EqualFold(s.OnConflict, "IGNORE") {
+		if res := e.checkUpdateConstraints(tableEntry, colDefs, changes); res.Error != nil {
+			return res
+		}
 	}
 
 	// Handle RETURNING clause — evaluate against updated rows before applying
@@ -1071,6 +1075,12 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 		if conflict {
 			continue
 		}
+		// OR IGNORE also skips rows whose NEW values violate a NOT NULL or
+		// CHECK constraint (SQLite's OR IGNORE applies to every constraint
+		// type, so a violating row is silently left unchanged).
+		if res := e.checkUpdateConstraints(tableEntry, colDefs, []updateChange{ch}); res.Error != nil {
+			continue
+		}
 		// OR IGNORE also skips rows that would violate a FOREIGN KEY
 		// constraint (child direction: the new child value has no parent;
 		// parent direction: a child references the old key value).
@@ -1397,6 +1407,18 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 
 		// Delete the row being updated (no DELETE trigger: this is the UPDATE
 		// itself, not a conflict-replacement) and insert its new version.
+		// If a conflict-resolution delete's trigger removed the row being
+		// updated too (e.g. a recursive DELETE FROM t0 inside an AFTER
+		// DELETE trigger), SQLite aborts the statement with the generic
+		// "constraint failed" error and rolls it back.
+		if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
+			// The row being updated was deleted by a trigger fired during
+			// this row's conflict resolution; abort like SQLite and roll
+			// back the whole statement (conflict rows already deleted).
+			e.restorePager(e.pager, snap)
+			e.invalidateRowIDCache(tableEntry.RootPage)
+			return &Result{Error: fmt.Errorf("constraint failed")}
+		}
 		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 			return cell.RowID == c.rowID
 		}); err != nil {
@@ -1561,6 +1583,12 @@ func (e *Engine) checkUpdateConstraints(tableEntry *schema.Entry, colDefs []sql.
 	if withoutRowid {
 		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)
 	}
+	// Set the DML table context so table-qualified column references inside
+	// CHECK expressions (e.g. CHECK(Table0.Col0 NOT NULL)) resolve against
+	// the row's unqualified column keys.
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = tableEntry.Name
+	defer func() { e.currentDMLTable = prevDML }()
 	for _, ch := range changes {
 		row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
 		for _, cd := range colDefs {
@@ -1574,7 +1602,8 @@ func (e *Engine) checkUpdateConstraints(tableEntry *schema.Entry, colDefs []sql.
 				return &Result{Error: fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, e.originalColumnName(tableEntry.SQL, cd.Name))}
 			}
 			// CHECK constraint: only fails when the result is explicitly false.
-			if cd.Check != nil {
+			// PRAGMA ignore_check_constraints=ON skips enforcement.
+			if cd.Check != nil && !e.ignoreCheckConstraints {
 				checkVal, err := e.evalExpr(cd.Check, row)
 				if err == nil && checkVal != nil && !toBool(checkVal) {
 					checkText := e.checkConstraintText(tableEntry.SQL, cd.Name, cd.Check)
@@ -1583,15 +1612,19 @@ func (e *Engine) checkUpdateConstraints(tableEntry *schema.Entry, colDefs []sql.
 			}
 		}
 		// Table-level CHECK constraints.
-		for _, tc := range e.tableConstraints(tableEntry.Name, tableEntry.SQL) {
+		tcs := e.tableConstraints(tableEntry.Name, tableEntry.SQL)
+		for ti, tc := range tcs {
 			if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+				continue
+			}
+			if e.ignoreCheckConstraints {
 				continue
 			}
 			checkVal, err := e.evalExpr(tc.Expr, row)
 			if err == nil && checkVal != nil && !toBool(checkVal) {
 				name := tc.Name
 				if name == "" {
-					name = sql.ExprString(tc.Expr)
+					name = e.tableCheckConstraintText(tableEntry.SQL, ti, tcs)
 				}
 				return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", name)}
 			}

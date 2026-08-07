@@ -171,8 +171,10 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			}
 			res := e.insertRow(dbCtx.Pager, tableEntry, colDefs, values, fixed)
 			if res.Error != nil {
-				// INSERT OR IGNORE: silently skip UNIQUE conflicts.
-				if s.OrIgnore && isUniqueConflictError(res.Error) {
+				// INSERT OR IGNORE: silently skip UNIQUE / NOT NULL / CHECK
+				// constraint violations (SQLite's OR IGNORE applies to any
+				// constraint conflict, not just UNIQUE).
+				if s.OrIgnore && isIgnoreableConstraintError(res.Error) {
 					res = &Result{Changes: 0}
 				} else {
 					return res
@@ -537,8 +539,10 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 
 		// CHECK constraint: only fails when result is explicitly false.
-		// NULL (unknown) and true both pass.
-		if cd.Check != nil {
+		// NULL (unknown) and true both pass. PRAGMA
+		// ignore_check_constraints=ON skips enforcement (integrity_check
+		// still reports violations later).
+		if cd.Check != nil && !e.ignoreCheckConstraints {
 			checkVal, err := e.evalExpr(cd.Check, row)
 			if err == nil && checkVal != nil && !toBool(checkVal) {
 				// Prefer the original CHECK expression text from the CREATE
@@ -556,15 +560,19 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 	}
 
 	// Table-level CHECK constraints (CONSTRAINT c1 CHECK(...)).
-	for _, tc := range e.tableConstraints(tableEntry.Name, tableEntry.SQL) {
+	tcs := e.tableConstraints(tableEntry.Name, tableEntry.SQL)
+	for ti, tc := range tcs {
 		if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+			continue
+		}
+		if e.ignoreCheckConstraints {
 			continue
 		}
 		checkVal, err := e.evalExpr(tc.Expr, row)
 		if err == nil && checkVal != nil && !toBool(checkVal) {
 			name := tc.Name
 			if name == "" {
-				name = sql.ExprString(tc.Expr)
+				name = e.tableCheckConstraintText(tableEntry.SQL, ti, tcs)
 			}
 			return fmt.Errorf("CHECK constraint failed: %s", name)
 		}
@@ -1581,6 +1589,20 @@ func isUniqueConflictError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed")
 }
 
+// isIgnoreableConstraintError reports whether the error is a constraint
+// violation that statement-level OR IGNORE silently skips: UNIQUE, NOT NULL,
+// and CHECK failures all yield a row skip under INSERT OR IGNORE / UPDATE OR
+// IGNORE (SQLite applies OR IGNORE to every constraint type).
+func isIgnoreableConstraintError(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := err.Error()
+	return strings.Contains(s, "UNIQUE constraint failed") ||
+		strings.Contains(s, "NOT NULL constraint failed") ||
+		strings.Contains(s, "CHECK constraint failed")
+}
+
 // gatherUniqueColIndices returns the column indices that have UNIQUE constraints
 // and are present in both the column definitions and the provided values.
 func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []int {
@@ -1988,6 +2010,29 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 			break
 		}
 	}
+
+	// Validate NOT NULL / CHECK / UNIQUE / PRIMARY KEY constraints before
+	// inserting (SQLite checks DEFAULT VALUES rows like any other insert;
+	// e.g. `CREATE TABLE t(x NOT NULL DEFAULT NULL); REPLACE INTO t
+	// DEFAULT VALUES` fails with NOT NULL constraint failed).
+	if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
+		// REPLACE on a NOT NULL column substitutes the DEFAULT; here the
+		// DEFAULT is NULL, so re-checking still fails and the error stands.
+		if cd := notNullReplaceColumn(err, colDefs); cd != nil && cd.Default != nil {
+			dv, derr := e.evalExpr(cd.Default, nil)
+			if derr == nil {
+				idx := cdIndex(colDefs, cd.Name)
+				if idx >= 0 && idx < len(values) {
+					values[idx] = dv
+					if err = e.checkConstraints(tableEntry, colDefs, values, nextRowID); err == nil {
+						goto constraintsOK
+					}
+				}
+			}
+		}
+		return &Result{Error: err}
+	}
+constraintsOK:
 
 	// Fire BEFORE INSERT triggers — the row is not in the table yet.
 	if e.hasTriggersForTable(tableEntry.Name) {
@@ -2583,6 +2628,12 @@ func (e *Engine) checkConstraintText(createSQL, colName string, check sql.Expr) 
 		if ci < 0 {
 			continue
 		}
+		// A named constraint (CONSTRAINT 'b-check' CHECK(...)) reports the
+		// NAME in the error text, not the expression (SQLite semantics:
+		// "CHECK constraint failed: b-check").
+		if cn := constraintNameBefore(part, ci); cn != "" {
+			return cn
+		}
 		lp := strings.Index(part[ci:], "(")
 		if lp < 0 {
 			continue
@@ -2602,6 +2653,134 @@ func (e *Engine) checkConstraintText(createSQL, colName string, check sql.Expr) 
 		}
 	}
 	return sql.ExprString(check)
+}
+
+// tableCheckConstraintText extracts the VERBATIM expression text for the
+// idx-th table-level CHECK constraint from the CREATE TABLE SQL. SQLite
+// reports the expression exactly as written ("a<>+a", "NOT(a=+a)", "a NOT
+// BETWEEN 0 AND +a"), never the re-rendered AST. Named table-level checks
+// already carry their name; this is the fallback for unnamed ones. The
+// constraint is matched by scanning top-level CHECK(...) fragments in the SQL
+// and taking the idx-th one that corresponds to a table-level (not column-
+// level) CHECK, in the same order the parser produced tcs. Returns the
+// re-rendered text when no verbatim match is found.
+func (e *Engine) tableCheckConstraintText(createSQL string, idx int, tcs []sql.TableConstraint) string {
+	// Count how many CHECK constraints in tcs are table-level (type CHECK);
+	// idx is the position among ALL table constraints, so the CHECK index is
+	// the number of CHECK-type entries at or before idx.
+	checkIdx := 0
+	for i := 0; i <= idx && i < len(tcs); i++ {
+		if tcs[i].Type == sql.ConstraintCheck {
+			checkIdx++
+		}
+	}
+	checkIdx-- // zero-based among CHECKs
+	upper := strings.ToUpper(createSQL)
+	start := strings.Index(upper, "(")
+	end := strings.LastIndex(upper, ")")
+	if start < 0 || end <= start {
+		return sql.ExprString(tcs[idx].Expr)
+	}
+	body := createSQL[start+1 : end]
+	tableCheckCount := 0
+	for _, part := range splitColumnDefs(body) {
+		trimmed := strings.TrimSpace(part)
+		pUpper := strings.ToUpper(trimmed)
+		// Column-level defs start with a column name; table-level CHECKs
+		// start with CHECK or CONSTRAINT. Match the checkIdx-th table-level
+		// CHECK in SQL order.
+		if !strings.HasPrefix(pUpper, "CHECK") && !strings.HasPrefix(pUpper, "CONSTRAINT") {
+			continue
+		}
+		if !hasTableLevelCheck(part) {
+			continue
+		}
+		if tableCheckCount != checkIdx {
+			tableCheckCount++
+			continue
+		}
+		if exprText := checkExprText(part); exprText != "" {
+			return exprText
+		}
+	}
+	return sql.ExprString(tcs[idx].Expr)
+}
+
+// hasTableLevelCheck reports whether a column-definition fragment is a
+// table-level (not column-level) CHECK: the fragment's first keyword is
+// CHECK or CONSTRAINT (a column-level CHECK is preceded by the column name
+// and type).
+func hasTableLevelCheck(part string) bool {
+	trimmed := strings.TrimSpace(part)
+	pUpper := strings.ToUpper(trimmed)
+	if strings.HasPrefix(pUpper, "CHECK") {
+		return true
+	}
+	if strings.HasPrefix(pUpper, "CONSTRAINT") {
+		return true
+	}
+	return false
+}
+
+// checkExprText extracts the text inside the first CHECK(...) of a column
+// definition fragment, handling nested parentheses.
+func checkExprText(part string) string {
+	pUpper := strings.ToUpper(part)
+	ci := strings.Index(pUpper, "CHECK")
+	if ci < 0 {
+		return ""
+	}
+	lp := strings.Index(part[ci:], "(")
+	if lp < 0 {
+		return ""
+	}
+	lp += ci
+	depth := 0
+	for i := lp; i < len(part); i++ {
+		switch part[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				return strings.TrimSpace(part[lp+1 : i])
+			}
+		}
+	}
+	return ""
+}
+
+// constraintNameBefore extracts the CONSTRAINT name from a column-definition
+// fragment, e.g. "b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK(...)" returns
+// "b-check". Returns "" when the fragment has no CONSTRAINT clause before
+// position ci (the CHECK keyword offset).
+func constraintNameBefore(part string, ci int) string {
+	pUpper := strings.ToUpper(part)
+	cIdx := strings.Index(pUpper, "CONSTRAINT")
+	if cIdx < 0 || cIdx >= ci {
+		return ""
+	}
+	rest := strings.TrimSpace(part[cIdx+len("CONSTRAINT"):])
+	// The name is the next bare token (identifier or quoted string).
+	if rest == "" {
+		return ""
+	}
+	if rest[0] == '\'' || rest[0] == '"' || rest[0] == '`' {
+		quote := rest[0]
+		for i := 1; i < len(rest); i++ {
+			if rest[i] == quote {
+				return rest[1:i]
+			}
+		}
+		return ""
+	}
+	for i := 0; i < len(rest); i++ {
+		c := rest[i]
+		if !(c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+			return rest[:i]
+		}
+	}
+	return rest
 }
 
 func (e *Engine) evalTuple(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {

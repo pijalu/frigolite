@@ -116,6 +116,7 @@ type Engine struct {
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
 	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
 	deferForeignKeys  bool                             // PRAGMA defer_foreign_keys: defer all FK checks to COMMIT (reset at COMMIT/ROLLBACK)
+	ignoreCheckConstraints bool                        // PRAGMA ignore_check_constraints: skip CHECK enforcement (integrity_check still reports)
 	// fkDirty tracks tables modified during the current transaction/statement
 	// whose FK relationships must be re-validated at COMMIT (deferred FK checks
 	// only inspect affected tables, mirroring SQLite's incremental counters).
@@ -172,6 +173,17 @@ func (r *structRow) Get(name string) (interface{}, bool) {
 	}
 	if idx, ok := r.index[name]; ok && idx < len(r.values) {
 		return r.values[idx], true
+	}
+	// SQLite column names are case-insensitive: a query may reference the
+	// column in a different case than the CREATE TABLE definition (e.g.
+	// "SELECT col0 FROM t" for a column declared "Col0"). Fall back to a
+	// case-insensitive scan of the small index.
+	if len(r.index) > 0 {
+		for k, idx := range r.index {
+			if strings.EqualFold(k, name) && idx < len(r.values) {
+				return r.values[idx], true
+			}
+		}
 	}
 	return nil, false
 }
