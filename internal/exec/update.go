@@ -181,6 +181,11 @@ func (e *Engine) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry) *Res
 	if !e.hasTriggersForTable(viewEntry.Name) {
 		return &Result{Error: fmt.Errorf("cannot modify %s because it is a view", viewEntry.Name)}
 	}
+	// Qualified view column references (main.v5.b, v5.x) must resolve against
+	// the view row during WHERE/SET evaluation.
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = viewEntry.Name
+	defer func() { e.currentDMLTable = prevDML }()
 	viewResult := e.execSelectView(viewEntry)
 	if viewResult.Error != nil {
 		return viewResult

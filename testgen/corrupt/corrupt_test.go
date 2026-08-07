@@ -118,7 +118,7 @@ func Test_corrupt(t *testing.T) {
 	i = "256"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return i_n < fsize_n-256 }() {
-		tn = tclExprWith("$i/256", map[string]string{"i": i})
+		tn = strconv.Itoa(toInt(i)/256)
 		_ = tn // suppress unused warning
 		db.Close()
 		tclFileCopy("test.bu", "test.db")
@@ -343,7 +343,7 @@ func Test_corrupt(t *testing.T) {
 		rootpage = _dbone2
 		_ = rootpage // suppress unused warning
 		db.Close()
-		offset = tclExprWith("($rootpage * 1024)-14+2", map[string]string{"rootpage": rootpage})
+		offset = strconv.Itoa((toInt(rootpage) * 1024)-14+2)
 		_ = offset // suppress unused warning
 		// hexio_write test.db $offset 00FF (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")

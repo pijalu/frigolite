@@ -191,7 +191,7 @@ func Test_speed4p(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = tclExprWith("$ii*2", map[string]string{"ii": ii})
+		ii2 = strconv.Itoa(toInt(ii)*2)
 		_ = ii2 // suppress unused warning
 		list = tclListAppend(list, ii, ii2, "number_name $ii2")
 		// incr ii 2
@@ -238,7 +238,7 @@ func Test_speed4p(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = tclExprWith("$ii*2", map[string]string{"ii": ii})
+		ii2 = strconv.Itoa(toInt(ii)*2)
 		_ = ii2 // suppress unused warning
 		list = tclListAppend(list, ii, ii2, "number_name $ii2")
 		// incr ii 2

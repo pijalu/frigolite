@@ -2123,6 +2123,93 @@ func isDigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
+// exprCmdToGo converts a TCL expr containing [cmd] command substitutions
+// (e.g. {$i*100 + [string length $word]}) into a Go int expression.
+// Each [cmd] is resolved via cmdExpr (string length → len(), etc.) and each
+// $var reference becomes toInt(var). Returns "" when the expr contains a
+// command that cannot be resolved to a Go expression.
+func (tp *transpiler) exprCmdToGo(expr string) (string, bool) {
+	// Replace [cmd ...] substitutions first (innermost-first would be ideal;
+	// the corpus uses flat single-level [string length $x] forms).
+	var b strings.Builder
+	i := 0
+	for i < len(expr) {
+		if expr[i] == '[' {
+			// Find matching ] (no nesting in the corpus patterns).
+			end := strings.IndexByte(expr[i+1:], ']')
+			if end < 0 {
+				return "", false
+			}
+			cmdText := expr[i+1 : i+1+end]
+			// Special-case [string length $x] to a bare len(x) (int), since
+			// cmdExpr's string-length rendering is strconv.Itoa(len(x))
+			// (a string, not usable in int arithmetic).
+			if sl, ok := stringLengthExpr(cmdText); ok {
+				b.WriteString("(" + sl + ")")
+				i += end + 2
+				continue
+			}
+			goCmd := tp.cmdExpr(cmdText)
+			// cmdExpr returns the raw quoted command text when unresolvable.
+			if goCmd == "" || goCmd == fmt.Sprintf("%q", cmdText) {
+				return "", false
+			}
+			b.WriteString("(" + goCmd + ")")
+			i += end + 2
+			continue
+		}
+		if expr[i] == '$' {
+			// $var reference → toInt(var).
+			j := i + 1
+			for j < len(expr) && isVarChar(expr[j]) {
+				j++
+			}
+			name := expr[i+1 : j]
+			goVar := tclVarToGo(name)
+			if goVar == "" {
+				return "", false
+			}
+			b.WriteString("toInt(" + goVar + ")")
+			i = j
+			continue
+		}
+		b.WriteByte(expr[i])
+		i++
+	}
+	s := b.String()
+	if s == "" {
+		return "", false
+	}
+	// Sanity check: the result must be a simple arithmetic expression.
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if !(c == ' ' || c == '\t' || c == '+' || c == '-' || c == '*' || c == '/' ||
+			c == '(' || c == ')' || c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+			(c >= '0' && c <= '9') || c == '.' || c == ',') {
+			return "", false
+		}
+	}
+	return s, true
+}
+
+// stringLengthExpr converts a "string length ..." command into a Go len()
+// int expression. Returns ("", false) when cmdText is not a string-length
+// command or its operand is not resolvable.
+func stringLengthExpr(cmdText string) (string, bool) {
+	fields := strings.Fields(strings.TrimSpace(cmdText))
+	if len(fields) < 2 || fields[0] != "string" || fields[1] != "length" {
+		return "", false
+	}
+	if len(fields) != 3 || !strings.HasPrefix(fields[2], "$") {
+		return "", false
+	}
+	goVar := tclVarToGo(strings.TrimPrefix(fields[2], "$"))
+	if goVar == "" {
+		return "", false
+	}
+	return "len(" + goVar + ")", true
+}
+
 func isVarStartChar(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == ':'
 }
@@ -5444,6 +5531,12 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			valExpr := ""
 			if err == nil {
 				valExpr = fmt.Sprintf("%q", result)
+			} else if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
+				// The expr contains [cmd] command substitutions (e.g.
+				// [string length $word]) resolvable to Go expressions.
+				// Emit a runtime Go expression: $var refs become toInt(var)
+				// so arithmetic like $i*100 + len(word) works.
+				valExpr = "strconv.Itoa(" + goExpr + ")"
 			} else {
 				// Runtime evaluation with live $var values.
 				exprVarNames, exprGo := tclExprToGo(exprStr, tp.vars)

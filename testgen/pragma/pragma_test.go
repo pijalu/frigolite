@@ -431,7 +431,7 @@ func Test_pragma(t *testing.T) {
 			_dbeval0 := tclExecSQL(db, "{PRAGMA page_size}")
 			pgsz = _dbeval0
 			_ = pgsz // suppress unused warning
-			offset = tclExprWith("$pgsz*($rootpage-1)", map[string]string{"pgsz": pgsz, "rootpage": rootpage})
+			offset = strconv.Itoa(toInt(pgsz)*(toInt(rootpage)-1))
 			_ = offset // suppress unused warning
 			// hexio_write test.db $offset 0a00000000040000000000 (unsupported command, not transpiled)
 			db.Close()

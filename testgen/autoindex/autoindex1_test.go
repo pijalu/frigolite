@@ -185,7 +185,7 @@ func Test_autoindex1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+" + sqlLiteral(n) + ", b+" + sqlLiteral(n) + " FROM t4")
 			}
-			n = tclExprWith("$n+$n", map[string]string{"n": n})
+			n = strconv.Itoa(toInt(n)+toInt(n))
 			_ = n // suppress unused warning
 		}
 		_res = db.Exec("\n    SELECT count(*) FROM t4;\n  ")

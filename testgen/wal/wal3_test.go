@@ -591,7 +591,7 @@ func Test_wal3(t *testing.T) {
 				}
 			}
 		}
-		sz = tclExprWith("1024 * (2+$AUTOVACUUM)", map[string]string{"AUTOVACUUM": AUTOVACUUM})
+		sz = strconv.Itoa(1024 * (2+toInt(AUTOVACUUM)))
 		_ = sz // suppress unused warning
 		{ // do_test "wal3-9.3"
 			i = "0"

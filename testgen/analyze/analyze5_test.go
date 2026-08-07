@@ -119,7 +119,7 @@ func Test_analyze5(t *testing.T) {
 			_ = x // suppress unused warning
 			w = z
 			_ = w // suppress unused warning
-			_t = tclExprWith("$z+0.5", map[string]string{"z": z})
+			_t = strconv.Itoa(toInt(z)+0.5)
 			_ = _t // suppress unused warning
 			// switch $z {\n      0 {set u "alpha"; unset x}\n      1 {set u...} (test infra, not transpiled)
 			if tclBool(i + "%2") {

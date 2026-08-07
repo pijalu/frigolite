@@ -139,9 +139,9 @@ func Test_select2(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30000 }() {
-			i2 = tclExprWith("$i*2", map[string]string{"i": i})
+			i2 = strconv.Itoa(toInt(i)*2)
 			_ = i2 // suppress unused warning
-			i3 = tclExprWith("$i*3", map[string]string{"i": i})
+			i3 = strconv.Itoa(toInt(i)*3)
 			_ = i3 // suppress unused warning
 			_res = db.Exec("INSERT INTO tbl2 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i2) + "," + sqlLiteral(i3) + ")")
 			if _res.Error != nil {
@@ -178,9 +178,9 @@ func Test_select2(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30000 }() {
-			i2 = tclExprWith("$i*2", map[string]string{"i": i})
+			i2 = strconv.Itoa(toInt(i)*2)
 			_ = i2 // suppress unused warning
-			i3 = tclExprWith("$i*3", map[string]string{"i": i})
+			i3 = strconv.Itoa(toInt(i)*3)
 			_ = i3 // suppress unused warning
 			_res = db.Exec("INSERT INTO tbl2 VALUES(" + i + "," + i2 + "," + i3 + ")")
 			if _res.Error != nil {

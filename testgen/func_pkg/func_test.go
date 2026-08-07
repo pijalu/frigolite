@@ -527,9 +527,9 @@ func Test_func(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 999 }() {
-		x1 = tclExprWith("40222.5 + $i", map[string]string{"i": i})
+		x1 = strconv.Itoa(40222.5 + toInt(i))
 		_ = x1 // suppress unused warning
-		x2 = tclExprWith("40223.0 + $i", map[string]string{"i": i})
+		x2 = strconv.Itoa(40223.0 + toInt(i))
 		_ = x2 // suppress unused warning
 		{ // do_test "func-4.17." + i
 			r = db.Query("SELECT round(" + sqlLiteral(x1) + ");")
@@ -551,9 +551,9 @@ func Test_func(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 999 }() {
-		x1 = tclExprWith("40222.05 + $i", map[string]string{"i": i})
+		x1 = strconv.Itoa(40222.05 + toInt(i))
 		_ = x1 // suppress unused warning
-		x2 = tclExprWith("40222.10 + $i", map[string]string{"i": i})
+		x2 = strconv.Itoa(40222.10 + toInt(i))
 		_ = x2 // suppress unused warning
 		{ // do_test "func-4.18." + i
 			r = db.Query("SELECT round(" + sqlLiteral(x1) + ",1);")
@@ -1722,7 +1722,7 @@ func Test_func(t *testing.T) {
 		{ // do_test "func-26.4"
 			a = ""
 			_ = a // suppress unused warning
-			limit = tclExprWith("$::SQLITE_MAX_FUNCTION_ARG-1", map[string]string{"::SQLITE_MAX_FUNCTION_ARG": SQLITE_MAX_FUNCTION_ARG})
+			limit = strconv.Itoa(toInt(SQLITE_MAX_FUNCTION_ARG)-1)
 			_ = limit // suppress unused warning
 			i = "1"
 			_ = i // suppress unused warning

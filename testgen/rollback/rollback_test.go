@@ -142,7 +142,7 @@ func Test_rollback(t *testing.T) {
 				}
 			}
 		}
-		mj_pgno = tclExprWith("$sqlite_pending_byte / 1024", map[string]string{"sqlite_pending_byte": sqlite_pending_byte})
+		mj_pgno = strconv.Itoa(toInt(sqlite_pending_byte) / 1024)
 		_ = mj_pgno // suppress unused warning
 		zAppend = "binary format Ia*IIa8 $mj_pgno $mj [string length $mj] $cksum     \"\xd9\xd5\x05\xf9 \xa1c\xd7\""
 		_ = zAppend // suppress unused warning

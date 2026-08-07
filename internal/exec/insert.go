@@ -2418,6 +2418,11 @@ func (e *Engine) evalReturningExprs(ret sql.SelectColumn, row Row, colDefs []sql
 // routes such statements through INSTEAD OF triggers; resolving the view's
 // columns (which validates collations in its SELECT) happens first.
 func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Result {
+	// Qualified view column references (main.v5.b) must resolve against the
+	// view row during trigger NEW-row evaluation.
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = viewEntry.Name
+	defer func() { e.currentDMLTable = prevDML }()
 	// Resolve the view definition: parse and validate its SELECT expressions.
 	// This surfaces errors like "no such collation sequence: X" at insert time.
 	stmts, perr := parse.ParseSQL(viewEntry.SQL)

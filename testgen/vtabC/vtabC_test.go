@@ -215,7 +215,7 @@ func Test_vtabC(t *testing.T) {
 		j = "1"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return j_n <= N_n }() {
-			res = tclExprWith("$j+1000", map[string]string{"j": j})
+			res = strconv.Itoa(toInt(j)+1000)
 			_ = res // suppress unused warning
 			res = tclListAppend(res, tclExprWith("$j*100+9000000", map[string]string{"j": j}))
 			res = tclListAppend(res, tclExprWith("$j*10000+9000000", map[string]string{"j": j}))

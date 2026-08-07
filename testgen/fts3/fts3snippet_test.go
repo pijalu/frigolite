@@ -298,7 +298,7 @@ func Test_fts3snippet(t *testing.T) {
 					_ = v1 // suppress unused warning
 					v2 = strings.TrimSpace("\"$numbers \" $n")
 					_ = v2 // suppress unused warning
-					docid = tclExprWith("$n * 1000000", map[string]string{"n": n})
+					docid = strconv.Itoa(toInt(n) * 1000000)
 					_ = docid // suppress unused warning
 					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES(" + sqlLiteral(docid) + ", " + sqlLiteral(v1) + ", " + sqlLiteral(v2) + ") ")
 					if _res.Error != nil {

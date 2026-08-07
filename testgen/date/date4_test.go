@@ -73,7 +73,7 @@ func Test_date4(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 24858 }() {
-		TS = tclExprWith("$i*86390", map[string]string{"i": i})
+		TS = strconv.Itoa(toInt(i)*86390)
 		_ = TS // suppress unused warning
 		{ // "date4-" + i
 			r = db.Query("\n    SELECT strftime(" + sqlLiteral(FMT) + "," + sqlLiteral(TS) + ",'unixepoch');\n  ")

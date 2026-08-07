@@ -118,7 +118,7 @@ func Test_e_vacuum(t *testing.T) {
 					}
 				}
 			} else {
-				freelist = tclExprWith("$nPage - $sz", map[string]string{"nPage": nPage, "sz": sz})
+				freelist = strconv.Itoa(toInt(nPage) - toInt(sz))
 				_ = freelist // suppress unused warning
 				if avmode == "incremental" {
 					// incr freelist -2

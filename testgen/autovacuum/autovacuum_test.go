@@ -314,7 +314,7 @@ func Test_autovacuum(t *testing.T) {
 	}
 	root_page_list = ""
 	_ = root_page_list // suppress unused warning
-	pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
+	pending_byte_page = strconv.Itoa((toInt(sqlite_pending_byte) / 1024) + 1)
 	_ = pending_byte_page // suppress unused warning
 	if tclBool("") {
 	} else {

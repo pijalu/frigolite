@@ -99,7 +99,7 @@ func Test_soak(t *testing.T) {
 		_ = G_isquick // suppress unused warning
 		soak_starttime = "clock_seconds"
 		_ = soak_starttime // suppress unused warning
-		soak_finishtime = tclExprWith("$soak_starttime + $TIMEOUT", map[string]string{"soak_starttime": soak_starttime, "TIMEOUT": TIMEOUT})
+		soak_finishtime = strconv.Itoa(toInt(soak_starttime) + toInt(TIMEOUT))
 		_ = soak_finishtime // suppress unused warning
 		iRun = "0"
 		_ = iRun // suppress unused warning

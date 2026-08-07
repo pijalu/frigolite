@@ -122,7 +122,7 @@ func Test_manydb(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("testfile.1")
 		}
-		N = tclExprWith("$i / $num_fd_per_openwrite_db", map[string]string{"i": i, "num_fd_per_openwrite_db": num_fd_per_openwrite_db})
+		N = strconv.Itoa(toInt(i) / toInt(num_fd_per_openwrite_db))
 		_ = N // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning

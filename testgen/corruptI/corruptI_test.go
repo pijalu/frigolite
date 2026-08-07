@@ -86,7 +86,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "1.2"
 		offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off = tclExprWith("2*1024 + $offset + 1", map[string]string{"offset": offset})
+		off = strconv.Itoa(2*1024 + toInt(offset) + 1)
 		_ = off // suppress unused warning
 		// hexio_write test.db $off 7f06 (unsupported command, not transpiled)
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -99,7 +99,7 @@ func Test_corruptI(t *testing.T) {
 		db.Close()
 		offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off = tclExprWith("2*1024 + $offset + 1", map[string]string{"offset": offset})
+		off = strconv.Itoa(2*1024 + toInt(offset) + 1)
 		_ = off // suppress unused warning
 		// hexio_write test.db $off FFFF7f02 (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
@@ -120,7 +120,7 @@ func Test_corruptI(t *testing.T) {
 		db.Close()
 		offset = "hexio_get_int [hexio_read test.db [expr (5-1)*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off = tclExprWith("(5-1)*1024 + $offset + 1", map[string]string{"offset": offset})
+		off = strconv.Itoa((5-1)*1024 + toInt(offset) + 1)
 		_ = off // suppress unused warning
 		// hexio_write test.db $off FFFF0004 (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
@@ -183,7 +183,7 @@ func Test_corruptI(t *testing.T) {
 	_dbone2 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master}")
 	root = _dbone2
 	_ = root // suppress unused warning
-	offset = tclExprWith("($root-1) * 65536", map[string]string{"root": root})
+	offset = strconv.Itoa((toInt(root)-1) * 65536)
 	_ = offset // suppress unused warning
 	{ // do_test "4.1"
 		db.Close()

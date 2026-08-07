@@ -258,9 +258,9 @@ func Test_cost(t *testing.T) {
 		_ = _idx0
 			w = strings.Join(tclSplitList("lrange $L 0 [expr $nTerm-1]"), " AND ")
 			_ = w // suppress unused warning
-			p1 = tclExprWith("($nRow-1) / 100.0", map[string]string{"nRow": nRow})
+			p1 = strconv.Itoa((toInt(nRow)-1) / 100.0)
 			_ = p1 // suppress unused warning
-			p2 = tclExprWith("($nRow+1) / 100.0", map[string]string{"nRow": nRow})
+			p2 = strconv.Itoa((toInt(nRow)+1) / 100.0)
 			_ = p2 // suppress unused warning
 			sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
 			_ = sql1 // suppress unused warning

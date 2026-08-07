@@ -76,9 +76,9 @@ func Test_atof1(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20000 }() {
-		pow = tclExprWith("int((rand()-0.5)*$mxpow)", map[string]string{"mxpow": mxpow})
+		pow = strconv.Itoa(int((rand()-0.5)*toInt(mxpow)))
 		_ = pow // suppress unused warning
-		x = tclExprWith("pow((rand()-0.5)*2*rand(),$pow)", map[string]string{"pow": pow})
+		x = strconv.Itoa(pow((rand()-0.5)*2*rand(),toInt(pow)))
 		_ = x // suppress unused warning
 		xf = tclFormat("%.32e", x)
 		_ = xf // suppress unused warning

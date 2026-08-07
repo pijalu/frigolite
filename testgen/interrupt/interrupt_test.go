@@ -215,7 +215,7 @@ func Test_interrupt(t *testing.T) {
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 	}
-	max_count = tclExprWith("1000000-$sqlite_interrupt_count", map[string]string{"sqlite_interrupt_count": sqlite_interrupt_count})
+	max_count = strconv.Itoa(1000000-toInt(sqlite_interrupt_count))
 	_ = max_count // suppress unused warning
 	i = "1"
 	_ = i // suppress unused warning

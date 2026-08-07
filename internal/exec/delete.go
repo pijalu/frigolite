@@ -194,6 +194,11 @@ func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Res
 	if !e.hasTriggersForTable(viewEntry.Name) {
 		return &Result{Error: fmt.Errorf("cannot modify %s because it is a view", viewEntry.Name)}
 	}
+	// Qualified view column references (main.v5.x, v5.b) must resolve against
+	// the view row during WHERE evaluation.
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = viewEntry.Name
+	defer func() { e.currentDMLTable = prevDML }()
 	viewResult := e.execSelectView(viewEntry)
 	if viewResult.Error != nil {
 		return viewResult

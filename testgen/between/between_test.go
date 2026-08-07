@@ -100,11 +100,11 @@ func Test_between(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			w = i
 			_ = w // suppress unused warning
-			x = tclExprWith("int(log($i)/log(2))", map[string]string{"i": i})
+			x = strconv.Itoa(int(log(toInt(i))/log(2)))
 			_ = x // suppress unused warning
-			y = tclExprWith("$i*$i + 2*$i + 1", map[string]string{"i": i})
+			y = strconv.Itoa(toInt(i)*toInt(i) + 2*toInt(i) + 1)
 			_ = y // suppress unused warning
-			z = tclExprWith("$x+$y", map[string]string{"x": x, "y": y})
+			z = strconv.Itoa(toInt(x)+toInt(y))
 			_ = z // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			if _res.Error != nil {

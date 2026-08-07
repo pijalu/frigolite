@@ -394,7 +394,7 @@ func Test_conflict(t *testing.T) {
 									t3 = "0"
 									_ = t3 // suppress unused warning
 								} else {
-									t3 = tclExprWith("$t3+$t4", map[string]string{"t3": t3, "t4": t4})
+									t3 = strconv.Itoa(toInt(t3)+toInt(t4))
 									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict-6." + i

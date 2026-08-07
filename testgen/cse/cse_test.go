@@ -203,10 +203,10 @@ func Test_cse(t *testing.T) {
 		j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return j_n < n_n }() {
-			_r = tclExprWith("$j+0", map[string]string{"j": j})
+			_r = strconv.Itoa(toInt(j)+int(rand()*5))
 			_ = _r // suppress unused warning
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n > 49 }() {
-				_r = tclExprWith("99-$r", map[string]string{"r": _r})
+				_r = strconv.Itoa(99-toInt(_r))
 				_ = _r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + _r)

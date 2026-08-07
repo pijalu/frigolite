@@ -178,9 +178,9 @@ func Test_speed1p(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		lwr = tclExprWith("$i*100", map[string]string{"i": i})
+		lwr = strconv.Itoa(toInt(i)*100)
 		_ = lwr // suppress unused warning
-		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
+		upr = strconv.Itoa((toInt(i)+10)*100)
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -241,9 +241,9 @@ func Test_speed1p(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr = tclExprWith("$i*100", map[string]string{"i": i})
+		lwr = strconv.Itoa(toInt(i)*100)
 		_ = lwr // suppress unused warning
-		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
+		upr = strconv.Itoa((toInt(i)+10)*100)
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -339,9 +339,9 @@ func Test_speed1p(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr = tclExprWith("$i*2", map[string]string{"i": i})
+		lwr = strconv.Itoa(toInt(i)*2)
 		_ = lwr // suppress unused warning
-		upr = tclExprWith("($i+1)*2", map[string]string{"i": i})
+		upr = strconv.Itoa((toInt(i)+1)*2)
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1

@@ -164,7 +164,7 @@ func Test_crash8(t *testing.T) {
 			}
 		}
 		{ // do_test "crash8-3.9"
-			big = tclExprWith("$SQLITE_MAX_PAGE_SIZE * 2", map[string]string{"SQLITE_MAX_PAGE_SIZE": SQLITE_MAX_PAGE_SIZE})
+			big = strconv.Itoa(toInt(SQLITE_MAX_PAGE_SIZE) * 2)
 			_ = big // suppress unused warning
 			zJournal2 = "$zJournal 24 27 [binary format I $big]"
 			_ = zJournal2 // suppress unused warning

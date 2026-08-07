@@ -67,7 +67,7 @@ func Test_triggerA(t *testing.T) {
 		_ = i // suppress unused warning
 		for _, word := range tclSplitList("one two three four five six seven eight nine ten") {
 		_ = word // suppress unused warning
-			j = tclExprWith("$i*100 + [string length $word]", map[string]string{"i": i, "word": word})
+			j = strconv.Itoa(toInt(i)*100 + (len(word)))
 			_ = j // suppress unused warning
 			_res = db.Exec("\n       INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(word) + ");\n       INSERT INTO t2 VALUES(20-" + sqlLiteral(i) + "," + sqlLiteral(j) + "," + sqlLiteral(word) + ");\n    ")
 			if _res.Error != nil {

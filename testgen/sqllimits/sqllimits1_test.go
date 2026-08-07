@@ -507,7 +507,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-5.14.4"
-		np1 = tclExprWith("$SQLITE_LIMIT_LENGTH + 1", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})
+		np1 = strconv.Itoa(toInt(SQLITE_LIMIT_LENGTH) + 1)
 		_ = np1 // suppress unused warning
 		str1 = "A $np1" // TCL namespace variable
 		_ = str1 // suppress unused warning
@@ -579,7 +579,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	{ // do_test "sqllimits1-5.14.8"
-		n = tclExprWith("$np1-1", map[string]string{"np1": np1})
+		n = strconv.Itoa(toInt(np1)-1)
 		_ = n // suppress unused warning
 		{
 			var res string // catch result ("0"=ok, "1"=error)
@@ -670,7 +670,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = sql // suppress unused warning
 		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
 		_ = tail // suppress unused warning
-		N = tclExprWith("(50000 / [string length $tail])+1", map[string]string{"tail": tail})
+		N = strconv.Itoa((50000 / (len(tail)))+1)
 		_ = N // suppress unused warning
 		sql += "$tail $N"
 		_res = db.Exec(sql)
@@ -681,7 +681,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = sql // suppress unused warning
 		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
 		_ = tail // suppress unused warning
-		N = tclExprWith("(50000 / [string length $tail])+1", map[string]string{"tail": tail})
+		N = strconv.Itoa((50000 / (len(tail)))+1)
 		_ = N // suppress unused warning
 		sql += "$tail $N"
 		nbytes = strconv.Itoa(len(sql))
