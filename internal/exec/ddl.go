@@ -1733,6 +1733,11 @@ func (e *Engine) validateTriggerSchemaRefs(trigName string, stmts []sql.Stmt, tr
 			if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
 				return err
 			}
+			if s.From.Name != "" {
+				if err := e.checkTriggerSchemaRef(trigName, s.From.Name, trigCtx); err != nil {
+					return err
+				}
+			}
 		case *sql.DeleteStmt:
 			if err := checkQualifiedDMLTable(s.Table); err != nil {
 				return err

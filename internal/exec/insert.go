@@ -2148,6 +2148,132 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 // the nesting exceeds this limit.
 const maxTriggerDepth = 1000
 
+// validateLoadedTriggers checks every trigger loaded from sqlite_master for
+// schema references that no longer resolve. SQLite validates triggers at
+// schema load and reports "malformed database schema". Validated triggers
+// are cached by name to avoid re-parsing on every statement.
+func (e *Engine) validateLoadedTriggers() error {
+	if e.validatedTriggers == nil {
+		e.validatedTriggers = make(map[string]bool)
+	}
+	for _, ctx := range e.databases {
+		if ctx == nil || ctx.Schema == nil {
+			continue
+		}
+		triggers, err := ctx.Schema.GetEntries(schema.TypeTrigger)
+		if err != nil {
+			continue
+		}
+		for _, t := range triggers {
+			if t == nil {
+				continue
+			}
+			// TEMP triggers may reference any schema; only non-temp triggers
+			// are restricted (and thus can become malformed after a reopen).
+			if ctx == e.getDB("temp") {
+				continue
+			}
+			key := strings.ToUpper(ctx.Name + "." + t.Name)
+			if e.validatedTriggers[key] {
+				continue
+			}
+			if err := e.validateLoadedTriggerSchemaCtx(t, ctx); err != nil {
+				return err
+			}
+			e.validatedTriggers[key] = true
+		}
+	}
+	return nil
+}
+
+// validateLoadedTriggerSchema parses a trigger body loaded from sqlite_master
+// and checks that every referenced table exists in the trigger's database
+// context. A trigger whose references no longer resolve (after a reopen with
+// different attachments) is malformed: SQLite reports "malformed database
+// schema (NAME) - trigger NAME cannot reference objects in database X".
+func (e *Engine) validateLoadedTriggerSchema(t *schema.Entry) error {
+	return e.validateLoadedTriggerSchemaCtx(t, nil)
+}
+
+// validateLoadedTriggerSchemaCtx is validateLoadedTriggerSchema with the
+// trigger's owning database context. Unqualified references resolve in that
+// context (a trigger inside an ATTACHed database references tables there).
+func (e *Engine) validateLoadedTriggerSchemaCtx(t *schema.Entry, trigCtx *DatabaseContext) error {
+	stmts, perr := parse.ParseSQL(t.SQL)
+	if perr != nil || len(stmts) == 0 {
+		return nil
+	}
+	var trig *sql.CreateTriggerStmt
+	for _, st := range stmts {
+		if c, ok := st.(*sql.CreateTriggerStmt); ok {
+			trig = c
+			break
+		}
+	}
+	if trig == nil {
+		return nil
+	}
+	for _, stmt := range trig.Statements {
+		switch s := stmt.(type) {
+		case *sql.UpdateStmt:
+			if err := e.checkLoadedTableRefCtx(s.Table, t, trigCtx); err != nil {
+				return err
+			}
+			if s.From.Name != "" {
+				if err := e.checkLoadedTableRefCtx(s.From.Name, t, trigCtx); err != nil {
+					return err
+				}
+			}
+		case *sql.DeleteStmt:
+			if err := e.checkLoadedTableRefCtx(s.Table, t, trigCtx); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// checkLoadedTableRef verifies a table reference in a loaded trigger resolves
+// in the trigger's schema context.
+func (e *Engine) checkLoadedTableRef(table string, t *schema.Entry) error {
+	return e.checkLoadedTableRefCtx(table, t, nil)
+}
+
+// checkLoadedTableRefCtx verifies a table reference in a loaded trigger
+// resolves in the trigger's schema context.
+func (e *Engine) checkLoadedTableRefCtx(table string, t *schema.Entry, trigCtx *DatabaseContext) error {
+	schemaName, objName := parseSchemaName(table)
+	ctx := trigCtx
+	if schemaName != "" {
+		upper := strings.ToUpper(schemaName)
+		if upper == "TEMP" || upper == "TEMPORARY" {
+			schemaName = "temp"
+		}
+		ctx = e.getDB(schemaName)
+		if ctx == nil {
+			return fmt.Errorf("malformed database schema (%s) - trigger %s cannot reference objects in database %s", t.Name, t.Name, schemaName)
+		}
+	} else {
+		// Unqualified reference: resolve in the trigger's own schema.
+		if ctx == nil {
+			ctx = e.mainDB
+		}
+		objName = table
+	}
+	if _, err := ctx.Schema.FindTable(objName); err != nil {
+		if _, err2 := ctx.Schema.FindView(objName); err2 != nil {
+			// Only a SCHEMA-QUALIFIED reference that no longer resolves is a
+			// load-time error (a trigger crossing to a foreign schema after a
+			// reopen). An unqualified reference to a dropped same-schema table
+			// is left to fail at fire time (SQLite does not re-validate those).
+			if schemaName != "" {
+				return fmt.Errorf("malformed database schema (%s) - trigger %s cannot reference objects in database %s", t.Name, t.Name, ctx.Name)
+			}
+		}
+	}
+	return nil
+}
+
 // fireTrigger fires a single trigger matching the given event and timing.
 // Returns a Result with an error if execution fails, or nil on success
 // (including when the trigger does not match or its WHEN clause is false).
@@ -2178,6 +2304,16 @@ func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldR
 	}
 	if declEvent != event {
 		return nil
+	}
+
+	// A trigger loaded from sqlite_master may reference objects that no
+	// longer exist or live in a different schema after a reopen (SQLite
+	// reports "malformed database schema (NAME)" at schema load). Validate
+	// the trigger's body references against the current schema.
+	if e.triggerDepth == 0 {
+		if err := e.validateLoadedTriggerSchemaCtx(t, e.currentDMLCtx); err != nil {
+			return &Result{Error: err}
+		}
 	}
 
 	// UPDATE OF <cols> selectivity: an UPDATE trigger declared with an OF

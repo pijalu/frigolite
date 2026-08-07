@@ -814,7 +814,10 @@ func (e *Engine) validateCompoundColumnCounts(s *sql.SelectStmt) error {
 }
 
 // tableColumnNames returns the column names of a table (or view), resolving
-// schema entries by name.
+// schema entries by name. For a view, columns whose alias starts with
+// "__hidden__" are excluded from a bare * expansion (SQLite's hidden-column
+// feature: they remain usable by qualified/trigger references but do not
+// appear in SELECT *).
 func (e *Engine) tableColumnNames(tableName string) ([]string, error) {
 	entry, _, err := e.findTable(tableName)
 	if err != nil {
@@ -825,7 +828,14 @@ func (e *Engine) tableColumnNames(tableName string) ([]string, error) {
 			if declared := viewDeclaredColumns(v.SQL); len(declared) > 0 {
 				return declared, nil
 			}
-			return e.viewSelectColumnNames(v)
+			names, _ := e.viewSelectColumnNames(v)
+			var visible []string
+			for _, n := range names {
+				if !strings.HasPrefix(n, "__hidden__") {
+					visible = append(visible, n)
+				}
+			}
+			return visible, nil
 		}
 		// A missing table referenced by a main-schema view's body is reported
 		// with the "main." prefix (SQLite); temp views and direct queries use
@@ -6540,7 +6550,7 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			for _, cd := range colDefs {
-				if !cd.Dropped {
+				if !cd.Dropped && !strings.HasPrefix(cd.Name, "__hidden__") {
 					colCount++
 				}
 			}
@@ -6562,7 +6572,7 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 			}
 			posIdx := 0
 			for _, cd := range colDefs {
-				if cd.Dropped {
+				if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
 					continue
 				}
 				if pos, ok := row.Get(positionalRowKey); ok {
@@ -6725,7 +6735,7 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 				continue
 			}
 			for _, cd := range colDefs {
-				if cd.Dropped {
+				if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
 					continue
 				}
 				names = append(names, cd.Name)
@@ -6736,7 +6746,7 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 			for _, sub := range rv.Values {
 				if ref, ok := sub.(*sql.ColumnRef); ok && ref.Name == "*" {
 					for _, cd := range colDefs {
-						if cd.Dropped {
+						if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
 							continue
 						}
 						names = append(names, cd.Name)

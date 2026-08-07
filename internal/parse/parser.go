@@ -1697,11 +1697,16 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 159:
 		tbl := getString(getRHS(p, ruleNo, 4))
 		setlist := getAssignments(getRHS(p, ruleNo, 7))
+		fromInfo := getFromInfo(getRHS(p, ruleNo, 8))
 		wr := getWhereRet(getRHS(p, ruleNo, 9))
 		stmt := &sql.UpdateStmt{
 			Table:       tbl,
 			OnConflict:  getString(getRHS(p, ruleNo, 3)),
 			Assignments: setlist,
+		}
+		if fromInfo != nil {
+			stmt.From = fromInfo.first
+			stmt.FromJoins = fromInfo.joins
 		}
 		if wr != nil {
 			stmt.Where = wr.where
@@ -2684,11 +2689,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 274: trigger_cmd ::= UPDATE orconf nm indexed_opt SET setlist from where_opt
 	case 274:
-		return &sql.UpdateStmt{
+		fromInfo := getFromInfo(getRHS(p, ruleNo, 7))
+		stmt := &sql.UpdateStmt{
 			Table:       getString(getRHS(p, ruleNo, 3)),
 			Assignments: getAssignments(getRHS(p, ruleNo, 6)),
 			Where:       getExpr(getRHS(p, ruleNo, 8)),
 		}
+		if fromInfo != nil {
+			stmt.From = fromInfo.first
+			stmt.FromJoins = fromInfo.joins
+		}
+		return stmt
 
 		// Rule 275: trigger_cmd ::= with insert_cmd INTO nm idlist_opt select upsert
 	case 275:
@@ -3871,6 +3882,26 @@ func getCTEDef(v interface{}) sql.CTEDef {
 // getSeltablist extracts a seltablistAcc from a stack value, creating an empty
 // one if the value is a plain TableRef (backward compat for rules that return
 // TableRef directly).
+// getFromInfo extracts the first table and join list from a `from`
+// nonterminal value (a *seltablistAcc). Returns nil for an empty FROM.
+func getFromInfo(v interface{}) *fromInfo {
+	acc, ok := v.(*seltablistAcc)
+	if !ok || acc == nil || !acc.HasFirst {
+		return nil
+	}
+	info := &fromInfo{first: acc.First}
+	for _, j := range acc.Joins {
+		info.joins = append(info.joins, j.Table)
+	}
+	return info
+}
+
+// fromInfo carries the parsed UPDATE ... FROM tables.
+type fromInfo struct {
+	first sql.TableRef
+	joins []sql.TableRef
+}
+
 func getSeltablist(v interface{}) *seltablistAcc {
 	switch t := v.(type) {
 	case *seltablistAcc:

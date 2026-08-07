@@ -76,6 +76,7 @@ type Engine struct {
 	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
 	updateSetColumns  []string                         // column names in the current UPDATE's SET clause
 	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
+	validatedTriggers map[string]bool                  // triggers whose loaded-body schema refs were validated
 	uniqueIdxCache    map[string][]uniqueIndexDef      // cached unique-index definitions per table name
 	fkCache           map[string][]fkCascadeRef        // cached FK ON DELETE CASCADE refs per parent table
 	inTransaction     bool                             // tracks if we're inside a BEGIN/COMMIT block
@@ -1258,6 +1259,13 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		if err := e.validateNoRaiseOutsideTrigger(stmt); err != nil {
 			return &Result{Error: err}
 		}
+		// Triggers loaded from sqlite_master may reference objects that no
+		// longer resolve (reopen with different attachments); SQLite reports
+		// "malformed database schema" at schema load. Validate once per
+		// statement.
+		if err := e.validateLoadedTriggers(); err != nil {
+			return &Result{Error: err}
+		}
 	}
 	switch s := stmt.(type) {
 	case *sql.SelectStmt:
@@ -1307,11 +1315,8 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	}
 	// Flush attached database pagers after a successful DML/DDL so a later
 	// connection on the attached file sees the writes immediately (SQLite
-	// commits each statement). The MAIN pager is flushed only for DDL (a
-	// schema change another connection may observe); per-DML main flushes
-	// are skipped to avoid corrupting in-memory btree state.
+	// commits each statement). The main pager is flushed on Close.
 	if res != nil && res.Error == nil {
-		isDDL := !isDML
 		for name, ctx := range e.databases {
 			upper := strings.ToUpper(name)
 			if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
@@ -1320,9 +1325,6 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 			if ctx.Pager != nil {
 				_ = ctx.Pager.Flush()
 			}
-		}
-		if isDDL && e.pager != nil && !e.inTransaction {
-			_ = e.pager.Flush()
 		}
 	}
 	return res

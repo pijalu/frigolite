@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -221,11 +222,33 @@ func (e *Engine) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry) *Res
 			}
 		}
 		oldRow["rowid"] = nil
-		// Apply the WHERE clause against the view row.
+		// Apply the WHERE clause against the view row (joined with the UPDATE
+		// FROM tables when present). The matched joined row supplies columns
+		// for the SET expressions too.
+		evalRow := oldRow
 		if s.Where != nil {
-			pass, err := e.evalBool(s.Where, oldRow)
-			if err != nil || !pass {
-				continue
+			if s.From.Name != "" {
+				joined, jerr := e.joinUpdateFromRows(s, oldRow)
+				if jerr != nil {
+					return &Result{Error: jerr}
+				}
+				matched := false
+				for _, jrow := range joined {
+					pass, err := e.evalBool(s.Where, jrow)
+					if err == nil && pass {
+						evalRow = jrow
+						matched = true
+						break
+					}
+				}
+				if !matched {
+					continue
+				}
+			} else {
+				pass, err := e.evalBool(s.Where, oldRow)
+				if err != nil || !pass {
+					continue
+				}
 			}
 		}
 		// Build the NEW row by applying SET assignments to the old values.
@@ -234,7 +257,7 @@ func (e *Engine) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry) *Res
 			newRow[k] = v
 		}
 		for _, a := range s.Assignments {
-			v, err := e.evalExpr(a.Value, oldRow)
+			v, err := e.evalExpr(a.Value, evalRow)
 			if err != nil {
 				return &Result{Error: fmt.Errorf("exec: failed to evaluate SET expression for %s: %w", a.Column, err)}
 			}
@@ -373,6 +396,36 @@ func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colInde
 		}
 
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
+		// UPDATE ... FROM <tables>: the target row joins with the FROM tables;
+		// each join combination is a candidate (the WHERE and SET evaluate
+		// against the combined row). A row is updated once per matching join
+		// row (SQLite uses the first match's SET values for the row).
+		if s.From.Name != "" {
+			joined, err := e.joinUpdateFromRows(s, row)
+			if err != nil {
+				return nil, err
+			}
+			for _, jrow := range joined {
+				match, err := e.rowMatchesWhere(s.Where, jrow)
+				if err != nil {
+					return nil, err
+				}
+				if match {
+					ch, err := e.buildUpdateChange(cell, rec, colIndex, colDefs, s, jrow)
+					if err != nil {
+						return nil, err
+					}
+					changes = append(changes, *ch)
+					rowMaps = append(rowMaps, jrow)
+					break // one update per target row
+				}
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+			continue
+		}
 		match, err := e.rowMatchesWhere(s.Where, row)
 		if err != nil {
 			return nil, err
@@ -480,6 +533,111 @@ func (e *Engine) evalConstInt(expr sql.Expr) (int64, error) {
 		return int64(n), nil
 	}
 	return -1, fmt.Errorf("exec: LIMIT expression is not an integer")
+}
+
+// joinUpdateFromRows reads the UPDATE ... FROM tables and returns combined
+// row maps (target row + each FROM table row) for the target row. The
+// combined row keys include both the target table's columns and the FROM
+// tables' columns (qualified and unqualified).
+func (e *Engine) joinUpdateFromRows(s *sql.UpdateStmt, targetRow RowMap) ([]RowMap, error) {
+	// Read all rows of each FROM table.
+	var tables [][]RowMap
+	for _, ref := range append([]sql.TableRef{s.From}, s.FromJoins...) {
+		if ref.Name == "" {
+			continue
+		}
+		var entry *schema.Entry
+		var err error
+		// Resolve the FROM table in the modified table's context first (a
+		// trigger body's unqualified references resolve in the trigger's
+		// schema, e.g. an aux trigger's FROM mmm → aux.mmm), then fall back
+		// to the normal temp/main-first resolution.
+		if e.currentDMLCtx != nil && !strings.Contains(ref.Name, ".") {
+			if ent, cerr := e.currentDMLCtx.Schema.FindTable(ref.Name); cerr == nil {
+				entry = ent
+			}
+		}
+		if entry == nil {
+			entry, _, err = e.findTable(ref.Name)
+		}
+		if err != nil {
+			return nil, err
+		}
+		colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+		var fromCtx *DatabaseContext
+		if !strings.Contains(ref.Name, ".") && e.currentDMLCtx != nil {
+			fromCtx = e.currentDMLCtx
+		} else {
+			_, fc, ferr := e.findTable(ref.Name)
+			if ferr == nil {
+				fromCtx = fc
+			}
+		}
+		var tree *btree.BTree
+		if fromCtx != nil && fromCtx.Pager != nil {
+			tree = e.tableBTreePg(fromCtx.Pager, entry.Name, entry.RootPage, true)
+		} else {
+			tree = e.tableBTreeForName(entry.Name, entry.RootPage, true)
+		}
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return nil, err
+		}
+		var rows []RowMap
+		for {
+			cell, rerr := cursor.ReadCell()
+			if rerr != nil || cell == nil {
+				break
+			}
+			rec, derr := storage.DecodeRecord(cell.Payload)
+			if derr != nil || rec == nil {
+				break
+			}
+			fm := e.buildRowMap(rec, colDefs, cell.RowID)
+			// Add qualified keys (map.k, map.v) so SET/WHERE can reference
+			// them by table name.
+			alias := ref.As
+			if alias == "" {
+				alias = entry.Name
+			}
+			for k, v := range fm {
+				if k == "rowid" {
+					continue
+				}
+				fm[alias+"."+k] = v
+			}
+			rows = append(rows, fm)
+			ok, nerr := cursor.Next()
+			if nerr != nil || !ok {
+				break
+			}
+		}
+		tables = append(tables, rows)
+	}
+	// Cross-product of the target row with all FROM rows.
+	result := []RowMap{targetRow}
+	for _, tblRows := range tables {
+		if len(tblRows) == 0 {
+			return nil, nil
+		}
+		var next []RowMap
+		for _, base := range result {
+			for _, fr := range tblRows {
+				merged := make(RowMap, len(base)+len(fr))
+				for k, v := range base {
+					merged[k] = v
+				}
+				for k, v := range fr {
+					if _, ok := merged[k]; !ok {
+						merged[k] = v
+					}
+				}
+				next = append(next, merged)
+			}
+		}
+		result = next
+	}
+	return result, nil
 }
 
 func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, row Row) (*updateChange, error) {

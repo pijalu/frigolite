@@ -223,6 +223,8 @@ type UpdateStmt struct {
 	OnConflict      string // "REPLACE", "IGNORE", etc. from UPDATE OR <action>
 	Assignments     []Assignment
 	SetParenColumns []string // when set, indicates SET (col1,col2)=(val1,val2) format
+	From            TableRef // UPDATE ... FROM <tables> (SQLite 3.33+)
+	FromJoins       []TableRef
 	Where           Expr
 	OrderBy         []OrderByTerm
 	Limit           Expr
