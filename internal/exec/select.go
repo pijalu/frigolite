@@ -403,6 +403,12 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	// If there are JOINs, process them (nested-loop join)
 	if len(s.Joins) > 0 {
+		// SQLite rejects unqualified column references that are ambiguous
+		// across the joined tables at prepare time (e.g. "SELECT rowid FROM
+		// t2, t3" → "ambiguous column name: rowid").
+		if err := e.validateAmbiguousColumnRefs(s); err != nil {
+			return &Result{Error: err}
+		}
 		var err error
 		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
 		if err != nil {
@@ -681,13 +687,13 @@ func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 								jcols = append(jcols, "")
 							}
 						}
-						// If the subquery is a bare * (e.g. SELECT * FROM t13),
-						// expand its FROM table's columns.
+						// If the subquery is a bare * (e.g. SELECT * FROM t13), expand
+						// through all its FROM sources (joins included).
 						var expanded []string
 						for _, n := range jcols {
 							if n == "*" {
-								if names, err := e.tableColumnNames(j.Table.Subquery.From.Name); err == nil {
-									expanded = append(expanded, names...)
+								for _, cd := range e.viewColumnDefsFromSelect(j.Table.Subquery) {
+									expanded = append(expanded, cd.Name)
 								}
 							} else {
 								expanded = append(expanded, n)
@@ -1045,9 +1051,17 @@ func rowKey(row []interface{}, colls []string) string {
 		}
 		switch x := raw.(type) {
 		case int64:
-			parts[i] = "i:" + strconv.FormatInt(x, 10)
+			parts[i] = "n:" + strconv.FormatInt(x, 10)
 		case float64:
-			parts[i] = "f:" + strconv.FormatFloat(x, 'g', -1, 64)
+			// Numeric keys unify INTEGER and REAL so 1 and 1.0 deduplicate
+			// (SQLite compares them as equal); an integral float formats
+			// without a decimal point to match the int64 key of the same
+			// value, while a fractional float keeps its distinct form.
+			if x == float64(int64(x)) {
+				parts[i] = "n:" + strconv.FormatInt(int64(x), 10)
+			} else {
+				parts[i] = "n:" + strconv.FormatFloat(x, 'g', -1, 64)
+			}
 		case string:
 			parts[i] = "s:" + normalizeForKey(x, coll)
 		case []byte:
@@ -1208,6 +1222,11 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 	// Handle outer JOINs: the outer query may join the view against other
 	// tables/views (e.g. FROM v1 RIGHT JOIN t ON v1.x=t.x).
 	if len(s.Joins) > 0 {
+		// SQLite rejects unqualified column references that are ambiguous
+		// across the joined tables at prepare time.
+		if err := e.validateAmbiguousColumnRefs(s); err != nil {
+			return &Result{Error: err}
+		}
 		var err error
 		rowMaps, viewColDefs, err = e.execJoins(s, rowMaps, viewColDefs)
 		if err != nil {
@@ -1564,6 +1583,11 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 	// Handle outer JOINs: the outer query may join the subquery against other
 	// tables/views (e.g. FROM (SELECT ...) v RIGHT JOIN t ON v.x=t.x).
 	if len(s.Joins) > 0 {
+		// SQLite rejects unqualified column references that are ambiguous
+		// across the joined tables at prepare time.
+		if err := e.validateAmbiguousColumnRefs(s); err != nil {
+			return &Result{Error: err}
+		}
 		var err error
 		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
 		if err != nil {
@@ -1639,6 +1663,16 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	// accepts self-referencing CTEs regardless of the keyword, e.g.
 	// "WITH s(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<10)").
 	if cte.Select != nil && (cte.Recursive || cteBodyReferencesSelf(cte)) {
+		// SQLite requires the recursive (self-referencing) term to be the
+		// LAST term of the compound chain. If the body self-references but
+		// the final term does not, the self-reference is not a valid
+		// recursion and is reported as a circular reference (e.g. "WITH
+		// s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3 UNION ALL
+		// SELECT 4)"). Multiple self-referencing terms are allowed as long
+		// as the last one references the CTE.
+		if !recursiveSelfRefIsLast(cte) {
+			return &Result{Error: fmt.Errorf("circular reference: %s", cte.Name)}
+		}
 		return e.execRecursiveCTE(s, cte)
 	}
 	// Non-recursive CTE: execute the CTE's SELECT directly
@@ -1676,19 +1710,22 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		if err != nil {
 			return &Result{Error: err}
 		}
-		if s.Where != nil {
-			filtered := allRowMaps[:0]
-			for _, rowMap := range allRowMaps {
-				pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
-				if err != nil {
-					return &Result{Error: err}
-				}
-				if pass {
-					filtered = append(filtered, rowMap)
-				}
+	}
+	// Apply the outer query's WHERE to the CTE rows (both the no-join and
+	// joined cases; a CTE reference with a WHERE but no JOIN must still be
+	// filtered, e.g. "SELECT x+1 FROM c1 WHERE x<1").
+	if s.Where != nil {
+		filtered := allRowMaps[:0]
+		for _, rowMap := range allRowMaps {
+			pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+			if err != nil {
+				return &Result{Error: err}
 			}
-			allRowMaps = filtered
+			if pass {
+				filtered = append(filtered, rowMap)
+			}
 		}
+		allRowMaps = filtered
 	}
 
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
@@ -1699,6 +1736,10 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
 	}
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	// The CTE is fully materialized; clear the resolving guard so the outer
+	// query's compound merge (which may reference the CTE again in a later
+	// term) can re-read the CTE without reporting a circular reference.
+	delete(e.resolvingCTEs, cte.Name)
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
@@ -1735,6 +1776,48 @@ func selectFromRefersTo(s *sql.SelectStmt, name string) bool {
 		}
 	}
 	return s.Union != nil && selectFromRefersTo(s.Union, name)
+}
+
+// recursiveSelfRefIsLast reports whether a self-referencing CTE body has its
+// recursive (self-referencing) term as the LAST term of the compound chain.
+// SQLite requires the recursive term to be final; a self-reference anywhere
+// else is an error ("circular reference: NAME"). Multiple self-referencing
+// terms are fine as long as the last one references the CTE.
+func recursiveSelfRefIsLast(cte *sql.CTEDef) bool {
+	if cte == nil || cte.Select == nil {
+		return true
+	}
+	// Find the last term of the chain.
+	last := cte.Select
+	for last.Union != nil {
+		last = last.Union
+	}
+	// The last term must reference the CTE.
+	return termFromRefersTo(last, cte.Name)
+}
+
+// termFromRefersTo reports whether a single compound term's FROM sources (base
+// table, joins, nested subqueries — but NOT its Union chain) reference name.
+func termFromRefersTo(s *sql.SelectStmt, name string) bool {
+	if s == nil {
+		return false
+	}
+	if s.From.Name == name || s.From.As == name {
+		return true
+	}
+	if s.From.Subquery != nil && selectFromRefersTo(s.From.Subquery, name) {
+		return true
+	}
+	for i := range s.Joins {
+		j := &s.Joins[i]
+		if j.Table.Name == name || j.Table.As == name {
+			return true
+		}
+		if j.Table.Subquery != nil && selectFromRefersTo(j.Table.Subquery, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // findCTE returns the CTE definition whose name matches the given table
@@ -1784,7 +1867,10 @@ func (e *Engine) materializeCTEForJoin(cte *sql.CTEDef) ([]sql.ColumnDef, []RowM
 }
 
 // execRecursiveCTE executes a recursive CTE (WITH RECURSIVE ...).
-// The CTE definition is a UNION ALL with an anchor part and a recursive part.
+// The CTE definition is a compound SELECT: the first term is the anchor
+// (seed) and every following term is a recursive term (SQLite allows several
+// recursive terms; each is evaluated per iteration against the rows produced
+// in the previous iteration).
 func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	// Build column definitions from CTE column names
 	colDefs := make([]sql.ColumnDef, len(cte.Columns))
@@ -1795,7 +1881,7 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		colDefs = []sql.ColumnDef{{Name: "x"}}
 	}
 
-	// Execute the anchor part (the VALUES/SELECT before UNION)
+	// Execute the anchor part (the first term before UNION)
 	anchorSelect := *cte.Select
 	anchorSelect.Union = nil
 	anchorResult := e.execSelect(&anchorSelect)
@@ -1804,12 +1890,16 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	}
 
 	// Collect all rows (anchor + recursive iterations)
-	var allRows [][]interface{}
-	allRows = append(allRows, anchorResult.Rows...)
+	allRows := append([][]interface{}{}, anchorResult.Rows...)
 
-	// Iterate the recursive part until no more rows
+	// Recursive terms: the chain after the anchor. SQLite evaluates each
+	// term per iteration against the rows from the previous iteration.
+	var recursiveTerms []*sql.SelectStmt
+	for term := cte.Select.Union; term != nil; term = term.Union {
+		recursiveTerms = append(recursiveTerms, term)
+	}
+
 	currentRows := anchorResult.Rows
-	recursiveSelect := cte.Select.Union
 	maxIter := e.recursiveCTELimit
 	if maxIter <= 0 {
 		maxIter = 100000 // SQLite test builds default
@@ -1818,28 +1908,29 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		var newRows [][]interface{}
 		for _, row := range currentRows {
 			rowMap := buildRowMapFromValues(row, colDefs, int64(len(allRows)+1))
+			for _, term := range recursiveTerms {
+				// Evaluate WHERE clause if present
+				if term.Where != nil {
+					pass, err := e.rowPassesWhere(term.Where, rowMap, nil)
+					if err != nil {
+						return &Result{Error: err}
+					}
+					if !pass {
+						continue
+					}
+				}
 
-			// Evaluate WHERE clause if present
-			if recursiveSelect.Where != nil {
-				pass, err := e.rowPassesWhere(recursiveSelect.Where, rowMap, nil)
-				if err != nil {
-					return &Result{Error: err}
+				// Evaluate column expressions
+				outRow := make([]interface{}, len(term.Columns))
+				for i, col := range term.Columns {
+					val, err := e.evalExpr(col.Expr, rowMap)
+					if err != nil {
+						return &Result{Error: err}
+					}
+					outRow[i] = unwrapCollatedValue(val)
 				}
-				if !pass {
-					continue
-				}
+				newRows = append(newRows, outRow)
 			}
-
-			// Evaluate column expressions
-			outRow := make([]interface{}, len(recursiveSelect.Columns))
-			for i, col := range recursiveSelect.Columns {
-				val, err := e.evalExpr(col.Expr, rowMap)
-				if err != nil {
-					return &Result{Error: err}
-				}
-				outRow[i] = unwrapCollatedValue(val)
-			}
-			newRows = append(newRows, outRow)
 		}
 		if len(newRows) == 0 {
 			break
@@ -1853,6 +1944,35 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	for i, row := range allRows {
 		allRowMaps[i] = buildRowMapFromValues(row, colDefs, int64(i+1))
 	}
+	// The CTE is fully materialized; clear the resolving guard so join
+	// operands (or later compound terms) can re-read the CTE without
+	// reporting a circular reference.
+	delete(e.resolvingCTEs, cte.Name)
+	// Process outer JOINs (e.g. "FROM c1 AS x1, (subquery) AS x2") against
+	// the recursive CTE rows, same as the non-recursive CTE path.
+	if len(s.Joins) > 0 {
+		var err error
+		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
+		if err != nil {
+			return &Result{Error: err}
+		}
+	}
+	// Apply the outer query's WHERE to the recursive CTE rows (a CTE
+	// reference with a WHERE, e.g. "SELECT x+1 FROM c1 WHERE x<1", must be
+	// filtered even without a JOIN).
+	if s.Where != nil {
+		filtered := allRowMaps[:0]
+		for _, rowMap := range allRowMaps {
+			pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			if pass {
+				filtered = append(filtered, rowMap)
+			}
+		}
+		allRowMaps = filtered
+	}
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
 	}
@@ -1863,6 +1983,11 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		outRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
 	}
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: outRows}
+	// The CTE is fully materialized; clear the resolving guard so the outer
+	// query's compound merge (which may reference the CTE again in a later
+	// term, e.g. "SELECT x+1 FROM c1 ... UNION ALL SELECT 1+x FROM c1") can
+	// re-read the CTE without reporting a circular reference.
+	delete(e.resolvingCTEs, cte.Name)
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
@@ -4357,6 +4482,21 @@ func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.Colum
 		// rowid aliases).
 		if ref.Table != "" {
 			q := strings.ToLower(ref.Table)
+			// NEW.col / OLD.col references are valid inside trigger bodies when
+			// the named column actually exists in the trigger's row (e.g.
+			// INSTEAD OF INSERT ON v ... new.k); an unknown column is still an
+			// error, exactly as SQLite reports "no such column: new.x" for a
+			// trigger on a table without column x.
+			if q == "new" && e.triggerNewRow != nil {
+				if _, ok := e.triggerNewRow.Get(ref.Name); ok {
+					return nil
+				}
+			}
+			if q == "old" && e.triggerOldRow != nil {
+				if _, ok := e.triggerOldRow.Get(ref.Name); ok {
+					return nil
+				}
+			}
 			// Strip a schema prefix (main./temp./aux.) for comparison.
 			if dot := strings.LastIndex(q, "."); dot >= 0 {
 				q = q[dot+1:]
@@ -5068,6 +5208,23 @@ func (e *Engine) validateNoFromColumnRefs(s *sql.SelectStmt) error {
 			}
 			if ref.Name == "*" {
 				return
+			}
+			// NEW.col / OLD.col references are valid inside trigger bodies when
+			// the named column actually exists in the trigger's row (e.g.
+			// INSTEAD OF INSERT ON v ... new.k); an unknown column is still an
+			// error, exactly as SQLite reports "no such column: new.x" for a
+			// trigger on a table without column x.
+			if ref.Table != "" {
+				if strings.EqualFold(ref.Table, "new") && e.triggerNewRow != nil {
+					if _, ok := e.triggerNewRow.Get(ref.Name); ok {
+						return
+					}
+				}
+				if strings.EqualFold(ref.Table, "old") && e.triggerOldRow != nil {
+					if _, ok := e.triggerOldRow.Get(ref.Name); ok {
+						return
+					}
+				}
 			}
 			if ref.Table != "" {
 				checkErr = fmt.Errorf("no such column: %s.%s", ref.Table, ref.Name)
@@ -6311,14 +6468,52 @@ func (e *Engine) qualifiedStarColNames(tableRef string, colDefs []sql.ColumnDef,
 	// t.* must still include it (SQLite emits the merged value for t.*).
 	colNames, err := e.tableColumnNames(tableRef)
 	if err != nil || len(colNames) == 0 {
-		// Fall back to prefixed colDefs (e.g. alias.* where the alias is not
-		// a schema-resolvable table name).
-		for _, cd := range colDefs {
-			if cd.Dropped {
-				continue
+		// Fall back to the column defs in order. For each def, resolve it
+		// through the qualified key (alias.col) only — the short key is
+		// ambiguous when two operands share column names (the last one wins
+		// in the row map). A def that is itself prefixed (table.col from a
+		// conflict-renamed operand) is used only when its prefix matches.
+		if len(colNames) == 0 && row != nil {
+			seen := make(map[string]bool)
+			add := func(name string) {
+				if !seen[name] {
+					seen[name] = true
+					colNames = append(colNames, name)
+				}
 			}
-			if strings.HasPrefix(cd.Name, tableRef+".") {
-				colNames = append(colNames, strings.TrimPrefix(cd.Name, tableRef+"."))
+			for _, cd := range colDefs {
+				if cd.Dropped {
+					continue
+				}
+				if strings.HasPrefix(cd.Name, tableRef+".") {
+					add(strings.TrimPrefix(cd.Name, tableRef+"."))
+					continue
+				}
+				if strings.Contains(cd.Name, ".") {
+					// Prefixed def belonging to another operand.
+					continue
+				}
+				if _, ok := row.Get(tableRef + "." + cd.Name); ok {
+					add(cd.Name)
+				}
+			}
+		}
+		// Last resort: derive the column names from the row map's qualified
+		// keys (alias.col). Order is not guaranteed (Go map iteration), but
+		// this still resolves the values for unusual row shapes.
+		if len(colNames) == 0 && row != nil {
+			if rm, ok := row.(RowMap); ok {
+				seen := make(map[string]bool)
+				prefix := tableRef + "."
+				for k := range rm {
+					if strings.HasPrefix(k, prefix) {
+						n := strings.TrimPrefix(k, prefix)
+						if !seen[n] {
+							seen[n] = true
+							colNames = append(colNames, n)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -6353,12 +6548,17 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 				// schema column list for the complete set.
 				schemaNames, _ := e.tableColumnNames(ref.Table)
 				if len(schemaNames) == 0 {
+					// Fall back to the column defs in order: prefixed defs for this
+					// operand (alias.col / table.col) plus the unprefixed defs
+					// (which belong to the first operand in a join).
 					for _, cd := range colDefs {
 						if cd.Dropped {
 							continue
 						}
 						if strings.HasPrefix(cd.Name, ref.Table+".") {
 							schemaNames = append(schemaNames, strings.TrimPrefix(cd.Name, ref.Table+"."))
+						} else if !strings.Contains(cd.Name, ".") {
+							schemaNames = append(schemaNames, cd.Name)
 						}
 					}
 				}
@@ -6759,6 +6959,86 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 			collectFromTableNames(j.Table.Subquery, out)
 		}
 	}
+}
+
+// validateAmbiguousColumnRefs rejects unqualified column references that are
+// ambiguous across the joined tables (SQLite: "ambiguous column name: X" at
+// prepare time). Every table contributes its declared columns plus the
+// implicit rowid/_rowid_/oid columns; a bare reference naming a column that
+// exists in more than one joined table is ambiguous. Qualified references
+// (t.col), TRUE/FALSE literals, and output-column aliases are exempt.
+func (e *Engine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
+	// Collect the visible table names (base + joins, using aliases).
+	names := map[string]bool{}
+	collectFromTableNames(s, names)
+	if len(names) < 2 {
+		return nil
+	}
+	// Build each table's column set (lowercased), including rowid aliases.
+	colInTables := map[string][]string{}
+	for tn := range names {
+		cols, err := e.tableColumnNames(tn)
+		if err != nil {
+			// A table we cannot resolve (e.g. a CTE reference) — skip; the
+			// execution path reports the missing table.
+			continue
+		}
+		for _, c := range cols {
+			colInTables[strings.ToLower(c)] = append(colInTables[strings.ToLower(c)], tn)
+		}
+		// rowid/_rowid_/oid exist implicitly in every table.
+		for _, r := range []string{"rowid", "_rowid_", "oid"} {
+			colInTables[r] = append(colInTables[r], tn)
+		}
+	}
+	amb := func(name string) bool {
+		l := strings.ToLower(name)
+		return len(colInTables[l]) > 1
+	}
+	checkExpr := func(expr sql.Expr) error {
+		if expr == nil {
+			return nil
+		}
+		var checkErr error
+		walkExprFull(expr, func(e2 sql.Expr) {
+			if checkErr != nil {
+				return
+			}
+			ref, ok := e2.(*sql.ColumnRef)
+			if !ok || ref.Name == "*" || ref.Table != "" {
+				return
+			}
+			if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
+				return
+			}
+			if amb(ref.Name) {
+				checkErr = fmt.Errorf("ambiguous column name: %s", ref.Name)
+			}
+		})
+		return checkErr
+	}
+	for _, col := range s.Columns {
+		if err := checkExpr(col.Expr); err != nil {
+			return err
+		}
+	}
+	if err := checkExpr(s.Where); err != nil {
+		return err
+	}
+	for _, g := range s.GroupBy {
+		if err := checkExpr(g); err != nil {
+			return err
+		}
+	}
+	if err := checkExpr(s.Having); err != nil {
+		return err
+	}
+	for _, ob := range s.OrderBy {
+		if err := checkExpr(ob.Expr); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // validateJoinOnClauses checks that each join's ON clause only references

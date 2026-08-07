@@ -248,14 +248,35 @@ func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 // its stored SELECT statement, mirroring SQLite's view column typing
 // (sqlite3SubqueryColumnTypes in select.c).
 func (e *Engine) viewColumnDefs(viewEntry *schema.Entry) ([]sql.ColumnDef, error) {
+	return e.viewColumnDefsGuard(viewEntry, nil)
+}
+
+// viewColumnDefsGuard is viewColumnDefs with a recursion guard: resolving is
+// the set of view names currently being expanded (to break cycles such as
+// CREATE VIEW v1 AS SELECT * FROM v2; CREATE VIEW v2 AS SELECT * FROM v1).
+func (e *Engine) viewColumnDefsGuard(viewEntry *schema.Entry, resolving map[string]bool) ([]sql.ColumnDef, error) {
+	if resolving[viewEntry.Name] {
+		// Circular view reference: fall back to the declared column list when
+		// present, otherwise return no defs (the execution path reports the
+		// circular reference).
+		return nil, fmt.Errorf("exec: circular view reference: %s", viewEntry.Name)
+	}
+	if resolving == nil {
+		resolving = map[string]bool{}
+	}
+	resolving[viewEntry.Name] = true
+	defer delete(resolving, viewEntry.Name)
 	sqlStr := viewEntry.SQL
 	upper := strings.ToUpper(sqlStr)
-	idx := strings.Index(upper, " AS ")
+	idx := strings.Index(upper, " AS")
 	if idx < 0 {
 		return nil, fmt.Errorf("exec: invalid view SQL: %s", sqlStr)
 	}
-	selectSQL := sqlStr[idx+4:]
-	stmts, err := parse.ParseSQL(selectSQL)
+	// Skip past " AS" plus any following whitespace (the body may begin on
+	// the same line or the next line).
+	body := sqlStr[idx+3:]
+	body = strings.TrimLeft(body, " \t\r\n")
+	stmts, err := parse.ParseSQL(body)
 	if err != nil || len(stmts) == 0 {
 		return nil, fmt.Errorf("exec: view parse error: %v", err)
 	}
@@ -263,23 +284,28 @@ func (e *Engine) viewColumnDefs(viewEntry *schema.Entry) ([]sql.ColumnDef, error
 	if !ok {
 		return nil, fmt.Errorf("exec: view does not contain SELECT")
 	}
-	return e.viewColumnDefsFromSelect(sel), nil
+	return e.viewColumnDefsFromSelectGuard(sel, resolving), nil
 }
 
 // viewColumnDefsFromSelect computes column definitions for a view's SELECT.
 // Column names come from aliases or column references; declared types follow
 // SQLite's expression-based type inference.
 func (e *Engine) viewColumnDefsFromSelect(sel *sql.SelectStmt) []sql.ColumnDef {
-	// Resolve the FROM table once so column references can inherit its types.
-	var srcDefs []sql.ColumnDef
-	if sel.From.Name != "" {
-		if te, _, err := e.findTable(sel.From.Name); err == nil {
-			srcDefs = e.parseColumnDefs(te.Name, te.SQL)
-		}
+	return e.viewColumnDefsFromSelectGuard(sel, nil)
+}
+
+// viewColumnDefsFromSelectGuard is viewColumnDefsFromSelect with a recursion
+// guard threaded through nested view/subquery column resolution.
+func (e *Engine) viewColumnDefsFromSelectGuard(sel *sql.SelectStmt, resolving map[string]bool) []sql.ColumnDef {
+	// Resolve the FROM sources (base table plus each JOIN operand) so bare "*"
+	// can expand to every column, and so column references can inherit types.
+	srcDefs := e.fromSourceColumnDefsGuard(sel.From, resolving)
+	for _, j := range sel.Joins {
+		srcDefs = append(srcDefs, e.fromSourceColumnDefsGuard(j.Table, resolving)...)
 	}
 	var defs []sql.ColumnDef
 	for i, col := range sel.Columns {
-		// A bare * expands to every column of the FROM source (a single
+		// A bare * expands to every column of the FROM sources (a single
 		// table, or a joined result).
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
 			for _, sd := range srcDefs {
@@ -296,6 +322,31 @@ func (e *Engine) viewColumnDefsFromSelect(sel *sql.SelectStmt) []sql.ColumnDef {
 		defs = append(defs, sql.ColumnDef{Name: name, Type: e.viewColumnType(sel, i, srcDefs)})
 	}
 	return defs
+}
+
+// fromSourceColumnDefsGuard returns the column definitions of a single FROM
+// source (a table, view, derived-table subquery, or table-valued function),
+// with a recursion guard threaded through nested view resolution.
+func (e *Engine) fromSourceColumnDefsGuard(ref sql.TableRef, resolving map[string]bool) []sql.ColumnDef {
+	if ref.Subquery != nil {
+		return e.viewColumnDefsFromSelectGuard(ref.Subquery, resolving)
+	}
+	if ref.Name != "" {
+		if te, _, err := e.findTable(ref.Name); err == nil {
+			return e.parseColumnDefs(te.Name, te.SQL)
+		}
+		if ve, _, err := e.findView(ref.Name); err == nil {
+			if defs, derr := e.viewColumnDefsGuard(ve, resolving); derr == nil {
+				return defs
+			}
+		}
+		if isPragmaTableFunc(ref.Name) {
+			if defs, _, merr := e.materializeVtabTableFunc(ref); merr == nil {
+				return defs
+			}
+		}
+	}
+	return nil
 }
 
 // viewColumnType computes the declared type string of view column i, following

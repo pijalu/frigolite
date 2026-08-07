@@ -2241,45 +2241,96 @@ func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Res
 
 	// Build the NEW row: map the INSERTed values to the view's output column
 	// names so trigger bodies can reference NEW.col. Column names come from
-	// the view's SELECT (aliases when present, else expression text).
-	row := make(RowMap)
-	row["rowid"] = nil
+	// the view's SELECT (aliases when present, else expression text), with
+	// bare "*" expanded through the view's FROM source.
 	viewCols := e.viewColumnNames(viewSelect)
-	var values []interface{}
-	if len(s.Values) > 0 {
-		values, _ = e.evalTuple(viewEntry.Name, s.Values[0], s.Columns, nil)
-	}
-	if len(s.Columns) > 0 {
-		for i, col := range s.Columns {
-			if i < len(values) {
-				row[col] = values[i]
-			}
+
+	fire := func(row RowMap) *Result {
+		// Fire INSTEAD OF INSERT triggers; their bodies replace the insert.
+		if res := e.fireTriggers(viewEntry.Name, "INSERT", "BEFORE", row, nil); res != nil && res.Error != nil {
+			return res
 		}
-	} else {
-		for i, val := range values {
-			if i < len(viewCols) {
-				row[viewCols[i]] = val
-			}
-		}
+		return nil
 	}
 
-	// Fire INSTEAD OF INSERT triggers; their bodies replace the insert.
-	if res := e.fireTriggers(viewEntry.Name, "INSERT", "BEFORE", row, nil); res != nil && res.Error != nil {
+	// INSERT ... SELECT into a view: each produced row fires the trigger.
+	if s.Select != nil {
+		selResult := e.execSelect(s.Select)
+		if selResult.Error != nil {
+			return selResult
+		}
+		for _, rrow := range selResult.Rows {
+			row := make(RowMap)
+			row["rowid"] = nil
+			if len(s.Columns) > 0 {
+				for i, col := range s.Columns {
+					if i < len(rrow) {
+						row[col] = rrow[i]
+					}
+				}
+			} else {
+				for i, val := range rrow {
+					if i < len(viewCols) {
+						row[viewCols[i]] = val
+					}
+				}
+			}
+			if res := fire(row); res != nil {
+				return res
+			}
+		}
+		if !s.HasReturning {
+			return &Result{Changes: int64(len(selResult.Rows))}
+		}
+		return &Result{Changes: int64(len(selResult.Rows))}
+	}
+
+	// Multi-row VALUES: fire the trigger once per tuple.
+	if len(s.Values) > 0 {
+		for _, tuple := range s.Values {
+			values, evalErr := e.evalTuple(viewEntry.Name, tuple, s.Columns, nil)
+			if evalErr != nil {
+				return &Result{Error: evalErr}
+			}
+			row := make(RowMap)
+			row["rowid"] = nil
+			if len(s.Columns) > 0 {
+				for i, col := range s.Columns {
+					if i < len(values) {
+						row[col] = values[i]
+					}
+				}
+			} else {
+				for i, val := range values {
+					if i < len(viewCols) {
+						row[viewCols[i]] = val
+					}
+				}
+			}
+			if res := fire(row); res != nil {
+				return res
+			}
+		}
+		if !s.HasReturning {
+			return &Result{Changes: int64(len(s.Values))}
+		}
+		return &Result{Changes: int64(len(s.Values))}
+	}
+
+	// DEFAULT VALUES into a view: fire once with an empty NEW row.
+	row := make(RowMap)
+	row["rowid"] = nil
+	if res := fire(row); res != nil {
 		return res
 	}
-	if !s.HasReturning {
-		return &Result{Changes: 1}
-	}
-	vals, err := e.evalReturningStrict(s.Returning, row, nil, viewEntry.Name)
-	if err != nil {
-		return &Result{Error: err}
-	}
-	return &Result{Rows: [][]interface{}{vals}}
+	return &Result{Changes: 1}
 }
 
 // viewColumnNames returns the output column names of a view's SELECT: the
 // explicit alias when present, otherwise the column reference name or the
-// expression text.
+// expression text. A bare "*" is expanded through the FROM source (SQLite
+// resolves view output columns the same way as the result columns of a plain
+// SELECT). For a compound SELECT the head member determines the output names.
 func (e *Engine) viewColumnNames(sel *sql.SelectStmt) []string {
 	if sel == nil {
 		return nil
@@ -2291,6 +2342,16 @@ func (e *Engine) viewColumnNames(sel *sql.SelectStmt) []string {
 			continue
 		}
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+			if ref.Name == "*" && ref.Table == "" {
+				// Expand through the FROM source (single table or joined
+				// result). When expansion fails, fall through to the
+				// unexpanded name so the caller can still report the view's
+				// column list.
+				if cols, err := e.tableColumnNames(sel.From.Name); err == nil {
+					names = append(names, cols...)
+					continue
+				}
+			}
 			names = append(names, ref.Name)
 			continue
 		}
