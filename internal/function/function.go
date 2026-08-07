@@ -4,8 +4,12 @@ package function
 import (
 	"bytes"
 	"compress/zlib"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	"hash"
 	"hash/crc32"
+	"io"
 	"math"
 	"math/rand"
 	"regexp"
@@ -143,6 +147,10 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "COMPRESS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCOMPRESS})
 	r.register(&Func{Name: "UNCOMPRESS", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnUNCOMPRESS})
 	r.register(&Func{Name: "CRC32", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCRC32})
+	// md5sum is a test-harness aggregate (SQLite's test_config.c registers it
+	// as an aggregate that MD5-hashes the concatenation of its arguments per
+	// row). Used by trans/trans2 signature checks: SELECT md5sum(u1) ...
+	r.register(&Func{Name: "MD5SUM", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: fnMD5SUM})
 
 	// Extension/compat functions
 	r.register(&Func{Name: "TOINTEGER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOINTEGER})
@@ -383,6 +391,36 @@ func (g *groupConcatAgg) Step(args []interface{}) error {
 
 func (g *groupConcatAgg) Final() (interface{}, error) {
 	return strings.Join(g.values, g.sep), nil
+}
+
+// md5sumAgg implements the test-harness MD5SUM aggregate: it concatenates the
+// text of each row's first argument and returns the lowercase hex MD5 of the
+// concatenation (SQLite's test_config.c md5sum registers the same behavior).
+type md5sumAgg struct {
+	h hash.Hash
+}
+
+func (m *md5sumAgg) Step(args []interface{}) error {
+	if len(args) == 0 || args[0] == nil {
+		return nil
+	}
+	if m.h == nil {
+		m.h = md5.New()
+	}
+	io.WriteString(m.h, toString(args[0]))
+	return nil
+}
+
+func (m *md5sumAgg) Final() (interface{}, error) {
+	if m.h == nil {
+		// No rows: md5 of empty input (d41d8cd98f00b204e9800998ecf8427e).
+		return "d41d8cd98f00b204e9800998ecf8427e", nil
+	}
+	return hex.EncodeToString(m.h.Sum(nil)), nil
+}
+
+func fnMD5SUM() Aggregator {
+	return &md5sumAgg{}
 }
 
 // --- Scalar function implementations ---
