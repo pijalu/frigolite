@@ -3789,6 +3789,16 @@ func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
 				case "TOTAL":
 					outRow = append(outRow, float64(0.0))
 				default:
+					// Aggregates that define an empty-input Final (e.g.
+					// md5sum returns the MD5 of the empty string) report it;
+					// most aggregates yield NULL over zero rows.
+					if f.AggregateFn != nil {
+						agg := f.AggregateFn()
+						if res, err := agg.Final(); err == nil {
+							outRow = append(outRow, res)
+							continue
+						}
+					}
 					outRow = append(outRow, nil)
 				}
 				continue
@@ -3859,6 +3869,29 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 					outRow = append(outRow, groupVals[gi])
 					continue
 				}
+			}
+			// Star expansion (SELECT * / t.*) inside GROUP BY output: expand
+			// to the source columns, matching buildOutputRow. evalAggregateExpr
+			// would otherwise evaluate a star ColumnRef as the literal "*"
+			// (a single column), which is wrong for grouped output.
+			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+				groupRow := groupRows[0]
+				if ref.Table != "" {
+					tableCols := e.qualifiedStarColNames(ref.Table, colDefs, groupRow)
+					for _, cd := range tableCols {
+						outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(cd.value)))
+					}
+				} else {
+					for _, cd := range colDefs {
+						if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
+							continue
+						}
+						if val, exists := groupRow.Get(cd.Name); exists {
+							outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(val)))
+						}
+					}
+				}
+				continue
 			}
 			v, err := e.evalAggregateExpr(col.Expr, groupRows)
 			if err != nil {
@@ -6534,7 +6567,7 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 		}
 		// Handle rowid and PRIMARY KEY for affinity columns
 		for i, cd := range colDefs {
-			if cd.PrimaryKey && values[i] == nil && affinityCols[cd.Name] {
+			if isIPKRowidAliasCol(cd) && values[i] == nil && affinityCols[cd.Name] {
 				aff := util.Affinity(cd.Type)
 				values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
 			}

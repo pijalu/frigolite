@@ -198,8 +198,21 @@ type RowMap map[string]interface{}
 const positionalRowKey = "\x00frigolite_positional"
 
 func (m RowMap) Get(name string) (interface{}, bool) {
-	v, ok := m[name]
-	return v, ok
+	if v, ok := m[name]; ok {
+		return v, ok
+	}
+	// SQLite column names are case-insensitive: a query may reference a
+	// column (or table-qualified column) in a different case than the row
+	// map key (built from CREATE TABLE column names). Fall back to a
+	// case-insensitive scan of the small map.
+	if len(m) > 0 {
+		for k, v := range m {
+			if strings.EqualFold(k, name) {
+				return v, true
+			}
+		}
+	}
+	return nil, false
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.

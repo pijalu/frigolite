@@ -455,6 +455,14 @@ func (e *Engine) viewColumnDefsFromSelectGuard(sel *sql.SelectStmt, resolving ma
 			}
 			continue
 		}
+		// A qualified star (t.* / alias.*) expands to the referenced source's
+		// columns in order (SQLite: SELECT episode.*, files.f ...).
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table != "" {
+			for _, sd := range e.qualifiedSourceColumnDefs(ref.Table, sel, srcDefs, resolving) {
+				defs = append(defs, sql.ColumnDef{Name: sd.Name, Type: sd.Type, Collate: sd.Collate})
+			}
+			continue
+		}
 		name := col.As
 		if name == "" {
 			if ref, ok := col.Expr.(*sql.ColumnRef); ok {
@@ -489,6 +497,35 @@ func (e *Engine) fromSourceColumnDefsGuard(ref sql.TableRef, resolving map[strin
 		}
 	}
 	return nil
+}
+
+// qualifiedSourceColumnDefs returns the column definitions of the FROM source
+// (base table/view or a JOIN operand) referenced by a qualified star
+// (t.* / alias.*). The qualifier matches the table name or its alias,
+// case-insensitively.
+func (e *Engine) qualifiedSourceColumnDefs(qualifier string, sel *sql.SelectStmt, srcDefs []sql.ColumnDef, resolving map[string]bool) []sql.ColumnDef {
+	// Base source (FROM t or FROM t AS a): match the table name or alias.
+	base := sel.From
+	baseName := base.Name
+	if base.As != "" {
+		baseName = base.As
+	}
+	if baseName != "" && strings.EqualFold(baseName, qualifier) {
+		return e.fromSourceColumnDefsGuard(base, resolving)
+	}
+	// JOIN operands: match the operand's table name or alias.
+	for _, j := range sel.Joins {
+		jName := j.Table.Name
+		if j.Table.As != "" {
+			jName = j.Table.As
+		}
+		if jName != "" && strings.EqualFold(jName, qualifier) {
+			return e.fromSourceColumnDefsGuard(j.Table, resolving)
+		}
+	}
+	// Fall back to the flattened source defs (single-source queries without
+	// an alias match, e.g. a subquery-derived source).
+	return srcDefs
 }
 
 // viewColumnType computes the declared type string of view column i, following
