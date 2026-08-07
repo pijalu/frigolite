@@ -4,7 +4,8 @@
 > **Goal**: G3.TRIGGER.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.INSERT/UPDATE/DELETE; G2.VIEW (INSTEAD OF).
-> **Current state: FAILING** — `trigger` fails.
+> **Current state: DONE** — all testgen trigger packages (trigger, triggerA–G,
+> temptrigger, triggerupfrom) pass plus TestP3Trigger pre-tests and go build.
 
 ## Objective
 Triggers match SQLite: CREATE TRIGGER BEFORE/AFTER/INSTEAD OF on
@@ -37,19 +38,19 @@ tables). Error in a trigger body → statement rollback.
 - `src/main.c` — `recursive_triggers` setting.
 
 ## Steps
-- [ ] **G3.TRIGGER.1** Pre-test suite. Commit: `G3.TRIGGER.1: trigger pre-test suite`.
-- [ ] **G3.TRIGGER.2** Triage `trigger` failure via pure-Go test. Recent work
+- [x] **G3.TRIGGER.1** Pre-test suite. Commit: `G3.TRIGGER.1: trigger pre-test suite`.
+- [x] **G3.TRIGGER.2** Triage `trigger` failure via pure-Go test. Recent work
       added a `triggerTables` stack for chaining; verify OLD/NEW + WHEN. Fix
       `internal/exec/insert.go`/`update.go`/`delete.go` + trigger dispatch.
       Commit: `G3.TRIGGER.2: OLD/NEW + WHEN + chaining`.
-- [ ] **G3.TRIGGER.3** UPDATE OF <cols> selectivity. Commit: `G3.TRIGGER.3: UPDATE OF`.
-- [ ] **G3.TRIGGER.4** INSTEAD OF on views (coordinate G2.VIEW). Commit:
+- [x] **G3.TRIGGER.3** UPDATE OF <cols> selectivity. Commit: `G3.TRIGGER.3: UPDATE OF`.
+- [x] **G3.TRIGGER.4** INSTEAD OF on views (coordinate G2.VIEW). Commit:
       `G3.TRIGGER.4: INSTEAD OF triggers`.
-- [ ] **G3.TRIGGER.5** recursive_triggers OFF default (no same-table recursion;
+- [x] **G3.TRIGGER.5** recursive_triggers OFF default (no same-table recursion;
       cross-table chaining allowed). Commit: `G3.TRIGGER.5: recursion control`.
-- [ ] **G3.TRIGGER.6** Trigger body errors → statement rollback. Commit:
+- [x] **G3.TRIGGER.6** Trigger body errors → statement rollback. Commit:
       `G3.TRIGGER.6: trigger error rollback`.
-- [ ] **G3.TRIGGER.7** triggerA–G + temptrigger + triggerupfrom green.
+- [x] **G3.TRIGGER.7** triggerA–G + temptrigger + triggerupfrom green.
       Commit: `G3.TRIGGER.7: trigger TCL green`.
 
 ## Verify command
