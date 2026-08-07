@@ -32,6 +32,12 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 		return e.execInsertView(s, viewEntry)
 	}
 
+	// Track the modified table's database context so trigger firing resolves
+	// triggers in the same context (main vs temp shadowing).
+	prevDMLCtx := e.currentDMLCtx
+	e.currentDMLCtx = dbCtx
+	defer func() { e.currentDMLCtx = prevDMLCtx }()
+
 	// Protect system and pragma virtual tables from modification.
 	if e.isNonModifiableTable(tableEntry) {
 		return &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}
@@ -341,6 +347,13 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 				newRow[colDefs[i].Name] = v
 			}
 		}
+		// SQLite exposes new.rowid as -1 inside a BEFORE INSERT trigger (the
+		// rowid is not assigned until the row is written).
+		if !withoutRowid && !rowHasRowIDColumn(colDefs) {
+			newRow["rowid"] = int64(-1)
+			newRow["_rowid_"] = int64(-1)
+			newRow["oid"] = int64(-1)
+		}
 		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 			// RAISE(IGNORE) in a BEFORE trigger aborts the insert (the row is
 			// skipped, no error) — SQLite semantics.
@@ -407,6 +420,12 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 			if i < len(colDefs) {
 				newRow[colDefs[i].Name] = v
 			}
+		}
+		// AFTER INSERT triggers see the assigned rowid.
+		if !rowHasRowIDColumn(colDefs) {
+			newRow["rowid"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
+			newRow["_rowid_"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
+			newRow["oid"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
 		}
 		if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 			return trigResult
@@ -1147,7 +1166,13 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 			}
 		}
 	}
-	row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+	// A table may declare columns named rowid/oid/_rowid_; those shadow the
+	// pseudo-rowid for name resolution (see rowHasRowIDColumn).
+	if !rowHasRowIDColumn(colDefs) {
+		row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+		row["_rowid_"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+		row["oid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+	}
 	return row
 }
 
@@ -1899,6 +1924,12 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 				newRow[colDefs[i].Name] = v
 			}
 		}
+		// SQLite exposes new.rowid as -1 inside a BEFORE INSERT trigger.
+		if !rowHasRowIDColumn(colDefs) {
+			newRow["rowid"] = int64(-1)
+			newRow["_rowid_"] = int64(-1)
+			newRow["oid"] = int64(-1)
+		}
 		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 			// RAISE(IGNORE) in a BEFORE trigger aborts the insert (the row is
 			// skipped, no error) — SQLite semantics.
@@ -1932,6 +1963,12 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 			if i < len(colDefs) {
 				newRow[colDefs[i].Name] = v
 			}
+		}
+		// AFTER INSERT triggers see the assigned rowid.
+		if !rowHasRowIDColumn(colDefs) {
+			newRow["rowid"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
+			newRow["_rowid_"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
+			newRow["oid"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
 		}
 		if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 			return trigResult
@@ -1996,20 +2033,46 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 		}
 	}
 
-	// Search for triggers across all databases. TEMP may alias MAIN, so
-	// dedupe by context pointer to avoid firing each trigger twice.
+	// Search for triggers on the table. SQLite scopes triggers to their
+	// database, but TEMP triggers fire on any table they reference (a TEMP
+	// trigger on a main table fires when the main table changes). So include
+	// triggers from the table's own context PLUS the TEMP context. A main
+	// trigger does NOT fire for a temp-table event (temp shadows main).
 	var triggers []*schema.Entry
-	seen := make(map[*DatabaseContext]bool)
-	for _, ctx := range e.databases {
-		if seen[ctx] {
-			continue
+	tableCtx := e.mainDB
+	if e.currentDMLCtx != nil {
+		tableCtx = e.currentDMLCtx
+	} else if entry, ctx, err := e.findTable(tableName); err == nil && ctx != nil && entry != nil {
+		tableCtx = ctx
+	}
+	// Triggers in the table's own context.
+	if t, err := tableCtx.Schema.FindTriggersForTable(tableName); err == nil {
+		triggers = append(triggers, t...)
+	}
+	// TEMP triggers fire on the referenced table. But a TEMP trigger whose ON
+	// table resolved to a TEMP table (temp shadows main at CREATE time) fires
+	// only for that TEMP table's events. When the event table is a temp table
+	// (tableCtx == temp), the temp context's own triggers are already included
+	// above; when the event is on main/attached and NO temp table of the same
+	// name shadows it, the TEMP trigger's ON table resolved to the main table
+	// and it fires here too.
+	tc := e.getDB("temp")
+	if tc != nil && tc != tableCtx && tableCtx != nil {
+		// Does a temp table shadow this name? If so, the temp trigger is on
+		// the temp table and only fires for temp-table events.
+		shadowed := false
+		if _, err := tc.Schema.FindTable(tableName); err == nil {
+			shadowed = true
 		}
-		seen[ctx] = true
-		t, err := ctx.Schema.FindTriggersForTable(tableName)
-		if err == nil && len(t) > 0 {
-			triggers = append(triggers, t...)
+		if !shadowed {
+			if t, err := tc.Schema.FindTriggersForTable(tableName); err == nil {
+				triggers = append(triggers, t...)
+			}
 		}
 	}
+	// TEMP schema may shadow MAIN; also include triggers whose TblName
+	// matches the table in the table's own context (FindTriggersForTable
+	// matches by the short name within the context's entries).
 
 	if len(triggers) == 0 {
 		return &Result{}

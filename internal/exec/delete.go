@@ -28,6 +28,11 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Track the modified table's database context for trigger scoping.
+	prevDMLCtx := e.currentDMLCtx
+	e.currentDMLCtx = dbCtx
+	defer func() { e.currentDMLCtx = prevDMLCtx }()
+
 	// Protect system and pragma virtual tables from modification.
 	if e.isNonModifiableTable(tableEntry) {
 		return &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}

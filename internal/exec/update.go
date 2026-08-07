@@ -27,7 +27,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	if err := e.authorize(auth.ActionUpdate, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
-	tableEntry, _, err := e.findTable(s.Table)
+	tableEntry, dbCtx, err := e.findTable(s.Table)
 	if err != nil {
 		// Not a table — route through INSTEAD OF UPDATE triggers on a view.
 		viewEntry, _, viewErr := e.findView(s.Table)
@@ -36,6 +36,11 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		}
 		return &Result{Error: err}
 	}
+
+	// Track the modified table's database context for trigger scoping.
+	prevDMLCtx := e.currentDMLCtx
+	e.currentDMLCtx = dbCtx
+	defer func() { e.currentDMLCtx = prevDMLCtx }()
 
 	// Protect system and pragma virtual tables from modification.
 	if e.isNonModifiableTable(tableEntry) {
@@ -241,7 +246,11 @@ func buildColumnIndex(colDefs []sql.ColumnDef) map[string]int {
 	for i, cd := range colDefs {
 		colIndex[cd.Name] = i
 	}
-	colIndex["rowid"] = -1
+	// rowid/_rowid_/oid map to the pseudo-rowid unless the table declares a
+	// column with one of those names (which shadows the alias).
+	if !rowHasRowIDColumn(colDefs) {
+		colIndex["rowid"] = -1
+	}
 	return colIndex
 }
 
@@ -494,8 +503,10 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 			values = append(values, nil)
 			colIndex[a.Column] = idx
 		}
-		if isRowIDName(a.Column) {
-			// SET rowid = N changes the cell's rowid, not a column value.
+		if isRowIDName(a.Column) && !rowHasRowIDColumn(colDefs) {
+			// SET rowid = N changes the cell's rowid, not a column value (only
+			// when the table has no column named rowid/oid/_rowid_; a declared
+			// rowid column is a normal column assignment).
 			v, err := e.evalExpr(a.Value, row)
 			if err != nil {
 				return nil, fmt.Errorf("exec: failed to evaluate SET expression for %s: %w", a.Column, err)

@@ -90,6 +90,7 @@ type Engine struct {
 	resolvingCTEs     map[string]bool                  // CTEs currently being resolved (circular reference detection)
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
 	currentDMLTable   string                           // table being INSERTed/UPDATEd (for qualified refs in CHECK/defaults)
+	currentDMLCtx     *DatabaseContext                 // database context of the table being modified (trigger scoping)
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
 	// schemaPin, when non-nil, restricts unqualified table/view name
 	// resolution to a single schema (view-body name resolution, matching
@@ -1267,6 +1268,20 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// changed-row count (SQLite's legacy behavior when the pragma is on).
 	if isDML && res != nil && res.Error == nil && e.countChanges && len(res.Rows) == 0 {
 		res.Rows = [][]interface{}{{res.Changes}}
+	}
+	// Flush attached database pagers after a successful DML/DDL so a later
+	// connection on the attached file sees the writes immediately (SQLite
+	// commits each statement). The main pager is flushed on Close.
+	if res != nil && res.Error == nil {
+		for name, ctx := range e.databases {
+			upper := strings.ToUpper(name)
+			if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+				continue
+			}
+			if ctx.Pager != nil {
+				_ = ctx.Pager.Flush()
+			}
+		}
 	}
 	return res
 }

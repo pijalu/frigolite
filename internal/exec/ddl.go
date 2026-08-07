@@ -176,6 +176,30 @@ func (e *Engine) DetachAll() {
 	e.dbList = []*DatabaseContext{e.mainDB}
 }
 
+// Close closes every database pager (attached databases first, then main),
+// flushing buffered writes to disk so a later connection on an attached file
+// sees the committed schema/data.
+func (e *Engine) Close() error {
+	var firstErr error
+	for name, ctx := range e.databases {
+		upper := strings.ToUpper(name)
+		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+			continue
+		}
+		if ctx.Pager != nil {
+			if err := ctx.Pager.Close(); err != nil && firstErr == nil {
+				firstErr = err
+			}
+		}
+	}
+	if e.pager != nil {
+		if err := e.pager.Close(); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return firstErr
+}
+
 // --- CREATE TABLE ---
 
 func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
@@ -1483,6 +1507,7 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	ctx := e.mainDB
 	triggerName := rawName
 	tableName := s.Table
+	explicitSchema := false
 
 	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
 		prefix := rawName[:dotIdx]
@@ -1496,6 +1521,7 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		// A quoted trigger name like "r17.1" legitimately contains a dot.
 		if isSchema {
 			triggerName = rawName[dotIdx+1:]
+			explicitSchema = true
 		}
 	}
 
@@ -1524,8 +1550,10 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	}
 
 	// A trigger on a TEMP table (resolved via the temp-first lookup or an
-	// explicit temp. prefix) lives in the TEMP schema, matching SQLite.
-	if ctx == e.mainDB {
+	// explicit temp. prefix) lives in the TEMP schema, matching SQLite. An
+	// explicitly schema-qualified trigger name (main.r300) pins the trigger to
+	// that schema regardless of where the ON table resolves.
+	if ctx == e.mainDB && !explicitSchema {
 		if tc := e.getDB("temp"); tc != nil {
 			if _, tctx, terr := e.findTable(tableName); terr == nil && tctx == tc {
 				ctx = tc

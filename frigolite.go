@@ -148,13 +148,14 @@ func Open(path string) (*DB, error) {
 
 // Close closes the database.
 func (db *DB) Close() error {
-	if db.pager != nil {
-		return db.pager.Close()
+	if db.engine != nil {
+		return db.engine.Close()
 	}
 	return nil
 }
 
-// DetachAll detaches all attached databases except "main", "temp", and "temporary".
+// DetachAll detaches all attached databases except "main", "temp", and
+// "temporary".
 func (db *DB) DetachAll() {
 	db.engine.DetachAll()
 }

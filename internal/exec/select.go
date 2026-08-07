@@ -6331,6 +6331,19 @@ func (e *Engine) filterSystemTables(allRows [][]interface{}, allRowMaps []RowMap
 }
 
 // buildRowMap builds a column-name-to-value map from a record.
+// rowHasRowIDColumn reports whether the column definitions include a column
+// named rowid, _rowid_, or oid. SQLite lets tables declare such columns; the
+// column then shadows the pseudo-rowid alias for unqualified name resolution.
+func rowHasRowIDColumn(colDefs []sql.ColumnDef) bool {
+	for _, cd := range colDefs {
+		n := strings.ToLower(cd.Name)
+		if n == "rowid" || n == "_rowid_" || n == "oid" {
+			return true
+		}
+	}
+	return false
+}
+
 func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) RowMap {
 	row := make(RowMap)
 	for i, v := range rec.Values {
@@ -6351,7 +6364,14 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 			row[fmt.Sprintf("c%d", i)] = v
 		}
 	}
-	row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+	// A table may declare columns named rowid/oid/_rowid_ (SQLite allows it);
+	// in that case the COLUMN value shadows the pseudo-rowid for name
+	// resolution. Only install the pseudo-rowid when no such column exists.
+	if !rowHasRowIDColumn(colDefs) {
+		row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+		row["_rowid_"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+		row["oid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+	}
 	for _, cd := range colDefs {
 		if cd.PrimaryKey && row[cd.Name] == nil {
 			row[cd.Name] = rowID

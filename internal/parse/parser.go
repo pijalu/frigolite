@@ -2648,9 +2648,16 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 261: trigger_decl ::= temp TRIGGER ifnotexists nm dbnm trigger_time
 	//            trigger_event ON fullname foreach_clause when_clause
 	case 261:
+		nm := getString(getRHS(p, ruleNo, 4))
+		dbnm := getString(getRHS(p, ruleNo, 5))
+		trigName := nm
+		if dbnm != "" {
+			// "CREATE TRIGGER main.r300": nm is the schema, dbnm the name.
+			trigName = nm + "." + dbnm
+		}
 		return &triggerDeclInfo{
-			name:       getString(getRHS(p, ruleNo, 4)),
-			schema:     getString(getRHS(p, ruleNo, 5)),
+			name:       trigName,
+			schema:     dbnm,
 			time:       getString(getRHS(p, ruleNo, 6)),
 			event:      getString(getRHS(p, ruleNo, 7)),
 			table:      getString(getRHS(p, ruleNo, 9)),
