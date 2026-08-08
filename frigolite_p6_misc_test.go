@@ -655,3 +655,29 @@ func TestP6_CompoundOrderByStar(t *testing.T) {
 		t.Errorf("ON referencing SELECT alias: %v", r.Error)
 	}
 }
+
+// TestP6_DerivedTableShadowsInner covers select6: a derived table's output
+// columns shadow its inner tables for ambiguity validation (SELECT q FROM
+// (SELECT t3.q AS q, ... FROM t3 NATURAL JOIN t4) n is not ambiguous even
+// though inner t3 and t4 both have q).
+func TestP6_DerivedTableShadowsInner(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE t1(x,y);
+		CREATE TABLE t2(a,b);
+		CREATE TABLE t3(p,q);
+		CREATE TABLE t4(q,r);
+		INSERT INTO t1 VALUES(1,10),(2,20);
+		INSERT INTO t2 VALUES(1,100),(2,200);
+		INSERT INTO t3 VALUES(5,50),(6,60);
+		INSERT INTO t4 VALUES(50,500),(60,600);
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	r := db.Query(`SELECT y, p, q, r FROM (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m, (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n WHERE y=p`)
+	if r.Error != nil {
+		t.Errorf("derived-table ambiguity: %v", r.Error)
+	}
+}

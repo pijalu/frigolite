@@ -7624,6 +7624,32 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 	}
 }
 
+// collectOuterTableNames collects the FROM/JOIN operand names visible at one
+// SELECT level WITHOUT descending into derived-table (subquery) operands. Used
+// by ambiguity validation: a derived table's output columns shadow its inner
+// tables at the outer level.
+func collectOuterTableNames(s *sql.SelectStmt, out map[string]bool) {
+	if s == nil {
+		return
+	}
+	tn := s.From.Name
+	if s.From.As != "" {
+		tn = s.From.As
+	}
+	if tn != "" {
+		out[tn] = true
+	}
+	for _, j := range s.Joins {
+		jn := j.Table.Name
+		if j.Table.As != "" {
+			jn = j.Table.As
+		}
+		if jn != "" {
+			out[jn] = true
+		}
+	}
+}
+
 // validateAmbiguousColumnRefs rejects unqualified column references that are
 // ambiguous across the joined tables (SQLite: "ambiguous column name: X" at
 // prepare time). Every table contributes its declared columns plus the
@@ -7631,9 +7657,13 @@ func collectFromTableNames(s *sql.SelectStmt, out map[string]bool) {
 // exists in more than one joined table is ambiguous. Qualified references
 // (t.col), TRUE/FALSE literals, and output-column aliases are exempt.
 func (e *Engine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
-	// Collect the visible table names (base + joins, using aliases).
+	// Collect the visible table names (base + joins, using aliases). Derived
+	// tables' inner tables are NOT visible at this level — the derived table's
+	// OUTPUT columns shadow them (SELECT q FROM (SELECT t3.q AS q, ... FROM t3
+	// NATURAL JOIN t4) n must resolve q to n's output column, not the inner
+	// t3/t4 which both have q).
 	names := map[string]bool{}
-	collectFromTableNames(s, names)
+	collectOuterTableNames(s, names)
 	if len(names) < 2 {
 		return nil
 	}
