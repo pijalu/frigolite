@@ -767,16 +767,36 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 		case "WRITABLE_SCHEMA":
 			e.writableSchema = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "ENCODING":
-			// Accept UTF-8, UTF-16, UTF-16le, UTF-16be (case-insensitive)
+			// Accept UTF-8, UTF-16, UTF-16le, UTF-16be (case-insensitive).
+			// "UTF-16" means native byte order (UTF-16le on little-endian).
+			// SQLite persists the encoding to the database header (offset 56)
+			// so later connections and ATTACH agree on the text encoding.
+			var encNum uint32
 			switch strings.ToUpper(s.Value) {
 			case "UTF-8", "UTF8":
 				e.encoding = "UTF-8"
-			case "UTF-16LE", "UTF16LE":
+				encNum = 1
+			case "UTF-16LE", "UTF16LE", "UTF-16", "UTF16":
 				e.encoding = "UTF-16le"
-			case "UTF-16BE", "UTF16BE", "UTF-16", "UTF16":
+				encNum = 2
+			case "UTF-16BE", "UTF16BE":
 				e.encoding = "UTF-16be"
+				encNum = 3
 			default:
 				return &Result{Error: fmt.Errorf("unsupported encoding: %s", s.Value)}
+			}
+			// Persist to the current schema's database header (page 1). The
+			// encoding cannot be changed once tables exist, mirroring SQLite's
+			// behavior: the pragma is accepted but keeps the existing encoding
+			// for a non-empty database.
+			if dh := e.headerFor(ctx); dh != nil && dh.TextEncoding != 0 && dh.TextEncoding != encNum && !e.schemaIsEmpty(ctx) {
+				// Non-empty database: SQLite reports the pragma as accepted
+				// but keeps the existing encoding.
+				e.encoding = encodingName(dh.TextEncoding)
+			} else if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
+				h.TextEncoding = encNum
+			}); err != nil {
+				return &Result{Error: err}
 			}
 		case "JOURNAL_MODE":
 			// SQLite returns the resulting journal mode after assignment
@@ -1173,10 +1193,12 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"DATABASE_LIST": func(e *Engine) *Result {
 		var rows [][]interface{}
 		seq := int64(0)
-		// Main database first (seq 0), then attached databases
+		// Main database first (seq 0), then attached databases in ATTACH
+		// order (dbList preserves attachment order; the databases map does
+		// not, so iterating it would reorder rows non-deterministically).
 		rows = append(rows, []interface{}{seq, "main", e.mainDB.FilePath})
 		seq++
-		for _, ctx := range e.databases {
+		for _, ctx := range e.dbList {
 			upper := strings.ToUpper(ctx.Name)
 			if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
 				continue

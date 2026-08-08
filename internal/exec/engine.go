@@ -287,6 +287,23 @@ func (e *Engine) SetTriggerDepthLimit(n int) int {
 	return e.triggerDepthLimit
 }
 
+// Limit returns the current value of a named SQLite compile-time/run-time
+// limit (e.g. "SQLITE_LIMIT_ATTACHED", "SQLITE_LIMIT_EXPR_DEPTH").
+// Unknown limits return 0. Used by the test harness to query the engine's
+// configured limits (attach4-1.1 checks SQLITE_LIMIT_ATTACHED).
+func (e *Engine) Limit(name string) int {
+	switch strings.ToUpper(name) {
+	case "SQLITE_LIMIT_ATTACHED":
+		return MaxAttachedDatabases
+	case "SQLITE_LIMIT_EXPR_DEPTH":
+		return e.exprDepthLimit
+	case "SQLITE_LIMIT_TRIGGER_DEPTH":
+		return e.triggerDepthLimit
+	default:
+		return 0
+	}
+}
+
 // SetProgressHandler registers a progress callback invoked after every n
 // engine operations (n <= 0 disables it). A true return interrupts the
 // running statement with an "interrupted" error, matching SQLite's
@@ -323,6 +340,14 @@ func (e *Engine) checkProgress() error {
 func (e *Engine) SetDQS(ddl, dml bool) {
 	e.dqsDDL = ddl
 	e.dqsDML = dml
+}
+
+// SetMainFilePath records the filesystem path of the main database, reported
+// by PRAGMA database_list (SQLite reports the path passed to sqlite3_open).
+func (e *Engine) SetMainFilePath(path string) {
+	if e.mainDB != nil {
+		e.mainDB.FilePath = path
+	}
 }
 
 // SetTrackExternalModForMain enables external-modification detection for the
@@ -814,7 +839,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		nextRowIDCache:    make(map[rowidCacheKey]int64),
 		autoIncSeq:        make(map[rowidCacheKey]int64),
 		hasTriggersCache:  make(map[string]bool),
-		encoding:          "UTF-8",
+		encoding:          encodingName(headerTextEncoding(pg)),
 		recursiveCTELimit: 1000000,
 		exprDepthLimit:    1000, // SQLite default SQLITE_LIMIT_EXPR_DEPTH
 		dqsDDL:            true, // SQLite default: double-quoted strings allowed in DDL
@@ -916,12 +941,18 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 	e.detectExternalSchemaChanges()
 	// Check table cache first
 	if cached, ok := e.tableCache[name]; ok {
-		// Re-hydrate FTS state for cached entries too: a fresh engine has an
-		// empty ftsTables map until the first lookup, and tableCache may be
-		// consulted before ensureFTSForTable has run (e.g. after a schema
-		// invalidation that cleared only the cache used by UPDATE).
-		e.ensureFTSForTable(cached.entry)
-		return cached.entry, cached.ctx, nil
+		// A schema pin (view expansion in its own schema) must not reuse a
+		// cached entry from another schema: after a view in db2 resolves
+		// "t3" to db2.t3, a main-schema view referencing "t3" must
+		// resolve it to main.t3, not the stale db2 entry (attach-4.13).
+		if e.schemaPin == nil || cached.ctx == e.schemaPin {
+			// Re-hydrate FTS state for cached entries too: a fresh engine has an
+			// empty ftsTables map until the first lookup, and tableCache may be
+			// consulted before ensureFTSForTable has run (e.g. after a schema
+			// invalidation that cleared only the cache used by UPDATE).
+			e.ensureFTSForTable(cached.entry)
+			return cached.entry, cached.ctx, nil
+		}
 	}
 
 	schemaName, objName := parseSchemaName(name)

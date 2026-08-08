@@ -265,7 +265,36 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 	return &Result{Rows: [][]interface{}{{int64(ps)}}}
 }
 
-// schemaIsEmpty reports whether ctx has no user tables/views/indexes yet.
+// encodingName converts a numeric text-encoding header value (offset 56)
+// to the engine's encoding string: 1=UTF-8, 2=UTF-16le, 3=UTF-16be.
+func encodingName(enc uint32) string {
+	switch enc {
+	case 2:
+		return "UTF-16le"
+	case 3:
+		return "UTF-16be"
+	default:
+		return "UTF-8"
+	}
+}
+
+// headerTextEncoding returns the text-encoding field (offset 56) of the
+// pager's database header, or 1 (UTF-8) when the header is unavailable.
+func headerTextEncoding(pg *pager.Pager) uint32 {
+	hdr := pg.Header()
+	if hdr == nil {
+		return 1
+	}
+	dh, err := storage.ParseHeader(hdr)
+	if err != nil {
+		return 1
+	}
+	return dh.TextEncoding
+}
+
+// schemaIsEmpty reports whether ctx's schema contains no user objects
+// (tables, indexes, views, triggers). The sqlite_schema entry itself and
+// the sqlite_sequence autoincrement table are ignored.
 func (e *Engine) schemaIsEmpty(ctx *DatabaseContext) bool {
 	if ctx == nil {
 		ctx = e.mainDB

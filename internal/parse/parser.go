@@ -2864,10 +2864,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// expr (rule 180 yields a *sql.ColumnRef for a bare name).
 	case 285:
 		schema := ""
-		if ref, ok := getRHS(p, ruleNo, 3).(*sql.ColumnRef); ok {
-			schema = ref.Name
-		} else {
-			schema = getString(getRHS(p, ruleNo, 3))
+		rhs := getRHS(p, ruleNo, 3)
+		switch v := rhs.(type) {
+		case *sql.ColumnRef:
+			schema = v.Name
+		case *sql.StringLit:
+			schema = v.Value
+		case *sql.ParameterExpr, *sql.NullLit:
+			// Unbound parameter / NULL resolves to an empty schema name,
+			// matching SQLite's sqlite3Detach behavior for NULL names
+			// (the attach3-12.x tests rely on this).
+		default:
+			schema = getString(rhs)
 		}
 		return &sql.AttachStmt{IsDetach: true, Schema: schema}
 

@@ -81,6 +81,15 @@ func (db *DB) SetTriggerDepthLimit(n int) int {
 	return 0
 }
 
+// Limit returns the current value of a named SQLite limit (e.g.
+// "SQLITE_LIMIT_ATTACHED"). Unknown limits return 0.
+func (db *DB) Limit(name string) int {
+	if db != nil && db.engine != nil {
+		return db.engine.Limit(name)
+	}
+	return 0
+}
+
 // SetProgressHandler registers a progress callback invoked after every n
 // engine operations. A true return interrupts the running statement with an
 // "interrupted" error (SQLite sqlite3_progress_handler).
@@ -157,6 +166,9 @@ func Open(path string) (*DB, error) {
 		pager:  pg,
 		engine: exec.NewEngine(pg),
 		path:   path,
+	}
+	if path != "" && path != ":memory:" {
+		db.engine.SetMainFilePath(path)
 	}
 	db.schema = schema.NewManager(pg)
 

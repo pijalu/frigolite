@@ -21,6 +21,12 @@ import (
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
+// MaxAttachedDatabases is the SQLite SQLITE_MAX_ATTACHED default (10): the
+// maximum number of attached databases a connection may hold, excluding
+// main/temp. The engine enforces this in execAttach and reports it via
+// Engine.Limit("SQLITE_LIMIT_ATTACHED").
+const MaxAttachedDatabases = 10
+
 // --- ATTACH / DETACH ---
 
 func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
@@ -40,7 +46,7 @@ func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
 		return &Result{Error: fmt.Errorf("database %s is already in use", s.Schema)}
 	}
 
-	// Check max attached databases (SQLite limit: 10)
+	// Check max attached databases (SQLite limit: SQLITE_MAX_ATTACHED)
 	attachedCount := 0
 	for _, ctx := range e.databases {
 		upper := strings.ToUpper(ctx.Name)
@@ -48,8 +54,8 @@ func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
 			attachedCount++
 		}
 	}
-	if attachedCount >= 10 {
-		return &Result{Error: fmt.Errorf("too many attached databases - max 10")}
+	if attachedCount >= MaxAttachedDatabases {
+		return &Result{Error: fmt.Errorf("too many attached databases - max %d", MaxAttachedDatabases)}
 	}
 
 	if schemaUpper == "SQLITE_MASTER" || schemaUpper == "SQLITE_SCHEMA" {
@@ -71,6 +77,13 @@ func (e *Engine) execAttach(s *sql.AttachStmt) *Result {
 		}
 	}
 	isMemory := path == "" || path == ":memory:"
+	// SQLite URI filenames: `file:PATH?mode=memory` (and `?mode=memory&...`)
+	// open an in-memory database regardless of the PATH component (attach
+	// test 11.1 uses printf('file:%09000x/x.db?mode=memory&cache=shared',1)
+	// to build a long URI). Treat mode=memory URIs as in-memory.
+	if strings.Contains(path, "?mode=memory") || strings.Contains(path, "&mode=memory") {
+		isMemory = true
+	}
 
 	var pg *pager.Pager
 	var err error
