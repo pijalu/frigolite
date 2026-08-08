@@ -217,11 +217,18 @@ func (e *Engine) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry) *Res
 		return &Result{}
 	}
 	// Convert each view row into a RowMap keyed by the view's column names.
+	// Collect matched (old,new) pairs first so UPDATE ... ORDER BY ... LIMIT
+	// applies to the trigger rows (SQLite processes only the LIMIT window).
 	var changed int64
 	colDefs := make([]sql.ColumnDef, len(viewCols))
 	for i, c := range viewCols {
 		colDefs[i] = sql.ColumnDef{Name: c}
 	}
+	type upPair struct {
+		oldRow RowMap
+		newRow RowMap
+	}
+	var pairs []upPair
 	for _, rowVals := range viewResult.Rows {
 		oldRow := make(RowMap)
 		for i, v := range rowVals {
@@ -271,7 +278,44 @@ func (e *Engine) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry) *Res
 			}
 			newRow[a.Column] = util.UnwrapColumnValue(v)
 		}
-		if res := e.fireTriggers(viewEntry.Name, "UPDATE", "BEFORE", newRow, oldRow); res != nil && res.Error != nil {
+		pairs = append(pairs, upPair{oldRow: oldRow, newRow: newRow})
+	}
+	if len(s.OrderBy) > 0 {
+		oldRows := make([]RowMap, len(pairs))
+		for i, p := range pairs {
+			oldRows[i] = p.oldRow
+		}
+		e.sortDeleteRows(oldRows, s.OrderBy)
+		order := make(map[string]int, len(oldRows)) // oldRow pointer -> pair index
+		for i, p := range pairs {
+			order[fmt.Sprintf("%p", p.oldRow)] = i
+		}
+		reordered := make([]upPair, 0, len(pairs))
+		for _, or := range oldRows {
+			reordered = append(reordered, pairs[order[fmt.Sprintf("%p", or)]])
+		}
+		pairs = reordered
+	}
+	if s.Limit != nil {
+		oldRows := make([]RowMap, len(pairs))
+		for i, p := range pairs {
+			oldRows[i] = p.oldRow
+		}
+		oldRows = e.limitDeleteRows(oldRows, &sql.DeleteStmt{Where: s.Where, OrderBy: s.OrderBy, Limit: s.Limit, Offset: s.Offset})
+		keep := make(map[string]bool, len(oldRows))
+		for _, or := range oldRows {
+			keep[fmt.Sprintf("%p", or)] = true
+		}
+		var limited []upPair
+		for _, p := range pairs {
+			if keep[fmt.Sprintf("%p", p.oldRow)] {
+				limited = append(limited, p)
+			}
+		}
+		pairs = limited
+	}
+	for _, p := range pairs {
+		if res := e.fireTriggers(viewEntry.Name, "UPDATE", "BEFORE", p.newRow, p.oldRow); res != nil && res.Error != nil {
 			return res
 		}
 		changed++

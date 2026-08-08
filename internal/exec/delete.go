@@ -228,6 +228,10 @@ func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Res
 		viewCols = decl
 	}
 	var changed int64
+	// Materialize matching rows first so DELETE ... ORDER BY ... LIMIT applies
+	// to view deletes too (SQLite applies the ORDER BY/LIMIT to the set of
+	// rows the INSTEAD OF trigger processes).
+	var matched []RowMap
 	for _, rowVals := range viewResult.Rows {
 		oldRow := make(RowMap)
 		for i, v := range rowVals {
@@ -242,6 +246,15 @@ func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Res
 				continue
 			}
 		}
+		matched = append(matched, oldRow)
+	}
+	if len(s.OrderBy) > 0 {
+		e.sortDeleteRows(matched, s.OrderBy)
+	}
+	if s.Limit != nil {
+		matched = e.limitDeleteRows(matched, s)
+	}
+	for _, oldRow := range matched {
 		if res := e.fireTriggers(viewEntry.Name, "DELETE", "BEFORE", nil, oldRow); res != nil && res.Error != nil {
 			return res
 		}

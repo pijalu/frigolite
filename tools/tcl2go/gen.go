@@ -3429,6 +3429,22 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 				break
 			}
 		}
+		// create_test_data N (wherelimit.test): a local proc building a
+		// size×size t1 grid. Inline its body (DROP/CREATE/BEGIN + nested
+		// INSERT loop + COMMIT).
+		if cmdName == "create_test_data" && len(args) >= 1 {
+			size := strings.TrimSpace(args[0].Text)
+			tp.emitLine("// create_test_data %s (inlined)", size)
+			tp.emitLine("_res = db.Exec(\"DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;\")")
+			tp.emitLine("if _res.Error != nil { t.Errorf(\"create_test_data drop/create: %v\", _res.Error) }")
+			tp.emitLine("for _ci := 1; _ci <= %s; _ci++ {", size)
+			tp.emitLine("for _cj := 1; _cj <= %s; _cj++ {", size)
+			tp.emitLine("if rerr := db.Exec(fmt.Sprintf(\"INSERT INTO t1 VALUES(%%d,%%d)\", _ci, _cj)).Error; rerr != nil { t.Errorf(\"create_test_data insert: %%v\", rerr) }")
+			tp.emitLine("}")
+			tp.emitLine("}")
+			tp.emitLine("if rerr := db.Exec(\"COMMIT;\").Error; rerr != nil { t.Errorf(\"create_test_data commit: %v\", rerr) }")
+			break
+		}
 		// Unsupported command — emit as comment to avoid test failures
 		if len(args) > 0 {
 			tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, sanitizeTCLComment(describeArgsShort(args)))

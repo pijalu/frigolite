@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -2478,7 +2479,9 @@ func (e *Engine) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry, ftsT
 func (e *Engine) execFTSDelete(ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, s *sql.DeleteStmt) *Result {
 	e.currentFTSMatch = ""
 	docIDs := ftsTable.AllRowsMap()
-	deleted := int64(0)
+	// Apply the WHERE filter first, then DELETE ... ORDER BY ... LIMIT (the
+	// SQLite extension applies to the filtered rowid set).
+	var matched []int64
 	for _, docID := range docIDs {
 		shouldDelete := true
 		if s.Where != nil {
@@ -2493,11 +2496,63 @@ func (e *Engine) execFTSDelete(ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef,
 			}
 		}
 		if shouldDelete {
-			ftsTable.Delete(docID)
-			deleted++
+			matched = append(matched, docID)
 		}
 	}
+	if len(s.OrderBy) > 0 {
+		// ORDER BY rowid (or a simple column) on an FTS table: sort the
+		// matched docIDs. Only rowid/asc/desc forms are meaningful here;
+		// other ORDER BY expressions fall back to natural order.
+		if ob, ok := ftsOrderByRowID(s.OrderBy); ok {
+			sort.SliceStable(matched, func(i, j int) bool {
+				if ob.desc {
+					return matched[i] > matched[j]
+				}
+				return matched[i] < matched[j]
+			})
+		}
+	}
+	// LIMIT n [OFFSET m]: keep the first n after skipping m.
+	limit := -1
+	offset := 0
+	if s.Limit != nil {
+		if v, err := e.evalConstInt(s.Limit); err == nil {
+			limit = int(v)
+		}
+	}
+	if s.Offset != nil {
+		if v, err := e.evalConstInt(s.Offset); err == nil {
+			offset = int(v)
+		}
+	}
+	if offset > len(matched) {
+		matched = nil
+	} else {
+		matched = matched[offset:]
+	}
+	if limit >= 0 && limit < len(matched) {
+		matched = matched[:limit]
+	}
+	deleted := int64(0)
+	for _, docID := range matched {
+		ftsTable.Delete(docID)
+		deleted++
+	}
 	return &Result{Changes: deleted}
+}
+
+// ftsOrderByRowID reports whether an FTS DELETE/UPDATE ORDER BY is a simple
+// rowid (or integer column) ordering that can be applied to the docID set.
+// Returns the ascending/descending direction.
+func ftsOrderByRowID(orderBy []sql.OrderByTerm) (struct{ desc bool }, bool) {
+	if len(orderBy) != 1 {
+		return struct{ desc bool }{}, false
+	}
+	ob := orderBy[0]
+	if ref, ok := ob.Expr.(*sql.ColumnRef); ok && strings.EqualFold(ref.Name, "rowid") {
+		return struct{ desc bool }{desc: ob.Desc}, true
+	}
+	return struct{ desc bool }{}, false
 }
 
 func selectStmtToString(s *sql.SelectStmt) string {

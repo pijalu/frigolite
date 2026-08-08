@@ -5,6 +5,7 @@
 package wherelimit
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -102,7 +103,15 @@ func Test_wherelimit(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 	}
-	// create_test_data 5 (unsupported command, not transpiled)
+	// create_test_data 5 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 5; _ci++ {
+	for _cj := 1; _cj <= 5; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-1.0"
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
@@ -119,7 +128,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 5 (unsupported command, not transpiled)
+	// create_test_data 5 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 5; _ci++ {
+	for _cj := 1; _cj <= 5; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-1.2"
 		_res = db.Exec("DELETE FROM t1 LIMIT 5")
 		if _res.Error != nil {
@@ -140,7 +157,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 4 (unsupported command, not transpiled)
+	// create_test_data 4 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 4; _ci++ {
+	for _cj := 1; _cj <= 4; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-1.3b"
 		r = db.Query("DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5")
 		if r.Error != nil {
@@ -195,7 +220,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 5 (unsupported command, not transpiled)
+	// create_test_data 5 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 5; _ci++ {
+	for _cj := 1; _cj <= 5; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-1.8"
 		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT -2, -5")
 		if _res.Error != nil {
@@ -206,7 +239,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 3 (unsupported command, not transpiled)
+	// create_test_data 3 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 3; _ci++ {
+	for _cj := 1; _cj <= 3; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-1.9"
 		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 2, 5")
 		if _res.Error != nil {
@@ -257,7 +298,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-2.0"
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
@@ -274,7 +323,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-2.2"
 		_res = db.Exec("DELETE FROM t1 WHERE x=1 LIMIT 5")
 		if _res.Error != nil {
@@ -345,7 +402,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-2.9"
 		_res = db.Exec("DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5")
 		if _res.Error != nil {
@@ -396,7 +461,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-3.0"
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
@@ -413,7 +486,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-3.2"
 		r = db.Query("UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5")
 		if r.Error != nil {
@@ -436,7 +517,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=2")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-3.4"
 		_res = db.Exec("UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2")
 		if _res.Error != nil {
@@ -487,7 +576,15 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=4")
 		}
 	}
-	// create_test_data 6 (unsupported command, not transpiled)
+	// create_test_data 6 (inlined)
+	_res = db.Exec("DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;")
+	if _res.Error != nil { t.Errorf("create_test_data drop/create: %!v(MISSING)", _res.Error) }
+	for _ci := 1; _ci <= 6; _ci++ {
+	for _cj := 1; _cj <= 6; _cj++ {
+	if rerr := db.Exec(fmt.Sprintf("INSERT INTO t1 VALUES(%d,%d)", _ci, _cj)).Error; rerr != nil { t.Errorf("create_test_data insert: %v", rerr) }
+	}
+	}
+	if rerr := db.Exec("COMMIT;").Error; rerr != nil { t.Errorf("create_test_data commit: %!v(MISSING)", rerr) }
 	{ // do_test "wherelimit-3.9"
 		_res = db.Exec("UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5")
 		if _res.Error != nil {
