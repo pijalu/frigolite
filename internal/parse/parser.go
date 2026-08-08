@@ -11,6 +11,7 @@ package parse
 import (
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -28,6 +29,15 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	rewritten, stmtClauses, hasStmtRewrite := rewriteStmtOrderLimit(input)
 	if hasStmtRewrite {
 		input = rewritten
+	}
+
+	// UPDATE ... SET (c,d) = (SELECT y,z ...) (row-value assignment) is not
+	// in the LALR tables either; rewrite it into per-column assignments. An
+	// arity mismatch (N columns assigned M values) is reported here.
+	var parenErr error
+	input, parenErr = rewriteParenSet(input)
+	if parenErr != nil {
+		return nil, parenErr
 	}
 
 	// If input is only whitespace or comments, return no statements without error.
@@ -611,6 +621,322 @@ func clauseTextForToken(toks []sql.Token, input string, tokStart int) (string, i
 		}
 	}
 	return strings.TrimSpace(input[from:to]), from, to
+}
+
+// rewriteParenSet rewrites UPDATE ... SET (c1, c2) = (expr) — SQLite's
+// row-value assignment — into per-column assignments the LALR tables accept:
+//   SET (c,d) = (SELECT y,z FROM t WHERE ...) →
+//     SET c = (SELECT y FROM t WHERE ...), d = (SELECT z FROM t WHERE ...)
+//   SET (c) = 99 → SET c = 99
+// A scalar RHS (SET (c) = 99) assigns that value to every listed column.
+// When the RHS is a subquery whose column count differs from the column list,
+// the rewrite leaves the statement unchanged so the engine reports the arity
+// mismatch at parse time (it fails to parse, and the caller surfaces it).
+func rewriteParenSet(input string) (string, error) {
+	if !strings.Contains(strings.ToUpper(input), "SET") || !strings.Contains(input, "(") {
+		return input, nil
+	}
+	toks, ok := tokenizeInput(input)
+	if !ok {
+		return input, nil
+	}
+	spans := splitTopLevelStatements(toks)
+	// Byte offset of the end of a token span (sp.end is a token index).
+	spanBytesEnd := func(sp stmtSpan) int {
+		if sp.end <= sp.start || sp.end > len(toks) {
+			return len(input)
+		}
+		lastTok := toks[sp.end-1]
+		return lastTok.Pos + len(lastTok.Value)
+	}
+	var sb strings.Builder
+	last := 0
+	for _, sp := range spans {
+		spEndBytes := spanBytesEnd(sp)
+		// Find every "SET (" at depth 0 inside an UPDATE statement, plus any
+		// "(col, col) =" paren-set that follows a comma in a setlist (the
+		// tokenizer sees it as LParen...RParen EQ, not preceded by SET).
+		d := 0
+		var setIdxs []int
+		inUpdate := false
+		for j := sp.start; j < sp.end; j++ {
+			if !inUpdate && toks[j].Type == sql.TokenKeyword && strings.EqualFold(toks[j].Value, "UPDATE") {
+				inUpdate = true
+			}
+			switch toks[j].Type {
+			case sql.TokenLParen:
+				d++
+			case sql.TokenRParen:
+				if d > 0 {
+					d--
+				}
+				// A closed paren followed by EQ at depth 0 is a paren-set
+				// (SET (c,d) = ... or SET b=8, (c,d) = ...). Skip the SET (
+				// form (already recorded via the SET keyword below).
+				if inUpdate && d == 0 && j+1 < sp.end && toks[j+1].Type == sql.TokenEq {
+					precededBySET := false
+					// walk back to find SET (
+					dd := 0
+					for k := j; k >= 0; k-- {
+						if toks[k].Type == sql.TokenLParen {
+							dd++
+						}
+						if toks[k].Type == sql.TokenRParen {
+							dd--
+						}
+						if dd == 0 && toks[k].Type == sql.TokenKeyword &&
+							strings.EqualFold(toks[k].Value, "SET") &&
+							k+1 < sp.end && toks[k+1].Type == sql.TokenLParen {
+							precededBySET = true
+							break
+						}
+					}
+					if !precededBySET {
+						setIdxs = append(setIdxs, j)
+					}
+				}
+			case sql.TokenKeyword:
+				if d == 0 && strings.EqualFold(toks[j].Value, "SET") &&
+					j+1 < sp.end && toks[j+1].Type == sql.TokenLParen {
+					setIdxs = append(setIdxs, j)
+				}
+			}
+		}
+		if len(setIdxs) == 0 {
+			sb.WriteString(input[last:spEndBytes])
+			last = spEndBytes
+			continue
+		}
+		// Rewrite each paren-set within the span, splicing into a growing
+		// byte buffer: the plain text before each paren-set stays, the
+		// paren-set becomes "SET col = expr[, col = expr...]".
+		cur := last
+		for _, setIdx := range setIdxs {
+			// setIdx may be the SET keyword token (SET (c,d)=...), the LParen, or
+			// the closing RParen (SET b=8, (c,d)=...). Normalize to (lp, closeParen).
+			lp := -1
+			closeParen := -1
+			switch {
+			case toks[setIdx].Type == sql.TokenLParen:
+				lp = setIdx
+				// find the matching close paren
+				depth := 0
+				for j := lp; j < sp.end; j++ {
+					switch toks[j].Type {
+					case sql.TokenLParen:
+						depth++
+					case sql.TokenRParen:
+						depth--
+						if depth == 0 {
+							closeParen = j
+							j = sp.end
+						}
+					}
+				}
+			case toks[setIdx].Type == sql.TokenRParen:
+				closeParen = setIdx
+				// Walk back to the matching LParen.
+				depth := 0
+				for j := setIdx; j >= 0; j-- {
+					switch toks[j].Type {
+					case sql.TokenRParen:
+						depth++
+					case sql.TokenLParen:
+						depth--
+						if depth == 0 {
+							lp = j
+							j = -1
+						}
+					}
+				}
+			case toks[setIdx].Type == sql.TokenKeyword && strings.EqualFold(toks[setIdx].Value, "SET"):
+				// SET (c,d)=... : the LParen is the next token.
+				if setIdx+1 < sp.end && toks[setIdx+1].Type == sql.TokenLParen {
+					lp = setIdx + 1
+					depth := 0
+					for j := lp; j < sp.end; j++ {
+						switch toks[j].Type {
+						case sql.TokenLParen:
+							depth++
+						case sql.TokenRParen:
+							depth--
+							if depth == 0 {
+								closeParen = j
+								j = sp.end
+							}
+						}
+					}
+				}
+			}
+			if lp < 0 || closeParen < 0 {
+				continue
+			}
+			eqIdx := -1
+			for j := closeParen + 1; j < sp.end; j++ {
+				if toks[j].Type == sql.TokenEq {
+					eqIdx = j
+					break
+				}
+			}
+			if eqIdx < 0 {
+				continue
+			}
+			cols := make([]string, 0)
+			for j := lp + 1; j < closeParen; j++ {
+				if toks[j].Type == sql.TokenIdentifier || toks[j].Type == sql.TokenKeyword {
+					if !strings.EqualFold(toks[j].Value, "") {
+						cols = append(cols, toks[j].Value)
+					}
+				}
+			}
+			if len(cols) == 0 {
+				continue
+			}
+			// Find the RHS expression end (next depth-0 COMMA or statement end).
+			rhsStart := toks[eqIdx].Pos + 1
+			rhsEnd := spEndBytes
+			depth := 0
+			for j := eqIdx + 1; j < sp.end; j++ {
+				switch toks[j].Type {
+				case sql.TokenLParen:
+					depth++
+				case sql.TokenRParen:
+					if depth > 0 {
+						depth--
+					}
+				case sql.TokenComma:
+					if depth == 0 {
+						rhsEnd = toks[j].Pos
+					}
+				case sql.TokenKeyword:
+					// A depth-0 keyword that ends the setlist (WHERE, FROM,
+					// ORDER, LIMIT, RETURNING) terminates the RHS.
+					if depth == 0 {
+						switch strings.ToUpper(toks[j].Value) {
+						case "WHERE", "FROM", "ORDER", "LIMIT", "RETURNING":
+							rhsEnd = toks[j].Pos
+						}
+					}
+				}
+				if rhsEnd < spEndBytes {
+					break
+				}
+			}
+			rhs := strings.TrimSpace(input[rhsStart:rhsEnd])
+			var assigns []string
+			if len(rhs) >= 2 && rhs[0] == '(' && rhs[len(rhs)-1] == ')' {
+				inner := strings.TrimSpace(rhs[1 : len(rhs)-1])
+				if strings.HasPrefix(strings.ToUpper(inner), "SELECT") {
+					if sqlParts, ok := splitSelectList(inner, len(cols)); ok {
+						for i, col := range cols {
+							assigns = append(assigns, fmt.Sprintf("%s = (%s)", col, sqlParts[i]))
+						}
+					} else {
+						// Arity mismatch: SQLite reports "N columns assigned M
+						// values" at prepare time.
+						m := len(splitTopLevelComma(strings.TrimSpace(strings.TrimPrefix(inner, "SELECT "))))
+						return "", fmt.Errorf("%d columns assigned %d values", len(cols), m)
+					}
+				} else {
+					for _, col := range cols {
+						assigns = append(assigns, fmt.Sprintf("%s = %s", col, rhs))
+					}
+				}
+			} else {
+				for _, col := range cols {
+					assigns = append(assigns, fmt.Sprintf("%s = %s", col, rhs))
+				}
+			}
+			// beforeText already ends with "SET " (SET (c,d)=...) or ", "
+			// (SET b=8, (c,d)=...), so the replacement continues the setlist
+			// without adding another SET keyword.
+			sb.WriteString(input[cur:toks[lp].Pos])
+			sb.WriteString(strings.Join(assigns, ", "))
+			cur = rhsEnd
+		}
+		sb.WriteString(input[cur:spEndBytes])
+		last = spEndBytes
+	}
+	sb.WriteString(input[last:])
+	return sb.String(), nil
+}
+
+// splitSelectList splits a SELECT statement's select list into per-column
+// subqueries: given "SELECT y, z FROM t WHERE ...", returns
+// ["SELECT y FROM t WHERE ...", "SELECT z FROM t WHERE ..."]. Returns ok=false
+// when the list has a different number of columns than expected.
+func splitSelectList(selectSQL string, wantCols int) ([]string, bool) {
+	rest := strings.TrimSpace(selectSQL)
+	re := regexp.MustCompile(`(?is)^SELECT\s+(.*)$`)
+	m := re.FindStringSubmatch(rest)
+	if m == nil {
+		return nil, false
+	}
+	listAndFrom := m[1]
+	// Find the FROM keyword at depth 0 (the select list ends there).
+	toks, ok := tokenizeInput(listAndFrom)
+	if !ok {
+		return nil, false
+	}
+	d := 0
+	fromIdx := -1
+	for j, t := range toks {
+		switch t.Type {
+		case sql.TokenLParen:
+			d++
+		case sql.TokenRParen:
+			if d > 0 {
+				d--
+			}
+		case sql.TokenKeyword:
+			if d == 0 && strings.EqualFold(t.Value, "FROM") {
+				fromIdx = j
+			}
+		}
+		if fromIdx >= 0 {
+			break
+		}
+	}
+	listEnd := len(listAndFrom)
+	fromPart := ""
+	if fromIdx >= 0 {
+		listEnd = toks[fromIdx].Pos
+		fromPart = strings.TrimSpace(listAndFrom[toks[fromIdx].Pos:])
+	}
+	list := strings.TrimSpace(listAndFrom[:listEnd])
+	cols := splitTopLevelComma(list)
+	if len(cols) != wantCols {
+		return nil, false
+	}
+	out := make([]string, len(cols))
+	for i, c := range cols {
+		out[i] = "SELECT " + c + " " + fromPart
+	}
+	return out, true
+}
+
+// splitTopLevelComma splits a string on commas at parenthesis depth 0.
+func splitTopLevelComma(s string) []string {
+	var parts []string
+	depth := 0
+	start := 0
+	for i, c := range s {
+		switch c {
+		case '(', '[', '{':
+			depth++
+		case ')', ']', '}':
+			if depth > 0 {
+				depth--
+			}
+		case ',':
+			if depth == 0 {
+				parts = append(parts, strings.TrimSpace(s[start:i]))
+				start = i + 1
+			}
+		}
+	}
+	parts = append(parts, strings.TrimSpace(s[start:]))
+	return parts
 }
 
 // applyStmtSplices rebuilds the input with each clause's text replaced by a

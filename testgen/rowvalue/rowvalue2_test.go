@@ -161,9 +161,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want0 := db.Query(" SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2) ")
+		_want0 := db.Query("SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)")
 		if _want0.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, " SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2) ")
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)")
 			return
 		}
 		want := flatten(_want0)
@@ -178,9 +178,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want1 := db.Query(" SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2) ")
+		_want1 := db.Query("SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)")
 		if _want1.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, " SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2) ")
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)")
 			return
 		}
 		want := flatten(_want1)
@@ -195,9 +195,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want2 := db.Query(" SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2)) ")
+		_want2 := db.Query("SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))")
 		if _want2.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, " SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2)) ")
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))")
 			return
 		}
 		want := flatten(_want2)
@@ -212,9 +212,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want3 := db.Query(" SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2)) ")
+		_want3 := db.Query("SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))")
 		if _want3.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, " SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2)) ")
+			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))")
 			return
 		}
 		want := flatten(_want3)
@@ -276,9 +276,9 @@ func Test_rowvalue2(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						_want5 := db.Query("\n        SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid\n      ")
+						_want5 := db.Query("SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid")
 						if _want5.Error != nil {
-							t.Errorf("expected query error: %v\n  sql: %s", _want5.Error, "\n        SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid\n      ")
+							t.Errorf("expected query error: %v\n  sql: %s", _want5.Error, "SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid")
 							return
 						}
 						want := flatten(_want5)
@@ -293,9 +293,9 @@ func Test_rowvalue2(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						_want6 := db.Query("\n        SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid\n      ")
+						_want6 := db.Query("SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid")
 						if _want6.Error != nil {
-							t.Errorf("expected query error: %v\n  sql: %s", _want6.Error, "\n        SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid\n      ")
+							t.Errorf("expected query error: %v\n  sql: %s", _want6.Error, "SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid")
 							return
 						}
 						want := flatten(_want6)
@@ -341,9 +341,9 @@ func Test_rowvalue2(t *testing.T) {
 					_ = _idx8
 						for _, op := range tclSplitList("IS == < <= > >=") {
 						_ = op // suppress unused warning
-							e1 = "make_expr1 {a b c} $vector $op"
+							e1 = tclMakeExpr1("a b c", vector, op)
 							_ = e1 // suppress unused warning
-							e2 = "make_expr2 {a b c} $vector $op"
+							e2 = tclMakeExpr2("a b c", vector, op)
 							_ = e2 // suppress unused warning
 							{ // "4." + tn + "." + tn2 + "." + op
 								r = db.Query("SELECT rowid FROM t4 WHERE " + e2 + " ORDER BY +rowid")
@@ -352,7 +352,12 @@ func Test_rowvalue2(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := "db eval \"SELECT rowid FROM t4 WHERE $e1 ORDER BY +rowid\""
+								_want9 := db.Query("SELECT rowid FROM t4 WHERE " + e1 + " ORDER BY +rowid")
+								if _want9.Error != nil {
+									t.Errorf("expected query error: %v\n  sql: %s", _want9.Error, "SELECT rowid FROM t4 WHERE " + e1 + " ORDER BY +rowid")
+									return
+								}
+								want := flatten(_want9)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
@@ -367,20 +372,20 @@ func Test_rowvalue2(t *testing.T) {
 					}
 				}
 				// foreach {tn lhs rhs} "1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}"
-				_items9 := tclSplitList("1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}")
-				for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-					tn := _items9[_idx9+0]
+				_items10 := tclSplitList("1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}")
+				for _idx10 := 0; _idx10+3 <= len(_items10); _idx10 += 3 {
+					tn := _items10[_idx10+0]
 					_ = tn // suppress unused warning
-					lhs := _items9[_idx9+1]
+					lhs := _items10[_idx10+1]
 					_ = lhs // suppress unused warning
-					rhs := _items9[_idx9+2]
+					rhs := _items10[_idx10+2]
 					_ = rhs // suppress unused warning
-					_ = _idx9
+					_ = _idx10
 						for _, op := range tclSplitList("IS == < <= > >=") {
 						_ = op // suppress unused warning
-							e1 = "make_expr1 $lhs $rhs $op"
+							e1 = tclMakeExpr1(lhs, rhs, op)
 							_ = e1 // suppress unused warning
-							e2 = "make_expr2 $lhs $rhs $op"
+							e2 = tclMakeExpr2(lhs, rhs, op)
 							_ = e2 // suppress unused warning
 							{ // "5." + tn + "." + op
 								r = db.Query("SELECT * FROM r1, r2 WHERE " + e2 + " ORDER BY iB")
@@ -389,12 +394,12 @@ func Test_rowvalue2(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								_want10 := db.Query("\\\n      \"SELECT * FROM r1, r2 WHERE " + sqlLiteral(e1) + " ORDER BY iB\"")
-								if _want10.Error != nil {
-									t.Errorf("expected query error: %v\n  sql: %s", _want10.Error, "\\\n      \"SELECT * FROM r1, r2 WHERE " + sqlLiteral(e1) + " ORDER BY iB\"")
+								_want11 := db.Query("SELECT * FROM r1, r2 WHERE " + e1 + " ORDER BY iB")
+								if _want11.Error != nil {
+									t.Errorf("expected query error: %v\n  sql: %s", _want11.Error, "SELECT * FROM r1, r2 WHERE " + e1 + " ORDER BY iB")
 									return
 								}
-								want := flatten(_want10)
+								want := flatten(_want11)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}

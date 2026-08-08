@@ -809,3 +809,40 @@ func TestP6_Int64PrecisionCompare(t *testing.T) {
 		t.Errorf("numindex CASE: got [%s]", got)
 	}
 }
+
+// TestP6_RowValueCaseAndParenSet covers rowvalue7/8: row-value CASE
+// expressions (CASE (a,b) WHEN (1,2) THEN ...) and UPDATE SET (c,d) =
+// (subquery) row-value assignment.
+func TestP6_RowValueCaseAndParenSet(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);
+		INSERT INTO t1(a,b,c,d) VALUES(1,1,2,3),(2,2,3,4),(3,1,2,4),(4,2,3,5),(5,3,4,6),(6,4,5,9);
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	// Row-value CASE.
+	got := flattenQuery(t, db, `SELECT a, CASE (b,c) WHEN (1,2) THEN 'aleph' WHEN (2,3) THEN 'bet' WHEN (3,4) THEN 'gimel' ELSE '-' END FROM t1 ORDER BY a`)
+	if got != "1 aleph 2 bet 3 aleph 4 bet 5 gimel 6 -" {
+		t.Errorf("row-value CASE: got [%s]", got)
+	}
+	// Row-value CASE with subquery operand.
+	got = flattenQuery(t, db, `SELECT a, CASE (SELECT b,c FROM t1 WHERE a=1) WHEN (1,2) THEN 'y' ELSE 'n' END FROM t1 WHERE a=1`)
+	if got != "1 y" {
+		t.Errorf("row-value CASE subquery: got [%s]", got)
+	}
+	// UPDATE SET (c,d) = (subquery).
+	if err := db.Exec(`UPDATE t1 SET (c,d) = (SELECT 11,22 WHERE a=1) WHERE a=1`).Error; err != nil {
+		t.Fatalf("paren-set update: %v", err)
+	}
+	got = flattenQuery(t, db, "SELECT c, d FROM t1 WHERE a=1")
+	if got != "11 22" {
+		t.Errorf("paren-set update: got [%s] want [11 22]", got)
+	}
+	// Arity mismatch.
+	if err := db.Exec(`UPDATE t1 SET (c,d) = (SELECT 1,2,3) WHERE a=1`).Error; err == nil || !strings.Contains(err.Error(), "2 columns assigned 3 values") {
+		t.Errorf("paren-set arity: got %v", err)
+	}
+}

@@ -98,6 +98,8 @@ func Test_rowvalue(t *testing.T) {
 	_ = q // pre-declared from TCL source
 	var n string
 	_ = n // pre-declared from TCL source
+	var _err_tcl string
+	_ = _err_tcl // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var map_res string
@@ -780,11 +782,9 @@ func Test_rowvalue(t *testing.T) {
 											_ = sql // suppress unused warning
 											_ = _idx9
 												if func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n == 0 }() {
-													var _err_tcl string
 													_err_tcl = "row value misused"
 													_ = _err_tcl // suppress unused warning
 												} else {
-													var _err_tcl string
 													_err_tcl = "sub-select returns " + n + " columns - expected 1"
 													_ = _err_tcl // suppress unused warning
 												}

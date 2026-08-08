@@ -550,10 +550,22 @@ func tclListFlatten(s string) string {
 		if start >= 0 {
 			elem := s[start:end]
 			elem = strings.TrimSpace(elem)
+			wasEmpty := false
 			if strings.HasPrefix(elem, "{") && strings.HasSuffix(elem, "}") {
-				elem = strings.TrimSpace(elem[1 : len(elem)-1])
+				inner := strings.TrimSpace(elem[1 : len(elem)-1])
+				if inner == "" {
+					// A {} element is TCL's NULL/empty representation; keep it
+					// as {} so it matches flatten()'s cell rendering of NULL
+					// (rowvalue4 2.2.x: (1, NULL) = (SELECT ...) is NULL).
+					wasEmpty = true
+				}
+				elem = inner
 			}
-			elems = append(elems, elem)
+			if wasEmpty {
+				elems = append(elems, "{}")
+			} else {
+				elems = append(elems, elem)
+			}
 		}
 		start = -1
 	}
@@ -695,6 +707,71 @@ func tclSort(list string) string {
 	items := tclSplitList(list)
 	sort.Strings(items)
 	return tclList(items)
+}
+
+// tclSortInt implements TCL's lsort -integer: numeric ascending order.
+func tclSortInt(list string) string {
+	items := tclSplitList(list)
+	ns := make([]int64, len(items))
+	for i, it := range items {
+		ns[i], _ = strconv.ParseInt(it, 10, 64)
+	}
+	sort.Slice(ns, func(i, j int) bool { return ns[i] < ns[j] })
+	out := make([]string, len(ns))
+	for i, n := range ns {
+		out[i] = strconv.FormatInt(n, 10)
+	}
+	return tclList(out)
+}
+
+// tclMakeExpr1 implements rowvalue2's make_expr1: (c1, c2) OP (v1, v2).
+func tclMakeExpr1(cList, vList, op string) string {
+	cs := tclSplitList(cList)
+	vs := tclSplitList(vList)
+	return "(" + strings.Join(cs, ", ") + ") " + op + " (" + strings.Join(vs, ", ") + ")"
+}
+
+// tclMakeExpr3 implements rowvalue2's make_expr3: a prefix of equalities plus
+// one final OP comparison: (c0==v0 AND c1==v1 AND ... AND cN OP vN).
+func tclMakeExpr3(cList, vList, op string) string {
+	cs := tclSplitList(cList)
+	vs := tclSplitList(vList)
+	var parts []string
+	for i := 0; i+1 < len(cs); i++ {
+		parts = append(parts, cs[i]+" == "+vs[i])
+	}
+	parts = append(parts, cs[len(cs)-1]+" "+op+" "+vs[len(vs)-1])
+	return "(" + strings.Join(parts, " AND ") + ")"
+}
+
+// tclMakeExpr2 implements rowvalue2's make_expr2: row-value comparison
+// expanded per SQLite's lexicographic row-value semantics.
+func tclMakeExpr2(cList, vList, op string) string {
+	cs := tclSplitList(cList)
+	vs := tclSplitList(vList)
+	switch op {
+	case "==", "IS":
+		var parts []string
+		for i := range cs {
+			parts = append(parts, "("+cs[i]+" "+op+" "+vs[i]+")")
+		}
+		return strings.Join(parts, " AND ")
+	case "<", ">":
+		var parts []string
+		for i := range cs {
+			parts = append(parts, tclMakeExpr3(tclList(cs[:i+1]), tclList(vs[:i+1]), op))
+		}
+		return strings.Join(parts, " OR ")
+	case "<=", ">=":
+		o2 := op[:1]
+		var parts []string
+		for i := 0; i+1 < len(cs); i++ {
+			parts = append(parts, tclMakeExpr3(tclList(cs[:i+1]), tclList(vs[:i+1]), o2))
+		}
+		parts = append(parts, tclMakeExpr3(cList, vList, op))
+		return strings.Join(parts, " OR ")
+	}
+	return ""
 }
 
 func tclRegexp(pattern, str string) string {

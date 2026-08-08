@@ -250,24 +250,89 @@ func (e *Engine) evalCaseExpr(v *sql.CaseExpr, row Row) (interface{}, error) {
 }
 
 func (e *Engine) evalCaseWithOperand(v *sql.CaseExpr, row Row) (interface{}, error) {
+	// A subquery operand in a row-value CASE (CASE (SELECT a,b ...) WHEN
+	// (1,2) ...) is evaluated as its full row, not just the first column.
+	if subq, ok := v.Operand.(*sql.Subquery); ok {
+		rows, err := e.evalSubqueryRows(subq, row)
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) == 0 || len(rows[0]) == 0 {
+			return e.evalCaseElse(v, row)
+		}
+		if len(rows[0]) > 1 {
+			opRow := make([]interface{}, len(rows[0]))
+			for i := range rows[0] {
+				opRow[i] = util.UnwrapColumnValue(rows[0][i])
+			}
+			return e.evalRowValueCaseWhens(v, opRow, row)
+		}
+		operand := util.UnwrapColumnValue(rows[0][0])
+		return e.evalScalarCaseWhens(v, operand, row)
+	}
 	operand, err := e.evalExpr(v.Operand, row)
 	if err != nil {
 		return nil, err
 	}
-	// Simple CASE uses = semantics (SQLite): a NULL operand never matches,
-	// even a NULL WHEN (CASE NULL WHEN NULL → ELSE). Non-NULL operands are
-	// compared with the collation carried by either side (CASE operand
-	// COLLATE applies to the comparisons, matching SQLite's CASE expression
-	// collation resolution).
 	if operand != nil {
-		for _, w := range v.Whens {
-			when, err := e.evalExpr(w.When, row)
-			if err != nil {
-				return nil, err
+		if opRow, ok := operand.([]interface{}); ok {
+			return e.evalRowValueCaseWhens(v, opRow, row)
+		}
+		return e.evalScalarCaseWhens(v, operand, row)
+	}
+	return e.evalCaseElse(v, row)
+}
+
+// evalRowValueCaseWhens compares a row-value CASE operand against each WHEN
+// (CASE (a,b) WHEN (1,2) THEN ...) element-wise with row-value = semantics.
+func (e *Engine) evalRowValueCaseWhens(v *sql.CaseExpr, opRow []interface{}, row Row) (interface{}, error) {
+	for _, w := range v.Whens {
+		when, err := e.evalExpr(w.When, row)
+		if err != nil {
+			return nil, err
+		}
+		whenRow, ok := when.([]interface{})
+		if !ok || len(whenRow) != len(opRow) {
+			continue
+		}
+		equal := true
+		for i := range opRow {
+			l, lColl := extractValue(opRow[i])
+			r, _ := extractValue(whenRow[i])
+			if util.UnwrapColumnValue(l) == nil || util.UnwrapColumnValue(r) == nil {
+				equal = false
+				break
 			}
-			if e.compareValuesWithCollate(operand, when) == 0 {
-				return e.evalExpr(w.Then, row)
+			if lColl != "" {
+				if e.compareValuesCollate(util.UnwrapColumnValue(l), util.UnwrapColumnValue(r), lColl) != 0 {
+					equal = false
+					break
+				}
+			} else if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(r)) != 0 {
+				equal = false
+				break
 			}
+		}
+		if equal {
+			return e.evalExpr(w.Then, row)
+		}
+	}
+	return e.evalCaseElse(v, row)
+}
+
+// evalScalarCaseWhens compares a scalar CASE operand against each WHEN with
+// simple-CASE = semantics (NULL operand never matches).
+func (e *Engine) evalScalarCaseWhens(v *sql.CaseExpr, operand interface{}, row Row) (interface{}, error) {
+	if operand == nil {
+		return e.evalCaseElse(v, row)
+	}
+	for _, w := range v.Whens {
+		when, err := e.evalExpr(w.When, row)
+		if err != nil {
+			return nil, err
+		}
+		if e.compareValuesWithCollate(operand, when) == 0 {
+			return e.evalExpr(w.Then, row)
 		}
 	}
 	return e.evalCaseElse(v, row)
@@ -797,13 +862,14 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		if _, rok := right.([]interface{}); rok {
 			return e.evalRowValueIs(v.Operator, left, right)
 		}
-		// Unwrap ColumnValue wrappers so IS NULL works on joined values.
-		left = util.UnwrapColumnValue(left)
-		right = util.UnwrapColumnValue(right)
-		if left == nil && right == nil {
+		// IS is NULL-safe: NULL IS NULL is true, NULL IS x is false. Keep the
+		// ColumnValue wrappers so affinity applies (35 IS '35' is true, like
+		// =), and only special-case actual NULLs. compareValuesWithCollate
+		// unwraps wrappers and applies column affinity internally.
+		if util.UnwrapColumnValue(left) == nil && util.UnwrapColumnValue(right) == nil {
 			return int64(1), nil
 		}
-		if left == nil || right == nil {
+		if util.UnwrapColumnValue(left) == nil || util.UnwrapColumnValue(right) == nil {
 			return int64(0), nil
 		}
 		return boolToInt(e.compareValuesWithCollate(left, right) == 0), nil
@@ -1574,10 +1640,32 @@ func (e *Engine) evalBetween(v *sql.Between, row Row) (interface{}, error) {
 }
 
 func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
+	// A subquery operand (SELECT a,b ...) IN (...) is evaluated as a ROW
+	// (row-value IN): the subquery's full first row is the comparison value,
+	// not just its first column. evalExpr would reduce it to a scalar.
+	if subq, ok := v.Operand.(*sql.Subquery); ok {
+		rows, err := e.evalSubqueryRows(subq, row)
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) == 0 || len(rows[0]) == 0 {
+			return nil, nil
+		}
+		operand := make([]interface{}, len(rows[0]))
+		for i := range rows[0] {
+			operand[i] = util.UnwrapColumnValue(rows[0][i])
+		}
+		return e.evalInListOperand(v, operand, row)
+	}
 	operand, err := e.evalExpr(v.Operand, row)
 	if err != nil {
 		return nil, err
 	}
+	return e.evalInListOperand(v, operand, row)
+}
+
+// evalInListOperand evaluates an IN list against a pre-evaluated operand.
+func (e *Engine) evalInListOperand(v *sql.InList, operand interface{}, row Row) (interface{}, error) {
 	// An empty IN list has no elements to match: the result is FALSE for IN
 	// and TRUE for NOT IN regardless of the operand (even NULL). This must be
 	// checked before the NULL-operand short-circuit below.

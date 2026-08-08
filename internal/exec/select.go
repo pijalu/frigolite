@@ -5131,12 +5131,13 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 		}
 	}
 	if s.Limit != nil {
-		if err := e.validateRowValueUse(s.Limit, false); err != nil {
+		// A row value in LIMIT is scalar misuse (LIMIT (1,2) is an error).
+		if err := e.validateRowValueUse(s.Limit, true); err != nil {
 			return err
 		}
 	}
 	if s.Offset != nil {
-		if err := e.validateRowValueUse(s.Offset, false); err != nil {
+		if err := e.validateRowValueUse(s.Offset, true); err != nil {
 			return err
 		}
 	}
@@ -5516,6 +5517,19 @@ func (e *Engine) validateExprSubqueriesCtx(expr sql.Expr, rowValueOK bool) error
 			}
 			return e.validateExprSubqueriesCtx(v.Right, true)
 		}
+		// A scalar compared against a multi-column subquery is row-value misuse
+		// (SQLite: c == (SELECT x,y FROM c1) → "row value misused", not the
+		// arity error).
+		if leftSub && !rightRow && !rightSub {
+			if n := e.subqueryColumnCount(v.Left.(*sql.Subquery).Select); n > 1 {
+				return fmt.Errorf("row value misused")
+			}
+		}
+		if rightSub && !leftRow && !leftSub {
+			if n := e.subqueryColumnCount(v.Right.(*sql.Subquery).Select); n > 1 {
+				return fmt.Errorf("row value misused")
+			}
+		}
 		if err := e.validateExprSubqueriesCtx(v.Left, false); err != nil {
 			return err
 		}
@@ -5524,7 +5538,9 @@ func (e *Engine) validateExprSubqueriesCtx(expr sql.Expr, rowValueOK bool) error
 		return e.validateExprSubqueriesCtx(v.Operand, false)
 	case *sql.CaseExpr:
 		if v.Operand != nil {
-			if err := e.validateExprSubqueriesCtx(v.Operand, false); err != nil {
+			// A row-value CASE operand (CASE (SELECT a,b ...) WHEN (1,2) ...)
+			// may be a multi-column subquery.
+			if err := e.validateExprSubqueriesCtx(v.Operand, true); err != nil {
 				return err
 			}
 		}
@@ -5548,16 +5564,20 @@ func (e *Engine) validateExprSubqueriesCtx(expr sql.Expr, rowValueOK bool) error
 		}
 		return e.validateExprSubqueriesCtx(v.High, false)
 	case *sql.InList:
-		if err := e.validateExprSubqueriesCtx(v.Operand, false); err != nil {
+		// The operand may be a row-value subquery (SELECT a,b) IN (...) — the
+		// subquery's full row is compared against the list, so multiple
+		// columns are allowed (SQLite).
+		if err := e.validateExprSubqueriesCtx(v.Operand, true); err != nil {
 			return err
 		}
 		_, opIsRow := v.Operand.(*sql.RowValue)
+		_, opIsSub := v.Operand.(*sql.Subquery)
 		for _, val := range v.List {
 			// IN-list subquery items may return multiple columns (row-value
 			// comparisons); a scalar operand with a multi-column subquery is
 			// an error (SQLite: "sub-select returns N columns - expected 1").
 			if subq, ok := val.(*sql.Subquery); ok && subq.Select != nil {
-				if !opIsRow {
+				if !opIsRow && !opIsSub {
 					if n := e.subqueryColumnCount(subq.Select); n > 1 {
 						return fmt.Errorf("sub-select returns %d columns - expected 1", n)
 					}

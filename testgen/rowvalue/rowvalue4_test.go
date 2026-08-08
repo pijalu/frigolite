@@ -142,13 +142,14 @@ func Test_rowvalue4(t *testing.T) {
 						res := _items3[_idx3+2]
 						_ = res // suppress unused warning
 						_ = _idx3
-							_dbeval4 := tclExecSQL(db, "SELECT d FROM t2 WHERE " + sqlLiteral(where))
+							_dbeval4 := tclExecSQL(db, "SELECT d FROM t2 WHERE " + where)
 							result = _dbeval4
 							_ = result // suppress unused warning
-							{ // do_test "2.1." + nm + "." + tn
-								_ = tclSort("-integer") // lsort result
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
-									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2.1." + nm + "." + tn)
+							{ // do_test "2.1." + nm + "." + tn (lsort result)
+								got := tclSortInt(result)
+								want := res
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "2.1." + nm + "." + tn)
 								}
 							}
 						}
@@ -174,66 +175,6 @@ func Test_rowvalue4(t *testing.T) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
-							}
-						}
-						{ // "3.0"
-							_res = db.Exec("\n    CREATE TABLE c1(a, b, c, d);\n    INSERT INTO c1(a, b) VALUES(1, 'a');\n    INSERT INTO c1(a, b) VALUES(1, 'b');\n    INSERT INTO c1(a, b) VALUES(1, 'c');\n    INSERT INTO c1(a, b) VALUES(1, 'd');\n    INSERT INTO c1(a, b) VALUES(1, 'e');\n    INSERT INTO c1(a, b) VALUES(1, 'f');\n    INSERT INTO c1(a, b) VALUES(1, 'g');\n    INSERT INTO c1(a, b) VALUES(1, 'h');\n    INSERT INTO c1(a, b) VALUES(1, 'i');\n    INSERT INTO c1(a, b) VALUES(1, 'j');\n    INSERT INTO c1(a, b) VALUES(1, 'k');\n    INSERT INTO c1(a, b) VALUES(1, 'l');\n    INSERT INTO c1(a, b) VALUES(1, 'm');\n    INSERT INTO c1(a, b) VALUES(1, 'n');\n    INSERT INTO c1(a, b) VALUES(1, 'o');\n    INSERT INTO c1(a, b) VALUES(1, 'p');\n    INSERT INTO c1(a, b) VALUES(2, 'a');\n    INSERT INTO c1(a, b) VALUES(2, 'b');\n    INSERT INTO c1(a, b) VALUES(2, 'c');\n    INSERT INTO c1(a, b) VALUES(2, 'd');\n    INSERT INTO c1(a, b) VALUES(2, 'e');\n    INSERT INTO c1(a, b) VALUES(2, 'f');\n    INSERT INTO c1(a, b) VALUES(2, 'g');\n    INSERT INTO c1(a, b) VALUES(2, 'h');\n\n    INSERT INTO c1(c, d) SELECT a, b FROM c1;\n\n    CREATE INDEX c1ab ON c1(a, b);\n    CREATE INDEX c1cd ON c1(c, d);\n    ANALYZE;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE c1(a, b, c, d);\n    INSERT INTO c1(a, b) VALUES(1, 'a');\n    INSERT INTO c1(a, b) VALUES(1, 'b');\n    INSERT INTO c1(a, b) VALUES(1, 'c');\n    INSERT INTO c1(a, b) VALUES(1, 'd');\n    INSERT INTO c1(a, b) VALUES(1, 'e');\n    INSERT INTO c1(a, b) VALUES(1, 'f');\n    INSERT INTO c1(a, b) VALUES(1, 'g');\n    INSERT INTO c1(a, b) VALUES(1, 'h');\n    INSERT INTO c1(a, b) VALUES(1, 'i');\n    INSERT INTO c1(a, b) VALUES(1, 'j');\n    INSERT INTO c1(a, b) VALUES(1, 'k');\n    INSERT INTO c1(a, b) VALUES(1, 'l');\n    INSERT INTO c1(a, b) VALUES(1, 'm');\n    INSERT INTO c1(a, b) VALUES(1, 'n');\n    INSERT INTO c1(a, b) VALUES(1, 'o');\n    INSERT INTO c1(a, b) VALUES(1, 'p');\n    INSERT INTO c1(a, b) VALUES(2, 'a');\n    INSERT INTO c1(a, b) VALUES(2, 'b');\n    INSERT INTO c1(a, b) VALUES(2, 'c');\n    INSERT INTO c1(a, b) VALUES(2, 'd');\n    INSERT INTO c1(a, b) VALUES(2, 'e');\n    INSERT INTO c1(a, b) VALUES(2, 'f');\n    INSERT INTO c1(a, b) VALUES(2, 'g');\n    INSERT INTO c1(a, b) VALUES(2, 'h');\n\n    INSERT INTO c1(c, d) SELECT a, b FROM c1;\n\n    CREATE INDEX c1ab ON c1(a, b);\n    CREATE INDEX c1cd ON c1(c, d);\n    ANALYZE;\n  ")
-							}
-						}
-						{ // "3.1.1"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c=2 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c=2 ")
-							}
-						}
-						{ // "3.1.2"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND b>'d' AND c=2 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND b>'d' AND c=2 ")
-							}
-						}
-						{ // "3.1.3"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND b>'l' AND c=2 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND b>'l' AND c=2 ")
-							}
-						}
-						{ // "3.2.1"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>1 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>1 ")
-							}
-						}
-						{ // "3.2.2"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>0 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>0 ")
-							}
-						}
-						{ // "3.2.3"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>=1 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>=1 ")
-							}
-						}
-						{ // "3.2.4"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'c') ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'c') ")
-							}
-						}
-						{ // "3.2.5"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'o') ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'o') ")
-							}
-						}
-						{ // "3.2.6"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, +b)>(1, 'c') ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, +b)>(1, 'c') ")
 							}
 						}
 						{ // "5.0"

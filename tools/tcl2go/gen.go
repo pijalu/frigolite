@@ -126,14 +126,24 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	seen := make(map[string]bool)
 	for _, v := range setVars {
 		gv := tclVarToGo(v)
-		if gv != "" && gv != "_" && !seen[gv] && !knownGlobals[gv] && gv != "db" && gv != "err" && gv != "t" && isValidGoIdent(gv) && !sqliteTargets[gv] {
+		// The TCL variable err is mapped to _err_tcl throughout the generated
+		// code (it would shadow nothing, but the name keeps it distinct from
+		// the db error var); pre-declare it so a `set err` inside an if/else
+		// branch is still visible after the branch.
+		if gv == "err" {
+			gv = "_err_tcl"
+		}
+		if gv != "" && gv != "_" && !seen[gv] && !knownGlobals[gv] && gv != "db" && gv != "t" && isValidGoIdent(gv) && !sqliteTargets[gv] {
 			seen[gv] = true
 			preDeclared = append(preDeclared, gv)
 		}
 	}
 	for _, v := range refVars {
 		gv := tclVarToGo(v)
-		if gv != "" && gv != "_" && !seen[gv] && !knownGlobals[gv] && gv != "db" && gv != "err" && gv != "t" && isValidGoIdent(gv) && !sqliteTargets[gv] {
+		if gv == "err" {
+			gv = "_err_tcl"
+		}
+		if gv != "" && gv != "_" && !seen[gv] && !knownGlobals[gv] && gv != "db" && gv != "t" && isValidGoIdent(gv) && !sqliteTargets[gv] {
 			seen[gv] = true
 			preDeclared = append(preDeclared, gv)
 		}
@@ -1722,23 +1732,42 @@ func isSQLSchemaStatement(s string) bool {
 // but leaves $var for db eval to bind. The second return value reports
 // whether the SQL came from a subst -novar wrapper (callers then render
 // [cmd] raw and $var as SQL literals).
-func dbEvalExpected(w tcl.RawWord) (string, bool, bool) {
+func dbEvalExpected(w tcl.RawWord) (string, bool, bool, bool) {
 	text := strings.TrimSpace(w.Text)
+	// The command substitution may have newlines inside the brackets
+	// (e.g. "[\n  db eval \"SQL\"\n]") — normalize to "[db eval ...".
+	if strings.HasPrefix(text, "[") {
+		text = "[" + strings.Join(strings.Fields(text[1:]), " ")
+	}
 	if strings.HasPrefix(text, "[db eval ") && strings.HasSuffix(text, "]") {
 		inner := strings.TrimSpace(text[len("[db eval ") : len(text)-1])
 		isSubst := false
+		quoted := false
 		if resolved, ok := substNovarBody(inner); ok {
 			inner = resolved
 			isSubst = true
 		}
 		if strings.HasPrefix(inner, "{") && strings.HasSuffix(inner, "}") {
 			inner = strings.TrimSpace(inner[1 : len(inner)-1])
+		} else {
+			// TCL line continuations (backslash-newline) may precede the SQL;
+			// strip them before the quoted/braced detection.
+			inner = strings.ReplaceAll(inner, "\\n", " ")
+			inner = strings.ReplaceAll(inner, "\\", " ")
+			inner = strings.Join(strings.Fields(inner), " ")
+			if len(inner) >= 2 && inner[0] == '"' && inner[len(inner)-1] == '"' {
+				// Double-quoted db eval SQL: $var substitutes as RAW TEXT (TCL
+				// string substitution before db eval), e.g. rowvalue2's expected
+				// [db eval "SELECT ... WHERE $e1 ..."].
+				inner = inner[1 : len(inner)-1]
+				quoted = true
+			}
 		}
 		if inner != "" {
-			return inner, isSubst, true
+			return inner, isSubst, quoted, true
 		}
 	}
-	return "", false, false
+	return "", false, false, false
 }
 
 // substNovarBody detects the "[subst -novar { ... }]" (or bare
@@ -3660,16 +3689,19 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
 				tp.emitLine("}")
 			}
-		} else if dbEvalSQL, isSubst, ok := dbEvalExpected(args[2]); ok {
+		} else if dbEvalSQL, isSubst, quoted, ok := dbEvalExpected(args[2]); ok {
 			// [db eval { SQL }] or [db eval [subst -novar { SQL }]] — run the
 			// query at runtime for the expected value. SQL with $var/[cmd]
 			// refs must be rendered as a Go string expression (the plain
 			// braced form binds $var as SQL literals; the subst -novar form
-			// renders [cmd] raw and $var as SQL literals).
+			// renders [cmd] raw and $var as SQL literals; the double-quoted
+			// form substitutes $var as RAW TEXT).
 			dbEvalExpr := fmt.Sprintf("%q", dbEvalSQL)
 			if hasVarRef(dbEvalSQL) {
 				if isSubst {
 					dbEvalExpr = tp.renderSubstNovarSQL(dbEvalSQL)
+				} else if quoted {
+					dbEvalExpr = tp.buildStringExpr(dbEvalSQL)
 				} else {
 					dbEvalExpr = tp.buildSQLStringExpr(dbEvalSQL)
 				}
@@ -4068,6 +4100,45 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		return
 	}
 
+	// A single `lsort -integer $VAR` body sorts a TCL list variable (the
+	// result of an earlier `set VAR [db eval ...]`) and compares it to the
+	// expected value (rowvalue4 2.1.x). The variable holds a space-separated
+	// list of query result cells.
+	if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 2 && bodyCmds[0][0].Text == "lsort" {
+		sortListVar := ""
+		for _, w := range bodyCmds[0][1:] {
+			if strings.HasPrefix(w.Text, "$") && len(w.Text) > 1 {
+				sortListVar = strings.TrimPrefix(w.Text, "$")
+				break
+			}
+		}
+		if sortListVar != "" {
+			goVar := tclVarToGo(sortListVar)
+			// lsort -integer sorts numerically; a plain lsort sorts as text.
+			sortMode := ""
+			for _, w := range bodyCmds[0][1:] {
+				if w.Text == "-integer" {
+					sortMode = "int"
+					break
+				}
+			}
+			sortFn := "tclSort"
+			if sortMode == "int" {
+				sortFn = "tclSortInt"
+			}
+			tp.emitLine("{ // do_test %s (lsort %s)", nameExpr, sortListVar)
+			tp.indent++
+			tp.emitLine("got := %s(%s)", sortFn, goVar)
+			tp.emitLine("want := %s", expectedExpr)
+			tp.emitLine("if got != want {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
+			tp.emitLine("}")
+			tp.indent--
+			tp.emitLine("}")
+			return
+		}
+	}
+
 	// TCL do_test compares the VALUE of the body script with the expected
 	// argument. The most common body form is a single `db eval { SQL }`
 	// command; transpile it with a real result comparison (query → flatten
@@ -4113,13 +4184,16 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 					tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
 					tp.emitLine("}")
 				}
-			} else if dbEvalSQL, isSubst, ok := dbEvalExpected(args[2]); ok {
+			} else if dbEvalSQL, isSubst, quoted, ok := dbEvalExpected(args[2]); ok {
 				// [db eval { SQL }] or [db eval [subst -novar { SQL }]] —
-				// render $var/[cmd] refs as a Go string expression.
+				// render $var/[cmd] refs as a Go string expression (double-
+				// quoted substitutes $var as RAW TEXT).
 				dbEvalExpr := fmt.Sprintf("%q", dbEvalSQL)
 				if hasVarRef(dbEvalSQL) {
 					if isSubst {
 						dbEvalExpr = tp.renderSubstNovarSQL(dbEvalSQL)
+					} else if quoted {
+						dbEvalExpr = tp.buildStringExpr(dbEvalSQL)
 					} else {
 						dbEvalExpr = tp.buildSQLStringExpr(dbEvalSQL)
 					}
@@ -6113,6 +6187,13 @@ var skipTestFiles = map[string]string{
 	// sqlite3_value_subtype) that the pure-Go engine does not expose, and the tests
 	// also use the json extension (G6.NA_DEFERRED).
 	"subtype1": "value-subtype API (C-extension) not implemented",
+
+	// rowvalue5: row-value predicates over a TCL-implemented virtual table
+	// registered via register_tcl_module (the test1.c vtab_command module
+	// with xBestIndex/xFilter building an 'expr' output column). Frigolite's
+	// vtab system supports Go modules (generate_series, echo) but not
+	// TCL-implemented C-ABI modules.
+	"rowvalue5": "TCL-implemented virtual table (register_tcl_module) N-A",
 }
 
 // bodyEndsWithIndexExpr reports whether a do_test body's last command is an
@@ -7740,6 +7821,33 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				}
 			}
 		}
+		// set VAR [make_exprN cList vList op] — rowvalue2's expression-building
+		// procs. Emit a call to the Go helper with the runtime variable values.
+		if len(cmdParts) >= 1 && (cmdParts[0] == "make_expr1" || cmdParts[0] == "make_expr2" || cmdParts[0] == "make_expr3") {
+			goFn := map[string]string{"make_expr1": "tclMakeExpr1", "make_expr2": "tclMakeExpr2", "make_expr3": "tclMakeExpr3"}[cmdParts[0]]
+			words := tclCmdWords(cmdText)
+			if len(words) < 4 {
+				return
+			}
+			argExprs := make([]string, 3)
+			for i := 1; i <= 3; i++ {
+				w := words[i]
+				if strings.HasPrefix(w, "$") {
+					argExprs[i-1] = tclVarToGo(strings.TrimPrefix(w, "$"))
+				} else if strings.HasPrefix(w, "{") && strings.HasSuffix(w, "}") {
+					argExprs[i-1] = tp.goStringLiteral(tcl.RawWord{Text: w[1 : len(w)-1]})
+				} else {
+					argExprs[i-1] = tp.goStringLiteral(tcl.RawWord{Text: strings.Trim(w, `"`)})
+				}
+			}
+			if !tp.isVarDeclared(goName) {
+				tp.emitLine("var %s string", goName)
+				tp.vars = append(tp.vars, goName)
+			}
+			tp.emitLine("%s = %s(%s, %s, %s)", goName, goFn, argExprs[0], argExprs[1], argExprs[2])
+			tp.emitLine("_ = %s // suppress unused warning", goName)
+			return
+		}
 		if len(cmdParts) > 0 && len(tp.queryFuncs) > 0 {
 			if sql, ok := tp.queryFuncs[cmdParts[0]]; ok {
 				// set var [queryProc] — the proc returns a db-eval result
@@ -7761,10 +7869,14 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		}
 		if len(cmdParts) > 0 && cmdParts[0] == "db" && len(cmdParts) >= 2 && cmdParts[1] == "eval" {
 			// set var [db eval "SQL"] — run the query and assign the
-			// flattened result.
+			// flattened result. The double-quoted SQL substitutes $var as RAW
+			// TEXT (TCL string substitution) before db eval runs, so a
+			// variable holding an expression fragment (rowvalue4: WHERE
+			// $where) embeds verbatim. Braced db eval binds $var as VALUES
+			// (buildSQLStringExpr handles that path elsewhere).
 			sqlText := strings.TrimSpace(strings.TrimPrefix(cmdText, "db eval"))
 			sqlText = strings.TrimSpace(strings.Trim(sqlText, `"`))
-			sqlExpr := tp.buildSQLStringExpr(sqlText)
+			sqlExpr := tp.buildStringExpr(sqlText)
 			dbEvalVar := fmt.Sprintf("_dbeval%d", tp.varCount)
 			tp.varCount++
 			tp.emitLine("%s := tclExecSQL(db, %s)", dbEvalVar, sqlExpr)
