@@ -4,7 +4,7 @@
 > **Goal**: G3.COLLATE.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.WHERE; G1.TYPES (affinity).
-> **Current state: FAILING** — `collate` fails.
+> **Current state: DONE** — collate/collateA/collateB green; TestP3Collate passes.
 
 ## Objective
 Collation matches SQLite: BINARY (default, byte compare), NOCASE (case-insensitive
@@ -33,15 +33,15 @@ NOCASE collation makes `=` case-insensitive).
 - `src/vdbe.c` — comparison opcodes honoring collation.
 
 ## Steps
-- [ ] **G3.COLLATE.1** Pre-test suite. Commit: `G3.COLLATE.1: collate pre-test suite`.
-- [ ] **G3.COLLATE.2** Triage `collate` failure via pure-Go test. Likely collation
+- [x] **G3.COLLATE.1** Pre-test suite. Commit: `G3.COLLATE.1: collate pre-test suite`.
+- [x] **G3.COLLATE.2** Triage `collate` failure via pure-Go test. Likely collation
       precedence or RTRIM. Fix `internal/value/` (comparison) + `internal/exec/`.
       Commit: `G3.COLLATE.2: collation precedence + RTRIM`.
-- [ ] **G3.COLLATE.3** NOCASE for ASCII (not Unicode — match SQLite default).
+- [x] **G3.COLLATE.3** NOCASE for ASCII (not Unicode — match SQLite default).
       Commit: `G3.COLLATE.3: NOCASE ASCII`.
-- [ ] **G3.COLLATE.4** COLLATE in ORDER BY + index definitions. Commit:
+- [x] **G3.COLLATE.4** COLLATE in ORDER BY + index definitions. Commit:
       `G3.COLLATE.4: COLLATE in ORDER BY/index`.
-- [ ] **G3.COLLATE.5** collate/collateA/collateB green. Commit: `G3.COLLATE.5: collate TCL green`.
+- [x] **G3.COLLATE.5** collate/collateA/collateB green. Commit: `G3.COLLATE.5: collate TCL green`.
 
 ## Verify command
 ```bash
