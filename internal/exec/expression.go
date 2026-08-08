@@ -285,8 +285,9 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (result interface{}, err
 	if val == nil {
 		return nil, nil
 	}
-	// Unwrap ColumnValue affinity wrappers so the CAST operates on the raw value.
-	val = util.UnwrapColumnValue(val)
+	// Unwrap ColumnValue affinity wrappers and collatedValue collation markers
+	// so the CAST operates on the raw value.
+	val = unwrapCollatedValue(val)
 	// The CAST result carries the affinity of its target type for comparison
 	// purposes (sqlite3ExprAffinity): CAST(x AS NUMERIC) compares its other
 	// operand with NUMERIC affinity, CAST(x AS TEXT) with TEXT affinity, etc.
@@ -359,6 +360,23 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (result interface{}, err
 			return util.FormatSQLiteReal(f), nil
 		}
 		return fmt.Sprintf("%v", val), nil
+	case "BLOB":
+		// CAST(x AS BLOB) converts a TEXT value to its byte content; other
+		// types (INTEGER/REAL) become their canonical text form's bytes
+		// (SQLite: CAST(123 AS BLOB) is X'313233' = '123'). A blob input
+		// passes through unchanged.
+		switch x := val.(type) {
+		case []byte:
+			return x, nil
+		case string:
+			return []byte(x), nil
+		case int64:
+			return []byte(fmt.Sprintf("%d", x)), nil
+		case float64:
+			return []byte(util.FormatSQLiteReal(x)), nil
+		default:
+			return []byte(fmt.Sprintf("%v", val)), nil
+		}
 	case "NUMERIC":
 		// SQLite: CAST(x AS NUMERIC) coerces text to a number; non-numeric
 		// text becomes 0. A float64 input stays float64 (CAST(4.0 AS NUMERIC)
@@ -915,11 +933,20 @@ func extractValue(v interface{}) (interface{}, string) {
 // expression wraps its operand (which may itself be a *ColumnValue), this
 // also unwraps the inner ColumnValue to produce the raw scalar. A top-level
 // ColumnValue (e.g. the affinity wrapper on a CAST result) is unwrapped too.
+// Nested wrappers (e.g. a collatedValue whose inner value is itself a
+// collatedValue from a double application) are peeled recursively.
 func unwrapCollatedValue(v interface{}) interface{} {
-	if cv, ok := v.(*collatedValue); ok {
-		return util.UnwrapColumnValue(cv.value)
+	for {
+		if cv, ok := v.(*collatedValue); ok {
+			v = cv.value
+			continue
+		}
+		if cv, ok := v.(*util.ColumnValue); ok {
+			v = cv.Value
+			continue
+		}
+		return v
 	}
-	return util.UnwrapColumnValue(v)
 }
 
 // compareValuesWithCollate compares two values using the collation from either side.
@@ -1867,13 +1894,10 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Unwrap BlobColumnValue so functions see the raw value.
-		v = util.UnwrapColumnValue(v)
-		// Unwrap collatedValue wrappers (column values with a collation) so
-		// functions receive the raw scalar, not the collation marker.
-		if cv, ok := v.(*collatedValue); ok {
-			v = util.UnwrapColumnValue(cv.value)
-		}
+		// Unwrap BlobColumnValue and collatedValue wrappers (column values
+		// with a collation) so functions receive the raw scalar, not the
+		// collation marker. Peels nested wrappers.
+		v = unwrapCollatedValue(v)
 		// For UTF-16 encoding, truncate odd-length blobs (ignore last byte)
 		// to ensure valid UTF-16 byte sequences. (SQLite ticket 9eda2697f5cc1aba)
 		if b, ok := v.([]byte); ok && len(b)%2 == 1 {
