@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "regexp"
-"strconv"
 "strings"
 "testing"
 )
@@ -922,7 +921,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-14.1"
 		x = "0"
 		_ = x // suppress unused warning
-		tlimit = strconv.Itoa(1000 * toInt(sqlite_options)(configslower))
+		tlimit = tclExprWith("1000 * $::sqlite_options(configslower)", map[string]string{"::sqlite_options": sqlite_options})
 		_ = tlimit // suppress unused warning
 		_putsMsg := "-nonewline"
 		_ = _putsMsg
@@ -931,7 +930,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-14.2"
 		x = "0"
 		_ = x // suppress unused warning
-		tlimit = strconv.Itoa(1000 * toInt(sqlite_options)(configslower))
+		tlimit = tclExprWith("1000 * $::sqlite_options(configslower)", map[string]string{"::sqlite_options": sqlite_options})
 		_ = tlimit // suppress unused warning
 		_putsMsg := "-nonewline"
 		_ = _putsMsg

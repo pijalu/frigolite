@@ -2584,6 +2584,12 @@ func (tp *transpiler) exprCmdToGo(expr string) (string, bool) {
 				j++
 			}
 			name := expr[i+1 : j]
+			// TCL array-element access ($arr(key)) cannot be statically
+			// resolved to a Go variable here; bail to the runtime-eval
+			// fallback instead of emitting a call on an int.
+			if j < len(expr) && expr[j] == '(' {
+				return "", false
+			}
 			goVar := tclVarToGo(name)
 			if goVar == "" {
 				return "", false

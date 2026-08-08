@@ -1183,14 +1183,14 @@ func typesMatchForEquality(left, right interface{}) bool {
 }
 
 func globValues(str, pattern interface{}) bool {
-	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
-	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(unwrapCollatedValue(str))
+	p := util.SQLiteValueString(unwrapCollatedValue(pattern))
 	return function.GlobMatch(s, p)
 }
 
 func regexpValues(str, pattern interface{}) (bool, error) {
-	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
-	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(unwrapCollatedValue(str))
+	p := util.SQLiteValueString(unwrapCollatedValue(pattern))
 	re, err := util.CompileRegexp(p)
 	if err != nil {
 		return false, err
@@ -2507,15 +2507,15 @@ func numericValue(v interface{}) (interface{}, error) {
 }
 
 func likeValues(str, pattern interface{}) bool {
-	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
-	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(unwrapCollatedValue(str))
+	p := util.SQLiteValueString(unwrapCollatedValue(pattern))
 	return likeMatch(s, p)
 }
 
 // likeValuesWithEscape performs LIKE matching with an escape character.
 func likeValuesWithEscape(str, pattern interface{}, escape string) bool {
-	s := util.SQLiteValueString(util.UnwrapColumnValue(str))
-	p := util.SQLiteValueString(util.UnwrapColumnValue(pattern))
+	s := util.SQLiteValueString(unwrapCollatedValue(str))
+	p := util.SQLiteValueString(unwrapCollatedValue(pattern))
 	return likeMatchEscaped(s, p, escape)
 }
 
