@@ -60,9 +60,9 @@ func Test_tkt3080(t *testing.T) {
 	{ // do_test "tkt3080.1"
 		// db function execsql (variable-reader, inlined)
 		db.RegisterFunction("execsql", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-		_res = db.Exec("\n    SELECT " + sqlLiteral(CREATE_TABLE_t1_x) + ";\n  ")
+		_res = db.Exec("\n    SELECT execsql('CREATE TABLE t1(x)');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT " + sqlLiteral(CREATE_TABLE_t1_x) + ";\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT execsql('CREATE TABLE t1(x)');\n  ")
 		}
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {

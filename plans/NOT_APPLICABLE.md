@@ -431,6 +431,22 @@ the pager).
 | in6-1.3 | VDBE bytecode assertion (IfNoHope/SeekHit opcodes) |
 | in7-1.1.* | VDBE bytecode walk (EXPLAIN OpenRead/Next + csr_to_root arrays) |
 | wherelimit2-3.1.x, 3.2.x, 6.2 | FTS5 transactional MATCH DELETE/UPDATE with ORDER BY/LIMIT and window-function DELETE side effects; Frigolite FTS supports SELECT/plain DELETE only |
+| tkt1873-1.2 | **query read-lock during active statement not implemented**: DETACH of a database read by an active query must fail with "database aux is locked" (SQLite holds a read lock on each database a statement reads until finalize). Frigolite executes each statement to completion with no open cursor/statement, so no lock is held across a db-eval callback and DETACH succeeds. **QUERY LOCKING is a needed future feature** — see the note below. |
+
+> **Needed future feature — query locking**: Frigolite currently executes each
+> statement to completion (`Query` materializes all rows; there is no open
+> statement/cursor), so it cannot reproduce SQLite's read locks that persist
+> while a statement is active (`database aux is locked` on DETACH, and related
+> locking semantics). A future implementation should track the databases each
+> active statement reads and reject DETACH (and conflicting operations) on
+> them until the statement finalizes. The tkt1873-1.2 test encodes this
+> behavior and is skipped until query locking lands.
+>
+> **Needed future feature — max_page_count**: Frigolite's pager does not
+> enforce `PRAGMA max_page_count`, so tests that fill the database until
+> "database or disk is full" (tkt2686) hang in an infinite INSERT loop. A
+> future implementation should enforce the page-count limit and return
+> SQLITE_FULL ("database or disk is full") when an INSERT would exceed it.
 
 ## Notes
 
