@@ -39,20 +39,61 @@ func (e *Engine) execExplainQueryPlan(stmt sql.Stmt) *Result {
 	}
 }
 
-// planResult renders plan nodes as one row per node. SQLite emits one row
-// per plan step; emitting separate rows lets callers (and the test harness
-// flatten helper) join them with spaces, so multi-node patterns match.
+// planNode is one EXPLAIN QUERY PLAN tree node: a detail line plus optional
+// child nodes. SQLite renders the plan as a tree (e.g. COMPOUND QUERY nests
+// its branch plans, subqueries nest their body plans), so the emitter builds
+// a tree and renders it with SQLite's CLI prefixes (|-- / `-- with 3-space
+// indentation per level).
+type planNode struct {
+	detail   string
+	children []planNode
+}
+
+// planResult renders flat plan nodes as one row per node. It is kept for
+// callers that build simple one-level plans.
 func planResult(nodes []string) *Result {
-	rows := make([][]interface{}, 0, len(nodes)+1)
-	rows = append(rows, []interface{}{"QUERY PLAN"})
-	for i, n := range nodes {
-		if i == len(nodes)-1 {
-			rows = append(rows, []interface{}{"`--" + n})
-		} else {
-			rows = append(rows, []interface{}{"|--" + n})
-		}
+	var tree []planNode
+	for _, n := range nodes {
+		tree = append(tree, planNode{detail: n})
+	}
+	return planTreeResult(tree)
+}
+
+// planTreeResult renders a plan tree the way the sqlite3 CLI renders
+// EXPLAIN QUERY PLAN: a "QUERY PLAN" header row followed by one row per node
+// with |-- / `-- branch markers and 3-space indentation per depth level.
+func planTreeResult(nodes []planNode) *Result {
+	lines := []string{"QUERY PLAN"}
+	lines = append(lines, renderPlanLevel(nodes, "")...)
+	rows := make([][]interface{}, 0, len(lines))
+	for _, l := range lines {
+		rows = append(rows, []interface{}{l})
 	}
 	return &Result{Columns: []string{"plan"}, Rows: rows}
+}
+
+// renderPlanLevel renders sibling plan nodes under the given prefix. The
+// prefix carries ancestor indentation: "|  " when the ancestor has a later
+// sibling, "   " when it was the last child. Matches the sqlite3 CLI output
+// exactly (verified against SQLite 3.51).
+func renderPlanLevel(nodes []planNode, prefix string) []string {
+	var lines []string
+	for i, n := range nodes {
+		last := i == len(nodes)-1
+		marker := "|--"
+		if last {
+			marker = "`--"
+		}
+		lines = append(lines, prefix+marker+n.detail)
+		childPrefix := prefix + "|  "
+		if last {
+			childPrefix = prefix + "   "
+		}
+		if len(n.children) > 0 {
+			lines = append(lines, renderPlanLevel(n.children, childPrefix)...)
+		}
+	}
+	return lines
 }
 
 func simplePlan(desc string) *Result {
@@ -122,9 +163,12 @@ func estimateSelectivity(constant interface{}, op string) float64 {
 // queryTable is a table reference participating in a query's FROM clause.
 // display is the name used in plan output and predicate matching (the alias
 // when one is given); real is the underlying table name for schema lookups.
+// subquery holds the FROM-clause subquery when the reference is a derived
+// table (alias may be empty).
 type queryTable struct {
-	display string
-	real    string
+	display  string
+	real     string
+	subquery *sql.SelectStmt
 }
 
 func (e *Engine) collectQueryTables(s *sql.SelectStmt) []queryTable {
@@ -143,7 +187,7 @@ func queryTableFromRef(r sql.TableRef) queryTable {
 	if r.As != "" {
 		display = r.As
 	}
-	return queryTable{display: display, real: r.Name}
+	return queryTable{display: display, real: r.Name, subquery: r.Subquery}
 }
 
 func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
@@ -166,59 +210,358 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 		}
 	}
 
-	tables := e.collectQueryTables(s)
-	if len(tables) == 0 {
-		return planResult([]string{"SCAN (no from)"})
+	// A compound SELECT (UNION / INTERSECT / EXCEPT) renders as a COMPOUND
+	// QUERY tree: LEFT-MOST SUBQUERY + one set-op branch per later member.
+	if s.Union != nil {
+		return planTreeResult(e.planCompound(s))
 	}
 
-	var nodes []string
+	tables := e.collectQueryTables(s)
+	if len(tables) == 0 {
+		return planTreeResult([]planNode{{detail: "SCAN CONSTANT ROW"}})
+	}
+
+	var nodes []planNode
 	if len(tables) == 1 {
-		nodes = append(nodes, e.planSingleTable(tables[0], s))
+		nodes = append(nodes, e.planSingleTableNodes(tables[0], s)...)
 	} else {
 		nodes = append(nodes, e.planJoin(tables, s)...)
 	}
 
-	// SQLite appends a temp b-tree node when aggregation requires a sort.
-	if len(s.GroupBy) > 0 {
-		nodes = append(nodes, "USE TEMP B-TREE FOR GROUP BY")
-	}
+	// SQLite appends a temp b-tree node when a sort/group/distinct cannot use
+	// an index. When the single table's scan already used a covering index
+	// for the sort (planSingleTable returned "SCAN ... USING COVERING INDEX"),
+	// no temp b-tree is needed.
+	nodes = append(nodes, e.planSortNodes(tables, s)...)
 
 	// EXISTS/subquery expressions in the WHERE, HAVING, or select list add a
 	// subquery node to the plan (SQLite emits "CORRELATED SCALAR SUBQUERY n"
 	// / "EXISTS SUBQUERY n" / "SCALAR SUBQUERY n" under the scan nodes).
 	nodes = append(nodes, e.planSubqueryNodes(s)...)
 
-	return planResult(nodes)
+	return planTreeResult(nodes)
+}
+
+// planCompound renders a compound SELECT as SQLite does:
+//
+//	`--COMPOUND QUERY
+//	   |--LEFT-MOST SUBQUERY
+//	   |  `--<plan of first member>
+//	   |--<SETOP> [USING TEMP B-TREE]
+//	   |  `--<plan of second member>
+//	   `--<SETOP> [USING TEMP B-TREE]
+//	      `--<plan of third member>
+//
+// The chain is walked via s.Union; each member's plan is the plan of its own
+// SELECT (tables + temp b-trees + subqueries).
+func (e *Engine) planCompound(s *sql.SelectStmt) []planNode {
+	root := planNode{detail: "COMPOUND QUERY"}
+	first := planNode{detail: "LEFT-MOST SUBQUERY"}
+	first.children = e.planSelectMember(s)
+	root.children = append(root.children, first)
+
+	cur := s
+	for cur.Union != nil {
+		label := compoundOpLabel(cur.SetOp, cur.UnionAll)
+		branch := planNode{detail: label}
+		branch.children = e.planSelectMember(cur.Union)
+		root.children = append(root.children, branch)
+		cur = cur.Union
+	}
+	return []planNode{root}
+}
+
+// compoundOpLabel returns the SQLite branch label for a set operation:
+// "UNION ALL" (no temp b-tree), "UNION USING TEMP B-TREE",
+// "INTERSECT USING TEMP B-TREE", or "EXCEPT USING TEMP B-TREE".
+func compoundOpLabel(op sql.SetOp, all bool) string {
+	switch op {
+	case sql.SetUnion:
+		if all {
+			return "UNION ALL"
+		}
+		return "UNION USING TEMP B-TREE"
+	case sql.SetIntersect:
+		return "INTERSECT USING TEMP B-TREE"
+	case sql.SetExcept:
+		return "EXCEPT USING TEMP B-TREE"
+	}
+	return "COMPOUND"
+}
+
+// planSelectMember renders the body plan of one SELECT inside a compound or
+// subquery: its FROM tables, sort/group/distinct temp b-trees, and subquery
+// nodes (recursively).
+func (e *Engine) planSelectMember(s *sql.SelectStmt) []planNode {
+	tables := e.collectQueryTables(s)
+	var nodes []planNode
+	if len(tables) == 0 {
+		return []planNode{{detail: "SCAN CONSTANT ROW"}}
+	}
+	if len(tables) == 1 {
+		nodes = append(nodes, e.planSingleTableNodes(tables[0], s)...)
+	} else {
+		nodes = append(nodes, e.planJoin(tables, s)...)
+	}
+	nodes = append(nodes, e.planSortNodes(tables, s)...)
+	nodes = append(nodes, e.planSubqueryNodes(s)...)
+	return nodes
+}
+
+// planSortNodes appends SQLite's temp-b-tree nodes for ORDER BY / GROUP BY /
+// DISTINCT that cannot be satisfied by an index. A single-table scan that
+// already returned "USING COVERING INDEX" (or "USING INDEX") for the sort
+// suppresses the node; multi-table queries always sort in a temp b-tree when
+// ORDER BY/GROUP BY/DISTINCT is present (SQLite may still use an index for
+// one of the tables, but the temp-b-tree shape is what the CLI shows).
+func (e *Engine) planSortNodes(tables []queryTable, s *sql.SelectStmt) []planNode {
+	var nodes []planNode
+	if len(s.OrderBy) > 0 && !e.sortCoveredByIndex(tables, s, orderByCols(s)) {
+		nodes = append(nodes, planNode{detail: "USE TEMP B-TREE FOR ORDER BY"})
+	}
+	if len(s.GroupBy) > 0 && !e.sortCoveredByIndex(tables, s, groupByCols(s)) {
+		nodes = append(nodes, planNode{detail: "USE TEMP B-TREE FOR GROUP BY"})
+	}
+	if s.Distinct && !e.sortCoveredByIndex(tables, s, distinctCols(s)) {
+		nodes = append(nodes, planNode{detail: "USE TEMP B-TREE FOR DISTINCT"})
+	}
+	return nodes
+}
+
+// sortCoveredByIndex reports whether the given sort columns are covered by an
+// index on the single table of the query (so no temp b-tree is needed). Only
+// single-table queries use this path; multi-table queries return false so the
+// caller appends a temp b-tree (SQLite may still choose an index, but the
+// conservative shape keeps the node count stable).
+func (e *Engine) sortCoveredByIndex(tables []queryTable, s *sql.SelectStmt, cols []string) bool {
+	if len(tables) != 1 || len(cols) == 0 {
+		return false
+	}
+	t := tables[0]
+	idx := e.findIndexOnCols(t.real, cols)
+	if idx == "" {
+		return false
+	}
+	// The index must cover the sort columns AND the output columns to be a
+	// covering scan; a plain USING INDEX scan still needs a temp b-tree only
+	// when the index cannot produce the row order (it can), so any index on
+	// the sort columns suffices for ORDER BY. For GROUP BY/DISTINCT the scan
+	// must return the output columns too (COVERING), otherwise SQLite sorts.
+	if len(s.GroupBy) > 0 || s.Distinct {
+		return e.indexCoversCols(idx, t.real, selectOutputCols(s))
+	}
+	return true
+}
+
+// orderByCols returns the plain column references of a SELECT's ORDER BY
+// terms. Returns nil when any term is not a bare column (expression ordering
+// cannot use an index prefix).
+func orderByCols(s *sql.SelectStmt) []string {
+	var cols []string
+	for _, ob := range s.OrderBy {
+		if cr, ok := ob.Expr.(*sql.ColumnRef); ok {
+			cols = append(cols, cr.Name)
+		} else {
+			return nil
+		}
+	}
+	return cols
+}
+
+// groupByCols returns the plain column references of a SELECT's GROUP BY
+// terms. Returns nil when any term is not a bare column.
+func groupByCols(s *sql.SelectStmt) []string {
+	var cols []string
+	for _, g := range s.GroupBy {
+		if cr, ok := g.(*sql.ColumnRef); ok {
+			cols = append(cols, cr.Name)
+		} else {
+			return nil
+		}
+	}
+	return cols
+}
+
+// distinctCols returns the output column names a DISTINCT query deduplicates
+// on (all plain column references in the select list).
+func distinctCols(s *sql.SelectStmt) []string {
+	return selectOutputCols(s)
+}
+
+// selectOutputCols returns the plain column references of a SELECT's result
+// columns, expanding a bare "*" to the special wildcard marker (resolved
+// against the table by indexCoversCols). Non-column expressions (functions,
+// arithmetic, subqueries) are skipped — an index can never cover them.
+func selectOutputCols(s *sql.SelectStmt) []string {
+	var cols []string
+	for _, c := range s.Columns {
+		if cr, ok := c.Expr.(*sql.ColumnRef); ok {
+			if cr.Name == "*" && cr.Table == "" {
+				cols = append(cols, "*")
+			} else {
+				cols = append(cols, cr.Name)
+			}
+		}
+	}
+	return cols
+}
+
+// findIndexOnCols returns the name of an index on the table whose leading
+// columns match the given column list in order (a prefix match), or "" when
+// no index qualifies. Used to decide whether ORDER BY / GROUP BY can use an
+// index scan instead of a temp b-tree.
+func (e *Engine) findIndexOnCols(tableName string, cols []string) string {
+	if len(cols) == 0 {
+		return ""
+	}
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || entry.TblName != tableName {
+			continue
+		}
+		var indexCols []string
+		if entry.SQL == "" {
+			indexCols = e.autoindexColumns(tableName, entry.Name)
+		} else {
+			indexCols = parseIndexColumns(entry.SQL)
+		}
+		if len(indexCols) < len(cols) {
+			continue
+		}
+		match := true
+		for i, c := range cols {
+			if !strings.EqualFold(indexCols[i], c) {
+				match = false
+				break
+			}
+		}
+		if match {
+			return entry.Name
+		}
+	}
+	return ""
+}
+
+// indexCoversCols reports whether the named index contains every column in
+// the list (case-insensitive). A "*" entry requires the index to cover every
+// column of the underlying table (a full covering index).
+func (e *Engine) indexCoversCols(idx, tableName string, cols []string) bool {
+	if idx == "" || len(cols) == 0 {
+		return false
+	}
+	var indexCols []string
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return false
+	}
+	for _, entry := range entries {
+		if entry.Type == "index" && entry.Name == idx {
+			if entry.SQL == "" {
+				indexCols = e.autoindexColumns(tableName, entry.Name)
+			} else {
+				indexCols = parseIndexColumns(entry.SQL)
+			}
+			break
+		}
+	}
+	if len(indexCols) == 0 {
+		return false
+	}
+	for _, c := range cols {
+		if c == "*" {
+			// Every table column must be in the index. The index contains the
+			// rowid column implicitly, but a covering scan still needs each
+			// named column.
+			if !e.indexCoversAllTableCols(tableName, indexCols) {
+				return false
+			}
+			continue
+		}
+		found := false
+		for _, ic := range indexCols {
+			if strings.EqualFold(ic, c) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+// indexCoversAllTableCols reports whether an index's column list contains
+// every column of the underlying table.
+func (e *Engine) indexCoversAllTableCols(tableName string, indexCols []string) bool {
+	tableCols, err := e.tableColumnNames(tableName)
+	if err != nil {
+		return false
+	}
+	for _, tc := range tableCols {
+		found := false
+		for _, ic := range indexCols {
+			if strings.EqualFold(ic, tc) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }
 
 // planSubqueryNodes returns one plan node per subquery expression in a
-// SELECT's WHERE, HAVING, and select list, in SQLite's style. The test suite
-// checks for the presence of "SUBQUERY" in the plan, so the exact wording is
-// less important than including the keyword and the enclosing scan context.
-func (e *Engine) planSubqueryNodes(s *sql.SelectStmt) []string {
-	var nodes []string
+// SELECT's WHERE, HAVING, and select list, in SQLite's style: SCALAR SUBQUERY
+// n for scalar/EXISTS subqueries (with a CORRELATED prefix when the subquery
+// references outer columns), LIST SUBQUERY n for IN, and the subquery's own
+// plan nested beneath the node.
+func (e *Engine) planSubqueryNodes(s *sql.SelectStmt) []planNode {
+	var nodes []planNode
 	count := 0
+	addSubquery := func(sub *sql.SelectStmt, label string) {
+		if sub == nil {
+			return
+		}
+		count++
+		if e.subqueryReferencesOuter(sub, s) {
+			label = "CORRELATED " + label
+		}
+		node := planNode{detail: fmt.Sprintf("%s %d", label, count)}
+		node.children = e.planSelectMember(sub)
+		nodes = append(nodes, node)
+	}
 	addSubqueries := func(expr sql.Expr) {
 		if expr == nil {
 			return
 		}
 		walkExprFull(expr, func(e2 sql.Expr) {
-			var sub *sql.SelectStmt
 			switch v := e2.(type) {
+			case *sql.InList:
+				// x IN (SELECT ...) — the Subquery is the IN-list operand and
+				// is labelled LIST SUBQUERY (a constant list has no plan).
+				for _, item := range v.List {
+					if sub, ok := item.(*sql.Subquery); ok {
+						addSubquery(sub.Select, "LIST SUBQUERY")
+					}
+				}
 			case *sql.ExistsExpr:
-				sub = v.Select
+				addSubquery(v.Select, "SCALAR SUBQUERY")
 			case *sql.Subquery:
-				sub = v.Select
+				// A bare (SELECT ...) in an expression is a scalar subquery;
+				// IN-list operands were already handled above (walkExprFull
+				// visits the InList first, and the inner Subquery node must not
+				// be double-counted, so skip Subquery nodes that are direct
+				// InList members).
+				if !subqueryIsInListMember(expr, v) {
+					addSubquery(v.Select, "SCALAR SUBQUERY")
+				}
 			}
-			if sub == nil {
-				return
-			}
-			count++
-			label := "SCALAR SUBQUERY"
-			if _, ok := e2.(*sql.ExistsExpr); ok {
-				label = "EXISTS SUBQUERY"
-			}
-			nodes = append(nodes, fmt.Sprintf("CORRELATED %s %d", label, count))
 		})
 	}
 	addSubqueries(s.Where)
@@ -227,6 +570,129 @@ func (e *Engine) planSubqueryNodes(s *sql.SelectStmt) []string {
 		addSubqueries(col.Expr)
 	}
 	return nodes
+}
+
+// subqueryIsInListMember reports whether the Subquery node is a direct member
+// of an InList expression (so it is a LIST SUBQUERY, already counted by the
+// InList case in the walker).
+func subqueryIsInListMember(root sql.Expr, sub *sql.Subquery) bool {
+	found := false
+	walkExprFull(root, func(e2 sql.Expr) {
+		if il, ok := e2.(*sql.InList); ok {
+			for _, item := range il.List {
+				if item == sub {
+					found = true
+				}
+			}
+		}
+	})
+	return found
+}
+
+// subqueryReferencesOuter reports whether a subquery's FROM/WHERE/columns
+// reference a table of the enclosing SELECT (making it correlated).
+func (e *Engine) subqueryReferencesOuter(sub, outer *sql.SelectStmt) bool {
+	outerTables := map[string]bool{}
+	for _, t := range e.collectQueryTables(outer) {
+		outerTables[strings.ToLower(t.display)] = true
+		outerTables[strings.ToLower(t.real)] = true
+	}
+	if len(outerTables) == 0 {
+		return false
+	}
+	correlated := false
+	walkCols := func(expr sql.Expr) {
+		if expr == nil || correlated {
+			return
+		}
+		walkExprFull(expr, func(e2 sql.Expr) {
+			if cr, ok := e2.(*sql.ColumnRef); ok {
+				// A qualified reference (sub.t.col) can only be outer; an
+				// unqualified reference is outer when no local table has the
+				// column.
+				if cr.Table != "" {
+					if outerTables[strings.ToLower(cr.Table)] {
+						correlated = true
+					}
+				} else if !e.subqueryHasColumn(sub, cr.Name) {
+					correlated = true
+				}
+			}
+		})
+	}
+	walkCols(sub.Where)
+	walkCols(sub.Having)
+	for _, c := range sub.Columns {
+		walkCols(c.Expr)
+	}
+	return correlated
+}
+
+// subqueryHasColumn reports whether the subquery's FROM tables expose a column
+// with the given name.
+func (e *Engine) subqueryHasColumn(sub *sql.SelectStmt, name string) bool {
+	for _, t := range e.collectQueryTables(sub) {
+		if e.tableHasColumn(t.real, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// planSingleTableNodes renders the plan for a single FROM entry. A real
+// table or view becomes one SCAN/SEARCH node; a FROM-clause subquery is
+// flattened into the body plan when it is a simple single-table select
+// (SQLite inlines it, e.g. "SCAN t1" for FROM (SELECT * FROM t1)), or becomes
+// a CO-ROUTINE node (with the body plan nested) plus a SCAN of the subquery
+// alias when it is a compound or aggregate (SQLite materializes those).
+func (e *Engine) planSingleTableNodes(t queryTable, s *sql.SelectStmt) []planNode {
+	if t.subquery == nil {
+		return []planNode{{detail: e.planSingleTable(t, s)}}
+	}
+	sub := t.subquery
+	// Compound and aggregate FROM subqueries must be materialized (SQLite
+	// emits CO-ROUTINE <alias> + SCAN <alias>). Simple single-table selects
+	// are inlined into the outer plan.
+	if sub.Union != nil || len(sub.GroupBy) > 0 || len(sub.Columns) > 0 && e.hasAggregate(sub) {
+		alias := t.display
+		if alias == "" {
+			alias = "subquery"
+		}
+		coroutine := planNode{detail: "CO-ROUTINE " + alias}
+		if sub.Union != nil {
+			coroutine.children = e.planCompound(sub)
+		} else {
+			coroutine.children = e.planSelectMember(sub)
+		}
+		scan := planNode{detail: "SCAN " + alias}
+		return []planNode{coroutine, scan}
+	}
+	// Simple subquery: inline its body plan (the outer WHERE may still add
+	// constraints, but SQLite merges the subquery's own plan).
+	return e.planSelectMember(sub)
+}
+
+// hasAggregate reports whether a SELECT uses any aggregate function in its
+// select list, HAVING, or (indirectly) GROUP BY expressions.
+func (e *Engine) hasAggregate(s *sql.SelectStmt) bool {
+	found := false
+	check := func(expr sql.Expr) {
+		if expr == nil {
+			return
+		}
+		walkExprFull(expr, func(e2 sql.Expr) {
+			if fn, ok := e2.(*sql.FuncCall); ok {
+				if f, ok := e.funcs.Find(fn.Name); ok && f.AggregateFn != nil {
+					found = true
+				}
+			}
+		})
+	}
+	for _, c := range s.Columns {
+		check(c.Expr)
+	}
+	check(s.Having)
+	return found
 }
 
 // planSingleTable computes the plan node for a query over a single table.
@@ -261,14 +727,35 @@ func (e *Engine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 		return plan
 	}
 
-	// ORDER BY index optimization: if ORDER BY columns match an index, use it
+	// ORDER BY index optimization: if the ORDER BY columns match an index
+	// prefix, scan through the index to avoid a temp b-tree sort. SQLite
+	// renders this as "SCAN t USING INDEX idx" or, when the index also
+	// covers every output column, "SCAN t USING COVERING INDEX idx".
 	if len(s.OrderBy) > 0 && bestIndex == "" {
-		for _, ob := range s.OrderBy {
-			if colRef, ok := ob.Expr.(*sql.ColumnRef); ok {
-				idxName := e.findIndexOnColumn(tableName, colRef.Name)
-				if idxName != "" {
-					return fmt.Sprintf("SCAN %s USING INDEX %s -- B-TREE FOR ORDER BY", tableName, idxName)
+		if obCols := orderByCols(s); len(obCols) > 0 {
+			if idxName := e.findIndexOnCols(tableName, obCols); idxName != "" {
+				if e.indexCoversCols(idxName, t.real, selectOutputCols(s)) {
+					return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", tableName, idxName)
 				}
+				return fmt.Sprintf("SCAN %s USING INDEX %s", tableName, idxName)
+			}
+		}
+	}
+
+	// GROUP BY / DISTINCT covering index: when the group/dedup columns match
+	// an index that also covers the output, SQLite scans the index instead of
+	// sorting in a temp b-tree ("SCAN t USING COVERING INDEX idx").
+	if (len(s.GroupBy) > 0 || s.Distinct) && bestIndex == "" {
+		var cols []string
+		if len(s.GroupBy) > 0 {
+			cols = groupByCols(s)
+		} else {
+			cols = distinctCols(s)
+		}
+		if len(cols) > 0 {
+			if idxName := e.findIndexOnCols(tableName, cols); idxName != "" &&
+				e.indexCoversCols(idxName, t.real, selectOutputCols(s)) {
+				return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", tableName, idxName)
 			}
 		}
 	}
@@ -303,7 +790,7 @@ type joinRef struct {
 // one with constant predicates and the smallest estimated row count; inner
 // tables are placed in dependency order, using an index SEARCH when a join
 // column is indexed.
-func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
+func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []planNode {
 	var preds []sql.Expr
 	if s.Where != nil {
 		preds = append(preds, splitAnd(s.Where)...)
@@ -409,7 +896,7 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 		}
 	}
 
-	nodes := []string{e.joinNodeFor(tables[driver], nil, joinRefs[driver], s)}
+	nodes := e.joinNodeFor(tables[driver], nil, joinRefs[driver], s)
 	for len(remaining) > 0 {
 		next := -1
 		for k, i := range remaining {
@@ -423,7 +910,7 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 		}
 		i := remaining[next]
 		remaining = append(remaining[:next], remaining[next+1:]...)
-		nodes = append(nodes, e.joinNodeFor(tables[i], planned, joinRefs[i], s))
+		nodes = append(nodes, e.joinNodeFor(tables[i], planned, joinRefs[i], s)...)
 		planned = append(planned, tables[i].display)
 	}
 	return nodes
@@ -431,15 +918,36 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 
 // joinNodeFor emits the plan node for one table in a join: an index SEARCH on
 // a join column when the other side is already planned, otherwise an index
-// SEARCH on constant predicates when they are selective, otherwise a SCAN.
-func (e *Engine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s *sql.SelectStmt) string {
+// SEARCH on constant predicates when they are selective, otherwise a SCAN. A
+// FROM-clause subquery that must be materialized becomes a CO-ROUTINE node
+// (body plan nested) followed by a SCAN of the subquery alias; the caller
+// splices those sibling nodes into the join plan.
+func (e *Engine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s *sql.SelectStmt) []planNode {
+	// A subquery joined on an equality predicate is materialized with an
+	// automatic index (SEARCH ... USING AUTOMATIC COVERING INDEX), which is
+	// the joinRef path below. Only a subquery with no indexed join connection
+	// (e.g. a compound in a cross join) becomes a CO-ROUTINE.
 	if jr := e.joinSearchRef(joins, planned); jr != nil {
 		if jr.indexName != "" {
-			return fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, jr.indexName, jr.col)
+			return []planNode{{detail: fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, jr.indexName, jr.col)}}
 		}
 		// No real index on the join column (e.g. a subquery in the FROM
 		// clause): SQLite materializes an automatic index on the right side.
-		return fmt.Sprintf("SEARCH %s USING AUTOMATIC COVERING INDEX (%s=?)", t.display, jr.col)
+		return []planNode{{detail: fmt.Sprintf("SEARCH %s USING AUTOMATIC COVERING INDEX (%s=?)", t.display, jr.col)}}
+	}
+	if t.subquery != nil && needsMaterialization(t.subquery) {
+		alias := t.display
+		if alias == "" {
+			alias = "subquery"
+		}
+		coroutine := planNode{detail: "CO-ROUTINE " + alias}
+		if t.subquery.Union != nil {
+			coroutine.children = e.planCompound(t.subquery)
+		} else {
+			coroutine.children = e.planSelectMember(t.subquery)
+		}
+		scan := planNode{detail: "SCAN " + alias}
+		return []planNode{coroutine, scan}
 	}
 	nRow := e.estimatedRowCount(t.real)
 	est := float64(nRow)
@@ -450,11 +958,24 @@ func (e *Engine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s 
 			using = "PRIMARY KEY"
 		}
 		if conds != "" {
-			return fmt.Sprintf("SEARCH %s USING %s %s", t.display, using, conds)
+			return []planNode{{detail: fmt.Sprintf("SEARCH %s USING %s %s", t.display, using, conds)}}
 		}
-		return fmt.Sprintf("SEARCH %s USING %s", t.display, using)
+		return []planNode{{detail: fmt.Sprintf("SEARCH %s USING %s", t.display, using)}}
 	}
-	return "SCAN " + t.display
+	return []planNode{{detail: "SCAN " + t.display}}
+}
+
+// needsMaterialization reports whether a FROM-clause subquery must be
+// materialized by a CO-ROUTINE in the plan (compound or aggregate); simple
+// single-table selects are inlined instead.
+func needsMaterialization(sub *sql.SelectStmt) bool {
+	if sub == nil {
+		return false
+	}
+	if sub.Union != nil || len(sub.GroupBy) > 0 {
+		return true
+	}
+	return false
 }
 
 func (e *Engine) joinSearchRef(joins []joinRef, planned []string) *joinRef {
