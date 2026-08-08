@@ -80,8 +80,8 @@ func Test_autoindex2(t *testing.T) {
 		}
 		got := flatten(r)
 		wantPattern := "AUTO"
-		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		if matched, _ := regexp.MatchString(wantPattern, got); matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match pattern: [%s]", got, wantPattern)
 		}
 	}
 }

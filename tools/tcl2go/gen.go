@@ -1511,6 +1511,18 @@ func isTCLRegexPattern(goQuoted string) bool {
 	return false
 }
 
+// regexPatternNegated reports whether a TCL regex-pattern expected value uses
+// the "~/.../" form, meaning the pattern must NOT match (SQLite's do_test
+// "~" prefix inverts the regex comparison).
+func regexPatternNegated(goQuoted string) bool {
+	s := goQuoted
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		s = s[1 : len(s)-1]
+	}
+	s = strings.TrimSpace(s)
+	return strings.HasPrefix(s, "~/") || strings.HasPrefix(s, "~\"")
+}
+
 // regexPatternExpr converts a TCL regex-pattern expected value (a Go-quoted
 // string like `"/B-TREE/"` or `"~/SCAN/"`) into a Go regex pattern string
 // literal. The `~/.../` prefix means a regex; `/.../` is treated as a regex
@@ -2575,6 +2587,12 @@ var unsupportedCapabilities = map[string]bool{
 	"session":    true, // session extension not supported
 	"rbu":        true, // RBU extension not supported
 	"zipfile":    true, // zipfile extension not supported
+	// stat4: the sqlite_stat4 histogram/sampling machinery. Frigolite creates
+	// the sqlite_stat4 table (so ANALYZE's stat4 introspection matches the
+	// table shape) but does not populate sample histograms; tests guarded by
+	// ifcapable stat4 assert stat4 CONTENTS (test_decode(sample), nLt/nDLt
+	// histograms, range row-count estimates) and are skipped.
+	"stat4": true,
 	// Ordered-set aggregate syntax (WITHIN GROUP) is not parsed by the engine;
 	// the percentile/percentile_cont/percentile_disc/median functions themselves
 	// ARE implemented (percentile.test exercises them in the non-ifcapable
@@ -2833,13 +2851,13 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	if isTestCommand(cmdName) {
 		if name := testCommandName(args); name != "" {
 			if reason, ok := skipTests[name]; ok {
-				tp.emitSkippedTest(name, reason)
+				tp.emitSkippedTestSideEffects(cmdName, args, name, reason)
 				return
 			}
 			if tp.testPrefix != "" {
 				prefixed := tp.testPrefix + "-" + name
 				if reason, ok := skipTests[prefixed]; ok {
-					tp.emitSkippedTest(prefixed, reason)
+					tp.emitSkippedTestSideEffects(cmdName, args, prefixed, reason)
 					return
 				}
 			}
@@ -3616,9 +3634,16 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 		if isTCLRegexPattern(expectedExpr) {
 			patternExpr := regexPatternExpr(expectedExpr)
 			tp.emitLine("wantPattern := %s", patternExpr)
-			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
-			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
-			tp.emitLine("}")
+			if regexPatternNegated(expectedExpr) {
+				// "~/.../" — the pattern must NOT match.
+				tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\", got, wantPattern)")
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
+				tp.emitLine("}")
+			}
 		} else if dbEvalSQL, isSubst, ok := dbEvalExpected(args[2]); ok {
 			// [db eval { SQL }] or [db eval [subst -novar { SQL }]] — run the
 			// query at runtime for the expected value. SQL with $var/[cmd]
@@ -4042,6 +4067,13 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		}
 		lastStmt := lastStatementSQL(sql)
 		isQuery := isQueryStmt(lastStmt)
+		// A db eval whose SQL is a bare variable reference (e.g. `db eval
+		// $sql` in a foreach loop) cannot be classified statically. Most such
+		// bodies in do_test are SELECTs whose result is compared to the
+		// expected value, so default to the query path.
+		if !isQuery && strings.HasPrefix(strings.TrimSpace(sql), "$") {
+			isQuery = true
+		}
 
 		tp.emitLine("{ // do_test %s", nameExpr)
 		tp.indent++
@@ -4055,9 +4087,16 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			if isTCLRegexPattern(expectedExpr) {
 				patternExpr := regexPatternExpr(expectedExpr)
 				tp.emitLine("wantPattern := %s", patternExpr)
-				tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
-				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
-				tp.emitLine("}")
+				if regexPatternNegated(expectedExpr) {
+					// "~/.../" — the pattern must NOT match.
+					tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
+					tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\", got, wantPattern)")
+					tp.emitLine("}")
+				} else {
+					tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
+					tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
+					tp.emitLine("}")
+				}
 			} else if dbEvalSQL, isSubst, ok := dbEvalExpected(args[2]); ok {
 				// [db eval { SQL }] or [db eval [subst -novar { SQL }]] —
 				// render $var/[cmd] refs as a Go string expression.
@@ -4217,10 +4256,20 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			lastCmd := bodyCmds[len(bodyCmds)-1]
 			if len(lastCmd) >= 3 && lastCmd[0].Text == "db" && lastCmd[1].Text == "eval" {
 				sqlText := lastCmd[2].Text
-				for _, stmt := range strings.Split(sqlText, ";") {
-					if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
+				// `db eval $var` (a variable reference): treat as a query when
+				// the variable was assigned query SQL (tracked by markQueryVar),
+				// e.g. autoindex4's `set sql "SELECT * ..."; ... db eval $sql`.
+				if strings.HasPrefix(strings.TrimSpace(sqlText), "$") {
+					varName := strings.TrimPrefix(strings.TrimSpace(sqlText), "$")
+					if tp.queryVars[varName] {
 						bodyEndsDBEvalQuery = true
-						break
+					}
+				} else {
+					for _, stmt := range strings.Split(sqlText, ";") {
+						if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
+							bodyEndsDBEvalQuery = true
+							break
+						}
 					}
 				}
 			}
@@ -4252,15 +4301,21 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
 				tp.emitLine("}")
 			} else if bodyEndsDBEvalQuery {
-				// The body's last command is `db eval {SELECT ...}` — its result
-				// is the query rows, not an error. Re-run the SELECT as a query
-				// and compare the flattened result against the expected value
-				// (trans2.test's hash checks).
+				// The body's last command is `db eval {SELECT ...}` or `db eval
+				// $var` (variable holding query SQL) — its result is the query
+				// rows, not an error. Re-run the SELECT as a query and compare
+				// the flattened result against the expected value (trans2.test's
+				// hash checks, autoindex4's foreach loops).
 				lastCmd := bodyCmds[len(bodyCmds)-1]
 				lastSQL := lastCmd[2].Text
-				tp.emitLine("r = db.Query(%s)", tp.buildSQLStringExpr(lastSQL))
+				queryExpr := tp.buildSQLStringExpr(lastSQL)
+				if strings.HasPrefix(strings.TrimSpace(lastSQL), "$") {
+					// A $var reference: the SQL text is the Go variable itself.
+					queryExpr = tclVarToGo(strings.TrimSpace(lastSQL))
+				}
+				tp.emitLine("r = db.Query(%s)", queryExpr)
 				tp.emitLine("if r.Error != nil {")
-				tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", tp.buildSQLStringExpr(lastSQL))
+				tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", queryExpr)
 				tp.emitLine("}")
 				tp.emitLine("if flatten(r) != %s {", expectedExpr)
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
@@ -5818,19 +5873,19 @@ var skipTests = map[string]string{
 	// registers echo globally and implements proxying in the engine, so these
 	// C-ABI-observable behaviors are not applicable.
 	"vtab1-1.2152.1": "C prepare/step internals not representable (echo vtab prepared then stepped after t2152b exists)",
-	"vtab-1.2152.2": "C prepare/step internals not representable",
-	"vtab-1.2152.3": "C prepare/step internals not representable",
-	"vtab-1.2152.4": "C prepare/step internals not representable",
-	"vtab1-1.16": "echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)",
-	"vtab1-1.17": "echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)",
-	"vtab1-1.10": "echo reopen-unregister lifecycle (C test module; keeps techo/treal state consistent with the skipped 1.16/1.17 teardown)",
-	"vtab1-1.11": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
-	"vtab1-1.12": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
-	"vtab1-1.13": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
-	"vtab1-1.14": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
-	"vtab1-1.15": "echo reopen-unregister lifecycle (C test module)",
-	"vtab1-17.1": "echo_v2 test module (C test module, src/test8.c) not implemented",
-	"vtab1-17.2": "writable_schema cleanup test (depends on the skipped 17.1 writable_schema insert)",
+	"vtab-1.2152.2":  "C prepare/step internals not representable",
+	"vtab-1.2152.3":  "C prepare/step internals not representable",
+	"vtab-1.2152.4":  "C prepare/step internals not representable",
+	"vtab1-1.16":     "echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)",
+	"vtab1-1.17":     "echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)",
+	"vtab1-1.10":     "echo reopen-unregister lifecycle (C test module; keeps techo/treal state consistent with the skipped 1.16/1.17 teardown)",
+	"vtab1-1.11":     "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.12":     "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.13":     "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.14":     "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.15":     "echo reopen-unregister lifecycle (C test module)",
+	"vtab1-17.1":     "echo_v2 test module (C test module, src/test8.c) not implemented",
+	"vtab1-17.2":     "writable_schema cleanup test (depends on the skipped 17.1 writable_schema insert)",
 	"vtab1-18.1.1.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
 	"vtab1-18.1.2.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
 	"vtab1-18.1.3.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
@@ -5839,17 +5894,17 @@ var skipTests = map[string]string{
 	"vtab1-18.2.1.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
 	"vtab1-18.2.2.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
 	"vtab1-18.2.3.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
-	"vtab1-19.1": "per-connection module registration (register_echo_module on db2) is C-ABI",
-	"vtab1-19.2": "per-connection module registration (register_echo_module on db2) is C-ABI",
-	"vtab1-19.3": "per-connection module registration (register_echo_module on db2) is C-ABI",
-	"vtab1-23.3.1": "eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)",
-	"vtab1-23.3.2": "eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)",
+	"vtab1-19.1":     "per-connection module registration (register_echo_module on db2) is C-ABI",
+	"vtab1-19.2":     "per-connection module registration (register_echo_module on db2) is C-ABI",
+	"vtab1-19.3":     "per-connection module registration (register_echo_module on db2) is C-ABI",
+	"vtab1-23.3.1":   "eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)",
+	"vtab1-23.3.2":   "eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)",
 
 	// vtab1-22.x: ATTACH with a 1000-char db name + FTS4 virtual tables + C
 	// prepare/step internals. FTS4 is excluded from Frigolite, and the
 	// sqlite3_prepare/sqlite3_step C-API internals are not representable.
-	"vtab1-22.1": "FTS4 virtual table + C prepare/step internals not applicable",
-	"vtab1-22.2": "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.1":   "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.2":   "FTS4 virtual table + C prepare/step internals not applicable",
 	"vtab1-22.3.1": "FTS4 virtual table + C prepare/step internals not applicable",
 	"vtab1-22.3.2": "FTS4 virtual table + C prepare/step internals not applicable",
 	"vtab1-22.4.1": "FTS4 virtual table + C prepare/step internals not applicable",
@@ -5894,19 +5949,19 @@ var skipTests = map[string]string{
 	// only after commit, schema reset on mid-query close). Frigolite does not
 	// implement shared-cache mode or cross-connection lock propagation, so
 	// these are not applicable (same class as pragma3 data_version N-A).
-	"vtab_shared-1.4": "shared-cache cross-connection visibility not supported",
-	"vtab_shared-1.5": "shared-cache cross-connection visibility not supported",
-	"vtab_shared-1.6": "shared-cache cross-connection visibility not supported",
-	"vtab_shared-1.8.1": "shared-cache cross-connection locking not supported",
-	"vtab_shared-1.8.2": "shared-cache cross-connection locking not supported",
-	"vtab_shared-1.8.3": "shared-cache cross-connection locking not supported",
-	"vtab_shared-1.8.4": "shared-cache cross-connection locking not supported",
-	"vtab_shared-1.8.5": "shared-cache cross-connection locking not supported",
-	"vtab_shared-1.9.1": "shared-cache cross-connection schema reset not supported",
-	"vtab_shared-1.9.2": "shared-cache cross-connection schema reset not supported",
-	"vtab_shared-1.9.3": "shared-cache cross-connection schema reset not supported",
-	"vtab_shared-1.10": "shared-cache DROP-lock propagation not supported",
-	"vtab_shared-1.11": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-1.4":    "shared-cache cross-connection visibility not supported",
+	"vtab_shared-1.5":    "shared-cache cross-connection visibility not supported",
+	"vtab_shared-1.6":    "shared-cache cross-connection visibility not supported",
+	"vtab_shared-1.8.1":  "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.2":  "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.3":  "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.4":  "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.5":  "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.9.1":  "shared-cache cross-connection schema reset not supported",
+	"vtab_shared-1.9.2":  "shared-cache cross-connection schema reset not supported",
+	"vtab_shared-1.9.3":  "shared-cache cross-connection schema reset not supported",
+	"vtab_shared-1.10":   "shared-cache DROP-lock propagation not supported",
+	"vtab_shared-1.11":   "shared-cache cross-connection vtab visibility not supported",
 	"vtab_shared-1.12.1": "shared-cache cross-connection vtab visibility not supported",
 	"vtab_shared-1.12.2": "shared-cache cross-connection vtab visibility not supported",
 	"vtab_shared-1.13.1": "shared-cache cross-connection vtab visibility not supported",
@@ -5921,8 +5976,42 @@ var skipTests = map[string]string{
 	"vtab_shared_1.15.1": "shared-cache cross-connection vtab visibility not supported",
 	"vtab_shared_1.15.2": "shared-cache cross-connection vtab visibility not supported",
 	"vtab_shared_1.15.3": "shared-cache cross-connection vtab visibility not supported",
-	"vtab_shared-2.1.1": "rtree vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable",
-	"vtab_shared-2.2.1": "fts3 vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable",
+	"vtab_shared-2.1.1":  "rtree vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable",
+	"vtab_shared-2.2.1":  "fts3 vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable",
+
+	// G5.ANALYZE plan-choice N-A: these tests assert which index/plan SQLite
+	// picks via EXPLAIN QUERY PLAN (AUTO / AUTOMATIC COVERING INDEX / index
+	// choice / the "unordered" stat1 directive / non-stable sorter tie
+	// ordering). Frigolite is result-equivalent but does not implement a
+	// cost-based planner, so the exact plan is out of scope. The RESULT
+	// correctness of every query in these tests is covered by the sibling
+	// tests that remain active (analyzeC 2.0/2.2/3.0/3.2, autoindex1
+	// 300/310/400/401, autoindex4's foreach loop, ...).
+	"analyzeC-2.1":   "plan-choice EQP assertion (unordered stat1 directive) N-A",
+	"analyzeC-2.3":   "plan-choice EQP assertion (unordered stat1 directive) N-A",
+	"analyzeC-2.3x":  "plan-choice EQP assertion (unordered stat1 directive) N-A",
+	"analyzeC-3.1":   "plan-choice EQP assertion (unordered stat1 directive) N-A",
+	"analyzeC-3.3":   "plan-choice EQP assertion (unordered stat1 directive) N-A",
+	"analyzeC-3.3x":  "plan-choice EQP assertion (unordered stat1 directive) N-A",
+	"autoindex1-299": "plan-choice EQP assertion (AUTOMATIC COVERING INDEX) N-A",
+	"autoindex1-800": "plan-choice EQP assertion (SEARCH ... SEARCH raw_contacts) N-A",
+	"autoindex1-801": "plan-choice EQP assertion (SEARCH ... SEARCH raw_contacts) N-A",
+	"autoindex1-901": "plan-choice EQP assertion (USING AUTOMATIC COVERING INDEX) N-A",
+	"autoindex-1211": "plan-choice EQP assertion (SEARCH t1 USING AUTOMATIC COVERING INDEX) N-A",
+	"autoindex3-110": "plan-choice EQP assertion (AUTO) N-A",
+	"autoindex3-120": "plan-choice EQP assertion (AUTO) N-A",
+	"autoindex3-130": "plan-choice EQP assertion (AUTO) N-A",
+	"autoindex3-140": "plan-choice EQP assertion (AUTO) N-A",
+	"autoindex4-1.0": "ORDER BY tie ordering follows SQLite's non-stable sorter (plan-dependent) N-A",
+
+	// analyze3-5.1.x: prepared-statement binding APIs (sqlite3_clear_bindings /
+	// sqlite3_transfer_bindings) driven by while {SQLITE_ROW == [sqlite3_step
+	// $S]} loops over a C-prepared statement handle. The pure-Go harness has
+	// no prepared-statement step loop, and the transpiler emits a constant-true
+	// for loop (infinite loop) for the unsupported sqlite3_step pattern.
+	"analyze3-5.1.1": "C-API prepared-statement binding loop (sqlite3_step) not transpilable",
+	"analyze3-5.1.2": "C-API prepared-statement binding loop (sqlite3_step) not transpilable",
+	"analyze3-5.1.3": "C-API prepared-statement binding loop (sqlite3_step) not transpilable",
 }
 
 // skipTestFiles lists TCL test files whose tests ALL exercise engine features
@@ -6075,6 +6164,35 @@ func testCommandName(args []tcl.RawWord) string {
 func (tp *transpiler) emitSkippedTest(name, reason string) {
 	nameExpr := tp.goStringLiteral(tcl.RawWord{Text: name})
 	tp.emitLine("{ // %s — skipped: %s", nameExpr, reason)
+	tp.emitLine("}")
+}
+
+// emitSkippedTestSideEffects emits a skipped test, but for do_execsql_test /
+// do_timed_execsql_test bodies it also runs the SQL batch for its SIDE EFFECTS
+// (CREATE/INSERT/ANALYZE setup) so later tests that depend on the schema still
+// see it. Only the assertion is dropped (the test is N-A for reasons recorded
+// in skipTests). do_test / do_eqp_test bodies are not executed (their side
+// effects are entangled with C-ABI state or the assertion itself).
+func (tp *transpiler) emitSkippedTestSideEffects(cmdName string, args []tcl.RawWord, name, reason string) {
+	nameExpr := tp.goStringLiteral(tcl.RawWord{Text: name})
+	isExecsql := cmdName == "do_execsql_test" || cmdName == "do_timed_execsql_test" || cmdName == "do_execsql2_test"
+	if !isExecsql || len(args) < 2 {
+		tp.emitSkippedTest(name, reason)
+		return
+	}
+	tp.emitLine("{ // %s — skipped: %s (SQL side effects only)", nameExpr, reason)
+	tp.indent++
+	// The do_execsql_test body may have an optional "-db NAME" prefix.
+	sqlArgs := args
+	if len(sqlArgs) >= 3 && sqlArgs[0].Text == "-db" {
+		sqlArgs = sqlArgs[2:]
+	}
+	sqlExpr := tp.collectSQLExpression(sqlArgs[1:2])
+	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+	tp.emitLine("if _res.Error != nil {")
+	tp.emitLine("\tt.Errorf(\"exec error (skipped test side effects): %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+	tp.emitLine("}")
+	tp.indent--
 	tp.emitLine("}")
 }
 

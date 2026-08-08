@@ -1574,7 +1574,33 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	// An empty IN list has no elements to match: the result is FALSE for IN
+	// and TRUE for NOT IN regardless of the operand (even NULL). This must be
+	// checked before the NULL-operand short-circuit below.
+	if len(v.List) == 0 {
+		if v.Negated {
+			return int64(1), nil
+		}
+		return int64(0), nil
+	}
 	if operand == nil {
+		// A NULL operand with a subquery that returns zero rows behaves like
+		// an empty list: FALSE for IN, TRUE for NOT IN (no elements to
+		// compare against). Any non-empty list leaves the result unknown.
+		if len(v.List) == 1 {
+			if subq, ok := v.List[0].(*sql.Subquery); ok {
+				res, err := e.evalSubqueryRows(subq, row)
+				if err != nil {
+					return nil, nil
+				}
+				if len(res) == 0 {
+					if v.Negated {
+						return int64(1), nil
+					}
+					return int64(0), nil
+				}
+			}
+		}
 		return nil, nil
 	}
 	// Row-value IN: the operand is a row value ([]interface{}) or the list

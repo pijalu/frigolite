@@ -2523,7 +2523,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				}
 			}
 		}
-		joinDone:
+	joinDone:
 
 		// NATURAL JOIN: auto-generate USING conditions for all common columns.
 		effectiveOn := join.On
@@ -2554,8 +2554,11 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		// Build ephemeral hash index for equi-join optimization.
 		// Detect simple "left.col = right.col" patterns in the ON clause
 		// and create a temporary index on the right table's column.
+		// lastTableName is the immediate left table of THIS join (for a
+		// chained join it is the previous join's right table, not the
+		// first FROM table).
 		var autoIndex map[interface{}][]joinIndexEntry
-		_, rightColName := extractEquiJoinCols(effectiveOn, leftName, tableName)
+		_, rightColName := extractEquiJoinCols(effectiveOn, lastTableName, tableName)
 		if rightColName != "" && len(rightMaps) > 0 {
 			autoIndex = make(map[interface{}][]joinIndexEntry)
 			for ri, rm := range rightMaps {
@@ -2638,7 +2641,8 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				}
 			}
 			matched := e.processJoinRowTrackingRight(
-				leftMap, rowRightMaps, &combinedMaps, tableName, effectiveJoin, s, rightDefs, autoIndex,
+				leftMap, rowRightMaps, &combinedMaps, lastTableName, tableName, effectiveJoin,
+				rightDefs, autoIndex,
 				isRightOrFull, matchedRight, leftIdx, rowCorrLeft)
 			if !matched && (joinTypeHas(join.JoinType, "LEFT") || joinTypeHas(join.JoinType, "FULL")) {
 				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName, leftName))
@@ -2678,24 +2682,21 @@ type joinIndexEntry struct {
 // Returns true if at least one match was found (for the ON condition).
 func (e *Engine) processJoinRowTrackingRight(
 	leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap,
-	tableName string, join sql.JoinClause, s *sql.SelectStmt,
+	leftTableName, tableName string, join sql.JoinClause,
 	rightDefs []sql.ColumnDef, autoIndex map[interface{}][]joinIndexEntry,
 	trackMatchedRight bool, matchedRight []bool, leftIdx int, corrLeftIdx []int,
 ) bool {
-	// The left table's qualified-name prefix uses its alias when present.
-	leftName := s.From.Name
-	if s.From.As != "" {
-		leftName = s.From.As
-	}
 	matched := false
 	if autoIndex != nil {
-		leftColName, _ := extractEquiJoinCols(join.On, leftName, tableName)
-		leftColVal, leftOK := leftMap[leftColName]
-		// The unqualified key may be absent in a chained join (the left
-		// result stores the column under qualified keys like t1.d); try the
-		// qualified key as a fallback.
-		if !leftOK && leftColName != "" && leftName != "" {
-			leftColVal, leftOK = leftMap[leftName+"."+leftColName]
+		leftColName, _ := extractEquiJoinCols(join.On, leftTableName, tableName)
+		// The left row's column may be keyed unqualified (base table) or
+		// qualified (a chained join's combined map stores each side under
+		// table.col keys). Prefer the QUALIFIED key: in a chained join the
+		// unqualified name resolves to the first table's column, which is
+		// NOT the immediate-left table we are joining against.
+		leftColVal, leftOK := leftMap[leftTableName+"."+leftColName]
+		if !leftOK {
+			leftColVal, leftOK = leftMap[leftColName]
 		}
 		// If the extracted left column isn't present (e.g., unqualified
 		// columns guessed the wrong side), fall back to the nested-loop.
@@ -2703,7 +2704,7 @@ func (e *Engine) processJoinRowTrackingRight(
 			uv := joinIndexKey(leftColVal)
 			if rightRows, ok := autoIndex[uv]; ok {
 				for _, entry := range rightRows {
-					combinedMap := e.buildCombinedRowMap(leftMap, entry.row, tableName, leftName)
+					combinedMap := e.buildCombinedRowMap(leftMap, entry.row, tableName, leftTableName)
 					if e.evalOnCondition(join.On, combinedMap) {
 						matched = true
 						*combinedMaps = append(*combinedMaps, combinedMap)
@@ -2724,7 +2725,7 @@ func (e *Engine) processJoinRowTrackingRight(
 			// Fall through to the nested-loop when the hash lookup produced no
 			// matches (wrong-side extraction, or NULL keys not in the index).
 			for ri, rightMap := range rightMaps {
-				combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
+				combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftTableName)
 				onPass := e.evalOnCondition(join.On, combinedMap)
 				if onPass {
 					matched = true
@@ -2737,7 +2738,7 @@ func (e *Engine) processJoinRowTrackingRight(
 		}
 	} else {
 		for ri, rightMap := range rightMaps {
-			combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
+			combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftTableName)
 			onPass := e.evalOnCondition(join.On, combinedMap)
 			if onPass {
 				matched = true
@@ -2752,7 +2753,7 @@ func (e *Engine) processJoinRowTrackingRight(
 	// its generated equality condition, so it must not take this fallback.
 	if !matched && join.JoinType == "CROSS" {
 		for ri, rightMap := range rightMaps {
-			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName))
+			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, leftTableName))
 			if trackMatchedRight {
 				matchedRight[ri] = true
 			}
@@ -3495,7 +3496,10 @@ func (e *Engine) exprHasColumnRef(expr sql.Expr) bool {
 	}
 	switch v := expr.(type) {
 	case *sql.ColumnRef:
-		return true
+		// A bare "*" (count(*), SELECT *) is not a column reference: it
+		// means "all rows of the FROM table", so it must not count as an
+		// outer reference in correlated-aggregate detection.
+		return v.Name != "*"
 	case *sql.BinaryOp:
 		return e.exprHasColumnRef(v.Left) || e.exprHasColumnRef(v.Right)
 	case *sql.UnaryOp:
@@ -6801,10 +6805,10 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			for _, cd := range colDefs {
-					if !cd.Dropped && !isHiddenColumnDef(cd) {
-						colCount++
-					}
+				if !cd.Dropped && !isHiddenColumnDef(cd) {
+					colCount++
 				}
+			}
 		} else {
 			colCount++
 		}

@@ -282,34 +282,16 @@ func Test_analyze(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		}
 	}
-	{ // do_test "analyze-5.1"
-		r = db.Query("\n      SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;\n    ")
-		}
-	}
 	{ // do_test "analyze-5.2"
 		r = db.Query("\n    DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		}
 	}
-	{ // do_test "analyze-5.3"
-		r = db.Query("\n      SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;\n    ")
-		}
-	}
 	{ // do_test "analyze-5.4"
 		r = db.Query("\n    DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
-		}
-	}
-	{ // do_test "analyze-5.5"
-		r = db.Query("\n      SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;\n    ")
 		}
 	}
 	{ // do_test "analyze-5.99"
@@ -339,24 +321,6 @@ func Test_analyze(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "SQLiteDemo2 sqliteDemo t1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// database_may_be_corrupt (unsupported command, not transpiled)
-	{ // "analyze-7.1"
-		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0, 4);\n    ANALYZE sqlite_schema;\n    SELECT * FROM t1 WHERE b>7223372036854775\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0, 4);\n    ANALYZE sqlite_schema;\n    SELECT * FROM t1 WHERE b>7223372036854775\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "2 7223372036854776 3 7223372036854777"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

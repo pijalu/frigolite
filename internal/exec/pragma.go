@@ -66,13 +66,16 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 		if upperName == "MAIN" || upperName == "TEMP" || upperName == "TEMPORARY" {
 			return e.analyzeAllTables()
 		}
-		// Handle schema.table prefix
+		// Handle schema.table prefix: validate the schema exists (SQLite
+		// reports "unknown database %s" before looking up the table) and
+		// strip it for the table lookup.
 		tableName := name
 		if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
-			prefix := strings.ToUpper(tableName[:dotIdx])
-			if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
-				tableName = tableName[dotIdx+1:]
+			prefix := tableName[:dotIdx]
+			if e.getDB(prefix) == nil {
+				return &Result{Error: fmt.Errorf("unknown database %s", prefix)}
 			}
+			tableName = tableName[dotIdx+1:]
 		}
 		// First try as a table name
 		if _, tableErr := e.schema.FindTable(tableName); tableErr == nil {
@@ -83,7 +86,7 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 		if idxErr == nil {
 			return e.analyzeOneIndex(idxEntry)
 		}
-		return &Result{Error: fmt.Errorf("no such table or index: %s", name)}
+		return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
 	}
 
 	// Analyze all tables
@@ -173,6 +176,12 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 	// Count rows
 	nRow := e.countTableRows(entry.RootPage)
 
+	// SQLite skips analysis of empty tables: no stat1/stat4 rows are written
+	// for a table (or its indexes) with zero rows.
+	if nRow == 0 {
+		return &Result{}
+	}
+
 	// WITHOUT ROWID tables store their PRIMARY KEY as the row key; SQLite
 	// ANALYZE records a stat1 row for the PK as if it were an index named
 	// after the table (e.g. "t1 t1 {4 2 1}").
@@ -191,6 +200,7 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 		}
 	}
 
+	nIdx := 0
 	for _, idx := range allEntries {
 		if idx.Type != schema.TypeIndex {
 			continue
@@ -198,12 +208,27 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 		if !tableNames[idx.TblName] {
 			continue
 		}
+		nIdx++
 
 		statStr := e.computeIndexStat(entry, idx, nRow)
 		if res := e.insertStatRow(entry.Name, idx.Name, statStr); res.Error != nil {
 			return res
 		}
 		if res := e.insertStat4Row(entry.Name, idx.Name); res.Error != nil {
+			return res
+		}
+	}
+
+	// A rowid table with NO explicit indexes gets a single stat1 row with
+	// idx NULL (e.g. "sqliteDemo||5"), recording the rowid scan. WITHOUT
+	// ROWID tables already emitted a PK row above. SQLite omits the NULL row
+	// for tables that have at least one index (only the index rows appear).
+	if nIdx == 0 && !hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		stat := fmt.Sprintf("%d", nRow)
+		if res := e.insertStatRow(entry.Name, "", stat); res.Error != nil {
+			return res
+		}
+		if res := e.insertStat4Row(entry.Name, ""); res.Error != nil {
 			return res
 		}
 	}
@@ -221,7 +246,15 @@ func (e *Engine) insertStat4Row(tbl, idx string) *Result {
 		return &Result{Error: err}
 	}
 	colDefs := e.parseColumnDefs("sqlite_stat4", tableEntry.SQL)
-	values := []interface{}{tbl, idx, nil, nil, nil, nil}
+	// A "" idx encodes SQLite's NULL idx (the stat4 row for a table with no
+	// indexes); an actual index name is stored as a string.
+	var idxVal interface{}
+	if idx == "" {
+		idxVal = nil
+	} else {
+		idxVal = idx
+	}
+	values := []interface{}{tbl, idxVal, nil, nil, nil, nil}
 	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil, "")
 }
 
@@ -352,7 +385,23 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 		return fmt.Sprintf("%d", nRow)
 	}
 
-	// Scan the table rows, counting distinct prefixes of the index columns.
+	// Effective collation per index column: an explicit COLLATE in the index
+	// SQL wins; otherwise the table column's declared collation applies
+	// (SQLite: "CREATE INDEX t2a ON t2(a)" inherits a's COLLATE nocase).
+	explicitColls := parseIndexColumnCollations(idxEntry.SQL)
+	colls := make([]string, len(colIdx))
+	for i, ci := range colIdx {
+		colls[i] = "BINARY"
+		if i < len(explicitColls) && explicitColls[i] != "" {
+			colls[i] = strings.ToUpper(explicitColls[i])
+		} else if ci < len(colDefs) && colDefs[ci].Collate != "" &&
+			!strings.EqualFold(colDefs[ci].Collate, "BINARY") {
+			colls[i] = strings.ToUpper(colDefs[ci].Collate)
+		}
+	}
+
+	// Scan the table rows, counting distinct prefixes of the index columns
+	// under each column's collation.
 	seen := make([]map[string]bool, len(colIdx))
 	for i := range seen {
 		seen[i] = make(map[string]bool)
@@ -380,7 +429,7 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 				if j > 0 {
 					key.WriteByte('|')
 				}
-				key.WriteString(fmt.Sprintf("%v", rec.Values[colIdx[j]]))
+				key.WriteString(normalizeCollationKey(rec.Values[colIdx[j]], colls[j]))
 			}
 			seen[k][key.String()] = true
 		}
@@ -401,6 +450,25 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 		parts = append(parts, fmt.Sprintf("%d", avg))
 	}
 	return strings.Join(parts, " ")
+}
+
+// normalizeCollationKey renders a value as its collation-normalized form for
+// distinct-key counting: NOCASE lowercases, RTRIM strips trailing spaces, and
+// BINARY keeps the raw rendering. Non-string values are rendered as-is (their
+// equality is storage-class based, unaffected by text collations).
+func normalizeCollationKey(v interface{}, collation string) string {
+	s, ok := v.(string)
+	if !ok {
+		return fmt.Sprintf("%v", v)
+	}
+	switch strings.ToUpper(collation) {
+	case "NOCASE":
+		return strings.ToUpper(s)
+	case "RTRIM":
+		return strings.TrimRight(s, " ")
+	default:
+		return s
+	}
 }
 
 // formatPrefixKey creates a string key from a slice of values.
@@ -433,9 +501,22 @@ func parseIndexColumns(sqlStr string) []string {
 	var cols []string
 	for _, c := range strings.Split(colsStr, ",") {
 		col := strings.TrimSpace(c)
-		if col != "" {
-			cols = append(cols, col)
+		if col == "" {
+			continue
 		}
+		// Strip a COLLATE clause and ASC/DESC suffix so "c COLLATE nocase"
+		// resolves to the column "c". The collation is captured separately by
+		// parseIndexColumnCollations.
+		if ci := strings.Index(strings.ToUpper(col), " COLLATE "); ci >= 0 {
+			col = strings.TrimSpace(col[:ci])
+		}
+		cu := strings.ToUpper(col)
+		if di := strings.Index(cu, " DESC"); di >= 0 {
+			col = strings.TrimSpace(col[:di])
+		} else if ai := strings.Index(cu, " ASC"); ai >= 0 {
+			col = strings.TrimSpace(col[:ai])
+		}
+		cols = append(cols, col)
 	}
 	return cols
 }
@@ -461,7 +542,15 @@ func (e *Engine) insertStatRow(tbl, idx, stat string) *Result {
 		return &Result{Error: err}
 	}
 	colDefs := e.parseColumnDefs("sqlite_stat1", tableEntry.SQL)
-	values := []interface{}{tbl, idx, stat}
+	// A "" idx encodes SQLite's NULL idx (the stat1 row for a table with no
+	// indexes); an actual index name is stored as a string.
+	var idxVal interface{}
+	if idx == "" {
+		idxVal = nil
+	} else {
+		idxVal = idx
+	}
+	values := []interface{}{tbl, idxVal, stat}
 	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil, "")
 }
 
@@ -495,7 +584,7 @@ func (e *Engine) clearStatsForTable(tblName string) *Result {
 		}
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
 		if v, ok := row["tbl"]; ok {
-			if s, ok := v.(string); ok && s == tblName {
+			if s, ok := util.UnwrapColumnValue(v).(string); ok && s == tblName {
 				return true
 			}
 		}
@@ -522,9 +611,9 @@ func (e *Engine) clearStatsForIndex(tblName, idxName string) *Result {
 		}
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
 		if v, ok := row["tbl"]; ok {
-			if s, ok := v.(string); ok && s == tblName {
+			if s, ok := util.UnwrapColumnValue(v).(string); ok && s == tblName {
 				if v2, ok := row["idx"]; ok {
-					if s2, ok := v2.(string); ok && s2 == idxName {
+					if s2, ok := util.UnwrapColumnValue(v2).(string); ok && s2 == idxName {
 						return true
 					}
 				}

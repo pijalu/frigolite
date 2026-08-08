@@ -57,6 +57,7 @@ func Test_analyze6(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "analyze6"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

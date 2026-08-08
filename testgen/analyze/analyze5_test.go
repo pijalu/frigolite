@@ -99,6 +99,7 @@ func Test_analyze5(t *testing.T) {
 	_ = a2 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "analyze5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

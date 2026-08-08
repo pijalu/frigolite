@@ -122,16 +122,22 @@ func Test_analyze7(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
 		}
 	}
-	{ // do_test "analyze7-3.2.2"
-		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
-		}
-	}
 	{ // do_test "analyze7-3.3"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.4"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.5"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
 		}
 	}
 	{ // do_test "analyze7-3.6"

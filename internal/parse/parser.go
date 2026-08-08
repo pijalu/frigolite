@@ -2895,12 +2895,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.AnalyzeStmt{}
 
 	// Rule 291: cmd ::= ANALYZE nm dbnm
-	// ANALYZE with a table/index name (and optional schema qualifier). The
-	// name is the 2nd RHS element; a schema qualifier is the 3rd.
+	// ANALYZE with a table/index name (and optional schema qualifier). In
+	// SQLite's grammar nm is the FIRST identifier (the schema part for a
+	// dotted name, e.g. "main" in "ANALYZE main.t1") and dbnm is the
+	// SECOND (the table/index part, "t1"). Build "schema.table" so
+	// execAnalyze's dot-splitting resolves the table in its schema.
 	case 291:
-		name := getString(getRHS(p, ruleNo, 2))
-		if schema := getString(getRHS(p, ruleNo, 3)); schema != "" {
-			name = schema + "." + name
+		nm := getString(getRHS(p, ruleNo, 2))
+		dbnm := getString(getRHS(p, ruleNo, 3))
+		name := nm
+		if dbnm != "" {
+			name = nm + "." + dbnm
 		}
 		return &sql.AnalyzeStmt{Name: name}
 
