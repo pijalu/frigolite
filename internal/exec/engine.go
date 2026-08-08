@@ -147,6 +147,7 @@ type Engine struct {
 	dqsDML            bool   // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
 	recursiveCTELimit int    // PRAGMA recursive_cte_limit setting (default 1000000, matching the SQLite test suite's needs; percentile-7.0 recurses to 1M rows)
 	reverseUnordered  bool   // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
+	subqSeq           int    // monotonic counter for synthetic derived-table names (_subqN)
 	caseSensitiveLike bool   // PRAGMA case_sensitive_like: LIKE comparisons are case-sensitive
 	selectDepth       int    // current SELECT nesting depth (1 = top-level statement)
 	countChanges      bool   // PRAGMA count_changes: DML statements return a row with the changed-row count

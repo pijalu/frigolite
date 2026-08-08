@@ -2412,7 +2412,8 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			// (id = synth.id) can match the two sides.
 			synthetic := tableName == ""
 			if synthetic {
-				tableName = fmt.Sprintf("_subq%d", len(currentDefs)+1)
+				e.subqSeq++
+				tableName = fmt.Sprintf("_subq%d", e.subqSeq)
 			}
 			// Build row maps from subquery result rows. When the subquery itself
 			// joined tables (a parenthesized group), reuse its qualified row

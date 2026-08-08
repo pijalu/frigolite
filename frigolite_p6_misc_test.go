@@ -597,3 +597,31 @@ func TestP6_CTEInDML(t *testing.T) {
 		t.Errorf("UPDATE with CTE (full): got [%s] want [1 8 3 9]", got)
 	}
 }
+
+// TestP6_NestedJoinSameName covers selectD: joining two tables with the same
+// name (main.t4 JOIN aux1.t4) inside a parenthesized group used as a join
+// operand must keep both rows distinct. Synthetic derived-table names (_subqN)
+// were derived from the current column count, colliding across nesting levels
+// and overwriting one operand's row in the combined map.
+func TestP6_NestedJoinSameName(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		ATTACH ':memory:' AS aux1;
+		CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(111,'x1');
+		CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');
+		CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');
+		CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, `SELECT * FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux1.t4 ON aux1.t4.a=main.t4.a+111) ON main.t4.a=t2.a+222) ON t2.a=t1.a+111`)
+	if got != "111 x1 222 x2 444 x4 555 x5" {
+		t.Errorf("nested join same-name tables: got [%s] want [111 x1 222 x2 444 x4 555 x5]", got)
+	}
+	got = flattenQuery(t, db, `SELECT * FROM t1 JOIN (t2 JOIN (main.t4 AS x JOIN aux1.t4 ON aux1.t4.a=x.a+111) ON x.a=t2.a+222) ON t2.a=t1.a+111`)
+	if got != "111 x1 222 x2 444 x4 555 x5" {
+		t.Errorf("nested join aliased: got [%s]", got)
+	}
+}
