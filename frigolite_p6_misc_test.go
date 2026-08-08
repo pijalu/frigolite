@@ -531,3 +531,29 @@ func TestP6_JoinAliasShadowing(t *testing.T) {
 		t.Errorf("join SELECT *: got [%s]", got)
 	}
 }
+
+// TestP6_CTEWithValues covers values: WITH VVV AS (VALUES(...)) references in
+// compound queries and JOIN ON clauses (the CTE body exposes column1..columnN).
+func TestP6_CTEWithValues(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	// Compound query referencing the VALUES CTE twice.
+	got := flattenQuery(t, db, `WITH VVV AS (VALUES('a','b'),('c','d'),(123,NULL)) SELECT * FROM VVV UNION ALL SELECT * FROM VVV`)
+	if got != "a b c d 123 NULL a b c d 123 NULL" {
+		t.Errorf("CTE VALUES union: got [%s]", got)
+	}
+	// INTERSECT.
+	got = flattenQuery(t, db, `WITH VVV AS (VALUES('a','b'),('c','d'),(123,NULL)) SELECT * FROM VVV INTERSECT SELECT * FROM VVV`)
+	if got != "123 NULL a b c d" {
+		t.Errorf("CTE VALUES intersect: got [%s]", got)
+	}
+	// LEFT JOIN with ON referencing the CTE's value column and a table column.
+	if err := db.Exec(`CREATE TABLE t1(x); INSERT INTO t1 VALUES('a'),('z');`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, `WITH VVV AS (VALUES('a','b'),('c','d'),(123,NULL)) SELECT * FROM t1 LEFT JOIN VVV ON (column1=x)`)
+	if got != "a a b z NULL NULL" {
+		t.Errorf("CTE VALUES join: got [%s]", got)
+	}
+}

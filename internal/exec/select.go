@@ -163,18 +163,20 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Push this statement's WITH (CTE) definitions so nested subqueries can
+	// resolve them by name (SQLite's name resolver consults enclosing WITH
+	// clauses). Pop on return regardless of path. This must happen before
+	// compound column-count validation so a CTE reference in a union member
+	// (SELECT * FROM VVV UNION ALL ...) can resolve its column count.
+	if len(s.CTEs) > 0 {
+		e.cteScopes = append(e.cteScopes, s.CTEs)
+		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
+	}
+
 	// Validate compound SELECT column-count consistency (SQLite does this at
 	// prepare time, before any rows are produced).
 	if err := e.validateCompoundColumnCounts(s); err != nil {
 		return &Result{Error: err}
-	}
-
-	// Push this statement's WITH (CTE) definitions so nested subqueries can
-	// resolve them by name (SQLite's name resolver consults enclosing WITH
-	// clauses). Pop on return regardless of path.
-	if len(s.CTEs) > 0 {
-		e.cteScopes = append(e.cteScopes, s.CTEs)
-		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
 
 	// Push this statement's output-column aliases (SELECT expr AS x) so the
@@ -677,6 +679,30 @@ func (e *Engine) sortSetOpRows(rows [][]interface{}, colls []string) [][]interfa
 // the schema. It is used to validate that all members of a compound query
 // have the same number of result columns (SQLite reports this error at
 // prepare time, including under EXPLAIN QUERY PLAN).
+// resolveTableColumnNames returns the column names for a FROM/join table
+// reference, resolving CTE names before falling back to real tables/views.
+// Used by compound column-count validation, which runs before the CTE scope
+// is pushed onto e.cteScopes (execSelect pushes CTEs after validation).
+func (e *Engine) resolveTableColumnNames(s *sql.SelectStmt, name string) ([]string, error) {
+	if cte, ok := e.findCTE(s, name); ok && cte.Select != nil {
+		// The CTE's output column names come from its SELECT body (a VALUES
+		// body exposes column1..columnN).
+		res := e.execSelect(cte.Select)
+		if res.Error != nil {
+			return nil, res.Error
+		}
+		cols := make([]string, len(res.Columns))
+		copy(cols, res.Columns)
+		if len(cte.Columns) > 0 {
+			for i := 0; i < len(cols) && i < len(cte.Columns); i++ {
+				cols[i] = cte.Columns[i]
+			}
+		}
+		return cols, nil
+	}
+	return e.tableColumnNames(name)
+}
+
 func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 	count := 0
 	for _, col := range s.Columns {
@@ -689,7 +715,7 @@ func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 			// merged column still appears once from the left table).
 			var n int
 			if ref.Table != "" {
-				cols, err := e.tableColumnNames(ref.Table)
+				cols, err := e.resolveTableColumnNames(s, ref.Table)
 				if err != nil {
 					return 0, err
 				}
@@ -701,7 +727,7 @@ func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 				}
 				n = subCols
 			} else if s.From.Name != "" {
-				cols, err := e.tableColumnNames(s.From.Name)
+				cols, err := e.resolveTableColumnNames(s, s.From.Name)
 				if err != nil {
 					return 0, err
 				}
@@ -746,7 +772,7 @@ func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
 							}
 						}
 					} else {
-						jcols, err = e.tableColumnNames(j.Table.Name)
+						jcols, err = e.resolveTableColumnNames(s, j.Table.Name)
 						if err != nil {
 							return 0, err
 						}
@@ -7753,11 +7779,19 @@ func (e *Engine) validateJoinOnClauses(s *sql.SelectStmt) error {
 						availableCols[n] = true
 					}
 				} else if cteDef.Select != nil {
-					for _, col := range cteDef.Select.Columns {
-						if col.As != "" {
-							availableCols[col.As] = true
-						} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
-							availableCols[ref.Name] = true
+					// A VALUES CTE body exposes column1..columnN (no column
+					// aliases, no ColumnRefs); resolve the actual output names.
+					if cols, err := e.resolveTableColumnNames(s, join.Table.Name); err == nil {
+						for _, n := range cols {
+							availableCols[n] = true
+						}
+					} else {
+						for _, col := range cteDef.Select.Columns {
+							if col.As != "" {
+								availableCols[col.As] = true
+							} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+								availableCols[ref.Name] = true
+							}
 						}
 					}
 				}
