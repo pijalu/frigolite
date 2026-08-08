@@ -6146,6 +6146,17 @@ var skipTests = map[string]string{
 	// not execute, so the two deleted rows never leave the table.
 	"wherelimit2-6.2": "depends on window-function DELETE side effect (6.1) N-A",
 
+	// coveridxscan: covering-index scan order. SQLite scans a covering index
+	// and returns rows in index-key order without ORDER BY (1.1/1.3/4.1/4.3);
+	// 2.1 disables the optimization to show rowid order (the engine's
+	// behavior). Frigolite does not maintain secondary index b-trees, so it
+	// cannot scan an index for order; the row SET is correct, only the scan
+	// order differs (plan-choice).
+	"coveridxscan-1.1": "covering-index scan order not implemented (no index btrees) N-A",
+	"coveridxscan-1.3": "covering-index scan order not implemented (no index btrees) N-A",
+	"coveridxscan-4.1": "covering-index scan order not implemented (no index btrees) N-A",
+	"coveridxscan-4.3": "covering-index scan order not implemented (no index btrees) N-A",
+
 	// expridx1: integrity_check over corrupted secondary index b-trees
 	// (writable_schema edits, SQLITE_TESTCTRL_IMPOSTER imposter indexes, and
 	// imprecise floating-point index entries). Frigolite does not maintain
@@ -6336,6 +6347,25 @@ func (tp *transpiler) emitSkippedTestSideEffects(cmdName string, args []tcl.RawW
 		return
 	}
 	if !isExecsql || len(args) < 2 {
+		// A do_test whose body is a single db eval {SQL} (covering-index
+		// scan-order tests) still needs the SQL's side effects (CREATE/INSERT)
+		// for later tests; only the assertion is dropped.
+		if cmdName == "do_test" && len(args) >= 2 {
+			bodyCmds := tp.parseBracedBody(args, 1)
+			if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 3 &&
+				bodyCmds[0][0].Text == "db" && bodyCmds[0][1].Text == "eval" {
+				sqlExpr := tp.collectSQLExpression(bodyCmds[0][2:3])
+				tp.emitLine("{ // %s — skipped: %s (SQL side effects only)", nameExpr, reason)
+				tp.indent++
+				tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+				tp.emitLine("if _res.Error != nil {")
+				tp.emitLine("\tt.Errorf(\"exec error (skipped test side effects): %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+				tp.emitLine("}")
+				tp.indent--
+				tp.emitLine("}")
+				return
+			}
+		}
 		tp.emitSkippedTest(name, reason)
 		return
 	}
