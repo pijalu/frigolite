@@ -105,6 +105,7 @@ func Test_func6(t *testing.T) {
 	F = "loadhex test.db"
 	_ = F // suppress unused warning
 	// db function offrec (variable-reader, inlined)
+	db.RegisterFunction("offrec", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	if tclBool(bNullTrim) {
 		offset = "8180"
 		_ = offset // suppress unused warning

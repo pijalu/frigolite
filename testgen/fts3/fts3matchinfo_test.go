@@ -127,6 +127,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	// db function mit (variable-reader, inlined)
+	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "1.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t1 USING fts4(matchinfo=fts3);\n  SELECT name FROM sqlite_master WHERE type = 'table';\n")
 		if r.Error != nil {
@@ -259,7 +260,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t5(t5) VALUES('optimize') ")
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "4.4.0.2"
 		_res = db.Exec("\n    UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n  ")
 		if _res.Error != nil {
@@ -321,7 +322,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "6.2"
 		_res = db.Exec("\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -409,7 +410,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "8.4.1.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = X'0000'; ")
 		if _res.Error != nil {
@@ -520,6 +521,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	// db function mit (variable-reader, inlined)
+	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// foreach {tn expr res} "1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }"
 	_items0 := tclSplitList("1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -602,6 +604,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// db function mit (variable-reader, inlined)
+				db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 				{ // do_test "12.0"
 					cols = ""
 					_ = cols // suppress unused warning

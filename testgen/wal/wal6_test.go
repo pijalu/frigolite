@@ -178,6 +178,7 @@ func Test_wal6(t *testing.T) {
 	}
 	// test3 2.6.2 (unsupported command, not transpiled)
 	// db function test3 (variable-reader, inlined)
+	db.RegisterFunction("test3", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "2.6.3"
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
@@ -219,6 +220,7 @@ func Test_wal6(t *testing.T) {
 	}
 	// test4 3.2.2 (unsupported command, not transpiled)
 	// db function test4 (variable-reader, inlined)
+	db.RegisterFunction("test4", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "3.3.1"
 		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		if _res.Error != nil {

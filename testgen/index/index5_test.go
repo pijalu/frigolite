@@ -77,7 +77,7 @@ func Test_index5(t *testing.T) {
 	testprefix = "index5" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
-		if tclBool("permutation" + "==\"memsubsys1\"") {
+		if "" == "memsubsys1" {
 			r = db.Query(" PRAGMA auto_vacuum = 0; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0; ")

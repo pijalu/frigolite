@@ -78,6 +78,7 @@ func Test_swarmvtab2(t *testing.T) {
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// db function create_database (variable-reader, inlined)
+	db.RegisterFunction("create_database", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "100"
 		r = db.Query("\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")
 		if r.Error != nil {

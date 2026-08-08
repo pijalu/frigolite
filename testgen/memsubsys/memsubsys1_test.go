@@ -78,7 +78,7 @@ func Test_memsubsys1(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
-	if tclBool("permutation" + " == \"memsubsys1\"") {
+	if "" == "memsubsys1" {
 		return
 	}
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)

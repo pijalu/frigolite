@@ -171,7 +171,7 @@ func Test_main(t *testing.T) {
 	}
 	{ // do_test "main-1.102"
 	}
-	if tclBool("permutation" + " == \"\"") {
+	if "" == "" {
 		{ // do_test "main-2.0"
 			{
 				var _catchErr error

@@ -207,7 +207,7 @@ func Test_vacuum5(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database olaf", _res.Error, "\n  VACUUM olaf;\n")
 		}
 	}
-	if tclBool(TEMP_STORE + "<3 && " + "permutation" + "!=\"inmemory_journal\"") {
+	if tclBool(TEMP_STORE + "<3 && " + "" + "!=\"inmemory_journal\"") {
 		db.Close()
 		// testvfs tvfs (unsupported command, not transpiled)
 		// tvfs filter xOpen (unsupported command, not transpiled)

@@ -75,7 +75,7 @@ func Test_journal1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
 		db.Close()
-		// delete_file test.db (unsupported command, not transpiled)
+		os.Remove("test.db")
 		// copy_file test.db-journal-bu test.db-journal (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

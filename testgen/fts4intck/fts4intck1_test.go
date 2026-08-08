@@ -61,6 +61,7 @@ func Test_fts4intck1(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// db function slang (variable-reader, inlined)
+	db.RegisterFunction("slang", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT AS (slang(b)));\n  INSERT INTO t1(b) VALUES('the quick fox jumps over the lazy brown dog');\n  SELECT c FROM t1;\n")
 		if r.Error != nil {
@@ -113,6 +114,7 @@ func Test_fts4intck1(t *testing.T) {
 		}
 	}
 	// db function slang (variable-reader, inlined)
+	db.RegisterFunction("slang", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "2.2"
 		r = db.Query("\n  PRAGMA integrity_check(t2);\n")
 		if r.Error != nil {

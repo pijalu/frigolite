@@ -97,7 +97,7 @@ func Test_triggerE(t *testing.T) {
 				}
 			}
 		}
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		{ // "2.1"
 			r = db.Query("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			if r.Error != nil {

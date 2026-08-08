@@ -225,7 +225,9 @@ func Test_quota(t *testing.T) {
 		// sqlite3_quota_set *test.db 0 {} (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-3.2.1"
-		// delete_file force test.db test2.db (unsupported command, not transpiled)
+		os.Remove("force")
+		os.Remove("test.db")
+		os.Remove("test2.db")
 		// sqlite3_quota_set * 4096 {} (unsupported command, not transpiled)
 		var db1a *frigolite.DB
 		db1a = db // sqlite3 db1a test.db: alias to main in-memory db

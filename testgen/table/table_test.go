@@ -544,7 +544,7 @@ func Test_table(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;\n  ")

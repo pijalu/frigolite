@@ -101,7 +101,9 @@ func Test_fts3comp1(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// db function $zip (variable-reader, inlined)
+			db.RegisterFunction("$zip", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			// db function $unzip (variable-reader, inlined)
+			db.RegisterFunction("$unzip", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
 				if _res.Error != nil {
@@ -244,6 +246,7 @@ func Test_fts3comp1(t *testing.T) {
 		_ = myfunc_invoked // suppress unused warning
 		// proc definition (not transpiled)
 		// db function myfunc (variable-reader, inlined)
+		db.RegisterFunction("myfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT " + sqlLiteral(xyz) + ";\n")
 			if _res.Error != nil {
@@ -297,7 +300,9 @@ func Test_fts3comp1(t *testing.T) {
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		// db function comp (variable-reader, inlined)
+		db.RegisterFunction("comp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function uncomp (variable-reader, inlined)
+		db.RegisterFunction("uncomp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "4.1"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error != nil {
@@ -308,6 +313,7 @@ func Test_fts3comp1(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db function comp (variable-reader, inlined)
+		db.RegisterFunction("comp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
@@ -315,6 +321,7 @@ func Test_fts3comp1(t *testing.T) {
 			}
 		}
 		// db function uncomp (variable-reader, inlined)
+		db.RegisterFunction("uncomp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "4.3"
 			_res = db.Exec("\n  SELECT * FROM v1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {

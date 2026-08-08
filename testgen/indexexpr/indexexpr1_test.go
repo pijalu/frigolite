@@ -871,6 +871,7 @@ func Test_indexexpr1(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// db function addone (variable-reader, inlined)
+	db.RegisterFunction("addone", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "indexexpr1-2400"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n")
 		if _res.Error != nil {

@@ -749,7 +749,7 @@ func (e *Engine) applyUpdateChanges(tableName string, rootPage uint32, changes [
 	if delErr != nil {
 		return &Result{Error: delErr}
 	}
-	e.invalidateRowIDCache(rootPage)
+	e.invalidateRowIDCache(e.tablePager(tableName), rootPage)
 
 	// Step 2: Insert all new rows
 	for _, c := range changes {
@@ -769,7 +769,7 @@ func (e *Engine) applyUpdateChanges(tableName string, rootPage uint32, changes [
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		e.bumpRowIDCache(rootPage, writeRowID)
+		e.bumpRowIDCache(e.tablePager(tableName), rootPage, writeRowID)
 	}
 
 	return &Result{Changes: int64(len(changes))}
@@ -897,7 +897,7 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 		}); err != nil {
 			return &Result{Error: err}
 		}
-		e.invalidateRowIDCache(rootPage)
+		e.invalidateRowIDCache(e.tablePager(tableName), rootPage)
 		newRecord, err := storage.EncodeRecord(finalValues)
 		if err != nil {
 			return &Result{Error: err}
@@ -914,7 +914,7 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		e.bumpRowIDCache(rootPage, writeRowID)
+		e.bumpRowIDCache(e.tablePager(tableName), rootPage, writeRowID)
 		changesMade++
 		applied = append(applied, ch)
 	}
@@ -1100,7 +1100,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 		}); err != nil {
 			return &Result{Error: err}
 		}
-		e.invalidateRowIDCache(rootPage)
+		e.invalidateRowIDCache(e.tablePager(tableName), rootPage)
 		newRecord, err := storage.EncodeRecord(ch.values)
 		if err != nil {
 			return &Result{Error: err}
@@ -1113,7 +1113,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		e.bumpRowIDCache(rootPage, ch.rowID)
+		e.bumpRowIDCache(e.tablePager(tableName), rootPage, ch.rowID)
 		changesMade++
 		if hasTriggers {
 			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
@@ -1259,7 +1259,7 @@ func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.
 		}); err != nil {
 			return &Result{Error: err}
 		}
-		e.invalidateRowIDCache(tableEntry.RootPage)
+		e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 		if hasTriggers {
 			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 				return trigResult
@@ -1379,7 +1379,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			}); err != nil {
 				return &Result{Error: err}
 			}
-			e.invalidateRowIDCache(tableEntry.RootPage)
+			e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 			if hasTriggers {
 				if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 					return trigResult
@@ -1393,14 +1393,14 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		if e.foreignKeys {
 			if res := e.checkForeignKeyViolations(tableEntry, colDefs, c.values, c.rowID); res.Error != nil {
 				e.restorePager(e.pager, snap)
-				e.invalidateRowIDCache(tableEntry.RootPage)
+				e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 				return res
 			}
 			oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
 			newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
 			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID); res.Error != nil {
 				e.restorePager(e.pager, snap)
-				e.invalidateRowIDCache(tableEntry.RootPage)
+				e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 				return res
 			}
 		}
@@ -1416,7 +1416,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			// this row's conflict resolution; abort like SQLite and roll
 			// back the whole statement (conflict rows already deleted).
 			e.restorePager(e.pager, snap)
-			e.invalidateRowIDCache(tableEntry.RootPage)
+			e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 			return &Result{Error: fmt.Errorf("constraint failed")}
 		}
 		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
@@ -1424,7 +1424,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		}); err != nil {
 			return &Result{Error: err}
 		}
-		e.invalidateRowIDCache(tableEntry.RootPage)
+		e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 		newRecord, err := storage.EncodeRecord(c.values)
 		if err != nil {
 			return &Result{Error: err}
@@ -1437,7 +1437,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		e.bumpRowIDCache(tableEntry.RootPage, c.rowID)
+		e.bumpRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage, c.rowID)
 		changesMade++
 	}
 	return &Result{Changes: changesMade}

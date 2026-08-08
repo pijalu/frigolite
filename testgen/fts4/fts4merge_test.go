@@ -322,7 +322,7 @@ func Test_fts4merge(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				{ // "4.4.2"
 					r = db.Query("\n    DELETE FROM t4_stat WHERE rowid=1;\n    INSERT INTO t4(t4) VALUES('merge=1,12');\n    SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level;\n  ")
 					if r.Error != nil {

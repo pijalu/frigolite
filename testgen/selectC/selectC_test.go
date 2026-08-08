@@ -131,6 +131,7 @@ func Test_selectC(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function uppercaseconversionfunctionwithaverylongname (variable-reader, inlined)
+	db.RegisterFunction("uppercaseconversionfunctionwithaverylongname", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "selectC-1.12.1"
 		r = db.Query("\n    SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
 		if r.Error != nil {

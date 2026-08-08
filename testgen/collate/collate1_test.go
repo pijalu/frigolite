@@ -88,6 +88,7 @@ func Test_collate1(t *testing.T) {
 })
 	// proc hex_collate collation (registered via db collate)
 	// db function hex (variable-reader, inlined)
+	db.RegisterFunction("hex", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	db.RegisterCollation("numeric", func(a, b string) int {
 	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)

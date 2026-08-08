@@ -404,8 +404,7 @@ func Test_incrblob2(t *testing.T) {
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrblob2-6.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1, zeroblob(100));\n  ")
@@ -527,18 +526,18 @@ func Test_incrblob2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows1 := db.Query("SELECT rowid FROM t2")
-			var _dbevalRb2 bool
-			var _dbevalErr3 error
-			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+			_dbevalRows0 := db.Query("SELECT rowid FROM t2")
+			var _dbevalRb1 bool
+			var _dbevalErr2 error
+			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 				_res = db.Exec("DROP TABLE t2")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
 				}
-				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			}
-			if _dbevalErr3 != nil {
-				_catchErr = _dbevalErr3
+			if _dbevalErr2 != nil {
+				_catchErr = _dbevalErr2
 			}
 			if _catchErr != nil {
 				rc = "1"

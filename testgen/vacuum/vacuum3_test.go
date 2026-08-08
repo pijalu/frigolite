@@ -264,7 +264,7 @@ func Test_vacuum3(t *testing.T) {
 				}
 				{ // do_test "vacuum3-4.1"
 					db.Close()
-					// delete_file test.db (unsupported command, not transpiled)
+					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					r = db.Query("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")

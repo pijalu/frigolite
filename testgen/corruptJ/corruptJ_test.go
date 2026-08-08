@@ -57,7 +57,7 @@ func Test_corruptJ(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "corruptJ"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"mmap\"") {
+	if "" == "mmap" {
 		return
 	}
 	if tclBool("nonzero_reserved_bytes") {

@@ -330,7 +330,7 @@ func Test_fkey6(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	if tclBool("permutation" + "!=\"inmemory_journal\"") {
+	if "" != "inmemory_journal" {
 		{ // "6.1"
 			r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
 			if r.Error != nil {

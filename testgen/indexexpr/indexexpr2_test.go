@@ -246,6 +246,7 @@ func Test_indexexpr2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// db function refcnt (variable-reader, inlined)
+	db.RegisterFunction("refcnt", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "4.100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));\n  ")
 		if _res.Error != nil {

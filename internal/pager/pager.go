@@ -1,8 +1,9 @@
 // Package pager manages reading and writing of database pages.
 //
 // File layout (SQLite compatible):
-//   Page 1: bytes 0-99 = database header, bytes 100-(pageSize-1) = b-tree content (pageSize total)
-//   Pages N>1: bytes 0-(pageSize-1) = b-tree content (pageSize total)
+//
+//	Page 1: bytes 0-99 = database header, bytes 100-(pageSize-1) = b-tree content (pageSize total)
+//	Pages N>1: bytes 0-(pageSize-1) = b-tree content (pageSize total)
 //
 // The b-tree layer always sees Data of exactly pageSize bytes.
 // For page 1, the first HeaderSize bytes are the database header (unused by b-tree).
@@ -10,6 +11,7 @@
 package pager
 
 import (
+	"encoding/binary"
 	"fmt"
 	"os"
 	"sync"
@@ -18,9 +20,9 @@ import (
 )
 
 const (
-	DefaultPageSize = 4096
+	DefaultPageSize  = 4096
 	DefaultCacheSize = 1000
-	HeaderSize      = 100
+	HeaderSize       = 100
 )
 
 type Pager struct {
@@ -163,9 +165,29 @@ func (p *Pager) Close() error {
 }
 
 func (p *Pager) PageSize() uint32 { return p.pageSize }
+
+// SetPageSize changes the pager's page size. It is only valid before any
+// user data pages exist (PRAGMA page_size on an empty database); the caller
+// is responsible for enforcing that. Page 1's Data buffer is resized so the
+// header/payload layout stays consistent.
+func (p *Pager) SetPageSize(ps uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.pageSize = ps
+	if pg, ok := p.pages[1]; ok {
+		newData := make([]byte, ps)
+		copy(newData, pg.Data)
+		pg.Data = newData
+		p.dirty[1] = true
+	}
+}
 func (p *Pager) NumPages() uint32 { p.mu.RLock(); defer p.mu.RUnlock(); return p.numPages }
 func (p *Pager) Header() []byte   { p.mu.RLock(); defer p.mu.RUnlock(); return p.header }
-func (p *Pager) SetHeader(h []byte) { p.mu.Lock(); defer p.mu.Unlock(); p.header = append([]byte(nil), h...) }
+func (p *Pager) SetHeader(h []byte) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.header = append([]byte(nil), h...)
+}
 
 // AllocatePage creates a new page. Data is always pageSize bytes.
 // For page 1, the first HeaderSize bytes are reserved for the database header.
@@ -313,4 +335,34 @@ func (p *Pager) Sync() error {
 		return p.file.Sync()
 	}
 	return nil
+}
+
+// HasDirtyPages reports whether the pager has unflushed dirty pages. The
+// engine uses it at COMMIT to decide whether the transaction wrote data (and
+// therefore whether the file change counter should be bumped).
+func (p *Pager) HasDirtyPages() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return len(p.dirty) > 0
+}
+
+// FileChangeCounter reads the database file's change counter (header offset
+// 24) directly from the file, bypassing the page cache (so commits by other
+// connections are observed even before a cache invalidation). It reports
+// whether a counter is available (false for in-memory pagers).
+func (p *Pager) FileChangeCounter() (uint32, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if p.file == nil {
+		// In-memory pager: fall back to the cached header.
+		if p.header == nil || len(p.header) < 28 {
+			return 0, false
+		}
+		return binary.BigEndian.Uint32(p.header[24:28]), true
+	}
+	var buf [4]byte
+	if _, err := p.file.ReadAt(buf[:], 24); err != nil {
+		return 0, false
+	}
+	return binary.BigEndian.Uint32(buf[:]), true
 }

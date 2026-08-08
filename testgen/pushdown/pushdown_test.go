@@ -69,6 +69,7 @@ func Test_pushdown(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function f (variable-reader, inlined)
+	db.RegisterFunction("f", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "1.1"
 		L = ""
 		_ = L // suppress unused warning

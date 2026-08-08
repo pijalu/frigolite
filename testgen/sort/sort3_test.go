@@ -81,6 +81,7 @@ func Test_sort3(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// db function cksum (variable-reader, inlined)
+	db.RegisterFunction("cksum", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "sort3-1.0" — skipped: test-only function cksum not implemented
 	}
 	// foreach {tn mmap_limit} "1 0\n  2 1000000"

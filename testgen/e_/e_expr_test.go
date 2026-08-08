@@ -282,7 +282,9 @@ func Test_e_expr(t *testing.T) {
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			// db function match (variable-reader, inlined)
+			db.RegisterFunction("match", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			// db function regexp (variable-reader, inlined)
+			db.RegisterFunction("regexp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			for _, op1 := range tclSplitList(oplist) {
 			_ = op1 // suppress unused warning
 				for _, op2 := range tclSplitList(oplist) {
@@ -1771,6 +1773,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																	}
 																	// db function x (variable-reader, inlined)
+																	db.RegisterFunction("x", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																	// proc definition (not transpiled)
 																	// foreach {tn x expr res nEval} "1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1"
 																	_items20 := tclSplitList("1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1")
@@ -2505,7 +2508,9 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// proc definition (not transpiled)
 																		// db function like (variable-reader, inlined)
+																		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		// db function like (variable-reader, inlined)
+																		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		likeargs = "" // TCL namespace variable
 																		_ = likeargs // suppress unused warning
 																		{ // "e_expr-15.1.1"
@@ -2869,6 +2874,7 @@ func Test_e_expr(t *testing.T) {
 																		tcl_nullvalue = ""
 																		// proc definition (not transpiled)
 																		// db function glob (variable-reader, inlined)
+																		db.RegisterFunction("glob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		globargs = "" // TCL namespace variable
 																		_ = globargs // suppress unused warning
 																		{ // "e_expr-17.3.1"
@@ -2918,6 +2924,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// proc definition (not transpiled)
 																		// db function regexp (variable-reader, inlined)
+																		db.RegisterFunction("regexp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		regexpargs = "" // TCL namespace variable
 																		_ = regexpargs // suppress unused warning
 																		{ // "e_expr-18.2.1"
@@ -2967,6 +2974,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// proc definition (not transpiled)
 																		// db function match (variable-reader, inlined)
+																		db.RegisterFunction("match", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		matchargs = "" // TCL namespace variable
 																		_ = matchargs // suppress unused warning
 																		{ // "e_expr-19.2.1"
@@ -3028,6 +3036,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// proc definition (not transpiled)
 																		// db function var (variable-reader, inlined)
+																		db.RegisterFunction("var", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		_items24 := tclSplitList("0 0 0")
 																		if len(_items24) >= 3 {
 																			a = _items24[0]
@@ -3477,6 +3486,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// proc definition (not transpiled)
 																		// db function ceval (variable-reader, inlined)
+																		db.RegisterFunction("ceval", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 																		evalcount = "0" // TCL namespace variable
 																		_ = evalcount // suppress unused warning
 																		{ // "e_expr-26.1.1"

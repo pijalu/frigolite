@@ -63,6 +63,7 @@ func Test_alias(t *testing.T) {
 	return
 	{ // do_test "alias-1.1"
 		// db function sequence (variable-reader, inlined)
+		db.RegisterFunction("sequence", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;\n  ")

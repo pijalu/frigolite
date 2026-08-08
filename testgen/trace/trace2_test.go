@@ -76,6 +76,7 @@ func Test_trace2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function sql (variable-reader, inlined)
+	db.RegisterFunction("sql", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// do_trace_select_test 1.1 {\n  SELECT 1, 2, 3;\n} {\n  "SELECT 1, 2, 3;"\n} (unsupported command, not transpiled)

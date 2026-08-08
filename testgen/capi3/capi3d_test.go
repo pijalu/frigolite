@@ -167,6 +167,7 @@ func Test_capi3d(t *testing.T) {
 	// test_is_readonly capi3d-2.20 {BEGIN EXCLUSIVE} 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// db function eval (variable-reader, inlined)
+	db.RegisterFunction("eval", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// test_is_readonly capi3d-2.21 {SELECT eval('DELETE FROM t1') FROM t2} 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// test_is_explain capi3d-2.51 {SELECT * FROM sqlite_master} 0 (unsupported command, not transpiled)

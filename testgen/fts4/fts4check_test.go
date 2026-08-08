@@ -81,7 +81,7 @@ func Test_fts4check(t *testing.T) {
 		disruption := _items0[_idx0+1]
 		_ = disruption // suppress unused warning
 		_ = _idx0
-			// sqlite3_db_config DEFENSIVE (unhandled flag)
+			db.SetDefensive(false)
 			{ // "1.2.1." + tn
 				_res = db.Exec("BEGIN; " + disruption)
 				if _res.Error != nil {
@@ -130,7 +130,7 @@ func Test_fts4check(t *testing.T) {
 			disruption := _items1[_idx1+1]
 			_ = disruption // suppress unused warning
 			_ = _idx1
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				{ // "2.2.1." + tn
 					_res = db.Exec("BEGIN; " + disruption)
 					if _res.Error != nil {
@@ -192,7 +192,7 @@ func Test_fts4check(t *testing.T) {
 				disruption := _items2[_idx2+1]
 				_ = disruption // suppress unused warning
 				_ = _idx2
-					// sqlite3_db_config DEFENSIVE (unhandled flag)
+					db.SetDefensive(false)
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)
 						if _res.Error != nil {
@@ -218,7 +218,7 @@ func Test_fts4check(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');\n")
 					}
 				}
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				{ // "4.1"
 					r = db.Query("\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
 					if r.Error != nil {
@@ -249,7 +249,7 @@ func Test_fts4check(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					}
 				}
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				{ // "5.2"
 					_res = db.Exec("\n  INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {

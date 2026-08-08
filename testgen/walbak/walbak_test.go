@@ -141,7 +141,7 @@ func Test_walbak(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	db.Close()
-	// delete_file test.db (unsupported command, not transpiled)
+	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbak-2.1"

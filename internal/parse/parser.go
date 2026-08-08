@@ -902,8 +902,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
 
 	// Rule 35: ccons ::= DEFAULT PLUS scantok term
+	// SQLite keeps the leading plus in the dflt_value text (PRAGMA
+	// table_info shows "+4.0" for DEFAULT +4.0), so wrap the operand in a
+	// unary-plus expression rather than dropping the sign.
 	case 35:
-		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 4))}
+		return sql.ColumnDef{Default: &sql.UnaryOp{Operand: getExpr(getRHS(p, ruleNo, 4)), Operator: "+"}}
 
 	// Rule 36: ccons ::= DEFAULT MINUS scantok term
 	case 36:
@@ -1784,15 +1787,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		// resolution type ("IGNORE", "REPLACE", ...) arrives in that string.
 		cmd := getString(getRHS(p, ruleNo, 2))
 		stmt := &sql.InsertStmt{
-			Table:     table,
-			Columns:   columns,
-			Values:    values,
-			Select:    sel,
-			IsReplace: strings.EqualFold(cmd, "REPLACE"),
-			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
-			OrFail:    strings.EqualFold(cmd, "FAIL"),
+			Table:      table,
+			Columns:    columns,
+			Values:     values,
+			Select:     sel,
+			IsReplace:  strings.EqualFold(cmd, "REPLACE"),
+			OrIgnore:   strings.EqualFold(cmd, "IGNORE"),
+			OrFail:     strings.EqualFold(cmd, "FAIL"),
 			OrConflict: strings.ToUpper(cmd),
-			CTEs:      getCTEDefs(getRHS(p, ruleNo, 1)),
+			CTEs:       getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
 		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause and/or
 		// a RETURNING projection.
@@ -1812,11 +1815,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		columns := getStringList(getRHS(p, ruleNo, 5))
 		cmd := getString(getRHS(p, ruleNo, 2))
 		stmt := &sql.InsertStmt{
-			Table:     table,
-			Columns:   columns,
-			IsReplace: strings.EqualFold(cmd, "REPLACE"),
-			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
-			OrFail:    strings.EqualFold(cmd, "FAIL"),
+			Table:      table,
+			Columns:    columns,
+			IsReplace:  strings.EqualFold(cmd, "REPLACE"),
+			OrIgnore:   strings.EqualFold(cmd, "IGNORE"),
+			OrFail:     strings.EqualFold(cmd, "FAIL"),
 			OrConflict: strings.ToUpper(cmd),
 		}
 		// The returning nonterminal (RHS 8) is either nil (rule 166) or a
@@ -2535,6 +2538,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 239: cmd ::= createkw uniqueflag INDEX ifnotexists nm dbnm ON nm LP sortlist RP where_opt
 	case 239:
 		name := getString(getRHS(p, ruleNo, 5))
+		dbnm := getString(getRHS(p, ruleNo, 6))
+		if dbnm != "" {
+			// The full index name is "nm.dbnm" (e.g. CREATE INDEX aux.i2:
+			// nm="aux", dbnm="i2"). The exec layer splits the schema prefix
+			// back off.
+			name = name + "." + dbnm
+		}
 		table := getString(getRHS(p, ruleNo, 8))
 		sortlist := getOrderByList(getRHS(p, ruleNo, 10))
 		// NULLS FIRST/LAST is only valid in ORDER BY, not in index key
@@ -2666,17 +2676,35 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Schema: schema,
 		}
 
-	// Rule 256: cmd ::= PRAGMA nm dbnm LP RP
+	// Rule 256: cmd ::= PRAGMA nm dbnm EQ minus_num
+	// (SQLite rule 1717: cmd ::= PRAGMA nm(X) dbnm(Z) EQ minus_num(Y))
+	// The minus_num value (e.g. -500) becomes the pragma Value.
 	case 256:
 		name := getString(getRHS(p, ruleNo, 2))
+		value := getString(getRHS(p, ruleNo, 5))
 		schema := getString(getRHS(p, ruleNo, 3))
 		if schema != "" {
 			name, schema = schema, name
 		}
 		return &sql.PragmaStmt{
 			Name:   name,
+			Value:  value,
 			Schema: schema,
 		}
+
+	// Rule 259: minus_num ::= MINUS number
+	// SQLite's minus_num(A) ::= MINUS number(X). {A = X;} — the semantic
+	// value is the NUMBER token, not the minus. PRAGMA ...(-51) uses this
+	// rule so the pragma value must be "-51".
+	case 259:
+		number := getRHS(p, ruleNo, 2)
+		if tok, ok := number.(sql.Token); ok {
+			return "-" + tok.Value
+		}
+		if s := getString(number); s != "" {
+			return "-" + s
+		}
+		return "-"
 
 	// Rule 260: cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
 	case 260:
@@ -2758,13 +2786,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			sel = nil
 		}
 		stmt := &sql.InsertStmt{
-			Table:     table,
-			Columns:   columns,
-			Values:    values,
-			Select:    sel,
-			IsReplace: strings.EqualFold(cmd, "REPLACE"),
-			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
-			OrFail:    strings.EqualFold(cmd, "FAIL"),
+			Table:      table,
+			Columns:    columns,
+			Values:     values,
+			Select:     sel,
+			IsReplace:  strings.EqualFold(cmd, "REPLACE"),
+			OrIgnore:   strings.EqualFold(cmd, "IGNORE"),
+			OrFail:     strings.EqualFold(cmd, "FAIL"),
 			OrConflict: strings.ToUpper(cmd),
 		}
 		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause.

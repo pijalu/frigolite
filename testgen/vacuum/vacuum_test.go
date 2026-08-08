@@ -88,8 +88,11 @@ func Test_vacuum(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "vacuum-1.1b"
 		// db function substr (variable-reader, inlined)
+		db.RegisterFunction("substr", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function like (variable-reader, inlined)
+		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function quote (variable-reader, inlined)
+		db.RegisterFunction("quote", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("SELECT substr(name,1,3) FROM sqlite_master")
 		_ = _res // catchsql
 	}
@@ -227,7 +230,7 @@ func Test_vacuum(t *testing.T) {
 	{ // do_test "vacuum-3.1"
 		db.Close()
 		_ = db2 // close db2: aliased to db, no-op
-		// delete_file test.db (unsupported command, not transpiled)
+		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")

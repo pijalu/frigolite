@@ -254,7 +254,7 @@ func Test_where2(t *testing.T) {
 	{ // do_test "where2-6.6"
 		// queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1...} (test infra, not transpiled)
 	}
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		{ // do_test "where2-6.7"
 			_res = db.Exec("\n    CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);\n  ")
 			if _res.Error != nil {
@@ -646,7 +646,7 @@ func Test_where2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;\n  ")
 		}
 	}
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		{ // "where2-12.1" — skipped: EXPLAIN QUERY PLAN join OR not planned (G3.INDEX)
 		}
 	}

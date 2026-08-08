@@ -114,7 +114,7 @@ func Test_fts3defer(t *testing.T) {
 	tests = "\n  1  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a dog\"'}                 {1}\n  2  {SELECT rowid FROM t1 WHERE t1 MATCH '\"is a dog\"'}              {1}\n  3  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}       {3}\n  4  {SELECT snippet(t1) FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}  \n     {\"an instance of <b>a</b> <b>longer</b> <b>phrase</b>\"}\n  5  {SELECT rowid FROM t1 WHERE t1 MATCH 'a dog'}                   {1}\n"
 	_ = tests // suppress unused warning
 	// do_select_tests 1.2 $tests (unsupported command, not transpiled)
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "1.3"
 		r = db.Query("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
 		if r.Error != nil {

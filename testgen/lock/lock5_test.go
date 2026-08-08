@@ -242,7 +242,7 @@ func Test_lock5(t *testing.T) {
 				_res = db.Exec("\n    SELECT * FROM t1\n  ")
 				_ = _res // catchsql
 			}
-			if tclBool("permutation" + "!=\"inmemory_journal\"") {
+			if "" != "inmemory_journal" {
 				{ // do_test "lock5-flock.11"
 					tclFileCopy("test.db", "test.db2")
 					tclFileCopy("test.db-journal", "test.db2-journal")
@@ -306,7 +306,7 @@ func Test_lock5(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 			}
 		}
-		if tclBool("permutation" + "!=\"memsubsys1\" && " + "permutation" + "!=\"memsubsys2\"") {
+		if tclBool("" + "!=\"memsubsys1\" && " + "" + "!=\"memsubsys2\"") {
 			{ // do_test "lock5-none.6"
 				// sqlite3_release_memory 1000000 (unsupported command, not transpiled)
 				r = db2.Query("SELECT * FROM t1")
@@ -326,7 +326,7 @@ func Test_lock5(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		if tclBool("permutation" + "!=\"inmemory_journal\"") {
+		if "" != "inmemory_journal" {
 			{ // do_test "2.dotfile.1"
 				_dbtmp0, err := frigolite.Open("test.db")
 				_ = _dbtmp0 // sqlite3 db connection

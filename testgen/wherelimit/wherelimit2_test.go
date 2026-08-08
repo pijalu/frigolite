@@ -315,6 +315,7 @@ func Test_wherelimit2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function log (variable-reader, inlined)
+	db.RegisterFunction("log", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "5.3"
 		_res = db.Exec("\n  CREATE VIEW \"v w\" AS SELECT * FROM \"x y\";\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON \"v w\" BEGIN\n    SELECT log(old.\"a b\", old.\"c d\");\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON \"v w\" BEGIN\n    SELECT log(new.\"a b\", new.\"c d\");\n  END;\n")
 		if _res.Error != nil {

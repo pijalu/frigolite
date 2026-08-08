@@ -90,7 +90,9 @@ func Test_fts3misc(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function v1 (variable-reader, inlined)
+	db.RegisterFunction("v1", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function v2 (variable-reader, inlined)
+	db.RegisterFunction("v2", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "2.0"
 		cols = ""
 		_ = cols // suppress unused warning
@@ -270,7 +272,7 @@ func Test_fts3misc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "4.3"
 		_res = db.Exec("\n    UPDATE t4_stat SET value = X'C03EC0B204C0A60800' WHERE id=0;\n  ")
 		if _res.Error != nil {

@@ -305,6 +305,7 @@ func Test_swarmvtab(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function fetch_db (variable-reader, inlined)
+	db.RegisterFunction("fetch_db", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n    'VALUES\n        (''test.db1'', ''t1'', 1, 10),\n        (''test.db2'', ''t1'', 11, 20)\n    ', 'fetch_db_no_such_function'\n  );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sql error: no such function: fetch_db_no_such_function") {

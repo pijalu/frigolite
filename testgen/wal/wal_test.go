@@ -315,6 +315,7 @@ func Test_wal(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db function blob (variable-reader, inlined)
+		db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_list := tclList([]string{tclExecSQL(db, "{ SELECT * FROM t1 }"), "file size test.db-wal"})
 		_ = _list
 	}
@@ -369,6 +370,7 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-4.5.1"
 		// reopen_db (unsupported command, not transpiled)
 		// db function blob (variable-reader, inlined)
+		db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
@@ -377,6 +379,7 @@ func Test_wal(t *testing.T) {
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// db function blob (variable-reader, inlined)
+		db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_list := tclList([]string{tclExecSQL(db, "{ SELECT * FROM t1 }"), "file size test.db-wal"})
 		_ = _list
 	}
@@ -527,6 +530,7 @@ func Test_wal(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db function blob (variable-reader, inlined)
+		db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = wal;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = wal;\n    PRAGMA auto_vacuum;\n  ")
@@ -1092,7 +1096,7 @@ func Test_wal(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 					}
 				}
-				if tclBool("permutation" + "!=\"unix-excl\"") {
+				if "" != "unix-excl" {
 					{ // do_test "wal-20.1"
 						{
 							var _catchErr error
@@ -1277,7 +1281,8 @@ func Test_wal(t *testing.T) {
 				// sqlite3_initialize (unsupported command, not transpiled)
 				for _, mode := range tclSplitList("OFF MEMORY PERSIST DELETE TRUNCATE WAL") {
 				_ = mode // suppress unused warning
-					// delete_file test.db test2.db (unsupported command, not transpiled)
+					os.Remove("test.db")
+					os.Remove("test2.db")
 					_dbtmp7, err := frigolite.Open("test.db")
 					_ = _dbtmp7 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }

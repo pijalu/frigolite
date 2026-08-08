@@ -202,7 +202,7 @@ func Test_corrupt(t *testing.T) {
 		_ = t1i1_r // suppress unused warning
 		cookie = tclExpr("[execsql {PRAGMA schema_version}] + 1")
 		_ = cookie // suppress unused warning
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")

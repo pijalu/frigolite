@@ -62,7 +62,7 @@ func Test_vacuummem(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vacuummem"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"memsubsys1\"") {
+	if "" == "memsubsys1" {
 		return
 	}
 	return

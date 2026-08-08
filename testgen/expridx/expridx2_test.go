@@ -59,7 +59,7 @@ func Test_expridx2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "expridx2"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"journaltest\"") {
+	if "" == "journaltest" {
 		return
 	}
 	{ // "1.0"

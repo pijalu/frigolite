@@ -91,11 +91,12 @@ func Test_analyze3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "analyze3"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"prepare\"") {
+	if "" == "prepare" {
 		return
 	}
 	// proc definition (not transpiled)
 	// db function var (variable-reader, inlined)
+	db.RegisterFunction("var", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-1.1.1"

@@ -64,6 +64,7 @@ func Test_tkt_d11f09d36e(t *testing.T) {
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	// db function a_string (variable-reader, inlined)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "tkt-d11f09d36e.1"
 		r = db.Query("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
 		if r.Error != nil {

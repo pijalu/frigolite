@@ -1087,6 +1087,7 @@ func Test_sqllimits1(t *testing.T) {
 		// proc definition (not transpiled)
 		{ // do_test "sqllimits1-11." + max + ".2"
 			// db function myfunc (variable-reader, inlined)
+			db.RegisterFunction("myfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			vals = ""
 			_ = vals // suppress unused warning
 			i = "0"

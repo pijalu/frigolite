@@ -104,7 +104,7 @@ func Test_misc7(t *testing.T) {
 		// c_collation_test (unsupported command, not transpiled)
 	}
 	{ // do_test "misc7-4"
-		// delete_file mydir (unsupported command, not transpiled)
+		os.Remove("mydir")
 		// file mkdir mydir
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -125,7 +125,7 @@ func Test_misc7(t *testing.T) {
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		{ // do_test "misc7-5"
-			// delete_file mydir (unsupported command, not transpiled)
+			os.Remove("mydir")
 			// file mkdir mydir-journal
 			db2, err = frigolite.Open("./mydir")
 			if err != nil { t.Fatal(err) }
@@ -352,7 +352,7 @@ func Test_misc7(t *testing.T) {
 			_ = pending_byte_page // suppress unused warning
 			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (unsupported command, not transpiled)
 			{ // do_test "misc7-17.3"
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")

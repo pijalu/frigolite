@@ -73,6 +73,7 @@ func Test_tempdb2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function int2str (variable-reader, inlined)
+	db.RegisterFunction("int2str", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "1.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, int2str(1));\n    INSERT INTO t1 VALUES(2, int2str(1));\n    INSERT INTO t1 VALUES(3, int2str(1));\n\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t2 SELECT x, int2str(x) FROM c;\n  COMMIT;\n\n  PRAGMA lock_status;\n")
 		if r.Error != nil {
@@ -119,6 +120,7 @@ func Test_tempdb2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// db function int2str (variable-reader, inlined)
+	db.RegisterFunction("int2str", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;\n")
 		if r.Error != nil {

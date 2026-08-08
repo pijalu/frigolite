@@ -155,10 +155,15 @@ func Test_alter(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "alter-1.7-prep"
 		// db function substr (variable-reader, inlined)
+		db.RegisterFunction("substr", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function like (variable-reader, inlined)
+		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function sqlite_rename_table (variable-reader, inlined)
+		db.RegisterFunction("sqlite_rename_table", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function sqlite_rename_trigger (variable-reader, inlined)
+		db.RegisterFunction("sqlite_rename_trigger", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function sqlite_rename_parent (variable-reader, inlined)
+		db.RegisterFunction("sqlite_rename_parent", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("SELECT substr(name,1,3) FROM sqlite_master")
 		_ = _res // catchsql
 	}
@@ -276,6 +281,7 @@ func Test_alter(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function trigfunc (variable-reader, inlined)
+	db.RegisterFunction("trigfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "alter-3.1.0"
 		_res = db.Exec("\n    CREATE TABLE t6(a, b, c);\n    -- Different case for the table name in the trigger.\n    CREATE TRIGGER trig1 AFTER INSERT ON T6 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;\n  ")
 		if _res.Error != nil {

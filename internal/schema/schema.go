@@ -23,21 +23,21 @@ func contentOffset(pageNum uint32) int {
 type SchemaType string
 
 const (
-	TypeTable SchemaType = "table"
-	TypeIndex SchemaType = "index"
-	TypeView  SchemaType = "view"
+	TypeTable   SchemaType = "table"
+	TypeIndex   SchemaType = "index"
+	TypeView    SchemaType = "view"
 	TypeTrigger SchemaType = "trigger"
 )
 
 // Entry represents a row in sqlite_schema.
 type Entry struct {
-	Type      SchemaType
-	Name      string
-	TblName   string
-	RootPage  uint32
-	SQL       string
-	Columns   []ColumnDef // cached column definitions (tables only)
-	RowID     int64       // sqlite_schema rowid (set when read from the b-tree)
+	Type     SchemaType
+	Name     string
+	TblName  string
+	RootPage uint32
+	SQL      string
+	Columns  []ColumnDef // cached column definitions (tables only)
+	RowID    int64       // sqlite_schema rowid (set when read from the b-tree)
 }
 
 // ColumnDef represents a column definition (replicated from sql.ColumnDef
@@ -68,6 +68,18 @@ type Manager struct {
 	// the main database's file changes come from the engine's own writes and
 	// must not invalidate the pager cache.
 	trackExternalMod bool
+
+	// lastOwnCounter is the database change counter (header offset 24) that
+	// this connection last wrote. checkExternalMod compares the file's
+	// current counter against it to distinguish own commits (no cache drop)
+	// from other connections' commits (drop and re-read). Zero means no
+	// counter has been recorded yet.
+	lastOwnCounter uint32
+
+	// externalInvalidated is set by checkExternalMod when it drops the pager
+	// cache (an external connection committed). The engine consumes it to
+	// clear its own derived caches (tableCache, rowid sequences).
+	externalInvalidated bool
 
 	// entriesCache caches GetEntries results to avoid repeated schema scans.
 	// Invalidated by AddEntry. Not thread-safe — callers must ensure single-
@@ -203,6 +215,14 @@ func (m *Manager) SetTrackExternalMod(enabled bool) {
 	m.trackExternalMod = enabled
 }
 
+// NoteOwnWrite records the database change counter that THIS connection just
+// wrote to the file. checkExternalMod compares the file's current counter
+// against it: a matching counter means the change was our own (no cache
+// invalidation); a differing counter means another connection committed.
+func (m *Manager) NoteOwnWrite(counter uint32) {
+	m.lastOwnCounter = counter
+}
+
 // FileStamp returns the last-recorded file size+modtime stamp used to detect
 // external modification.
 func (m *Manager) FileStamp() int64 {
@@ -215,6 +235,9 @@ func (m *Manager) FileStamp() int64 {
 func (m *Manager) CaptureFileStamp() {
 	m.lastFileMod = 0
 	m.lastFileSize = 0
+	if c, ok := m.pager.FileChangeCounter(); ok {
+		m.lastOwnCounter = c
+	}
 	m.checkExternalMod()
 }
 
@@ -223,25 +246,41 @@ func (m *Manager) CheckExternalMod() {
 	m.checkExternalMod()
 }
 
+// ConsumeExternalInvalidation reports and clears whether checkExternalMod
+// invalidated the pager cache since the last call.
+func (m *Manager) ConsumeExternalInvalidation() bool {
+	v := m.externalInvalidated
+	m.externalInvalidated = false
+	return v
+}
+
 // checkExternalMod detects when the underlying database file was modified by
 // an external connection (an attached database written from another engine)
 // and drops the pager page cache so the schema btree is re-read from disk.
-// Compares both size and modtime (same-second writes may not change mtime).
+// It compares the file's change counter (header offset 24) against the counter
+// this connection last wrote (NoteOwnWrite): own commits do not invalidate the
+// cache; commits by other connections (a NEWER counter) do.
 func (m *Manager) checkExternalMod() {
 	if m.pager == nil || !m.trackExternalMod {
 		return
 	}
-	fi, ok := m.pager.FileInfo()
+	// A write is in progress (unflushed dirty pages): do not invalidate the
+	// cache, which would discard the in-flight changes. The external-mod
+	// check only applies between statements, after the engine has flushed.
+	if m.pager.HasDirtyPages() {
+		return
+	}
+	counter, ok := m.pager.FileChangeCounter()
 	if !ok {
 		return
 	}
-	mod := fi.ModTime().UnixNano()
-	size := fi.Size()
-	if m.lastFileMod != 0 && (mod != m.lastFileMod || size != m.lastFileSize) {
+	// Only a strictly NEWER file counter means another connection committed.
+	// An equal or older counter is this connection's own unflushed write.
+	if m.lastOwnCounter != 0 && counter > m.lastOwnCounter {
 		m.pager.InvalidateCache()
+		m.lastOwnCounter = counter
+		m.externalInvalidated = true
 	}
-	m.lastFileMod = mod
-	m.lastFileSize = size
 }
 
 // GetEntries returns all schema entries of the given type.

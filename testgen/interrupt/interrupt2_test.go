@@ -78,7 +78,7 @@ func Test_interrupt2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "interrupt2"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"journaltest\" || " + "permutation" + "==\"inmemory_journal\"") {
+	if tclBool("" + "==\"journaltest\" || " + "" + "==\"inmemory_journal\"") {
 		return
 	}
 	db.Close()

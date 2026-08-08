@@ -97,6 +97,7 @@ func Test_regexp2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function error (variable-reader, inlined)
+	db.RegisterFunction("error", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(c, d);\n  CREATE TABLE t4(e, f);\n\n  CREATE TRIGGER t2_tr1 AFTER UPDATE ON t2 BEGIN\n    UPDATE t3 SET d = new.b WHERE c = old.a;\n  END;\n\n  CREATE TRIGGER t3_tr1 AFTER UPDATE ON t3 BEGIN\n    UPDATE t4 SET f = new.d WHERE e = old.c AND new.d REGEXP 'a.*';\n  END;\n\n  CREATE TRIGGER t4_tr1 AFTER UPDATE ON t4 BEGIN\n    SELECT CASE WHEN new.f REGEXP '.*y.*' THEN error() ELSE 1 END;\n  END;\n\n  INSERT INTO t2 VALUES(1, 'a_x_1');\n  INSERT INTO t2 VALUES(2, 'a_y_1');\n\n  INSERT INTO t3 VALUES(1, 'b1');\n  INSERT INTO t3 VALUES(2, 'b2');\n\n  INSERT INTO t4 VALUES(1, 'b1');\n  INSERT INTO t4 VALUES(2, 'b2');\n")
 		if _res.Error != nil {

@@ -53,7 +53,7 @@ func Test_pagerfault3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("permutation" + " == \"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	{ // do_test "pagerfault3-pre1"

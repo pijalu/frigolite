@@ -879,7 +879,7 @@ func Test_index(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // do_test "index-18.2"
 		_res = db.Exec("\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
 		_ = _res // catchsql

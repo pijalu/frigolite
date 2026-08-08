@@ -106,7 +106,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	}
 	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
-	if tclBool("permutation" + "!=\"inmemory_journal\"") {
+	if "" != "inmemory_journal" {
 		// testvfs tvfs -default 1 (unsupported command, not transpiled)
 		// tvfs script xDelete (unsupported command, not transpiled)
 		// tvfs filter xDelete (unsupported command, not transpiled)

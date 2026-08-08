@@ -38,6 +38,11 @@ type Func struct {
 	MaxArgs     int
 	ScalarFn    func(args []interface{}) (interface{}, error)
 	AggregateFn func() Aggregator
+
+	// Builtin reports whether the function was registered by the engine (true)
+	// or by the application via Register (false). pragma_function_list reports
+	// this as the "builtin" column.
+	Builtin bool
 	// WrongArgMsg selects SQLite's per-function "wrong number of arguments
 	// to function X()" error instead of the generic "function X expects
 	// N-M arguments, got K" message. SQLite emits the former for functions
@@ -69,12 +74,22 @@ func (r *Registry) Find(name string) (*Func, bool) {
 	return f, ok
 }
 
+// List returns all registered functions (for pragma_function_list).
+func (r *Registry) List() []*Func {
+	out := make([]*Func, 0, len(r.funcs))
+	for _, f := range r.funcs {
+		out = append(out, f)
+	}
+	return out
+}
+
 func (r *Registry) register(f *Func) {
 	r.funcs[strings.ToUpper(f.Name)] = f
 }
 
 // Register adds a scalar function to the registry (used for engine-specific
-// functions like SQLite's internal sqlite_rename_quotefix).
+// functions like SQLite's internal sqlite_rename_quotefix). Application
+// functions are not "builtin" in pragma_function_list.
 func (r *Registry) Register(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
 	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn})
 }
@@ -255,6 +270,10 @@ func (r *Registry) registerDefaults() {
 	// if(c1,v1,c2,v2,...,default) = CASE WHEN c1 THEN v1 WHEN c2 THEN v2 ... ELSE default END
 	r.register(&Func{Name: "IF", Type: TypeScalar, MinArgs: 3, MaxArgs: -1, ScalarFn: fnIfIIf})
 	r.register(&Func{Name: "IIF", Type: TypeScalar, MinArgs: 3, MaxArgs: -1, ScalarFn: fnIfIIf})
+	// All functions registered by registerDefaults are builtin.
+	for _, f := range r.funcs {
+		f.Builtin = true
+	}
 }
 
 // --- Aggregate implementations ---
@@ -448,10 +467,11 @@ func fnMD5SUM() Aggregator {
 
 // percentileAgg implements the ordered-set percentile family from SQLite's
 // ext/misc/percentile.c:
-//   percentile(Y,P)      P in [0,100], continuous (linear interpolation)
-//   percentile_cont(Y,P) P in [0,1], continuous
-//   percentile_disc(Y,P) P in [0,1], discrete (nearest-rank)
-//   median(Y)            == percentile(Y,50)
+//
+//	percentile(Y,P)      P in [0,100], continuous (linear interpolation)
+//	percentile_cont(Y,P) P in [0,1], continuous
+//	percentile_disc(Y,P) P in [0,1], discrete (nearest-rank)
+//	median(Y)            == percentile(Y,50)
 //
 // Semantics (mirroring percentStep/percentCompute in percentile.c):
 //   - NULL Y values are ignored.
@@ -1156,7 +1176,7 @@ func fnPRINTF(args []interface{}) (interface{}, error) {
 //   - The '!' flag (altform2) is SQLite-specific: for %g it renders with the
 //     full 20 significant digits and forces a decimal point; for %s it treats
 //     width/precision as UTF-8 characters.
-//   - %q escapes single quotes ('' doubling), %Q quotes as '...' (NULL → the
+//   - %q escapes single quotes (” doubling), %Q quotes as '...' (NULL → the
 //     text NULL, no quotes), %w escapes double quotes.
 //   - Floating-point rendering matches SQLite's FpDecode (16 significant
 //     digits default, 20 with the '!' flag), NOT C printf rounding.
@@ -2569,7 +2589,7 @@ func utf8EncodeCP(cp uint32) string {
 }
 
 // fnUNISTRQUOTE implements unistr_quote(X): unistr() the argument then wrap it
-// in single quotes with '' escaping (SQLite's unistr_quote, func9-210).
+// in single quotes with ” escaping (SQLite's unistr_quote, func9-210).
 func fnUNISTRQUOTE(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil

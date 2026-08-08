@@ -111,5 +111,5 @@ func Test_bigfile2(t *testing.T) {
 		}
 	}
 	db.Close()
-	// delete_file test.db (unsupported command, not transpiled)
+	os.Remove("test.db")
 }

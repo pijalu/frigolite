@@ -102,6 +102,14 @@ func (db *DB) SetDQS(ddl, dml bool) {
 	}
 }
 
+// SetDefensive mirrors SQLITE_DBCONFIG_DEFENSIVE: when enabled, certain
+// write operations (e.g. PRAGMA schema_version=...) are ignored.
+func (db *DB) SetDefensive(enabled bool) {
+	if db != nil && db.engine != nil {
+		db.engine.SetDefensive(enabled)
+	}
+}
+
 // RegisterFunction registers a scalar SQL function for this database
 // connection. It is used by the test harness to reproduce SQLite's
 // TCL-defined test functions (e.g. `db func f f` where f returns a constant).
@@ -156,6 +164,14 @@ func Open(path string) (*DB, error) {
 	if err := db.schema.Init(); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("frigolite: init schema: %w", err)
+	}
+
+	// Enable external-modification detection for file-based databases so a
+	// second connection to the same file observes writes made by the first
+	// (SQLite re-reads the schema when another connection commits). In-memory
+	// databases have no file to watch.
+	if path != "" && path != ":memory:" {
+		db.engine.SetTrackExternalModForMain(true)
 	}
 
 	// sqlite_stat1/sqlite_stat4 are created lazily by ANALYZE (execAnalyze),

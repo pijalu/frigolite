@@ -399,7 +399,7 @@ func Test_dbstatus(t *testing.T) {
 					}
 				}
 			}
-			if tclBool("(" + "permutation" + "==\"memsys3\"\n      || " + "permutation" + "==\"memsys5\"\n      || " + tcl_platform_os + "==\"Linux\") && !" + "") {
+			if tclBool("(" + "" + "==\"memsys3\"\n      || " + "" + "==\"memsys5\"\n      || " + tcl_platform_os + "==\"Linux\") && !" + "") {
 				// proc definition (not transpiled)
 				db.Close()
 				os.Remove("test.db")

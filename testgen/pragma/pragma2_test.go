@@ -61,8 +61,10 @@ func Test_pragma2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	db.Close()
-	// delete_file test.db test.db-journal (unsupported command, not transpiled)
-	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test3.db")
+	os.Remove("test3.db-journal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
@@ -145,8 +147,10 @@ func Test_pragma2(t *testing.T) {
 		}
 	}
 	db.Close()
-	// delete_file test.db test.db-journal (unsupported command, not transpiled)
-	// delete_file test2.db test2.db-journal (unsupported command, not transpiled)
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-4.1"

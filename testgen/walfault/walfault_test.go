@@ -108,7 +108,7 @@ func Test_walfault(t *testing.T) {
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval {\n    D... (unsupported command, not transpiled)
-	if tclBool("permutation" + " != \"inmemory_journal\"") {
+	if "" != "inmemory_journal" {
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		// faultsim_save_and_close (unsupported command, not transpiled)
 		// do_faultsim_test walfault-4 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql {\... (unsupported command, not transpiled)
@@ -193,7 +193,7 @@ func Test_walfault(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
-		// delete_file sv_test.db-shm (unsupported command, not transpiled)
+		os.Remove("sv_test.db-shm")
 	}
 	// do_faultsim_test walfault-13.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { PRA... (unsupported command, not transpiled)
 	// do_faultsim_test walfault-13.2 -prep {\n  faultsim_restore_and_reopen\n  db eval { PRAGM...} -bod... (unsupported command, not transpiled)

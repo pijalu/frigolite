@@ -88,6 +88,7 @@ func Test_tkt3992(t *testing.T) {
 		}
 	}
 	// db function tcl (variable-reader, inlined)
+	db.RegisterFunction("tcl", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "tkt3992-2.3"
 		_res = db.Exec("\n      CREATE TABLE t2(a REAL, b REAL, c REAL);\n      INSERT INTO t2 VALUES(1, 2, 3);\n      CREATE TRIGGER tr2 BEFORE UPDATE ON t2 BEGIN\n        SELECT tcl('set res', typeof(new.c));\n      END;\n  \n      UPDATE t2 SET a = 'I';\n    ")
 		if _res.Error != nil {

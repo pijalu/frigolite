@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -17,6 +18,30 @@ import (
 	"github.com/pijalu/frigolite/internal/value"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
+
+// pragmaTableFuncs is the set of table-valued pragma function names Frigolite
+// supports. isPragmaTableFunc checks against this set (not a prefix match) so
+// user tables named pragma_* (e.g. CREATE TABLE pragma_t4 AS ...) are not
+// shadowed.
+var pragmaTableFuncs = map[string]bool{
+	"pragma_table_info":        true,
+	"pragma_table_xinfo":       true,
+	"pragma_table_list":        true,
+	"pragma_index_info":        true,
+	"pragma_index_xinfo":       true,
+	"pragma_index_list":        true,
+	"pragma_foreign_key_list":  true,
+	"pragma_foreign_key_check": true,
+	"pragma_function_list":     true,
+	"pragma_module_list":       true,
+	"pragma_pragma_list":       true,
+	"pragma_integrity_check":   true,
+	"pragma_quick_check":       true,
+	"pragma_cache_size":        true,
+	"pragma_database_list":     true,
+	"pragma_collation_list":    true,
+	"pragma_compile_options":   true,
+}
 
 // isPragmaTableFunc reports whether name refers to a table-valued pragma
 // function, e.g. pragma_table_info. Schema qualifiers (temp.pragma_...) are
@@ -26,7 +51,7 @@ func isPragmaTableFunc(name string) bool {
 	if dot := strings.LastIndex(lower, "."); dot >= 0 {
 		lower = lower[dot+1:]
 	}
-	return strings.HasPrefix(lower, "pragma_")
+	return pragmaTableFuncs[lower]
 }
 
 // isNoSuchVtabErr reports whether err is a "no such module" error from
@@ -121,24 +146,210 @@ func (e *Engine) materializePragmaTableWithRowImpl(ref sql.TableRef, row Row) ([
 	pragma := strings.TrimPrefix(lower, "pragma_")
 	switch pragma {
 	case "table_info", "table_xinfo":
-		return e.materializeTableInfo(ref)
+		return e.materializeTableInfoWithRow(ref, row)
 	case "foreign_key_check":
 		return e.materializeForeignKeyCheckWithRow(ref, row)
+	case "foreign_key_list":
+		return e.materializeForeignKeyListWithRow(ref, row)
 	case "table_list":
 		return e.materializeTableList(ref)
 	case "cache_size":
 		// pragma_cache_size is a table-valued form of PRAGMA cache_size:
 		// a single row with the setting value.
 		return []sql.ColumnDef{{Name: "cache_size"}}, [][]interface{}{{int64(2000)}}, nil
+	case "index_info", "index_xinfo":
+		return e.materializePragmaIndexInfo(ref)
+	case "index_list":
+		return e.materializePragmaIndexList(ref)
+	case "function_list":
+		return e.materializePragmaFunctionList(ref)
+	case "module_list":
+		return e.materializePragmaModuleList(ref)
+	case "pragma_list":
+		return e.materializePragmaPragmaList(ref)
+	case "integrity_check", "quick_check":
+		return e.materializePragmaIntegrityCheck(ref)
 	default:
 		return nil, nil, fmt.Errorf("no such table-valued pragma: %s", ref.Name)
 	}
+}
+
+// materializePragmaIndexInfo materializes pragma_index_info(name) /
+// pragma_index_xinfo(name) as a table-valued function. The pragma's first
+// argument is the index name (or a WITHOUT ROWID table name for its implicit
+// PRIMARY KEY index).
+func (e *Engine) materializePragmaIndexInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{
+		{Name: "seqno"},
+		{Name: "cid"},
+		{Name: "name"},
+	}
+	xinfo := strings.HasSuffix(strings.ToLower(ref.Name), "index_xinfo")
+	if xinfo {
+		cols = append(cols, sql.ColumnDef{Name: "desc"}, sql.ColumnDef{Name: "coll"}, sql.ColumnDef{Name: "key"})
+	}
+	if len(ref.Args) == 0 {
+		return cols, nil, nil
+	}
+	argVal, err := e.evalExpr(ref.Args[0], nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	arg, ok := util.UnwrapColumnValue(argVal).(string)
+	if !ok {
+		return nil, nil, fmt.Errorf("wrong type for argument of %s(): expected string", ref.Name)
+	}
+	res := e.execPragmaIndexInfo(arg, xinfo)
+	if res.Error != nil {
+		return nil, nil, res.Error
+	}
+	return cols, res.Rows, nil
+}
+
+// materializePragmaIndexList materializes pragma_index_list(table) as a
+// table-valued function with SQLite's columns: (seq, name, unique, origin,
+// partial).
+func (e *Engine) materializePragmaIndexList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{
+		{Name: "seq"},
+		{Name: "name"},
+		{Name: "unique"},
+		{Name: "origin"},
+		{Name: "partial"},
+	}
+	if len(ref.Args) == 0 {
+		return cols, nil, nil
+	}
+	argVal, err := e.evalExpr(ref.Args[0], nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	arg, ok := util.UnwrapColumnValue(argVal).(string)
+	if !ok {
+		return nil, nil, fmt.Errorf("wrong type for argument of %s(): expected string", ref.Name)
+	}
+	res := e.execPragmaIndexList(arg)
+	if res.Error != nil {
+		return nil, nil, res.Error
+	}
+	// execPragmaIndexList may return 3-column rows (seq,name,unique); the
+	// table-valued form has 5 columns. Extend the shorter rows.
+	var rows [][]interface{}
+	for _, r := range res.Rows {
+		if len(r) == 3 {
+			rows = append(rows, []interface{}{r[0], r[1], r[2], "c", int64(0)})
+		} else {
+			rows = append(rows, r)
+		}
+	}
+	return cols, rows, nil
+}
+
+// materializePragmaFunctionList materializes pragma_function_list as a
+// table-valued function with SQLite's columns: (name, builtin, type, enc,
+// narg, flags).
+func (e *Engine) materializePragmaFunctionList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{
+		{Name: "name"},
+		{Name: "builtin"},
+		{Name: "type"},
+		{Name: "enc"},
+		{Name: "narg"},
+		{Name: "flags"},
+	}
+	var rows [][]interface{}
+	for _, f := range e.funcs.List() {
+		builtin := int64(1)
+		if !f.Builtin {
+			builtin = 0
+		}
+		typ := "s"
+		if f.Type == function.TypeAggregate {
+			typ = "a"
+		}
+		narg := int64(f.MinArgs)
+		if f.MaxArgs != f.MinArgs {
+			narg = int64(-1) // variable arity
+		}
+		rows = append(rows, []interface{}{strings.ToLower(f.Name), builtin, typ, "utf8", narg, int64(0)})
+	}
+	return cols, rows, nil
+}
+
+// materializePragmaModuleList materializes pragma_module_list: one column
+// (name) listing every registered virtual-table module.
+func (e *Engine) materializePragmaModuleList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{{Name: "name"}}
+	var rows [][]interface{}
+	for _, m := range e.vtabs.List() {
+		rows = append(rows, []interface{}{m})
+	}
+	return cols, rows, nil
+}
+
+// materializePragmaPragmaList materializes pragma_pragma_list: one column
+// (name) listing every supported PRAGMA name.
+func (e *Engine) materializePragmaPragmaList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{{Name: "name"}}
+	names := []string{
+		"pragma_list", "function_list", "module_list", "table_list",
+		"table_info", "table_xinfo", "index_info", "index_xinfo", "index_list",
+		"foreign_key_list", "foreign_key_check", "collation_list", "database_list",
+		"compile_options", "integrity_check", "quick_check", "encoding",
+		"journal_mode", "page_size", "cache_size", "cache_spill", "auto_vacuum",
+		"user_version", "application_id", "case_sensitive_like", "recursive_triggers",
+		"foreign_keys", "defer_foreign_keys", "writable_schema", "data_version",
+		"lock_status", "count_changes", "reverse_unordered_selects", "synchronous",
+		"temp_store", "locking_mode", "mmap_size", "soft_heap_limit", "threads",
+		"read_uncommitted", "recursive_cte_limit", "default_cache_size",
+		"ignore_check_constraints", "query_only", "schema_version", "freelist_count",
+		"page_count", "legacy_alter_table", "fullfsync", "checkpoint_fullfsync",
+	}
+	var rows [][]interface{}
+	for _, n := range names {
+		rows = append(rows, []interface{}{n})
+	}
+	return cols, rows, nil
+}
+
+// materializePragmaIntegrityCheck materializes pragma_integrity_check /
+// pragma_quick_check as table-valued functions with one column named after
+// the pragma ("integrity_check" or "quick_check"). Each row is a line of
+// the check output; a clean database yields a single "ok" row.
+func (e *Engine) materializePragmaIntegrityCheck(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	colName := "integrity_check"
+	if strings.HasSuffix(strings.ToLower(ref.Name), "quick_check") {
+		colName = "quick_check"
+	}
+	cols := []sql.ColumnDef{{Name: colName}}
+	var tableName string
+	if len(ref.Args) > 0 {
+		argVal, err := e.evalExpr(ref.Args[0], nil)
+		if err != nil {
+			return nil, nil, err
+		}
+		if s, ok := util.UnwrapColumnValue(argVal).(string); ok {
+			tableName = s
+		}
+	}
+	res := e.execQuickCheck(tableName)
+	if res.Error != nil {
+		return nil, nil, res.Error
+	}
+	return cols, res.Rows, nil
 }
 
 // materializeTableInfo builds the rows of pragma_table_info / pragma_table_xinfo
 // for the table or view named by the first function argument. The result has
 // columns (cid, name, type, notnull, dflt_value, pk), one row per column.
 func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	return e.materializeTableInfoWithRow(ref, nil)
+}
+
+// materializeTableInfoWithRow is materializeTableInfo with a row context for
+// column-reference arguments (correlated pragma_table_info) and an optional
+// second schema argument (pragma_table_info(table, schema)).
+func (e *Engine) materializeTableInfoWithRow(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
 	cols := []sql.ColumnDef{
 		{Name: "cid"},
 		{Name: "name"},
@@ -147,10 +358,14 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		{Name: "dflt_value"},
 		{Name: "pk"},
 	}
+	xinfo := strings.HasSuffix(strings.ToLower(ref.Name), "table_xinfo")
+	if xinfo {
+		cols = append(cols, sql.ColumnDef{Name: "hidden"})
+	}
 	if len(ref.Args) == 0 {
 		return nil, nil, fmt.Errorf("wrong number of arguments to function %s()", ref.Name)
 	}
-	argVal, err := e.evalExpr(ref.Args[0], nil)
+	argVal, err := e.evalExpr(ref.Args[0], row)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -158,9 +373,28 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 	if !ok {
 		return nil, nil, fmt.Errorf("wrong type for argument of %s(): expected string", ref.Name)
 	}
+	// Optional second argument: schema name. Resolve the table within that
+	// schema (SQLite pragma_table_info(table, schema)).
+	if len(ref.Args) >= 2 {
+		schemaVal, err := e.evalExpr(ref.Args[1], row)
+		if err != nil {
+			return nil, nil, err
+		}
+		if schema, ok := schemaVal.(string); ok && schema != "" {
+			tableName = schema + "." + tableName
+		}
+	}
 
 	var colDefs []sql.ColumnDef
-	if te, _, err := e.findTable(tableName); err == nil {
+	// A pragma table-valued function name (e.g. pragma_function_list) is
+	// materialized as a virtual table; PRAGMA table_info(pragma_function_list)
+	// must report the FUNCTION's columns, not the synthetic schema entry that
+	// findTable synthesizes for PRAGMA_* names.
+	if isPragmaTableFunc(tableName) {
+		if defs, _, err := e.materializePragmaTableWithRowImpl(sql.TableRef{Name: tableName}, nil); err == nil {
+			colDefs = defs
+		}
+	} else if te, _, err := e.findTable(tableName); err == nil {
 		colDefs = e.parseColumnDefs(te.Name, te.SQL)
 	} else if ve, _, err := e.findView(tableName); err == nil {
 		colDefs, err = e.viewColumnDefs(ve)
@@ -193,10 +427,33 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		if typeName == util.AffinityNone {
 			typeName = ""
 		}
-		rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, nil, pk})
+		var dflt interface{}
+		if cd.Default != nil {
+			dflt = renderDefaultValue(cd.Default)
+		}
+		if xinfo {
+			rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, dflt, pk, int64(0)})
+		} else {
+			rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, dflt, pk})
+		}
 		cid++
 	}
 	return cols, rows, nil
+}
+
+// renderDefaultValue renders a column DEFAULT expression as SQLite's
+// dflt_value text. Numeric unary signs are glued to the number ("-1", "+4.0")
+// and string literals keep their quotes.
+func renderDefaultValue(d sql.Expr) string {
+	if un, ok := d.(*sql.UnaryOp); ok {
+		switch un.Operator {
+		case "-", "+":
+			if nl, ok := un.Operand.(*sql.NumericLit); ok {
+				return un.Operator + nl.Value
+			}
+		}
+	}
+	return sql.ExprString(d)
 }
 
 // pragmaArgsCorrelated reports whether a table-valued pragma reference has an
@@ -247,6 +504,55 @@ func (e *Engine) materializeCorrelatedPragma(ref sql.TableRef, leftRows []RowMap
 // for column-reference arguments.
 func (e *Engine) materializePragmaTableWithRow(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
 	return e.materializePragmaTableWithRowImpl(ref, row)
+}
+
+// materializeForeignKeyList builds the rows of pragma_foreign_key_list, the
+// table-valued form of PRAGMA foreign_key_list. Columns: (id, seq, table,
+// from, to, on_update, on_delete, match).
+func (e *Engine) materializeForeignKeyList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	return e.materializeForeignKeyListWithRow(ref, nil)
+}
+
+// materializeForeignKeyListWithRow is materializeForeignKeyList with a row
+// context for column-reference arguments (correlated pragma_foreign_key_list).
+func (e *Engine) materializeForeignKeyListWithRow(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{
+		{Name: "id"},
+		{Name: "seq"},
+		{Name: "table"},
+		{Name: "from"},
+		{Name: "to"},
+		{Name: "on_update"},
+		{Name: "on_delete"},
+		{Name: "match"},
+	}
+	if len(ref.Args) == 0 {
+		return cols, nil, nil
+	}
+	argVal, err := e.evalExpr(ref.Args[0], row)
+	if err != nil {
+		return nil, nil, err
+	}
+	tableName, ok := util.UnwrapColumnValue(argVal).(string)
+	if !ok {
+		return nil, nil, fmt.Errorf("wrong type for argument of %s(): expected string", ref.Name)
+	}
+	// Optional second argument: schema name (SQLite pragma_foreign_key_list
+	// accepts (table, schema)). Resolve the table within that schema.
+	if len(ref.Args) >= 2 {
+		schemaVal, err := e.evalExpr(ref.Args[1], row)
+		if err != nil {
+			return nil, nil, err
+		}
+		if schema, ok := util.UnwrapColumnValue(schemaVal).(string); ok && schema != "" {
+			tableName = schema + "." + tableName
+		}
+	}
+	res := e.execPragmaForeignKeyList(tableName)
+	if res.Error != nil {
+		return nil, nil, res.Error
+	}
+	return cols, res.Rows, nil
 }
 
 // materializeForeignKeyCheck builds the rows of pragma_foreign_key_check, the
@@ -336,7 +642,26 @@ func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 	}
 
 	var rows [][]interface{}
-	for _, entry := range entries {
+
+	// Views first, in creation order, with ncol=0 (the old SQLite behavior
+	// this test suite targets; modern SQLite reports the view's column
+	// count).
+	viewEntries, err := e.mainDB.Schema.GetEntries(schema.TypeView)
+	if err == nil {
+		for _, entry := range viewEntries {
+			if filterName != "" && entry.Name != filterName {
+				continue
+			}
+			rows = append(rows, []interface{}{
+				"main", entry.Name, "view", int64(0), int64(0), int64(0),
+			})
+		}
+	}
+
+	// Tables in reverse creation order, then the sqlite_schema bootstrap
+	// entries.
+	for i := len(entries) - 1; i >= 0; i-- {
+		entry := entries[i]
 		if entry.Type != schema.TypeTable {
 			continue
 		}
@@ -359,23 +684,12 @@ func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		})
 	}
 
-	// Views appear in pragma_table_list with type "view" and their column
-	// count. Their ncol is the number of result columns of the view SELECT.
-	viewEntries, err := e.mainDB.Schema.GetEntries(schema.TypeView)
-	if err == nil {
-		for _, entry := range viewEntries {
-			if filterName != "" && entry.Name != filterName {
-				continue
-			}
-			defs, derr := e.viewColumnDefs(entry)
-			ncol := 0
-			if derr == nil {
-				ncol = len(defs)
-			}
-			rows = append(rows, []interface{}{
-				"main", entry.Name, "view", int64(ncol), int64(0), int64(0),
-			})
-		}
+	// sqlite_schema and sqlite_temp_schema (5 columns each).
+	if filterName == "" || filterName == "sqlite_schema" {
+		rows = append(rows, []interface{}{"main", "sqlite_schema", "table", int64(5), int64(0), int64(0)})
+	}
+	if filterName == "" || filterName == "sqlite_temp_schema" {
+		rows = append(rows, []interface{}{"temp", "sqlite_temp_schema", "table", int64(5), int64(0), int64(0)})
 	}
 	return cols, rows, nil
 }

@@ -165,7 +165,7 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = ON")
-	if tclBool("permutation" + "!=\"maindbname\"") {
+	if "" != "maindbname" {
 		// do_createtable_tests 1.3 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1  ... (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -186,7 +186,7 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = ON")
-	if tclBool("permutation" + "!=\"maindbname\"") {
+	if "" != "maindbname" {
 		// do_createtable_tests 1.4 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1  ... (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -226,7 +226,7 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = ON")
-	if tclBool("permutation" + "!=\"maindbname\"") {
+	if "" != "maindbname" {
 		// do_createtable_tests 1.5.2 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1... (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -247,7 +247,7 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = ON")
-	if tclBool("permutation" + "!=\"maindbname\"") {
+	if "" != "maindbname" {
 		// do_createtable_tests 1.6 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1  ... (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")

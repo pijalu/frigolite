@@ -66,6 +66,7 @@ func Test_trigger6(t *testing.T) {
 		_ = trigger6_cnt // suppress unused warning
 		// proc definition (not transpiled)
 		// db function counter (variable-reader, inlined)
+		db.RegisterFunction("counter", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;\n  ")

@@ -61,6 +61,7 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function force_rollback (variable-reader, inlined)
+	db.RegisterFunction("force_rollback", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "tkt-f7772-1.2"
 		_res = db.Exec("\n    BEGIN IMMEDIATE;\n    CREATE TABLE xyzzy(abc);\n    SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n  ")
 		_ = _res // catchsql
@@ -93,6 +94,7 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function ins (variable-reader, inlined)
+	db.RegisterFunction("ins", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "tkt-f7772-3.2"
 		r = db.Query("\n    SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1\n  ")
 		if r.Error != nil {

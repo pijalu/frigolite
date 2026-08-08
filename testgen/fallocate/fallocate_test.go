@@ -106,7 +106,7 @@ func Test_fallocate(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; INSERT INTO t1 VALUES(1, 2); ")
 		}
-		if tclBool("permutation" + " != \"inmemory_journal\"\n   && " + "permutation" + " != \"atomic-batch-write\"\n   && " + "atomic_batch_write test.db" + "==0") {
+		if tclBool("" + " != \"inmemory_journal\"\n   && " + "" + " != \"atomic-batch-write\"\n   && " + "atomic_batch_write test.db" + "==0") {
 			// hexio_get_int [hexio_read test.db-journal 16 4] (unsupported command, not transpiled)
 		} else {
 			// set  (invalid identifier, skipped)

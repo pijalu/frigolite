@@ -99,6 +99,7 @@ func Test_bestindexA(t *testing.T) {
 	// do_xbestindex_test 1.3 {\n  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 1...} {\n  {eq 0}\n} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// db function even (variable-reader, inlined)
+	db.RegisterFunction("even", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// do_xbestindex_test 1.4 {\n  SELECT * FROM t1 WHERE even(a, ?)\n} {\n  {152 0}\n} (unsupported command, not transpiled)
 	// do_xbestindex_test 1.5 {\n  SELECT * FROM t1 WHERE b=10 AND even(a, ?)\n} {\n  {eq 1}\n  {152 0}\n} (unsupported command, not transpiled)
 	// do_xbestindex_test 1.6 {\n  SELECT * FROM t1 WHERE b=10 LIMIT 10\n} {\n  {eq 1}\n  {limit 0}\n} (unsupported command, not transpiled)

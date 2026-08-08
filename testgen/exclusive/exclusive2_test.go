@@ -86,7 +86,7 @@ func Test_exclusive2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	if tclBool("permutation" + "==\"mmap\"") {
+	if "" == "mmap" {
 		return
 	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
@@ -145,7 +145,7 @@ func Test_exclusive2(t *testing.T) {
 	{ // do_test "exclusive2-1.7"
 		// pagerChangeCounter test.db 1 (unsupported command, not transpiled)
 	}
-	if tclBool("permutation" + " != \"memsubsys1\"") {
+	if "" != "memsubsys1" {
 		{ // do_test "exclusive2-1.9"
 			// t1sig (unsupported command, not transpiled)
 			// expr [t1sig] eq $::sig (not evaluated)

@@ -143,6 +143,7 @@ func Test_fts3aux1(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function rec (variable-reader, inlined)
+	db.RegisterFunction("rec", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "2.1.1.1"
 		r = db.Query("\n  EXPLAIN QUERY PLAN SELECT * FROM terms WHERE term='braid'\n")
 		if r.Error != nil {

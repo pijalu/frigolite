@@ -203,7 +203,7 @@ func Test_attach4(t *testing.T) {
 						f := _items7[_idx7+1]
 						_ = f // suppress unused warning
 						_ = _idx7
-							if tclBool("permutation" + " == \"journaltest\"") {
+							if "" == "journaltest" {
 								mode = "delete"
 								_ = mode // suppress unused warning
 							} else {

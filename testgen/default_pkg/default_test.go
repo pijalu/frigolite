@@ -124,7 +124,7 @@ func Test_default(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "default-4.0"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		if r.Error != nil {

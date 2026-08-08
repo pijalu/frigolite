@@ -242,9 +242,11 @@ func Test_crash(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; repeats_n, _repeats_e := strconv.Atoi(repeats); if _repeats_e != nil { return false }; return i_n < repeats_n }() {
 		seed = "0"
 		_ = seed // suppress unused warning
-		sig = "signature"
+		_dbeval3 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval3
 		_ = sig // suppress unused warning
-		sig2 = "signature2"
+		_dbeval4 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc2")
+		sig2 = _dbeval4
 		_ = sig2 // suppress unused warning
 		{ // do_test "crash-4.1." + i + ".1"
 			c = "crashsql -delay $i -file test.db-journal -seed $::seed \"\n         ATTACH 'test2.db' AS aux;\n         BEGIN;\n         SELECT randstr($i,$i) FROM abc LIMIT $i;\n         INSERT INTO abc VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc WHERE random()%10!=0;\n         INSERT INTO abc2 VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc2 WHERE random()%10!=0;\n         COMMIT;\n       \""
@@ -260,15 +262,15 @@ func Test_crash(t *testing.T) {
 			break
 		}
 		{ // do_test "crash-4.1." + i + ".2"
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-4.1." + i + ".2")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-4.1." + i + ".2")
 			}
 		}
 		{ // do_test "crash-4.1." + i + ".3"
-			// signature2 (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig2) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig2, _res.Error, "crash-4.1." + i + ".3")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc2")
+			if _r != sig2 {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig2, "crash-4.1." + i + ".3")
 			}
 		}
 		// incr i 1
@@ -321,23 +323,25 @@ func Test_crash(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
-		sig = "signature"
+		_dbeval5 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+		sig = _dbeval5
 		_ = sig // suppress unused warning
-		sig2 = "signature2"
+		_dbeval6 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc2")
+		sig2 = _dbeval6
 		_ = sig2 // suppress unused warning
 		{ // do_test "crash-4.3." + i + ".1"
 			// crashsql -delay 1 -file test.db-mj* \n         ATTACH 'test2.db' AS aux;\n         BEG... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-4.3." + i + ".2"
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-4.3." + i + ".2")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "crash-4.3." + i + ".2")
 			}
 		}
 		{ // do_test "crash-4.3." + i + ".3"
-			// signature2 (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig2) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig2, _res.Error, "crash-4.3." + i + ".3")
+			_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc2")
+			if _r != sig2 {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig2, "crash-4.3." + i + ".3")
 			}
 		}
 		// incr i 1
@@ -361,8 +365,8 @@ func Test_crash(t *testing.T) {
 	{ // do_test "crash-5.2"
 		// expr [file size test.db] (not evaluated)
 	}
-	_dbeval3 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
-	sig = _dbeval3
+	_dbeval7 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+	sig = _dbeval7
 	_ = sig // suppress unused warning
 	{ // do_test "crash-5.3"
 		// crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                    ... (unsupported command, not transpiled)

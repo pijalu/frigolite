@@ -77,7 +77,7 @@ func Test_corruptH(t *testing.T) {
 		return
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
-	if tclBool("permutation" + "==\"mmap\"") {
+	if "" == "mmap" {
 		return
 	}
 	{ // "1.1"

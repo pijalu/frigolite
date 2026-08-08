@@ -71,7 +71,7 @@ func Test_reservebytes(t *testing.T) {
 	}
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
-	if tclBool("permutation" + "==\"prepare\"") {
+	if "" == "prepare" {
 	}
 	{ // "1.1"
 		r = db.Query(" PRAGMA integrity_check ")

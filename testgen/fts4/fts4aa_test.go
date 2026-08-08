@@ -106,6 +106,7 @@ func Test_fts4aa(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function mit (variable-reader, inlined)
+	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "fts4aa-1.3"
 		r = db.Query("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';\n  ")
 		if r.Error != nil {

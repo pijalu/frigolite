@@ -70,7 +70,7 @@ func Test_fts4growth(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4growth"
 	_ = testprefix // suppress unused warning
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x1 USING fts3; ")
 		if _res.Error != nil {
@@ -266,6 +266,7 @@ func Test_fts4growth(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function second (variable-reader, inlined)
+	db.RegisterFunction("second", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "3.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x3 USING fts4 ")
 		if _res.Error != nil {
@@ -419,6 +420,7 @@ func Test_fts4growth(t *testing.T) {
 	// fts_kjv_genesis (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// db function first (variable-reader, inlined)
+	db.RegisterFunction("first", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "5.2"
 		_rows2 := db.Query("SELECT rowid FROM t1")
 		if _rows2.Error != nil {

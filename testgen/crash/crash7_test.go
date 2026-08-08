@@ -79,7 +79,7 @@ func Test_crash7(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 64 }() {
 			db.Close()
-			// delete_file test.db (unsupported command, not transpiled)
+			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			from_size = tclExprWith("1024 << ($ii&3)", map[string]string{"ii": ii})

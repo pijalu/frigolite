@@ -553,6 +553,7 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-5.2"
 		// db function tx_exec (variable-reader, inlined)
+		db.RegisterFunction("tx_exec", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    INSERT INTO t1(a,b) SELECT 3, " + sqlLiteral(SELECT_y_FROM_t2_LIMIT_1) + ";\n  ")
 		_ = _res // catchsql
 	}
@@ -563,7 +564,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-5.4"
-		_res = db.Exec("\n      INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');\n    ")
+		_res = db.Exec("\n      INSERT INTO t3 SELECT " + sqlLiteral(SELECT_y_FROM_t2_LIMIT_1) + ";\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-5.5"
@@ -573,7 +574,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-5.6"
-		_res = db.Exec("\n      UPDATE t1 SET a=tx_exec('SELECT x FROM t2');\n    ")
+		_res = db.Exec("\n      UPDATE t1 SET a=" + sqlLiteral(SELECT_x_FROM_t2) + ";\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-5.7"
@@ -583,7 +584,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-5.8"
-		_res = db.Exec("\n      UPDATE t3 SET x=tx_exec('SELECT x FROM t2');\n    ")
+		_res = db.Exec("\n      UPDATE t3 SET x=" + sqlLiteral(SELECT_x_FROM_t2) + ";\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-5.9"

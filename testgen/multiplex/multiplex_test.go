@@ -809,7 +809,7 @@ func Test_multiplex(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// delete_file test.db (unsupported command, not transpiled)
+		os.Remove("test.db")
 	}
 	// do_faultsim_test multiplex-5.5 -prep {\n  catch { sqlite3_multiplex_shutdown }\n} -body {\n  sqli... (unsupported command, not transpiled)
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
@@ -817,8 +817,7 @@ func Test_multiplex(t *testing.T) {
 		// multiplex_delete test.db (unsupported command, not transpiled)
 		// multiplex_delete test.x (unsupported command, not transpiled)
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.x")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.x")
 		if err != nil { t.Fatal(err) }
 		// multiplex_set db main 4096 16 (unsupported command, not transpiled)
 	}

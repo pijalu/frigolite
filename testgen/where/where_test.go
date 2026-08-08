@@ -801,6 +801,7 @@ func Test_where(t *testing.T) {
 	{ // do_test "where-10.2"
 		// proc definition (not transpiled)
 		// db function tclvar (variable-reader, inlined)
+		db.RegisterFunction("tclvar", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		v1 = "0" // TCL namespace variable
 		_ = v1 // suppress unused warning
 		r = db.Query("\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
@@ -911,7 +912,7 @@ func Test_where(t *testing.T) {
 	{ // do_test "where-13.12"
 		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a ASC, b DESC;\n  ") // cksort
 	}
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		{ // do_test "where-14.1"
 			_res = db.Exec("\n    CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');\n  ")
 			if _res.Error != nil {
@@ -1375,7 +1376,7 @@ func Test_where(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		if tclBool("permutation" + "!=\"valgrind\"") {
+		if "" != "valgrind" {
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")

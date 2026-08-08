@@ -190,7 +190,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared-1.12.1"
 			db.Close()
-			r = db2.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
+			r = db.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			}
@@ -215,7 +215,7 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared-1.13.2"
-			r = db2.Query(" SELECT * FROM t4 ")
+			r = db.Query(" SELECT * FROM t4 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 			}
@@ -225,7 +225,7 @@ func Test_vtab_shared(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 RENAME TO t5 ")
 			}
-			r = db2.Query(" SELECT * FROM t4 ")
+			r = db.Query(" SELECT * FROM t4 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 			}
@@ -316,8 +316,7 @@ func Test_vtab_shared(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "2.2.1"
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2

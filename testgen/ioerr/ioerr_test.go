@@ -80,7 +80,7 @@ func Test_ioerr(t *testing.T) {
 		_ = ex // suppress unused warning
 	}
 	// do_ioerr_test ioerr-5 -restoreprng 0 -ckrefcount true -sqlprep {\n    ATTACH 'test2.db' AS tes... (unsupported command, not transpiled)
-	if tclBool("!" + "0" + " && !" + _r + " && " + "permutation" + "!=\"exclusive\"") {
+	if tclBool("!" + "0" + " && !" + _r + " && " + "" + "!=\"exclusive\"") {
 		// do_ioerr_test ioerr-6 -ckrefcount true -tclprep {\n      execsql {\n        ATTACH 'test2.db' ... (unsupported command, not transpiled)
 	}
 	if tclBool(tcl_platform_platform + " ne\"windows\" && !" + "atomic_batch_write test.db") {

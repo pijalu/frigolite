@@ -146,6 +146,7 @@ func Test_vacuum_into(t *testing.T) {
 	}
 	os.Remove("test.db2")
 	// db function target (variable-reader, inlined)
+	db.RegisterFunction("target", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// proc definition (not transpiled)
 	{ // do_test "vacuum-into-410"
 		_res = db.Exec(" VACUUM INTO target() ")

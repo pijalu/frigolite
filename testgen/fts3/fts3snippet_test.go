@@ -170,7 +170,7 @@ func Test_fts3snippet(t *testing.T) {
 			off = "\"onehundred \" $numbers"
 			_ = off // suppress unused warning
 			// do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10] (unsupported command, not transpiled)
-			// sqlite3_db_config DEFENSIVE (unhandled flag)
+			db.SetDefensive(false)
 			_res = db.Exec(" UPDATE ft_content SET c1b = 'hello world' WHERE c1b = " + sqlLiteral(numbers) + " ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = " + sqlLiteral(numbers) + " ")
@@ -273,6 +273,7 @@ func Test_fts3snippet(t *testing.T) {
 			// eval (dynamic, not transpiled)
 			// proc definition (not transpiled)
 			// db function mit (variable-reader, inlined)
+			db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			// proc definition (not transpiled)
 			{ // do_test T + ".8.1"
 				ten = "one two three four five six seven eight nine ten"

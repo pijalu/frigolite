@@ -621,7 +621,7 @@ func Test_incrvacuum(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
 		}
 	}
-	if tclBool("permutation" + " == \"\"") {
+	if "" == "" {
 		{ // do_test "incrvacuum-14.1"
 			out = "open invalid.db w"
 			_ = out // suppress unused warning

@@ -862,6 +862,7 @@ func Test_vtab1(t *testing.T) {
 		_ = echo_module // suppress unused warning
 		// sqlite_delete_function db match (unsupported command, not transpiled)
 		// db function match (variable-reader, inlined)
+		db.RegisterFunction("match", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');\n  ")
@@ -1151,7 +1152,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-17.1"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")

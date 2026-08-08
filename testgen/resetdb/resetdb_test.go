@@ -63,7 +63,7 @@ func Test_resetdb(t *testing.T) {
 	testprefix = "resetdb"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	if tclBool("permutation" + "==\"inmemory_journal\"\n || " + "permutation" + "==\"journaltest\"") {
+	if tclBool("" + "==\"inmemory_journal\"\n || " + "" + "==\"journaltest\"") {
 		return
 	}
 	{ // "100"
@@ -87,7 +87,7 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "200"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n    UPDATE sqlite_dbpage SET data=randomblob(4096) WHERE pgno=1;\n    PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
@@ -102,7 +102,7 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
 		// sqlite3_db_config RESET_DB (unhandled flag)
-		if tclBool("permutation" + "==\"prepare\"") {
+		if "" == "prepare" {
 			_res = db2.Exec("SELECT * FROM sqlite_master")
 			_ = _res // catchsql
 		}
@@ -134,7 +134,7 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "320"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=randomblob(8192) WHERE pgno=1;\n  PRAGMA quick_check\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
@@ -239,7 +239,7 @@ ___
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "710"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=\n    X'53514C69746520666F726D61742033000200030100402020000000000000001300000000000000000000000300000004000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000D00000003017C0001D801AC017C00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002E03061715110145696E6465787431626374310443524541544520494E4445582074316263204F4E20743128622C63292A0206171311013F696E64657874316174310343524541544520494E44455820743161204F4E20743128612926010617111101397461626C657431743102435245415445205441424C4520743128612C622C6329' WHERE pgno=1;\n")
 		if _res.Error != nil {

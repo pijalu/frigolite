@@ -261,6 +261,7 @@ func Test_alterlegacy(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function squish (variable-reader, inlined)
+	db.RegisterFunction("squish", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "4.2"
 		r = db.Query(" SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
 		if r.Error != nil {
@@ -444,6 +445,7 @@ func Test_alterlegacy(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	// db function trigger (variable-reader, inlined)
+	db.RegisterFunction("trigger", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	trigger = "" // TCL namespace variable
 	_ = trigger // suppress unused warning
 	// proc definition (not transpiled)

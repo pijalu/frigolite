@@ -132,7 +132,7 @@ func Test_misc5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE songs(songid, artist, timesplayed);\n      INSERT INTO songs VALUES(1,'one',1);\n      INSERT INTO songs VALUES(2,'one',2);\n      INSERT INTO songs VALUES(3,'two',3);\n      INSERT INTO songs VALUES(4,'three',5);\n      INSERT INTO songs VALUES(5,'one',7);\n      INSERT INTO songs VALUES(6,'two',11);\n      SELECT DISTINCT artist \n      FROM (    \n       SELECT DISTINCT artist    \n       FROM songs      \n       WHERE songid IN (    \n        SELECT songid    \n        FROM songs    \n        WHERE LOWER(artist) = (    \n          -- This sub-query is indeterminate. Because there is no ORDER BY,\n          -- it may return 'one', 'two' or 'three'. Because of this, the\n\t  -- outermost parent query may correctly return any of 'one', 'two' \n          -- or 'three' as well.\n          SELECT DISTINCT LOWER(artist)    \n          FROM (      \n            -- This sub-query returns the table:\n            --\n            --     two      14\n            --     one      10\n            --     three    5\n            --\n            SELECT DISTINCT artist,sum(timesplayed) AS total      \n            FROM songs      \n            GROUP BY LOWER(artist)      \n            ORDER BY total DESC      \n            LIMIT 10    \n          )    \n          WHERE artist <> '' \n        )  \n       )       \n      )  \n      ORDER BY LOWER(artist) ASC;\n    ")
 		}
 	}
-	if tclBool("permutation" + " == \"\"") {
+	if "" == "" {
 		{ // do_test "misc5-4.1"
 			db.Close()
 			os.Remove("test.db")
@@ -247,7 +247,7 @@ func Test_misc5(t *testing.T) {
 	{ // do_test "misc5-7.2"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db2.SetDefensive(false)
 		_res = db2.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE table t(o CHECK(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((;VALUES(o)';\n    BEGIN;\n    CREATE TABLE t2(y);\n    ROLLBACK;\n    DROP TABLE IF EXISTS D;\n  ")
 		_ = _res // catchsql
 	}

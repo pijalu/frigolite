@@ -68,7 +68,7 @@ func Test_btreefault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "btreefault"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	{ // do_test "1-pre1"

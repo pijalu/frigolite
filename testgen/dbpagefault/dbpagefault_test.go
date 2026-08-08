@@ -58,7 +58,7 @@ func Test_dbpagefault(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("permutation" + " == \"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	testprefix = "dbpagefault"

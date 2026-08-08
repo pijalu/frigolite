@@ -216,7 +216,7 @@ func Test_nolock(t *testing.T) {
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
-	if tclBool("permutation" + "!=\"inmemory_journal\"") {
+	if "" != "inmemory_journal" {
 		{ // do_test "nolock-4.1"
 			os.Remove("test.db")
 			_dbtmp0, err := frigolite.Open("file:test.db?nolock=1")

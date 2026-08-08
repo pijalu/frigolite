@@ -497,13 +497,13 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.3"
-				_res = db1.Exec("\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
+				_res = db.Exec("\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.4"
-				_res = db1.Exec("\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
+				_res = db.Exec("\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
 				}
@@ -515,13 +515,13 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.6"
-				_res = db2.Exec("\n      DROP VIEW v1;\n    ")
+				_res = db.Exec("\n      DROP VIEW v1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.7"
-				_res = db2.Exec("\n      DROP TRIGGER trig1;\n    ")
+				_res = db.Exec("\n      DROP TRIGGER trig1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER trig1;\n    ")
 				}
@@ -533,7 +533,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.9"
-				r = db1.Query("\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
+				r = db.Query("\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
 				}
@@ -545,7 +545,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".6.1.2"
-				r = db2.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+				r = db.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 				}
@@ -655,8 +655,7 @@ func Test_shared(t *testing.T) {
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.1.1"
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n      PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;\n    ")
 				if r.Error != nil {
@@ -767,12 +766,11 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".9.1"
-				_dbtmp2, err := frigolite.Open("test.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -1005,18 +1003,18 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".14.2"
 				res = ""
 				_ = res // suppress unused warning
-				_dbevalRows3 := db.Query("SELECT name FROM sqlite_master")
-				var _dbevalRb4 bool
-				var _dbevalErr5 error
-				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+				_dbevalRows1 := db.Query("SELECT name FROM sqlite_master")
+				var _dbevalRb2 bool
+				var _dbevalErr3 error
+				for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
 					if name == "db7" {
 						db2.Close()
 					}
 					res = tclListAppend(res, name)
-					if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+					if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
 				}
-				if _dbevalErr5 != nil {
-					t.Errorf("db eval callback error: %v", _dbevalErr5)
+				if _dbevalErr3 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr3)
 				}
 			}
 			{ // do_test "shared-" + av + ".14.3"

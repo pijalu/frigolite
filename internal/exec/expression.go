@@ -10,6 +10,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
@@ -1998,12 +1999,14 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 }
 
 func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
+	pg := e.tablePager(tableName)
+	key := e.rowidCacheKey(pg, rootPage)
 	// AUTOINCREMENT tables use a persistent sequence: the largest rowid ever
 	// used is remembered (like SQLite's sqlite_sequence), so after DELETE the
 	// next rowid still continues from the old maximum.
 	isAutoInc := e.tableHasAutoIncrement(tableName)
 	if isAutoInc {
-		if seq, ok := e.autoIncSeq[rootPage]; ok {
+		if seq, ok := e.autoIncSeq[key]; ok {
 			return seq + 1
 		}
 	}
@@ -2012,10 +2015,10 @@ func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
 	// rowid seen so far and recomputes it only after a DELETE or when the
 	// cache is empty). This avoids a full-table scan per insert, which is
 	// O(n²) for bulk auto-rowid inserts (e.g. selectG inserts 100k rows).
-	if cached, ok := e.nextRowIDCache[rootPage]; ok {
+	if cached, ok := e.nextRowIDCache[key]; ok {
 		return cached + 1
 	}
-	tree := btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, rootPage), true)
+	tree := btree.NewBTree(pg, e.rootPage(tableName, rootPage), true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 1
@@ -2034,7 +2037,7 @@ func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
 			break
 		}
 	}
-	e.nextRowIDCache[rootPage] = maxID
+	e.nextRowIDCache[key] = maxID
 	// AUTOINCREMENT never reuses rowid 1 after the sequence starts; the
 	// sequence itself is recorded by bumpRowIDCache on the successful insert.
 	if isAutoInc && maxID < 1 {
@@ -2060,13 +2063,16 @@ func (e *Engine) tableHasAutoIncrement(tableName string) bool {
 
 // bumpRowIDCache records a row with the given rowid as present in the table.
 // The cache always holds the largest rowid seen so far; explicit-rowid inserts
-// must bump it so later auto-rowid inserts do not collide.
-func (e *Engine) bumpRowIDCache(rootPage uint32, rowID int64) {
-	if cur, ok := e.nextRowIDCache[rootPage]; !ok || rowID > cur {
-		e.nextRowIDCache[rootPage] = rowID
+// must bump it so later auto-rowid inserts do not collide. Keyed by (pager,
+// root page) so tables in different databases with the same root page do not
+// share rowid state.
+func (e *Engine) bumpRowIDCache(pg *pager.Pager, rootPage uint32, rowID int64) {
+	key := e.rowidCacheKey(pg, rootPage)
+	if cur, ok := e.nextRowIDCache[key]; !ok || rowID > cur {
+		e.nextRowIDCache[key] = rowID
 	}
-	if cur, ok := e.autoIncSeq[rootPage]; !ok || rowID > cur {
-		e.autoIncSeq[rootPage] = rowID
+	if cur, ok := e.autoIncSeq[key]; !ok || rowID > cur {
+		e.autoIncSeq[key] = rowID
 	}
 }
 
@@ -2074,8 +2080,8 @@ func (e *Engine) bumpRowIDCache(rootPage uint32, rowID int64) {
 // any DELETE (or rowid-changing UPDATE) because the largest rowid may have been
 // removed; the next findNextRowID recomputes it by scanning. The AUTOINCREMENT
 // sequence is deliberately kept: DELETE does not rewind sqlite_sequence.
-func (e *Engine) invalidateRowIDCache(rootPage uint32) {
-	delete(e.nextRowIDCache, rootPage)
+func (e *Engine) invalidateRowIDCache(pg *pager.Pager, rootPage uint32) {
+	delete(e.nextRowIDCache, e.rowidCacheKey(pg, rootPage))
 }
 
 func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {

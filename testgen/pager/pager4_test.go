@@ -57,7 +57,7 @@ func Test_pager4(t *testing.T) {
 		return
 	}
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	{ // "pager4-1.1"

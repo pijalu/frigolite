@@ -179,6 +179,7 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// db function a_string (variable-reader, inlined)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "filefmt-2.1.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		if r.Error != nil {
@@ -209,6 +210,7 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// db function a_string (variable-reader, inlined)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "filefmt-2.2.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		if r.Error != nil {

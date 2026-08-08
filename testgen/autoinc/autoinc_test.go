@@ -69,7 +69,7 @@ func Test_autoinc(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "autoinc"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
@@ -658,7 +658,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
@@ -687,7 +687,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
@@ -719,7 +719,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
@@ -758,7 +758,7 @@ func Test_autoinc(t *testing.T) {
 		_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}")
 		root2 = _dbone1
 		_ = root2 // suppress unused warning
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")
@@ -787,7 +787,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
@@ -816,7 +816,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
@@ -845,7 +845,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")

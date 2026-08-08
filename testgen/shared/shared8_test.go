@@ -80,7 +80,7 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db1.SetDefensive(false)
 		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")

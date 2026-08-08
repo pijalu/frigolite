@@ -390,6 +390,7 @@ func Test_subquery(t *testing.T) {
 		callcnt = "0"
 		_ = callcnt // suppress unused warning
 		// db function callcnt (variable-reader, inlined)
+		db.RegisterFunction("callcnt", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES('one',1);\n    INSERT INTO t4 VALUES('two',2);\n    INSERT INTO t4 VALUES('three',3);\n    INSERT INTO t4 VALUES('four',4);\n    CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,11);\n    INSERT INTO t5 VALUES(2,22);\n    INSERT INTO t5 VALUES(3,33);\n    INSERT INTO t5 VALUES(4,44);\n    SELECT b FROM t5 WHERE a IN \n       (SELECT callcnt(y)+0 FROM t4 WHERE x='two')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES('one',1);\n    INSERT INTO t4 VALUES('two',2);\n    INSERT INTO t4 VALUES('three',3);\n    INSERT INTO t4 VALUES('four',4);\n    CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,11);\n    INSERT INTO t5 VALUES(2,22);\n    INSERT INTO t5 VALUES(3,33);\n    INSERT INTO t5 VALUES(4,44);\n    SELECT b FROM t5 WHERE a IN \n       (SELECT callcnt(y)+0 FROM t4 WHERE x='two')\n  ")

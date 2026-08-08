@@ -65,6 +65,7 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// db function s (variable-reader, inlined)
+	db.RegisterFunction("s", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "tkt-cbd05-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES (NULL, '');\n    INSERT INTO t1 VALUES (NULL, 'A');\n    INSERT INTO t1 VALUES (NULL, 'B');\n    INSERT INTO t1 VALUES (NULL, 'C');\n    INSERT INTO t1 VALUES (NULL, 'D');\n    INSERT INTO t1 VALUES (NULL, 'E');\n    INSERT INTO t1 VALUES (NULL, 'F');\n    INSERT INTO t1 VALUES (NULL, 'G');\n    INSERT INTO t1 VALUES (NULL, 'H');\n    INSERT INTO t1 VALUES (NULL, 'I');\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {

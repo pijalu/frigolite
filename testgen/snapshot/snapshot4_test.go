@@ -59,7 +59,7 @@ func Test_snapshot4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "snapshot4"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db

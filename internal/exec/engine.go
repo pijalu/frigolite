@@ -15,6 +15,7 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
@@ -42,6 +43,19 @@ type DatabaseContext struct {
 	FilePath string          // path to .db file
 	IsMemory bool            // in-memory database
 	IsTemp   bool            // temp database
+}
+
+// rowidCacheKey identifies a table's rowid cache entry by (pager, root page).
+// Two databases (main vs attached) can use the same root page number, so the
+// pager pointer disambiguates them (SQLite scopes rowid state per Btree).
+type rowidCacheKey struct {
+	pg   *pager.Pager
+	page uint32
+}
+
+// rowidCacheKeyFor builds the cache key for a table's root page on pg.
+func (e *Engine) rowidCacheKey(pg *pager.Pager, page uint32) rowidCacheKey {
+	return rowidCacheKey{pg: pg, page: page}
 }
 
 // Engine executes SQL statements.
@@ -73,8 +87,8 @@ type Engine struct {
 	stmtCache         map[string][]sql.Stmt            // prepared statement cache (sqlText -> parsed stmts)
 	tableRootPages    map[string]uint32                // tracked root pages (updated after splits)
 	tableCache        map[string]*cachedTableEntry     // cached table entry lookups
-	nextRowIDCache    map[uint32]int64                 // cached next rowid per root page (keyed by rootPage)
-	autoIncSeq        map[uint32]int64                 // AUTOINCREMENT sequence: largest rowid ever used per root page
+	nextRowIDCache    map[rowidCacheKey]int64          // cached next rowid per (pager, root page)
+	autoIncSeq        map[rowidCacheKey]int64          // AUTOINCREMENT sequence: largest rowid ever used per (pager, root page)
 	templateCache     map[string]*sqlTemplateEntry     // normalized SQL → cached AST template
 	triggerDepth      int                              // depth of trigger execution
 	triggerDepthLimit int                              // SQLITE_LIMIT_TRIGGER_DEPTH (0 = maxTriggerDepth)
@@ -109,35 +123,35 @@ type Engine struct {
 	expandingTempView bool
 	// expandingView is true while any view body is being expanded (used to
 	// scope the "main." prefix on missing-table errors to view bodies).
-	expandingView bool
+	expandingView  bool
 	exprDepthLimit int // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
 	nestDepth      int // current view/subquery nesting depth
 	// Progress handler (db progress N fn): after every progressPeriod
 	// operations the callback runs; a true return interrupts the statement
 	// with an "interrupted" error (SQLite sqlite3_progress_handler).
-	progressPeriod   int
-	progressCallback func() bool
-	progressCounter  int
-	inCompoundMember  bool                             // executing a SELECT member of a compound query
-	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
-	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
-	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
-	deferForeignKeys  bool                             // PRAGMA defer_foreign_keys: defer all FK checks to COMMIT (reset at COMMIT/ROLLBACK)
-	ignoreCheckConstraints bool                        // PRAGMA ignore_check_constraints: skip CHECK enforcement (integrity_check still reports)
+	progressPeriod         int
+	progressCallback       func() bool
+	progressCounter        int
+	inCompoundMember       bool // executing a SELECT member of a compound query
+	legacyAlterTable       bool // PRAGMA legacy_alter_table setting
+	recursiveTriggers      bool // PRAGMA recursive_triggers setting (allows trigger re-entry)
+	foreignKeys            bool // PRAGMA foreign_keys setting (enables FK constraint enforcement)
+	deferForeignKeys       bool // PRAGMA defer_foreign_keys: defer all FK checks to COMMIT (reset at COMMIT/ROLLBACK)
+	ignoreCheckConstraints bool // PRAGMA ignore_check_constraints: skip CHECK enforcement (integrity_check still reports)
 	// fkDirty tracks tables modified during the current transaction/statement
 	// whose FK relationships must be re-validated at COMMIT (deferred FK checks
 	// only inspect affected tables, mirroring SQLite's incremental counters).
-	fkDirty map[fkDirtyKey]bool
-	writableSchema    bool                             // PRAGMA writable_schema setting (permits sqlite_schema edits)
-	dqsDDL            bool                             // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
-	dqsDML            bool                             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
-	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 1000000, matching the SQLite test suite's needs; percentile-7.0 recurses to 1M rows)
-	reverseUnordered  bool                             // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
-	caseSensitiveLike bool                             // PRAGMA case_sensitive_like: LIKE comparisons are case-sensitive
-	selectDepth       int                              // current SELECT nesting depth (1 = top-level statement)
-	countChanges      bool                             // PRAGMA count_changes: DML statements return a row with the changed-row count
-	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
-	returningTable    string                           // table name for RETURNING qualified column resolution
+	fkDirty           map[fkDirtyKey]bool
+	writableSchema    bool   // PRAGMA writable_schema setting (permits sqlite_schema edits)
+	dqsDDL            bool   // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
+	dqsDML            bool   // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
+	recursiveCTELimit int    // PRAGMA recursive_cte_limit setting (default 1000000, matching the SQLite test suite's needs; percentile-7.0 recurses to 1M rows)
+	reverseUnordered  bool   // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
+	caseSensitiveLike bool   // PRAGMA case_sensitive_like: LIKE comparisons are case-sensitive
+	selectDepth       int    // current SELECT nesting depth (1 = top-level statement)
+	countChanges      bool   // PRAGMA count_changes: DML statements return a row with the changed-row count
+	returningStrict   bool   // RETURNING eval: unknown columns are errors (SQLite semantics)
+	returningTable    string // table name for RETURNING qualified column resolution
 	// aggRowMaps, when non-nil, holds the row set an aggregate query is
 	// evaluating over. Nested aggregate functions (e.g. round(avg(x),2))
 	// resolve through it instead of evaluating per-row.
@@ -155,6 +169,25 @@ type Engine struct {
 	// counter%2. Resets at statement start (having.test sets ::nondeter_ret 0
 	// before each query, and each query is a separate statement).
 	nondeterVal int64
+	// cacheSpillEnabled is the PRAGMA cache_spill on/off flag (SQLite's
+	// SQLITE_CacheSpill connection flag); cacheSpillSize is the spill
+	// threshold in pages (negative = KiB until read). When disabled the
+	// getter returns 0; when enabled it reports max(cacheSize, spillSize).
+	cacheSpillEnabled bool
+	cacheSpillSize    int
+	// cacheSizes tracks PRAGMA cache_size per database (keyed by upper-cased
+	// schema name). The engine does not size its page cache but reports the
+	// setting, matching SQLite's pragma behavior.
+	cacheSizes map[string]int64
+	// dataVersion is the per-connection PRAGMA data_version value: the
+	// database file change counter (header offset 24) + 1. The engine keeps
+	// the value from the last time this connection read or wrote page 1, so
+	// commits made by THIS connection do not change the reported version
+	// while writes from other connections do (SQLite pragma.c data_version).
+	dataVersion int64
+	// defensive mirrors SQLITE_DBCONFIG_DEFENSIVE: when enabled, certain
+	// write operations (e.g. PRAGMA schema_version=...) are ignored.
+	defensive bool
 }
 
 // Row provides column value lookup for expression evaluation.
@@ -201,7 +234,7 @@ type RowMap map[string]interface{}
 
 // positionalRowKey is a reserved RowMap key holding the row's original
 // positional value slice. It lets SELECT * output duplicate-named columns
-// (e.g. a view with three columns aliased '') in order, which a name-keyed
+// (e.g. a view with three columns aliased ”) in order, which a name-keyed
 // map cannot distinguish. The NUL byte cannot appear in a column name.
 const positionalRowKey = "\x00frigolite_positional"
 
@@ -290,6 +323,22 @@ func (e *Engine) checkProgress() error {
 func (e *Engine) SetDQS(ddl, dml bool) {
 	e.dqsDDL = ddl
 	e.dqsDML = dml
+}
+
+// SetTrackExternalModForMain enables external-modification detection for the
+// main database (a second connection to the same file observes writes made by
+// this one). Called by frigolite.Open for file-based databases.
+func (e *Engine) SetTrackExternalModForMain(enabled bool) {
+	if e.mainDB != nil && e.mainDB.Schema != nil {
+		e.mainDB.Schema.SetTrackExternalMod(enabled)
+		e.mainDB.Schema.CaptureFileStamp()
+	}
+}
+
+// SetDefensive mirrors SQLITE_DBCONFIG_DEFENSIVE: when enabled, certain
+// write operations (e.g. PRAGMA schema_version=...) are ignored.
+func (e *Engine) SetDefensive(enabled bool) {
+	e.defensive = enabled
 }
 
 // RegisterFunction registers a scalar SQL function for this engine instance.
@@ -405,8 +454,8 @@ func (e *Engine) invalidateTableCaches() {
 	e.colCache = make(map[string][]sql.ColumnDef)
 	e.tcCache = make(map[string][]sql.TableConstraint)
 	e.uniqueIdxCache = make(map[string][]uniqueIndexDef)
-	e.nextRowIDCache = make(map[uint32]int64)
-	e.autoIncSeq = make(map[uint32]int64)
+	e.nextRowIDCache = make(map[rowidCacheKey]int64)
+	e.autoIncSeq = make(map[rowidCacheKey]int64)
 	e.tableCache = make(map[string]*cachedTableEntry)
 	e.tableRootPages = make(map[string]uint32)
 }
@@ -762,8 +811,8 @@ func NewEngine(pg *pager.Pager) *Engine {
 		stmtCache:         make(map[string][]sql.Stmt),
 		tableRootPages:    make(map[string]uint32),
 		tableCache:        make(map[string]*cachedTableEntry),
-		nextRowIDCache:    make(map[uint32]int64),
-		autoIncSeq:        make(map[uint32]int64),
+		nextRowIDCache:    make(map[rowidCacheKey]int64),
+		autoIncSeq:        make(map[rowidCacheKey]int64),
 		hasTriggersCache:  make(map[string]bool),
 		encoding:          "UTF-8",
 		recursiveCTELimit: 1000000,
@@ -771,6 +820,8 @@ func NewEngine(pg *pager.Pager) *Engine {
 		dqsDDL:            true, // SQLite default: double-quoted strings allowed in DDL
 		dqsDML:            true, // SQLite default: double-quoted strings allowed in DML
 		ftsTables:         make(map[string]*fts.FTS3Table),
+		cacheSpillEnabled: true,
+		cacheSpillSize:    0,
 	}
 	if tempCtx != nil {
 		e.databases["TEMP"] = tempCtx
@@ -822,9 +873,10 @@ func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 
 // detectExternalSchemaChanges checks every attached database's schema manager
 // for external file modification (an attached file written by another
-// connection). When a change is detected the pager cache and tableCache are
-// invalidated so the next lookup re-reads the file.
+// connection). When a change is detected the pager cache, tableCache, and
+// rowid/sequence caches are invalidated so the next lookup re-reads the file.
 func (e *Engine) detectExternalSchemaChanges() {
+	changed := false
 	for _, ctx := range e.databases {
 		if ctx == nil || ctx.Schema == nil || ctx.Pager == nil {
 			continue
@@ -833,11 +885,23 @@ func (e *Engine) detectExternalSchemaChanges() {
 		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
 			continue
 		}
-		before := ctx.Schema.FileStamp()
 		ctx.Schema.CheckExternalMod()
-		if ctx.Schema.FileStamp() != before {
-			e.tableCache = make(map[string]*cachedTableEntry)
+		if ctx.Schema.ConsumeExternalInvalidation() {
+			changed = true
+			// Another connection committed to this database; refresh the
+			// per-connection data_version so PRAGMA data_version observes it
+			// (own commits do not change data_version).
+			if hdr := ctx.Pager.Header(); hdr != nil {
+				if dh, err := storage.ParseHeader(hdr); err == nil {
+					e.dataVersion = int64(dh.FileChangeCount) + 1
+				}
+			}
 		}
+	}
+	if changed {
+		e.tableCache = make(map[string]*cachedTableEntry)
+		e.nextRowIDCache = make(map[rowidCacheKey]int64)
+		e.autoIncSeq = make(map[rowidCacheKey]int64)
 	}
 }
 
@@ -867,11 +931,13 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 			return nil, nil, fmt.Errorf("no such table: %s", name)
 		}
 		entry, err := ctx.Schema.FindTable(objName)
-		if err != nil && schemaName != "main" && schemaName != "temp" {
+		if err != nil && !strings.EqualFold(schemaName, "main") && !strings.EqualFold(schemaName, "temp") && !strings.EqualFold(schemaName, "temporary") {
 			// The attached database's file may have been modified by an
 			// external connection since we attached (schema reload test):
-			// drop the pager cache and schema and retry once.
-			if ctx.Pager != nil {
+			// drop the pager cache and schema and retry once. In-memory
+			// pagers have no file to re-read, so invalidating their cache
+			// would lose every page (including the schema root).
+			if ctx.Pager != nil && !ctx.IsMemory {
 				ctx.Pager.InvalidateCache()
 			}
 			ctx.Schema.InvalidateCache()
@@ -1410,8 +1476,8 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	}
 	if isDML && res != nil && res.Error != nil && !isOrFail {
 		e.restoreAllPagers(snaps)
-		e.nextRowIDCache = make(map[uint32]int64)
-		e.autoIncSeq = make(map[uint32]int64)
+		e.nextRowIDCache = make(map[rowidCacheKey]int64)
+		e.autoIncSeq = make(map[rowidCacheKey]int64)
 		res.Changes = 0
 		res.LastInsertRowID = 0
 	}
@@ -1435,10 +1501,20 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	}
 	// Flush attached database pagers after a successful DML/DDL so a later
 	// connection on the attached file sees the writes immediately (SQLite
-	// commits each statement). The MAIN pager is flushed only for DDL (a
-	// schema change another connection may observe); per-DML main flushes
-	// are skipped to avoid corrupting in-memory btree state.
-	if res != nil && res.Error == nil {
+	// commits each statement in autocommit mode). Inside an explicit
+	// transaction the writes stay dirty until COMMIT, so PRAGMA lock_status
+	// can report the reserved/exclusive lock held by the transaction. The
+	// MAIN pager is flushed only for DDL (a schema change another connection
+	// may observe); per-DML main flushes are skipped to avoid corrupting
+	// in-memory btree state.
+	if res != nil && res.Error == nil && !e.inTransaction {
+		// Autocommit statement: bump the change counter of every database
+		// that was written so other connections observe the change.
+		for _, dbCtx := range e.dbList {
+			if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
+				e.updateFileChangeCounter(dbCtx)
+			}
+		}
 		isDDL := !isDML
 		for name, ctx := range e.databases {
 			upper := strings.ToUpper(name)
@@ -1449,7 +1525,7 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 				_ = ctx.Pager.Flush()
 			}
 		}
-		if isDDL && e.pager != nil && !e.inTransaction {
+		if isDDL && e.pager != nil {
 			_ = e.pager.Flush()
 		}
 	}

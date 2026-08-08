@@ -150,6 +150,7 @@ func Test_window6(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// db function window (variable-reader, inlined)
+		db.RegisterFunction("window", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "2.0"
 			r = db.Query("\n  SELECT " + sqlLiteral(hello_world) + ";\n")
 			if r.Error != nil {
@@ -229,7 +230,7 @@ func Test_window6(t *testing.T) {
 			_res = db.Exec("\n  SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)\n")
 			_ = _res
 		}
-		db.SetDQS(false, true)
+		db.SetDQS(true, true)
 		{ // "6.0"
 			r = db.Query("\n    SELECT LIKE('!', '', '!') x WHERE x;\n  ")
 			if r.Error != nil {

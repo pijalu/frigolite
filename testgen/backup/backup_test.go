@@ -122,7 +122,7 @@ func Test_backup(t *testing.T) {
 	}
 	// test_contents backup-1.2 db main db main (unsupported command, not transpiled)
 	{ // do_test "backup-1.3.1"
-		// delete_file test2.db (unsupported command, not transpiled)
+		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
@@ -163,12 +163,12 @@ func Test_backup(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
-								// delete_file test.db (unsupported command, not transpiled)
+								os.Remove("test.db")
 							}
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
-								// delete_file test2.db (unsupported command, not transpiled)
+								os.Remove("test2.db")
 							}
 							// eval $zOpenScript (dynamic, not transpiled)
 							isMemDest = tclExprWith(" $zDestFile eq \":memory:\" || $file_dest eq \"temp\" ", map[string]string{"zDestFile": zDestFile, "file_dest": file_dest})
@@ -261,12 +261,12 @@ func Test_backup(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					// delete_file test.db (unsupported command, not transpiled)
+					os.Remove("test.db")
 				}
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					// delete_file test2.db (unsupported command, not transpiled)
+					os.Remove("test2.db")
 				}
 				_dbtmp0, err := frigolite.Open("test.db")
 				_ = _dbtmp0 // sqlite3 db connection
@@ -527,14 +527,14 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				// delete_file bak.db (unsupported command, not transpiled)
+				os.Remove("bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				// delete_file $file (unsupported command, not transpiled)
+				os.Remove(file)
 			}
 			_dbtmp3, err := frigolite.Open(file)
 			_ = _dbtmp3 // sqlite3 db connection
@@ -652,14 +652,14 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				// delete_file bak.db (unsupported command, not transpiled)
+				os.Remove("bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				// delete_file $file (unsupported command, not transpiled)
+				os.Remove(file)
 			}
 			db, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }

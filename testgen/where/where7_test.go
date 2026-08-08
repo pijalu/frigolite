@@ -66,7 +66,7 @@ func Test_where7(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t1 VALUES(2,3,4,5);\n    INSERT INTO t1 VALUES(3,4,6,8);\n    INSERT INTO t1 VALUES(4,5,10,15);\n    INSERT INTO t1 VALUES(5,10,100,1000);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		{ // "where7-1.1.1"
 			r = db.Query("\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
 			if r.Error != nil {

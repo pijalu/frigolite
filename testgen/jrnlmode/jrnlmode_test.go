@@ -110,14 +110,14 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	{ // do_test "jrnlmode-1.4a"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(true)
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")
 		}
 	}
 	{ // do_test "jrnlmode-1.4b"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")
@@ -491,7 +491,7 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
-		if tclBool("permutation" + " != \"journaltest\"") {
+		if "" != "journaltest" {
 			{ // do_test "jrnlmode-6.1"
 				r = db.Query("\n        PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;\n      ")
 				if r.Error != nil {

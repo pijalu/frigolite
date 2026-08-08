@@ -87,8 +87,8 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 				e.restorePager(dbCtx.Pager, snap)
 				// Rows whose rowids were computed for the aborted statement
 				// are gone; the cached rowid counter must not survive.
-				e.nextRowIDCache = make(map[uint32]int64)
-				e.autoIncSeq = make(map[uint32]int64)
+				e.nextRowIDCache = make(map[rowidCacheKey]int64)
+				e.autoIncSeq = make(map[rowidCacheKey]int64)
 			}
 		}()
 	}
@@ -252,7 +252,6 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 			break
 		}
 	}
-
 
 	// STRICT table enforcement: check each value against its column's declared
 	// type BEFORE affinity is applied (affinity would convert the value to
@@ -436,7 +435,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
 		e.updateRootPage(tableEntry.Name, tree.RootPage())
 	}
-	e.bumpRowIDCache(tableEntry.RootPage, nextRowID)
+	e.bumpRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage, nextRowID)
 
 	// Maintain indexes: evaluate partial predicates and expression keys in a
 	// pure context (a non-deterministic date function raises SQLite's
@@ -447,7 +446,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 			return cell.RowID == nextRowID
 		}); derr == nil {
-			e.invalidateRowIDCache(tableEntry.RootPage)
+			e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 		}
 		return &Result{Error: err}
 	}
@@ -1366,7 +1365,7 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 		}); err != nil {
 			return &Result{Error: err}
 		}
-		e.invalidateRowIDCache(tableEntry.RootPage)
+		e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 		if hasTriggers {
 			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 				return trigResult
@@ -1513,7 +1512,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 	if err != nil || deleted == 0 {
 		return &Result{Error: fmt.Errorf("upsert: row not found for update")}
 	}
-	e.invalidateRowIDCache(tableEntry.RootPage)
+	e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 
 	cell := &storage.Cell{
 		Type:    storage.CellTableLeaf,
@@ -1523,7 +1522,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
-	e.bumpRowIDCache(tableEntry.RootPage, existingRowID)
+	e.bumpRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage, existingRowID)
 
 	if e.hasTriggersForTable(tableEntry.Name) {
 		newRow := buildRowMapFromValues(updated, colDefs, existingRowID)
@@ -1852,8 +1851,8 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			e.restorePager(e.pager, snap)
 			// The pager rollback can invalidate cached rowid counters (rows
 			// whose rowids were computed for the aborted statement are gone).
-			e.nextRowIDCache = make(map[uint32]int64)
-			e.autoIncSeq = make(map[uint32]int64)
+			e.nextRowIDCache = make(map[rowidCacheKey]int64)
+			e.autoIncSeq = make(map[rowidCacheKey]int64)
 		}
 	}()
 
@@ -2037,7 +2036,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 						}); derr != nil {
 							return &Result{Error: derr}
 						}
-						e.invalidateRowIDCache(tableEntry.RootPage)
+						e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 					} else {
 						return &Result{Error: err}
 					}
@@ -2096,7 +2095,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
 			e.updateRootPage(tableEntry.Name, tree.RootPage())
 		}
-		e.bumpRowIDCache(tableEntry.RootPage, rowID)
+		e.bumpRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage, rowID)
 		changes++
 		e.lastRowID = rowID
 
@@ -2300,7 +2299,7 @@ constraintsOK:
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
-	e.bumpRowIDCache(tableEntry.RootPage, nextRowID)
+	e.bumpRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage, nextRowID)
 	e.lastRowID = nextRowID
 
 	// Fire AFTER INSERT triggers.

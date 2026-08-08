@@ -465,7 +465,7 @@ func Test_capi3(t *testing.T) {
 		{ // do_test "capi3-8.2"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			// sqlite3_db_config DEFENSIVE (unhandled flag)
+			db.SetDefensive(false)
 			r = db.Query("\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);\n    ")
@@ -487,7 +487,7 @@ func Test_capi3(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			// sqlite3_db_config DEFENSIVE (unhandled flag)
+			db.SetDefensive(false)
 			r = db.Query("\n      CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);\n    ")
@@ -531,7 +531,7 @@ func Test_capi3(t *testing.T) {
 				}
 			}
 		}
-		if tclBool("permutation" + " != \"nofaultsim\"") {
+		if "" != "nofaultsim" {
 			{ // do_test "capi3-10-1"
 				_dbtmp0, err := frigolite.Open("test.db")
 				_ = _dbtmp0 // sqlite3 db connection

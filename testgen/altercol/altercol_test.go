@@ -706,7 +706,7 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				{ // "13.1.4"
 					r = db.Query("\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX x1i ON x1(j)' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
 					if r.Error != nil {

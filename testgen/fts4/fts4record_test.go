@@ -81,6 +81,7 @@ func Test_fts4record(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function record (variable-reader, inlined)
+	db.RegisterFunction("record", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "1.2"
 		r = db.Query("\n  select quote( \n    record(0,    5, 'terma', 5, 1, 2, 3, 3, 0, \n              4, 1, 'b'    , 3, 1, 5, 0\n  ) );\n")
 		if r.Error != nil {

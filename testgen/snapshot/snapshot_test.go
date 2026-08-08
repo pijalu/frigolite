@@ -84,7 +84,7 @@ func Test_snapshot(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "snapshot"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	// foreach {tn tcl} "1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "sqlite3_snapshot_get " + DB + " " + DBNAME + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_open " + DB + " " + DBNAME + " " + SNAPSHOT + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_free " + SNAPSHOT + "\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "sqlite3_snapshot_cmp " + SNAPSHOT1 + " " + SNAPSHOT2 + "\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "sqlite3_snapshot_get_blob " + DB + " " + DBNAME + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_open_blob " + DB + " " + DBNAME + " " + SNAPSHOT + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "sqlite3_snapshot_cmp_blob " + SNAPSHOT1 + " " + SNAPSHOT2 + "\n    }\n  }"

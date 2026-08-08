@@ -71,7 +71,7 @@ func Test_cache(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	if tclBool("permutation" + " == \"\"") {
+	if "" == "" {
 		{ // do_test "cache-1.1"
 			// pager_cache_size db (unsupported command, not transpiled)
 		}

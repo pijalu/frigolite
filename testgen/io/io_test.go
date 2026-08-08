@@ -573,7 +573,7 @@ func Test_io(t *testing.T) {
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
 			_ = _idx1
-				if tclBool("permutation" + " == \"memsubsys1\"") {
+				if "" == "memsubsys1" {
 					continue
 				}
 				// db_restore (unsupported command, not transpiled)

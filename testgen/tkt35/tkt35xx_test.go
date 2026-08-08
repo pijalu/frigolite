@@ -74,7 +74,7 @@ func Test_tkt35xx(t *testing.T) {
 		}
 	}
 	db.Close()
-	// delete_file test.db (unsupported command, not transpiled)
+	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	big = tclStringRepeat("abcdefghij", "22")

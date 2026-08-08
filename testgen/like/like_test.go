@@ -186,6 +186,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-2.1"
 		// proc definition (not transpiled)
 		// db function regexp (variable-reader, inlined)
+		db.RegisterFunction("regexp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    SELECT x FROM t1 WHERE x REGEXP 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x REGEXP 'abc' ORDER BY 1;\n  ")
@@ -200,6 +201,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-2.3"
 		// proc definition (not transpiled)
 		// db function match (variable-reader, inlined)
+		db.RegisterFunction("match", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("\n    SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;\n  ")
@@ -232,7 +234,7 @@ func Test_like(t *testing.T) {
 	}
 	likepat = "abc%" // TCL namespace variable
 	_ = likepat // suppress unused warning
-	if tclBool("permutation" + "!=\"prepare\"") {
+	if "" != "prepare" {
 		{ // do_test "like-3.3.102"
 			sqlite_like_count = "0"
 			_ = sqlite_like_count // suppress unused warning
@@ -552,6 +554,7 @@ func Test_like(t *testing.T) {
 	}
 	{ // do_test "like-8.3"
 		// db function like (variable-reader, inlined)
+		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
@@ -559,6 +562,7 @@ func Test_like(t *testing.T) {
 	}
 	{ // do_test "like-8.4"
 		// db function like (variable-reader, inlined)
+		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
@@ -1123,7 +1127,7 @@ func Test_like(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(true)
 	_res = db.Exec("PRAGMA trusted_schema=OFF")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA trusted_schema=OFF")

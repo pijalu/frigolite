@@ -59,7 +59,7 @@ func Test_ioerr6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "ioerr6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)

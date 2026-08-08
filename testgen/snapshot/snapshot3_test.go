@@ -62,7 +62,7 @@ func Test_snapshot3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "snapshot3"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	{ // "1.0"

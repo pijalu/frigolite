@@ -57,7 +57,7 @@ func Test_nockpt(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("permutation" + "==\"journaltest\" || " + "permutation" + "==\"inmemory_journal\"") {
+	if tclBool("" + "==\"journaltest\" || " + "" + "==\"inmemory_journal\"") {
 		return
 	}
 	testprefix = "nockpt"

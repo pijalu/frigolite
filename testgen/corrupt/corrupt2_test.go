@@ -205,7 +205,7 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db2.SetDefensive(false)
 		r = db2.Query("\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")

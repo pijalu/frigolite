@@ -92,7 +92,7 @@ func Test_sync(t *testing.T) {
 		}
 		// cond_incr_sync_count 4 (unsupported command, not transpiled)
 	}
-	if tclBool("permutation" + "!=\"journaltest\"") {
+	if "" != "journaltest" {
 		{ // do_test "sync-1.4"
 			sqlite_sync_count = "0"
 			_ = sqlite_sync_count // suppress unused warning

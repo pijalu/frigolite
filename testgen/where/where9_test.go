@@ -353,7 +353,7 @@ func Test_where9(t *testing.T) {
 	}
 	solution_possible = "0"
 	_ = solution_possible // suppress unused warning
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		solution_possible = "1"
 		_ = solution_possible // suppress unused warning
 	}

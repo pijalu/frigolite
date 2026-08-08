@@ -120,7 +120,7 @@ func Test_index3(t *testing.T) {
 		}
 	}
 	{ // do_test "index3-99.1"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		r = db.Query("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'\n  ")

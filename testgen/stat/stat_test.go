@@ -70,6 +70,7 @@ func Test_stat(t *testing.T) {
 	_ = asc // suppress unused warning
 	// proc definition (not transpiled)
 	// db function a_string (variable-reader, inlined)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.0"
 		r = db.Query("\n  PRAGMA table_info(dbstat);\n")
@@ -106,6 +107,7 @@ func Test_stat(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// db function a_string (variable-reader, inlined)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.2"
 		r = db.Query("\n  PRAGMA auto_vacuum = OFF;\n  CREATE VIRTUAL TABLE temp.stat USING dbstat;\n  SELECT * FROM stat;\n")

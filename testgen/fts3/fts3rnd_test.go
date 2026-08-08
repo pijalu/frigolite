@@ -266,6 +266,7 @@ func Test_fts3rnd(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function mit (variable-reader, inlined)
+	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)

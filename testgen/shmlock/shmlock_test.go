@@ -146,7 +146,7 @@ func Test_shmlock(t *testing.T) {
 		db.Close()
 		_ = db2 // close db2: aliased to db, no-op
 		_ = db3 // close db3: aliased to db, no-op
-		if tclBool("permutation" + "==\"unix-excl\"") {
+		if "" == "unix-excl" {
 			{ // do_test "2.0"
 				i = "0"
 				_ = i // suppress unused warning

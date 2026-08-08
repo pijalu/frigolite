@@ -339,7 +339,7 @@ func Test_temptable(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE mask(a,b,c)\n  ")
 		}
-		if tclBool("permutation" + "==\"prepare\"") {
+		if "" == "prepare" {
 		}
 		r = db.Query("\n    CREATE INDEX mask ON t2(x);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {

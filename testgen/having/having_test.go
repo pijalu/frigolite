@@ -166,6 +166,7 @@ func Test_having(t *testing.T) {
 				}
 				// proc definition (not transpiled)
 				// db function nondeter (variable-reader, inlined)
+				db.RegisterFunction("nondeter", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 				nondeter_ret = "0" // TCL namespace variable
 				_ = nondeter_ret // suppress unused warning
 				{ // "4.2"

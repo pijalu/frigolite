@@ -61,6 +61,16 @@ func (r *Registry) Find(name string) (Module, bool) {
 	return m, ok
 }
 
+// List returns all registered module names in lowercase (for
+// pragma_module_list).
+func (r *Registry) List() []string {
+	out := make([]string, 0, len(r.modules))
+	for name := range r.modules {
+		out = append(out, strings.ToLower(name))
+	}
+	return out
+}
+
 // Register defaults registers built-in virtual table modules.
 func (r *Registry) RegisterDefaults() {
 	r.Register("generate_series", &GenerateSeriesModule{})

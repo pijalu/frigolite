@@ -242,10 +242,10 @@ func (e *Engine) renameSQLiteSequence(oldName, newName string) {
 		}); err != nil {
 			continue
 		}
-		e.invalidateRowIDCache(entry.RootPage)
+		e.invalidateRowIDCache(e.tablePager(entry.Name), entry.RootPage)
 		newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: rowID, Payload: newRecord}
 		_ = tree.InsertCell(newCell)
-		e.bumpRowIDCache(entry.RootPage, rowID)
+		e.bumpRowIDCache(e.tablePager(entry.Name), entry.RootPage, rowID)
 	}
 }
 
@@ -2692,7 +2692,7 @@ func (e *Engine) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.Co
 	}); err != nil {
 		return
 	}
-	e.invalidateRowIDCache(tableEntry.RootPage)
+	e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 	for _, rw := range rewrites {
 		newRecord, err := storage.EncodeRecord(rw.values)
 		if err != nil {
@@ -2700,7 +2700,7 @@ func (e *Engine) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.Co
 		}
 		newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: rw.rowID, Payload: newRecord}
 		_ = tree.InsertCell(newCell)
-		e.bumpRowIDCache(tableEntry.RootPage, rw.rowID)
+		e.bumpRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage, rw.rowID)
 	}
 }
 

@@ -1085,6 +1085,7 @@ func Test_rowid(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function addrow (variable-reader, inlined)
+	db.RegisterFunction("addrow", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "rowid-13.1"
 		r = db.Query("\n  CREATE TABLE t13(x);\n  INSERT INTO t13(rowid,x) VALUES(1234,5);\n  SELECT rowid, x, addrow(rowid+1000), '|' FROM t13 LIMIT 3;\n  SELECT last_insert_rowid();\n")
 		if r.Error != nil {

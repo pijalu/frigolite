@@ -82,6 +82,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function blob (variable-reader, inlined)
+	db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "1.1"
 		r = db.Query("\n  SELECT quote(root) FROM ft_segdir;\n")
 		if r.Error != nil {
@@ -94,7 +95,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "1.2"
 		_res = db.Exec("\n  UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );\n")
 		if _res.Error != nil {
@@ -164,7 +165,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	// db function blob (variable-reader, inlined)
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	db.SetDefensive(false)
 	{ // "2.3.1"
 		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_FFFFFFFF07FF55_66740302020003046E646F6E03030200) + "\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
@@ -250,7 +252,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	// db function blob (variable-reader, inlined)
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	db.SetDefensive(false)
 	{ // "3.2"
 		_res = db.Exec("\n  UPDATE ft_segdir \n  SET root = " + sqlLiteral(v_0101056162633132FFFFFFFF070236030132030136) + ";\n")
 		if _res.Error != nil {

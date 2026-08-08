@@ -128,7 +128,7 @@ func Test_rollback(t *testing.T) {
 	{ // "rollback-1.9" (prepare-step internals; SQL side effects only)
 		// sqlite3_finalize $STMT
 	}
-	if tclBool(tcl_platform_platform + " == \"unix\" \n && " + "permutation" + " != \"onefile\"\n && " + "permutation" + " != \"inmemory_journal\"\n && " + "permutation" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
+	if tclBool(tcl_platform_platform + " == \"unix\" \n && " + "" + " != \"onefile\"\n && " + "" + " != \"inmemory_journal\"\n && " + "" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
 		{ // do_test "rollback-2.1"
 			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t3 VALUES('hello world');\n    ")
 			if _res.Error != nil {

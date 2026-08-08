@@ -146,6 +146,7 @@ func Test_e_fts3(t *testing.T) {
 			}
 			// proc definition (not transpiled)
 			// db function mit (variable-reader, inlined)
+			db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			// ddl_test 1.1.1.1 {CREATE VIRTUAL TABLE data USING fts3()} (unsupported command, not transpiled)
 			// read_test 1.1.1.2 {PRAGMA table_info(data)} {0 content {} 0 {} 0} (unsupported command, not transpiled)
 			// ddl_test 1.1.2.1 {\n  CREATE VIRTUAL TABLE pages USING fts3(title, k...} (unsupported command, not transpiled)
@@ -402,7 +403,7 @@ func Test_e_fts3(t *testing.T) {
 					// ddl_test 10.1.1 { CREATE VIRTUAL TABLE ta USING fts3 } (unsupported command, not transpiled)
 					// write_test 10.1.2 ta_content { \n  INSERT INTO ta VALUES('During a summer vacati...} (unsupported command, not transpiled)
 					// write_test 10.1.3 ta_content {\n  INSERT INTO ta VALUES('Wordsworth went on a wa...} (unsupported command, not transpiled)
-					// sqlite3_db_config DEFENSIVE (unhandled flag)
+					db.SetDefensive(false)
 					// write_test 10.1.4 ta_content { DELETE FROM ta_content WHERE rowid = 2 } (unsupported command, not transpiled)
 					// read_test 10.1.5 {\n  SELECT * FROM ta WHERE ta MATCH 'summer'\n} {{During a summer vacati... (unsupported command, not transpiled)
 					// error_test 10.1.6 {\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n} {database disk image is... (unsupported command, not transpiled)

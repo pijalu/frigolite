@@ -154,6 +154,7 @@ func Test_fts3query(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// db function mit (variable-reader, inlined)
+	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "fts3query-3.3"
 		r = db.Query(" SELECT mit(matchinfo(foobar)) FROM foobar WHERE foobar MATCH 'the' ")
 		if r.Error != nil {
@@ -198,7 +199,7 @@ func Test_fts3query(t *testing.T) {
 	}
 	// do_select_tests 5.2 -errorformat {\n  wrong number of arguments to function %s()\n} {\n  1 "SELE... (unsupported command, not transpiled)
 	// do_select_tests 5.3 -errorformat {\n  illegal first argument to %s\n} {\n  1 "SELECT matchinfo(c... (unsupported command, not transpiled)
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "5.4.0"
 		_res = db.Exec(" UPDATE t2_content SET c0content = X'1234' ")
 		if _res.Error != nil {

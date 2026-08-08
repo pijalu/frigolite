@@ -364,7 +364,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 					}); err != nil {
 						return &Result{Error: err}
 					}
-					e.invalidateRowIDCache(childEntry.RootPage)
+					e.invalidateRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage)
 					// Recursively enforce FK actions for the deleted child: it
 					// may itself be a parent (self-referential FK chains). The
 					// depth guard breaks cycles (SQLite allows CASCADE cycles
@@ -395,7 +395,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 					}); err != nil {
 						return &Result{Error: err}
 					}
-					e.invalidateRowIDCache(childEntry.RootPage)
+					e.invalidateRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage)
 					newRecord, err := storage.EncodeRecord(vals)
 					if err != nil {
 						return &Result{Error: err}
@@ -404,7 +404,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 					if err := tree.InsertCell(newCell); err != nil {
 						return &Result{Error: err}
 					}
-					e.bumpRowIDCache(childEntry.RootPage, m.rowID)
+					e.bumpRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage, m.rowID)
 				}
 			}
 		case "SET NULL":
@@ -421,7 +421,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 				}); err != nil {
 					return &Result{Error: err}
 				}
-				e.invalidateRowIDCache(childEntry.RootPage)
+				e.invalidateRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage)
 				newRecord, err := storage.EncodeRecord(vals)
 				if err != nil {
 					return &Result{Error: err}
@@ -430,7 +430,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 				if err := tree.InsertCell(newCell); err != nil {
 					return &Result{Error: err}
 				}
-				e.bumpRowIDCache(childEntry.RootPage, m.rowID)
+				e.bumpRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage, m.rowID)
 			}
 		case "SET DEFAULT":
 			for _, m := range matches {
@@ -452,7 +452,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 				}); err != nil {
 					return &Result{Error: err}
 				}
-				e.invalidateRowIDCache(childEntry.RootPage)
+				e.invalidateRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage)
 				newRecord, err := storage.EncodeRecord(vals)
 				if err != nil {
 					return &Result{Error: err}
@@ -461,7 +461,7 @@ func (e *Engine) fkParentActionRec(parentTable *schema.Entry, parentColDefs []sq
 				if err := tree.InsertCell(newCell); err != nil {
 					return &Result{Error: err}
 				}
-				e.bumpRowIDCache(childEntry.RootPage, m.rowID)
+				e.bumpRowIDCache(e.tablePager(childEntry.Name), childEntry.RootPage, m.rowID)
 			}
 		}
 	}

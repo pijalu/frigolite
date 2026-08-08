@@ -70,6 +70,7 @@ func Test_update2(t *testing.T) {
 	testprefix = "update2"
 	_ = testprefix // suppress unused warning
 	// db function repeat (variable-reader, inlined)
+	db.RegisterFunction("repeat", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	nrow = "10"
 	_ = nrow // suppress unused warning
 	{ // "1.1.0"

@@ -592,6 +592,109 @@ func (e *Engine) statLookup(tbl, idx string) string {
 
 func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 	name := strings.ToUpper(s.Name)
+	ctx := e.pragmaDBCtx(s.Schema)
+
+	// PRAGMA data_version: the per-connection version (own commits do not
+	// change it). Setting it is a no-op; SQLite's set form still returns the
+	// current value (pragma3-102: PRAGMA main.data_version=1234 then read →
+	// "1 1").
+	if name == "DATA_VERSION" {
+		if s.Value != "" {
+			res := e.execPragmaDataVersion(ctx)
+			return res
+		}
+		return e.execPragmaDataVersion(ctx)
+	}
+
+	// PRAGMA default_cache_size: header offset 48 (signed, abs on read).
+	if name == "DEFAULT_CACHE_SIZE" {
+		return e.execPragmaDefaultCacheSize(ctx, s.Value)
+	}
+
+	// PRAGMA user_version / application_id: header offset 60 / 72.
+	if name == "USER_VERSION" {
+		return e.execPragmaUserVersion(ctx, s.Value)
+	}
+	if name == "APPLICATION_ID" {
+		return e.execPragmaApplicationID(ctx, s.Value)
+	}
+
+	// PRAGMA schema_version: header offset 40 (read-only under DEFENSIVE).
+	if name == "SCHEMA_VERSION" {
+		return e.execPragmaSchemaVersion(ctx, s.Value)
+	}
+
+	// PRAGMA page_size: header offset 16 (only honored before tables exist).
+	if name == "PAGE_SIZE" {
+		return e.execPragmaPageSize(ctx, s.Value)
+	}
+
+	// PRAGMA cache_size: getter/setter with per-schema tracking.
+	if name == "CACHE_SIZE" {
+		if s.Value != "" {
+			e.setPragmaCacheSize(ctx, s.Value)
+			return &Result{}
+		}
+		return &Result{Rows: [][]interface{}{{e.pragmaCacheSizeFor(ctx)}}}
+	}
+
+	// PRAGMA cache_spill: getter/setter (0 disables, negative → default).
+	if name == "CACHE_SPILL" {
+		if s.Value != "" {
+			if res := e.setPragmaCacheSpill(s.Value); res.Error != nil {
+				return res
+			}
+			return &Result{}
+		}
+		return &Result{Rows: [][]interface{}{{e.pragmaCacheSpillFor(ctx)}}}
+	}
+
+	// PRAGMA lock_status: report the locking state of each attached database
+	// as rows (database, status). During a write transaction the written
+	// database holds a RESERVED lock, escalating to EXCLUSIVE when cache
+	// spilling is enabled and the spill threshold fits within the cache
+	// (SQLite pager: spilling to the journal requires an exclusive lock).
+	if name == "LOCK_STATUS" {
+		var rows [][]interface{}
+		for _, dbCtx := range e.dbList {
+			if strings.EqualFold(dbCtx.Name, "TEMP") || strings.EqualFold(dbCtx.Name, "TEMPORARY") {
+				rows = append(rows, []interface{}{dbCtx.Name, "unknown"})
+				continue
+			}
+			rows = append(rows, []interface{}{dbCtx.Name, e.lockStatusFor(dbCtx)})
+		}
+		return &Result{Columns: []string{"database", "status"}, Rows: rows}
+	}
+
+	// PRAGMA table_list: the statement form of the pragma_table_list()
+	// table-valued function (rows for every table/view plus sqlite_schema).
+	if name == "TABLE_LIST" {
+		cols, rows, err := e.materializeTableList(sql.TableRef{Name: "pragma_table_list"})
+		if err != nil {
+			return &Result{Error: err}
+		}
+		names := make([]string, len(cols))
+		for i, c := range cols {
+			names[i] = c.Name
+		}
+		return &Result{Columns: names, Rows: rows}
+	}
+
+	// PRAGMA collation_list: (seq, name) rows for every collation, built-in
+	// first then user-registered.
+	if name == "COLLATION_LIST" {
+		var rows [][]interface{}
+		seq := int64(0)
+		for _, c := range []string{"BINARY", "NOCASE", "RTRIM"} {
+			rows = append(rows, []interface{}{seq, c})
+			seq++
+		}
+		for c := range e.collations {
+			rows = append(rows, []interface{}{seq, c})
+			seq++
+		}
+		return &Result{Columns: []string{"seq", "name"}, Rows: rows}
+	}
 
 	// PRAGMA foreign_key_check / foreign_key_check(table): report every
 	// foreign key violation as rows (child_table, rowid, parent_table, fkid).
@@ -613,34 +716,7 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 	// (id, seq, table, from, to, on_update, on_delete, match). id is the FK
 	// index, seq the column position within the FK.
 	if name == "FOREIGN_KEY_LIST" {
-		entry, _, err := e.findTable(s.Value)
-		if err != nil {
-			return &Result{Error: err}
-		}
-		colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
-		fks := e.tableFKConstraints(entry, colDefs)
-		var rows [][]interface{}
-		for id, fk := range fks {
-			// For an implicit "REFERENCES t" the parent column is not named;
-			// SQLite reports NULL in the "to" column.
-			parentCols := fk.parentCols
-			for seq, childCol := range fk.childCols {
-				to := ""
-				if seq < len(parentCols) {
-					to = parentCols[seq]
-				}
-				upd := fk.onUpdate
-				if upd == "" {
-					upd = "NO ACTION"
-				}
-				del := fk.onDelete
-				if del == "" {
-					del = "NO ACTION"
-				}
-				rows = append(rows, []interface{}{int64(id), int64(seq), fk.parentRef, childCol, to, upd, del, "NONE"})
-			}
-		}
-		return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}, Rows: rows}
+		return e.execPragmaForeignKeyList(s.Value)
 	}
 
 	// PRAGMA index_info(name) / index_xinfo(name) take an argument: an index
@@ -1076,8 +1152,8 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"TABLE_INFO": func(e *Engine) *Result {
 		return &Result{Columns: []string{"cid", "name", "type", "notnull", "dflt_value", "pk"}}
 	},
-	"INDEX_INFO": func(e *Engine) *Result { return &Result{Columns: []string{"seqno", "cid", "name"}} },
-	"INDEX_LIST": func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "unique"}} },
+	"INDEX_INFO":       func(e *Engine) *Result { return &Result{Columns: []string{"seqno", "cid", "name"}} },
+	"INDEX_LIST":       func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "unique"}} },
 	"DATABASE_VERSION": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
 	"PAGE_SIZE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(e.pager.PageSize())}}} },
 	"PAGE_COUNT":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
@@ -1089,11 +1165,11 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"REVERSE_UNORDERED_SELECTS": func(e *Engine) *Result {
 		return &Result{Rows: [][]interface{}{{boolToInt(e.reverseUnordered)}}}
 	},
-	"JOURNAL_MODE":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"memory"}}} },
-	"SYNCHRONOUS":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
-	"CACHE_SIZE":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(2000)}}} },
-	"TEMP_STORE":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"LOCKING_MODE":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
+	"JOURNAL_MODE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"memory"}}} },
+	"SYNCHRONOUS":  func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"CACHE_SIZE":   func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(2000)}}} },
+	"TEMP_STORE":   func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"LOCKING_MODE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
 	"DATABASE_LIST": func(e *Engine) *Result {
 		var rows [][]interface{}
 		seq := int64(0)
@@ -1156,92 +1232,253 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	},
 }
 
-// execQuickCheck implements PRAGMA quick_check('table_name') and
-// PRAGMA integrity_check('table_name'). For STRICT tables, it scans all rows
-// and validates that each value's type matches the column's declared type.
-// Returns "ok" if no violations, or a description of the first violation.
+// execPragmaForeignKeyList implements PRAGMA foreign_key_list(table),
+// reporting each FK of the table as rows (id, seq, table, from, to,
+// on_update, on_delete, match).
+func (e *Engine) execPragmaForeignKeyList(tableName string) *Result {
+	cols := []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}
+	entry, _, err := e.findTable(tableName)
+	if err != nil {
+		return &Result{Columns: cols}
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	fks := e.tableFKConstraints(entry, colDefs)
+	var rows [][]interface{}
+	for id, fk := range fks {
+		// For an implicit "REFERENCES t" the parent column is not named;
+		// SQLite reports NULL in the "to" column.
+		parentCols := fk.parentCols
+		for seq, childCol := range fk.childCols {
+			to := ""
+			if seq < len(parentCols) {
+				to = parentCols[seq]
+			}
+			upd := fk.onUpdate
+			if upd == "" {
+				upd = "NO ACTION"
+			}
+			del := fk.onDelete
+			if del == "" {
+				del = "NO ACTION"
+			}
+			rows = append(rows, []interface{}{int64(id), int64(seq), fk.parentRef, childCol, to, upd, del, "NONE"})
+		}
+	}
+	return &Result{Columns: cols, Rows: rows}
+}
+
+// execQuickCheck implements PRAGMA quick_check / integrity_check. Without an
+// argument it checks all tables; an integer argument limits the number of
+// errors reported; a table-name argument restricts the check to one table.
+// For each table row (in rowid order) it verifies NOT NULL columns, STRICT
+// types, CHECK constraints, and UNIQUE index keys, reporting violations as
+// separate rows (SQLite pragma.c integrityCheck):
+//
+//	"NULL value in T.C"            — NOT NULL column holds NULL
+//	"non-unique entry in index X"  — UNIQUE index key repeats
+//	"CHECK constraint failed in T" — stored row violates a CHECK
+//
+// The engine does not maintain secondary index btrees, so index uniqueness is
+// verified by grouping the table rows by index key: a key repeated across
+// multiple rows (with no NULL in a nullable key column) is a violation,
+// reported once per duplicate row.
 func (e *Engine) execQuickCheck(tableName string) *Result {
-	if tableName == "" {
-		// No table name: check all tables. Besides STRICT-type and NULL
-		// checks (per-table below), SQLite's integrity_check also verifies
-		// every CHECK constraint against the stored rows and reports the
-		// first table with a violation as "CHECK constraint failed in T"
-		// (this is how rows written under PRAGMA
-		// ignore_check_constraints=ON are caught).
-		if bad := e.firstCheckViolationTable(); bad != "" {
-			return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{fmt.Sprintf("CHECK constraint failed in %s", bad)}}}
+	limit := 0 // 0 = unlimited
+	arg := strings.Trim(tableName, "'\"")
+	if n, err := strconv.Atoi(arg); err == nil && n >= 0 {
+		limit = n
+		arg = ""
+	}
+
+	var rows [][]interface{}
+	colName := "integrity_check"
+	emit := func(msg string) {
+		if limit > 0 && len(rows) >= limit {
+			return
 		}
-		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+		rows = append(rows, []interface{}{msg})
 	}
 
-	// Strip quotes from table name
-	tableName = strings.Trim(tableName, "'\"")
-
-	te, dbCtx, err := e.findTable(tableName)
-	if err != nil {
-		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
-	}
-
-	// Only STRICT tables need checking
-	if !hasStrictKeyword(strings.ToUpper(te.SQL)) {
-		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
-	}
-
-	colDefs := e.parseColumnDefs(te.Name, te.SQL)
-
-	// Scan all rows and check STRICT types
-	tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, true)
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
-	}
-
-	for {
-		payload, _, err := cursor.ReadCellData()
+	checkTable := func(te *schema.Entry, dbCtx *DatabaseContext) {
+		colDefs := e.parseColumnDefs(te.Name, te.SQL)
+		// Build the table's UNIQUE index definitions once.
+		uniqIdx := e.uniqueIndexColumns(te.Name)
+		// Pre-scan all rows for index-key grouping (the engine has no index
+		// btrees to walk).
+		type keyRec struct {
+			idxName string
+			key     string
+			hasNull bool
+			notNull bool // all key columns declared NOT NULL
+		}
+		var seenKeys = map[string]int{}
+		tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, true)
+		cursor, err := tree.OpenCursor()
 		if err != nil {
-			break
+			return
 		}
-		// Decode the record
-		rec, err := storage.DecodeRecord(payload)
-		if err != nil {
-			break
-		}
-		// Check each column value against STRICT type
-		for i, val := range rec.Values {
-			if i >= len(colDefs) {
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
 				break
 			}
-			cd := colDefs[i]
-			if cd.Generated != nil {
-				continue
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
 			}
-			if val == nil {
-				// Check NOT NULL. PRIMARY KEY columns are implicitly NOT NULL
-				// in STRICT tables (matches sqlite3AddPrimaryKey setting
-				// pCol->notNull; quick_check reports "NULL value in t.c").
-				if cd.NotNull || cd.PrimaryKey {
-					return &Result{
-						Columns: []string{"integrity_check"},
-						Rows:    [][]interface{}{{fmt.Sprintf("NULL value in %s.%s", te.Name, cd.Name)}},
+			// Record this row's index keys (needed before the per-row checks
+			// so duplicates can be reported in rowid order). Rows that do not
+			// satisfy a partial index's WHERE clause are not in the index and
+			// must not be checked for uniqueness.
+			var rowKeys []keyRec
+			row := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
+			for _, def := range uniqIdx {
+				if len(def.Cols) == 0 {
+					continue
+				}
+				if def.Where != "" {
+					if wv, werr := e.evalWhereForRow(def.Where, row); werr != nil || wv == nil || !toBool(wv) {
+						continue
 					}
 				}
-				continue
+				key, hasNull, notNullCols := indexKeyForRow(def.Cols, rec.Values, colDefs)
+				rowKeys = append(rowKeys, keyRec{idxName: def.Name, key: key, hasNull: hasNull, notNull: notNullCols})
 			}
-			if err := checkStrictValueForQuickCheck(te.Name, cd.Name, cd.Type, val); err != nil {
-				return &Result{
-					Columns: []string{"integrity_check"},
-					Rows:    [][]interface{}{{err.Error()}},
+
+			// (1) UNIQUE index duplicates first: report if this row's key
+			// repeats an earlier row's key (SQLite walks the index btree and
+			// flags a key that is not strictly greater than the previous one).
+			// A key with any NULL is unique UNLESS the key column is declared
+			// NOT NULL (SQLite skips the IsNull-OK when the column is notNull).
+			// The first occurrence of a key is fine; each subsequent
+			// occurrence is a violation. This runs before the NOT NULL checks
+			// to match SQLite's reported error order.
+			for _, kr := range rowKeys {
+				if kr.hasNull && !kr.notNull {
+					continue
+				}
+				keyName := kr.idxName + "\x00" + kr.key
+				seenKeys[keyName]++
+				if seenKeys[keyName] > 1 {
+					emit(fmt.Sprintf("non-unique entry in index %s", kr.idxName))
 				}
 			}
-		}
 
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			break
+			// (2) NOT NULL columns.
+			for i, cd := range colDefs {
+				if cd.Generated != nil {
+					continue
+				}
+				if (cd.NotNull || cd.PrimaryKey) && i < len(rec.Values) && rec.Values[i] == nil {
+					emit(fmt.Sprintf("NULL value in %s.%s", te.Name, cd.Name))
+				}
+			}
+
+			// (3) STRICT type checks (quick_check style).
+			if hasStrictKeyword(strings.ToUpper(te.SQL)) {
+				for i, cd := range colDefs {
+					if cd.Generated != nil {
+						continue
+					}
+					if i < len(rec.Values) {
+						if err := checkStrictValueForQuickCheck(te.Name, cd.Name, cd.Type, rec.Values[i]); err != nil {
+							emit(err.Error())
+						}
+					}
+				}
+			}
+
+			// (4) CHECK constraints.
+			for _, cd := range colDefs {
+				if cd.Check == nil {
+					continue
+				}
+				if cv, err := e.evalExpr(cd.Check, row); err == nil && cv != nil && !toBool(cv) {
+					emit(fmt.Sprintf("CHECK constraint failed in %s", te.Name))
+				}
+			}
+			for _, tc := range e.tableConstraints(te.Name, te.SQL) {
+				if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+					continue
+				}
+				if cv, err := e.evalExpr(tc.Expr, row); err == nil && cv != nil && !toBool(cv) {
+					emit(fmt.Sprintf("CHECK constraint failed in %s", te.Name))
+				}
+			}
+
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
 		}
 	}
 
-	return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+	if arg == "" {
+		for _, dbCtx := range e.databases {
+			entries, err := dbCtx.Schema.GetEntries(schema.TypeTable)
+			if err != nil {
+				continue
+			}
+			for _, te := range entries {
+				if isSchemaTable(te.Name) {
+					continue
+				}
+				checkTable(te, dbCtx)
+			}
+		}
+	} else {
+		te, dbCtx, err := e.findTable(arg)
+		if err != nil {
+			return &Result{Columns: []string{colName}, Rows: [][]interface{}{{"ok"}}}
+		}
+		checkTable(te, dbCtx)
+	}
+
+	if len(rows) == 0 {
+		rows = append(rows, []interface{}{"ok"})
+	}
+	return &Result{Columns: []string{colName}, Rows: rows}
+}
+
+// indexKeyForRow builds the composite index-key string for a row and reports
+// whether any key column value is NULL and whether all key columns are
+// declared NOT NULL (used by integrity_check's uniqueness rule).
+func indexKeyForRow(cols []string, values []interface{}, colDefs []sql.ColumnDef) (key string, hasNull bool, notNull bool) {
+	idx := buildColumnIndex(colDefs)
+	notNull = true
+	var parts []string
+	for _, cn := range cols {
+		// A numeric index key is a 1-based column position (CREATE INDEX ON
+		// t0(0) means column 1).
+		ci := -1
+		if n, err := strconv.Atoi(cn); err == nil && n >= 1 && n <= len(colDefs) {
+			ci = n - 1
+		} else if i, ok := idx[cn]; ok {
+			ci = i
+		}
+		if ci < 0 {
+			continue
+		}
+		var v interface{} = nil
+		if ci < len(values) {
+			v = values[ci]
+		}
+		if v == nil {
+			hasNull = true
+		}
+		if ci >= len(colDefs) || (!colDefs[ci].NotNull && !colDefs[ci].PrimaryKey) {
+			notNull = false
+		}
+		parts = append(parts, fmt.Sprintf("%v", v))
+	}
+	return strings.Join(parts, "\x00"), hasNull, notNull
+}
+
+// evalWhereForRow parses a WHERE predicate string (e.g. a partial index's
+// WHERE clause) and evaluates it against a row map, returning the boolean
+// result (nil for NULL).
+func (e *Engine) evalWhereForRow(whereSQL string, row Row) (interface{}, error) {
+	return e.evalExpr(parseWhereExpr(whereSQL), row)
 }
 
 // firstCheckViolationTable scans every user table and returns the name of the

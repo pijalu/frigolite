@@ -635,6 +635,7 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			// db function rt (variable-reader, inlined)
+			db.RegisterFunction("rt", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			{ // "5.0"
 				r = db.Query("\n  WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )\n")
 				if r.Error != nil {

@@ -72,7 +72,7 @@ func Test_where8(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("permutation" + "==\"sorterref\"") {
+	if "" == "sorterref" {
 		return
 	}
 	// proc definition (not transpiled)
@@ -201,7 +201,7 @@ func Test_where8(t *testing.T) {
 	{ // do_test "where8-3.21.1"
 		// execsql_status {\n    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d...} (unsupported command, not transpiled)
 	}
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		{ // do_test "where8-3.21.2"
 			// execsql_status {\n    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS...} (unsupported command, not transpiled)
 		}
@@ -209,7 +209,7 @@ func Test_where8(t *testing.T) {
 	{ // do_test "where8-3.22"
 		// execsql_status {\n    SELECT a, d FROM ((((((t1))), (((t2))))))\n ...} (unsupported command, not transpiled)
 	}
-	if tclBool("permutation" + " != \"no_optimization\"") {
+	if "" != "no_optimization" {
 		{ // do_test "where8-3.23"
 			// execsql_status {\n    SELECT * FROM ((SELECT * FROM t2)) AS t3;\n ...} (unsupported command, not transpiled)
 		}

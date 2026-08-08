@@ -57,7 +57,7 @@ func Test_corrupt5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt5-1.1"
-		// sqlite3_db_config DEFENSIVE (unhandled flag)
+		db.SetDefensive(false)
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")

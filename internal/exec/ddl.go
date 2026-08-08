@@ -10,8 +10,8 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
-	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -400,6 +400,10 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	}
 
 	pg := ctx.Pager.AllocatePage()
+	// A reused page (from a dropped table) must not carry the previous
+	// table's cached rowid sequence; a fresh table starts at rowid 1.
+	delete(e.nextRowIDCache, e.rowidCacheKey(ctx.Pager, pg.PageNum))
+	delete(e.autoIncSeq, e.rowidCacheKey(ctx.Pager, pg.PageNum))
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.
 	for i := range pg.Data {
@@ -729,6 +733,12 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *DatabaseCo
 		if rerr := dbCtx.Schema.RenameEntryWithSQL(tableName, tableName, derivedSQL); rerr == nil {
 			tableEntry.SQL = derivedSQL
 		}
+		// The findTable cache above holds the pre-rename entry (empty
+		// columns); drop it so later lookups re-read the derived columns.
+		e.invalidateTableCaches()
+		if te, _, terr := e.findTable(tableName); terr == nil {
+			tableEntry = te
+		}
 	}
 
 	// Insert rows into the new table
@@ -768,11 +778,33 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 	return buf.String()
 }
 
+// quoteIdentIfKeyword double-quotes an identifier when it is a SQL keyword
+// that the parser would otherwise reject in column position (e.g. a column
+// named "notnull" — the derived CREATE TABLE ... AS SELECT of
+// pragma_table_info's notnull column). Plain identifiers are returned as-is.
+func quoteIdentIfKeyword(name string) string {
+	switch strings.ToUpper(name) {
+	case "NOTNULL", "NULL", "PRIMARY", "UNIQUE", "CHECK", "DEFAULT", "REFERENCES",
+		"COLLATE", "CONSTRAINT", "GENERATED", "AUTOINCREMENT", "ON", "KEY",
+		"ORDER", "GROUP", "BY", "INDEX", "TABLE", "SELECT", "INSERT", "UPDATE",
+		"DELETE", "CREATE", "DROP", "FROM", "WHERE", "JOIN", "LEFT", "RIGHT",
+		"INNER", "OUTER", "FULL", "CROSS", "NATURAL", "AS", "AND", "OR", "NOT",
+		"LIKE", "GLOB", "IS", "IN", "BETWEEN", "CASE", "WHEN", "THEN", "ELSE",
+		"END", "CAST", "VALUES", "SET", "TO", "WITH", "UNION", "ALL", "EXCEPT",
+		"INTERSECT", "DISTINCT", "LIMIT", "OFFSET", "HAVING", "ASC", "DESC",
+		"IF", "EXISTS", "TEMP", "TEMPORARY", "VIEW", "TRIGGER", "BEFORE", "AFTER",
+		"INSTEAD", "OF", "EACH", "ROW", "BEGIN", "COMMIT", "ROLLBACK", "TRANSACTION",
+		"INTEGER", "REAL", "TEXT", "BLOB", "ANY", "INT", "VARCHAR", "FOREIGN", "RECURSIVE":
+		return "\"" + name + "\""
+	}
+	return name
+}
+
 func formatColumnDef(buf *strings.Builder, col sql.ColumnDef) {
 	if col.Dropped {
 		return
 	}
-	buf.WriteString(col.Name)
+	buf.WriteString(quoteIdentIfKeyword(col.Name))
 	if col.Type != "" {
 		buf.WriteString(" ")
 		buf.WriteString(col.Type)
@@ -1351,6 +1383,12 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 	// about to be dropped; clear it again so a later statement cannot find a
 	// stale table of the same name (which would silently accept inserts).
 	e.invalidateTableCaches()
+	// Drop the rowid/AUTOINCREMENT sequence cache for the dropped root page so
+	// a recreated table on the same page starts fresh (SQLite resets the
+	// implicit rowid sequence when a table is dropped).
+	key := e.rowidCacheKey(ctx.Pager, entry.RootPage)
+	delete(e.nextRowIDCache, key)
+	delete(e.autoIncSeq, key)
 
 	// Clean up FTS virtual table if applicable
 	tableName := entry.Name
@@ -1537,6 +1575,7 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 	if err := ctx.Schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
+
 	return &Result{}
 }
 

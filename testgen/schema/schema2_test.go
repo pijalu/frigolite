@@ -185,6 +185,7 @@ func Test_schema2(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = STMT // prepared statement handle
 		// db function hello_function (variable-reader, inlined)
+		db.RegisterFunction("hello_function", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// sqlite3_step $STMT (unknown prepared statement)
 	}
 	{ // do_test "schema2-6.2"
@@ -281,6 +282,7 @@ func Test_schema2(t *testing.T) {
 	}
 	{ // "schema2-11.1" (prepare-step internals; SQL side effects only)
 		// db function tstfunc (variable-reader, inlined)
+		db.RegisterFunction("tstfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
 		_ = STMT // prepared statement handle
@@ -295,6 +297,7 @@ func Test_schema2(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			// db function tstfunc (variable-reader, inlined)
+			db.RegisterFunction("tstfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

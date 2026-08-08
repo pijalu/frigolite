@@ -65,7 +65,7 @@ func Test_walrestart(t *testing.T) {
 	}
 	testprefix = "walrestart"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"memsubsys1\"") {
+	if "" == "memsubsys1" {
 		return
 	}
 	db.Close()

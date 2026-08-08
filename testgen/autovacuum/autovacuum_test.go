@@ -658,7 +658,7 @@ func Test_autovacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA auto_vacuum")
 		}
 	}
-	if tclBool("permutation" + " == \"\"") {
+	if "" == "" {
 		{ // do_test "autovacuum-8.2"
 			_res = db.Exec("BEGIN EXCLUSIVE")
 			if _res.Error != nil {

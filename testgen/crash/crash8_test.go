@@ -269,7 +269,7 @@ func Test_crash8(t *testing.T) {
 		}
 	}
 	{ // do_test "crash8-4.10"
-		// delete_file $zMasterJournal (unsupported command, not transpiled)
+		os.Remove(zMasterJournal)
 		r = db.Query(" SELECT b FROM main.ab WHERE a = 0 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM main.ab WHERE a = 0 ")

@@ -136,7 +136,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 				return &Result{Error: err}
 			}
 			deleted = n
-			e.invalidateRowIDCache(tableEntry.RootPage)
+			e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 		}
 
 		for _, row := range deletedRows {
@@ -156,7 +156,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 			for _, row := range deletedRows {
 				if res := e.fkParentDelete(tableEntry, colDefs, row); res.Error != nil {
 					e.restorePager(dbCtx.Pager, snap)
-					e.invalidateRowIDCache(tableEntry.RootPage)
+					e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 					return res
 				}
 			}
@@ -183,7 +183,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		}); err != nil {
 			return &Result{Error: err}
 		}
-		e.invalidateRowIDCache(tableEntry.RootPage)
+		e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 
 		values, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
 		if err != nil {

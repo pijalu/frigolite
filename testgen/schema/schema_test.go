@@ -229,6 +229,7 @@ func Test_schema(t *testing.T) {
 		// prepared STMT: $sql (bind/step emulation)
 		_ = STMT // prepared statement handle
 		// db function hello_function (variable-reader, inlined)
+		db.RegisterFunction("hello_function", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("$sql")
 		if _res.Error != nil {
 			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
@@ -358,6 +359,7 @@ func Test_schema(t *testing.T) {
 	}
 	{ // "schema-11.1" (prepare-step internals; SQL side effects only)
 		// db function tstfunc (variable-reader, inlined)
+		db.RegisterFunction("tstfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
 		// prepared STMT: $sql (bind/step emulation)
@@ -376,6 +378,7 @@ func Test_schema(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			// db function tstfunc (variable-reader, inlined)
+			db.RegisterFunction("tstfunc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -441,7 +444,9 @@ func Test_schema(t *testing.T) {
 	{ // "schema-13.1" (prepare-step internals; SQL side effects only)
 		_ = S // prepared statement handle
 		// db function hello (variable-reader, inlined)
+		db.RegisterFunction("hello", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// db function hello (variable-reader, inlined)
+		db.RegisterFunction("hello", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// proc definition (not transpiled)
 		// sqlite3_step $S (unknown prepared statement)
 	}

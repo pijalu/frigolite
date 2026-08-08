@@ -498,7 +498,7 @@ func Test_exclusive(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			if tclBool("permutation" + "!=\"journaltest\"") {
+			if "" != "journaltest" {
 				{ // do_test "exclusive-7.1"
 					db.Close()
 					os.Remove("test.db")

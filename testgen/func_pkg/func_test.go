@@ -1149,6 +1149,7 @@ func Test_func(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			// db function [string repeat X 254] (variable-reader, inlined)
+			db.RegisterFunction("[string repeat X 254]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}
 	{ // do_test "func-14.2"
@@ -1156,6 +1157,7 @@ func Test_func(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			// db function [string repeat X 256] (variable-reader, inlined)
+			db.RegisterFunction("[string repeat X 256]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}
 	{ // do_test "func-15.1"
@@ -1205,6 +1207,7 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-17.1"
 		// proc definition (not transpiled)
 		// db function testfunc1 (variable-reader, inlined)
+		db.RegisterFunction("testfunc1", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    SELECT testfunc1(1,2,3);\n  ")
 		_ = _res // catchsql
 	}
@@ -1802,7 +1805,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(+x) FROM t29 ORDER BY id")
 			}
 		}
-		if tclBool("permutation" + " != \"mmap\"") {
+		if "" != "mmap" {
 		}
 		{ // "func-29.5" (prepare-step internals; SQL side effects only)
 			db.Close()
@@ -2072,6 +2075,7 @@ func Test_func(t *testing.T) {
 		// proc definition (not transpiled)
 		{ // do_test "func-33.1"
 			// db function testdirectonly (variable-reader, inlined)
+			db.RegisterFunction("testdirectonly", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 			_res = db.Exec("SELECT testdirectonly(15)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT testdirectonly(15)")
@@ -2185,8 +2189,10 @@ func Test_func(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// db function -> (variable-reader, inlined)
+		db.RegisterFunction("->", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		// proc definition (not transpiled)
 		// db function ->> (variable-reader, inlined)
+		db.RegisterFunction("->>", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "func-36.100"
 			r = db.Query("\n  SELECT 123 -> 456\n")
 			if r.Error != nil {

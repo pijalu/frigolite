@@ -855,6 +855,7 @@ func Test_tclsqlite(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "tcl-8.2"
 		// db function concat (variable-reader, inlined)
+		db.RegisterFunction("concat", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
@@ -872,6 +873,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-8.5"
 		// db function concat (variable-reader, inlined)
+		db.RegisterFunction("concat", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
@@ -879,6 +881,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-9.1"
 		// db function ret_str (variable-reader, inlined)
+		db.RegisterFunction("ret_str", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("SELECT typeof(ret_str())")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(ret_str())")
@@ -886,6 +889,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-9.2"
 		// db function ret_dbl (variable-reader, inlined)
+		db.RegisterFunction("ret_dbl", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("SELECT typeof(ret_dbl())")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(ret_dbl())")
@@ -893,6 +897,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-9.3"
 		// db function ret_int (variable-reader, inlined)
+		db.RegisterFunction("ret_int", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("SELECT typeof(ret_int())")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(ret_int())")
@@ -901,6 +906,7 @@ func Test_tclsqlite(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "tcl-9.4"
 		// db function banu (variable-reader, inlined)
+		db.RegisterFunction("banu", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("SELECT typeof(banu()), typeof(banu(1))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(banu()), typeof(banu(1))")
@@ -916,6 +922,7 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-9.10"
 		// proc definition (not transpiled)
 		// db function r1 (variable-reader, inlined)
+		db.RegisterFunction("r1", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		r = db.Query("SELECT r1(10)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT r1(10)")
@@ -1318,6 +1325,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	// db function xCall (variable-reader, inlined)
+	db.RegisterFunction("xCall", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// proc definition (not transpiled)
 	{ // "tcl-14.1"
 		_res = db.Exec("\n  CREATE TABLE t6(x);\n  INSERT INTO t6 VALUES(1);\n")
@@ -1428,15 +1436,25 @@ func Test_tclsqlite(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function add_i (variable-reader, inlined)
+	db.RegisterFunction("add_i", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function add_r (variable-reader, inlined)
+	db.RegisterFunction("add_r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function add_t (variable-reader, inlined)
+	db.RegisterFunction("add_t", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function add_b (variable-reader, inlined)
+	db.RegisterFunction("add_b", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function add_a (variable-reader, inlined)
+	db.RegisterFunction("add_a", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function ret_i (variable-reader, inlined)
+	db.RegisterFunction("ret_i", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function ret_r (variable-reader, inlined)
+	db.RegisterFunction("ret_r", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function ret_t (variable-reader, inlined)
+	db.RegisterFunction("ret_t", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function ret_b (variable-reader, inlined)
+	db.RegisterFunction("ret_b", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// db function ret_a (variable-reader, inlined)
+	db.RegisterFunction("ret_a", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "17.0"
 		r = db.Query("\n  SELECT quote( add_i(2, 3) );\n  SELECT quote( add_r(2, 3) );\n  SELECT quote( add_t(2, 3) );\n  SELECT quote( add_b(2, 3) );\n  SELECT quote( add_a(2, 3) );\n")
 		if r.Error != nil {
@@ -1690,6 +1708,7 @@ func Test_tclsqlite(t *testing.T) {
 	_ = _dbtmp24 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// db function closedb (variable-reader, inlined)
+	db.RegisterFunction("closedb", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	db.RegisterFunction("func1", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
 	{ // do_test "21.2"
 	_ = rc // suppress unused warning

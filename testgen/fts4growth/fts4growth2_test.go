@@ -130,6 +130,7 @@ func Test_fts4growth2(t *testing.T) {
 		}
 	}
 	// db function second (variable-reader, inlined)
+	db.RegisterFunction("second", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// proc definition (not transpiled)
 	tn = "0"
 	_ = tn // suppress unused warning

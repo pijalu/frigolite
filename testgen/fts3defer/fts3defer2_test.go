@@ -73,6 +73,7 @@ func Test_fts3defer2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// db function mit (variable-reader, inlined)
+	db.RegisterFunction("mit", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
 		if _res.Error != nil {
@@ -97,7 +98,7 @@ func Test_fts3defer2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('a b c d e f a x y');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "1.1.4"
 		r = db.Query("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
 		if r.Error != nil {
@@ -202,7 +203,7 @@ func Test_fts3defer2(t *testing.T) {
 		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
 		_ = _idx0
-			// sqlite3_db_config DEFENSIVE (unhandled flag)
+			db.SetDefensive(false)
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -280,7 +281,7 @@ func Test_fts3defer2(t *testing.T) {
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
 			_ = _idx1
-				// sqlite3_db_config DEFENSIVE (unhandled flag)
+				db.SetDefensive(false)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)

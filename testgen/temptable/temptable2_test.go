@@ -495,7 +495,7 @@ func Test_temptable2(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
 			}
 		}
-		if tclBool("permutation" + "!=\"journaltest\" && " + TEMP_STORE + "<2") {
+		if tclBool("" + "!=\"journaltest\" && " + TEMP_STORE + "<2") {
 			{ // "10.2"
 				r = db.Query(" PRAGMA mmap_size = 512000 ")
 				if r.Error != nil {

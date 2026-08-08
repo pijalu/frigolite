@@ -96,7 +96,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n    SELECT substr(hex(root), 1, 2) FROM t1_segdir;\n  ")
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // do_test "fts3cov-2.2"
 		_dbone0 := tclExecSQL(db, "{SELECT root FROM t1_segdir}")
 		root = _dbone0
@@ -341,7 +341,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "16.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;\n")
 		if _res.Error != nil {

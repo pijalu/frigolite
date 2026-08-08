@@ -637,7 +637,7 @@ func Test_incrblob(t *testing.T) {
 		}
 	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
-	if tclBool("permutation" + " != \"memsubsys1\"") {
+	if "" != "memsubsys1" {
 		{ // do_test "incrblob-6.1"
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2

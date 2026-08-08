@@ -247,6 +247,7 @@ func Test_e_changes(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// db function my_changes (variable-reader, inlined)
+		db.RegisterFunction("my_changes", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		changes = "" // TCL namespace variable
 		_ = changes // suppress unused warning
 		// proc definition (not transpiled)

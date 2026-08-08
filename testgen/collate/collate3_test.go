@@ -7,6 +7,7 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -391,7 +392,16 @@ func Test_collate3(t *testing.T) {
 	}
 	// proc numeric_compare collation (registered via db collate)
 	{ // do_test "collate3-4.9"
-		// db collate user_defined (not transpiled)
+		db.RegisterCollation("user_defined", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
 		r = db.Query("\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
@@ -405,7 +415,16 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-4.11"
-		// db collate user_defined (not transpiled)
+		db.RegisterCollation("user_defined", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
 		_res = db.Exec("\n    SELECT * FROM collate3v1;\n  ")
 		_ = _res // catchsql
 	}

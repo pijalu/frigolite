@@ -140,7 +140,7 @@ func Test_malloc3(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	run_test_sql_id = "0" // TCL namespace variable

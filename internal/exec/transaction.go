@@ -1,7 +1,9 @@
 // Package exec implements query execution.
 package exec
 
-import "github.com/pijalu/frigolite/internal/pager"
+import (
+	"github.com/pijalu/frigolite/internal/pager"
+)
 
 // --- COMMIT ---
 
@@ -20,8 +22,24 @@ func (e *Engine) execCommit() *Result {
 	e.resetFKDirty()
 	e.ddlBuffer = nil
 	e.txSnapshots = nil
-	if err := e.pager.Flush(); err != nil {
-		return &Result{Error: err}
+	// A commit that wrote data bumps the file change counter (header offset
+	// 24) of every written database so other connections observe the change
+	// via PRAGMA data_version and schema re-reads. This connection's own
+	// data_version stays at its cached value.
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
+			e.updateFileChangeCounter(dbCtx)
+		}
+	}
+	// Release locks: after COMMIT all databases return to unlocked.
+	// Flush each pager so HasDirtyPages() becomes false (lock_status reads
+	// "unlocked" after the commit). The main pager is in dbList.
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil {
+			if err := dbCtx.Pager.Flush(); err != nil {
+				return &Result{Error: err}
+			}
+		}
 	}
 	return &Result{}
 }

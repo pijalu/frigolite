@@ -64,7 +64,7 @@ func Test_fts3corrupt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3corrupt" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');\n")
 		if _res.Error != nil {
@@ -209,6 +209,7 @@ func Test_fts3corrupt(t *testing.T) {
 	}
 	{ // do_test "5.1"
 		// db function nn (variable-reader, inlined)
+		db.RegisterFunction("nn", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")

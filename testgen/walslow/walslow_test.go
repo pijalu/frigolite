@@ -284,6 +284,7 @@ func Test_walslow(t *testing.T) {
 	}
 	{ // do_test "4.2.2"
 		// db function blob (variable-reader, inlined)
+		db.RegisterFunction("blob", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {

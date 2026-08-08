@@ -387,7 +387,7 @@ func Test_conflict2(t *testing.T) {
 							t4 := _items5[_idx5+7]
 							_ = t4 // suppress unused warning
 							_ = _idx5
-								if tclBool("permutation" + " == \"inmemory_journal\"") {
+								if "" == "inmemory_journal" {
 									t4 = "0"
 									_ = t4 // suppress unused warning
 								}

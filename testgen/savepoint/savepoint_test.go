@@ -1023,7 +1023,7 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	db.Close()
-	// delete_file test.db (unsupported command, not transpiled)
+	os.Remove("test.db")
 	// do_multiclient_test tn {\n  do_test savepoint-14.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-15.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-16.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)

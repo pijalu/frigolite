@@ -97,7 +97,7 @@ func Test_mjournal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "mjournal"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"inmemory_journal\"") {
+	if "" == "inmemory_journal" {
 		return
 	}
 	{ // "1.0"

@@ -71,7 +71,7 @@ func Test_corruptI(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "corruptI"
 	_ = testprefix // suppress unused warning
-	if tclBool("permutation" + "==\"mmap\"") {
+	if "" == "mmap" {
 		return
 	}
 	if tclBool("nonzero_reserved_bytes") {
@@ -291,7 +291,7 @@ func Test_corruptI(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config DEFENSIVE (unhandled flag)
+	db.SetDefensive(false)
 	{ // "7.1"
 		r = db.Query("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';\n")
 		if r.Error != nil {

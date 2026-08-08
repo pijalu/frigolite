@@ -1742,9 +1742,17 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 	subqAff := subqueryColumnAffinities(s)
 	// A derived-table alias (FROM (SELECT ...) AS d) makes qualified
 	// references like d.a resolvable; add the qualified keys alongside the
-	// unqualified ones.
+	// unqualified ones. Table-valued pragma functions and virtual-table
+	// functions with aliases (FROM pragma_table_list() AS t) get the same
+	// qualified keys.
 	alias := ""
 	if s.From.Subquery != nil && s.From.As != "" {
+		alias = s.From.As
+	}
+	if alias == "" && isPragmaTableFunc(s.From.Name) && s.From.As != "" {
+		alias = s.From.As
+	}
+	if alias == "" && s.From.As != "" && len(s.From.Args) > 0 {
 		alias = s.From.As
 	}
 	for i, row := range allRows {

@@ -72,6 +72,7 @@ func Test_errmsg(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function sql_error (variable-reader, inlined)
+	db.RegisterFunction("sql_error", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "1.1"
 		// error_messages SELECT sql_error('custom message') (unsupported command, not transpiled)
 	}
