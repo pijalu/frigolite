@@ -139,7 +139,23 @@ func CompareValuesCollateFn(a, b interface{}, collation string, lookup func(stri
 		if ta != tb {
 			return compareIntFloat(a, b)
 		}
-		// Same type: both INTEGER or both REAL
+		// Same type: both INTEGER or both REAL. Compare INTEGERs directly as
+		// int64 (converting to float64 loses precision above 2^53, so
+		// 288230376151711744 == 288230376151711745 must not compare equal).
+		if ta == typeInteger {
+			ia, iok := a.(int64)
+			ib, iok2 := b.(int64)
+			if iok && iok2 {
+				switch {
+				case ia < ib:
+					return -1
+				case ia > ib:
+					return 1
+				default:
+					return 0
+				}
+			}
+		}
 		fa, fb := toFloat64(a), toFloat64(b)
 		switch {
 		case fa < fb:

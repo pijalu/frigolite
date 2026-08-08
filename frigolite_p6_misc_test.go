@@ -779,3 +779,33 @@ func TestP6_DMLReturningOrderLimit(t *testing.T) {
 		t.Errorf("FTS explicit rowids: got [%s] want [-45 12]", got)
 	}
 }
+
+// TestP6_Int64PrecisionCompare covers numindex: comparing two INTEGER values
+// must use int64 arithmetic, not float64 (which loses precision above 2^53).
+// 288230376151711744 == 288230376151711745 must be false.
+func TestP6_Int64PrecisionCompare(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	got := flattenQuery(t, db, `SELECT 288230376151711744 = 288230376151711745`)
+	if got != "0" {
+		t.Errorf("int64 precision =: got [%s] want [0]", got)
+	}
+	got = flattenQuery(t, db, `SELECT 288230376151711744 < 288230376151711745`)
+	if got != "1" {
+		t.Errorf("int64 precision <: got [%s] want [1]", got)
+	}
+	// The numindex CASE expression over stored large ints.
+	if err := db.Exec(`
+		CREATE TABLE t2(a, b);
+		INSERT INTO t2 VALUES('b', 288230376151711744);
+		INSERT INTO t2 VALUES('c', 2.88230376151712e+17);
+		INSERT INTO t2 VALUES('d', 288230376151711745);
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, `SELECT x.a || CASE WHEN x.b==y.b THEN '==' ELSE '<>' END || y.a FROM t2 AS x, t2 AS y ORDER BY +x.a, +x.b`)
+	if got != "b==b b<>c b<>d c<>b c==c c<>d d<>b d<>c d==d" {
+		t.Errorf("numindex CASE: got [%s]", got)
+	}
+}
