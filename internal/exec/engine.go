@@ -1460,11 +1460,11 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	case *sql.SelectStmt:
 		res = e.execSelect(s)
 	case *sql.InsertStmt:
-		res = e.execInsert(s)
+		res = e.withDMLCTEs(s.CTEs, func() *Result { return e.execInsert(s) })
 	case *sql.UpdateStmt:
-		res = e.execUpdate(s)
+		res = e.withDMLCTEs(s.CTEs, func() *Result { return e.execUpdate(s) })
 	case *sql.DeleteStmt:
-		res = e.execDelete(s)
+		res = e.withDMLCTEs(s.CTEs, func() *Result { return e.execDelete(s) })
 	case *sql.CommitStmt:
 		res = e.execCommit()
 	case *sql.BeginStmt:
@@ -1561,6 +1561,20 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		}
 	}
 	return res
+}
+
+// withDMLCTEs runs a DML statement (INSERT/UPDATE/DELETE) with its WITH (CTE)
+// definitions pushed onto the CTE scope stack, so subqueries inside the
+// statement (e.g. UPDATE t1 SET x=(SELECT b FROM uset WHERE ...)) can resolve
+// the CTE by name. SQLite scopes a WITH clause to the single statement it
+// prefixes, whether SELECT or DML.
+func (e *Engine) withDMLCTEs(ctes []sql.CTEDef, fn func() *Result) *Result {
+	if len(ctes) == 0 {
+		return fn()
+	}
+	e.cteScopes = append(e.cteScopes, ctes)
+	defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
+	return fn()
 }
 
 // pagerSnap pairs a pager with the snapshot taken from it, so a restore can

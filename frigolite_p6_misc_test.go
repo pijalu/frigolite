@@ -557,3 +557,43 @@ func TestP6_CTEWithValues(t *testing.T) {
 		t.Errorf("CTE VALUES join: got [%s]", got)
 	}
 }
+
+// TestP6_CTEInDML covers with: WITH clauses prefixing DML statements are
+// scoped to that statement (DELETE/UPDATE subqueries can reference the CTE).
+func TestP6_CTEInDML(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3),(4);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	// DELETE with CTE filter.
+	if err := db.Exec(`WITH dset AS (SELECT 2 UNION ALL SELECT 4) DELETE FROM t1 WHERE x IN dset;`).Error; err != nil {
+		t.Fatalf("DELETE with CTE: %v", err)
+	}
+	got := flattenQuery(t, db, "SELECT * FROM t1")
+	if got != "1 3" {
+		t.Errorf("DELETE with CTE: got [%s] want [1 3]", got)
+	}
+	// UPDATE with CTE subquery (runs on the remaining rows [1,3]; the
+	// subquery only matches x=2/4 which were deleted, so no row changes).
+	if err := db.Exec(`WITH uset(a, b) AS (SELECT 2, 8 UNION ALL SELECT 4, 9) UPDATE t1 SET x = COALESCE((SELECT b FROM uset WHERE a=x), x);`).Error; err != nil {
+		t.Fatalf("UPDATE with CTE: %v", err)
+	}
+	got = flattenQuery(t, db, "SELECT * FROM t1")
+	if got != "1 3" {
+		t.Errorf("UPDATE with CTE: got [%s] want [1 3]", got)
+	}
+
+	// A fresh table demonstrates the UPDATE subquery actually matching.
+	if err := db.Exec(`DROP TABLE t1; CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3),(4);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Exec(`WITH uset(a, b) AS (SELECT 2, 8 UNION ALL SELECT 4, 9) UPDATE t1 SET x = COALESCE((SELECT b FROM uset WHERE a=x), x);`).Error; err != nil {
+		t.Fatalf("UPDATE with CTE (full): %v", err)
+	}
+	got = flattenQuery(t, db, "SELECT * FROM t1")
+	if got != "1 8 3 9" {
+		t.Errorf("UPDATE with CTE (full): got [%s] want [1 8 3 9]", got)
+	}
+}

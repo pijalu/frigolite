@@ -1695,7 +1695,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 152:
 		tbl := getString(getRHS(p, ruleNo, 4))
 		wr := getWhereRet(getRHS(p, ruleNo, 6))
-		stmt := &sql.DeleteStmt{Table: tbl}
+		stmt := &sql.DeleteStmt{Table: tbl, CTEs: getCTEDefs(getRHS(p, ruleNo, 1))}
 		if wr != nil {
 			stmt.Where = wr.where
 			if len(wr.returning) > 0 {
@@ -1715,6 +1715,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Table:       tbl,
 			OnConflict:  getString(getRHS(p, ruleNo, 3)),
 			Assignments: setlist,
+			CTEs:        getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
 		if fromInfo != nil {
 			stmt.From = fromInfo.first

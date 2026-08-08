@@ -231,6 +231,7 @@ type UpdateStmt struct {
 	OrderBy         []OrderByTerm
 	Limit           Expr
 	Offset          Expr
+	CTEs            []CTEDef // WITH clause CTE definitions
 	Returning       SelectColumn
 	HasReturning    bool
 }
@@ -250,6 +251,7 @@ type DeleteStmt struct {
 	OrderBy      []OrderByTerm
 	Limit        Expr
 	Offset       Expr
+	CTEs         []CTEDef // WITH clause CTE definitions
 	Returning    SelectColumn
 	HasReturning bool
 }
