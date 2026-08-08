@@ -2653,7 +2653,12 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		// first FROM table).
 		var autoIndex map[interface{}][]joinIndexEntry
 		_, rightColName := extractEquiJoinCols(effectiveOn, lastTableName, tableName)
-		if rightColName != "" && len(rightMaps) > 0 {
+		// Only build the autoindex when the extracted right column actually
+		// exists in the right operand's defs. extractEquiJoinCols falls back
+		// to assuming unqualified x=y means x-left/y-right, but both may be
+		// LEFT columns (SELECT * FROM t3 JOIN t2 ON x=y where t2 has no y);
+		// an empty index would wrongly short-circuit the join to zero rows.
+		if rightColName != "" && len(rightMaps) > 0 && rightDefHasColumn(rightDefs, rightColName) {
 			autoIndex = make(map[interface{}][]joinIndexEntry)
 			for ri, rm := range rightMaps {
 				if val, ok := rm[rightColName]; ok {
@@ -3208,6 +3213,18 @@ func collectUsingColumns(expr sql.Expr, cols map[string]bool) {
 			collectUsingColumns(v.Right, cols)
 		}
 	}
+}
+
+// rightDefHasColumn reports whether defs contains a column named name
+// (case-insensitive), including prefixed defs (table.col).
+func rightDefHasColumn(defs []sql.ColumnDef, name string) bool {
+	for _, cd := range defs {
+		if strings.EqualFold(cd.Name, name) ||
+			strings.HasSuffix(strings.ToLower(cd.Name), "."+strings.ToLower(name)) {
+			return true
+		}
+	}
+	return false
 }
 
 // prefixRightColDefs prefixes right-table column names with the table name

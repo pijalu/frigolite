@@ -681,3 +681,29 @@ func TestP6_DerivedTableShadowsInner(t *testing.T) {
 		t.Errorf("derived-table ambiguity: %v", r.Error)
 	}
 }
+
+// TestP6_JoinOnBothLeftCols covers whereG: an ON clause equating two LEFT
+// table columns (SELECT * FROM t3 JOIN t2 ON x=y where t2 has no y) must not
+// trigger the autoindex (which would build an empty index on t2.y and
+// short-circuit the join to zero rows).
+func TestP6_JoinOnBothLeftCols(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE t2(z);
+		INSERT INTO t2 VALUES('t2');
+		CREATE TABLE t3(x PRIMARY KEY, y);
+		INSERT INTO t3 VALUES('AAA','AAA');
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, `SELECT * FROM t3 JOIN t2 ON x=y`)
+	if got != "AAA AAA t2" {
+		t.Errorf("join ON both-left columns: got [%s] want [AAA AAA t2]", got)
+	}
+	got = flattenQuery(t, db, `SELECT * FROM t3 JOIN t2 ON x=y AND y='AAA'`)
+	if got != "AAA AAA t2" {
+		t.Errorf("join ON both-left + literal: got [%s]", got)
+	}
+}
