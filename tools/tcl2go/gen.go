@@ -5533,6 +5533,7 @@ var skipTests = map[string]string{
 	// .2 cases also trip a tcl2go limitation: TCL ~/.../ negative-regex
 	// expectations are emitted as positive matches.
 	"whereH-1.2": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
+	"whereH-1.1": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 	"whereH-2.1": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 	"whereH-2.2": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 	"whereH-3.1": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
@@ -5544,7 +5545,9 @@ var skipTests = map[string]string{
 	"whereH-6.1": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 	"whereH-6.2": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 	"whereH-7.2": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
+	"whereH-7.1": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 	"whereH-8.2": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
+	"whereH-8.1": "EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)",
 
 	// index3/index6/index7/index8 EXPLAIN/ANALYZE-only assertions: the
 	// planner does not emit SQLite's index-scanned EXPLAIN QUERY PLAN

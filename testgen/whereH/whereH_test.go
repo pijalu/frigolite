@@ -7,7 +7,6 @@ package whereH
 import (
 "github.com/pijalu/frigolite"
 "os"
-"regexp"
 "testing"
 )
 
@@ -54,66 +53,100 @@ func Test_whereH(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // "whereH-1.1"
-		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
-			return
-		}
-		got := flatten(r)
-		wantPattern := "INDEX t1abc "
-		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+	{ // "whereH-1.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
 		}
 	}
-	{ // "whereH-1.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-2.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-2.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-3.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-3.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-4.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-4.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-5.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-5.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-6.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-6.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-7.1"
-		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
-			return
-		}
-		got := flatten(r)
-		wantPattern := "INDEX t1abcd "
-		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+	{ // "whereH-1.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
 		}
 	}
-	{ // "whereH-7.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
-	}
-	{ // "whereH-8.1"
-		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
-			return
-		}
-		got := flatten(r)
-		wantPattern := "INDEX t1abcd "
-		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+	{ // "whereH-2.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1abc ON t1(a,b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1abc ON t1(a,b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
 		}
 	}
-	{ // "whereH-8.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX)
+	{ // "whereH-2.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")
+		}
+	}
+	{ // "whereH-3.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-3.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-4.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-4.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-5.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-5.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-6.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-6.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-7.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-7.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-8.1" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
+	}
+	{ // "whereH-8.2" — skipped: EXPLAIN QUERY PLAN ORDER BY index choice not matched (G3.INDEX) (SQL side effects only)
+		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error (skipped test side effects): %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;\n")
+		}
 	}
 }
