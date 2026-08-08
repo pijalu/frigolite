@@ -755,7 +755,10 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		}
 	}
 	if v.Operator == "LIKE" && v.Escape != "" {
-		return likeValuesWithEscape(left, right, v.Escape), nil
+		if e.caseSensitiveLike {
+			return boolToInt(likeValuesWithEscapeCS(left, right, v.Escape)), nil
+		}
+		return boolToInt(likeValuesWithEscape(left, right, v.Escape)), nil
 	}
 	if v.Operator == "IS" {
 		// Row-value IS: NULL-safe element-wise equality, e.g.
@@ -1107,6 +1110,9 @@ func (e *Engine) evalBinaryOpValues(op string, left, right interface{}) (interfa
 	case ">=":
 		return boolToInt(e.compareValuesWithCollate(left, right) >= 0), nil
 	case "LIKE":
+		if e.caseSensitiveLike {
+			return boolToInt(likeValuesCaseSensitive(left, right)), nil
+		}
 		return boolToInt(likeValues(left, right)), nil
 	case "GLOB":
 		return boolToInt(globValues(left, right)), nil
@@ -1117,6 +1123,9 @@ func (e *Engine) evalBinaryOpValues(op string, left, right interface{}) (interfa
 		}
 		return boolToInt(b), nil
 	case "NOT LIKE":
+		if e.caseSensitiveLike {
+			return boolToInt(!likeValuesCaseSensitive(left, right)), nil
+		}
 		return boolToInt(!likeValues(left, right)), nil
 	case "NOT GLOB":
 		return boolToInt(!globValues(left, right)), nil
@@ -2536,6 +2545,12 @@ func likeValues(str, pattern interface{}) bool {
 	return likeMatch(s, p)
 }
 
+func likeValuesCaseSensitive(str, pattern interface{}) bool {
+	s := util.SQLiteValueString(unwrapCollatedValue(str))
+	p := util.SQLiteValueString(unwrapCollatedValue(pattern))
+	return likeMatchCS(s, p)
+}
+
 // likeValuesWithEscape performs LIKE matching with an escape character.
 func likeValuesWithEscape(str, pattern interface{}, escape string) bool {
 	s := util.SQLiteValueString(unwrapCollatedValue(str))
@@ -2543,8 +2558,29 @@ func likeValuesWithEscape(str, pattern interface{}, escape string) bool {
 	return likeMatchEscaped(s, p, escape)
 }
 
+// likeValuesWithEscapeCS performs LIKE matching with an escape character and
+// case-sensitive comparison (PRAGMA case_sensitive_like=ON).
+func likeValuesWithEscapeCS(str, pattern interface{}, escape string) bool {
+	s := util.SQLiteValueString(unwrapCollatedValue(str))
+	p := util.SQLiteValueString(unwrapCollatedValue(pattern))
+	return likeMatchEscapedCS(s, p, escape)
+}
+
 func likeMatch(s, pattern string) bool {
-	return likeMatchRecursiveEscaped(s, pattern, 0, 0, 0)
+	return likeMatchFold(s, pattern)
+}
+
+// likeMatchCS performs LIKE matching with case-sensitive comparison
+// (PRAGMA case_sensitive_like=ON). Character-based: the pattern and string
+// are matched by code point, not by byte.
+func likeMatchCS(s, pattern string) bool {
+	return likeMatchRunes(sqliteCodePoints(s), sqliteCodePoints(pattern), 0, 0, 0, false)
+}
+
+// likeMatchFold performs LIKE matching with SQLite's default
+// case-insensitive comparison (ASCII-only folding, like sqlite3Tolower).
+func likeMatchFold(s, pattern string) bool {
+	return likeMatchRunes(sqliteCodePoints(s), sqliteCodePoints(pattern), 0, 0, 0, true)
 }
 
 func likeMatchEscaped(s, pattern, escape string) bool {
@@ -2552,16 +2588,134 @@ func likeMatchEscaped(s, pattern, escape string) bool {
 		return likeMatch(s, pattern)
 	}
 	// Process the pattern, treating escape char + next char as literal
-	return likeMatchRecursiveEscaped(s, pattern, 0, 0, escape[0])
+	return likeMatchEscapedFold(s, pattern, escape)
 }
 
-func likeMatchRecursiveEscaped(s, pattern string, idx, patIdx int, escape byte) bool {
+func likeMatchEscapedCS(s, pattern, escape string) bool {
+	if escape == "" {
+		return likeMatchCS(s, pattern)
+	}
+	return likeMatchRunes(sqliteCodePoints(s), sqliteCodePoints(pattern), 0, 0, sqliteCodePoints(escape)[0], false)
+}
+
+func likeMatchEscapedFold(s, pattern, escape string) bool {
+	if escape == "" {
+		return likeMatchFold(s, pattern)
+	}
+	return likeMatchRunes(sqliteCodePoints(s), sqliteCodePoints(pattern), 0, 0, sqliteCodePoints(escape)[0], true)
+}
+
+// sqliteCodePoints converts a byte string to code points the way SQLite's
+// sqlite3Utf8Read does: ASCII bytes and lone continuation bytes (0x80-0xBF)
+// are single code points (a lone continuation byte reads as itself), while a
+// byte >= 0xC0 begins a multi-byte UTF-8 sequence. Go's []rune would replace
+// invalid sequences (like a lone 0x80 byte) with U+FFFD, which disagrees with
+// SQLite's LIKE matching (e.g. '%\x80' must match a string ending in U+0080).
+func sqliteCodePoints(s string) []rune {
+	// Fast path: valid UTF-8 decodes identically to SQLite's reader.
+	valid := true
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= 0x80 {
+			// Check it's a valid multi-byte start (not a lone continuation).
+			if c < 0xC0 || c >= 0xFE {
+				valid = false
+				break
+			}
+			// Verify continuation bytes.
+			width := 1
+			switch {
+			case c >= 0xF0:
+				width = 4
+			case c >= 0xE0:
+				width = 3
+			default:
+				width = 2
+			}
+			if i+width > len(s) {
+				valid = false
+				break
+			}
+			for j := 1; j < width; j++ {
+				if s[i+j]&0xC0 != 0x80 {
+					valid = false
+					break
+				}
+			}
+			if !valid {
+				break
+			}
+			i += width - 1
+		}
+	}
+	if valid {
+		return []rune(s)
+	}
+	// Invalid UTF-8: read code points the SQLite way.
+	var out []rune
+	for i := 0; i < len(s); {
+		c := s[i]
+		if c < 0x80 {
+			out = append(out, rune(c))
+			i++
+			continue
+		}
+		if c < 0xC0 || c >= 0xFE {
+			// Lone continuation byte (or 0xFE/0xFF): read as a single
+			// code point (sqlite3Utf8Read returns the byte itself).
+			out = append(out, rune(c))
+			i++
+			continue
+		}
+		width := 1
+		switch {
+		case c >= 0xF0:
+			width = 4
+		case c >= 0xE0:
+			width = 3
+		default:
+			width = 2
+		}
+		// Read the full sequence if continuation bytes follow; otherwise
+		// treat the start byte as a lone code point.
+		got := 1
+		cp := rune(c)
+		// Build the code point: strip the leading bits.
+		switch width {
+		case 2:
+			cp = rune(c & 0x1F)
+		case 3:
+			cp = rune(c & 0x0F)
+		case 4:
+			cp = rune(c & 0x07)
+		}
+		j := i + 1
+		for got < width && j < len(s) && s[j]&0xC0 == 0x80 {
+			cp = cp<<6 | rune(s[j]&0x3F)
+			j++
+			got++
+		}
+		out = append(out, cp)
+		i = j
+	}
+	return out
+}
+
+// likeMatchRunes matches the string runes against the pattern runes starting
+// at positions idx/patIdx. escapeRune is the LIKE ESCAPE character (0 when
+// none). When fold is true, ASCII letters compare case-insensitively (SQLite
+// default); otherwise comparison is exact. Matching is by code point, so a
+// pattern byte sequence that decodes to one rune matches one rune of the
+// string (e.g. '%\x80' requires the string to end in U+0080, not just any
+// byte 0x80 continuation).
+func likeMatchRunes(s, pattern []rune, idx, patIdx int, escapeRune rune, fold bool) bool {
 	for patIdx < len(pattern) {
 		c := pattern[patIdx]
-		if c == escape && patIdx+1 < len(pattern) {
-			// Escape char followed by another char: treat the next char as literal
+		if escapeRune != 0 && c == escapeRune && patIdx+1 < len(pattern) {
+			// Escape char followed by another char: treat the next char as
+			// literal.
 			nextChar := pattern[patIdx+1]
-			if idx >= len(s) || !strings.EqualFold(string(s[idx]), string(nextChar)) {
+			if idx >= len(s) || !likeRuneEq(s[idx], nextChar, fold) {
 				return false
 			}
 			idx++
@@ -2570,7 +2724,17 @@ func likeMatchRecursiveEscaped(s, pattern string, idx, patIdx int, escape byte) 
 		}
 		switch c {
 		case '%':
-			return likeMatchPercentEscaped(s, pattern, idx, patIdx, escape)
+			patIdx++
+			if patIdx >= len(pattern) {
+				return true
+			}
+			for idx <= len(s) {
+				if likeMatchRunes(s, pattern, idx, patIdx, escapeRune, fold) {
+					return true
+				}
+				idx++
+			}
+			return false
 		case '_':
 			if idx >= len(s) {
 				return false
@@ -2578,7 +2742,7 @@ func likeMatchRecursiveEscaped(s, pattern string, idx, patIdx int, escape byte) 
 			idx++
 			patIdx++
 		default:
-			if idx >= len(s) || !strings.EqualFold(string(s[idx]), string(c)) {
+			if idx >= len(s) || !likeRuneEq(s[idx], c, fold) {
 				return false
 			}
 			idx++
@@ -2588,18 +2752,26 @@ func likeMatchRecursiveEscaped(s, pattern string, idx, patIdx int, escape byte) 
 	return idx >= len(s)
 }
 
-func likeMatchPercentEscaped(s, pattern string, idx, patIdx int, escape byte) bool {
-	patIdx++
-	if patIdx >= len(pattern) {
+// likeRuneEq compares two runes with optional ASCII case folding. SQLite's
+// default LIKE is case-insensitive only for ASCII (sqlite3Tolower); non-ASCII
+// code points compare exactly.
+func likeRuneEq(a, b rune, fold bool) bool {
+	if a == b {
 		return true
 	}
-	for idx < len(s) {
-		if likeMatchRecursiveEscaped(s, pattern, idx, patIdx, escape) {
-			return true
-		}
-		idx++
+	if !fold {
+		return false
 	}
-	return false
+	// ASCII-only folding.
+	la := a
+	if la >= 'A' && la <= 'Z' {
+		la = la + ('a' - 'A')
+	}
+	lb := b
+	if lb >= 'A' && lb <= 'Z' {
+		lb = lb + ('a' - 'A')
+	}
+	return la == lb
 }
 
 func toFloat(v interface{}) (float64, bool) {

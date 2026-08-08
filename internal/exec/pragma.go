@@ -726,6 +726,8 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			// no row; only the bare PRAGMA (getter) returns the value.
 		case "COUNT_CHANGES":
 			e.countChanges = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+		case "CASE_SENSITIVE_LIKE":
+			e.caseSensitiveLike = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "MMAP_SIZE":
 			// SQLite returns the effective mmap size after assignment. In a
 			// build with SQLITE_MAX_MMAP_SIZE=0 (mmap compiled out) the
@@ -1120,7 +1122,7 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 		return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}}
 	},
 	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{boolToInt(e.countChanges)}}} },
-	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{boolToInt(e.caseSensitiveLike)}}} },
 	"RECURSIVE_TRIGGERS": func(e *Engine) *Result {
 		val := int64(0)
 		if e.recursiveTriggers {
