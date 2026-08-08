@@ -4,7 +4,7 @@
 > **Goal**: G5.ATTACH.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.CREATE; G3 (schema operations consistent with schema prefix).
-> **Current state: PARTIAL** — ATTACH currently a no-op (HANDOVER §7).
+> **Current state: DONE** — real ATTACH/DETACH pager, schema-qualified ops, cross-schema query/join, database_list, limit. testgen attach green.
 
 ## Objective
 ATTACH/DETACH match SQLite for correctness: `ATTACH DATABASE 'file' AS schema`,
@@ -36,16 +36,16 @@ attached-db limit (`SQLITE_MAX_ATTACHED`), and that schema operations
 - `src/build.c` — schema-qualified name resolution.
 
 ## Steps
-- [ ] **G5.ATTACH.1** Pre-test suite. Commit: `G5.ATTACH.1: attach pre-test suite`.
-- [ ] **G5.ATTACH.2** Make ATTACH open a real second pager on the file, registered
+- [x] **G5.ATTACH.1** Pre-test suite. Commit: `G5.ATTACH.1: attach pre-test suite`.
+- [x] **G5.ATTACH.2** Make ATTACH open a real second pager on the file, registered
       under the schema alias; DETACH closes it. Fix `internal/pager/` + engine.
       Commit: `G5.ATTACH.2: real ATTACH/DETACH`.
-- [ ] **G5.ATTACH.3** Schema-qualified resolution (`aux.t1`) consistent across
+- [x] **G5.ATTACH.3** Schema-qualified resolution (`aux.t1`) consistent across
       Find/Rename/Remove. Commit: `G5.ATTACH.3: schema-qualified ops`.
-- [ ] **G5.ATTACH.4** Cross-schema queries/joins. Commit: `G5.ATTACH.4: cross-schema query`.
-- [ ] **G5.ATTACH.5** pragma database_list + attach limit. Commit:
+- [x] **G5.ATTACH.4** Cross-schema queries/joins. Commit: `G5.ATTACH.4: cross-schema query`.
+- [x] **G5.ATTACH.5** pragma database_list + attach limit. Commit:
       `G5.ATTACH.5: database_list + limit`.
-- [ ] **G5.ATTACH.6** attach green. Commit: `G5.ATTACH.6: attach TCL green`.
+- [x] **G5.ATTACH.6** attach green. Commit: `G5.ATTACH.6: attach TCL green`.
 
 ## Verify command
 ```bash
