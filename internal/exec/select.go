@@ -169,6 +169,9 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// compound column-count validation so a CTE reference in a union member
 	// (SELECT * FROM VVV UNION ALL ...) can resolve its column count.
 	if len(s.CTEs) > 0 {
+		if dup := duplicateCTEName(s.CTEs); dup != "" {
+			return &Result{Error: fmt.Errorf("duplicate WITH table name: %s", dup)}
+		}
 		e.cteScopes = append(e.cteScopes, s.CTEs)
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
@@ -1939,6 +1942,11 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	if cteResult.Error != nil {
 		return cteResult
 	}
+	// SQLite validates a CTE's declared column count against its body's
+	// output width at prepare time ("table i has N values for M columns").
+	if len(cte.Columns) > 0 && len(cteResult.Columns) != len(cte.Columns) {
+		return &Result{Error: fmt.Errorf("table %s has %d values for %d columns", cte.Name, len(cteResult.Columns), len(cte.Columns))}
+	}
 	colDefs := make([]sql.ColumnDef, len(cteResult.Columns))
 	for i, colName := range cteResult.Columns {
 		colDefs[i] = sql.ColumnDef{Name: colName}
@@ -2130,7 +2138,66 @@ func (e *Engine) materializeCTEForJoin(cte *sql.CTEDef) ([]sql.ColumnDef, []RowM
 // (seed) and every following term is a recursive term (SQLite allows several
 // recursive terms; each is evaluated per iteration against the rows produced
 // in the previous iteration).
+// cteBodyColumnCount returns the output column width of a CTE body, verifying
+// that all compound members agree on the width (SQLite's compound arity check:
+// "SELECTs to the left and right of OP do not have the same number of result
+// columns"). The width is derived statically from the anchor member's select
+// list (executing the body would re-enter the CTE and report a false circular
+// reference).
+func (e *Engine) cteBodyColumnCount(cte *sql.CTEDef) (int, error) {
+	if cte == nil || cte.Select == nil {
+		return 0, nil
+	}
+	// Validate compound member widths first (matches execSelect's
+	// validateCompoundColumnCounts, which a CTE body may not reach directly).
+	if err := e.validateCompoundColumnCounts(cte.Select); err != nil {
+		return 0, err
+	}
+	return e.cteAnchorColumnCount(cte.Select)
+}
+
+// cteAnchorColumnCount counts the anchor (first) member's output columns
+// without executing it: a plain expression counts 1, a star expands via the
+// FROM table's columns (or the CTE's own declared columns when self-joined).
+func (e *Engine) cteAnchorColumnCount(sel *sql.SelectStmt) (int, error) {
+	if sel == nil {
+		return 0, nil
+	}
+	count := 0
+	for _, col := range sel.Columns {
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+			if ref.Table != "" {
+				cols, err := e.tableColumnNames(ref.Table)
+				if err != nil {
+					return 0, err
+				}
+				count += len(cols)
+			} else if sel.From.Name != "" {
+				cols, err := e.resolveTableColumnNames(sel, sel.From.Name)
+				if err != nil {
+					return 0, err
+				}
+				count += len(cols)
+			}
+		} else {
+			count++
+		}
+	}
+	return count, nil
+}
+
 func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
+	// SQLite validates a recursive CTE's declared column count against its
+	// body width at prepare time, and requires all compound members to agree
+	// on the width:
+	//   WITH i(x) AS (VALUES(1,2))           -> "table i has 2 values for 1 columns"
+	//   WITH i(x) AS (SELECT 1 UNION ALL SELECT 1,2) -> compound arity error
+	if bodyCols, err := e.cteBodyColumnCount(cte); err != nil {
+		return &Result{Error: err}
+	} else if len(cte.Columns) > 0 && bodyCols != len(cte.Columns) {
+		return &Result{Error: fmt.Errorf("table %s has %d values for %d columns", cte.Name, bodyCols, len(cte.Columns))}
+	}
+
 	// Build column definitions from CTE column names
 	colDefs := make([]sql.ColumnDef, len(cte.Columns))
 	for i, name := range cte.Columns {

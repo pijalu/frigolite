@@ -1572,9 +1572,27 @@ func (e *Engine) withDMLCTEs(ctes []sql.CTEDef, fn func() *Result) *Result {
 	if len(ctes) == 0 {
 		return fn()
 	}
+	if dup := duplicateCTEName(ctes); dup != "" {
+		return &Result{Error: fmt.Errorf("duplicate WITH table name: %s", dup)}
+	}
 	e.cteScopes = append(e.cteScopes, ctes)
 	defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	return fn()
+}
+
+// duplicateCTEName returns the name of a CTE declared twice in the same WITH
+// clause, or "" when all names are unique. SQLite reports
+// "duplicate WITH table name: NAME" at prepare time.
+func duplicateCTEName(ctes []sql.CTEDef) string {
+	seen := make(map[string]bool, len(ctes))
+	for _, c := range ctes {
+		key := strings.ToLower(c.Name)
+		if seen[key] {
+			return c.Name
+		}
+		seen[key] = true
+	}
+	return ""
 }
 
 // pagerSnap pairs a pager with the snapshot taken from it, so a restore can
