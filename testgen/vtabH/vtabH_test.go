@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -144,7 +143,7 @@ func Test_vtabH(t *testing.T) {
 		expect := _items0[_idx0+2]
 		_ = expect // suppress unused warning
 		_ = _idx0
-			{ // do_test "1." + tn
+			{ // "1." + tn (echo module callback log is C test-module ABI; SQL side effects only)
 				echo_module = ""
 				_ = echo_module // suppress unused warning
 				_res = db.Exec(sql)
@@ -227,8 +226,8 @@ func Test_vtabH(t *testing.T) {
 					}
 					{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"
 						_ = gfunc // TCL namespace variable (query)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), cnt) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cnt, _res.Error, "2." + tclvar_set_omit + "." + tn + ".2")
+						if gfunc != cnt {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", gfunc, cnt, "2." + tclvar_set_omit + "." + tn + ".2")
 						}
 					}
 				}

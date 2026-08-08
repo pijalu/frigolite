@@ -74,6 +74,10 @@ func Test_savepoint7(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+				}
+			}
 			_res = db.Exec("\n      SAVEPOINT x2;\n      CREATE TABLE IF NOT EXISTS t3(xyz);\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      CREATE TABLE IF NOT EXISTS t3(xyz);\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
@@ -97,6 +101,10 @@ func Test_savepoint7(t *testing.T) {
 		var _dbevalRb4 bool
 		var _dbevalErr5 error
 		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+				switch _dbevalRows3.Columns[_ci] {
+				}
+			}
 			_res = db.Exec("\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
@@ -120,6 +128,10 @@ func Test_savepoint7(t *testing.T) {
 		var _dbevalRb7 bool
 		var _dbevalErr8 error
 		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+				switch _dbevalRows6.Columns[_ci] {
+				}
+			}
 			_res = db.Exec("\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
@@ -147,6 +159,10 @@ func Test_savepoint7(t *testing.T) {
 			var _dbevalRb10 bool
 			var _dbevalErr11 error
 			for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
+					switch _dbevalRows9.Columns[_ci] {
+					}
+				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
@@ -184,6 +200,10 @@ func Test_savepoint7(t *testing.T) {
 			var _dbevalRb13 bool
 			var _dbevalErr14 error
 			for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
+					switch _dbevalRows12.Columns[_ci] {
+					}
+				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")

@@ -196,8 +196,8 @@ func Test_bestindex8(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".2"
 				_ = lBestIndexDistinct // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), bDistinct) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bDistinct, _res.Error, "1." + tn + ".2")
+				if lBestIndexDistinct != bDistinct {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", lBestIndexDistinct, bDistinct, "1." + tn + ".2")
 				}
 			}
 			{ // do_test "1." + tn + ".3"
@@ -208,8 +208,8 @@ func Test_bestindex8(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".4"
 				_ = lOrderByConsumed // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), bConsumed) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bConsumed, _res.Error, "1." + tn + ".4")
+				if lOrderByConsumed != bConsumed {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", lOrderByConsumed, bConsumed, "1." + tn + ".4")
 				}
 			}
 		}
@@ -293,8 +293,8 @@ func Test_bestindex8(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
 					_ = lFilterArg // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), lfa) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lfa, _res.Error, "3." + tn)
+					if lFilterArg != lfa {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", lFilterArg, lfa, "3." + tn)
 					}
 				}
 			}
@@ -329,8 +329,8 @@ func Test_bestindex8(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 						}
 						_ = lBestIndexRhs // TCL namespace variable (query)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), lbir) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lbir, _res.Error, "4." + tn)
+						if lBestIndexRhs != lbir {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", lBestIndexRhs, lbir, "4." + tn)
 						}
 					}
 				}

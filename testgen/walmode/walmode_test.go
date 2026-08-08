@@ -97,8 +97,8 @@ func Test_walmode(t *testing.T) {
 			}
 		}
 		{ // do_test "walmode-1.3"
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), expected_sync_count) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expected_sync_count, _res.Error, "walmode-1.3")
+			if sqlite_sync_count != expected_sync_count {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", sqlite_sync_count, expected_sync_count, "walmode-1.3")
 			}
 		}
 	}

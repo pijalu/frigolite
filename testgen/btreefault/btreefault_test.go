@@ -104,6 +104,14 @@ func Test_btreefault(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "x":
+						x = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "y":
+						y = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
 			res = tclListAppend(res, x, y)
 			if y == "b" {
 				_res = db.Exec(" DELETE FROM t1 WHERE i=25 ")

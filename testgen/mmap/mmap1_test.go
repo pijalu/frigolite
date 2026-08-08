@@ -199,6 +199,10 @@ func Test_mmap1(t *testing.T) {
 			var _dbevalRb2 bool
 			var _dbevalErr3 error
 			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+					switch _dbevalRows1.Columns[_ci] {
+					}
+				}
 				if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; return nRow_n == 4 }() {
 					_res = db.Exec(" DELETE FROM t1 ")
 					if _res.Error != nil {

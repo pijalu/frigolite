@@ -813,6 +813,14 @@ func (e *Engine) validateCompoundColumnCounts(s *sql.SelectStmt) error {
 	return nil
 }
 
+// isHiddenColumnDef reports whether a column definition is hidden (a HIDDEN
+// virtual-table column or an internal __hidden__-prefixed column). Hidden
+// columns are excluded from bare * expansion and PRAGMA table_info but remain
+// readable by explicit column references.
+func isHiddenColumnDef(cd sql.ColumnDef) bool {
+	return cd.Hidden || strings.HasPrefix(cd.Name, "__hidden__")
+}
+
 // tableColumnNames returns the column names of a table (or view), resolving
 // schema entries by name. For a view, columns whose alias starts with
 // "__hidden__" are excluded from a bare * expansion (SQLite's hidden-column
@@ -2466,6 +2474,30 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				tableName = join.Table.As
 			}
 
+			if tableEntry.RootPage == 0 {
+				// Virtual table on the right side of a join: materialize its
+				// rows through the virtual-table machinery (echo proxies its
+				// source, wholenumber/generate_series generate values).
+				rows, err := e.virtualTableRows(tableEntry, 0)
+				if err != nil {
+					return nil, nil, err
+				}
+				for _, row := range rows {
+					rightRowMap := make(RowMap)
+					for i, val := range row {
+						if i < len(rightDefs) {
+							cd := rightDefs[i]
+							aff := util.Affinity(cd.Type)
+							cv := &util.ColumnValue{Value: val, Affinity: aff}
+							rightRowMap[cd.Name] = cv
+							rightRowMap[tableName+"."+cd.Name] = cv
+						}
+					}
+					rightMaps = append(rightMaps, rightRowMap)
+				}
+				goto joinDone
+			}
+
 			// Scan all rows from the right table. Use the qualified name (e.g.
 			// "aux1.t4") so tablePager resolves the attached database's pager
 			// rather than falling back to the main pager via the short name.
@@ -2491,6 +2523,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				}
 			}
 		}
+		joinDone:
 
 		// NATURAL JOIN: auto-generate USING conditions for all common columns.
 		effectiveOn := join.On
@@ -3996,7 +4029,7 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 					}
 				} else {
 					for _, cd := range colDefs {
-						if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
+						if cd.Dropped || isHiddenColumnDef(cd) {
 							continue
 						}
 						if val, exists := groupRow.Get(cd.Name); exists {
@@ -6768,10 +6801,10 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			for _, cd := range colDefs {
-				if !cd.Dropped && !strings.HasPrefix(cd.Name, "__hidden__") {
-					colCount++
+					if !cd.Dropped && !isHiddenColumnDef(cd) {
+						colCount++
+					}
 				}
-			}
 		} else {
 			colCount++
 		}
@@ -6790,7 +6823,7 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 			}
 			posIdx := 0
 			for _, cd := range colDefs {
-				if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
+				if cd.Dropped || isHiddenColumnDef(cd) {
 					continue
 				}
 				if pos, ok := row.Get(positionalRowKey); ok {
@@ -6953,7 +6986,7 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 				continue
 			}
 			for _, cd := range colDefs {
-				if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
+				if cd.Dropped || isHiddenColumnDef(cd) {
 					continue
 				}
 				names = append(names, cd.Name)
@@ -6964,7 +6997,7 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 			for _, sub := range rv.Values {
 				if ref, ok := sub.(*sql.ColumnRef); ok && ref.Name == "*" {
 					for _, cd := range colDefs {
-						if cd.Dropped || strings.HasPrefix(cd.Name, "__hidden__") {
+						if cd.Dropped || isHiddenColumnDef(cd) {
 							continue
 						}
 						names = append(names, cd.Name)
@@ -7388,6 +7421,12 @@ func (e *Engine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 	if len(names) < 2 {
 		return nil
 	}
+	// Columns merged by USING/NATURAL joins collapse into a single value and
+	// are NOT ambiguous (SQLite: SELECT b FROM t1 NATURAL JOIN t2 where both
+	// have b returns the merged b). Collect them so the ambiguity check skips
+	// them.
+	mergedCols := map[string]bool{}
+	e.collectJoinMergedColumns(s, names, mergedCols)
 	// Build each table's column set (lowercased), including rowid aliases.
 	colInTables := map[string][]string{}
 	for tn := range names {
@@ -7407,6 +7446,9 @@ func (e *Engine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 	}
 	amb := func(name string) bool {
 		l := strings.ToLower(name)
+		if mergedCols[l] {
+			return false
+		}
 		return len(colInTables[l]) > 1
 	}
 	checkExpr := func(expr sql.Expr) error {
@@ -7453,6 +7495,66 @@ func (e *Engine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 		}
 	}
 	return nil
+}
+
+// collectJoinMergedColumns collects the names of columns merged by USING and
+// NATURAL joins in a SELECT. A USING(col) or NATURAL join collapses the named
+// columns from both sides into a single result column, so a bare reference to
+// that column is NOT ambiguous (SQLite join semantics; vtab6/join tests:
+// "SELECT b FROM t1 NATURAL JOIN t2" returns the merged b).
+func (e *Engine) collectJoinMergedColumns(s *sql.SelectStmt, names map[string]bool, merged map[string]bool) {
+	if s == nil {
+		return
+	}
+	// Track the accumulated left-side column sets for NATURAL join merging.
+	var leftColSets [][]string
+	addLeft := func(tn string) {
+		if tn == "" {
+			return
+		}
+		cols, err := e.tableColumnNames(tn)
+		if err != nil {
+			return
+		}
+		leftColSets = append(leftColSets, cols)
+	}
+	if s.From.Name != "" || s.From.As != "" {
+		tn := s.From.Name
+		if s.From.As != "" {
+			tn = s.From.As
+		}
+		addLeft(tn)
+	}
+	for _, join := range s.Joins {
+		tn := join.Table.Name
+		if join.Table.As != "" {
+			tn = join.Table.As
+		}
+		rightCols, err := e.tableColumnNames(tn)
+		if err != nil {
+			addLeft(tn)
+			continue
+		}
+		if len(join.Using) > 0 {
+			for _, uc := range join.Using {
+				merged[strings.ToLower(uc)] = true
+			}
+		} else if isNaturalJoinType(join.JoinType) {
+			// NATURAL: merge columns common to the accumulated left and right.
+			rightSet := make(map[string]bool)
+			for _, c := range rightCols {
+				rightSet[strings.ToLower(c)] = true
+			}
+			for _, leftSet := range leftColSets {
+				for _, c := range leftSet {
+					if rightSet[strings.ToLower(c)] {
+						merged[strings.ToLower(c)] = true
+					}
+				}
+			}
+		}
+		leftColSets = append(leftColSets, rightCols)
+	}
 }
 
 // validateJoinOnClauses checks that each join's ON clause only references

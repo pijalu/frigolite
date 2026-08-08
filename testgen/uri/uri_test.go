@@ -190,8 +190,8 @@ func Test_uri(t *testing.T) {
 				_ = DB // suppress unused warning
 				{ // do_test "2." + tn + ".1"
 					_ = arglist // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), kvlist) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", kvlist, _res.Error, "2." + tn + ".1")
+					if arglist != kvlist {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", arglist, kvlist, "2." + tn + ".1")
 					}
 				}
 				// sqlite3_close $DB (unsupported command, not transpiled)
@@ -206,8 +206,8 @@ func Test_uri(t *testing.T) {
 				}
 				{ // do_test "2." + tn + ".2"
 					_ = arglist // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), kvlist) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", kvlist, _res.Error, "2." + tn + ".2")
+					if arglist != kvlist {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", arglist, kvlist, "2." + tn + ".2")
 					}
 				}
 				db.Close()

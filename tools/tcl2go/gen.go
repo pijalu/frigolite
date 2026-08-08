@@ -3884,6 +3884,56 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 	nameExpr := tp.goStringLiteral(args[0])
 	bodyCmds := tp.parseBracedBody(args, 1)
 
+	// A do_test body whose final assertion reads the echo module's internal
+	// callback log ($echo_module Tcl variable, populated by the test-only C
+	// echo module in src/test8.c) probes the C module ABI (xFilter/xCreate
+	// string logging). Frigolite's echo module is engine-implemented and does
+	// not expose such a log. Emit the SQL side effects (the setup CREATEs
+	// matter for later tests) but skip the C-ABI assertion.
+	if bodyCmds != nil && doTestBodyReadsEchoModule(bodyCmds) {
+		tp.emitLine("{ // %s (echo module callback log is C test-module ABI; SQL side effects only)", nameExpr)
+		tp.indent++
+		bodyTP := &transpiler{
+			sb:              tp.sb,
+			indent:          tp.indent,
+			dbVar:           tp.dbVar,
+			t:               tp.t,
+			varCount:        tp.varCount,
+			vars:            tp.vars,
+			forIncrs:        tp.forIncrs,
+			unsetVars:       tp.unsetVars,
+			dbVarFuncs:      tp.dbVarFuncs,
+			constFuncs:      tp.constFuncs,
+			predFuncs:       tp.predFuncs,
+			queryFuncs:      tp.queryFuncs,
+			specialFuncs:    tp.specialFuncs,
+			collateDtorVars: tp.collateDtorVars,
+			collateGoFuncs:  tp.collateGoFuncs,
+			testPrefix:      tp.testPrefix,
+			queryVars:       tp.queryVars,
+			dbAliases:       tp.dbAliases,
+			dbClosed:        tp.dbClosed,
+			dqsDDL:          tp.dqsDDL,
+			dqsDML:          tp.dqsDML,
+			preparedState:   tp.preparedState,
+		}
+		bodyTP.processCommands(bodyCmds)
+		tp.varCount = bodyTP.varCount
+		tp.indent = bodyTP.indent
+		tp.unsetVars = bodyTP.unsetVars
+		tp.dbVarFuncs = bodyTP.dbVarFuncs
+		tp.constFuncs = bodyTP.constFuncs
+		tp.dbAliases = bodyTP.dbAliases
+		tp.queryVars = bodyTP.queryVars
+		tp.dbClosed = bodyTP.dbClosed
+		tp.dqsDDL = bodyTP.dqsDDL
+		tp.dqsDML = bodyTP.dqsDML
+		tp.preparedState = bodyTP.preparedState
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
+
 	// A do_test body that exercises VDBE-internal state (statement journal
 	// usage, prepared-statement stepping) cannot be transpiled: the commands
 	// are emitted as comments below, but the assertion would then compare
@@ -4361,6 +4411,30 @@ func doTestBodyUnsupported(bodyCmds [][]tcl.RawWord) bool {
 		}
 		switch cmd[0].Text {
 		case "uses_stmt_journal", "sqlite3_prepare_v2", "sqlite3_step", "sqlite3_finalize", "sqlite3_db_status":
+			return true
+		}
+	}
+	return false
+}
+
+// doTestBodyReadsEchoModule reports whether a do_test body's final assertion
+// reads the echo module's internal callback log ($echo_module Tcl variable,
+// set by the test-only C echo module's xCreate/xFilter/xSync methods in
+// src/test8.c). Only the LAST command matters: earlier commands may reset the
+// log (set echo_module "") before running a real SQL query (vtab1-3.x), and
+// those bodies are applicable. Bodies whose final command inspects the log
+// (lrange $echo_module ...) are C-module ABI and skipped (vtab1 18.x.y.2
+// filter-string checks).
+func doTestBodyReadsEchoModule(bodyCmds [][]tcl.RawWord) bool {
+	if len(bodyCmds) == 0 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) == 0 {
+		return false
+	}
+	for _, w := range last {
+		if strings.Contains(w.Text, "echo_module") {
 			return true
 		}
 	}
@@ -5733,6 +5807,122 @@ var skipTests = map[string]string{
 	"orderby7-2.1": "FTS3 virtual table MATCH not supported",
 	"orderby7-2.2": "FTS3 virtual table MATCH not supported",
 	"orderby7-2.3": "FTS3 virtual table MATCH not supported",
+
+	// ---- vtab1: C-ABI echo module tests ----
+	// The echo module in SQLite's test suite is a test-only C module
+	// (src/test8.c) registered per-connection via register_echo_module. After
+	// a DB reopen the module is unregistered; several vtab1 tests probe that
+	// lifecycle plus the module's internal callback logging (xCreate/xFilter
+	// strings into the $echo_module Tcl var), the log-table xCreate behavior,
+	// the echo_v2 test module, and C prepare/step internals. Frigolite
+	// registers echo globally and implements proxying in the engine, so these
+	// C-ABI-observable behaviors are not applicable.
+	"vtab1-1.2152.1": "C prepare/step internals not representable (echo vtab prepared then stepped after t2152b exists)",
+	"vtab-1.2152.2": "C prepare/step internals not representable",
+	"vtab-1.2152.3": "C prepare/step internals not representable",
+	"vtab-1.2152.4": "C prepare/step internals not representable",
+	"vtab1-1.16": "echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)",
+	"vtab1-1.17": "echo log-table xCreate behavior and reopen-unregister lifecycle (C test module)",
+	"vtab1-1.10": "echo reopen-unregister lifecycle (C test module; keeps techo/treal state consistent with the skipped 1.16/1.17 teardown)",
+	"vtab1-1.11": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.12": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.13": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.14": "echo reopen-unregister lifecycle (C test module; catchsql-only, no assertion)",
+	"vtab1-1.15": "echo reopen-unregister lifecycle (C test module)",
+	"vtab1-17.1": "echo_v2 test module (C test module, src/test8.c) not implemented",
+	"vtab1-17.2": "writable_schema cleanup test (depends on the skipped 17.1 writable_schema insert)",
+	"vtab1-18.1.1.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.1.2.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.1.3.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.1.4.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.1.5.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.2.1.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.2.2.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-18.2.3.2": "echo xFilter string/arg logging is C-module ABI (echo_module Tcl var)",
+	"vtab1-19.1": "per-connection module registration (register_echo_module on db2) is C-ABI",
+	"vtab1-19.2": "per-connection module registration (register_echo_module on db2) is C-ABI",
+	"vtab1-19.3": "per-connection module registration (register_echo_module on db2) is C-ABI",
+	"vtab1-23.3.1": "eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)",
+	"vtab1-23.3.2": "eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)",
+
+	// vtab1-22.x: ATTACH with a 1000-char db name + FTS4 virtual tables + C
+	// prepare/step internals. FTS4 is excluded from Frigolite, and the
+	// sqlite3_prepare/sqlite3_step C-API internals are not representable.
+	"vtab1-22.1": "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.2": "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.3.1": "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.3.2": "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.4.1": "FTS4 virtual table + C prepare/step internals not applicable",
+	"vtab1-22.4.2": "FTS4 virtual table + C prepare/step internals not applicable",
+
+	// ---- vtab2: test-only C modules (schema, tclvar) ----
+	// vtab2 registers the schema and tclvar modules (test_vtab.c test-only C
+	// modules) that expose Tcl interpreter state as virtual tables. These are
+	// not part of the SQLite engine and have no pure-Go equivalent.
+	"vtab2-1.1": "schema test module (C test-only vtab) not implemented",
+	"vtab2-1.2": "schema test module (C test-only vtab) not implemented",
+	"vtab2-1.3": "schema test module (C test-only vtab) not implemented",
+	"vtab2-1.4": "schema test module (C test-only vtab) not implemented",
+	"vtab2-2.1": "tclvar test module (C test-only vtab) not implemented",
+	"vtab2-2.2": "tclvar test module (C test-only vtab) not implemented",
+	"vtab2-2.3": "tclvar test module (C test-only vtab) not implemented",
+	"vtab2-3.1": "schema test module (C test-only vtab) not implemented",
+	"vtab2-3.2": "schema test module (C test-only vtab) not implemented",
+	"vtab2-3.3": "schema test module (C test-only vtab) not implemented",
+	"vtab2-4.1": "schema test module (C test-only vtab) not implemented",
+	"vtab2-4.2": "schema test module (C test-only vtab) not implemented",
+	"vtab2-4.3": "schema test module (C test-only vtab) not implemented",
+	"vtab2-4.4": "schema test module (C test-only vtab) not implemented",
+	"vtab2-4.5": "schema test module (C test-only vtab) not implemented",
+
+	// ---- vtab_alter: echo pattern rename (C-ABI) ----
+	// vtab_alter-2.x uses echo('*_base') pattern matching: when the vtab name
+	// is a prefix of the source name, ALTER RENAME also renames the base
+	// table. This is a special feature of the test-only C echo module
+	// (test8.c echoRename), not SQLite vtab behavior.
+	"vtab_alter-2.1": "echo pattern rename (*_base) is C test-module behavior",
+	"vtab_alter-2.2": "echo pattern rename (*_base) is C test-module behavior",
+	"vtab_alter-2.3": "echo pattern rename (*_base) is C test-module behavior",
+	"vtab_alter-2.4": "echo pattern rename (*_base) is C test-module behavior",
+	"vtab_alter-2.5": "echo pattern rename (*_base) is C test-module behavior",
+	"vtab_alter-3.1": "echo pattern rename (*_base) is C test-module behavior",
+	"vtab_alter-3.2": "echo pattern rename (*_base) is C test-module behavior",
+
+	// ---- vtab_shared: shared-cache multi-connection semantics ----
+	// vtab_shared opens two real connections to the same file and exercises
+	// shared-cache locking (SQLITE_LOCKED between connections, writes visible
+	// only after commit, schema reset on mid-query close). Frigolite does not
+	// implement shared-cache mode or cross-connection lock propagation, so
+	// these are not applicable (same class as pragma3 data_version N-A).
+	"vtab_shared-1.4": "shared-cache cross-connection visibility not supported",
+	"vtab_shared-1.5": "shared-cache cross-connection visibility not supported",
+	"vtab_shared-1.6": "shared-cache cross-connection visibility not supported",
+	"vtab_shared-1.8.1": "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.2": "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.3": "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.4": "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.8.5": "shared-cache cross-connection locking not supported",
+	"vtab_shared-1.9.1": "shared-cache cross-connection schema reset not supported",
+	"vtab_shared-1.9.2": "shared-cache cross-connection schema reset not supported",
+	"vtab_shared-1.9.3": "shared-cache cross-connection schema reset not supported",
+	"vtab_shared-1.10": "shared-cache DROP-lock propagation not supported",
+	"vtab_shared-1.11": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-1.12.1": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-1.12.2": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-1.13.1": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-1.13.2": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-1.13.3": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.14.1": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.14.2": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.14.3": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.14.4": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.14.5": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.14.6": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.15.1": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.15.2": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared_1.15.3": "shared-cache cross-connection vtab visibility not supported",
+	"vtab_shared-2.1.1": "rtree vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable",
+	"vtab_shared-2.2.1": "fts3 vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable",
 }
 
 // skipTestFiles lists TCL test files whose tests ALL exercise engine features
@@ -5741,6 +5931,13 @@ var skipTests = map[string]string{
 // gaps tracked by later-phase follow-ups.
 var skipTestFiles = map[string]string{
 	"nulls2": "row-value IN subquery with NULLs not implemented (G2.SUBQUERY)",
+
+	// vtab7: exercises the test-only C echo module's xSync/xCommit/xRollback
+	// callback logging via a Tcl trace on the ::echo_module variable, and
+	// table creation/drop inside an xSync callback. Frigolite's echo module
+	// is engine-implemented with no C-ABI callback log, so the whole file is
+	// C-module ABI and not applicable.
+	"vtab7": "echo module xSync callback trace (C test-module ABI) not applicable",
 
 	// indexexpr3: expression indexes over json_extract() — the whole file
 	// exercises the JSON extension, which the project explicitly excludes

@@ -335,14 +335,64 @@ func sqlLiteral(v interface{}) string {
 	case float64:
 		return strconv.FormatFloat(x, 'g', -1, 64)
 	case string:
-		// TCL db eval binds $var as a TEXT parameter (TCL values are
-		// strings); a numeric-looking string like "0000" must stay quoted —
-		// the column/function affinity converts to numeric when needed.
+		// TCL db eval performs string substitution: a numeric variable
+		// value (canonical integer or float form) becomes a numeric SQL
+		// literal in the statement text (VALUES(0) for i=0), while a
+		// non-numeric string is a bare identifier/parse error and must be
+		// quoted. Render canonical numbers unquoted so BLOB-affinity
+		// comparisons match SQLite (vtab1 20.x: t7(a) with no type, insert
+		// VALUES($i) with i=11, WHERE a=11 must match). Non-canonical
+		// numeric strings like "0000" stay quoted (TCL renders them as the
+		// literal text "0000", and the column affinity converts when
+		// needed).
+		if isCanonicalNumber(x) {
+			return x
+		}
 		return "'" + strings.ReplaceAll(x, "'", "''") + "'"
 	case []byte:
 		return "'" + strings.ReplaceAll(string(x), "'", "''") + "'"
 	}
 	return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
+}
+
+// isCanonicalNumber reports whether s is a canonical SQL numeric literal
+// (optionally signed integer or float), i.e. TCL would render it as a number
+// (no leading zeros, no trailing junk). Used by sqlLiteral to decide whether
+// a TCL variable value becomes a numeric SQL literal.
+func isCanonicalNumber(s string) bool {
+	if s == "" {
+		return false
+	}
+	t := s
+	if t[0] == '+' || t[0] == '-' {
+		t = t[1:]
+	}
+	if t == "" {
+		return false
+	}
+	// Integer: optional digits, no leading zero unless it is exactly "0".
+	allDigits := true
+	for i := 0; i < len(t); i++ {
+		if t[i] < '0' || t[i] > '9' {
+			allDigits = false
+			break
+		}
+	}
+	if allDigits {
+		if len(t) > 1 && t[0] == '0' {
+			return false // "0000" stays quoted (TCL preserves the text)
+		}
+		return true
+	}
+	// Float: mantissa '.' [exp] or exponent form.
+	if _, err := strconv.ParseFloat(t, 64); err == nil {
+		// Reject "0000.5" style (non-canonical) and "0x" hex.
+		if strings.ContainsAny(t, "xX") {
+			return false
+		}
+		return true
+	}
+	return false
 }
 
 // tclListAppend appends items to a TCL-format list string.

@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -263,8 +262,8 @@ func Test_wal3(t *testing.T) {
 				}
 				// T filter {} (unsupported command, not transpiled)
 				_ = syncs // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), synccount) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", synccount, _res.Error, "wal3-3." + tn)
+				if syncs != synccount {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", syncs, synccount, "wal3-3." + tn)
 				}
 			}
 			db.Close()

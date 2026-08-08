@@ -501,8 +501,8 @@ func Test_pager1(t *testing.T) {
 							// tv filter {} (unsupported command, not transpiled)
 							{ // do_test "pager1-4.4." + tn + ".1b"
 								_ = mj_delete_cnt // TCL namespace variable (query)
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), usesMJ) {
-									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", usesMJ, _res.Error, "pager1-4.4." + tn + ".1b")
+								if mj_delete_cnt != usesMJ {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", mj_delete_cnt, usesMJ, "pager1-4.4." + tn + ".1b")
 								}
 							}
 							{ // "pager1-4.4." + tn + ".2"
@@ -1987,6 +1987,10 @@ func Test_pager1(t *testing.T) {
 								var _dbevalRb8 bool
 								var _dbevalErr9 error
 								for _ri := 0; _ri < len(_dbevalRows7.Rows) && _dbevalErr9 == nil; _ri++ {
+									for _ci := 0; _ci < len(_dbevalRows7.Columns); _ci++ {
+										switch _dbevalRows7.Columns[_ci] {
+										}
+									}
 									_res = db.Exec(" PRAGMA journal_mode = DELETE ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA journal_mode = DELETE ")

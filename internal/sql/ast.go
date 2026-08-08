@@ -335,6 +335,7 @@ type ColumnDef struct {
 	Check          Expr
 	Generated      Expr // generated column expression (b AS(expr)); nil for normal columns
 	Dropped        bool // column has been dropped via ALTER TABLE DROP COLUMN
+	Hidden         bool // HIDDEN column in a virtual table declaration
 }
 
 // CreateIndexStmt represents a CREATE INDEX statement.

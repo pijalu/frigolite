@@ -632,8 +632,8 @@ func Test_incrblob(t *testing.T) {
 		_ = data // suppress unused warning
 		// close $fd2
 		_ = data // TCL namespace variable (query)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), text) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", text, _res.Error, "incrblob-5.2")
+		if data != text {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", data, text, "incrblob-5.2")
 		}
 	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)

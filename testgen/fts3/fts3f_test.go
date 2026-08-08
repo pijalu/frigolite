@@ -78,6 +78,12 @@ func Test_fts3f(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "docid":
+						docid = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
 			if func() bool { docid_n, _docid_e := strconv.Atoi(docid); if _docid_e != nil { return false }; return docid_n == 2 }() {
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {

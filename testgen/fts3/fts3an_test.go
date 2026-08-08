@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -237,6 +236,12 @@ func Test_fts3an(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "o":
+						o = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
 			l = strconv.Itoa(tclLLength(o))
 			_ = l // suppress unused warning
 			_t = tclListAppend(_t, tclExprWith("$l/4", map[string]string{"l": l}))
@@ -245,8 +250,8 @@ func Test_fts3an(t *testing.T) {
 		if _dbevalErr2 != nil {
 			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), ret) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ret, _res.Error, "fts3an-3.1")
+		if _t != ret {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _t, ret, "fts3an-3.1")
 		}
 	}
 	_putsMsg := "This next test can take a little while (~ 30 seconds)..."

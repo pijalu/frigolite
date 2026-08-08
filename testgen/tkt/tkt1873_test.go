@@ -74,6 +74,10 @@ func Test_tkt1873(t *testing.T) {
 			var _dbevalRb1 bool
 			var _dbevalErr2 error
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+					switch _dbevalRows0.Columns[_ci] {
+					}
+				}
 				_res = db.Exec("DETACH aux")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH aux")
@@ -103,6 +107,10 @@ func Test_tkt1873(t *testing.T) {
 			var _dbevalRb4 bool
 			var _dbevalErr5 error
 			for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+					switch _dbevalRows3.Columns[_ci] {
+					}
+				}
 				_res = db.Exec("DETACH aux")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH aux")

@@ -736,6 +736,12 @@ func Test_zipfile(t *testing.T) {
 				var _dbevalRb3 bool
 				var _dbevalErr4 error
 				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
+						switch _dbevalRows2.Columns[_ci] {
+							case "data":
+								data = tclStr(_dbevalRows2.Rows[_ri][_ci])
+						}
+					}
 					if data == "2" {
 						_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
 						if _res.Error != nil {
@@ -757,6 +763,10 @@ func Test_zipfile(t *testing.T) {
 				var _dbevalRb6 bool
 				var _dbevalErr7 error
 				for _ri := 0; _ri < len(_dbevalRows5.Rows) && _dbevalErr7 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows5.Columns); _ci++ {
+						switch _dbevalRows5.Columns[_ci] {
+						}
+					}
 					_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")

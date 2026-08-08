@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -125,6 +124,12 @@ func Test_in7(t *testing.T) {
 				var _dbevalRb2 bool
 				var _dbevalErr3 error
 				for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+						switch _dbevalRows1.Columns[_ci] {
+							case "tbl_name":
+								tbl_name = tclStr(_dbevalRows1.Rows[_ri][_ci])
+						}
+					}
 					var root_to_tbl_rootpage = tbl_name
 					_ = root_to_tbl_rootpage // suppress unused warning
 					if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
@@ -138,6 +143,16 @@ func Test_in7(t *testing.T) {
 				var _dbevalRb5 bool
 				var _dbevalErr6 error
 				for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
+						switch _dbevalRows4.Columns[_ci] {
+							case "p2":
+								p2 = tclStr(_dbevalRows4.Rows[_ri][_ci])
+							case "csr_to_root":
+								csr_to_root = tclStr(_dbevalRows4.Rows[_ri][_ci])
+							case "root_to_tbl":
+								root_to_tbl = tclStr(_dbevalRows4.Rows[_ri][_ci])
+						}
+					}
 					if opcode == "OpenRead" {
 						csr_to_root_p1 = p2
 						_ = csr_to_root_p1 // suppress unused warning
@@ -170,8 +185,8 @@ func Test_in7(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), nNext) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nNext, _res.Error, "1.1." + tn)
+				if nSeen != nNext {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", nSeen, nNext, "1.1." + tn)
 				}
 			}
 		}

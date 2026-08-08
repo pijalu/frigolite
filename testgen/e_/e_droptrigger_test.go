@@ -7,7 +7,6 @@ package e_
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -107,8 +106,8 @@ func Test_e_droptrigger(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
 				}
 				_ = triggers_fired // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), before) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", before, _res.Error, "2." + tn + ".1")
+				if triggers_fired != before {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", triggers_fired, before, "2." + tn + ".1")
 				}
 			}
 			{ // do_test "2." + tn + ".2"
@@ -122,8 +121,8 @@ func Test_e_droptrigger(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
 				}
 				_ = triggers_fired // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), after) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", after, _res.Error, "2." + tn + ".2")
+				if triggers_fired != after {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", triggers_fired, after, "2." + tn + ".2")
 				}
 			}
 		}
@@ -148,8 +147,8 @@ func Test_e_droptrigger(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
 					}
 					_ = triggers_fired // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), before) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", before, _res.Error, "3.1." + tn + ".1")
+					if triggers_fired != before {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", triggers_fired, before, "3.1." + tn + ".1")
 					}
 				}
 				{ // do_test "3.1." + tn + ".2"
@@ -163,8 +162,8 @@ func Test_e_droptrigger(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
 					}
 					_ = triggers_fired // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), after) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", after, _res.Error, "3.1." + tn + ".2")
+					if triggers_fired != after {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", triggers_fired, after, "3.1." + tn + ".2")
 					}
 				}
 			}
@@ -189,8 +188,8 @@ func Test_e_droptrigger(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
 						}
 						_ = triggers_fired // TCL namespace variable (query)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), before) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", before, _res.Error, "3.2." + tn + ".1")
+						if triggers_fired != before {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", triggers_fired, before, "3.2." + tn + ".1")
 						}
 					}
 					{ // do_test "3.2." + tn + ".2"
@@ -204,8 +203,8 @@ func Test_e_droptrigger(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
 						}
 						_ = triggers_fired // TCL namespace variable (query)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), after) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", after, _res.Error, "3.2." + tn + ".2")
+						if triggers_fired != after {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", triggers_fired, after, "3.2." + tn + ".2")
 						}
 					}
 				}

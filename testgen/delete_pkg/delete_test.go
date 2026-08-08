@@ -677,6 +677,16 @@ func Test_delete(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "r":
+						_r = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "c":
+						c = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "d":
+						d = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 ")
 				if _res.Error != nil {
@@ -701,6 +711,16 @@ func Test_delete(t *testing.T) {
 		var _dbevalRb4 bool
 		var _dbevalErr5 error
 		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+				switch _dbevalRows3.Columns[_ci] {
+					case "r":
+						_r = tclStr(_dbevalRows3.Rows[_ri][_ci])
+					case "c":
+						c = tclStr(_dbevalRows3.Rows[_ri][_ci])
+					case "d":
+						d = tclStr(_dbevalRows3.Rows[_ri][_ci])
+				}
+			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 2 ")
 				if _res.Error != nil {
@@ -725,6 +745,16 @@ func Test_delete(t *testing.T) {
 		var _dbevalRb7 bool
 		var _dbevalErr8 error
 		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+				switch _dbevalRows6.Columns[_ci] {
+					case "r":
+						_r = tclStr(_dbevalRows6.Rows[_ri][_ci])
+					case "c":
+						c = tclStr(_dbevalRows6.Rows[_ri][_ci])
+					case "d":
+						d = tclStr(_dbevalRows6.Rows[_ri][_ci])
+				}
+			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 1 ")
 				if _res.Error != nil {
@@ -749,6 +779,16 @@ func Test_delete(t *testing.T) {
 		var _dbevalRb10 bool
 		var _dbevalErr11 error
 		for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
+				switch _dbevalRows9.Columns[_ci] {
+					case "r":
+						_r = tclStr(_dbevalRows9.Rows[_ri][_ci])
+					case "c":
+						c = tclStr(_dbevalRows9.Rows[_ri][_ci])
+					case "d":
+						d = tclStr(_dbevalRows9.Rows[_ri][_ci])
+				}
+			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 3 ")
 				if _res.Error != nil {

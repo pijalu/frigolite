@@ -316,6 +316,10 @@ func Test_wal6(t *testing.T) {
 		var _dbevalRb2 bool
 		var _dbevalErr3 error
 		for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+				switch _dbevalRows1.Columns[_ci] {
+				}
+			}
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n == 1 }() {
 				_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6) ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

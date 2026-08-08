@@ -168,6 +168,10 @@ func Test_walprotocol(t *testing.T) {
 		var _dbevalRb2 bool
 		var _dbevalErr3 error
 		for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+				switch _dbevalRows1.Columns[_ci] {
+				}
+			}
 			_res = db.Exec(" INSERT INTO b VALUES('Qazvin') ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO b VALUES('Qazvin') ")

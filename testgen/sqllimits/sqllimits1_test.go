@@ -145,61 +145,70 @@ func Test_sqllimits1(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	db2, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
-	{ // do_test "sqllimits1-1.1"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LENGTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-1.1")
+	{ // do_test "sqllimits1-1.1" (sqlite3_limit SQLITE_LIMIT_LENGTH -1)
+		got := db.Limit("SQLITE_LIMIT_LENGTH")
+		if strconv.Itoa(got) != SQLITE_MAX_LENGTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_LENGTH, "sqllimits1-1.1")
 		}
 	}
-	{ // do_test "sqllimits1-1.2"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SQL_LENGTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-1.2")
+	{ // do_test "sqllimits1-1.2" (sqlite3_limit SQLITE_LIMIT_SQL_LENGTH -1)
+		got := db.Limit("SQLITE_LIMIT_SQL_LENGTH")
+		if strconv.Itoa(got) != SQLITE_MAX_SQL_LENGTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_SQL_LENGTH, "sqllimits1-1.2")
 		}
 	}
-	{ // do_test "sqllimits1-1.3"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COLUMN) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-1.3")
+	{ // do_test "sqllimits1-1.3" (sqlite3_limit SQLITE_LIMIT_COLUMN -1)
+		got := db.Limit("SQLITE_LIMIT_COLUMN")
+		if strconv.Itoa(got) != SQLITE_MAX_COLUMN {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_COLUMN, "sqllimits1-1.3")
 		}
 	}
-	{ // do_test "sqllimits1-1.4"
-		db.SetExprDepthLimit(toInt(-1))
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_EXPR_DEPTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-1.4")
+	{ // do_test "sqllimits1-1.4" (sqlite3_limit SQLITE_LIMIT_EXPR_DEPTH -1)
+		got := db.Limit("SQLITE_LIMIT_EXPR_DEPTH")
+		if strconv.Itoa(got) != SQLITE_MAX_EXPR_DEPTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_EXPR_DEPTH, "sqllimits1-1.4")
 		}
 	}
-	{ // do_test "sqllimits1-1.5"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COMPOUND_SELECT) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-1.5")
+	{ // do_test "sqllimits1-1.5" (sqlite3_limit SQLITE_LIMIT_COMPOUND_SELECT -1)
+		got := db.Limit("SQLITE_LIMIT_COMPOUND_SELECT")
+		if strconv.Itoa(got) != SQLITE_MAX_COMPOUND_SELECT {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_COMPOUND_SELECT, "sqllimits1-1.5")
 		}
 	}
-	{ // do_test "sqllimits1-1.6"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VDBE_OP) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-1.6")
+	{ // do_test "sqllimits1-1.6" (sqlite3_limit SQLITE_LIMIT_VDBE_OP -1)
+		got := db.Limit("SQLITE_LIMIT_VDBE_OP")
+		if strconv.Itoa(got) != SQLITE_MAX_VDBE_OP {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_VDBE_OP, "sqllimits1-1.6")
 		}
 	}
-	{ // do_test "sqllimits1-1.7"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_FUNCTION_ARG) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-1.7")
+	{ // do_test "sqllimits1-1.7" (sqlite3_limit SQLITE_LIMIT_FUNCTION_ARG -1)
+		got := db.Limit("SQLITE_LIMIT_FUNCTION_ARG")
+		if strconv.Itoa(got) != SQLITE_MAX_FUNCTION_ARG {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_FUNCTION_ARG, "sqllimits1-1.7")
 		}
 	}
-	{ // do_test "sqllimits1-1.8"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-1.8")
+	{ // do_test "sqllimits1-1.8" (sqlite3_limit SQLITE_LIMIT_ATTACHED -1)
+		got := db.Limit("SQLITE_LIMIT_ATTACHED")
+		if strconv.Itoa(got) != SQLITE_MAX_ATTACHED {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_ATTACHED, "sqllimits1-1.8")
 		}
 	}
-	{ // do_test "sqllimits1-1.9"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LIKE_PATTERN_LENGTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-1.9")
+	{ // do_test "sqllimits1-1.9" (sqlite3_limit SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1)
+		got := db.Limit("SQLITE_LIMIT_LIKE_PATTERN_LENGTH")
+		if strconv.Itoa(got) != SQLITE_MAX_LIKE_PATTERN_LENGTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_LIKE_PATTERN_LENGTH, "sqllimits1-1.9")
 		}
 	}
-	{ // do_test "sqllimits1-1.10"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VARIABLE_NUMBER) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-1.10")
+	{ // do_test "sqllimits1-1.10" (sqlite3_limit SQLITE_LIMIT_VARIABLE_NUMBER -1)
+		got := db.Limit("SQLITE_LIMIT_VARIABLE_NUMBER")
+		if strconv.Itoa(got) != SQLITE_MAX_VARIABLE_NUMBER {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_VARIABLE_NUMBER, "sqllimits1-1.10")
 		}
 	}
-	{ // do_test "sqllimits1-1.11"
-		db.SetTriggerDepthLimit(toInt(-1))
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_TRIGGER_DEPTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_TRIGGER_DEPTH, _res.Error, "sqllimits1-1.11")
+	{ // do_test "sqllimits1-1.11" (sqlite3_limit SQLITE_LIMIT_TRIGGER_DEPTH -1)
+		got := db.Limit("SQLITE_LIMIT_TRIGGER_DEPTH")
+		if strconv.Itoa(got) != SQLITE_MAX_TRIGGER_DEPTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_TRIGGER_DEPTH, "sqllimits1-1.11")
 		}
 	}
 	{ // do_test "sqllimits1-1.12"
@@ -230,7 +239,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-2.1.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.1.2"
+		{ // do_test "sqllimits1-2.1.2" (sqlite3_limit SQLITE_LIMIT_LENGTH -1)
+			got := db.Limit("SQLITE_LIMIT_LENGTH")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_LENGTH/2", map[string]string{"SQLITE_MAX_LENGTH": SQLITE_MAX_LENGTH}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_LENGTH/2", map[string]string{"SQLITE_MAX_LENGTH": SQLITE_MAX_LENGTH}), "sqllimits1-2.1.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_SQL_LENGTH_n, _SQLITE_MAX_SQL_LENGTH_e := strconv.Atoi(SQLITE_MAX_SQL_LENGTH); if _SQLITE_MAX_SQL_LENGTH_e != nil { return false }; return SQLITE_MAX_SQL_LENGTH_n >= 2 }() {
@@ -239,7 +252,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-2.2.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.2.2"
+		{ // do_test "sqllimits1-2.2.2" (sqlite3_limit SQLITE_LIMIT_SQL_LENGTH -1)
+			got := db.Limit("SQLITE_LIMIT_SQL_LENGTH")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_SQL_LENGTH/2", map[string]string{"SQLITE_MAX_SQL_LENGTH": SQLITE_MAX_SQL_LENGTH}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_SQL_LENGTH/2", map[string]string{"SQLITE_MAX_SQL_LENGTH": SQLITE_MAX_SQL_LENGTH}), "sqllimits1-2.2.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_COLUMN_n, _SQLITE_MAX_COLUMN_e := strconv.Atoi(SQLITE_MAX_COLUMN); if _SQLITE_MAX_COLUMN_e != nil { return false }; return SQLITE_MAX_COLUMN_n >= 2 }() {
@@ -248,7 +265,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-2.3.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.3.2"
+		{ // do_test "sqllimits1-2.3.2" (sqlite3_limit SQLITE_LIMIT_COLUMN -1)
+			got := db.Limit("SQLITE_LIMIT_COLUMN")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_COLUMN/2", map[string]string{"SQLITE_MAX_COLUMN": SQLITE_MAX_COLUMN}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_COLUMN/2", map[string]string{"SQLITE_MAX_COLUMN": SQLITE_MAX_COLUMN}), "sqllimits1-2.3.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_EXPR_DEPTH_n, _SQLITE_MAX_EXPR_DEPTH_e := strconv.Atoi(SQLITE_MAX_EXPR_DEPTH); if _SQLITE_MAX_EXPR_DEPTH_e != nil { return false }; return SQLITE_MAX_EXPR_DEPTH_n >= 2 }() {
@@ -257,8 +278,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-2.4.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.4.2"
-			db.SetExprDepthLimit(toInt(-1))
+		{ // do_test "sqllimits1-2.4.2" (sqlite3_limit SQLITE_LIMIT_EXPR_DEPTH -1)
+			got := db.Limit("SQLITE_LIMIT_EXPR_DEPTH")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_EXPR_DEPTH/2", map[string]string{"SQLITE_MAX_EXPR_DEPTH": SQLITE_MAX_EXPR_DEPTH}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_EXPR_DEPTH/2", map[string]string{"SQLITE_MAX_EXPR_DEPTH": SQLITE_MAX_EXPR_DEPTH}), "sqllimits1-2.4.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_COMPOUND_SELECT_n, _SQLITE_MAX_COMPOUND_SELECT_e := strconv.Atoi(SQLITE_MAX_COMPOUND_SELECT); if _SQLITE_MAX_COMPOUND_SELECT_e != nil { return false }; return SQLITE_MAX_COMPOUND_SELECT_n >= 2 }() {
@@ -267,7 +291,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-2.5.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.5.2"
+		{ // do_test "sqllimits1-2.5.2" (sqlite3_limit SQLITE_LIMIT_COMPOUND_SELECT -1)
+			got := db.Limit("SQLITE_LIMIT_COMPOUND_SELECT")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_COMPOUND_SELECT/2", map[string]string{"SQLITE_MAX_COMPOUND_SELECT": SQLITE_MAX_COMPOUND_SELECT}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_COMPOUND_SELECT/2", map[string]string{"SQLITE_MAX_COMPOUND_SELECT": SQLITE_MAX_COMPOUND_SELECT}), "sqllimits1-2.5.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_VDBE_OP_n, _SQLITE_MAX_VDBE_OP_e := strconv.Atoi(SQLITE_MAX_VDBE_OP); if _SQLITE_MAX_VDBE_OP_e != nil { return false }; return SQLITE_MAX_VDBE_OP_n >= 2 }() {
@@ -276,7 +304,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-2.6.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.6.2"
+		{ // do_test "sqllimits1-2.6.2" (sqlite3_limit SQLITE_LIMIT_VDBE_OP -1)
+			got := db.Limit("SQLITE_LIMIT_VDBE_OP")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_VDBE_OP/2", map[string]string{"SQLITE_MAX_VDBE_OP": SQLITE_MAX_VDBE_OP}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_VDBE_OP/2", map[string]string{"SQLITE_MAX_VDBE_OP": SQLITE_MAX_VDBE_OP}), "sqllimits1-2.6.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_FUNCTION_ARG_n, _SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(SQLITE_MAX_FUNCTION_ARG); if _SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return SQLITE_MAX_FUNCTION_ARG_n >= 2 }() {
@@ -285,7 +317,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-2.7.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.7.2"
+		{ // do_test "sqllimits1-2.7.2" (sqlite3_limit SQLITE_LIMIT_FUNCTION_ARG -1)
+			got := db.Limit("SQLITE_LIMIT_FUNCTION_ARG")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_FUNCTION_ARG/2", map[string]string{"SQLITE_MAX_FUNCTION_ARG": SQLITE_MAX_FUNCTION_ARG}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_FUNCTION_ARG/2", map[string]string{"SQLITE_MAX_FUNCTION_ARG": SQLITE_MAX_FUNCTION_ARG}), "sqllimits1-2.7.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return SQLITE_MAX_ATTACHED_n >= 2 }() {
@@ -294,7 +330,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-2.8.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.8.2"
+		{ // do_test "sqllimits1-2.8.2" (sqlite3_limit SQLITE_LIMIT_ATTACHED -1)
+			got := db.Limit("SQLITE_LIMIT_ATTACHED")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_ATTACHED/2", map[string]string{"SQLITE_MAX_ATTACHED": SQLITE_MAX_ATTACHED}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_ATTACHED/2", map[string]string{"SQLITE_MAX_ATTACHED": SQLITE_MAX_ATTACHED}), "sqllimits1-2.8.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_LIKE_PATTERN_LENGTH_n, _SQLITE_MAX_LIKE_PATTERN_LENGTH_e := strconv.Atoi(SQLITE_MAX_LIKE_PATTERN_LENGTH); if _SQLITE_MAX_LIKE_PATTERN_LENGTH_e != nil { return false }; return SQLITE_MAX_LIKE_PATTERN_LENGTH_n >= 2 }() {
@@ -303,7 +343,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-2.9.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.9.2"
+		{ // do_test "sqllimits1-2.9.2" (sqlite3_limit SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1)
+			got := db.Limit("SQLITE_LIMIT_LIKE_PATTERN_LENGTH")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_LIKE_PATTERN_LENGTH/2", map[string]string{"SQLITE_MAX_LIKE_PATTERN_LENGTH": SQLITE_MAX_LIKE_PATTERN_LENGTH}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_LIKE_PATTERN_LENGTH/2", map[string]string{"SQLITE_MAX_LIKE_PATTERN_LENGTH": SQLITE_MAX_LIKE_PATTERN_LENGTH}), "sqllimits1-2.9.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_VARIABLE_NUMBER_n, _SQLITE_MAX_VARIABLE_NUMBER_e := strconv.Atoi(SQLITE_MAX_VARIABLE_NUMBER); if _SQLITE_MAX_VARIABLE_NUMBER_e != nil { return false }; return SQLITE_MAX_VARIABLE_NUMBER_n >= 2 }() {
@@ -312,7 +356,11 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-2.10.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.10.2"
+		{ // do_test "sqllimits1-2.10.2" (sqlite3_limit SQLITE_LIMIT_VARIABLE_NUMBER -1)
+			got := db.Limit("SQLITE_LIMIT_VARIABLE_NUMBER")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_VARIABLE_NUMBER/2", map[string]string{"SQLITE_MAX_VARIABLE_NUMBER": SQLITE_MAX_VARIABLE_NUMBER}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_VARIABLE_NUMBER/2", map[string]string{"SQLITE_MAX_VARIABLE_NUMBER": SQLITE_MAX_VARIABLE_NUMBER}), "sqllimits1-2.10.2")
+			}
 		}
 	}
 	if func() bool { SQLITE_MAX_SCHEMA_n, _SQLITE_MAX_SCHEMA_e := strconv.Atoi(SQLITE_MAX_SCHEMA); if _SQLITE_MAX_SCHEMA_e != nil { return false }; return SQLITE_MAX_SCHEMA_n >= 2 }() {
@@ -321,58 +369,71 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SCHEMA, _res.Error, "sqllimits1-2.11.1")
 			}
 		}
-		{ // do_test "sqllimits1-2.11.2"
+		{ // do_test "sqllimits1-2.11.2" (sqlite3_limit SQLITE_LIMIT_SCHEMA -1)
+			got := db.Limit("SQLITE_LIMIT_SCHEMA")
+			if strconv.Itoa(got) != tclExprWith("$SQLITE_MAX_SCHEMA/2", map[string]string{"SQLITE_MAX_SCHEMA": SQLITE_MAX_SCHEMA}) {
+				t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$SQLITE_MAX_SCHEMA/2", map[string]string{"SQLITE_MAX_SCHEMA": SQLITE_MAX_SCHEMA}), "sqllimits1-2.11.2")
+			}
 		}
 	}
-	{ // do_test "sqllimits1-3.1"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LENGTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LENGTH, _res.Error, "sqllimits1-3.1")
+	{ // do_test "sqllimits1-3.1" (sqlite3_limit SQLITE_LIMIT_LENGTH -1)
+		got := db.Limit("SQLITE_LIMIT_LENGTH")
+		if strconv.Itoa(got) != SQLITE_MAX_LENGTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_LENGTH, "sqllimits1-3.1")
 		}
 	}
-	{ // do_test "sqllimits1-3.2"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_SQL_LENGTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_SQL_LENGTH, _res.Error, "sqllimits1-3.2")
+	{ // do_test "sqllimits1-3.2" (sqlite3_limit SQLITE_LIMIT_SQL_LENGTH -1)
+		got := db.Limit("SQLITE_LIMIT_SQL_LENGTH")
+		if strconv.Itoa(got) != SQLITE_MAX_SQL_LENGTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_SQL_LENGTH, "sqllimits1-3.2")
 		}
 	}
-	{ // do_test "sqllimits1-3.3"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COLUMN) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COLUMN, _res.Error, "sqllimits1-3.3")
+	{ // do_test "sqllimits1-3.3" (sqlite3_limit SQLITE_LIMIT_COLUMN -1)
+		got := db.Limit("SQLITE_LIMIT_COLUMN")
+		if strconv.Itoa(got) != SQLITE_MAX_COLUMN {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_COLUMN, "sqllimits1-3.3")
 		}
 	}
-	{ // do_test "sqllimits1-3.4"
-		db.SetExprDepthLimit(toInt(-1))
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_EXPR_DEPTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_EXPR_DEPTH, _res.Error, "sqllimits1-3.4")
+	{ // do_test "sqllimits1-3.4" (sqlite3_limit SQLITE_LIMIT_EXPR_DEPTH -1)
+		got := db.Limit("SQLITE_LIMIT_EXPR_DEPTH")
+		if strconv.Itoa(got) != SQLITE_MAX_EXPR_DEPTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_EXPR_DEPTH, "sqllimits1-3.4")
 		}
 	}
-	{ // do_test "sqllimits1-3.5"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_COMPOUND_SELECT) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_COMPOUND_SELECT, _res.Error, "sqllimits1-3.5")
+	{ // do_test "sqllimits1-3.5" (sqlite3_limit SQLITE_LIMIT_COMPOUND_SELECT -1)
+		got := db.Limit("SQLITE_LIMIT_COMPOUND_SELECT")
+		if strconv.Itoa(got) != SQLITE_MAX_COMPOUND_SELECT {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_COMPOUND_SELECT, "sqllimits1-3.5")
 		}
 	}
-	{ // do_test "sqllimits1-3.6"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VDBE_OP) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VDBE_OP, _res.Error, "sqllimits1-3.6")
+	{ // do_test "sqllimits1-3.6" (sqlite3_limit SQLITE_LIMIT_VDBE_OP -1)
+		got := db.Limit("SQLITE_LIMIT_VDBE_OP")
+		if strconv.Itoa(got) != SQLITE_MAX_VDBE_OP {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_VDBE_OP, "sqllimits1-3.6")
 		}
 	}
-	{ // do_test "sqllimits1-3.7"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_FUNCTION_ARG) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_FUNCTION_ARG, _res.Error, "sqllimits1-3.7")
+	{ // do_test "sqllimits1-3.7" (sqlite3_limit SQLITE_LIMIT_FUNCTION_ARG -1)
+		got := db.Limit("SQLITE_LIMIT_FUNCTION_ARG")
+		if strconv.Itoa(got) != SQLITE_MAX_FUNCTION_ARG {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_FUNCTION_ARG, "sqllimits1-3.7")
 		}
 	}
-	{ // do_test "sqllimits1-3.8"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "sqllimits1-3.8")
+	{ // do_test "sqllimits1-3.8" (sqlite3_limit SQLITE_LIMIT_ATTACHED -1)
+		got := db.Limit("SQLITE_LIMIT_ATTACHED")
+		if strconv.Itoa(got) != SQLITE_MAX_ATTACHED {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_ATTACHED, "sqllimits1-3.8")
 		}
 	}
-	{ // do_test "sqllimits1-3.9"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_LIKE_PATTERN_LENGTH) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_LIKE_PATTERN_LENGTH, _res.Error, "sqllimits1-3.9")
+	{ // do_test "sqllimits1-3.9" (sqlite3_limit SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1)
+		got := db.Limit("SQLITE_LIMIT_LIKE_PATTERN_LENGTH")
+		if strconv.Itoa(got) != SQLITE_MAX_LIKE_PATTERN_LENGTH {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_LIKE_PATTERN_LENGTH, "sqllimits1-3.9")
 		}
 	}
-	{ // do_test "sqllimits1-3.10"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_VARIABLE_NUMBER) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_VARIABLE_NUMBER, _res.Error, "sqllimits1-3.10")
+	{ // do_test "sqllimits1-3.10" (sqlite3_limit SQLITE_LIMIT_VARIABLE_NUMBER -1)
+		got := db.Limit("SQLITE_LIMIT_VARIABLE_NUMBER")
+		if strconv.Itoa(got) != SQLITE_MAX_VARIABLE_NUMBER {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_VARIABLE_NUMBER, "sqllimits1-3.10")
 		}
 	}
 	db2.Close()

@@ -183,6 +183,10 @@ func Test_misc2(t *testing.T) {
 			var _dbevalRb1 bool
 			var _dbevalErr2 error
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+					switch _dbevalRows0.Columns[_ci] {
+					}
+				}
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			}
 			if _dbevalErr2 != nil {
@@ -213,6 +217,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb4 bool
 		var _dbevalErr5 error
 		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+				switch _dbevalRows3.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
 				if _res.Error != nil {
@@ -238,6 +246,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb7 bool
 		var _dbevalErr8 error
 		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+				switch _dbevalRows6.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
 				if _res.Error != nil {
@@ -263,6 +275,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb10 bool
 		var _dbevalErr11 error
 		for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
+				switch _dbevalRows9.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1")
 				if _res.Error != nil {
@@ -288,6 +304,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb13 bool
 		var _dbevalErr14 error
 		for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
+				switch _dbevalRows12.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
 				if _res.Error != nil {
@@ -313,6 +333,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb16 bool
 		var _dbevalErr17 error
 		for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows15.Columns); _ci++ {
+				switch _dbevalRows15.Columns[_ci] {
+				}
+			}
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 10 }() {
 				_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(x) + "+1)")
 				if _res.Error != nil {
@@ -348,6 +372,10 @@ func Test_misc2(t *testing.T) {
 			var _dbevalRb19 bool
 			var _dbevalErr20 error
 			for _ri := 0; _ri < len(_dbevalRows18.Rows) && _dbevalErr20 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows18.Columns); _ci++ {
+					switch _dbevalRows18.Columns[_ci] {
+					}
+				}
 				if _dbevalRb19 { _dbevalErr20 = errors.New("abort due to ROLLBACK") }
 			}
 			if _dbevalErr20 != nil {
@@ -378,6 +406,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb22 bool
 		var _dbevalErr23 error
 		for _ri := 0; _ri < len(_dbevalRows21.Rows) && _dbevalErr23 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows21.Columns); _ci++ {
+				switch _dbevalRows21.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
 				if _res.Error != nil {
@@ -403,6 +435,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb25 bool
 		var _dbevalErr26 error
 		for _ri := 0; _ri < len(_dbevalRows24.Rows) && _dbevalErr26 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows24.Columns); _ci++ {
+				switch _dbevalRows24.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
 				if _res.Error != nil {
@@ -428,6 +464,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb28 bool
 		var _dbevalErr29 error
 		for _ri := 0; _ri < len(_dbevalRows27.Rows) && _dbevalErr29 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows27.Columns); _ci++ {
+				switch _dbevalRows27.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1")
 				if _res.Error != nil {
@@ -453,6 +493,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb31 bool
 		var _dbevalErr32 error
 		for _ri := 0; _ri < len(_dbevalRows30.Rows) && _dbevalErr32 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows30.Columns); _ci++ {
+				switch _dbevalRows30.Columns[_ci] {
+				}
+			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
 				if _res.Error != nil {
@@ -478,6 +522,10 @@ func Test_misc2(t *testing.T) {
 		var _dbevalRb34 bool
 		var _dbevalErr35 error
 		for _ri := 0; _ri < len(_dbevalRows33.Rows) && _dbevalErr35 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows33.Columns); _ci++ {
+				switch _dbevalRows33.Columns[_ci] {
+				}
+			}
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n > 1 }() {
 				_res = db.Exec("INSERT INTO t1(rowid,x) VALUES(" + sqlLiteral(x) + "-1," + sqlLiteral(x) + "-1)")
 				if _res.Error != nil {

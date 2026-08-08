@@ -26,6 +26,10 @@ type updateChange struct {
 }
 
 func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
+	// Echo virtual tables write through to their source table (vtabA-3.1).
+	if srcName, ok := e.echoVTabSource(s.Table); ok {
+		s.Table = srcName
+	}
 	if err := e.authorize(auth.ActionUpdate, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}

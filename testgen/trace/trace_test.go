@@ -264,6 +264,10 @@ func Test_trace(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+				}
+			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 		}
 		if _dbevalErr2 != nil {
@@ -294,6 +298,12 @@ func Test_trace(t *testing.T) {
 		var _dbevalRb4 bool
 		var _dbevalErr5 error
 		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+				switch _dbevalRows3.Columns[_ci] {
+					case "x":
+						x = tclStr(_dbevalRows3.Rows[_ri][_ci])
+				}
+			}
 			t6blob = x // TCL namespace variable
 			_ = t6blob // suppress unused warning
 			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }

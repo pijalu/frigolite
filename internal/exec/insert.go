@@ -20,6 +20,15 @@ import (
 // --- INSERT ---
 
 func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
+	// The echo virtual-table module mirrors its underlying table: INSERT
+	// into an echo vtab writes through to the source table. Rewrite the
+	// statement to target the source (adjusting the column list for hidden
+	// columns) and run the normal insert machinery. This keeps echo write
+	// semantics (INSERT/UPDATE/DELETE route to the source, vtabA.test,
+	// vtabC.test triggers) without duplicating the insert pipeline.
+	if srcName, ok := e.echoVTabSource(s.Table); ok {
+		e.rewriteEchoInsert(s, srcName)
+	}
 	if err := e.authorize(auth.ActionInsert, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}

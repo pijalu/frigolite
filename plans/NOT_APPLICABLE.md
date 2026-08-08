@@ -352,6 +352,28 @@
 | vtabrhs | Virtual table module not implemented in frigolite |
 | zipfile | Virtual table module not implemented in frigolite |
 
+### vtab test-file C-ABI tests (per-test skips in `tools/tcl2go/gen.go` skipTests)
+
+These tests in the `vtab`/`vtab_` testgen packages probe the **test-only C
+modules** from SQLite's test suite (`src/test8.c` echo/echo_v2,
+`src/test_vtab.c` schema/tclvar) and the C vtab ABI (xCreate/xFilter callback
+logging into the `$echo_module` Tcl var, per-connection module registration,
+shared-cache multi-connection locking, C prepare/step internals). They are
+skipped in the transpiler with a reason in `skipTests`/`skipTestFiles`; the
+SQLite engine's vtab behavior itself (generate_series, echo proxying,
+CREATE/DROP lifecycle) is covered by the applicable tests and
+`frigolite_p5_vtab_test.go`.
+
+| Test | Reason |
+|------|--------|
+| vtab1-1.2152.1–.4, 22.x, 23.3.x | C prepare/step internals / FTS4 / eval() harness fn |
+| vtab1-1.10–1.17, 17.1–17.2, 19.x | echo module log-table xCreate, reopen-unregister lifecycle, echo_v2, per-connection registration (C test module) |
+| vtab1-18.x.y.2 | echo xFilter string/arg logging ($echo_module Tcl var) is C-module ABI |
+| vtab2-1.x–4.x | schema/tclvar test-only C modules (test_vtab.c) not implemented |
+| vtab7 (whole file) | echo module xSync callback trace (C test-module ABI) |
+| vtab_alter-2.x–3.x | echo pattern rename (*_base) is C test-module behavior |
+| vtab_shared-1.x–2.x | shared-cache cross-connection locking/visibility not supported |
+
 ## DEFERRED Detail
 
 | Package | Reason |

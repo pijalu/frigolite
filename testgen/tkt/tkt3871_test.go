@@ -94,7 +94,7 @@ func Test_tkt3871(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM e WHERE a = 1 OR a = 2 ")
 		}
 	}
-	{ // do_test "tkt3871-1.3"
+	{ // "tkt3871-1.3" (echo module callback log is C test-module ABI; SQL side effects only)
 		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query(" SELECT * FROM e WHERE a = 1 OR a = 2 ")
@@ -108,7 +108,7 @@ func Test_tkt3871(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9 ")
 		}
 	}
-	{ // do_test "tkt3871-1.5"
+	{ // "tkt3871-1.5" (echo module callback log is C test-module ABI; SQL side effects only)
 		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query(" SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9 ")

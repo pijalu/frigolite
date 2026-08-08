@@ -144,7 +144,7 @@ func Test_where8(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM e1 WHERE a=1 OR b='three';\n    ")
 			}
 		}
-		{ // do_test "where8-2.2.2"
+		{ // "where8-2.2.2" (echo module callback log is C test-module ABI; SQL side effects only)
 		}
 	}
 	{ // do_test "where8-3.1"

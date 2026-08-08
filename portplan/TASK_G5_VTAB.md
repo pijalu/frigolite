@@ -4,7 +4,10 @@
 > **Goal**: G5.VTAB.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.CREATE; G1.SELECT.
-> **Current state: PARTIAL** — generate_series + echo module exist.
+> **Current state: GREEN (applicable subset)** — generate_series + echo module
+> implemented; the 5 verify-command packages (vtab, vtab_, vtabA–C) pass; C-ABI
+> tests (echo callback log, schema/tclvar modules, shared-cache) are N-A with
+> evidence in `plans/NOT_APPLICABLE.md`.
 
 ## Objective
 Virtual tables work for the applicable vtab tests: `CREATE VIRTUAL TABLE ...
@@ -33,17 +36,16 @@ the planner negotiation — triage; keep correctness, N-A the pure-bestindex-out
 - `internal/vtab/` — frigolite module system.
 
 ## Steps
-- [ ] **G5.VTAB.1** Baseline vtab packages; record results. Commit:
-      `G5.VTAB.1: vtab baseline`.
-- [ ] **G5.VTAB.2** Pre-test suite. Commit: `G5.VTAB.2: vtab pre-test suite`.
-- [ ] **G5.VTAB.3** generate_series correctness (start/stop/step, empty, negative
-      step). Commit: `G5.VTAB.3: generate_series`.
-- [ ] **G5.VTAB.4** CREATE/DROP VIRTUAL TABLE + module arg parsing + metadata.
-      Commit: `G5.VTAB.4: vtab lifecycle`.
-- [ ] **G5.VTAB.5** Triage bestindex packages — keep correctness; N-A the pure
-      bestindex-output tests with evidence. Commit: `G5.VTAB.5: bestindex triage`.
-- [ ] **G5.VTAB.6** vtab family green (applicable subset). Commit:
-      `G5.VTAB.6: vtab TCL green`.
+- [x] **G5.VTAB.1** Baseline vtab packages; record results.
+- [x] **G5.VTAB.2** Pre-test suite (`frigolite_p5_vtab_test.go`, TestP5Vtab_*).
+- [x] **G5.VTAB.3** generate_series correctness (start/stop/step, empty, negative
+      step).
+- [x] **G5.VTAB.4** CREATE/DROP VIRTUAL TABLE + module arg parsing + metadata
+      (echo proxy, HIDDEN columns, temp-schema lifecycle).
+- [x] **G5.VTAB.5** Triage bestindex packages — pure bestindex-output tests
+      documented N-A (see `plans/NOT_APPLICABLE.md`); echo xFilter-string
+      checks N-A (C-module ABI).
+- [x] **G5.VTAB.6** vtab family green (applicable subset).
 
 ## Verify command
 ```bash

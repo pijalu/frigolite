@@ -161,6 +161,14 @@ func Test_autoindex1(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "b":
+						b = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "d":
+						d = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
 			_r = tclListAppend(_r, b, d)
 			_res = db.Exec("UPDATE t2 SET d=d+1")
 			if _res.Error != nil {

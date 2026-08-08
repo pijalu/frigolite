@@ -254,8 +254,8 @@ func Test_e_uri(t *testing.T) {
 					e = ""
 					_ = e // suppress unused warning
 					// sqlite3_close $DB (unsupported command, not transpiled)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _error, _res.Error, "2." + tn)
+					if e != _error {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", e, _error, "2." + tn)
 					}
 				}
 			}
@@ -314,8 +314,8 @@ func Test_e_uri(t *testing.T) {
 								_ = flags // suppress unused warning
 								// sqlite3_close [\n      sqlite3_open_v2 $uri $flags $defvfs\n    ... (unsupported command, not transpiled)
 								_ = vfs // TCL namespace variable (query)
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), vfs) {
-									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", vfs, _res.Error, "5." + tn)
+								if vfs != vfs {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", vfs, vfs, "5." + tn)
 								}
 							}
 						}
@@ -450,8 +450,8 @@ func Test_e_uri(t *testing.T) {
 										_ = e // suppress unused warning
 										// sqlite3_close $DB (unsupported command, not transpiled)
 										{ // do_test "9." + tn
-											if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
-												t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _error, _res.Error, "9." + tn)
+											if e != _error {
+												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", e, _error, "9." + tn)
 											}
 										}
 									}

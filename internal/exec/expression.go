@@ -14,6 +14,7 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // --- Expression evaluation ---
@@ -2117,6 +2118,44 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return colDefs
 	}
 	if vt, ok := stmts[0].(*sql.CreateVirtualTableStmt); ok && vt != nil {
+		// The echo module mirrors its underlying table: the vtab's columns
+		// are the source table's columns (with HIDDEN columns flagged).
+		if strings.EqualFold(vt.Module, "echo") && len(vt.Args) > 0 {
+			srcName := strings.Trim(vt.Args[0], "'\"")
+			if srcEntry, _, ferr := e.findTable(srcName); ferr == nil {
+				srcDefs := e.parseColumnDefs(srcEntry.Name, srcEntry.SQL)
+				// Deep-copy so mutating the Hidden flag does not corrupt the
+				// source table's cached column definitions.
+				colDefs := make([]sql.ColumnDef, len(srcDefs))
+				copy(colDefs, srcDefs)
+				for i := range colDefs {
+					// Apply the virtual-table HIDDEN rule: a standalone
+					// "hidden" word in the column type flags the column as
+					// hidden and is stripped from the declared type.
+					if typ, hidden := stripHiddenToken(colDefs[i].Type); hidden {
+						colDefs[i].Type = typ
+						colDefs[i].Hidden = true
+					}
+				}
+				e.colCache[tableName] = colDefs
+				return colDefs
+			}
+		}
+		// A module that declares column names (e.g. generate_series' "value"
+		// column) provides the real column definitions; the CREATE VIRTUAL
+		// TABLE arguments are module parameters, not column names.
+		if module, found := e.vtabs.Find(vt.Module); found {
+			if inst, cerr := module.Connect(vt.Args); cerr == nil {
+				if ci, ok := inst.(vtab.ColumnInfo); ok {
+					var colDefs []sql.ColumnDef
+					for _, name := range ci.Columns() {
+						colDefs = append(colDefs, sql.ColumnDef{Name: name, Type: ""})
+					}
+					e.colCache[tableName] = colDefs
+					return colDefs
+				}
+			}
+		}
 		var colDefs []sql.ColumnDef
 		for _, arg := range vt.Args {
 			if arg == "" {
@@ -2139,6 +2178,44 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return colDefs
 	}
 	return nil
+}
+
+// stripHiddenToken removes a standalone "hidden" word from a column type
+// string and reports whether one was found. This mirrors SQLite's
+// sqlite3VtabCallConnect post-processing of virtual-table declarations: after
+// declare_vtab, each column type is scanned for the token "hidden" (delimited
+// by spaces or string boundaries) which flags the column as HIDDEN and is
+// stripped from the declared type (vtabA.test: "b HIDDEN VARCHAR" declares a
+// column named b of type VARCHAR that is hidden).
+func stripHiddenToken(typ string) (string, bool) {
+	lower := strings.ToLower(typ)
+	i := 0
+	for i < len(lower) {
+		j := strings.Index(lower[i:], "hidden")
+		if j < 0 {
+			return typ, false
+		}
+		j += i
+		beforeOK := j == 0 || lower[j-1] == ' '
+		after := j + 6
+		afterOK := after >= len(lower) || lower[after] == ' '
+		if beforeOK && afterOK {
+			// Remove "hidden" and one surrounding space, preserving the rest.
+			var b strings.Builder
+			b.WriteString(typ[:j])
+			if j > 0 && typ[j-1] == ' ' {
+				b.Reset()
+				b.WriteString(typ[:j-1])
+			}
+			if after < len(typ) && typ[after] == ' ' {
+				after++
+			}
+			b.WriteString(typ[after:])
+			return strings.TrimSpace(b.String()), true
+		}
+		i = j + 6
+	}
+	return typ, false
 }
 
 // tableConstraints returns the table-level constraints (CHECK, UNIQUE, etc.)

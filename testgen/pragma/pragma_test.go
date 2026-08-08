@@ -681,6 +681,10 @@ func Test_pragma(t *testing.T) {
 		var _dbevalRb3 bool
 		var _dbevalErr4 error
 		for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
+				switch _dbevalRows2.Columns[_ci] {
+				}
+			}
 			_res = db.Exec("DELETE FROM t1")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
@@ -1412,6 +1416,10 @@ func Test_pragma(t *testing.T) {
 				var _dbevalRb12 bool
 				var _dbevalErr13 error
 				for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
+						switch _dbevalRows11.Columns[_ci] {
+						}
+					}
 					r = db.Query("pragma temp_store = 1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store = 1")

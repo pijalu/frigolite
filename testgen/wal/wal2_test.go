@@ -291,8 +291,8 @@ func Test_wal2(t *testing.T) {
 			}
 			{ // do_test "wal2-1." + tn + ".2"
 				_ = locks // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), wal_locks) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", wal_locks, _res.Error, "wal2-1." + tn + ".2")
+				if locks != wal_locks {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", locks, wal_locks, "wal2-1." + tn + ".2")
 				}
 			}
 		}
@@ -375,8 +375,8 @@ func Test_wal2(t *testing.T) {
 				}
 				{ // do_test "wal2-2." + tn + ".3"
 					_ = locks // TCL namespace variable (query)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKS) {
-						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKS, _res.Error, "wal2-2." + tn + ".3")
+					if locks != LOCKS {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", locks, LOCKS, "wal2-2." + tn + ".3")
 					}
 				}
 				{ // do_test "wal2-2." + tn + ".4"
@@ -510,8 +510,8 @@ func Test_wal2(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 				}
 				_ = locks // TCL namespace variable (query)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), expected_locks) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expected_locks, _res.Error, "wal2-5.1")
+				if locks != expected_locks {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", locks, expected_locks, "wal2-5.1")
 				}
 			}
 			db.Close()
@@ -752,8 +752,8 @@ func Test_wal2(t *testing.T) {
 					}
 					{ // do_test "wal2-6.4." + tn + ".2"
 						_ = locks // TCL namespace variable (query)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), L) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", L, _res.Error, "wal2-6.4." + tn + ".2")
+						if locks != L {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", locks, L, "wal2-6.4." + tn + ".2")
 						}
 					}
 				}

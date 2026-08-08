@@ -771,6 +771,10 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+				}
+			}
 			break
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 		}
@@ -786,6 +790,10 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalRb4 bool
 		var _dbevalErr5 error
 		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+				switch _dbevalRows3.Columns[_ci] {
+				}
+			}
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n > 40 }() {
 				continue
 			}
@@ -809,6 +817,10 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalRb7 bool
 		var _dbevalErr8 error
 		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+				switch _dbevalRows6.Columns[_ci] {
+				}
+			}
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n < 40 }() {
 				continue
 			}
@@ -1398,6 +1410,10 @@ func Test_tclsqlite(t *testing.T) {
 			var _dbevalRb10 bool
 			var _dbevalErr11 error
 			for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
+					switch _dbevalRows9.Columns[_ci] {
+					}
+				}
 				// SELECT * FROM t1 (unsupported command, not transpiled)
 				if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
 			}
@@ -1421,6 +1437,10 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalRb13 bool
 		var _dbevalErr14 error
 		for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
+				switch _dbevalRows12.Columns[_ci] {
+				}
+			}
 			// SELECT * FROM t1 (unsupported command, not transpiled)
 			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
 		}
@@ -1633,6 +1653,10 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalRb16 bool
 		var _dbevalErr17 error
 		for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows15.Columns); _ci++ {
+				switch _dbevalRows15.Columns[_ci] {
+				}
+			}
 			// SELECT a, b FROM tad WHERE 0 (unsupported command, not transpiled)
 			if _dbevalRb16 { _dbevalErr17 = errors.New("abort due to ROLLBACK") }
 		}
@@ -1651,6 +1675,10 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalRb19 bool
 		var _dbevalErr20 error
 		for _ri := 0; _ri < len(_dbevalRows18.Rows) && _dbevalErr20 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows18.Columns); _ci++ {
+				switch _dbevalRows18.Columns[_ci] {
+				}
+			}
 			// SELECT a, b FROM tad ORDER BY a (unsupported command, not transpiled)
 			if _dbevalRb19 { _dbevalErr20 = errors.New("abort due to ROLLBACK") }
 		}
@@ -1685,6 +1713,10 @@ func Test_tclsqlite(t *testing.T) {
 			var _dbevalRb22 bool
 			var _dbevalErr23 error
 			for _ri := 0; _ri < len(_dbevalRows21.Rows) && _dbevalErr23 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows21.Columns); _ci++ {
+					switch _dbevalRows21.Columns[_ci] {
+					}
+				}
 				db.Close()
 				if _dbevalRb22 { _dbevalErr23 = errors.New("abort due to ROLLBACK") }
 			}

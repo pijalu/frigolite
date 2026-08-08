@@ -75,7 +75,7 @@ func (r *Registry) List() []string {
 func (r *Registry) RegisterDefaults() {
 	r.Register("generate_series", &GenerateSeriesModule{})
 	r.Register("wholenumber", &WholeNumberModule{})
-	r.Register("echo", &NoopModule{ModuleName: "echo"})
+	r.Register("echo", &EchoModule{})
 	r.Register("fts3", &NoopModule{ModuleName: "fts3"})
 	r.Register("fts4", &NoopModule{ModuleName: "fts4"})
 	r.Register("fts5", &NoopModule{ModuleName: "fts5"})
@@ -237,6 +237,49 @@ func (c *wholeNumberCursor) Column(idx int) (interface{}, error) {
 }
 
 func (c *wholeNumberCursor) Close() error {
+	return nil
+}
+
+// EchoModule is the echo virtual-table module (CREATE VIRTUAL TABLE t USING
+// echo(real_table)). In SQLite's test suite the echo module is a test-only
+// C module that mirrors an underlying real table: its schema comes from the
+// source table's CREATE statement and reads/writes route through to the
+// source. Frigolite implements the echo semantics in the exec layer (the
+// engine resolves the source table and proxies rows/columns), so this module
+// type exists to mark the module as real (not a NoopModule stub): ALTER
+// TABLE ... RENAME and other vtab lifecycle operations treat echo tables as
+// first-class. The Create/Connect methods validate the argument form and
+// return an inert instance; the engine's echoVTabSource/virtualTableRows
+// handle the actual proxying.
+type EchoModule struct{}
+
+type echoVTab struct{}
+
+func (m *EchoModule) Create(args []string) (VirtualTable, error) {
+	return m.Connect(args)
+}
+
+func (m *EchoModule) Connect(args []string) (VirtualTable, error) {
+	return &echoVTab{}, nil
+}
+
+func (v *echoVTab) BestIndex(input []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (v *echoVTab) Open() (Cursor, error) {
+	return v, nil
+}
+
+func (c *echoVTab) Column(idx int) (interface{}, error) {
+	return nil, nil
+}
+
+func (c *echoVTab) Next() bool {
+	return false
+}
+
+func (c *echoVTab) Close() error {
 	return nil
 }
 

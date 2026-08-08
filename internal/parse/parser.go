@@ -3016,6 +3016,10 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 304: create_vtab ::= createkw VIRTUAL TABLE ifnotexists nm dbnm USING nm
 	case 304:
 		name := getString(getRHS(p, ruleNo, 5))
+		dbnm := getString(getRHS(p, ruleNo, 6)) // optional schema-qualified part
+		if dbnm != "" {
+			name = name + "." + dbnm
+		}
 		module := getString(getRHS(p, ruleNo, 8))
 		return &sql.CreateVirtualTableStmt{
 			Name:   name,

@@ -7,6 +7,7 @@ package permutations
 import (
 "github.com/pijalu/frigolite"
 "os"
+"path/filepath"
 "strings"
 "testing"
 )
@@ -203,7 +204,7 @@ func Test_permutations(t *testing.T) {
 	_ = alltests // suppress unused warning
 	for _, f := range tclSplitList("glob $testdir/*.test") {
 	_ = f // suppress unused warning
-		alltests = tclListAppend(alltests, "file tail $f")
+		alltests = tclListAppend(alltests, filepath.Base(f))
 	}
 	for _, f := range tclSplitList("glob -nocomplain                $testdir/../ext/rtree/*.test           $testdir/../ext/fts5/test/*.test       $testdir/../ext/expert/*.test          $testdir/../ext/lsm1/test/*.test       $testdir/../ext/recover/*.test         $testdir/../ext/rbu/*.test             $testdir/../ext/intck/*.test") {
 	_ = f // suppress unused warning
@@ -324,7 +325,7 @@ func Test_permutations(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	if tclBool("file tail $argv0" + " == \"permutations.test\"") {
+	if filepath.Base(argv0) == "permutations.test" {
 		// proc definition (not transpiled)
 		// main $argv (unsupported command, not transpiled)
 		var argv = ""

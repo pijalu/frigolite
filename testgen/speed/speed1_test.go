@@ -306,6 +306,10 @@ func Test_speed1(t *testing.T) {
 	var _dbevalRb1 bool
 	var _dbevalErr2 error
 	for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+		for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+			switch _dbevalRows0.Columns[_ci] {
+			}
+		}
 		sql += "SELECT c FROM t1 WHERE c='" + c + "';"
 		if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 	}

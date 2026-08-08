@@ -413,6 +413,11 @@ func (e *Engine) materializeTableInfoWithRow(ref sql.TableRef, row Row) ([]sql.C
 		if cd.Dropped {
 			continue
 		}
+		// PRAGMA table_info excludes hidden columns; table_xinfo includes
+		// them with a nonzero hidden flag (SQLite pragma.c).
+		if !xinfo && isHiddenColumnDef(cd) {
+			continue
+		}
 		notnull := int64(0)
 		if cd.NotNull {
 			notnull = 1
@@ -432,7 +437,11 @@ func (e *Engine) materializeTableInfoWithRow(ref sql.TableRef, row Row) ([]sql.C
 			dflt = renderDefaultValue(cd.Default)
 		}
 		if xinfo {
-			rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, dflt, pk, int64(0)})
+			hiddenFlag := int64(0)
+			if isHiddenColumnDef(cd) {
+				hiddenFlag = 1
+			}
+			rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, dflt, pk, hiddenFlag})
 		} else {
 			rows = append(rows, []interface{}{cid, cd.Name, typeName, notnull, dflt, pk})
 		}

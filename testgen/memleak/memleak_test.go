@@ -7,6 +7,7 @@ package memleak
 import (
 "github.com/pijalu/frigolite"
 "os"
+"path/filepath"
 "strconv"
 "testing"
 )
@@ -101,7 +102,7 @@ func Test_memleak(t *testing.T) {
 	}
 	for _, testfile := range tclSplitList(FILELIST) {
 	_ = testfile // suppress unused warning
-		tail = "file tail $testfile"
+		tail = filepath.Base(testfile)
 		_ = tail // suppress unused warning
 		if tclBool("lsearch -exact $EXCLUDE $tail" + ">=0") {
 			continue

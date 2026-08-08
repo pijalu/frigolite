@@ -7,6 +7,7 @@ package mallocA
 import (
 "github.com/pijalu/frigolite"
 "os"
+"path/filepath"
 "strconv"
 "testing"
 )
@@ -91,7 +92,7 @@ func Test_mallocAll(t *testing.T) {
 	_ = INCLUDE // suppress unused warning
 	for _, testfile := range tclSplitList(tclSort("-dictionary")) {
 	_ = testfile // suppress unused warning
-		tail = "file tail $testfile"
+		tail = filepath.Base(testfile)
 		_ = tail // suppress unused warning
 		if tclBool("lsearch -exact $EXCLUDE $tail" + ">=0") {
 			continue

@@ -654,6 +654,10 @@ func Test_triggerC(t *testing.T) {
 								var _dbevalRb7 bool
 								var _dbevalErr8 error
 								for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+									for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+										switch _dbevalRows6.Columns[_ci] {
+										}
+									}
 									if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
 										_res = db.Exec(" DROP TRIGGER tr1 ")
 										if _res.Error != nil {

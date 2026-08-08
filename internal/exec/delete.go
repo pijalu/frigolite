@@ -15,6 +15,10 @@ import (
 // --- DELETE ---
 
 func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
+	// Echo virtual tables write through to their source table.
+	if srcName, ok := e.echoVTabSource(s.Table); ok {
+		s.Table = srcName
+	}
 	if err := e.authorize(auth.ActionDelete, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}

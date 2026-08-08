@@ -2073,14 +2073,24 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// Store in schema
-	// Strip known schema prefixes (main, temp) but keep others (aux)
-	tableName := s.Name
-	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
-		prefix := strings.ToUpper(tableName[:dotIdx])
-		if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
-			tableName = tableName[dotIdx+1:]
+	// Resolve schema prefix and database context (mirroring execCreateTable):
+	// CREATE VIRTUAL TABLE temp.x stores the entry in the TEMP schema.
+	ctx := e.mainDB
+	rawName := s.Name
+	tableName := rawName
+	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
+		prefix := rawName[:dotIdx]
+		schemaUpper := strings.ToUpper(prefix)
+		if schemaUpper == "TEMP" || schemaUpper == "TEMPORARY" {
+			if tc := e.getDB("temp"); tc != nil {
+				ctx = tc
+			}
+		} else if schemaUpper != "MAIN" {
+			if db := e.getDB(prefix); db != nil {
+				ctx = db
+			}
 		}
+		tableName = rawName[dotIdx+1:]
 	}
 
 	entry := &schema.Entry{
@@ -2090,7 +2100,7 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 		RootPage: 0,
 		SQL:      fmt.Sprintf("CREATE VIRTUAL TABLE %s USING %s(%s)", tableName, s.Module, strings.Join(s.Args, ",")),
 	}
-	if err := e.schema.AddEntry(entry); err != nil {
+	if err := ctx.Schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
 
@@ -2108,8 +2118,51 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 	return &Result{}
 }
 
-// parseVTabSQL extracts the module name and argument list from a virtual
-// table's stored SQL ("CREATE VIRTUAL TABLE t USING mod(a, b)").
+// echoVTabSource resolves the underlying table name of an echo virtual table
+// reference ("t1e" for CREATE VIRTUAL TABLE t1e USING echo(t1)). It returns
+// ok=false when the name is not an echo vtab. The source is resolved through
+// the schema so a qualified reference (main.e) works like any table lookup.
+func (e *Engine) echoVTabSource(name string) (string, bool) {
+	entry, _, err := e.findTable(name)
+	if err != nil {
+		return "", false
+	}
+	moduleName, args, perr := parseVTabSQL(entry.SQL)
+	if perr != nil || !strings.EqualFold(moduleName, "echo") || len(args) == 0 {
+		return "", false
+	}
+	src := strings.Trim(args[0], "'\"")
+	// A pattern argument (echo(t1*)) is not a concrete source table.
+	if strings.ContainsAny(src, "*?") {
+		return "", false
+	}
+	return src, true
+}
+
+// rewriteEchoInsert rewrites an INSERT INTO <echo vtab> statement to target
+// the vtab's source table. The echo module declares the source table's schema
+// (with HIDDEN columns flagged), so a no-column-list INSERT (INSERT INTO e
+// VALUES(...)) supplies values for the source's non-hidden columns — the
+// hidden column is skipped, exactly as SQLite's vtab INSERT does (vtabA-1.4:
+// INSERT INTO t1e VALUES('a','c') on t1(a, b HIDDEN, c) stores a='a', c='c').
+func (e *Engine) rewriteEchoInsert(s *sql.InsertStmt, srcName string) {
+	// The vtab's column definitions (with HIDDEN flags applied) define the
+	// writable column set: a no-column-list INSERT supplies values for the
+	// non-hidden columns. The source table's raw defs still have "HIDDEN" in
+	// the type text, so resolve through the echo vtab's defs.
+	if len(s.Columns) == 0 {
+		if vtabEntry, _, ferr := e.findTable(s.Table); ferr == nil {
+			for _, cd := range e.parseColumnDefs(vtabEntry.Name, vtabEntry.SQL) {
+				if cd.Dropped || isHiddenColumnDef(cd) {
+					continue
+				}
+				s.Columns = append(s.Columns, cd.Name)
+			}
+		}
+	}
+	s.Table = srcName
+}
+
 func parseVTabSQL(sql string) (moduleName string, args []string, err error) {
 	upper := strings.ToUpper(sql)
 	idx := strings.Index(upper, " USING ")

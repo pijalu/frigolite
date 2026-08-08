@@ -1441,6 +1441,12 @@ func Test_where(t *testing.T) {
 			var _dbevalRb2 bool
 			var _dbevalErr3 error
 			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+					switch _dbevalRows1.Columns[_ci] {
+						case "detail":
+							detail = tclStr(_dbevalRows1.Rows[_ri][_ci])
+					}
+				}
 				if func() bool { parent_n, _parent_e := strconv.Atoi(parent); if _parent_e != nil { return false }; return parent_n != 0 }() {
 					continue
 				}

@@ -133,6 +133,10 @@ func Test_misuse(t *testing.T) {
 			var _dbevalRb1 bool
 			var _dbevalErr2 error
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+					switch _dbevalRows0.Columns[_ci] {
+					}
+				}
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			}
 			if _dbevalErr2 != nil {
@@ -178,6 +182,10 @@ func Test_misuse(t *testing.T) {
 			var _dbevalRb4 bool
 			var _dbevalErr5 error
 			for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+					switch _dbevalRows3.Columns[_ci] {
+					}
+				}
 				if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
 			}
 			if _dbevalErr5 != nil {
@@ -223,6 +231,10 @@ func Test_misuse(t *testing.T) {
 			var _dbevalRb7 bool
 			var _dbevalErr8 error
 			for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+					switch _dbevalRows6.Columns[_ci] {
+					}
+				}
 				if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
 			}
 			if _dbevalErr8 != nil {

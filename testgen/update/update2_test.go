@@ -283,6 +283,10 @@ func Test_update2(t *testing.T) {
 			var _dbevalRb4 bool
 			var _dbevalErr5 error
 			for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+					switch _dbevalRows3.Columns[_ci] {
+					}
+				}
 				var A_opcode = "0"
 				// incr A_opcode 1
 				{
