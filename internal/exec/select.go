@@ -94,7 +94,7 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 		outRows = append(outRows, outRow)
 	}
 
-	columns := e.buildColumnNames(s.Columns, colDefs)
+	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, nil)
 }
 
@@ -419,7 +419,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 			}
 		}
 		if allOuterRefs {
-			columns := e.buildColumnNames(s.Columns, colDefs)
+			columns := e.buildColumnNames(s.Columns, colDefs, s)
 			outRow := e.evalAggOverOuterRowsWithInner(s, e.outerRows, allRowMaps)
 			result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 			return e.finalizeSelectResult(result, s, allRowMaps)
@@ -435,7 +435,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		e.outerRow = allRowMaps[0] // provide first row for non-aggregate column refs
 		outRow := e.buildOutputRow(s.Columns, colDefs, allRowMaps[0])
 		e.outerRows = prevOuterRows
-		columns := e.buildColumnNames(s.Columns, colDefs)
+		columns := e.buildColumnNames(s.Columns, colDefs, s)
 		result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 		return e.finalizeSelectResult(result, s, allRowMaps)
 	}
@@ -479,7 +479,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
 	}
-	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: allRows}
 	// Preserve the joined row maps (with qualified keys like t4.a) for
 	// derived-table materialization when the query joins tables. Only do this
 	// when the SELECT projects plain columns (the join maps align with the
@@ -1457,7 +1457,7 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 		allRows[i] = e.buildOutputRow(s.Columns, viewColDefs, rowMap)
 	}
 	result := &Result{
-		Columns: e.buildColumnNames(s.Columns, viewColDefs),
+		Columns: e.buildColumnNames(s.Columns, viewColDefs, s),
 		Rows:    allRows,
 	}
 	// Preserve joined row maps (qualified keys) for derived-table reuse.
@@ -1469,7 +1469,7 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 
 // execSelectNoFrom handles SELECT without FROM clause.
 func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
-	columns := e.buildColumnNames(s.Columns, nil)
+	columns := e.buildColumnNames(s.Columns, nil, s)
 
 	// A FROM-less SELECT cannot resolve any column reference — SQLite raises
 	// "no such column" at prepare time (SELECT false.false → no such column:
@@ -1743,7 +1743,7 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 		// SELECT avg(b) FROM (empty) → NULL). Let the aggregate handler
 		// produce that row; only short-circuit when there are no aggregates.
 		if !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 {
-			return &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: [][]interface{}{}}
+			return &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: [][]interface{}{}}
 		}
 	}
 	allRowMaps := make([]RowMap, len(allRows))
@@ -1852,7 +1852,7 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 		allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
 	}
 
-	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: allRows}
 
 	// Apply DISTINCT
 	if s.Distinct {
@@ -1968,7 +1968,7 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	for i, rowMap := range allRowMaps {
 		allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
 	}
-	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: allRows}
 	// The CTE is fully materialized; clear the resolving guard so the outer
 	// query's compound merge (which may reference the CTE again in a later
 	// term) can re-read the CTE without reporting a circular reference.
@@ -2218,7 +2218,7 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	for i, rowMap := range allRowMaps {
 		outRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
 	}
-	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: outRows}
+	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: outRows}
 	// The CTE is fully materialized; clear the resolving guard so the outer
 	// query's compound merge (which may reference the CTE again in a later
 	// term, e.g. "SELECT x+1 FROM c1 ... UNION ALL SELECT 1+x FROM c1") can
@@ -3908,7 +3908,7 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 	// still evaluate over all rows.
 	rowMaps = e.reorderRowsForMinMax(s.Columns, rowMaps)
 
-	columns := e.buildColumnNames(s.Columns, nil)
+	columns := e.buildColumnNames(s.Columns, nil, s)
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		v, err := e.evalAggregateExpr(col.Expr, rowMaps)
@@ -3923,7 +3923,7 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 }
 
 func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
-	columns := e.buildColumnNames(s.Columns, nil)
+	columns := e.buildColumnNames(s.Columns, nil, s)
 	var outRow []interface{}
 	// Non-aggregate expressions in an aggregate query over zero rows are
 	// evaluated against a synthetic all-NULL row (SQLite semantics: the
@@ -3993,7 +3993,7 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 	// sorts first and numeric keys sort numerically.
 	e.sortGroupKeys(keyOrder, keyVals)
 
-	columns := e.buildColumnNames(s.Columns, colDefs)
+	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	var outRows [][]interface{}
 	var outMaps []RowMap
 
@@ -6872,7 +6872,63 @@ func (e *Engine) qualifiedStarColNames(tableRef string, colDefs []sql.ColumnDef,
 	// Resolve the referenced table's column names. Prefer the schema's full
 	// column list: a USING join merges the join column out of the colDefs, but
 	// t.* must still include it (SQLite emits the merged value for t.*).
-	colNames, err := e.tableColumnNames(tableRef)
+	// When tableRef is a join ALIAS (a in FROM t5 AS a) the schema lookup may
+	// find a same-named real table; the row map's alias-qualified keys are the
+	// ground truth for what the alias actually exposes.
+	var colNames []string
+	var err error
+	if row != nil {
+		if rm, ok := row.(RowMap); ok {
+			prefix := tableRef + "."
+			aliased := false
+			for k := range rm {
+				if strings.HasPrefix(k, prefix) {
+					aliased = true
+					break
+				}
+			}
+			if aliased {
+				var names []string
+				seen := make(map[string]bool)
+				for k := range rm {
+					if strings.HasPrefix(k, prefix) {
+						n := strings.TrimPrefix(k, prefix)
+						// Skip the rowid pseudo-columns: t.* never expands them.
+						if n == "rowid" || n == "_rowid_" || n == "oid" {
+							continue
+						}
+						if !seen[n] {
+							seen[n] = true
+							names = append(names, n)
+						}
+					}
+				}
+				// Prefer colDefs order when the alias maps to the join operand's
+				// real column names (colDefs is deterministic; map iteration is
+				// not).
+				if len(colDefs) > 0 {
+					var ordered []string
+					os := make(map[string]bool)
+					for _, cd := range colDefs {
+						if strings.HasPrefix(cd.Name, prefix) || !strings.Contains(cd.Name, ".") {
+							n := strings.TrimPrefix(cd.Name, prefix)
+							if seen[n] && !os[n] {
+								os[n] = true
+								ordered = append(ordered, n)
+							}
+						}
+					}
+					if len(ordered) == len(names) {
+						names = ordered
+					}
+				}
+				colNames = names
+			}
+		}
+	}
+	if len(colNames) == 0 {
+		colNames, err = e.tableColumnNames(tableRef)
+	}
 	if err != nil || len(colNames) == 0 {
 		// Fall back to the column defs in order. For each def, resolve it
 		// through the qualified key (alias.col) only — the short key is
@@ -6942,7 +6998,37 @@ func (e *Engine) qualifiedStarColNames(tableRef string, colDefs []sql.ColumnDef,
 }
 
 // buildColumnNames builds the column name list from SELECT columns.
-func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef) []string {
+// selectAliasTarget returns the underlying table name for a FROM/JOIN alias
+// in the SELECT, or "" when name is not an alias. Used to resolve qualified
+// stars: SELECT a.* FROM t5 AS a must resolve to t5 even when a real table
+// named a exists (a join alias shadows a same-named table).
+func selectAliasTarget(s *sql.SelectStmt, name string) string {
+	if s == nil || name == "" {
+		return ""
+	}
+	if s.From.As != "" && strings.EqualFold(s.From.As, name) {
+		return s.From.Name
+	}
+	if s.From.Name != "" && strings.EqualFold(s.From.Name, name) {
+		// An unaliased FROM table reference also resolves (t.* where t is
+		// the FROM table); the alias check above takes precedence when an
+		// alias matches, because an alias shadows a same-named table.
+		if s.From.As == "" {
+			return s.From.Name
+		}
+	}
+	for _, j := range s.Joins {
+		if j.Table.As != "" && strings.EqualFold(j.Table.As, name) {
+			return j.Table.Name
+		}
+		if j.Table.Name != "" && strings.EqualFold(j.Table.Name, name) && j.Table.As == "" {
+			return j.Table.Name
+		}
+	}
+	return ""
+}
+
+func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
 	var names []string
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
@@ -6952,7 +7038,16 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 				// stored as table.col in join colDefs); a non-conflicting
 				// column stays unprefixed in colDefs, so fall back to the
 				// schema column list for the complete set.
-				schemaNames, _ := e.tableColumnNames(ref.Table)
+				// A JOIN alias shadows a same-named real table: SELECT a.* FROM
+				// t5 AS a must resolve to t5's columns even when a table named
+				// a exists.
+				refTable := ref.Table
+				if sel != nil {
+					if t := selectAliasTarget(sel, ref.Table); t != "" {
+						refTable = t
+					}
+				}
+				schemaNames, _ := e.tableColumnNames(refTable)
 				if len(schemaNames) == 0 {
 					// Fall back to the column defs in order: prefixed defs for this
 					// operand (alias.col / table.col) plus the unprefixed defs
@@ -6973,7 +7068,7 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 					// Use the prefixed name when the column conflicted with a
 					// same-named column elsewhere (colDefs stores it as
 					// table.col), so result column names stay unique.
-					prefixed := ref.Table + "." + n
+					prefixed := refTable + "." + n
 					found := false
 					for _, cd := range colDefs {
 						if cd.Name == prefixed {

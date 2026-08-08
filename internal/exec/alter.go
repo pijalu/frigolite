@@ -4350,6 +4350,12 @@ func collectExprRefs(expr sql.Expr, refs *[]string) {
 		collectExprRefs(e.Operand, refs)
 	case *sql.InList:
 		collectExprRefs(e.Operand, refs)
+		// IN-list items may be column references (e.g. a IN (b)); they must be
+		// decoded with affinity in the WHERE lazy-decode path too, or they
+		// evaluate to NULL during filtering.
+		for _, item := range e.List {
+			collectExprRefs(item, refs)
+		}
 	case *sql.IsNull:
 		collectExprRefs(e.Operand, refs)
 	case *sql.IsNotNull:

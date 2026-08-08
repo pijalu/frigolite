@@ -1336,13 +1336,8 @@ func evalAdd(left, right interface{}) (interface{}, error) {
 }
 
 func evalConcat(left, right interface{}) (interface{}, error) {
-	// Extract collation info from any collatedValue operands
-	lv, lc := extractValue(left)
-	rv, rc := extractValue(right)
-	collation := lc
-	if collation == "" {
-		collation = rc
-	}
+	lv, _ := extractValue(left)
+	rv, _ := extractValue(right)
 
 	if lv == nil || rv == nil {
 		return nil, nil
@@ -1351,11 +1346,11 @@ func evalConcat(left, right interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	// If either operand had a collation, wrap the result so comparison
-	// operators can apply the collation correctly.
-	if collation != "" {
-		return &collatedValue{value: result, collation: collation}, nil
-	}
+	// SQLite's || operator returns a value with BINARY collation regardless
+	// of its operands' collations (datatype3.html: "the || operator...
+	// result has no collation sequence"). Propagating a column's COLLATE
+	// NOCASE through concatenation made comparisons like
+	// (a||'')=(b||'') use nocase when SQLite compares them case-sensitively.
 	return result, nil
 }
 
@@ -1641,12 +1636,20 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 					equal := true
 					sawRowNull := false
 					for i := range opRow {
-						l, _ := extractValue(opRow[i])
+						l, lColl := extractValue(opRow[i])
 						if util.UnwrapColumnValue(l) == nil || util.UnwrapColumnValue(subRow[i]) == nil {
 							sawRowNull = true
 							continue
 						}
-						if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i])) != 0 {
+						// Row-value elements are compared with the element's
+						// collation (a column declared COLLATE NOCASE applies
+						// to its IN list elements).
+						if lColl != "" {
+							if e.compareValuesCollate(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i]), lColl) != 0 {
+								equal = false
+								break
+							}
+						} else if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i])) != 0 {
 							equal = false
 							break
 						}
@@ -1668,11 +1671,22 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 						} else {
 							// The IN (subquery) comparison affinity is the merge of
 							// the subquery column's affinity and the LHS affinity
-							// (SQLite exprINAffinity / sqlite3CompareAffinity).
-							subqAff := e.subqueryOutputAffinity(subq.Select, 0)
-							lhsAff := util.ColumnAffinity(operand)
-							if compareWithAffinity(operand, subRow[0], mergeINAffinity(subqAff, lhsAff)) == 0 {
-								found = true
+							// (SQLite exprINAffinity / sqlite3CompareAffinity). An
+							// explicit COLLATE on the LHS (a COLLATE BINARY IN
+							// (SELECT ...)) overrides the collation; otherwise a
+							// column LHS contributes its column collation.
+							opRaw, opColl := extractValue(operand)
+							subRaw, _ := extractValue(subRow[0])
+							if opColl != "" {
+								if e.compareValuesCollate(util.UnwrapColumnValue(opRaw), util.UnwrapColumnValue(subRaw), opColl) == 0 {
+									found = true
+								}
+							} else {
+								subqAff := e.subqueryOutputAffinity(subq.Select, 0)
+								lhsAff := util.ColumnAffinity(operand)
+								if compareWithAffinity(operand, subRow[0], mergeINAffinity(subqAff, lhsAff)) == 0 {
+									found = true
+								}
 							}
 						}
 					}
@@ -1714,18 +1728,41 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 		if opIsRow && ivIsRow {
 			equal = true
 			for i := range opRow {
-				l, _ := extractValue(opRow[i])
+				l, lColl := extractValue(opRow[i])
 				r, _ := extractValue(ivRow[i])
-				if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(r)) != 0 {
+				// Row-value IN list elements use each element's collation
+				// (a column declared COLLATE NOCASE applies to its elements).
+				if lColl != "" {
+					if e.compareValuesCollate(util.UnwrapColumnValue(l), util.UnwrapColumnValue(r), lColl) != 0 {
+						equal = false
+						break
+					}
+				} else if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(r)) != 0 {
 					equal = false
 					break
 				}
 			}
 		} else {
-			// IN-list equality is a storage-class comparison (SQLite applies no
-			// affinity conversion for an IN list; e.g. 0 IN ('0') is false even
-			// when the item is a TEXT-affinity column of a derived table).
-			equal = util.CompareValues(util.UnwrapColumnValue(operand), util.UnwrapColumnValue(ival)) == 0
+			// SQLite's scalar IN-list comparison uses the LHS operand's
+			// affinity and collation (exprINAffinity uses the LHS affinity;
+			// IN's collation is the LHS operand's collation):
+			//   n IN (x)   — n NUMERIC: '1.0' coerced to 1.0, matches
+			//   d IN (lit) — d COLLATE NOCASE: compares case-insensitively
+			//   lit IN (d) — LHS literal: BINARY collation, no coercion
+			opRaw, opColl := extractValue(operand)
+			ivRaw, _ := extractValue(ival)
+			// Capture the LHS column affinity before unwrapping (a ColumnValue
+			// wrapper carries the declared affinity).
+			lhsAff := util.ColumnAffinity(opRaw)
+			opRaw = util.UnwrapColumnValue(opRaw)
+			ivRaw = util.UnwrapColumnValue(ivRaw)
+			if opColl != "" {
+				equal = e.compareValuesCollate(opRaw, ivRaw, opColl) == 0
+			} else if lhsAff != 0 {
+				equal = compareWithAffinity(opRaw, ivRaw, lhsAff) == 0
+			} else {
+				equal = util.CompareValues(opRaw, ivRaw) == 0
+			}
 		}
 		if equal {
 			found = true

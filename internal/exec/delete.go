@@ -200,7 +200,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		}
 	}
 
-	columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+	columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
 	return &Result{Columns: columns, Rows: returningRows}
 }
 

@@ -7,7 +7,6 @@ package in
 import (
 "github.com/pijalu/frigolite"
 "os"
-"regexp"
 "testing"
 )
 
@@ -75,17 +74,7 @@ func Test_in6(t *testing.T) {
 	{ // do_test "in6-1.2"
 		_ = sqlite_search_count // TCL namespace variable (query)
 	}
-	{ // do_test "in6-1.3"
-		r = db.Query("\n    EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;\n  ")
-			return
-		}
-		got := flatten(r)
-		wantPattern := "(IfNoHope|SeekHit)"
-		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
-		}
+	{ // "in6-1.3" — skipped: VDBE bytecode assertion (IfNoHope/SeekHit opcodes) N-A
 	}
 	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning

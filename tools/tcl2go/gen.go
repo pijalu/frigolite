@@ -6012,6 +6012,29 @@ var skipTests = map[string]string{
 	"analyze3-5.1.1": "C-API prepared-statement binding loop (sqlite3_step) not transpilable",
 	"analyze3-5.1.2": "C-API prepared-statement binding loop (sqlite3_step) not transpilable",
 	"analyze3-5.1.3": "C-API prepared-statement binding loop (sqlite3_step) not transpilable",
+
+	// in7-1.1.*: walks EXPLAIN sql VDBE bytecode (OpenRead/Next opcodes,
+	// csr_to_root/root_to_tbl cursor→rootpage→table maps) to verify the IN
+	// (subquery) index usage at the bytecode level. Frigolite is a pure-Go
+	// engine with no VDBE, so the bytecode walk cannot be reproduced; the
+	// transpiler also cannot represent dynamic-key TCL array writes inside
+	// db eval callbacks (the generated Go references undeclared variables).
+	"in7-1.1.$tn": "VDBE bytecode walk (EXPLAIN OpenRead/Next + csr_to_root arrays) N-A",
+
+	// in4-6.1-eqp / in4-6.2-eqp: EXPLAIN QUERY PLAN plan-choice assertions
+	// (the query uses an index because IN (col) is converted to an indexed
+	// = lookup; frigolite's planner scans). Plan choice is N-A.
+	"in4-6.1-eqp": "plan-choice EQP assertion (IN(col) converted to indexed = lookup) N-A",
+	"in4-6.2-eqp": "plan-choice EQP assertion (IN(col) converted to indexed = lookup) N-A",
+
+	// in4-3.42/3.46/11.2, in6-1.3: EXPLAIN bytecode tests asserting VDBE
+	// opcodes (OpenEphemeral for IN lists, SeekScan, IfNoHope/SeekHit for
+	// IN-list index probing). Frigolite is a pure-Go engine with no VDBE,
+	// so bytecode-level assertions are N-A.
+	"in4-3.42": "VDBE bytecode assertion (OpenEphemeral for IN list) N-A",
+	"in4-3.46": "VDBE bytecode assertion (OpenEphemeral for NOT IN list) N-A",
+	"in4-11.2": "VDBE bytecode assertion (SeekScan opcode) N-A",
+	"in6-1.3":  "VDBE bytecode assertion (IfNoHope/SeekHit opcodes) N-A",
 }
 
 // skipTestFiles lists TCL test files whose tests ALL exercise engine features

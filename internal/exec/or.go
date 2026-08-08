@@ -474,7 +474,7 @@ func (e *Engine) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entr
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
 	}
-	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: allRows}
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 

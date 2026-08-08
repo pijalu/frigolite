@@ -182,7 +182,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 
 	// If RETURNING clause was present, return result rows instead of change count
 	if s.HasReturning {
-		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
 		return &Result{Columns: columns, Rows: returningRows}
 	}
 

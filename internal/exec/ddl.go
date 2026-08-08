@@ -2467,7 +2467,7 @@ func (e *Engine) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry, ftsT
 	}
 
 	// Build column names
-	columns := e.buildColumnNames(s.Columns, colDefs)
+	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	result := &Result{Columns: columns, Rows: allRows}
 
 	// Apply DISTINCT, ORDER BY, LIMIT

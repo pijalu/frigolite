@@ -451,3 +451,83 @@ func TestP6_CtasExpressionColumn(t *testing.T) {
 		t.Errorf("CTAS table should have exactly 1 column, got %d", len(r.Rows))
 	}
 }
+
+// TestP6_INAffinityCollation covers in4/in5: SQLite's scalar IN-list
+// comparison uses the LHS operand's affinity and collation, and IN (subquery)
+// uses the merged affinity with explicit-COLLATE override.
+func TestP6_INAffinityCollation(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	// Column collation on the LHS applies to IN: d IN ('FUZZ') matches 'fuzz'
+	// (d is COLLATE NOCASE), while 'FUZZ' IN (d) is BINARY (LHS literal).
+	if err := db.Exec(`
+		CREATE TABLE t5(c INTEGER PRIMARY KEY, d TEXT COLLATE nocase);
+		INSERT INTO t5 VALUES(17, 'fuzz');
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, "SELECT 1 FROM t5 WHERE 'fuzz' IN (d) INTERSECT SELECT 1 FROM t5 WHERE d IN ('fuzz') INTERSECT SELECT 1 FROM t5 WHERE d IN ('FUZZ')")
+	if got != "1" {
+		t.Errorf("IN with LHS collation: got [%s] want [1]", got)
+	}
+	if r := db.Query("SELECT 1 FROM t5 WHERE 'FUZZ' IN (d)"); r.Error != nil || len(r.Rows) != 0 {
+		t.Errorf("'FUZZ' IN (d) should not match (BINARY LHS): rows=%v err=%v", r.Rows, r.Error)
+	}
+
+	// LHS affinity applies to IN: b NUMERIC IN (a TEXT '1.0') matches.
+	if err := db.Exec(`
+		CREATE TABLE t4b(a TEXT, b NUMERIC, c);
+		INSERT INTO t4b VALUES('1.0',1,4);
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, "SELECT c FROM t4b WHERE b IN (a)")
+	if got != "4" {
+		t.Errorf("IN with LHS affinity: got [%s] want [4]", got)
+	}
+	// A literal LHS has no affinity: 0 IN ('0') is false.
+	if r := db.Query("SELECT 1 WHERE 0 IN ('0')"); r.Error != nil || len(r.Rows) != 0 {
+		t.Errorf("0 IN ('0') should not match: rows=%v err=%v", r.Rows, r.Error)
+	}
+
+	// Explicit COLLATE overrides in IN (subquery): a COLLATE BINARY IN
+	// (SELECT DISTINCT a) is case-sensitive.
+	if err := db.Exec(`
+		CREATE TABLE t1(a COLLATE nocase);
+		INSERT INTO t1 VALUES('one');
+		INSERT INTO t1 VALUES('ONE');
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, "SELECT count(*) FROM t1 WHERE a COLLATE BINARY IN (SELECT DISTINCT a FROM t1)")
+	if got != "1" {
+		t.Errorf("COLLATE BINARY IN (subquery): got [%s] want [1]", got)
+	}
+}
+
+// TestP6_JoinAliasShadowing covers in-15.6: a JOIN alias shadows a same-named
+// real table for qualified-star expansion (SELECT a.* FROM t5 AS a must
+// resolve to t5's columns even when a table named a exists).
+func TestP6_JoinAliasShadowing(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE a(id INTEGER);
+		INSERT INTO a VALUES(1);
+		CREATE TABLE t5(id INTEGER PRIMARY KEY, name TEXT);
+		INSERT INTO t5 VALUES(1,'Alice'),(2,'Emma');
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, "SELECT a.* FROM t5 AS 'a' JOIN t5 AS 'b' ON b.id=a.id")
+	if got != "1 Alice 2 Emma" {
+		t.Errorf("alias-shadowed a.*: got [%s] want [1 Alice 2 Emma]", got)
+	}
+	// Plain SELECT * on the same join still shows both sides.
+	got = flattenQuery(t, db, "SELECT * FROM t5 AS 'a' JOIN t5 AS 'b' ON b.id=a.id")
+	if got != "1 Alice 1 Alice 2 Emma 2 Emma" {
+		t.Errorf("join SELECT *: got [%s]", got)
+	}
+}

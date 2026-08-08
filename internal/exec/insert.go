@@ -74,7 +74,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			if err != nil {
 				return &Result{Error: err}
 			}
-			columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+			columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
 			return &Result{Columns: columns, Rows: [][]interface{}{vals}}
 		}
 		return &Result{Changes: 1, LastInsertRowID: 1}
@@ -219,7 +219,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 
 	// If RETURNING clause was present, return result rows instead of change count
 	if s.HasReturning {
-		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
 		return &Result{Columns: columns, Rows: returningRows}
 	}
 	return &Result{Changes: totalChanges}
@@ -2143,7 +2143,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 	}
 	if s.HasReturning {
-		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
 		return &Result{Columns: columns, Rows: returningRows}
 	}
 	return &Result{Changes: changes, LastInsertRowID: e.lastRowID}
@@ -2337,7 +2337,7 @@ constraintsOK:
 		if err != nil {
 			return &Result{Error: err}
 		}
-		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
 		return &Result{Columns: columns, Rows: [][]interface{}{vals}}
 	}
 
