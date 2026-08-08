@@ -92,7 +92,7 @@ func Test_multiplex(t *testing.T) {
 	_putsMsg = "Skipping tests multiplex-*."
 	_ = _putsMsg
 	return
-	g_chunk_size = strconv.Itoa(expr (toInt(SQLITE_MAX_PAGE_SIZE)*16384))
+	g_chunk_size = tclExprWith("expr ($::SQLITE_MAX_PAGE_SIZE*16384)", map[string]string{"::SQLITE_MAX_PAGE_SIZE": SQLITE_MAX_PAGE_SIZE})
 	_ = g_chunk_size // suppress unused warning
 	g_max_chunks = "32"
 	_ = g_max_chunks // suppress unused warning
@@ -518,7 +518,7 @@ func Test_multiplex(t *testing.T) {
 				db.Close()
 				// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 			}
-			sz = strconv.Itoa(toInt(sz)+419)
+			sz = tclExprWith("$sz+419", map[string]string{"sz": sz})
 			_ = sz // suppress unused warning
 		}
 	}

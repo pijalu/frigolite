@@ -121,11 +121,11 @@ func Test_date5(t *testing.T) {
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { y_n, _y_e := strconv.Atoi(y); if _y_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return y_n+400*i_n <= 9999 }() {
-				y2 = strconv.Itoa(toInt(y)+400*toInt(i))
+				y2 = tclExprWith("$y+400*$i", map[string]string{"y": y, "i": i})
 				_ = y2 // suppress unused warning
 				date2 = tclFormat("%04d-%02d-%02d", y2, m, d)
 				_ = date2 // suppress unused warning
-				jd2 = strconv.Itoa(toInt(jd)+146097*toInt(i))
+				jd2 = tclExprWith("$jd+146097*$i", map[string]string{"jd": jd, "i": i})
 				_ = jd2 // suppress unused warning
 				{ // "date5-jd" + jd2
 					r = db.Query("\n      SELECT date(" + sqlLiteral(jd2) + ");\n    ")
@@ -162,7 +162,7 @@ func Test_date5(t *testing.T) {
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { y_n, _y_e := strconv.Atoi(y); if _y_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return y_n-400*i_n >= -4712 }() {
-				y2 = strconv.Itoa(toInt(y)-400*toInt(i))
+				y2 = tclExprWith("$y-400*$i", map[string]string{"y": y, "i": i})
 				_ = y2 // suppress unused warning
 				if func() bool { y2_n, _y2_e := strconv.Atoi(y2); if _y2_e != nil { return false }; return y2_n < 0 }() {
 					date2 = tclFormat("-%04d-%02d-%02d", tclExprWith("-$y2", map[string]string{"y2": y2}), m, d)
@@ -171,7 +171,7 @@ func Test_date5(t *testing.T) {
 					date2 = tclFormat("%04d-%02d-%02d", y2, m, d)
 					_ = date2 // suppress unused warning
 				}
-				jd2 = strconv.Itoa(toInt(jd)-146097*toInt(i))
+				jd2 = tclExprWith("$jd-146097*$i", map[string]string{"jd": jd, "i": i})
 				_ = jd2 // suppress unused warning
 				{ // "date5-jd" + jd2
 					r = db.Query("\n      SELECT date(" + sqlLiteral(jd2) + ");\n    ")

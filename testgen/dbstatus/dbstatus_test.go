@@ -265,7 +265,7 @@ func Test_dbstatus(t *testing.T) {
 				}
 				nSchema4 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0", "1")
 				_ = nSchema4 // suppress unused warning
-				nFree = strconv.Itoa(toInt(nAlloc1)-toInt(nAlloc2))
+				nFree = tclExprWith("$nAlloc1-$nAlloc2", map[string]string{"nAlloc1": nAlloc1, "nAlloc2": nAlloc2})
 				_ = nFree // suppress unused warning
 				if tclBool("*k $tn" + "\n         || " + "*x $tn" + " || " + AUTOVACUUM + "\n         || (" + "*y $tn" + " && " + STAT3 + ")\n         || (" + tcl_platform_os + " == \"Darwin\")") {
 					{ // do_test "dbstatus-2." + tn + ".ax"
@@ -374,7 +374,7 @@ func Test_dbstatus(t *testing.T) {
 					}
 					nStmt4 = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0", "1")
 					_ = nStmt4 // suppress unused warning
-					nFree = strconv.Itoa(toInt(nAlloc1)-toInt(nAlloc2))
+					nFree = tclExprWith("$nAlloc1-$nAlloc2", map[string]string{"nAlloc1": nAlloc1, "nAlloc2": nAlloc2})
 					_ = nFree // suppress unused warning
 					{ // do_test "dbstatus-3." + tn + ".a"
 						// expr $nStmt2 (not evaluated)

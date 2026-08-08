@@ -100,7 +100,7 @@ func Test_crash4(t *testing.T) {
 		{ // do_test "crash4-1." + cnt + ".1"
 			seed = "0"
 			_ = seed // suppress unused warning
-			delay = strconv.Itoa(int(toInt(cnt)/50)+1)
+			delay = tclExprWith("int($cnt/50)+1", map[string]string{"cnt": cnt})
 			_ = delay // suppress unused warning
 			file = tclExprWith("($cnt&1)?\"test.db\":\"test.db-journal\"", map[string]string{"cnt": cnt})
 			_ = file // suppress unused warning

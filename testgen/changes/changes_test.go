@@ -7,7 +7,6 @@ package changes
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strconv"
 "testing"
 )
 
@@ -81,7 +80,7 @@ func Test_changes(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
-			nBig = strconv.Itoa(toInt(nRow))
+			nBig = tclExprWith("$nRow", map[string]string{"nRow": nRow})
 			_ = nBig // suppress unused warning
 			{ // "1." + tn + ".0"
 				r = db.Query("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")

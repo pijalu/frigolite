@@ -104,7 +104,7 @@ func Test_corrupt4(t *testing.T) {
 	}
 	trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
 	_ = trunkpgno // suppress unused warning
-	baseaddr = strconv.Itoa((toInt(trunkpgno)-1)*1024)
+	baseaddr = tclExprWith("($trunkpgno-1)*1024", map[string]string{"trunkpgno": trunkpgno})
 	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
 		// hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4] (unsupported command, not transpiled)

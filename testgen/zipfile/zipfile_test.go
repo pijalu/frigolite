@@ -1236,7 +1236,7 @@ func Test_zipfile(t *testing.T) {
 					_ = zip // suppress unused warning
 					off = "\"504B0102\" $zip"
 					_ = off // suppress unused warning
-					off = strconv.Itoa(toInt(off) + 56)
+					off = tclExprWith("$off + 56", map[string]string{"off": off})
 					_ = off // suppress unused warning
 					zip = "$zip $off [expr $off+3] 1F1F"
 					_ = zip // suppress unused warning

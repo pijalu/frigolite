@@ -220,7 +220,7 @@ func Test_analyze9(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			a = strconv.Itoa(toInt(i) / 10)
+			a = tclExprWith("$i / 10", map[string]string{"i": i})
 			_ = a // suppress unused warning
 			b = "0"
 			_ = b // suppress unused warning

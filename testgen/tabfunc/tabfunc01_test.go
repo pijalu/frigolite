@@ -737,7 +737,7 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-722"
-		PTR3 = strconv.Itoa(toInt(PTR2)+16)
+		PTR3 = tclExprWith("$PTR2+16", map[string]string{"PTR2": PTR2})
 		_ = PTR3 // suppress unused warning
 		_res = db.Exec("\n    SELECT remember(987,inttoptr(" + sqlLiteral(PTR3) + "));\n    SELECT value FROM carray(inttoptr(" + sqlLiteral(PTR2) + "),5,'int64');\n  ")
 		if _res.Error != nil {

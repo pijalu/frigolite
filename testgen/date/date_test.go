@@ -6,10 +6,12 @@ package date
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "os"
 "strconv"
 "strings"
 "testing"
+"time"
 )
 
 func Test_date(t *testing.T) {
@@ -324,7 +326,7 @@ func Test_date(t *testing.T) {
 	// datetest 5.15 {datetime('1994-04-16 14:00:00 +05:00 Z')} NULL (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 2 (unsupported command, not transpiled)
+	function.SetLocaltimeHook(tclTestLocaltime)
 	// local_to_utc 6.1 {2000-10-29 12:00:00} {2000-10-29 12:30:00} (unsupported command, not transpiled)
 	// utc_to_local 6.2 {2000-10-29 12:30:00} {2000-10-29 12:00:00} (unsupported command, not transpiled)
 	// local_to_utc 6.3 {2000-10-30 12:00:00} {2000-10-30 11:30:00} (unsupported command, not transpiled)
@@ -515,7 +517,7 @@ func Test_date(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 0 (unsupported command, not transpiled)
+	function.SetLocaltimeHook(nil)
 	// datetest 7.1 {datetime(null)} NULL (unsupported command, not transpiled)
 	// datetest 7.2 {datetime('now',null)} NULL (unsupported command, not transpiled)
 	// datetest 7.3 {datetime('now','localtime',null)} NULL (unsupported command, not transpiled)
@@ -652,7 +654,7 @@ func Test_date(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "date-15.1"
-		// db function sleeper (variable-reader, inlined)
+		db.RegisterFunction("sleeper", func(args []interface{}) (interface{}, error) { time.Sleep(100 * time.Millisecond); return nil, nil }, 0, -1)
 		_res = db.Exec("\n     SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);\n  ")

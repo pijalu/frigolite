@@ -82,12 +82,10 @@ func Test_expridx1(t *testing.T) {
 	root = _dbone0
 	_ = root // suppress unused warning
 	{ // do_test "1.0.2"
-		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;\n  ")
 		}
-		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 	}
 	{ // "1.1.1"
 		_res = db.Exec("\n  UPDATE x1 SET b=21.0 WHERE rowid=20;\n")
@@ -249,12 +247,10 @@ func Test_expridx1(t *testing.T) {
 		root = _dbone2
 		_ = root // suppress unused warning
 		{ // do_test "2.1"
-			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;\n  ")
 			}
-			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		}
 		{ // "2.2"
 			_res = db.Exec("\n  UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0\n")
@@ -324,12 +320,10 @@ func Test_expridx1(t *testing.T) {
 		root = _dbone3
 		_ = root // suppress unused warning
 		{ // do_test "3.1"
-			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 			_res = db.Exec(" CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID; ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID; ")
 			}
-			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		}
 		{ // "3.2"
 			_res = db.Exec("\n  UPDATE x1 SET c=19 WHERE rowid=2;\n")
@@ -370,12 +364,10 @@ func Test_expridx1(t *testing.T) {
 		root = _dbone4
 		_ = root // suppress unused warning
 		{ // do_test "4.1"
-			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 			_res = db.Exec(" CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID; ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID; ")
 			}
-			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		}
 		{ // "4.2"
 			_res = db.Exec("\n  UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.9999999999999992 WHERE a=6;         -- -2 ULP\n  UPDATE x1 SET b=3.9999999999999988 WHERE a=7;         -- -3 ULP\n")

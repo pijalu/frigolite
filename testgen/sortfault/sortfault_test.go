@@ -153,7 +153,6 @@ func Test_sortfault(t *testing.T) {
 				_dbtmp0, err := frigolite.Open("test.db")
 				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit (unsupported command, not transpiled)
 				r = db.Query(" PRAGMA cache_size = 5 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")

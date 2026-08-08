@@ -124,7 +124,7 @@ func Test_trans2(t *testing.T) {
 			}
 		}
 	}
-	max_rowid = strconv.Itoa(toInt(i)-1)
+	max_rowid = tclExprWith("$i-1", map[string]string{"i": i})
 	_ = max_rowid // suppress unused warning
 	{ // do_test "trans2-1.1"
 		r = db.Query("\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
@@ -213,7 +213,7 @@ func Test_trans2(t *testing.T) {
 		j = "1"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 50 }() {
-			id = strconv.Itoa(toInt(max_rowid)+toInt(j))
+			id = tclExprWith("$max_rowid+$j", map[string]string{"max_rowid": max_rowid, "j": j})
 			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
 			rec = id + " " + tclRandomUUID() + "                        " + "1000" + " " + tclRandomUUID()
@@ -228,7 +228,7 @@ func Test_trans2(t *testing.T) {
 				}
 			}
 		}
-		max_rowid = strconv.Itoa(toInt(max_rowid)+toInt(j)-1)
+		max_rowid = tclExprWith("$max_rowid+$j-1", map[string]string{"max_rowid": max_rowid, "j": j})
 		_ = max_rowid // suppress unused warning
 		modsql = ""
 		_ = modsql // suppress unused warning

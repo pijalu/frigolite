@@ -89,9 +89,9 @@ func Test_swarmvtab(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			iMin = strconv.Itoa(toInt(i)*10 + 1)
+			iMin = tclExprWith("$i*10 + 1", map[string]string{"i": i})
 			_ = iMin // suppress unused warning
-			iMax = strconv.Itoa(toInt(iMin)+9)
+			iMax = tclExprWith("$iMin+9", map[string]string{"iMin": iMin})
 			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")
@@ -226,9 +226,9 @@ func Test_swarmvtab(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			iMin = strconv.Itoa(toInt(i)*10 + 1)
+			iMin = tclExprWith("$i*10 + 1", map[string]string{"i": i})
 			_ = iMin // suppress unused warning
-			iMax = strconv.Itoa(toInt(iMin)+9)
+			iMax = tclExprWith("$iMin+9", map[string]string{"iMin": iMin})
 			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")

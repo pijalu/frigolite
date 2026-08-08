@@ -1424,7 +1424,6 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						// proc definition (not transpiled)
-						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2.1.1"
 							// test_rename_parent {CREATE TABLE t1(a REFERENCES t2)} t2 t3 (unsupported command, not transpiled)
 						}
@@ -1434,7 +1433,6 @@ func Test_fkey2(t *testing.T) {
 						{ // do_test "fkey2-14.2.1.3"
 							// test_rename_parent {CREATE TABLE t1(a REFERENCES "t2")} t2 t3 (unsupported command, not transpiled)
 						}
-						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2.2.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
@@ -1545,7 +1543,6 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM temp.sqlite_master WHERE name='t2';\n    ")
 							}
 						}
-						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2tmp.1.1"
 							// test_rename_parent {CREATE TABLE t1(a REFERENCES t2)} t2 t3 (unsupported command, not transpiled)
 						}
@@ -1555,7 +1552,6 @@ func Test_fkey2(t *testing.T) {
 						{ // do_test "fkey2-14.2tmp.1.3"
 							// test_rename_parent {CREATE TABLE t1(a REFERENCES "t2")} t2 t3 (unsupported command, not transpiled)
 						}
-						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2tmp.2.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
@@ -1666,7 +1662,6 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM aux.sqlite_master WHERE name='t2';\n    ")
 							}
 						}
-						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2aux.1.1"
 							// test_rename_parent {CREATE TABLE t1(a REFERENCES t2)} t2 t3 (unsupported command, not transpiled)
 						}
@@ -1676,7 +1671,6 @@ func Test_fkey2(t *testing.T) {
 						{ // do_test "fkey2-14.2aux.1.3"
 							// test_rename_parent {CREATE TABLE t1(a REFERENCES "t2")} t2 t3 (unsupported command, not transpiled)
 						}
-						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2aux.2.1"
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {

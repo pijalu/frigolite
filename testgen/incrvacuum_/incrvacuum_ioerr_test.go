@@ -161,7 +161,7 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 		nPage2 = tclExecSQL(db, "{pragma page_count} db1")
 		_ = nPage2 // suppress unused warning
 		{ // do_test "incrvacuum-ioerr-4." + iTest + ".2"
-			shrink = strconv.Itoa(toInt(nPage)-toInt(nPage2))
+			shrink = tclExprWith("$nPage-$nPage2", map[string]string{"nPage": nPage, "nPage2": nPage2})
 			_ = shrink // suppress unused warning
 			// expr $shrink==0 || $shrink==5 || ($nFree<5 && $shrink==$nFree) (not evaluated)
 		}

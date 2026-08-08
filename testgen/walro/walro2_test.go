@@ -110,7 +110,7 @@ func Test_walro2(t *testing.T) {
 			TN = tclExprWith("$bZeroShm+1]-$pgsz", map[string]string{"bZeroShm": bZeroShm, "pgsz": pgsz})
 			_ = TN // suppress unused warning
 			// do_multiclient_test tn {\n      \n      # Close all connections and delete...} (unsupported command, not transpiled)
-			pgsz = strconv.Itoa(toInt(pgsz)*2)
+			pgsz = tclExprWith("$pgsz*2", map[string]string{"pgsz": pgsz})
 			_ = pgsz // suppress unused warning
 		}
 	}

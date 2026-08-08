@@ -169,9 +169,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		lwr = strconv.Itoa(toInt(i)*100)
+		lwr = tclExprWith("$i*100", map[string]string{"i": i})
 		_ = lwr // suppress unused warning
-		upr = strconv.Itoa((toInt(i)+10)*100)
+		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
@@ -228,9 +228,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr = strconv.Itoa(toInt(i)*100)
+		lwr = tclExprWith("$i*100", map[string]string{"i": i})
 		_ = lwr // suppress unused warning
-		upr = strconv.Itoa((toInt(i)+10)*100)
+		upr = tclExprWith("($i+10)*100", map[string]string{"i": i})
 		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
@@ -327,9 +327,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr = strconv.Itoa(toInt(i)*2)
+		lwr = tclExprWith("$i*2", map[string]string{"i": i})
 		_ = lwr // suppress unused warning
-		upr = strconv.Itoa((toInt(i)+1)*2)
+		upr = tclExprWith("($i+1)*2", map[string]string{"i": i})
 		_ = upr // suppress unused warning
 		sql += "UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";"
 		// incr i 1

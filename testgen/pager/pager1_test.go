@@ -1806,7 +1806,7 @@ func Test_pager1(t *testing.T) {
 							if err != nil { t.Fatal(err) }
 							db.Close()
 							// tv delete (unsupported command, not transpiled)
-							ii = strconv.Itoa(toInt(file_len)-5)
+							ii = tclExprWith("$::file_len-5", map[string]string{"::file_len": file_len})
 							_ = ii // suppress unused warning
 							for func() bool { l_n, l_e := strconv.Atoi(ii); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(tclExprWith("$::file_len+20", map[string]string{"::file_len": file_len})); if r_e != nil { return false }; return l_n < r_n }() {
 								// testvfs tv -default 1 -mxpathname $ii (unsupported command, not transpiled)

@@ -576,7 +576,6 @@ func Test_sort(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
-			// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit (unsupported command, not transpiled)
 			r = db.Query("PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)

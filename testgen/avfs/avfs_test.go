@@ -302,7 +302,7 @@ func Test_avfs(t *testing.T) {
 		// adb close (unsupported command, not transpiled)
 		adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
-		adba = strconv.Itoa((toInt(adbSz) + 0.1)/toInt(adaSz))
+		adba = tclExprWith("($adbSz + 0.1)/$adaSz", map[string]string{"adbSz": adbSz, "adaSz": adaSz})
 		_ = adba // suppress unused warning
 		results = "concat $results [lrange $qr 0 2]"
 		_ = results // suppress unused warning

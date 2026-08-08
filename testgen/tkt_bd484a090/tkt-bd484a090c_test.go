@@ -6,6 +6,7 @@ package tkt_bd484a090
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "os"
 "testing"
 )
@@ -63,7 +64,7 @@ func Test_tkt_bd484a090c(t *testing.T) {
 	{ // do_test "1.2"
 		_ = tclLIndex("catchsql { SELECT datetime('now', 'utc') }", "0") // lindex result
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1 (unsupported command, not transpiled)
+	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1 (unsupported mode)
 	{ // do_test "2.1"
 		_res = db.Exec(" SELECT datetime('now', 'localtime') ")
 		_ = _res // catchsql
@@ -72,5 +73,5 @@ func Test_tkt_bd484a090c(t *testing.T) {
 		_res = db.Exec(" SELECT datetime('2000-01-01', 'utc') ")
 		_ = _res // catchsql
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 0 (unsupported command, not transpiled)
+	function.SetLocaltimeHook(nil)
 }

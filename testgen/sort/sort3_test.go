@@ -102,7 +102,6 @@ func Test_sort3(t *testing.T) {
 			limit := _items1[_idx1+1]
 			_ = limit // suppress unused warning
 			_ = _idx1
-				// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit (unsupported command, not transpiled)
 				{ // "sort3-2." + itest — skipped: CTE (WITH) not supported
 				}
 			}

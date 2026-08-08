@@ -7,7 +7,6 @@ package corruptB
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strconv"
 "testing"
 )
 
@@ -132,7 +131,7 @@ func Test_corruptB(t *testing.T) {
 		db.Close()
 		iRightChild = "hexio_get_int [hexio_read test.db [expr $offset+8] 4]"
 		_ = iRightChild // suppress unused warning
-		c_offset = strconv.Itoa((toInt(iRightChild)-1)*1024)
+		c_offset = tclExprWith("($iRightChild-1)*1024", map[string]string{"iRightChild": iRightChild})
 		_ = c_offset // suppress unused warning
 		// hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
@@ -161,7 +160,7 @@ func Test_corruptB(t *testing.T) {
 		_ = cell_offset // suppress unused warning
 		iLeftChild = "hexio_get_int [hexio_read test.db [expr $offset+$cell_offset] 4]"
 		_ = iLeftChild // suppress unused warning
-		c_offset = strconv.Itoa((toInt(iLeftChild)-1)*1024)
+		c_offset = tclExprWith("($iLeftChild-1)*1024", map[string]string{"iLeftChild": iLeftChild})
 		_ = c_offset // suppress unused warning
 		// hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
@@ -208,9 +207,9 @@ func Test_corruptB(t *testing.T) {
 		}
 		t2_root = tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 't2'}")
 		_ = t2_root // suppress unused warning
-		iPage = strconv.Itoa((toInt(t2_root)-1)*1024)
+		iPage = tclExprWith("($t2_root-1)*1024", map[string]string{"t2_root": t2_root})
 		_ = iPage // suppress unused warning
-		iCellarray = strconv.Itoa(toInt(iPage) + 8)
+		iCellarray = tclExprWith("$iPage + 8", map[string]string{"iPage": iPage})
 		_ = iCellarray // suppress unused warning
 		iRecord = "hexio_get_int [hexio_read test.db $iCellarray 2]"
 		_ = iRecord // suppress unused warning

@@ -766,7 +766,6 @@ func Test_altercol(t *testing.T) {
 							}
 						}
 					}
-					// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 					{ // "14.1"
 						_res = db.Exec("\n  CREATE TABLE ddd(sql, type, object, db, tbl, icol, znew, bquote);\n  INSERT INTO ddd VALUES(\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', -1, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', 2, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'notable', 0, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'ddd', -1, 'zzz', 0\n  );\n")
 						if _res.Error != nil {
@@ -785,7 +784,6 @@ func Test_altercol(t *testing.T) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
-					// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 					{ // "14.3"
 						_res = db.Exec("\n  SELECT sqlite_rename_column(0,0,0,0,0,0,0,0,0);\n")
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_column") {

@@ -206,7 +206,7 @@ func Test_cse(t *testing.T) {
 			_r = strconv.Itoa(toInt(j)+int(rand()*5))
 			_ = _r // suppress unused warning
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n > 49 }() {
-				_r = strconv.Itoa(99-toInt(_r))
+				_r = tclExprWith("99-$r", map[string]string{"r": _r})
 				_ = _r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + _r)

@@ -507,7 +507,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-5.14.4"
-		np1 = strconv.Itoa(toInt(SQLITE_LIMIT_LENGTH) + 1)
+		np1 = tclExprWith("$SQLITE_LIMIT_LENGTH + 1", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})
 		_ = np1 // suppress unused warning
 		str1 = "A $np1" // TCL namespace variable
 		_ = str1 // suppress unused warning
@@ -579,7 +579,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	{ // do_test "sqllimits1-5.14.8"
-		n = strconv.Itoa(toInt(np1)-1)
+		n = tclExprWith("$np1-1", map[string]string{"np1": np1})
 		_ = n // suppress unused warning
 		{
 			var res string // catch result ("0"=ok, "1"=error)

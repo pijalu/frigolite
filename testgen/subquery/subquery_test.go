@@ -578,7 +578,6 @@ func Test_subquery(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "subquery-11.1"
 		r = db.Query("\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")
 		if r.Error != nil {

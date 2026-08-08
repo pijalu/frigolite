@@ -61,7 +61,7 @@ func Test_date4(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	if tcl_platform_os == "Linux" {
-		if tclBool("\"\" == " + "strftime {%P} 1") {
+		if "" == tclStrftime("%P", "1") {
 			FMT = "%d,%e,%F,%H,%I,%j,%m,%M,%u,%w,%W,%Y,%%,%p,%U,%V,%G,%g"
 			_ = FMT // suppress unused warning
 		} else {
@@ -75,7 +75,7 @@ func Test_date4(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 24858 }() {
-		TS = strconv.Itoa(toInt(i)*86390)
+		TS = tclExprWith("$i*86390", map[string]string{"i": i})
 		_ = TS // suppress unused warning
 		{ // "date4-" + i
 			r = db.Query("\n    SELECT strftime(" + sqlLiteral(FMT) + "," + sqlLiteral(TS) + ",'unixepoch');\n  ")
@@ -84,7 +84,7 @@ func Test_date4(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "strftime $FMT $TS"
+			want := tclStrftime(FMT, TS)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

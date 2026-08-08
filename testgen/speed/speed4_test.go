@@ -205,7 +205,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = strconv.Itoa(toInt(ii)*2)
+		ii2 = tclExprWith("$ii*2", map[string]string{"ii": ii})
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
@@ -260,7 +260,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = strconv.Itoa(toInt(ii)*2)
+		ii2 = tclExprWith("$ii*2", map[string]string{"ii": ii})
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2

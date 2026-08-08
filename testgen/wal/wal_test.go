@@ -1339,7 +1339,7 @@ func Test_wal(t *testing.T) {
 						}
 					}
 				}
-				i = strconv.Itoa(toInt(SQLITE_MAX_ATTACHED)-1)
+				i = tclExprWith("$SQLITE_MAX_ATTACHED-1", map[string]string{"SQLITE_MAX_ATTACHED": SQLITE_MAX_ATTACHED})
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
 					{ // do_test "wal-26.2." + i

@@ -7,7 +7,6 @@ package tkt_38cb5df
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strconv"
 "testing"
 )
 
@@ -318,7 +317,7 @@ func Test_tkt_38cb5df375(t *testing.T) {
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
-		jj = strconv.Itoa(7-toInt(ii))
+		jj = tclExprWith("7-$ii", map[string]string{"ii": ii})
 		_ = jj // suppress unused warning
 		{ // do_test "tkt-38cb5df375.51." + ii
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + sqlLiteral(ii) + ")\n      ORDER BY a DESC\n      LIMIT " + sqlLiteral(jj) + ";\n    ")

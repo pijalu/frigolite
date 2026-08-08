@@ -350,7 +350,6 @@ func Test_altertab(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );\n  ")
 		}
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "7.2"
 		r = db.Query("\n    SELECT \n    sqlite_rename_table(db, 0, 0, sql, zOld, zNew, bTemp)\n    FROM ddd;\n  ")
 		if r.Error != nil {
@@ -363,7 +362,6 @@ func Test_altertab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pijalu/frigolite"
 )
@@ -28,6 +29,134 @@ var tcl_platform_byteOrder = "littleEndian"
 var tcl_platform_os = "Darwin"
 var tcl_platform_pointerSize = "8"
 var tcl_platform_wordSize = "8"
+
+// tclTestLocaltime is the Go equivalent of SQLite's test1.c testLocaltime
+// (installed by sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 2):
+// even days (from 1970) are UTC-30min, odd days UTC+30min, and the specific
+// timestamp 959609760 (2000-05-29 14:16:00 UTC) fails so the date/time
+// functions report "local time unavailable". The date tests rely on this.
+func tclTestLocaltime(unixSec int64) (int64, error) {
+	if unixSec == 959609760 {
+		return 0, fmt.Errorf("local time unavailable")
+	}
+	if (unixSec/86400)&1 != 0 {
+		return unixSec + 1800, nil // 30 minutes later on odd days
+	}
+	return unixSec - 1800, nil // 30 minutes earlier on even days
+}
+
+// tclStrftime implements the TCLCMD strftime FORMAT UNIXTIMESTAMP (test1.c
+// strftime_cmd): the C-library strftime() in UTC. The transpiler cannot run
+// the C library at generation time, so generated tests call this helper, which
+// reproduces C strftime for the format codes used by date4.test (on macOS the
+// FMT is "%d,%e,%F,%H,%I,%j,%p,%R,%u,%w,%W,%%"; glibc/musl builds add
+// %k,%l,%P,%m,%M,%U,%V,%G,%g). All conversions are computed from the UTC
+// time, matching gmtime() in strftime_cmd.
+func tclStrftime(format string, ts string) string {
+	t, err := strconv.ParseFloat(ts, 64)
+	if err != nil {
+		return ""
+	}
+	u := time.Unix(int64(t), 0).UTC()
+	var b strings.Builder
+	for i := 0; i < len(format); i++ {
+		c := format[i]
+		if c != '%' {
+			b.WriteByte(c)
+			continue
+		}
+		i++
+		if i >= len(format) {
+			break
+		}
+		switch format[i] {
+		case 'd':
+			b.WriteString(fmt.Sprintf("%02d", u.Day()))
+		case 'e':
+			b.WriteString(fmt.Sprintf("%2d", u.Day()))
+		case 'F':
+			b.WriteString(fmt.Sprintf("%04d-%02d-%02d", u.Year(), int(u.Month()), u.Day()))
+		case 'H':
+			b.WriteString(fmt.Sprintf("%02d", u.Hour()))
+		case 'k':
+			b.WriteString(fmt.Sprintf("%2d", u.Hour()))
+		case 'I':
+			h := u.Hour() % 12
+			if h == 0 {
+				h = 12
+			}
+			b.WriteString(fmt.Sprintf("%02d", h))
+		case 'l':
+			h := u.Hour() % 12
+			if h == 0 {
+				h = 12
+			}
+			b.WriteString(fmt.Sprintf("%2d", h))
+		case 'j':
+			b.WriteString(fmt.Sprintf("%03d", u.YearDay()))
+		case 'm':
+			b.WriteString(fmt.Sprintf("%02d", int(u.Month())))
+		case 'M':
+			b.WriteString(fmt.Sprintf("%02d", u.Minute()))
+		case 'p':
+			if u.Hour() < 12 {
+				b.WriteString("AM")
+			} else {
+				b.WriteString("PM")
+			}
+		case 'P':
+			if u.Hour() < 12 {
+				b.WriteString("am")
+			} else {
+				b.WriteString("pm")
+			}
+		case 'R':
+			b.WriteString(fmt.Sprintf("%02d:%02d", u.Hour(), u.Minute()))
+		case 'S':
+			b.WriteString(fmt.Sprintf("%02d", u.Second()))
+		case 's':
+			b.WriteString(strconv.FormatInt(int64(t), 10))
+		case 'T':
+			b.WriteString(fmt.Sprintf("%02d:%02d:%02d", u.Hour(), u.Minute(), u.Second()))
+		case 'u':
+			wd := int(u.Weekday()) // 0=Sunday
+			if wd == 0 {
+				wd = 7
+			}
+			b.WriteString(strconv.Itoa(wd))
+		case 'w':
+			b.WriteString(strconv.Itoa(int(u.Weekday())))
+		case 'W':
+			// Week of year, Monday-first, matching C strftime (and SQLite's
+			// (daysAfterJan01-daysAfterMonday+7)/7 with 0-based day of year):
+			// days before the first Monday are week 00.
+			day0 := u.YearDay() - 1
+			wm := (int(u.Weekday()) + 6) % 7 // 0=Monday..6=Sunday
+			b.WriteString(fmt.Sprintf("%02d", (day0-wm+7)/7))
+		case 'U':
+			// Week of year, Sunday-first: days before the first Sunday are week 00.
+			day0 := u.YearDay() - 1
+			ws := int(u.Weekday()) // 0=Sunday..6=Saturday
+			b.WriteString(fmt.Sprintf("%02d", (day0-ws+7)/7))
+		case 'Y':
+			b.WriteString(fmt.Sprintf("%04d", u.Year()))
+		case 'G', 'g':
+			// ISO week-based year (the year of the Thursday of this week).
+			y, _ := u.ISOWeek()
+			if format[i] == 'g' {
+				b.WriteString(fmt.Sprintf("%02d", y%100))
+			} else {
+				b.WriteString(fmt.Sprintf("%04d", y))
+			}
+		case 'V':
+			_, w := u.ISOWeek()
+			b.WriteString(fmt.Sprintf("%02d", w))
+		case '%':
+			b.WriteByte('%')
+		}
+	}
+	return b.String()
+}
 var _tcl_platform_platform = "unix"
 var _tcl_platform_byteOrder = "littleEndian"
 var _tcl_platform_os = "unix"
@@ -900,15 +1029,22 @@ func evalSimpleArith(s string) (string, error) {
 		case c >= '0' && c <= '9' || c == '.':
 			num += string(c)
 		case c == '+' || c == '-' || c == '*' || c == '/':
+			// A '-' is a unary minus only when no complete number is pending:
+			// num must be empty or a lone sign. When num holds digits (e.g.
+			// "2460369.5" before the '-' in "2460369.5-146097*6"), the '-' is
+			// a binary operator and num flushes as the left operand. Consecutive
+			// unary minuses (e.g. "--376" from expr {-$y2} where y2 is already
+			// negative) toggle the sign: "-" then "-" yields a positive literal.
+			if c == '-' && (num == "" || num == "-") {
+				if num == "-" {
+					num = "" // double negation: positive
+				} else {
+					num = "-"
+				}
+				continue
+			}
 			if err := flush(); err != nil {
 				return "", err
-			}
-			// Handle unary minus: if the stack is empty or the previous token
-			// was an operator or '(', treat '-' as a sign on the next number.
-			if c == '-' && (len(stack) == 0 || (len(ops) > 0 && prec(ops[len(ops)-1]) == 0) || num != "") {
-				// Unary minus: apply to next literal.
-				num = "-"
-				continue
 			}
 			for len(ops) > 0 && prec(ops[len(ops)-1]) >= prec(c) {
 				if err := apply(); err != nil {
@@ -954,7 +1090,19 @@ func evalSimpleArith(s string) (string, error) {
 	if stack[0] == float64(int64(stack[0])) {
 		return fmt.Sprintf("%d", int64(stack[0])), nil
 	}
-	return fmt.Sprintf("%g", stack[0]), nil
+	// Render like TCL expr: fixed notation for values in the range where TCL
+	// uses it (|x| >= 1e-4 and < 1e17), scientific otherwise. Go's %g would
+	// switch to exponent form at 1e6, which TCL does not (e.g. TCL renders
+	// 2606466.5 as "2606466.5", not "2.6064665e+06").
+	f := stack[0]
+	a := f
+	if a < 0 {
+		a = -a
+	}
+	if a >= 1e-4 && a < 1e17 {
+		return strconv.FormatFloat(f, 'f', -1, 64), nil
+	}
+	return strconv.FormatFloat(f, 'e', -1, 64), nil
 }
 
 // tclStringRange implements TCL string range command.

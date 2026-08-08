@@ -573,7 +573,6 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, sum(b) FROM t2 GROUP BY a;\n  ")
 		}
 	}
-	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented
 	}
 	// foreach {tn sql} "1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }"
@@ -587,7 +586,6 @@ func Test_alter(t *testing.T) {
 			{ // "alter-9.2." + tn — skipped: test-only internal function SQLITE_RENAME_TABLE not implemented
 			}
 		}
-		// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 		{ // "alter-9.3"
 			_res = db.Exec("\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_table") {

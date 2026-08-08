@@ -63,7 +63,6 @@ func Test_alterqf(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "alterqf"
 	_ = testprefix // suppress unused warning
-	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	db.SetDQS(true, true)
 	db.SetDQS(true, true)
 	{ // "1.0"

@@ -94,7 +94,7 @@ func Test_sidedelete(t *testing.T) {
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		n = strconv.Itoa((toInt(i)+2)/2)
+		n = tclExprWith("($i+2)/2", map[string]string{"i": i})
 		_ = n // suppress unused warning
 		{ // do_test "sidedelete-2." + i + ".1"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a<=" + sqlLiteral(i) + ";\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a<=" + sqlLiteral(i) + "/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;\n    ")
@@ -121,7 +121,7 @@ func Test_sidedelete(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		n = strconv.Itoa((toInt(i)+1)/2)
+		n = tclExprWith("($i+1)/2", map[string]string{"i": i})
 		_ = n // suppress unused warning
 		{ // do_test "sidedelete-3." + i + ".1"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a<=" + sqlLiteral(i) + ";\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;\n    ")

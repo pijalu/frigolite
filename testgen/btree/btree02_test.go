@@ -104,7 +104,7 @@ func Test_btree02(t *testing.T) {
 				}
 			}
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 1 }() {
-				bx = strconv.Itoa(toInt(b)+1000)
+				bx = tclExprWith("$b+1000", map[string]string{"b": b})
 				_ = bx // suppress unused warning
 				_res = db.Exec("INSERT INTO t1(a,ax,b) VALUES(printf('(%s)'," + sqlLiteral(a) + "),random()," + sqlLiteral(bx) + ")")
 				if _res.Error != nil {
