@@ -2,6 +2,7 @@
 package exec
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -438,7 +439,12 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 		v.SetCached(i)
 		return i, nil
 	}
-	if f, err := strconv.ParseFloat(v.Value, 64); err == nil {
+	if f, err := strconv.ParseFloat(v.Value, 64); err == nil || (errors.Is(err, strconv.ErrRange) && math.IsInf(f, 0)) {
+		// ParseFloat returns ErrRange for literals that overflow/underflow
+		// float64 (1e400 -> +Inf, 1e-400 -> 0.0). SQLite treats these as
+		// REAL overflow results: 1e400 is +Inf, 1e-400 is 0.0. Accept the
+		// returned value in that case instead of falling through to the
+		// string cache.
 		v.SetCached(f)
 		return f, nil
 	}
@@ -1938,6 +1944,9 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 	}
 
 	if len(args) < fn.MinArgs || (fn.MaxArgs > 0 && len(args) > fn.MaxArgs) {
+		if fn.WrongArgMsg {
+			return nil, fmt.Errorf("wrong number of arguments to function %s()", f.Name)
+		}
 		return nil, fmt.Errorf("function %s expects %d-%d arguments, got %d", f.Name, fn.MinArgs, fn.MaxArgs, len(args))
 	}
 
@@ -2250,7 +2259,7 @@ func addValues(a, b interface{}) (interface{}, error) {
 		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) + int64(bf), nil
 		}
-		return af + bf, nil
+		return nanToNil(af + bf), nil
 	}
 	return nil, fmt.Errorf("cannot add non-numeric values")
 }
@@ -2304,9 +2313,19 @@ func subValues(a, b interface{}) (interface{}, error) {
 		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) - int64(bf), nil
 		}
-		return af - bf, nil
+		return nanToNil(af - bf), nil
 	}
 	return nil, fmt.Errorf("cannot subtract non-numeric values")
+}
+
+// nanToNil converts a NaN arithmetic result to SQL NULL, matching SQLite's
+// rule that any arithmetic producing NaN yields NULL (Inf-Inf, Inf*0,
+// Inf/Inf). Inf results pass through unchanged.
+func nanToNil(v interface{}) interface{} {
+	if f, ok := v.(float64); ok && math.IsNaN(f) {
+		return nil
+	}
+	return v
 }
 
 func toIntValue(v interface{}) int64 {
@@ -2364,7 +2383,7 @@ func mulValues(a, b interface{}) (interface{}, error) {
 		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) * int64(bf), nil
 		}
-		return af * bf, nil
+		return nanToNil(af * bf), nil
 	}
 	return nil, fmt.Errorf("cannot multiply non-numeric values")
 }
@@ -2379,7 +2398,7 @@ func divValues(a, b interface{}) (interface{}, error) {
 		if numericIsInt(a) && numericIsInt(b) {
 			return int64(af) / int64(bf), nil
 		}
-		return af / bf, nil
+		return nanToNil(af / bf), nil
 	}
 	return nil, fmt.Errorf("cannot divide non-numeric values")
 }

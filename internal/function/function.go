@@ -36,6 +36,11 @@ type Func struct {
 	MaxArgs     int
 	ScalarFn    func(args []interface{}) (interface{}, error)
 	AggregateFn func() Aggregator
+	// WrongArgMsg selects SQLite's per-function "wrong number of arguments
+	// to function X()" error instead of the generic "function X expects
+	// N-M arguments, got K" message. SQLite emits the former for functions
+	// that validate their own argument count (unhex, percentile, etc.).
+	WrongArgMsg bool
 }
 
 // Aggregator is the interface for aggregate functions.
@@ -198,6 +203,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "SQRT", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSQRT})
 	r.register(&Func{Name: "TAN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTAN})
 	r.register(&Func{Name: "TANH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTANH})
+	r.register(&Func{Name: "ATANH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnATANH})
 	r.register(&Func{Name: "TRUNC", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnTRUNC})
 
 	// More extension/compat functions
@@ -205,7 +211,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "TOCHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOCHAR})
 	r.register(&Func{Name: "TOBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOBLOB})
 	r.register(&Func{Name: "TOHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOHEX})
-	r.register(&Func{Name: "UNHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNHEX})
+	r.register(&Func{Name: "UNHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnUNHEX, WrongArgMsg: true})
 	r.register(&Func{Name: "CONCAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCAT})
 	r.register(&Func{Name: "SUBSTRING", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
 	r.register(&Func{Name: "UNISTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTR})
@@ -676,13 +682,27 @@ func fnROUND(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
+	// A NULL digits argument yields NULL (SQLite roundFunc returns on a
+	// NULL second argument before converting the value).
+	if len(args) > 1 && args[1] == nil {
+		return nil, nil
+	}
 	f, err := toFloat64(args[0])
 	if err != nil {
 		return args[0], nil
 	}
 	places := 0
-	if len(args) > 1 && args[1] != nil {
+	if len(args) > 1 {
 		places = int(toInt64(args[1]))
+	}
+	// SQLite's roundFunc formats with %.*f; a negative precision is treated
+	// as 0 by printf, so round(x, n<0) behaves like round(x, 0). The digits
+	// argument is also clamped to [-30, 30] (beyond that %.*f saturates).
+	if places < 0 {
+		places = 0
+	}
+	if places > 30 {
+		places = 30
 	}
 	pow := math.Pow(10, float64(places))
 	return math.Round(f*pow) / pow, nil
@@ -719,8 +739,14 @@ func fnRANDSTR(args []interface{}) (interface{}, error) {
 
 func fnZEROBLOB(args []interface{}) (interface{}, error) {
 	n := int(toInt64(args[0]))
+	// SQLite zeroblob(): a negative length is the empty blob, and a length
+	// exceeding SQLITE_MAX_LENGTH (default 1e9) raises "string or blob too
+	// big" instead of allocating.
 	if n <= 0 {
 		return []byte{}, nil
+	}
+	if n > 1000000000 { // SQLITE_MAX_LENGTH default
+		return nil, fmt.Errorf("string or blob too big")
 	}
 	return make([]byte, n), nil
 }
@@ -944,7 +970,11 @@ func fnPRINTF(args []interface{}) (interface{}, error) {
 	format := toString(args[0])
 	goArgs := make([]interface{}, len(args)-1)
 	copy(goArgs, args[1:])
-	return fmt.Sprintf(format, goArgs...), nil
+	s := fmt.Sprintf(format, goArgs...)
+	// SQLite's printf renders +-Inf as "Inf"/"-Inf" and NaN as "NaN"
+	// (Go's fmt renders "+Inf"/"-Inf"/"NaN").
+	s = strings.ReplaceAll(s, "+Inf", "Inf")
+	return s, nil
 }
 
 func fnGLOB(args []interface{}) (interface{}, error) {
@@ -972,6 +1002,19 @@ func toString(v interface{}) string {
 	}
 	if b, ok := v.([]byte); ok {
 		return string(b)
+	}
+	if f, ok := v.(float64); ok {
+		// SQLite renders Inf as "Inf"/"-Inf" and NaN as "NaN" (Go's %v
+		// would render "+Inf").
+		if math.IsInf(f, 1) {
+			return "Inf"
+		}
+		if math.IsInf(f, -1) {
+			return "-Inf"
+		}
+		if math.IsNaN(f) {
+			return "NaN"
+		}
 	}
 	return fmt.Sprintf("%v", v)
 }
@@ -1197,140 +1240,142 @@ func fnJSONIDENTITY(args []interface{}) (interface{}, error) {
 
 // --- Math function implementations ---
 
-func fnACOS(args []interface{}) (interface{}, error) {
+// mathOneArg evaluates a one-argument math function the way SQLite's math
+// extension does: NULL input yields NULL, a NaN result (e.g. sqrt(-1),
+// asin(2)) yields NULL, and +-Inf results pass through (exp(1000) is Inf).
+func mathOneArg(args []interface{}, fn func(float64) float64) (interface{}, error) {
+	if args[0] == nil {
+		return nil, nil
+	}
 	f, err := toFloat64(args[0])
 	if err != nil {
 		return nil, nil
 	}
-	return math.Acos(f), nil
+	r := fn(f)
+	if math.IsNaN(r) {
+		return nil, nil
+	}
+	return r, nil
+}
+
+// mathLogArg evaluates the log-family functions, which additionally return
+// NULL for x<=0 (SQLite: log of zero or a negative number is NULL, not -Inf
+// or NaN).
+func mathLogArg(args []interface{}, fn func(float64) float64) (interface{}, error) {
+	if args[0] == nil {
+		return nil, nil
+	}
+	f, err := toFloat64(args[0])
+	if err != nil {
+		return nil, nil
+	}
+	if f <= 0 {
+		return nil, nil
+	}
+	r := fn(f)
+	if math.IsNaN(r) {
+		return nil, nil
+	}
+	return r, nil
+}
+
+func fnACOS(args []interface{}) (interface{}, error) {
+	return mathOneArg(args, math.Acos)
 }
 
 func fnACOSH(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Acosh(f), nil
+	return mathOneArg(args, math.Acosh)
 }
 
 func fnASIN(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Asin(f), nil
+	return mathOneArg(args, math.Asin)
 }
 
 func fnASINH(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Asinh(f), nil
+	return mathOneArg(args, math.Asinh)
 }
 
 func fnATAN(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Atan(f), nil
+	return mathOneArg(args, math.Atan)
 }
 
 func fnATAN2(args []interface{}) (interface{}, error) {
+	if args[0] == nil || args[1] == nil {
+		return nil, nil
+	}
 	f1, err1 := toFloat64(args[0])
 	f2, err2 := toFloat64(args[1])
 	if err1 != nil || err2 != nil {
 		return nil, nil
 	}
-	return math.Atan2(f1, f2), nil
+	r := math.Atan2(f1, f2)
+	if math.IsNaN(r) {
+		return nil, nil
+	}
+	return r, nil
 }
 
 func fnCEIL(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Ceil(f), nil
+	return mathOneArg(args, math.Ceil)
 }
 
 func fnCOS(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Cos(f), nil
+	return mathOneArg(args, math.Cos)
 }
 
 func fnCOSH(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Cosh(f), nil
+	return mathOneArg(args, math.Cosh)
 }
 
 func fnDEGREES(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return f * 180.0 / math.Pi, nil
+	return mathOneArg(args, func(f float64) float64 { return f * 180.0 / math.Pi })
 }
 
 func fnEXP(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Exp(f), nil
+	return mathOneArg(args, math.Exp)
 }
 
 func fnFLOOR(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Floor(f), nil
+	return mathOneArg(args, math.Floor)
 }
 
 func fnLN(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Log(f), nil
+	return mathLogArg(args, math.Log)
 }
 
 func fnLOG(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
+	if args[0] == nil {
 		return nil, nil
 	}
 	if len(args) >= 2 {
-		base, err2 := toFloat64(args[1])
-		if err2 != nil {
+		if args[1] == nil {
 			return nil, nil
 		}
-		return math.Log(f) / math.Log(base), nil
+		x, err1 := toFloat64(args[0])
+		base, err2 := toFloat64(args[1])
+		if err1 != nil || err2 != nil {
+			return nil, nil
+		}
+		// SQLite log(X, B): NULL when X<=0, B<=0, or B==1 (log base 1 is
+		// undefined; the result is NaN or +-Inf).
+		if x <= 0 || base <= 0 || base == 1 {
+			return nil, nil
+		}
+		r := math.Log(x) / math.Log(base)
+		if math.IsNaN(r) {
+			return nil, nil
+		}
+		return r, nil
 	}
-	return math.Log10(f), nil
+	return mathLogArg(args, math.Log10)
 }
 
 func fnLOG10(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Log10(f), nil
+	return mathLogArg(args, math.Log10)
 }
 
 func fnLOG2(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Log2(f), nil
+	return mathLogArg(args, math.Log2)
 }
 
 func fnMOD(args []interface{}) (interface{}, error) {
@@ -1342,7 +1387,11 @@ func fnMOD(args []interface{}) (interface{}, error) {
 	if err1 != nil || err2 != nil || b == 0 {
 		return nil, nil
 	}
-	return math.Mod(a, b), nil
+	r := math.Mod(a, b)
+	if math.IsNaN(r) {
+		return nil, nil
+	}
+	return r, nil
 }
 
 func fnPI(args []interface{}) (interface{}, error) {
@@ -1350,20 +1399,23 @@ func fnPI(args []interface{}) (interface{}, error) {
 }
 
 func fnPOW(args []interface{}) (interface{}, error) {
+	if args[0] == nil || args[1] == nil {
+		return nil, nil
+	}
 	f1, err1 := toFloat64(args[0])
 	f2, err2 := toFloat64(args[1])
 	if err1 != nil || err2 != nil {
 		return nil, nil
 	}
-	return math.Pow(f1, f2), nil
+	r := math.Pow(f1, f2)
+	if math.IsNaN(r) {
+		return nil, nil
+	}
+	return r, nil
 }
 
 func fnRADIANS(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return f * math.Pi / 180.0, nil
+	return mathOneArg(args, func(f float64) float64 { return f * math.Pi / 180.0 })
 }
 
 func fnSIGN(args []interface{}) (interface{}, error) {
@@ -1393,43 +1445,27 @@ func fnSIGN(args []interface{}) (interface{}, error) {
 }
 
 func fnSIN(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Sin(f), nil
+	return mathOneArg(args, math.Sin)
 }
 
 func fnSINH(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Sinh(f), nil
+	return mathOneArg(args, math.Sinh)
 }
 
 func fnSQRT(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Sqrt(f), nil
+	return mathOneArg(args, math.Sqrt)
 }
 
 func fnTAN(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Tan(f), nil
+	return mathOneArg(args, math.Tan)
 }
 
 func fnTANH(args []interface{}) (interface{}, error) {
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return nil, nil
-	}
-	return math.Tanh(f), nil
+	return mathOneArg(args, math.Tanh)
+}
+
+func fnATANH(args []interface{}) (interface{}, error) {
+	return mathOneArg(args, math.Atanh)
 }
 
 func fnTRUNC(args []interface{}) (interface{}, error) {
@@ -1443,7 +1479,11 @@ func fnTRUNC(args []interface{}) (interface{}, error) {
 			return nil, nil
 		}
 		pow := math.Pow(10, digits)
-		return math.Trunc(f*pow) / pow, nil
+		r := math.Trunc(f*pow) / pow
+		if math.IsNaN(r) {
+			return nil, nil
+		}
+		return r, nil
 	}
 	if f >= 0 {
 		return math.Floor(f), nil
@@ -1505,12 +1545,35 @@ func fnTOHEX(args []interface{}) (interface{}, error) {
 }
 
 func fnUNHEX(args []interface{}) (interface{}, error) {
-	// SQLite unhex(): parse a hex string into a BLOB. Returns NULL if the
-	// input contains anything other than 0-9A-Fa-f or has odd length.
-	if args[0] == nil {
+	// SQLite unhex(X, S): parse the hex string X into a BLOB. Any character
+	// in the optional second argument S is ignored (used as a separator, e.g.
+	// unhex('FFFF ABCD', ' -') -> X'FFFFABCD'). Returns NULL if the input
+	// (after removing separators) contains anything other than 0-9A-Fa-f or
+	// has odd length, or if either argument is NULL.
+	if args[0] == nil || (len(args) > 1 && args[1] == nil) {
 		return nil, nil
 	}
 	s := toString(args[0])
+	var sep string
+	if len(args) > 1 {
+		sep = toString(args[1])
+	}
+	// Remove separator characters: SQLite's unhex skips any input byte that
+	// appears in the separator string (byte-wise; a multi-byte separator
+	// character contributes each of its UTF-8 bytes to the skip set).
+	if sep != "" {
+		sepSet := make(map[byte]bool, len(sep))
+		for i := 0; i < len(sep); i++ {
+			sepSet[sep[i]] = true
+		}
+		b := make([]byte, 0, len(s))
+		for i := 0; i < len(s); i++ {
+			if !sepSet[s[i]] {
+				b = append(b, s[i])
+			}
+		}
+		s = string(b)
+	}
 	if len(s)%2 != 0 {
 		return nil, nil
 	}

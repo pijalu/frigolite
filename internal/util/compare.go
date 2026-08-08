@@ -29,8 +29,20 @@ func SQLiteValueString(v interface{}) string {
 
 // FormatSQLiteReal renders a float64 the way SQLite's %!.15g does: 15
 // significant digits, fixed-point for exponents in range, always a decimal
-// point (alternate form), exponential otherwise.
+// point (alternate form), exponential otherwise. Non-finite values render
+// as SQLite's sqlite3StrAccum printf does: "Inf", "-Inf", "NaN" (Go's
+// strconv renders "+Inf"/"-Inf"/"NaN", and SQLite never emits a leading
+// plus for positive infinity).
 func FormatSQLiteReal(f float64) string {
+	if math.IsInf(f, 1) {
+		return "Inf"
+	}
+	if math.IsInf(f, -1) {
+		return "-Inf"
+	}
+	if math.IsNaN(f) {
+		return "NaN"
+	}
 	s := strconv.FormatFloat(f, 'g', 15, 64)
 	if e := strings.IndexAny(s, "eE"); e >= 0 {
 		mant := s[:e]
