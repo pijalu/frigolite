@@ -61,9 +61,9 @@ func Test_tkt3997(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc reverse collation (registered via db collate)
-	// proc definition (not transpiled)
+	// proc usual collation (registered via db collate)
 	db.RegisterCollation("reverse", func(a, b string) int { return -strings.Compare(a, b) })
-	// db collate usual (not transpiled)
+	db.RegisterCollation("usual", func(a, b string) int { return strings.Compare(a, b) })
 	{ // do_test "tkt3997-1.1"
 		_res = db.Exec("\n    create table mytext(name BLOB);\n    INSERT INTO mytext VALUES('abc');\n    INSERT INTO mytext VALUES('acd');\n    INSERT INTO mytext VALUES('afe');\n  ")
 		if _res.Error != nil {

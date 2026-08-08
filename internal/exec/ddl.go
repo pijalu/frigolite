@@ -1203,11 +1203,14 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 			hasNull := false
 			var keyParts []string
 			for _, kv := range indexValues[:len(indexValues)-1] {
-				if kv == nil {
+				// The row-map value may be a ColumnValue wrapper; unwrap so a
+				// stored NULL is detected (multiple NULLs are allowed in a
+				// UNIQUE index — SQLite treats NULLs as distinct).
+				if util.UnwrapColumnValue(kv) == nil {
 					hasNull = true
 					break
 				}
-				keyParts = append(keyParts, util.SQLiteValueString(kv))
+				keyParts = append(keyParts, util.SQLiteValueString(util.UnwrapColumnValue(kv)))
 			}
 			if !hasNull {
 				key := strings.Join(keyParts, "\x00")

@@ -775,6 +775,9 @@ func collationProcGo(body string) string {
 		if len(fields) == 2 && fields[0] == "$a" && fields[1] == "$b" {
 			return "func(a, b string) int { return strings.Compare(a, b) }"
 		}
+		if len(fields) == 2 && fields[0] == "$lhs" && fields[1] == "$rhs" {
+			return "func(a, b string) int { return strings.Compare(a, b) }"
+		}
 		if len(fields) == 2 && fields[0] == "$rhs" && fields[1] == "$lhs" {
 			return "func(a, b string) int { return -strings.Compare(a, b) }"
 		}
@@ -3369,9 +3372,13 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// binds (e.g. nan.test's sqlite3_bind_double + sqlite3_step) must emit
 		// their SQL side effects so later tests see the inserted rows; the
 		// floating-point comparison itself has no SQL equivalent and is skipped.
+		// Also run a db eval {SQL} body's side effects (CREATE TABLE setup),
+		// e.g. tkt3838-1.1 which creates t1 that 1.2's trigger references.
 		if cmdName == "do_realnum_test" && len(args) >= 2 {
 			bodyCmds := tp.parseBracedBody(args, 1)
-			if bodyCmds != nil && containsBindStep(bodyCmds) {
+			if bodyCmds != nil && (containsBindStep(bodyCmds) ||
+				(len(bodyCmds) == 1 && len(bodyCmds[0]) >= 3 &&
+					bodyCmds[0][0].Text == "db" && bodyCmds[0][1].Text == "eval")) {
 				tp.emitLine("{ // %s (do_realnum_test; SQL side effects only)", tp.goStringLiteral(args[0]))
 				tp.indent++
 				bodyTP := &transpiler{
@@ -6261,6 +6268,23 @@ var skipTestFiles = map[string]string{
 	// engine access to run SQL, so the UDF cannot be implemented; this is a
 	// test-harness function, not core SQL.
 	"tkt3080": "test-harness execsql UDF (runs SQL from within a query) not implemented N-A",
+
+	// tkt3093: multi-connection locking with busy handlers (db2 on the same
+	// file, a busy callback commits db's transaction to clear a reserved
+	// lock). DEFERRED — needs shared-memory/locking implementation (same
+	// category as the shared package; see plans/DEFERRED.md).
+	"tkt3093": "multi-connection busy-handler locking not implemented DEFERRED",
+
+	// tkt3810: multi-connection schema staleness (db2 drops a table the main
+	// connection still references, then a TEMP trigger is created over the
+	// stale schema). DEFERRED — needs multi-connection shared state.
+	"tkt3810": "multi-connection schema staleness not implemented DEFERRED",
+
+	// tkt3718: test-harness SQL-executing UDFs f1/f2 (db function f1 f1)
+	// that run SQL from within a query and raise exceptions mid-statement
+	// (f2 throws on 'three', aborting an INSERT SELECT partway). Same
+	// category as tkt3080: RegisterFunction callbacks have no engine access.
+	"tkt3718": "test-harness SQL-executing UDFs f1/f2 not implemented N-A",
 }
 
 // bodyEndsWithIndexExpr reports whether a do_test body's last command is an

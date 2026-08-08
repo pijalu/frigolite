@@ -262,9 +262,17 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// legally contain NULL in rowid tables, nor to WITHOUT ROWID tables (whose
 	// keys are never auto-generated).
 	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	// Record whether an INTEGER PRIMARY KEY column was NULL (auto-assigned):
+	// SQLite's BEFORE INSERT trigger sees new.<ipk> as -1 for an auto-assigned
+	// rowid (the value is not set until the row is written), so the trigger
+	// must not see the pre-assigned rowid (tkt3832).
+	ipkWasNil := false
+	ipkIndex := -1
 	for i, cd := range colDefs {
 		if !withoutRowid && isIPKRowidAliasCol(cd) &&
 			i < len(values) && values[i] == nil {
+			ipkWasNil = true
+			ipkIndex = i
 			values[i] = nextRowID
 			break
 		}
@@ -387,7 +395,13 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		newRow := make(RowMap)
 		for i, v := range values {
 			if i < len(colDefs) {
-				newRow[colDefs[i].Name] = v
+				// An auto-assigned INTEGER PRIMARY KEY is not yet known to a
+				// BEFORE INSERT trigger: SQLite exposes new.<ipk> as -1.
+				if ipkWasNil && i == ipkIndex {
+					newRow[colDefs[i].Name] = int64(-1)
+				} else {
+					newRow[colDefs[i].Name] = v
+				}
 			}
 		}
 		// SQLite exposes new.rowid as -1 inside a BEFORE INSERT trigger (the
@@ -2002,6 +2016,11 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 
 		// Determine rowID BEFORE constraint checks (CHECK(rowid<=5) needs it)
 		var rowID int64
+		// Track whether the INTEGER PRIMARY KEY column was NULL (auto-assigned):
+		// a BEFORE INSERT trigger sees new.<ipk> as -1 (SQLite assigns the
+		// rowid after the trigger, tkt3832).
+		ipkWasNil := false
+		ipkIndex := -1
 		if hasExplicitRowID {
 			rowID = explicitRowID
 		} else if isReplace {
@@ -2009,6 +2028,8 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			// If INTEGER PRIMARY KEY column is nil, set it to the assigned rowid
 			for i, cd := range colDefs {
 				if cd.PrimaryKey && i < len(values) && values[i] == nil {
+					ipkWasNil = true
+					ipkIndex = i
 					values[i] = rowID
 					break
 				}
@@ -2019,9 +2040,13 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			if err != nil {
 				return &Result{Error: err}
 			}
-			// If INTEGER PRIMARY KEY column is nil, set it to the auto-assigned rowid
+			// If INTEGER PRIMARY KEY column is nil, set it to the auto-assigned
+			// rowid; a BEFORE INSERT trigger sees new.<ipk> as -1 instead
+			// (SQLite assigns the rowid after the trigger, tkt3832).
 			for i, cd := range colDefs {
 				if cd.PrimaryKey && i < len(values) && values[i] == nil {
+					ipkWasNil = true
+					ipkIndex = i
 					values[i] = rowID
 					break
 				}
@@ -2078,7 +2103,13 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			newRow := make(RowMap)
 			for i, v := range values {
 				if i < len(colDefs) {
-					newRow[colDefs[i].Name] = v
+					// An auto-assigned INTEGER PRIMARY KEY is not yet known to a
+					// BEFORE INSERT trigger: SQLite exposes new.<ipk> as -1.
+					if ipkWasNil && i == ipkIndex {
+						newRow[colDefs[i].Name] = int64(-1)
+					} else {
+						newRow[colDefs[i].Name] = v
+					}
 				}
 			}
 			// SQLite exposes new.rowid as -1 inside a BEFORE INSERT trigger.
