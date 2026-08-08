@@ -270,11 +270,9 @@ func formatSQLiteValue(val interface{}) string {
 	val = util.UnwrapColumnValue(val)
 	switch v := val.(type) {
 	case float64:
-		// Check if float is a whole number
-		if v == float64(int64(v)) {
-			return fmt.Sprintf("%.1f", v)
-		}
-		return fmt.Sprintf("%g", v)
+		// Render like SQLite's real-to-text conversion (shortest decimal
+		// that round-trips, fixed-point for typical magnitudes).
+		return util.FormatSQLiteReal(v)
 	case []byte:
 		// Format blob as hex string like SQLite's quote() for blobs
 		return "x'" + hex.EncodeToString(v) + "'"

@@ -216,12 +216,19 @@ var allStandardImports = []struct{ name, path string }{
 	{"sort", "sort"},
 	{"strconv", "strconv"},
 	{"strings", "strings"},
+	{"time", "time"},
 }
 
 func detectImports(code string) []string {
 	needed := map[string]bool{
 		"testing":                     true, // always needed
 		"github.com/pijalu/frigolite": true, // always needed
+	}
+
+	// The date/time tests emit function.SetLocaltimeHook(...) for the TCL
+	// harness's SQLITE_TESTCTRL_LOCALTIME_FAULT control.
+	if hasPackageRef(code, "function") {
+		needed["github.com/pijalu/frigolite/internal/function"] = true
 	}
 
 	for _, imp := range allStandardImports {
@@ -2182,6 +2189,18 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		}
 		return fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", exprGo, strings.Join(parts, ", "))
 
+	case "strftime":
+		// TCLCMD strftime FORMAT UNIXTIMESTAMP (test1.c strftime_cmd): access to
+		// the C-library strftime() in UTC, so its results can be compared
+		// against SQLite's strftime SQL function. The transpiler cannot run the
+		// C library, so emit a runtime call to the tclStrftime helper.
+		if len(args) >= 2 {
+			formatExpr := tp.buildStringExpr(args[0])
+			tsExpr := tp.buildStringExpr(args[1])
+			return fmt.Sprintf("tclStrftime(%s, %s)", formatExpr, tsExpr)
+		}
+		return fmt.Sprintf("%q", cmdText)
+
 	case "format":
 		// TCL format: format formatString ?arg ...? — printf-style formatting.
 		// Args may contain $var refs, so the result is computed at runtime by
@@ -2562,6 +2581,31 @@ func isDigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
+// exprHasFuncCall reports whether a TCL expr contains a function call
+// (identifier followed by '('), e.g. int(...), rand(), log($x), pow(...).
+// Such exprs are rendered as native Go code by exprCmdToGo; pure arithmetic
+// exprs use the runtime float-aware evaluator instead.
+func exprHasFuncCall(expr string) bool {
+	for i := 0; i < len(expr); i++ {
+		c := expr[i]
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
+			j := i
+			for j < len(expr) && ((expr[j] >= 'a' && expr[j] <= 'z') || (expr[j] >= 'A' && expr[j] <= 'Z') || (expr[j] >= '0' && expr[j] <= '9') || expr[j] == '_') {
+				j++
+			}
+			k := j
+			for k < len(expr) && expr[k] == ' ' {
+				k++
+			}
+			if k < len(expr) && expr[k] == '(' {
+				return true
+			}
+			i = j
+		}
+	}
+	return false
+}
+
 // exprCmdToGo converts a TCL expr containing [cmd] command substitutions
 // (e.g. {$i*100 + [string length $word]}) into a Go int expression.
 // Each [cmd] is resolved via cmdExpr (string length → len(), etc.) and each
@@ -2807,6 +2851,23 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		tp.emitLine("if _res.Error != nil { t.Errorf(\"integrity check: %%v\", _res.Error) }")
 	case "sqlite3":
 		tp.processSqlite3(args)
+	case "sqlite3_test_control":
+		// SQLite's TCL harness installs an alternative localtime via
+		// SQLITE_TESTCTRL_LOCALTIME_FAULT (test1.c testLocaltime): even days
+		// are UTC-30min, odd days UTC+30min, and timestamp 959609760 fails
+		// ("local time unavailable"). The date tests rely on this, so
+		// transpile the fault control to the engine's localtime hook.
+		// args are the words after the command name: [CONTROL, VALUE].
+		if len(args) >= 2 && args[0].Text == "SQLITE_TESTCTRL_LOCALTIME_FAULT" {
+			mode := strings.TrimSpace(args[1].Text)
+			if mode == "2" {
+				tp.emitLine("function.SetLocaltimeHook(tclTestLocaltime)")
+			} else if mode == "0" {
+				tp.emitLine("function.SetLocaltimeHook(nil)")
+			} else {
+				tp.emitLine("// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT %s (unsupported mode)", mode)
+			}
+		}
 	case "sqlite3_limit":
 		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH N sets SQLite's
 		// expression-depth limit. Only transpile when N is a plain integer or
@@ -4197,6 +4258,13 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 					continue
 				}
 				procName = arg
+				break
+			}
+			// The sleeper proc (`proc sleeper {} {after 100}`) pauses 100ms and
+			// returns NULL. It is used by date.test to verify that 'now' is
+			// cached per statement across a user-function sleep.
+			if procName == "sleeper" && name != "" {
+				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { time.Sleep(100 * time.Millisecond); return nil, nil }, 0, -1)", tp.dbVar, name)
 				break
 			}
 			if constVal, ok := tp.constFuncs[procName]; ok && name != "" {
@@ -6643,13 +6711,24 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			valExpr := ""
 			if err == nil {
 				valExpr = fmt.Sprintf("%q", result)
-			} else if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
-				// The expr contains [cmd] command substitutions (e.g.
-				// [string length $word]) resolvable to Go expressions.
-				// Emit a runtime Go expression: $var refs become toInt(var)
-				// so arithmetic like $i*100 + len(word) works.
-				valExpr = "strconv.Itoa(" + goExpr + ")"
-			} else {
+			} else if strings.Contains(exprStr, "[") && strings.Contains(exprStr, "]") {
+				// [cmd] command substitutions (e.g. [string length $word]).
+				if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
+					valExpr = "strconv.Itoa(" + goExpr + ")"
+				}
+			} else if strings.Contains(exprStr, "rand(") {
+				// rand() is the one TCL math function the runtime evaluator
+				// (tclEvalFuncs) cannot compute, so render it as native Go code
+				// (the helpers import math/rand). Other functions (log, pow,
+				// int, sqrt, ...) and pure $var arithmetic fall through to
+				// tclExprWith, which evaluates at runtime with float semantics
+				// (critical when a var holds a real like 2460369.5 — toInt()
+				// would truncate it).
+				if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
+					valExpr = "strconv.Itoa(" + goExpr + ")"
+				}
+			}
+			if valExpr == "" {
 				// Runtime evaluation with live $var values.
 				exprVarNames, exprGo := tclExprToGo(exprStr, tp.vars)
 				if len(exprVarNames) == 0 {

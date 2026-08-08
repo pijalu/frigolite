@@ -691,18 +691,27 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 	// ALSO handle BETWEEN — it's not a BinaryOp
 	_, _ = walkExpr, walkExpr(expr, func(e2 sql.Expr) {
 		if bt, ok := e2.(*sql.Between); ok {
+			idxName := ""
+			colName := ""
 			if colRef, ok := bt.Operand.(*sql.ColumnRef); ok {
-				idxName := e.findIndexOnColumn(tableName, colRef.Name)
-				if idxName != "" {
-					sel := computeBetweenSelectivity(bt)
-					refs = append(refs, indexedRef{
-						indexName:   idxName,
-						colName:     colRef.Name,
-						constant:    float64(0),
-						op:          "BETWEEN",
-						selectivity: sel,
-					})
-				}
+				colName = colRef.Name
+				idxName = e.findIndexOnColumn(tableName, colRef.Name)
+			} else {
+				// Expression operand: match against an expression-index key
+				// (e.g. datetime(b) BETWEEN ... with an index on datetime(b)).
+				exprSQL := sql.ExprString(bt.Operand)
+				colName = exprSQL
+				idxName = e.findIndexOnExpr(tableName, exprSQL)
+			}
+			if idxName != "" {
+				sel := computeBetweenSelectivity(bt)
+				refs = append(refs, indexedRef{
+					indexName:   idxName,
+					colName:     colName,
+					constant:    float64(0),
+					op:          "BETWEEN",
+					selectivity: sel,
+				})
 			}
 		}
 	})
@@ -884,6 +893,15 @@ func collectAllColumnRefs(expr sql.Expr, tableName string) []indexedRef {
 }
 
 func computeBetweenSelectivity(bt *sql.Between) float64 {
+	// String-literal bounds (e.g. date ranges like
+	// datetime(b) BETWEEN '2017-07-04' AND '2017-07-08') narrow the search
+	// substantially, so treat them as a narrow range. Numeric bounds use the
+	// range-width heuristics below.
+	if _, ok := bt.Low.(*sql.StringLit); ok {
+		if _, ok2 := bt.High.(*sql.StringLit); ok2 {
+			return 0.05
+		}
+	}
 	// Extract low and high values
 	lowVal, lowOk := numericLitValue(bt.Low)
 	highVal, highOk := numericLitValue(bt.High)
@@ -1006,6 +1024,34 @@ func (e *Engine) findIndexOnColumn(tableName, colName string) string {
 			}
 			for _, ic := range indexCols {
 				if strings.EqualFold(ic, colName) {
+					return entry.Name
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// findIndexOnExpr matches an expression (rendered as SQL text) against the
+// key expressions of every index on the table. This lets the planner use
+// expression indexes (e.g. CREATE INDEX i ON t(datetime(b))) for a WHERE
+// predicate whose operand is the same expression. Returns the index name or "".
+func (e *Engine) findIndexOnExpr(tableName, exprSQL string) string {
+	if exprSQL == "" {
+		return ""
+	}
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.Type == "index" && entry.TblName == tableName && entry.SQL != "" {
+			colText := indexColumnListText(entry.SQL)
+			if colText == "" {
+				continue
+			}
+			for _, ke := range parseIndexKeyCols(colText) {
+				if strings.EqualFold(strings.TrimSpace(ke), exprSQL) {
 					return entry.Name
 				}
 			}

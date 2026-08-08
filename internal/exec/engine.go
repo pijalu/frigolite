@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
@@ -1311,6 +1312,12 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// within a single statement start from 1).
 	e.counterVal = 0
 	e.nondeterVal = 0
+
+	// Pin 'now' for the whole statement (SQLite sqlite3StmtCurrentTime): all
+	// date/time functions using 'now' within this statement return the same
+	// instant, even when a user function sleeps in between.
+	function.SetStmtTime(time.Now())
+	defer function.SetStmtTime(time.Time{})
 
 	// SQLite guarantees statement atomicity: when a statement fails (a
 	// constraint violation, a trigger error, etc.) every change it made is

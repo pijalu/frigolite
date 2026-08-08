@@ -8,6 +8,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -337,7 +338,9 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	}
 
 	// Compute any generated columns (b AS(expr)) that were not explicitly set.
-	values = e.computeGeneratedValues(colDefs, values)
+	if err := e.computeGeneratedValues(colDefs, values); err != nil {
+		return &Result{Error: err}
+	}
 
 	// In STRICT mode, enforce type checking on generated column values too.
 	// Generated columns compute values from expressions, and those values must
@@ -434,6 +437,20 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		e.updateRootPage(tableEntry.Name, tree.RootPage())
 	}
 	e.bumpRowIDCache(tableEntry.RootPage, nextRowID)
+
+	// Maintain indexes: evaluate partial predicates and expression keys in a
+	// pure context (a non-deterministic date function raises SQLite's
+	// "non-deterministic use of ... in an index" error) and write the new
+	// row's index entries. On failure the just-written table row is removed
+	// (SQLite rolls the whole statement back).
+	if err := e.maintainIndexesOnInsert(tableEntry, colDefs, values, nextRowID); err != nil {
+		if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == nextRowID
+		}); derr == nil {
+			e.invalidateRowIDCache(tableEntry.RootPage)
+		}
+		return &Result{Error: err}
+	}
 
 	// Fire AFTER INSERT triggers — but only if triggers exist for this table.
 	// The trigger check is cheap (cached schema lookup) but building the RowMap
@@ -551,8 +568,16 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		// ignore_check_constraints=ON skips enforcement (integrity_check
 		// still reports violations later).
 		if cd.Check != nil && !e.ignoreCheckConstraints {
-			checkVal, err := e.evalExpr(cd.Check, row)
-			if err == nil && checkVal != nil && !toBool(checkVal) {
+			var checkVal interface{}
+			var checkErr error
+			function.WithPureContext("check", func() error {
+				checkVal, checkErr = e.evalExpr(cd.Check, row)
+				return checkErr
+			})
+			if checkErr != nil {
+				return checkErr
+			}
+			if checkVal != nil && !toBool(checkVal) {
 				// Prefer the original CHECK expression text from the CREATE
 				// TABLE SQL (SQLite reports the expression verbatim, e.g.
 				// "rowid!=33" not the re-rendered "rowid <> 33").
@@ -576,8 +601,18 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		if e.ignoreCheckConstraints {
 			continue
 		}
-		checkVal, err := e.evalExpr(tc.Expr, row)
-		if err == nil && checkVal != nil && !toBool(checkVal) {
+		var checkVal interface{}
+		var checkErr error
+		function.WithPureContext("check", func() error {
+			checkVal, checkErr = e.evalExpr(tc.Expr, row)
+			return checkErr
+		})
+		if checkErr != nil {
+			// A CHECK evaluation error (e.g. non-deterministic use of a date
+			// function) propagates as-is, matching SQLite.
+			return checkErr
+		}
+		if checkVal != nil && !toBool(checkVal) {
 			name := tc.Name
 			if name == "" {
 				name = e.tableCheckConstraintText(tableEntry.SQL, ti, tcs)
@@ -824,34 +859,7 @@ func (e *Engine) uniqueIndexColumns(tableName string) []uniqueIndexDef {
 			if colText == "" {
 				continue
 			}
-			var cols []string
-			for _, part := range splitIndexCols(colText) {
-				name := strings.TrimSpace(part)
-				upper := strings.ToUpper(name)
-				// Strip COLLATE / ASC / DESC suffixes. For a plain column key the
-				// collation comes from the table definition, so it is dropped;
-				// for an expression key the explicit COLLATE is part of the
-				// expression and must be kept (indexKeyValue evaluates it).
-				if strings.ContainsAny(name, "()") {
-					// expression key: keep COLLATE, strip only ASC/DESC
-					if idx := strings.Index(upper, " DESC"); idx >= 0 {
-						name = strings.TrimSpace(name[:idx])
-					} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
-						name = strings.TrimSpace(name[:idx])
-					}
-				} else {
-					if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
-						name = strings.TrimSpace(name[:idx])
-					} else if idx := strings.Index(upper, " DESC"); idx >= 0 {
-						name = strings.TrimSpace(name[:idx])
-					} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
-						name = strings.TrimSpace(name[:idx])
-					}
-				}
-				if name != "" {
-					cols = append(cols, name)
-				}
-			}
+			cols := parseIndexKeyCols(colText)
 			if len(cols) == 0 {
 				continue
 			}
@@ -870,6 +878,179 @@ func (e *Engine) uniqueIndexColumns(tableName string) []uniqueIndexDef {
 	}
 	e.uniqueIdxCache[tableName] = result
 	return result
+}
+
+// parseIndexKeyCols parses a CREATE INDEX key column-list into stripped key
+// expressions (plain names or expression text), removing COLLATE/ASC/DESC
+// suffixes where they are not part of an expression.
+func parseIndexKeyCols(colText string) []string {
+	var cols []string
+	for _, part := range splitIndexCols(colText) {
+		name := strings.TrimSpace(part)
+		upper := strings.ToUpper(name)
+		// Strip COLLATE / ASC / DESC suffixes. For a plain column key the
+		// collation comes from the table definition, so it is dropped;
+		// for an expression key the explicit COLLATE is part of the
+		// expression and must be kept (indexKeyValue evaluates it).
+		if strings.ContainsAny(name, "()") {
+			// expression key: keep COLLATE, strip only ASC/DESC
+			if idx := strings.Index(upper, " DESC"); idx >= 0 {
+				name = strings.TrimSpace(name[:idx])
+			} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
+				name = strings.TrimSpace(name[:idx])
+			}
+		} else {
+			if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
+				name = strings.TrimSpace(name[:idx])
+			} else if idx := strings.Index(upper, " DESC"); idx >= 0 {
+				name = strings.TrimSpace(name[:idx])
+			} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
+				name = strings.TrimSpace(name[:idx])
+			}
+		}
+		if name != "" {
+			cols = append(cols, name)
+		}
+	}
+	return cols
+}
+
+// allTableIndexes returns every index defined on the given table (unique and
+// non-unique alike), with their key expressions, partial predicates, and root
+// pages. This drives index maintenance on INSERT.
+func (e *Engine) allTableIndexes(tableName string) []indexDef {
+	var result []indexDef
+	for _, ctx := range e.databases {
+		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if !strings.EqualFold(ent.TblName, tableName) {
+				continue
+			}
+			colText := indexColumnListText(ent.SQL)
+			if colText == "" {
+				continue
+			}
+			cols := parseIndexKeyCols(colText)
+			if len(cols) == 0 {
+				continue
+			}
+			def := indexDef{Name: ent.Name, Cols: cols, RootPage: ent.RootPage, Ctx: ctx}
+			if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
+				def.Where = strings.TrimSpace(wm[1])
+			}
+			result = append(result, def)
+		}
+	}
+	return result
+}
+
+// indexDef describes any (unique or non-unique) index for index maintenance.
+type indexDef struct {
+	Name     string
+	Cols     []string
+	Where    string // partial-index predicate ("" for full indexes)
+	RootPage uint32
+	Ctx      *DatabaseContext
+}
+
+// maintainIndexesOnInsert writes the new row's entries into every index on
+// the table. Partial-index predicates and expression keys are evaluated in a
+// pure context, so a non-deterministic date/time function (e.g. date('now'))
+// in an index expression raises SQLite's "non-deterministic use of %s() in an
+// index" error, matching OP_PureFunc semantics.
+func (e *Engine) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64) error {
+	defs := e.allTableIndexes(tableEntry.Name)
+	if len(defs) == 0 {
+		return nil
+	}
+	colIndex := buildColumnIndex(colDefs)
+	row := buildRowMapFromValues(values, colDefs, rowID)
+	for _, def := range defs {
+		// Evaluate the partial predicate in a pure context: SQLite evaluates
+		// index expressions with OP_PureFunc, so 'now'/'localtime'/'utc' in
+		// a partial-index WHERE raise the non-determinism error.
+		inIndex := true
+		if strings.TrimSpace(def.Where) != "" {
+			var werr error
+			function.WithPureContext("index", func() error {
+				v, err := e.evalExpr(parseWhereExpr(def.Where), row)
+				if err != nil {
+					werr = err
+					return err
+				}
+				if v == nil {
+					inIndex = false
+				} else {
+					inIndex = toBool(v)
+				}
+				return nil
+			})
+			if werr != nil {
+				return werr
+			}
+		}
+		if !inIndex {
+			continue
+		}
+		indexValues := make([]interface{}, 0, len(def.Cols)+1)
+		for _, cn := range def.Cols {
+			var kv interface{}
+			var kerr error
+			function.WithPureContext("index", func() error {
+				var ok bool
+				kv, ok, kerr = e.indexKeyValueErr(cn, colDefs, colIndex, values, row)
+				if kerr != nil {
+					return kerr
+				}
+				if !ok {
+					kv = nil
+				}
+				return nil
+			})
+			if kerr != nil {
+				return kerr
+			}
+			indexValues = append(indexValues, kv)
+		}
+		indexValues = append(indexValues, rowID)
+		payload, err := storage.EncodeRecord(indexValues)
+		if err != nil {
+			return err
+		}
+		idxCell := &storage.Cell{
+			Type:    storage.CellIndexLeaf,
+			Payload: payload,
+		}
+		idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+		if err := idxTree.InsertCell(idxCell); err != nil {
+			return err
+		}
+		if idxTree.RootPage() != def.RootPage {
+			e.updateIndexRootPage(def.Name, def.Ctx, idxTree.RootPage())
+		}
+	}
+	return nil
+}
+
+// parseWhereExpr parses a standalone expression string into a sql.Expr.
+func parseWhereExpr(exprSQL string) sql.Expr {
+	stmts, perr := parse.ParseSQL("SELECT " + exprSQL)
+	if perr != nil || len(stmts) == 0 {
+		return nil
+	}
+	if sel, ok := stmts[0].(*sql.SelectStmt); ok && len(sel.Columns) > 0 {
+		return sel.Columns[0].Expr
+	}
+	return nil
+}
+
+// updateIndexRootPage persists a root page change after an index b-tree split.
+func (e *Engine) updateIndexRootPage(indexName string, ctx *DatabaseContext, newRoot uint32) {
+	e.tableRootPages[indexName] = newRoot
+	_ = ctx.Schema.UpdateEntryRoot(indexName, newRoot)
 }
 
 // evalIndexWhere evaluates a partial-index predicate against a row.
@@ -896,39 +1077,47 @@ func (e *Engine) evalIndexWhere(whereSQL string, row RowMap) (bool, error) {
 	return toBool(v), nil
 }
 
+// indexKeyValueErr is like indexKeyValue but propagates expression-evaluation
+// errors (e.g. non-deterministic date functions in index expressions). The
+// bool is false for NULL keys, which never conflict and are skipped.
+func (e *Engine) indexKeyValueErr(cn string, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, row RowMap) (interface{}, bool, error) {
+	if idx, ok := colIndex[cn]; ok && idx >= 0 && idx < len(values) {
+		if values[idx] == nil {
+			return nil, false, nil
+		}
+		return values[idx], true, nil
+	}
+	// Expression index column: evaluate SELECT <expr> against the row.
+	stmts, perr := parse.ParseSQL("SELECT " + cn)
+	if perr != nil || len(stmts) == 0 {
+		return nil, false, nil
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || len(sel.Columns) == 0 {
+		return nil, false, nil
+	}
+	v, err := e.evalExpr(sel.Columns[0].Expr, row)
+	if err != nil {
+		return nil, false, err
+	}
+	if v == nil {
+		return nil, false, nil
+	}
+	// Keep the collatedValue wrapper (from an explicit COLLATE in the index
+	// key, e.g. substr(b,2,4) COLLATE nocase) so the uniqueness comparison
+	// uses the collation. Unwrap only the column-affinity wrapper; the
+	// comparison helper extracts the raw value and collation itself.
+	return v, true, nil
+}
+
 // indexKeyValue returns the value of one index column for a row. A plain
 // column name resolves through colIndex; any other expression (e.g. "0 | c0")
 // is parsed and evaluated against the row. The bool result is false when the
 // value cannot be computed (NULL or evaluation error) — callers treat that as
 // no-conflict (SQL UNIQUE allows multiple NULLs in an index key).
 func (e *Engine) indexKeyValue(cn string, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, row RowMap) (interface{}, bool) {
-	if idx, ok := colIndex[cn]; ok && idx >= 0 && idx < len(values) {
-		if values[idx] == nil {
-			return nil, false
-		}
-		return values[idx], true
-	}
-	// Expression index column: evaluate SELECT <expr> against the row.
-	stmts, perr := parse.ParseSQL("SELECT " + cn)
-	if perr != nil || len(stmts) == 0 {
-		return nil, false
-	}
-	sel, ok := stmts[0].(*sql.SelectStmt)
-	if !ok || len(sel.Columns) == 0 {
-		return nil, false
-	}
-	v, err := e.evalExpr(sel.Columns[0].Expr, row)
-	if err != nil {
-		return nil, false
-	}
-	if v == nil {
-		return nil, false
-	}
-	// Keep the collatedValue wrapper (from an explicit COLLATE in the index
-	// key, e.g. substr(b,2,4) COLLATE nocase) so the uniqueness comparison
-	// uses the collation. Unwrap only the column-affinity wrapper; the
-	// comparison helper extracts the raw value and collation itself.
-	return v, true
+	v, ok, _ := e.indexKeyValueErr(cn, colDefs, colIndex, values, row)
+	return v, ok
 }
 
 // checkUniqueIndex scans the table for a row whose values match the new row
@@ -1776,7 +1965,9 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 
 		// Compute any generated columns (b AS(expr)) that were not explicitly set.
-		values = e.computeGeneratedValues(colDefs, values)
+		if err := e.computeGeneratedValues(colDefs, values); err != nil {
+			return &Result{Error: err}
+		}
 
 		// Handle REPLACE: delete conflicting rows before inserting. The new
 		// row's rowid is computed BEFORE the deletes (SQLite keeps the rowid
@@ -1909,6 +2100,12 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		changes++
 		e.lastRowID = rowID
 
+		// Maintain indexes (pure context; non-deterministic date functions in
+		// index expressions raise SQLite's non-determinism error).
+		if err := e.maintainIndexesOnInsert(tableEntry, colDefs, values, rowID); err != nil {
+			return &Result{Error: err}
+		}
+
 		// Fire AFTER INSERT triggers.
 		if e.hasTriggersForTable(tableEntry.Name) {
 			newRow := make(RowMap)
@@ -1952,7 +2149,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 // "a INT AS (b*2) VIRTUAL, b INT AS (c*2) STORED") computes on a later pass
 // once b is filled. The slice may need to grow when an INSERT...SELECT maps
 // fewer columns than the table has (the trailing generated columns are nil).
-func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) []interface{} {
+func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) error {
 	for pass := 0; pass < len(colDefs); pass++ {
 		progress := false
 		rowMap := make(RowMap)
@@ -1968,20 +2165,27 @@ func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interf
 			if i < len(values) && values[i] != nil {
 				continue // explicit value provided
 			}
-			if v, err := e.evalExpr(cd.Generated, rowMap); err == nil {
-				for len(values) <= i {
-					values = append(values, nil)
-				}
-				values[i] = v
-				rowMap[cd.Name] = v
-				progress = true
+			var v interface{}
+			var gerr error
+			function.WithPureContext("gencol", func() error {
+				v, gerr = e.evalExpr(cd.Generated, rowMap)
+				return gerr
+			})
+			if gerr != nil {
+				return gerr
 			}
+			for len(values) <= i {
+				values = append(values, nil)
+			}
+			values[i] = v
+			rowMap[cd.Name] = v
+			progress = true
 		}
 		if !progress {
 			break
 		}
 	}
-	return values
+	return nil
 }
 
 // pkRowID determines the cell rowid for an insert. In SQLite, only an

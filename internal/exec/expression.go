@@ -457,6 +457,20 @@ func isHexLiteral(s string) bool {
 }
 
 func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
+	// CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP are SQL keywords
+	// evaluated as the statement-cached current time (SQLite evaluates them
+	// once per statement via sqlite3StmtCurrentTime). They are equivalent to
+	// time('now'), date('now'), and datetime('now') respectively.
+	if v.Table == "" {
+		switch strings.ToUpper(v.Name) {
+		case "CURRENT_TIME":
+			return function.FnTimeNow()
+		case "CURRENT_DATE":
+			return function.FnDateNow()
+		case "CURRENT_TIMESTAMP":
+			return function.FnDateTimeNow()
+		}
+	}
 	// TRUE/FALSE keywords are boolean literals (1/0), not column references.
 	// The parser represents them as ColumnRef{Name:"TRUE"} / {Name:"FALSE"}.
 	if v.Table == "" && strings.EqualFold(v.Name, "TRUE") {

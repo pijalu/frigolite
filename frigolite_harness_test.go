@@ -2,6 +2,7 @@ package frigolite
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/function"
 )
 
 type TestStep struct {
@@ -24,6 +26,20 @@ type TestStep struct {
 type TestCase struct {
 	Name  string     `json:"name"`
 	Steps []TestStep `json:"steps"`
+}
+
+// testHarnessLocaltime is the Go equivalent of SQLite's test1.c testLocaltime
+// (installed by SQLITE_TESTCTRL_LOCALTIME_FAULT 2): even days (from 1970) are
+// UTC-30min, odd days UTC+30min, and timestamp 959609760 (2000-05-29 14:16:00
+// UTC) fails so the date/time functions report "local time unavailable".
+func testHarnessLocaltime(unixSec int64) (int64, error) {
+	if unixSec == 959609760 {
+		return 0, fmt.Errorf("local time unavailable")
+	}
+	if (unixSec/86400)&1 != 0 {
+		return unixSec + 1800, nil // 30 minutes later on odd days
+	}
+	return unixSec - 1800, nil // 30 minutes earlier on even days
 }
 
 type TestFileData struct {
@@ -567,6 +583,14 @@ func TestSQLiteSuite(t *testing.T) {
 		}
 		t.Run(base, func(t *testing.T) {
 			t.Parallel()
+			// The SQLite TCL harness installs an alternative localtime for
+			// date.test (SQLITE_TESTCTRL_LOCALTIME_FAULT 2): even days are
+			// UTC-30min, odd days UTC+30min, and timestamp 959609760 fails with
+			// "local time unavailable". The date tests depend on it; install it
+			// when running the date file (only date tests exercise localtime).
+			if base == "date" {
+				function.SetLocaltimeHook(testHarnessLocaltime)
+			}
 			// Clean up file-backed test databases created by ATTACH in prior test
 			// files. These persist in the working directory and corrupt later test
 			// files that ATTACH the same filename (e.g. test2.db).

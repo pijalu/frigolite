@@ -10,6 +10,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
@@ -1093,10 +1094,16 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		// from the index entirely, so they neither enter the index nor
 		// participate in UNIQUE validation.
 		if s.Where != nil {
-			if inIndex, err := e.evalBool(s.Where, row); err != nil || !inIndex {
-				if err != nil {
-					return &Result{Error: err}
-				}
+			var inIndex bool
+			var whereErr error
+			function.WithPureContext("index", func() error {
+				inIndex, whereErr = e.evalBool(s.Where, row)
+				return whereErr
+			})
+			if whereErr != nil {
+				return &Result{Error: whereErr}
+			}
+			if !inIndex {
 				ok, err := cursor.Next()
 				if err != nil || !ok {
 					break
@@ -1250,13 +1257,21 @@ func (e *Engine) indexKeyForCreate(row RowMap, colDefs []sql.ColumnDef, key stri
 			return row[cd.Name], nil
 		}
 	}
-	// Expression key: evaluate SELECT <expr> against the row.
+	// Expression key: evaluate SELECT <expr> against the row. The evaluation
+	// runs in a pure context so non-deterministic date functions raise
+	// SQLite's "non-deterministic use of %s() in an index" error.
 	stmts, perr := parse.ParseSQL("SELECT " + key)
 	if perr != nil || len(stmts) == 0 {
 		return nil, nil
 	}
 	if sel, ok := stmts[0].(*sql.SelectStmt); ok && len(sel.Columns) > 0 {
-		return e.evalExpr(sel.Columns[0].Expr, row)
+		var v interface{}
+		var kerr error
+		function.WithPureContext("index", func() error {
+			v, kerr = e.evalExpr(sel.Columns[0].Expr, row)
+			return kerr
+		})
+		return v, kerr
 	}
 	return nil, nil
 }
