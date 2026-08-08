@@ -1066,9 +1066,16 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 108;\n  ")
 			}
 		}
-		{ // "pragma-8.1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "pragma-8.1.9" (prepare-step internals; SQL side effects only)
+			// prepared STMT: SELECT * FROM t4 (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("SELECT * FROM t4")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
+			}
 		}
-		{ // "pragma-8.1.10" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "pragma-8.1.10" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")
@@ -1106,9 +1113,16 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.schema_version = 206;\n    ")
 			}
 		}
-		{ // "pragma-8.1.16" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "pragma-8.1.16" (prepare-step internals; SQL side effects only)
+			// prepared STMT: SELECT * FROM aux.t1 (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("SELECT * FROM aux.t1")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM aux.t1")
+			}
 		}
-		{ // "pragma-8.1.17" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "pragma-8.1.17" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "pragma-8.1.18"
 			_ = db2 // close db2: aliased to db, no-op

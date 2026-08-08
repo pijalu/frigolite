@@ -324,7 +324,15 @@ func Test_fts3ao(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 				}
 			}
-			{ // "6." + tn + ".3" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "6." + tn + ".3" (prepare-step internals; SQL side effects only)
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
+				_res = db2.Exec(" DROP TABLE t1 ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				_ = db2 // close db2: aliased to db, no-op
+				// prepared stmt: SELECT * FROM ft (bind/step emulation)
+				_ = stmt // prepared statement handle
+				// sqlite3_finalize $stmt
 			}
 			db.Close()
 		}

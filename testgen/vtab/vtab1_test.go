@@ -171,13 +171,32 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		}
 	}
-	{ // "vtab1-1.2152.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "vtab1-1.2152.1" (prepare-step internals; SQL side effects only)
+		DB = "sqlite3_connection_pointer db"
+		_ = DB // suppress unused warning
+		sql = "CREATE VIRTUAL TABLE t2152a USING echo(t2152b)"
+		_ = sql // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
-	{ // "vtab-1.2152.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "vtab-1.2152.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_reset $STMT
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
-	{ // "vtab-1.2152.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "vtab-1.2152.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_reset $STMT
+		_res = db.Exec("CREATE TABLE t2152b(x,y)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2152b(x,y)")
+		}
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
-	{ // "vtab-1.2152.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "vtab-1.2152.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
+		_res = db.Exec("DROP TABLE t2152a; DROP TABLE t2152b")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2152a; DROP TABLE t2152b")
+		}
 	}
 	{ // do_test "vtab1-1.7.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE sqlite_master USING echo;\n  ")
@@ -1317,7 +1336,7 @@ func Test_vtab1(t *testing.T) {
 				}
 			}
 			os.Remove("test.db2")
-			nm = "abcdefghij 100"
+			nm = tclStringRepeat("abcdefghij", "100")
 			_ = nm // suppress unused warning
 			{ // "22.1"
 				_res = db.Exec("\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
@@ -1335,13 +1354,29 @@ func Test_vtab1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + nm + ".t1 USING fts4")
 				}
 			}
-			{ // "22.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "22.3.1" (prepare-step internals; SQL side effects only)
+				sql = "CREATE VIRTUAL TABLE " + nm + ".t2 USING fts4"
+				_ = sql // suppress unused warning
+				_ = stmt // prepared statement handle
+				// sqlite3_step $stmt (unknown prepared statement)
 			}
-			{ // "22.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "22.3.2" (prepare-step internals; SQL side effects only)
+				// sqlite3_finalize $stmt
 			}
-			{ // "22.4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "22.4.1" (prepare-step internals; SQL side effects only)
+				sql = "CREATE VIRTUAL TABLE " + nm + ".t3 USING fts4"
+				_ = sql // suppress unused warning
+				n = strconv.Itoa(len(sql))
+				_ = n // suppress unused warning
+				// prepared stmt: ${sql}xyz (bind/step emulation)
+				_ = stmt // prepared statement handle
+				_res = db.Exec("${sql}xyz")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "${sql}xyz")
+				}
 			}
-			{ // "22.4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "22.4.2" (prepare-step internals; SQL side effects only)
+				// sqlite3_finalize $stmt
 			}
 			db.Close()
 			os.Remove("test.db")

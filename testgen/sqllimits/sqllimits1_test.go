@@ -463,53 +463,54 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.9"
-		str = "A 65537" // TCL namespace variable
+		str = tclStringRepeat("A", "65537") // TCL namespace variable
 		_ = str // suppress unused warning
-		rep = "B 65537" // TCL namespace variable
+		rep = tclStringRepeat("B", "65537") // TCL namespace variable
 		_ = rep // suppress unused warning
 		_res = db.Exec(" SELECT replace(" + sqlLiteral(str) + ", 'A', " + sqlLiteral(rep) + ") ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.10"
-		str = "%J 12100" // TCL namespace variable
+		str = tclStringRepeat("%J", "12100") // TCL namespace variable
 		_ = str // suppress unused warning
 		_res = db.Exec(" SELECT length(strftime(" + sqlLiteral(str) + ", '2003-10-31')) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.11"
-		str1 = "A [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
+		str1 = tclStringRepeat("A", tclExprWith("$SQLITE_LIMIT_LENGTH - 10", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})) // TCL namespace variable
 		_ = str1 // suppress unused warning
-		str2 = "B [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
+		str2 = tclStringRepeat("B", tclExprWith("$SQLITE_LIMIT_LENGTH - 10", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})) // TCL namespace variable
 		_ = str2 // suppress unused warning
 		_res = db.Exec(" SELECT " + sqlLiteral(str1) + " || " + sqlLiteral(str2) + " ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.12"
-		str1 = "' [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
+		str1 = tclStringRepeat("'", tclExprWith("$SQLITE_LIMIT_LENGTH - 10", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})) // TCL namespace variable
 		_ = str1 // suppress unused warning
 		_res = db.Exec(" SELECT quote(" + sqlLiteral(str1) + ") ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.13"
-		str1 = "' [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
+		str1 = tclStringRepeat("'", tclExprWith("$SQLITE_LIMIT_LENGTH - 10", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})) // TCL namespace variable
 		_ = str1 // suppress unused warning
 		_res = db.Exec(" SELECT hex(" + sqlLiteral(str1) + ") ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.14.1"
-		STMT = "sqlite3_prepare db \"SELECT ?\" -1 TAIL" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: SELECT ? (bind/step emulation)
+		_ = STMT // prepared statement handle
 		// sqlite3_bind_zeroblob $::STMT 1 [expr {$SQLITE_LIMIT_LENGTH + 1}] (unsupported command, not transpiled)
 	}
-	{ // "sqllimits1-5.14.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "sqllimits1-5.14.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
 	{ // do_test "sqllimits1-5.14.3"
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
 	{ // do_test "sqllimits1-5.14.4"
 		np1 = tclExprWith("$SQLITE_LIMIT_LENGTH + 1", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})
 		_ = np1 // suppress unused warning
-		str1 = "A $np1" // TCL namespace variable
+		str1 = tclStringRepeat("A", np1) // TCL namespace variable
 		_ = str1 // suppress unused warning
 		{
 			var res string // catch result ("0"=ok, "1"=error)
@@ -517,7 +518,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// sqlite3_bind_text $::STMT 1 $::str1 -1 (unsupported command, not transpiled)
+			// sqlite3_bind_text $STMT (unknown prepared statement)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -534,7 +535,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// sqlite3_bind_text16 $::STMT 1 $::str1 -1 (unsupported command, not transpiled)
+			// sqlite3_bind_text16 $STMT (unknown prepared statement)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -551,7 +552,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// sqlite3_bind_text $::STMT 1 $::str1 $np1 (unsupported command, not transpiled)
+			// sqlite3_bind_text $STMT (unknown prepared statement)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -568,7 +569,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// sqlite3_bind_text16 $::STMT 1 $::str1 [expr $np1+1] (unsupported command, not transpiled)
+			// sqlite3_bind_text16 $STMT (unknown prepared statement)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -587,7 +588,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// sqlite3_bind_text $::STMT 1 $::str1 $n (unsupported command, not transpiled)
+			// sqlite3_bind_text $STMT (unknown prepared statement)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -604,7 +605,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// sqlite3_bind_text16 $::STMT 1 $::str1 $n (unsupported command, not transpiled)
+			// sqlite3_bind_text16 $STMT (unknown prepared statement)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -614,7 +615,7 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 	}
-	// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
 	{ // do_test "sqllimits1-5.15"
 		_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    INSERT INTO t4 VALUES(2);\n    INSERT INTO t4 SELECT 2+x FROM t4;\n  ")
 		if _res.Error != nil {
@@ -627,7 +628,7 @@ func Test_sqllimits1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t4")
 	}
-	strvalue = "A $::SQLITE_LIMIT_LENGTH"
+	strvalue = tclStringRepeat("A", SQLITE_LIMIT_LENGTH)
 	_ = strvalue // suppress unused warning
 	{ // do_test "sqllimits1-5.16"
 		_res = db.Exec("SELECT '" + strvalue + "' AS x")
@@ -645,7 +646,7 @@ func Test_sqllimits1(t *testing.T) {
 		_res = db.Exec("SELECT 'A' || " + sqlLiteral(strvalue))
 		_ = _res // catchsql
 	}
-	blobvalue = "41 $::SQLITE_LIMIT_LENGTH"
+	blobvalue = tclStringRepeat("41", SQLITE_LIMIT_LENGTH)
 	_ = blobvalue // suppress unused warning
 	{ // do_test "sqllimits1-5.18"
 		_res = db.Exec("SELECT x'" + blobvalue + "' AS x")
@@ -655,7 +656,7 @@ func Test_sqllimits1(t *testing.T) {
 		_res = db.Exec("SELECT '41" + blobvalue + "'")
 		_ = _res // catchsql
 	}
-	strvalue = "D [expr {$SQLITE_LIMIT_LENGTH-11}]"
+	strvalue = tclStringRepeat("D", tclExprWith("$SQLITE_LIMIT_LENGTH-11", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH}))
 	_ = strvalue // suppress unused warning
 	{ // do_test "sqllimits1-5.20"
 		_res = db.Exec("SELECT strftime('%Y ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
@@ -672,7 +673,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = tail // suppress unused warning
 		N = strconv.Itoa((50000 / (len(tail)))+1)
 		_ = N // suppress unused warning
-		sql += "$tail $N"
+		sql += tclStringRepeat(tail, N)
 		_res = db.Exec(sql)
 		_ = _res // catchsql
 	}
@@ -683,7 +684,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = tail // suppress unused warning
 		N = strconv.Itoa((50000 / (len(tail)))+1)
 		_ = N // suppress unused warning
-		sql += "$tail $N"
+		sql += tclStringRepeat(tail, N)
 		nbytes = strconv.Itoa(len(sql))
 		_ = nbytes // suppress unused warning
 		sql += " AND 0"
@@ -691,7 +692,7 @@ func Test_sqllimits1(t *testing.T) {
 	_ = STMT // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare db $sql $nbytes TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				STMT = _catchErr.Error()
@@ -988,7 +989,7 @@ func Test_sqllimits1(t *testing.T) {
 		{ // do_test "sqllimits1-9.1"
 			max = SQLITE_MAX_EXPR_DEPTH
 			_ = max // suppress unused warning
-			expr = "(1 " + "{AND 1 } $max" + ")"
+			expr = "(1 " + tclStringRepeat("AND 1 ", max) + ")"
 			_ = expr // suppress unused warning
 			_res = db.Exec("SELECT " + expr)
 			_ = _res // catchsql
@@ -1023,7 +1024,7 @@ func Test_sqllimits1(t *testing.T) {
 				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
-					expr = "(a " + "{AND 1 } 50" + ") AS a"
+					expr = "(a " + tclStringRepeat("AND 1 ", "50") + ") AS a"
 					_ = expr // suppress unused warning
 					_res = db.Exec("CREATE VIEW v" + i + " AS SELECT " + expr + " FROM v" + tclExprWith("$i-1", map[string]string{"i": i}))
 					if _res.Error != nil {
@@ -1194,9 +1195,9 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-15.1"
 		max = SQLITE_LIMIT_LIKE_PATTERN
 		_ = max // suppress unused warning
-		pattern = "\"A%\" [expr $max/2]" // TCL namespace variable
+		pattern = tclStringRepeat("A%", tclExprWith("$max/2", map[string]string{"max": max})) // TCL namespace variable
 		_ = pattern // suppress unused warning
-		_string = "\"A\" [expr {$max*2}]" // TCL namespace variable
+		_string = tclStringRepeat("A", tclExprWith("$max*2", map[string]string{"max": max})) // TCL namespace variable
 		_ = _string // suppress unused warning
 		r = db.Query("\n    SELECT " + sqlLiteral(_string) + " LIKE " + sqlLiteral(pattern) + ";\n  ")
 		if r.Error != nil {
@@ -1206,9 +1207,9 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-15.2"
 		max = SQLITE_LIMIT_LIKE_PATTERN
 		_ = max // suppress unused warning
-		pattern = "\"A%\" [expr {($max/2) + 1}]" // TCL namespace variable
+		pattern = tclStringRepeat("A%", tclExprWith("($max/2) + 1", map[string]string{"max": max})) // TCL namespace variable
 		_ = pattern // suppress unused warning
-		_string = "\"A\" [expr {$max*2}]" // TCL namespace variable
+		_string = tclStringRepeat("A", tclExprWith("$max*2", map[string]string{"max": max})) // TCL namespace variable
 		_ = _string // suppress unused warning
 		_res = db.Exec("\n    SELECT " + sqlLiteral(_string) + " LIKE " + sqlLiteral(pattern) + ";\n  ")
 		_ = _res // catchsql
@@ -1234,7 +1235,7 @@ func Test_sqllimits1(t *testing.T) {
 				_ = key // suppress unused warning
 			}
 		}
-		nm = "x 10000"
+		nm = tclStringRepeat("x", "10000")
 		_ = nm // suppress unused warning
 		{ // "sqllimits1-17.1"
 			_res = db.Exec("\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
@@ -1265,29 +1266,49 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf16';\n  ")
 			}
 		}
-		bigstr = "abcdefghij 5000"
+		bigstr = tclStringRepeat("abcdefghij", "5000")
 		_ = bigstr // suppress unused warning
 		bigstr16 = "encoding convertto unicode $bigstr"
 		_ = bigstr16 // suppress unused warning
 		{ // do_test "19.1"
 			_ = strconv.Itoa(len(bigstr16)) // string length result
 		}
-		{ // "19.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "19.2" (prepare-step internals; SQL side effects only)
+			// prepared stmt: SELECT length( ? ) (bind/step emulation)
+			_ = stmt // prepared statement handle
+			// sqlite3_bind_text16 $stmt 1 $bigstr16 → '$bigstr16'
+			_res = db.Exec("SELECT length( '$bigstr16' )")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT length( '$bigstr16' )")
+			}
+			val = "0"
+			_ = val // suppress unused warning
+			// sqlite3_finalize $stmt
 		}
-		{ // "19.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "19.3" (prepare-step internals; SQL side effects only)
+			// prepared stmt: SELECT length( ? ) (bind/step emulation)
+			_ = stmt // prepared statement handle
+			// sqlite3_bind_text16 $stmt 1 $bigstr16 → '$bigstr16'
+			_res = db.Exec("SELECT length( '$bigstr16' )")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT length( '$bigstr16' )")
+			}
+			val = "0"
+			_ = val // suppress unused warning
+			// sqlite3_finalize $stmt
 		}
 		{ // do_test "19.4"
-			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
-			_ = stmt // suppress unused warning
+			// prepared stmt: SELECT length( ? ) (bind/step emulation)
+			_ = stmt // prepared statement handle
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
-		// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		// sqlite3_finalize $stmt
 		{ // do_test "19.5"
-			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
-			_ = stmt // suppress unused warning
+			// prepared stmt: SELECT length( ? ) (bind/step emulation)
+			_ = stmt // prepared statement handle
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
-		// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		// sqlite3_finalize $stmt
 }

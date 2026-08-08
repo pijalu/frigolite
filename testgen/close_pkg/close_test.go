@@ -79,20 +79,40 @@ func Test_close(t *testing.T) {
 	{ // do_test "1.2.1"
 		DB = ""
 		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
-		_ = STMT // suppress unused warning
+		// prepared STMT: SELECT * FROM t1 (bind/step emulation)
+		_ = STMT // prepared statement handle
 		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
-	{ // "1.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.2.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "1.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.3.1" (prepare-step internals; SQL side effects only)
+		DB = ""
+		_ = DB // suppress unused warning
+		// prepared STMT: SELECT * FROM t1 (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
-	{ // "1.3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.3.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "1.4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.4.1" (prepare-step internals; SQL side effects only)
+		DB = ""
+		_ = DB // suppress unused warning
+		// prepared STMT: SELECT * FROM t1 (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.2"
 		_list := tclList([]string{"SQLITE_ROW", ""})
@@ -102,7 +122,8 @@ func Test_close(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	{ // "1.4.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.4.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "1.5"
 		DB = ""

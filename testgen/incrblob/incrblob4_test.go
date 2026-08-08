@@ -103,7 +103,7 @@ func Test_incrblob4(t *testing.T) {
 		// read $blob 10 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.3"
-		_new = "% 900"
+		_new = tclStringRepeat("%", "900")
 		_ = _new // suppress unused warning
 		_res = db.Exec(" DELETE FROM t1 WHERE k=10 ")
 		if _res.Error != nil {
@@ -133,7 +133,7 @@ func Test_incrblob4(t *testing.T) {
 		// read $blob 10 (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3"
-		_new = "% 900"
+		_new = tclStringRepeat("%", "900")
 		_ = _new // suppress unused warning
 		_res = db.Exec(" UPDATE t1 SET v = " + sqlLiteral(_new) + " WHERE k = 20 ")
 		if _res.Error != nil {

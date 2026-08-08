@@ -92,22 +92,41 @@ func Test_rollback(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;\n    ")
 		}
 	}
-	{ // "rollback-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "rollback-1.3" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT a FROM t1 (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
+		}
 	}
 	{ // do_test "rollback-1.4"
 		_res = db.Exec("\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
 		_ = _res // catchsql
 	}
-	{ // "rollback-1.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "rollback-1.5" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
+		}
 	}
 	{ // do_test "rollback-1.6"
-		// sqlite3_reset $STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
-	{ // "rollback-1.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "rollback-1.7" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
+		}
 	}
-	{ // "rollback-1.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "rollback-1.8" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
+		}
 	}
-	{ // "rollback-1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "rollback-1.9" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	if tclBool(tcl_platform_platform + " == \"unix\" \n && " + "permutation" + " != \"onefile\"\n && " + "permutation" + " != \"inmemory_journal\"\n && " + "permutation" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
 		{ // do_test "rollback-2.1"

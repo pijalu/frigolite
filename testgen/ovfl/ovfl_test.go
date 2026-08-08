@@ -65,7 +65,7 @@ func Test_ovfl(t *testing.T) {
 	testprefix = "ovfl"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
-		c2 = "abcdefghij 200"
+		c2 = tclStringRepeat("abcdefghij", "200")
 		_ = c2 // suppress unused warning
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
 		if r.Error != nil {
@@ -74,7 +74,7 @@ func Test_ovfl(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2000 }() {
-			c1 = ". $i"
+			c1 = tclStringRepeat(".", i)
 			_ = c1 // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(c1) + ", " + sqlLiteral(c2) + ") ")
 			if _res.Error != nil {

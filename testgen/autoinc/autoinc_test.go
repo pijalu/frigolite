@@ -472,7 +472,40 @@ func Test_autoinc(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE t8(x TEXT PRIMARY KEY AUTOINCREMENT);\n  ")
 		_ = _res // catchsql
 	}
-	{ // "autoinc-8.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "autoinc-8.1" (prepare-step internals; SQL side effects only)
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			db2.Close()
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			db.Close()
+		}
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		DB = "sqlite3_connection_pointer db"
+		_ = DB // suppress unused warning
+		// prepared STMT: CREATE TABLE t1(
+       x INTEGER PRIMARY KEY AUTOINCREMENT
+     ) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// sqlite3_finalize $STMT
+		// prepared STMT: CREATE TABLE t1(
+       x INTEGER PRIMARY KEY AUTOINCREMENT
+     ) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )")
+		}
+		// sqlite3_finalize $STMT
+		r = db.Query("\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")
+		}
 	}
 	{ // do_test "autoinc-9.1"
 		r = db.Query("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")

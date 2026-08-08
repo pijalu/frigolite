@@ -140,14 +140,14 @@ func Test_sortfault(t *testing.T) {
 			}
 			// sqlite3_initialize (unsupported command, not transpiled)
 			// sorter_test_fakeheap $fakeheap (unsupported command, not transpiled)
-			str = "a 1000"
+			str = tclStringRepeat("a", "1000")
 			_ = str // suppress unused warning
 			_putsMsg := threadsmode
 			_ = _putsMsg
 			// do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control...} -body {\n   ... (unsupported command, not transpiled)
 			// do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control...}... (unsupported command, not transpiled)
 			if func() bool { mmap_limit_n, _mmap_limit_e := strconv.Atoi(mmap_limit); if _mmap_limit_e != nil { return false }; return mmap_limit_n > 1000000 }() {
-				str2 = "$str 10"
+				str2 = tclStringRepeat(str, "10")
 				_ = str2 // suppress unused warning
 				// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
 				_dbtmp0, err := frigolite.Open("test.db")
@@ -211,11 +211,11 @@ func Test_sortfault(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		a = "a 500"
+		a = tclStringRepeat("a", "500")
 		_ = a // suppress unused warning
-		b = "b 500"
+		b = tclStringRepeat("b", "500")
 		_ = b // suppress unused warning
-		c = "c 500"
+		c = tclStringRepeat("c", "500")
 		_ = c // suppress unused warning
 		{ // "5.0"
 			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + "); \n  INSERT INTO t1 VALUES(" + sqlLiteral(c) + ", " + sqlLiteral(b) + ", " + sqlLiteral(a) + "); \n")

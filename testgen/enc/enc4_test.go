@@ -115,8 +115,7 @@ func Test_enc4(t *testing.T) {
 		for _, init := range tclSplitList(inits) {
 		_ = init // suppress unused warning
 			{ // do_test "enc4-" + i + "." + j + ".2"
-				S = ""
-				_ = S // suppress unused warning
+				_ = S // prepared statement handle
 				// sqlite3_expired $S (unsupported command, not transpiled)
 			}
 			k = "1"
@@ -128,8 +127,18 @@ func Test_enc4(t *testing.T) {
 				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 16 }() {
 					part = tclExprWith("$init + [string range $val 0 [expr $x-1]]", map[string]string{"init": init, "val": val, "x": x})
 					_ = part // suppress unused warning
-					// do_realnum_test enc4-$i.$j.$k.3.$x {\n          sqlite3_reset $S\n          sqlite3_bi...} [list $part] (expr test, not transpiled)
-					// do_realnum_test enc4-$i.$j.$k.4.$x {\n          sqlite3_reset $S\n          sqlite3_bi...} [list $part] (expr test, not transpiled)
+					{ // "enc4-" + i + "." + j + "." + k + ".3." + x (do_realnum_test; SQL side effects only)
+						// sqlite3_reset $S
+						// sqlite3_bind_text $S (unknown prepared statement)
+						// sqlite3_step $S (unknown prepared statement)
+						// sqlite3_column_text $S 0 (unsupported command, not transpiled)
+					}
+					{ // "enc4-" + i + "." + j + "." + k + ".4." + x (do_realnum_test; SQL side effects only)
+						// sqlite3_reset $S
+						// sqlite3_bind_text16 $S (unknown prepared statement)
+						// sqlite3_step $S (unknown prepared statement)
+						// sqlite3_column_text $S 0 (unsupported command, not transpiled)
+					}
 					// incr x 1
 					{
 						_n, _err := strconv.Atoi(x)
@@ -146,7 +155,8 @@ func Test_enc4(t *testing.T) {
 					}
 				}
 			}
-			{ // "enc4-" + i + "." + j + ".5" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "enc4-" + i + "." + j + ".5" (prepare-step internals; SQL side effects only)
+				// sqlite3_finalize $S
 			}
 			// incr j 1
 			{
@@ -180,17 +190,31 @@ func Test_enc4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "enc4-4.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "enc4-4.2.1" (prepare-step internals; SQL side effects only)
+		_ = S // prepared statement handle
+		// sqlite3_step $S (unknown prepared statement)
+		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
-	{ // "enc4-4.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "enc4-4.2.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
-	{ // "enc4-4.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "enc4-4.3.1" (prepare-step internals; SQL side effects only)
+		_ = S // prepared statement handle
+		// sqlite3_bind_text $S (unknown prepared statement)
+		// sqlite3_step $S (unknown prepared statement)
+		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
-	{ // "enc4-4.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "enc4-4.3.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
-	{ // "enc4-4.4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "enc4-4.4.1" (prepare-step internals; SQL side effects only)
+		_ = S // prepared statement handle
+		// sqlite3_bind_text $S (unknown prepared statement)
+		// sqlite3_step $S (unknown prepared statement)
+		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
-	{ // "enc4-4.4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "enc4-4.4.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	db.Close()
 }

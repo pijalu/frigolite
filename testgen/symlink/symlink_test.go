@@ -145,7 +145,7 @@ func Test_symlink(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.4"
-		name = "test.db" + "x 502"
+		name = "test.db" + tclStringRepeat("x", "502")
 		_ = name // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -153,7 +153,7 @@ func Test_symlink(t *testing.T) {
 	{ // do_test "1.5"
 		_r = tclExpr("510 - [string length test.db] - [string length [pwd]]")
 		_ = _r // suppress unused warning
-		name = "test.db" + "x $r"
+		name = "test.db" + tclStringRepeat("x", _r)
 		_ = name // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -249,7 +249,7 @@ func Test_symlink(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				db, err = frigolite.Open("[string repeat x 100]/ 6")
+				db, err = frigolite.Open(tclStringRepeat(tclStringRepeat("x", "100") + "/", "6"))
 				if err != nil { t.Fatal(err) }
 				if _catchErr != nil {
 					res = "1"
@@ -335,7 +335,7 @@ func Test_symlink(t *testing.T) {
 		_ = path // suppress unused warning
 		nLink = strconv.Itoa(tclLLength("split $path /"))
 		_ = nLink // suppress unused warning
-		path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
+		path = tclStringRepeat("../", tclExprWith("$nLink*2", map[string]string{"nLink": nLink})) + ".." + path + "/test.db"
 		_ = path // suppress unused warning
 		db2, err = frigolite.Open(path)
 		if err != nil { t.Fatal(err) }

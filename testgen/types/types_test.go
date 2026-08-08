@@ -277,9 +277,9 @@ func Test_types(t *testing.T) {
 	{ // do_test "types-2.4.1"
 		string10 = "abcdefghij"
 		_ = string10 // suppress unused warning
-		string500 = "$string10 50"
+		string500 = tclStringRepeat(string10, "50")
 		_ = string500 // suppress unused warning
-		string500000 = "$string10 50000"
+		string500000 = tclStringRepeat(string10, "50000")
 		_ = string500000 // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t4(a string);\n    INSERT INTO t4 VALUES('" + string10 + "');\n    INSERT INTO t4 VALUES('" + string500 + "');\n    INSERT INTO t4 VALUES('" + string500000 + "');\n  ")
 		if _res.Error != nil {
@@ -316,9 +316,9 @@ func Test_types(t *testing.T) {
 	{ // do_test "types-2.5.2"
 		string10 = "abcdefghij"
 		_ = string10 // suppress unused warning
-		string500 = "$string10 50"
+		string500 = tclStringRepeat(string10, "50")
 		_ = string500 // suppress unused warning
-		string500000 = "$string10 50000"
+		string500000 = tclStringRepeat(string10, "50000")
 		_ = string500000 // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(NULL, '" + string10 + "', 4000);")
 		if _res.Error != nil {

@@ -133,14 +133,14 @@ func Test_win32longpath(t *testing.T) {
 	_ = longPath_2 // suppress unused warning
 	uriPath_2a = uriPath_1a + "[string repeat X 255]"
 	_ = uriPath_2a // suppress unused warning
-	uriPath_2b = uriPath_1b + "/" + "X 255"
+	uriPath_2b = uriPath_1b + "/" + tclStringRepeat("X", "255")
 	_ = uriPath_2b // suppress unused warning
 	// file mkdir $longPath(2)
 	longPath_3 = longPath_2 + "[string repeat Y 255]"
 	_ = longPath_3 // suppress unused warning
 	uriPath_3a = uriPath_2a + "[string repeat Y 255]"
 	_ = uriPath_3a // suppress unused warning
-	uriPath_3b = uriPath_2b + "/" + "Y 255"
+	uriPath_3b = uriPath_2b + "/" + tclStringRepeat("Y", "255")
 	_ = uriPath_3b // suppress unused warning
 	// file mkdir $longPath(3)
 	fileName = longPath_3 + "\\test.db"

@@ -466,7 +466,11 @@ func Test_e_blobopen(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c2(i INTEGER PRIMARY KEY, j);\n  INSERT INTO c2 VALUES(10, zeroblob(24));\n")
 			}
 		}
-		{ // "13.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "13.2" (prepare-step internals; SQL side effects only)
+			_ = stmt // prepared statement handle
+			// sqlite3_bind_zeroblob $stmt 1 45 (unsupported command, not transpiled)
+			// sqlite3_step $stmt (unknown prepared statement)
+			// sqlite3_finalize $stmt
 		}
 		{ // do_test "13.3.1"
 			// sqlite3_blob_open db main c2 j 10 1 B (unsupported command, not transpiled)

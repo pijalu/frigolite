@@ -128,8 +128,8 @@ func Test_sharedA(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "2.2"
-		STMT = "sqlite3_prepare db2 \"CREATE INDEX i1 ON t1(x)\" -1 tail" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: CREATE INDEX i1 ON t1(x) (bind/step emulation)
+		_ = STMT // prepared statement handle
 		_res = db1.Exec("\n    BEGIN;\n      CREATE INDEX i1 ON t1(x);\n      INSERT INTO t2 VALUES('value!');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

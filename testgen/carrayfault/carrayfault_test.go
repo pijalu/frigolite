@@ -74,8 +74,7 @@ func Test_carrayfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n")
 		}
 	}
-	STMT = ""
-	_ = STMT // suppress unused warning
+	_ = STMT // prepared statement handle
 	// foreach {tn mem} "1 -static\n  2 -transient\n  3 -malloc"
 	_items1 := tclSplitList("1 -static\n  2 -transient\n  3 -malloc")
 	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
@@ -87,7 +86,7 @@ func Test_carrayfault(t *testing.T) {
 			// do_faultsim_test 2.$tn -faults oom* -prep {\n  } -body {\n    sqlite3_carray_bind $::mem -int64 $... (unsupported command, not transpiled)
 		}
 		// do_faultsim_test 3 -faults oom* -prep {\n} -body {\n    sqlite3_carray_bind -transient -text $::S... (unsupported command, not transpiled)
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT
 		// do_faultsim_test 4 -faults oom* -prep {\n  set ::STMT [sqlite3_prepare_v2 db "SELECT valu...} -bo... (unsupported command, not transpiled)
 		// do_faultsim_test 5 -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql "SELECT value... (unsupported command, not transpiled)
 		// sqlite3_carray_bind (unsupported command, not transpiled)

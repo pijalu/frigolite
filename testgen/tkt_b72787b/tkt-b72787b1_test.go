@@ -72,12 +72,11 @@ func Test_tkt_b72787b1(t *testing.T) {
 		_ = DB // suppress unused warning
 		sql = "SELECT max(x) FROM t1"
 		_ = sql // suppress unused warning
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		_res = db.Exec("\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
 }

@@ -103,7 +103,7 @@ func Test_dbdata(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	big = "big 2000"
+	big = tclStringRepeat("big", "2000")
 	_ = big // suppress unused warning
 	{ // "1.3"
 		r = db.Query("\n  INSERT INTO t1 VALUES(NULL, " + sqlLiteral(big) + ");\n  SELECT value FROM sqlite_dbdata WHERE pgno=2 AND cell=2 AND field=1;\n")

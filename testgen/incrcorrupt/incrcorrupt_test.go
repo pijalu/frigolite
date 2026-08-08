@@ -87,7 +87,9 @@ func Test_incrcorrupt(t *testing.T) {
 		_res = db.Exec(" PRAGMA incremental_vacuum; ")
 		_ = _res // catchsql
 	}
-	{ // "1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.3" (prepare-step internals; SQL side effects only)
+		_ = stmt // prepared statement handle
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
 	{ // do_test "1.4"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -95,7 +97,8 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "1.5"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $stmt
 	}
 	{ // do_test "1.7"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -103,7 +106,9 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "1.8"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.9" (prepare-step internals; SQL side effects only)
+		_ = stmt // prepared statement handle
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
 	{ // do_test "1.10"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -111,7 +116,9 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "1.11"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "1.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.12" (prepare-step internals; SQL side effects only)
+		_ = stmt2 // prepared statement handle
+		// sqlite3_finalize $stmt2
 	}
 	{ // do_test "1.13"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -119,7 +126,8 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "1.14"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "1.15" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.15" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $stmt
 	}
 	{ // do_test "1.16"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -153,7 +161,9 @@ func Test_incrcorrupt(t *testing.T) {
 		_res = db.Exec(" PRAGMA incremental_vacuum; ")
 		_ = _res // catchsql
 	}
-	{ // "2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "2.3" (prepare-step internals; SQL side effects only)
+		_ = stmt // prepared statement handle
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
 	{ // do_test "2.4"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -161,7 +171,8 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "2.5"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "2.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $stmt
 	}
 	{ // do_test "2.7"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -169,7 +180,9 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "2.8"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "2.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "2.9" (prepare-step internals; SQL side effects only)
+		_ = stmt // prepared statement handle
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
 	{ // do_test "2.10"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -177,7 +190,9 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "2.11"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "2.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "2.12" (prepare-step internals; SQL side effects only)
+		_ = stmt2 // prepared statement handle
+		// sqlite3_finalize $stmt2
 	}
 	{ // do_test "2.13"
 		// sqlite3_errcode db (unsupported command, not transpiled)
@@ -185,7 +200,8 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "2.14"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	{ // "2.15" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "2.15" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $stmt
 	}
 	{ // do_test "2.16"
 		// sqlite3_errcode db (unsupported command, not transpiled)

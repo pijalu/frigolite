@@ -458,15 +458,14 @@ func Test_e_select(t *testing.T) {
 							nCol := _items5[_idx5+2]
 							_ = nCol // suppress unused warning
 							_ = _idx5
-								stmt = "" // TCL namespace variable
-								_ = stmt // suppress unused warning
+								_ = stmt // prepared statement handle
 								{ // do_test "e_select-4.3." + tn
 									// sqlite3_column_count $::stmt (unsupported command, not transpiled)
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), nCol) {
 										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nCol, _res.Error, "e_select-4.3." + tn)
 									}
 								}
-								// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+								// sqlite3_finalize $stmt
 							}
 							// do_select_tests e_select-4.4 {\n  1 "SELECT a, b FROM z1"\n    {51.65 -59.58 -5 ...} (unsupported command, not transpiled)
 							// do_select_tests e_select-4.5 {\n  1 "SELECT count(a), max(a), count(b), max(b) F...} (unsupported command, not transpiled)
@@ -504,8 +503,7 @@ func Test_e_select(t *testing.T) {
 								_select := _items6[_idx6+1]
 								_ = _select // suppress unused warning
 								_ = _idx6
-									stmt = "" // TCL namespace variable
-									_ = stmt // suppress unused warning
+									_ = stmt // prepared statement handle
 									nRow = "0"
 									_ = nRow // suppress unused warning
 									for "SQLITE_ROW" == "SQLITE_ROW" {

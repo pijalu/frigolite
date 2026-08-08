@@ -152,7 +152,7 @@ func Test_e_fts3(t *testing.T) {
 			// read_test 1.1.2.2 {\n  PRAGMA table_info(pages)\n} {0 title {} 0 {} 0 1 keywords {} 0 {} 0... (unsupported command, not transpiled)
 			// ddl_test 1.1.3.1 {\n  CREATE VIRTUAL TABLE mail USING fts3(\n      s...} (unsupported command, not transpiled)
 			// read_test 1.1.3.2 {\n  PRAGMA table_info(mail)\n} {0 subject {} 0 {} 0 1 body {} 0 {} 0} (unsupported command, not transpiled)
-			largetext = "\"the quick brown fox \" 5000"
+			largetext = tclStringRepeat("the quick brown fox ", "5000")
 			_ = largetext // suppress unused warning
 			// write_test 1.1.3.3 mail_content { INSERT INTO mail VALUES(NULL, $largetext) } (unsupported command, not transpiled)
 			// read_test 1.1.3.4 {\n  SELECT subject IS NULL, length(body) FROM mail...} [list 1 100000] (unsupported command, not transpiled)

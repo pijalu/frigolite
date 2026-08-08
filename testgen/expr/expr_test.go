@@ -973,7 +973,16 @@ func Test_expr(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
 				}
 			}
-			{ // "expr-15." + tn + ".2" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "expr-15." + tn + ".2" (prepare-step internals; SQL side effects only)
+				// prepared STMT: INSERT INTO t1 VALUES(?) (bind/step emulation)
+				_ = STMT // prepared statement handle
+				// sqlite3_bind_double $STMT 1 $val → $val
+				_res = db.Exec("INSERT INTO t1 VALUES($val)")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($val)")
+				}
+				// sqlite3_reset $STMT
+				// sqlite3_finalize $STMT
 			}
 			{ // "expr-15." + tn + ".3"
 				r = db.Query("\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);\n  ")

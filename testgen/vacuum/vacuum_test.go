@@ -235,9 +235,21 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
 		}
 	}
-	{ // "vacuum-4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "vacuum-4.1" (prepare-step internals; SQL side effects only)
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		DB = "sqlite3_connection_pointer db"
+		_ = DB // suppress unused warning
+		// prepared VM: VACUUM (bind/step emulation)
+		_ = VM // prepared statement handle
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
 	}
-	{ // "vacuum-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "vacuum-4.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "vacuum-5.1"
 		db.Close()

@@ -250,7 +250,7 @@ func Test_fts3snippet(t *testing.T) {
 				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 150 }() {
-					commas = ", $i"
+					commas = tclStringRepeat(",", i)
 					_ = commas // suppress unused warning
 					_res = db.Exec("INSERT INTO ft VALUES('one' || " + sqlLiteral(commas) + " || 'two')")
 					if _res.Error != nil {
@@ -296,7 +296,7 @@ func Test_fts3snippet(t *testing.T) {
 				_ = n // suppress unused warning
 					v1 = tclLRange(numbers, "0", tclExprWith("$n*100", map[string]string{"n": n}))
 					_ = v1 // suppress unused warning
-					v2 = strings.TrimSpace("\"$numbers \" $n")
+					v2 = strings.TrimSpace(tclStringRepeat(numbers + " ", n))
 					_ = v2 // suppress unused warning
 					docid = tclExprWith("$n * 1000000", map[string]string{"n": n})
 					_ = docid // suppress unused warning
@@ -450,7 +450,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2"
-			x35 = strings.TrimSpace("\"x \" 35")
+			x35 = strings.TrimSpace(tclStringRepeat("x ", "35"))
 			_ = x35 // suppress unused warning
 			_res = db.Exec("INSERT INTO t4 VALUES('" + x35 + " E " + x35 + " F " + x35 + " G " + x35 + "');")
 			if _res.Error != nil {

@@ -396,7 +396,7 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	if func() bool { SQLITE_MAX_LENGTH_n, _SQLITE_MAX_LENGTH_e := strconv.Atoi(SQLITE_MAX_LENGTH); if _SQLITE_MAX_LENGTH_e != nil { return false }; return SQLITE_MAX_LENGTH_n > 1200*1000*1000 }() {
-		v = "A 1100000000"
+		v = tclStringRepeat("A", "1100000000")
 		_ = v // suppress unused warning
 		{ // "bigrow-6.0"
 			_res = db.Exec("\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( " + sqlLiteral(v) + " );\n  ")

@@ -100,33 +100,33 @@ func Test_normalize(t *testing.T) {
 			}
 		}
 		{ // do_test "201"
-			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 0 TAIL"
-			_ = STMT // suppress unused warning
-			// sqlite3_bind_null $STMT 1 (unsupported command, not transpiled)
+			_ = STMT // prepared statement handle
+			// sqlite3_bind_null (malformed)
 		}
 		{ // do_test "202"
 			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 		}
-		{ // "203" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "203" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "210"
-			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 2 TAIL"
-			_ = STMT // suppress unused warning
-			// sqlite3_bind_null $STMT 1 (unsupported command, not transpiled)
+			_ = STMT // prepared statement handle
+			// sqlite3_bind_null (malformed)
 		}
 		{ // do_test "211"
 			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 		}
-		{ // "212" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "212" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "220"
-			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;\" -1 2 TAIL"
-			_ = STMT // suppress unused warning
+			_ = STMT // prepared statement handle
 		}
 		{ // do_test "221"
 			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 		}
-		{ // "222" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "222" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "297"
 			_res = db.Exec("\n    DROP TABLE t1;\n  ")
@@ -160,8 +160,7 @@ func Test_normalize(t *testing.T) {
 	_ = res // suppress unused warning
 					{ // catch block
 						var _catchErr error
-						STMT = "sqlite3_prepare_v3 $DB $sql -1 $flags TAIL"
-						_ = STMT // suppress unused warning
+						_ = STMT // prepared statement handle
 						// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
 						if _catchErr != nil {
 							code = "1"
@@ -172,7 +171,7 @@ func Test_normalize(t *testing.T) {
 						}
 					}
 					if tclBool("info exists STMT") {
-						// sqlite3_finalize $STMT (unsupported command, not transpiled)
+						// sqlite3_finalize $STMT
 					}
 					_list := tclList([]string{code, res})
 					_ = _list

@@ -249,7 +249,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclLRange("\"10 \" 100", "0", "99")
+		want := tclLRange(tclStringRepeat("10 ", "100"), "0", "99")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -261,7 +261,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := tclLRange("\"10 \" 100", "0", "23")
+		want := tclLRange(tclStringRepeat("10 ", "100"), "0", "23")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1345,9 +1345,9 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			one = "x 1000"
+			one = tclStringRepeat("x", "1000")
 			_ = one // suppress unused warning
-			two = "x 2000"
+			two = tclStringRepeat("x", "2000")
 			_ = two // suppress unused warning
 			{ // do_test "16.1"
 				db.Close()

@@ -100,7 +100,7 @@ func Test_shell6(t *testing.T) {
 			}
 			expected = ""
 			_ = expected // suppress unused warning
-			for _, line := range tclSplitList("split $output \"\n\"") {
+			for _, line := range strings.Split(output, "\\n") {
 			_ = line // suppress unused warning
 				line = strings.TrimSpace(line)
 				_ = line // suppress unused warning

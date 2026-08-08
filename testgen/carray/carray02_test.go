@@ -76,9 +76,8 @@ func Test_carray02(t *testing.T) {
 		// sqlite3_carray_bind -transient -text $STMT 1 abc NULL def (unsupported command, not transpiled)
 		// run_stmt $STMT (unsupported command, not transpiled)
 	}
-	// sqlite3_finalize $STMT (unsupported command, not transpiled)
-	STMT = ""
-	_ = STMT // suppress unused warning
+	// sqlite3_finalize $STMT
+	_ = STMT // prepared statement handle
 	{ // do_test "2.0"
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -87,7 +86,7 @@ func Test_carray02(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
 	// foreach {tn sql res} "1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}"
 	_items0 := tclSplitList("1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -98,7 +97,12 @@ func Test_carray02(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			{ // "2.2." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "2.2." + tn (prepare-step internals; SQL side effects only)
+				_ = STMT // prepared statement handle
+				// sqlite3_carray_bind -int32 $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+				_r = "run_stmt $STMT"
+				_ = _r // suppress unused warning
+				// sqlite3_finalize $STMT
 			}
 		}
 		// foreach {tn sql res} "1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}"
@@ -111,7 +115,12 @@ func Test_carray02(t *testing.T) {
 			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
 			_ = _idx1
-				{ // "2.3." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
+				{ // "2.3." + tn (prepare-step internals; SQL side effects only)
+					_ = STMT // prepared statement handle
+					// bind_carray_intptr $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+					_r = "run_stmt $STMT"
+					_ = _r // suppress unused warning
+					// sqlite3_finalize $STMT
 				}
 			}
 			// foreach {tn sql res} "1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}"
@@ -124,7 +133,13 @@ func Test_carray02(t *testing.T) {
 				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
 				_ = _idx2
-					{ // "2.4." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
+					{ // "2.4." + tn (prepare-step internals; SQL side effects only)
+						_ = STMT // prepared statement handle
+						// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+						// sqlite3_carray_bind $STMT 2 1 2 3 4 5 (unsupported command, not transpiled)
+						_r = "run_stmt $STMT"
+						_ = _r // suppress unused warning
+						// sqlite3_finalize $STMT
 					}
 				}
 				{ // "3.0.0"
@@ -151,6 +166,11 @@ func Test_carray02(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;\n")
 					}
 				}
-				{ // "3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+				{ // "3.1" (prepare-step internals; SQL side effects only)
+					_ = STMT // prepared statement handle
+					// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+					// sqlite3_step $STMT (unknown prepared statement)
+					_list := tclList([]string{"", ""})
+					_ = _list
 				}
 }

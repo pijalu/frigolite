@@ -580,9 +580,9 @@ func Test_sort(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
 			}
-			ten = "X 10300"
+			ten = tclStringRepeat("X", "10300")
 			_ = ten // suppress unused warning
-			one = "y   200"
+			one = tclStringRepeat("y", "200")
 			_ = one // suppress unused warning
 			if tclBool(softheaplimit) {
 				r = db.Query(" PRAGMA cache_size = 20 ")

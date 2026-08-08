@@ -460,8 +460,8 @@ func Test_pager1(t *testing.T) {
 			mj_delete_cnt = "0" // TCL namespace variable
 			_ = mj_delete_cnt // suppress unused warning
 			// proc definition (not transpiled)
-			// foreach {tn1 tcl} "1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding " + tclExprWith("511 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    if {" + tcl_platform_platform + " eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding " + tclExprWith("255 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir " + tclExprWith("$nPadding / 32", map[string]string{"nPadding": nPadding}) + "\n    if { " + nDir + " } {\n      set p " + "$dirname $nDir" + "\n      file mkdir " + p + "\n      cd " + p + "\n    }\n\n    set padding " + "x [expr $nPadding %32]" + "\n    set prefix \"test.db" + padding + "\"\n  }"
-			_items2 := tclSplitList("1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding " + tclExprWith("511 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    if {" + tcl_platform_platform + " eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding " + tclExprWith("255 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir " + tclExprWith("$nPadding / 32", map[string]string{"nPadding": nPadding}) + "\n    if { " + nDir + " } {\n      set p " + "$dirname $nDir" + "\n      file mkdir " + p + "\n      cd " + p + "\n    }\n\n    set padding " + "x [expr $nPadding %32]" + "\n    set prefix \"test.db" + padding + "\"\n  }")
+			// foreach {tn1 tcl} "1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding " + tclExprWith("511 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    if {" + tcl_platform_platform + " eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding " + tclExprWith("255 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir " + tclExprWith("$nPadding / 32", map[string]string{"nPadding": nPadding}) + "\n    if { " + nDir + " } {\n      set p " + tclStringRepeat(dirname, nDir) + "\n      file mkdir " + p + "\n      cd " + p + "\n    }\n\n    set padding " + tclStringRepeat("x", tclExprWith("$nPadding %32", map[string]string{"nPadding": nPadding})) + "\n    set prefix \"test.db" + padding + "\"\n  }"
+			_items2 := tclSplitList("1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding " + tclExprWith("511 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    if {" + tcl_platform_platform + " eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding " + tclExprWith("255 - $::mj_filename_length", map[string]string{"::mj_filename_length": mj_filename_length}) + "\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir " + tclExprWith("$nPadding / 32", map[string]string{"nPadding": nPadding}) + "\n    if { " + nDir + " } {\n      set p " + tclStringRepeat(dirname, nDir) + "\n      file mkdir " + p + "\n      cd " + p + "\n    }\n\n    set padding " + tclStringRepeat("x", tclExprWith("$nPadding %32", map[string]string{"nPadding": nPadding})) + "\n    set prefix \"test.db" + padding + "\"\n  }")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn1 := _items2[_idx2+0]
 				_ = tn1 // suppress unused warning
@@ -2433,11 +2433,38 @@ func Test_pager1(t *testing.T) {
 											}
 											os.Remove("test.db")
 										}
-										{ // "39.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+										{ // "39.1" (prepare-step internals; SQL side effects only)
+											db, err = frigolite.Open("test.db")
+											if err != nil { t.Fatal(err) }
+											r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
+											}
+											// prepared stmt: SELECT * FROM t1 ORDER BY rowid (bind/step emulation)
+											_ = stmt // prepared statement handle
+											_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
+											if _res.Error != nil {
+												t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 ORDER BY rowid")
+											}
+											// sqlite3_column_text $::stmt 0 (unsupported command, not transpiled)
 										}
-										{ // "39.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+										{ // "39.2" (prepare-step internals; SQL side effects only)
+											_res = db.Exec(" CREATE TABLE t2(x) ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
+											}
+											_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
+											if _res.Error != nil {
+												t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 ORDER BY rowid")
+											}
+											// sqlite3_column_text $::stmt 0 (unsupported command, not transpiled)
 										}
-										{ // "39.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+										{ // "39.3" (prepare-step internals; SQL side effects only)
+											// sqlite3_finalize $stmt
+											_res = db.Exec("COMMIT")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+											}
 										}
 										{ // "39.4"
 											r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;\n")
@@ -2552,11 +2579,42 @@ func Test_pager1(t *testing.T) {
 										db.Close()
 										// tv delete (unsupported command, not transpiled)
 										// sqlite3_test_control_pending_byte $pending_prev (unsupported command, not transpiled)
-										{ // "43.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+										{ // "43.1" (prepare-step internals; SQL side effects only)
+											db.Close()
+											os.Remove("test.db")
+											db, err = frigolite.Open("test.db")
+											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
+											_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE TABLE t3(x, y);\n    INSERT INTO t3 VALUES(1, 2);\n  ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE TABLE t3(x, y);\n    INSERT INTO t3 VALUES(1, 2);\n  ")
+											}
+											db.Close()
+											db, err = frigolite.Open("test.db")
+											if err != nil { t.Fatal(err) }
+											_res = db.Exec(" PRAGMA mmap_size = 0 ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA mmap_size = 0 ")
+											}
+											_res = db.Exec(" SELECT * FROM t1 ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+											}
+											// sqlite3_db_status db CACHE_MISS 0 (unsupported command, not transpiled)
 										}
-										{ // "43.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+										{ // "43.2" (prepare-step internals; SQL side effects only)
+											_res = db.Exec(" SELECT * FROM t2 ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
+											}
+											// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 										}
-										{ // "43.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+										{ // "43.3" (prepare-step internals; SQL side effects only)
+											_res = db.Exec(" SELECT * FROM t3 ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t3 ")
+											}
+											// sqlite3_db_status db CACHE_MISS 0 (unsupported command, not transpiled)
 										}
 										db.Close()
 										db, err = frigolite.Open("")

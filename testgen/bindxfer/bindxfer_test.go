@@ -87,15 +87,15 @@ func Test_bindxfer(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c);")
 		}
-		VM1 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
-		_ = VM1 // suppress unused warning
+		// prepared VM1: SELECT ?, ?, ? (bind/step emulation)
+		_ = VM1 // prepared statement handle
 	}
 	{ // do_test "bindxfer-1.2"
 		// sqlite3_bind_parameter_count $VM1 (unsupported command, not transpiled)
 	}
 	{ // do_test "bindxfer-1.3"
-		VM2 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
-		_ = VM2 // suppress unused warning
+		// prepared VM2: SELECT ?, ?, ? (bind/step emulation)
+		_ = VM2 // prepared statement handle
 	}
 	{ // do_test "bindxfer-1.4"
 		// sqlite3_bind_parameter_count $VM2 (unsupported command, not transpiled)
@@ -119,11 +119,11 @@ func Test_bindxfer(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
+		// sqlite3_finalize $VM1
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
+		// sqlite3_finalize $VM2
 	}
 }

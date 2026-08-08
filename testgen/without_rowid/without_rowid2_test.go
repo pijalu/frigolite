@@ -101,6 +101,7 @@ func Test_without_rowid2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);\n  ")
 		}
 	}
-	{ // "without_rowid2-3.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "without_rowid2-3.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 }

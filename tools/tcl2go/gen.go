@@ -36,6 +36,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"sort"
@@ -993,6 +994,16 @@ type transpiler struct {
 	testPrefix       string                // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
 	queryVars        map[string]bool       // TCL vars known to hold query SQL (set/append to SELECT...)
 	rollbackFlag     string                // when set, `db eval ROLLBACK` also assigns this Go bool var (db eval {SQL} {body} callback abort)
+	preparedState    *preparedState        // shared sqlite3_prepare/bind/step emulation state (pointer so bodyTP copies share it)
+}
+
+// preparedState tracks the prepared-statement emulation state (sqlite3_prepare
+// + sqlite3_bind_* + sqlite3_step + sqlite3_reset + sqlite3_finalize). It is
+// shared across bodyTP copies via a pointer so a statement prepared in one
+// block can be bound/stepped in a later block.
+type preparedState struct {
+	stmts map[string]string          // TCL stmt var -> prepared SQL text
+	binds map[string]map[int]string // stmt var -> bind index -> SQL literal
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -1022,6 +1033,20 @@ func (tp *transpiler) isVarDeclared(name string) bool {
 		}
 	}
 	return false
+}
+
+// preparedStateRef returns the shared prepared-statement emulation state,
+// creating it if needed. Because the pointer lives on the root transpiler and
+// bodyTP copies carry the same pointer, binds recorded inside a nested block
+// are visible to later blocks.
+func (tp *transpiler) preparedStateRef() *preparedState {
+	if tp.preparedState == nil {
+		tp.preparedState = &preparedState{
+			stmts: make(map[string]string),
+			binds: make(map[string]map[int]string),
+		}
+	}
+	return tp.preparedState
 }
 
 // isIntegerLiteral reports whether s is a bare integer literal (optionally
@@ -1302,16 +1327,17 @@ func tclUnescapeQuoted(s string) string {
 			i = j - 1 // compensate for the loop's i++
 			continue
 		}
-		// TCL unicode escape: \uXXXX yields the code point U+XXXX (exactly
-		// four hex digits), encoded as UTF-8. \uABCD → "\uabcd" rune.
-		if i < len(s) && s[i] == 'u' && i+4 < len(s) &&
-			isHexDigit(s[i+1]) && isHexDigit(s[i+2]) && isHexDigit(s[i+3]) && isHexDigit(s[i+4]) {
+		// TCL unicode escape: \uXXXX yields the code point U+XXXX (one to four
+		// hex digits, left-padded; \uE01 is U+0E01). Encoded as UTF-8.
+		if i < len(s) && s[i] == 'u' && i+1 < len(s) && isHexDigit(s[i+1]) {
 			cp := 0
-			for k := 1; k <= 4; k++ {
-				cp = cp*16 + hexVal(s[i+k])
+			digits := 0
+			for digits < 4 && i+1+digits < len(s) && isHexDigit(s[i+1+digits]) {
+				cp = cp*16 + hexVal(s[i+1+digits])
+				digits++
 			}
 			b.WriteRune(rune(cp))
-			i += 4 // compensate for the loop's i++
+			i += digits // compensate for the loop's i++
 			continue
 		}
 		switch s[i] {
@@ -2340,6 +2366,16 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 					return fmt.Sprintf("tclStringRange(%s, %s, %s)", strExpr, startExpr, endExpr)
 				}
 				return `""`
+			case "repeat":
+				// [string repeat STR N] — repeat a string N times. The count is
+				// rendered as a string by TCL; tclStringRepeat converts it at
+				// runtime (the expression context cannot emit a typed int).
+				if len(args) >= 3 {
+					strExpr := tp.buildStringExpr(args[1])
+					nExpr := tp.buildStringExpr(args[2])
+					return fmt.Sprintf("tclStringRepeat(%s, %s)", strExpr, nExpr)
+				}
+				return `""`
 			default:
 				str := strings.TrimSpace(cmdText[len("string "+sub):])
 				return fmt.Sprintf("%q", str)
@@ -2501,6 +2537,11 @@ var unsupportedCapabilities = map[string]bool{
 	"session":    true, // session extension not supported
 	"rbu":        true, // RBU extension not supported
 	"zipfile":    true, // zipfile extension not supported
+	// Ordered-set aggregate syntax (WITHIN GROUP) is not parsed by the engine;
+	// the percentile/percentile_cont/percentile_disc/median functions themselves
+	// ARE implemented (percentile.test exercises them in the non-ifcapable
+	// blocks).
+	"ordered_set_aggregates": true,
 }
 
 // ifcapableSupported reports whether an ifcapable guard should SKIP the body
@@ -2951,6 +2992,21 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		}
 	case "puts":
 		tp.processPuts(args)
+	case "sqlite3_prepare", "sqlite3_prepare_v2":
+		// A standalone sqlite3_prepare (not via `set var [sqlite3_prepare ...]`)
+		// has no Go equivalent; the SQL text is not captured here, so emit a
+		// comment and rely on bind/step emulation only when the prepare result
+		// was stored in a variable.
+		tp.emitLine("// %s (standalone prepare; not emulated)", cmdName)
+	case "sqlite3_bind_double", "sqlite3_bind_int", "sqlite3_bind_int64",
+		"sqlite3_bind_text", "sqlite3_bind_text16", "sqlite3_bind_null", "sqlite3_bind_blob":
+		tp.processBind(cmdName, args)
+	case "sqlite3_step":
+		tp.processStep(args)
+	case "sqlite3_reset":
+		tp.processReset(args)
+	case "sqlite3_finalize":
+		tp.processFinalize(args)
 	case "forcedelete":
 		tp.processFileDelete(args)
 	case "forcecopy":
@@ -2990,7 +3046,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			return
 		}
 		if bodyCmds := tp.parseBracedBody(args, 1); bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -3003,7 +3059,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			return
 		}
 		if bodyCmds := tp.parseBracedBody(args, 1); bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -3013,7 +3069,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// time { SCRIPT } [count] — transpile the inner script as regular code,
 		// ignoring the timing measurement.
 		if bodyCmds := tp.parseBracedBody(args, 0); bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -3126,7 +3182,57 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		}
 	case "test_expr", "test_expr2", "test_realnum_expr", "test_boolean_expr",
 		"do_realnum_test", "do_like_test", "do_test_withfunc":
-		// Expression testing procs — emit as comment since they need table setup
+		// Expression testing procs — emit as comment since they need table setup.
+		// EXCEPTION: do_realnum_test bodies that exercise prepared-statement
+		// binds (e.g. nan.test's sqlite3_bind_double + sqlite3_step) must emit
+		// their SQL side effects so later tests see the inserted rows; the
+		// floating-point comparison itself has no SQL equivalent and is skipped.
+		if cmdName == "do_realnum_test" && len(args) >= 2 {
+			bodyCmds := tp.parseBracedBody(args, 1)
+			if bodyCmds != nil && containsBindStep(bodyCmds) {
+				tp.emitLine("{ // %s (do_realnum_test; SQL side effects only)", tp.goStringLiteral(args[0]))
+				tp.indent++
+				bodyTP := &transpiler{
+					sb:             tp.sb,
+					indent:         tp.indent,
+					dbVar:          tp.dbVar,
+					t:              tp.t,
+					varCount:       tp.varCount,
+					vars:           tp.vars,
+					forIncrs:       tp.forIncrs,
+					unsetVars:      tp.unsetVars,
+					dbVarFuncs:     tp.dbVarFuncs,
+					constFuncs:     tp.constFuncs,
+					predFuncs:      tp.predFuncs,
+					queryFuncs:     tp.queryFuncs,
+					specialFuncs:   tp.specialFuncs,
+					collateDtorVars: tp.collateDtorVars,
+					collateGoFuncs:  tp.collateGoFuncs,
+					testPrefix:     tp.testPrefix,
+					queryVars:      tp.queryVars,
+					dbAliases:      tp.dbAliases,
+					dbClosed:       tp.dbClosed,
+					dqsDDL:         tp.dqsDDL,
+					dqsDML:         tp.dqsDML,
+					preparedState:  tp.preparedState,
+				}
+				bodyTP.processCommands(bodyCmds)
+				tp.varCount = bodyTP.varCount
+				tp.indent = bodyTP.indent
+				tp.unsetVars = bodyTP.unsetVars
+				tp.dbVarFuncs = bodyTP.dbVarFuncs
+				tp.constFuncs = bodyTP.constFuncs
+				tp.dbAliases = bodyTP.dbAliases
+				tp.queryVars = bodyTP.queryVars
+				tp.dbClosed = bodyTP.dbClosed
+				tp.dqsDDL = bodyTP.dqsDDL
+				tp.dqsDML = bodyTP.dqsDML
+				tp.preparedState = bodyTP.preparedState
+				tp.indent--
+				tp.emitLine("}")
+				break
+			}
+		}
 		if len(args) > 0 {
 			tp.emitLine("// %s %s (expr test, not transpiled)", cmdName, describeArgsShort(args))
 		} else {
@@ -3635,11 +3741,49 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 	// usage, prepared-statement stepping) cannot be transpiled: the commands
 	// are emitted as comments below, but the assertion would then compare
 	// the LAST sqlite3_exec result against a boolean/state value that has no
-	// SQL equivalent. Emit the whole block as a no-op (matching how
-	// sqlite3_db_status assertions are skipped) so the generated test does
-	// not fail on a meaningless comparison.
+	// SQL equivalent. Emit the SQL side effects (db eval/execsql run, and
+	// prepared-statement binds are emulated as INSERTs) so later tests see
+	// the same database state, but skip the meaningless assertion.
 	if bodyCmds != nil && doTestBodyUnsupported(bodyCmds) {
-		tp.emitLine("{ // %s (uses_stmt_journal/prepare-step internals, not transpiled)", nameExpr)
+		tp.emitLine("{ // %s (prepare-step internals; SQL side effects only)", nameExpr)
+		tp.indent++
+		bodyTP := &transpiler{
+			sb:             tp.sb,
+			indent:         tp.indent,
+			dbVar:          tp.dbVar,
+			t:              tp.t,
+			varCount:       tp.varCount,
+			vars:           tp.vars,
+			forIncrs:       tp.forIncrs,
+			unsetVars:      tp.unsetVars,
+			dbVarFuncs:     tp.dbVarFuncs,
+			constFuncs:     tp.constFuncs,
+			predFuncs:      tp.predFuncs,
+			queryFuncs:     tp.queryFuncs,
+			specialFuncs:   tp.specialFuncs,
+			collateDtorVars: tp.collateDtorVars,
+			collateGoFuncs:  tp.collateGoFuncs,
+			testPrefix:     tp.testPrefix,
+			queryVars:      tp.queryVars,
+			dbAliases:      tp.dbAliases,
+			dbClosed:       tp.dbClosed,
+			dqsDDL:         tp.dqsDDL,
+			dqsDML:         tp.dqsDML,
+			preparedState:  tp.preparedState,
+		}
+		bodyTP.processCommands(bodyCmds)
+		tp.varCount = bodyTP.varCount
+		tp.indent = bodyTP.indent
+		tp.unsetVars = bodyTP.unsetVars
+		tp.dbVarFuncs = bodyTP.dbVarFuncs
+		tp.constFuncs = bodyTP.constFuncs
+		tp.dbAliases = bodyTP.dbAliases
+		tp.queryVars = bodyTP.queryVars
+		tp.dbClosed = bodyTP.dbClosed
+		tp.dqsDDL = bodyTP.dqsDDL
+		tp.dqsDML = bodyTP.dqsDML
+		tp.preparedState = bodyTP.preparedState
+		tp.indent--
 		tp.emitLine("}")
 		return
 	}
@@ -3778,7 +3922,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		specialFuncs: tp.specialFuncs,
 		collateDtorVars: tp.collateDtorVars,
 		collateGoFuncs: tp.collateGoFuncs,
-			testPrefix: tp.testPrefix,
+			testPrefix: tp.testPrefix, preparedState: tp.preparedState,
 			queryVars:  tp.queryVars,
 			dbAliases:  tp.dbAliases,
 			dbClosed:   tp.dbClosed,
@@ -4042,6 +4186,25 @@ func doTestBodyUnsupported(bodyCmds [][]tcl.RawWord) bool {
 	return false
 }
 
+// containsBindStep reports whether a command list exercises prepared-statement
+// binds (sqlite3_bind_* + sqlite3_step). Used to decide whether a
+// do_realnum_test body's SQL side effects must be emitted (the binds create
+// rows later assertions depend on).
+func containsBindStep(bodyCmds [][]tcl.RawWord) bool {
+	for _, cmd := range bodyCmds {
+		if len(cmd) == 0 {
+			continue
+		}
+		switch cmd[0].Text {
+		case "sqlite3_bind_double", "sqlite3_bind_int", "sqlite3_bind_int64",
+			"sqlite3_bind_text", "sqlite3_bind_text16", "sqlite3_bind_null",
+			"sqlite3_bind_blob", "sqlite3_step":
+			return true
+		}
+	}
+	return false
+}
+
 // ---- SQL execution handlers ----
 
 func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
@@ -4229,7 +4392,7 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 				varCount:   tp.varCount,
 				vars:       tp.vars,
 				forIncrs:   tp.forIncrs,
-				testPrefix: tp.testPrefix,
+				testPrefix: tp.testPrefix, preparedState: tp.preparedState,
 			}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
@@ -4386,6 +4549,7 @@ func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
 		specialFuncs: tp.specialFuncs,
 		collateGoFuncs: tp.collateGoFuncs,
 		rollbackFlag: rbFlag,
+		preparedState: tp.preparedState,
 	}
 	bodyTP.processCommands(parseCommands(rest[1].Text))
 	tp.varCount = bodyTP.varCount
@@ -4445,7 +4609,7 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	case "transaction":
 		if len(rest) > 0 && rest[0].Braced {
 			bodyCmds := parseCommands(rest[0].Text)
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -4942,6 +5106,15 @@ var skipTests = map[string]string{
 	"istrue-600.$tn.3": "prepared-statement binds not implemented",
 	"istrue-600.$tn.4": "prepared-statement binds not implemented",
 
+	// percentile-3.*: median()/percentile()/percentile_cont() used as WINDOW
+	// functions (OVER w1 ... WINDOW w1 AS ...). The engine does not support
+	// window functions (windowfunc capability), so these queries cannot be
+	// parsed. The plain aggregate forms (percentile(x,p) etc.) are covered by
+	// the non-window tests in percentile.test.
+	"percentile-3.$id.1": "window-function aggregate (OVER/WINDOW) not supported",
+	"percentile-3.$id.2": "window-function aggregate (OVER/WINDOW) not supported",
+	"percentile-3.$id.3": "window-function aggregate (OVER/WINDOW) not supported",
+
 	// aggorderby 7.x/9.x: json_group_array / json() aggregate — the JSON1
 	// extension is explicitly out of scope for Frigolite.
 	"aggorderby-7.0": "json_group_array (JSON1 extension) not supported",
@@ -5377,6 +5550,26 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		rawList = rawList[len("list "):]
 	}
 	listExpr := tp.goStringLiteral(tcl.RawWord{Text: rawList})
+	// splitExpr, when non-empty, replaces the tclSplitList(listExpr) iteration
+	// source: foreach x [split $var ""] iterates the CHARACTERS of a string
+	// variable (TCL split with empty separator), which tclSplitList cannot
+	// express (a character may itself be a space).
+	splitExpr := ""
+	if strings.HasPrefix(rawList, "[split ") && strings.HasSuffix(rawList, "]") {
+		splitInner := strings.TrimSpace(rawList[len("[split "):])
+		splitInner = strings.TrimSuffix(splitInner, "]")
+		fields := strings.Fields(splitInner)
+		if len(fields) >= 1 && strings.HasPrefix(fields[0], "$") {
+			goVar := tclVarToGo(strings.TrimPrefix(fields[0], "$"))
+			if isValidGoIdent(goVar) {
+				sep := `""`
+				if len(fields) >= 2 {
+					sep = fmt.Sprintf("%q", strings.Trim(fields[1], `"`))
+				}
+				splitExpr = fmt.Sprintf("strings.Split(%s, %s)", goVar, sep)
+			}
+		}
+	}
 
 	// foreach {v1 v2 ...} $list break — unpack the FIRST list element into the
 	// variables (TCL destructuring idiom, e.g. trans2.test's
@@ -5451,7 +5644,11 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		if goVN == tp.dbVar {
 			goVN = goVN + "_iter"
 		}
-		tp.emitLine("for _, %s := range tclSplitList(%s) {", goVN, listExpr)
+		if splitExpr != "" {
+			tp.emitLine("for _, %s := range %s {", goVN, splitExpr)
+		} else {
+			tp.emitLine("for _, %s := range tclSplitList(%s) {", goVN, listExpr)
+		}
 		tp.emitLine("_ = %s // suppress unused warning", goVN)
 	} else {
 		// Use unique variable names per foreach to avoid redeclaration
@@ -5491,7 +5688,7 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		// A foreach loop has no increment clause: continue targets this loop,
 		// so the innermost entry is empty (plain Go continue).
 		forIncrs:   append(tp.forIncrs, nil),
-		testPrefix: tp.testPrefix,
+		testPrefix: tp.testPrefix, preparedState: tp.preparedState,
 		queryFuncs: tp.queryFuncs,
 		specialFuncs: tp.specialFuncs,
 		collateGoFuncs: tp.collateGoFuncs,
@@ -5562,7 +5759,7 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 		varCount:   tp.varCount,
 		vars:       tp.vars,
 		forIncrs:   append(tp.forIncrs, nil),
-		testPrefix: tp.testPrefix,
+		testPrefix: tp.testPrefix, preparedState: tp.preparedState,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -5678,6 +5875,7 @@ func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName str
 			forIncrs:       append(tp.forIncrs, nil),
 			varsetLoopVars: vsetMap,
 			testPrefix:     tp.testPrefix,
+			preparedState:  tp.preparedState,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -5758,7 +5956,7 @@ func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 		varCount:   tp.varCount,
 		vars:       tp.vars,
 		forIncrs:   append(tp.forIncrs, nextCmds),
-		testPrefix: tp.testPrefix,
+		testPrefix: tp.testPrefix, preparedState: tp.preparedState,
 		queryVars:  tp.queryVars,
 		queryFuncs: tp.queryFuncs,
 		specialFuncs: tp.specialFuncs,
@@ -5799,7 +5997,7 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 			// A while loop has no increment clause: continue targets this
 			// loop, so the innermost entry is empty (plain Go continue).
 			forIncrs:   append(tp.forIncrs, nil),
-			testPrefix: tp.testPrefix,
+			testPrefix: tp.testPrefix, preparedState: tp.preparedState,
 			queryVars:  tp.queryVars,
 			specialFuncs: tp.specialFuncs,
 		}
@@ -5832,7 +6030,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 				if bodyCmds != nil {
 					tp.emitLine("} else {")
 					tp.indent++
-					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 					bodyTP.processCommands(bodyCmds)
 					tp.indent = bodyTP.indent
 					tp.indent--
@@ -5851,7 +6049,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 				tp.emitLine("} else if %s {", goCond)
 				tp.indent++
 				if bodyCmds != nil {
-					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 					bodyTP.processCommands(bodyCmds)
 					tp.indent = bodyTP.indent
 				}
@@ -5877,7 +6075,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 			tp.emitLine("if %s == \"1\" {", catchVar)
 			tp.indent++
 			if bodyCmds != nil {
-				bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+				bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 				bodyTP.processCommands(bodyCmds)
 				tp.indent = bodyTP.indent
 			}
@@ -5897,7 +6095,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 		tp.indent++
 
 		if bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 			bodyTP.processCommands(bodyCmds)
 			tp.indent = bodyTP.indent
 		}
@@ -5993,7 +6191,7 @@ func emitCatchBody(bodyText, varName, resultVar string, tp *transpiler) {
 	tp.emitLine("{")
 	tp.indent++
 	tp.emitLine("var _catchErr error")
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, queryVars: tp.queryVars, queryFuncs: tp.queryFuncs,
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, queryVars: tp.queryVars, queryFuncs: tp.queryFuncs,
 		specialFuncs: tp.specialFuncs, rollbackFlag: tp.rollbackFlag, varCount: tp.varCount}
 	bodyTP.processCommands(parseCommands(bodyText))
 	tp.varCount = bodyTP.varCount
@@ -6047,6 +6245,19 @@ func (tp *transpiler) tclCondToGo(cond string) string {
 	cond = strings.TrimSuffix(cond, "}")
 	cond = strings.ReplaceAll(cond, " eq ", " == ")
 	cond = strings.ReplaceAll(cond, " ne ", " != ")
+
+	// [string is xdigit $x] — TCL's hex-digit predicate (used by unhex.test
+	// to build the expected filtered output). Render as a Go check.
+	if strings.HasPrefix(cond, "[string is xdigit ") && strings.HasSuffix(cond, "]") {
+		inner := strings.TrimSuffix(strings.TrimPrefix(cond, "[string is xdigit "), "]")
+		inner = strings.TrimSpace(inner)
+		if strings.HasPrefix(inner, "$") {
+			goVar := tclVarToGo(strings.TrimPrefix(inner, "$"))
+			if isValidGoIdent(goVar) {
+				return fmt.Sprintf("tclIsXdigit(%s)", goVar)
+			}
+		}
+	}
 
 	// For conditions with comparison operators, generate a proper Go boolean expression.
 	if goExpr := tp.buildCondExpr(cond); goExpr != "" {
@@ -6453,6 +6664,27 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		delete(tp.unsetVars, goName)
 	}
 
+	// set ::STMT [sqlite3_prepare db "SQL" -1 TAIL] — record the prepared
+	// statement so later sqlite3_bind_* / sqlite3_step / sqlite3_reset /
+	// sqlite3_finalize calls can be emulated as plain db.Exec INSERTs (the
+	// C API itself has no Go equivalent, but the test state it creates does).
+	if len(args) >= 2 && strings.HasPrefix(args[1].Text, "[sqlite3_prepare") && strings.HasSuffix(args[1].Text, "]") {
+		inner := strings.TrimSuffix(strings.TrimPrefix(args[1].Text, "["), "]")
+		parts := tclCmdWords(inner)
+		if len(parts) >= 3 && parts[0] == "sqlite3_prepare" {
+			sqlText := strings.TrimSpace(parts[2])
+			sqlText = strings.Trim(sqlText, `"`)
+			tp.preparedStateRef().stmts[goName] = sqlText
+			tp.emitLine("// prepared %s: %s (bind/step emulation)", goName, sqlText)
+		}
+		if !tp.isVarDeclared(goName) {
+			tp.emitLine("var %s string", goName)
+			tp.vars = append(tp.vars, goName)
+		}
+		tp.emitLine("_ = %s // prepared statement handle", goName)
+		return
+	}
+
 	// Skip set testdir [file dirname $argv0] etc - infrastructure
 	if len(args) >= 1 {
 		varName := args[0].Text
@@ -6804,7 +7036,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 							tp.emitLine("var _catchErr error")
 							// Parse and transpile the body
 							bodyCmds := parseCommands(bodyStr)
-							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, varCount: tp.varCount}
+							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, varCount: tp.varCount}
 							bodyTP.processCommands(bodyCmds)
 							tp.indent = bodyTP.indent
 							tp.dbClosed = bodyTP.dbClosed
@@ -6858,7 +7090,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 					if depth == 0 && bodyStart >= 0 {
 						bodyStr := cmdText[bodyStart:i]
 						bodyCmds := parseCommands(bodyStr)
-						bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+						bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 						bodyTP.processCommands(bodyCmds)
 						tp.indent = bodyTP.indent
 					}
@@ -6899,7 +7131,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 						if depth == 0 && bodyStart >= 0 {
 							bodyStr := afterTime[bodyStart:i]
 							bodyCmds := parseCommands(bodyStr)
-							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 							bodyTP.processCommands(bodyCmds)
 							tp.indent = bodyTP.indent
 							break
@@ -7084,7 +7316,7 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 	if !hasResult {
 		tp.emitLine("_ = _catchErr // suppress unused warning")
 	}
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, varCount: tp.varCount}
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, varCount: tp.varCount}
 	bodyTP.processCommands(bodyCmds)
 	tp.indent = bodyTP.indent
 	tp.dbClosed = bodyTP.dbClosed
@@ -7460,7 +7692,7 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 	// Parse the script and execute its commands
 	if args[0].Braced {
 		bodyCmds := parseCommands(args[0].Text)
-		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix}
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent
 	} else if strings.HasPrefix(args[0].Text, "$") && len(args) == 1 {
@@ -7597,6 +7829,150 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	tp.emitLine("if err != nil { t.Fatal(err) }")
 }
 
+// processBind records a sqlite3_bind_* call against a prepared statement so a
+// later sqlite3_step can emit the INSERT with the bound values as SQL literals.
+// The C API itself has no Go equivalent, but the test state the binds create
+// (rows inserted into a table) must be reproduced for later assertions.
+func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
+	if len(args) < 3 {
+		tp.emitLine("// %s (malformed)", cmdName)
+		return
+	}
+	stmtVar := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
+	ps := tp.preparedStateRef()
+	if _, ok := ps.stmts[stmtVar]; !ok {
+		tp.emitLine("// %s $%s (unknown prepared statement)", cmdName, stmtVar)
+		return
+	}
+	idx, err := strconv.Atoi(strings.TrimSpace(args[1].Text))
+	if err != nil {
+		tp.emitLine("// %s $%s %s (non-numeric bind index)", cmdName, stmtVar, args[1].Text)
+		return
+	}
+	lit := tp.bindValueSQL(cmdName, args[2].Text)
+	if ps.binds[stmtVar] == nil {
+		ps.binds[stmtVar] = make(map[int]string)
+	}
+	ps.binds[stmtVar][idx] = lit
+	tp.emitLine("// %s $%s %d %s → %s", cmdName, stmtVar, idx, args[2].Text, lit)
+}
+
+// bindValueSQL renders a bound TCL value as a SQL literal for the INSERT
+// emulation, matching SQLite's sqlite3_bind_* conversion rules:
+//   - bind_double NaN converts to NULL (SQLite never stores NaN); +-Inf is
+//     stored as REAL +-Inf (a 1e400 literal overflows to +Inf on parse).
+//   - bind_null is NULL; bind_int/int64 is the numeric literal; bind_text is a
+//     quoted string; bind_blob is an X'...' hex literal.
+func (tp *transpiler) bindValueSQL(cmdName, val string) string {
+	switch cmdName {
+	case "sqlite3_bind_null":
+		return "NULL"
+	case "sqlite3_bind_int", "sqlite3_bind_int64":
+		return val
+	case "sqlite3_bind_text", "sqlite3_bind_text16":
+		return "'" + strings.ReplaceAll(val, "'", "''") + "'"
+	case "sqlite3_bind_blob":
+		return "X'" + hex.EncodeToString([]byte(val)) + "'"
+	case "sqlite3_bind_double":
+		switch strings.TrimSpace(val) {
+		case "NaN", "-NaN", "NaN0", "-NaN0":
+			return "NULL"
+		case "+Inf", "Inf":
+			return "1e400"
+		case "-Inf":
+			return "-1e400"
+		}
+		return val
+	}
+	return val
+}
+
+// processStep emits a db.Exec for the prepared statement with its current
+// bindings substituted for ? placeholders (matching sqlite3_step executing the
+// prepared INSERT once).
+func (tp *transpiler) processStep(args []tcl.RawWord) {
+	if len(args) < 1 {
+		return
+	}
+	stmtVar := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
+	ps := tp.preparedStateRef()
+	sql, ok := ps.stmts[stmtVar]
+	if !ok {
+		tp.emitLine("// sqlite3_step $%s (unknown prepared statement)", stmtVar)
+		return
+	}
+	rendered := renderPreparedSQL(sql, ps.binds[stmtVar])
+	tp.emitLine("_res = db.Exec(%q)", rendered)
+	tp.emitLine("if _res.Error != nil {")
+	tp.emitLine("\tt.Errorf(\"prepared-statement exec error: %%v\\n  sql: %%s\", _res.Error, %q)", rendered)
+	tp.emitLine("}")
+}
+
+// processReset clears the bindings of a prepared statement (the SQL stays
+// prepared for reuse), matching sqlite3_reset.
+func (tp *transpiler) processReset(args []tcl.RawWord) {
+	if len(args) < 1 {
+		return
+	}
+	stmtVar := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
+	ps := tp.preparedStateRef()
+	delete(ps.binds, stmtVar)
+	tp.emitLine("// sqlite3_reset $%s", stmtVar)
+}
+
+// processFinalize drops the prepared statement (and its bindings), matching
+// sqlite3_finalize.
+func (tp *transpiler) processFinalize(args []tcl.RawWord) {
+	if len(args) < 1 {
+		return
+	}
+	stmtVar := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
+	ps := tp.preparedStateRef()
+	delete(ps.stmts, stmtVar)
+	delete(ps.binds, stmtVar)
+	tp.emitLine("// sqlite3_finalize $%s", stmtVar)
+}
+
+// renderPreparedSQL replaces ? placeholders in a prepared statement's SQL with
+// the bound SQL literals (in bind-index order). A literal ?NNN (numbered
+// placeholder) maps to the N-th bound value, matching SQLite's binding rules.
+func renderPreparedSQL(sql string, binds map[int]string) string {
+	if len(binds) == 0 {
+		return sql
+	}
+	var out strings.Builder
+	i := 0
+	for i < len(sql) {
+		if sql[i] == '?' && i+1 < len(sql) && isDigit(sql[i+1]) {
+			k := i + 1
+			for k < len(sql) && isDigit(sql[k]) {
+				k++
+			}
+			n, _ := strconv.Atoi(sql[i+1 : k])
+			if lit, ok := binds[n]; ok {
+				out.WriteString(lit)
+			} else {
+				out.WriteString(sql[i:k])
+			}
+			i = k
+			continue
+		}
+		if sql[i] == '?' {
+			// Positional ? binds in order. Prepared statements in the TCL
+			// tests use a single ? (bind index 1) almost exclusively, so
+			// substitute the first bind for each ?.
+			if lit, ok := binds[1]; ok {
+				out.WriteString(lit)
+			}
+			i++
+			continue
+		}
+		out.WriteByte(sql[i])
+		i++
+	}
+	return out.String()
+}
+
 // processDBConfig handles: sqlite3_db_config <conn> SQLITE_DBCONFIG_DQS_DDL|DML N
 // SQLite's double-quoted-string (DQS) per-connection toggles. The transpiler
 // tracks the current DDL/DML state and emits a db.SetDQS(ddl,dml) call
@@ -7726,6 +8102,12 @@ func tclListAppend(list string, items ...string) string {
 // element (e.g. CREATE TABLE t(a, "d")) are preserved verbatim. A value
 // that is not a braced list is returned unchanged.
 func tclListFlatten(s string) string {
+	if s == "" {
+		// TCL renders an empty list element as {} (e.g. [list $out] with
+		// out="" is the list {}), matching flatten()'s rendering of an
+		// empty-string query cell.
+		return "{}"
+	}
 	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
 		// Preserve values with embedded newlines (SQL text); collapse only
 		// space-separated bare words.

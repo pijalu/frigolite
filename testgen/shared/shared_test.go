@@ -291,9 +291,9 @@ func Test_shared(t *testing.T) {
 			_res = db.Exec("COMMIT")
 			_ = _res // catchsql
 			{ // do_test "shared-" + av + ".3.1.1"
-				_res = db.Exec("\n    CREATE TABLE seq(i PRIMARY KEY, x);\n    INSERT INTO seq VALUES(1, '" + "X 500" + "');\n    INSERT INTO seq VALUES(2, '" + "X 500" + "');\n  ")
+				_res = db.Exec("\n    CREATE TABLE seq(i PRIMARY KEY, x);\n    INSERT INTO seq VALUES(1, '" + tclStringRepeat("X", "500") + "');\n    INSERT INTO seq VALUES(2, '" + tclStringRepeat("X", "500") + "');\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE seq(i PRIMARY KEY, x);\n    INSERT INTO seq VALUES(1, '" + "X 500" + "');\n    INSERT INTO seq VALUES(2, '" + "X 500" + "');\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE seq(i PRIMARY KEY, x);\n    INSERT INTO seq VALUES(1, '" + tclStringRepeat("X", "500") + "');\n    INSERT INTO seq VALUES(2, '" + tclStringRepeat("X", "500") + "');\n  ")
 				}
 				r = db.Query("SELECT * FROM sqlite_master")
 				if r.Error != nil {
@@ -407,17 +407,32 @@ func Test_shared(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
 				}
 			}
-			{ // "shared-" + av + ".4.4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "shared-" + av + ".4.4.2" (prepare-step internals; SQL side effects only)
+				DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
+				_ = DB2 // suppress unused warning
+				sql = "SELECT * FROM abc"
+				_ = sql // suppress unused warning
+				// prepared STMT1: $sql (bind/step emulation)
+				_ = STMT1 // prepared statement handle
+				_res = db.Exec("\n    BEGIN;\n    CREATE TABLE jkl(j, k, l);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE jkl(j, k, l);\n  ")
+				}
+				_res = db.Exec("$sql")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+				}
 			}
-			{ // "shared-" + av + ".4.4.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "shared-" + av + ".4.4.3" (prepare-step internals; SQL side effects only)
+				// sqlite3_finalize $STMT1
 			}
 			{ // do_test "shared-" + av + ".4.4.4"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					STMT1 = "sqlite3_prepare $::DB2 $sql -1 DUMMY" // TCL namespace variable
-					_ = STMT1 // suppress unused warning
+					// prepared STMT1: $sql (bind/step emulation)
+					_ = STMT1 // prepared statement handle
 					if _catchErr != nil {
 						rc = "1"
 						msg = _catchErr.Error()
@@ -434,8 +449,8 @@ func Test_shared(t *testing.T) {
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					STMT1 = "sqlite3_prepare $::DB2 \"SELECT * FROM ghi\" -1 DUMMY" // TCL namespace variable
-					_ = STMT1 // suppress unused warning
+					// prepared STMT1: SELECT * FROM ghi (bind/step emulation)
+					_ = STMT1 // prepared statement handle
 					if _catchErr != nil {
 						rc = "1"
 						msg = _catchErr.Error()
@@ -591,9 +606,9 @@ func Test_shared(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					a = "\"$i \" 20"
+					a = tclStringRepeat(i + " ", "20")
 					_ = a // suppress unused warning
-					b = "\"$i \" 20"
+					b = tclStringRepeat(i + " ", "20")
 					_ = b // suppress unused warning
 					_res = db.Exec("\n      INSERT INTO t1 VALUES(:a, :b);\n    ")
 					if _res.Error != nil {
@@ -711,9 +726,31 @@ func Test_shared(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA encoding ")
 				}
 			}
-			{ // "shared-" + av + ".8.3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "shared-" + av + ".8.3.3" (prepare-step internals; SQL side effects only)
+				zDb16 = "encoding convertto unicode test.db" + "\x00\x00"
+				_ = zDb16 // suppress unused warning
+				db16 = ""
+				_ = db16 // suppress unused warning
+				// prepared stmt: SELECT sql FROM sqlite_master (bind/step emulation)
+				_ = stmt // prepared statement handle
+				_res = db.Exec("SELECT sql FROM sqlite_master")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT sql FROM sqlite_master")
+				}
+				sql = ""
+				_ = sql // suppress unused warning
+				// sqlite3_finalize $stmt
 			}
-			{ // "shared-" + av + ".8.3.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "shared-" + av + ".8.3.4" (prepare-step internals; SQL side effects only)
+				// prepared stmt: PRAGMA encoding (bind/step emulation)
+				_ = stmt // prepared statement handle
+				_res = db.Exec("PRAGMA encoding")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
+				}
+				enc = ""
+				_ = enc // suppress unused warning
+				// sqlite3_finalize $stmt
 			}
 			// sqlite3_close $db16 (unsupported command, not transpiled)
 			if false {

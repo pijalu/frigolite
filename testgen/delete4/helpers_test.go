@@ -324,11 +324,9 @@ func sqlLiteral(v interface{}) string {
 	case float64:
 		return strconv.FormatFloat(x, 'g', -1, 64)
 	case string:
-		if _, err := strconv.ParseFloat(x, 64); err == nil {
-			// Numeric-looking TCL variable: keep it a numeric literal so
-			// e.g. INSERT ... VALUES($a) stores an INTEGER, not text.
-			return x
-		}
+		// TCL db eval binds $var as a TEXT parameter (TCL values are
+		// strings); a numeric-looking string like "0000" must stay quoted —
+		// the column/function affinity converts to numeric when needed.
 		return "'" + strings.ReplaceAll(x, "'", "''") + "'"
 	case []byte:
 		return "'" + strings.ReplaceAll(string(x), "'", "''") + "'"
@@ -365,6 +363,12 @@ func tclList(items []string) string {
 // element (e.g. CREATE TABLE t(a, "d")) are preserved verbatim. A value
 // that is not a braced list is returned unchanged (collapsing whitespace).
 func tclListFlatten(s string) string {
+	if s == "" {
+		// TCL renders an empty list element as {} (e.g. [list $out] with
+		// out="" is the list {}), matching flatten()'s rendering of an
+		// empty-string query cell.
+		return "{}"
+	}
 	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
 		// A value with no list braces is either a single scalar (preserve it
 		// verbatim, including any internal newlines — SQL text) or a bare
@@ -1115,6 +1119,23 @@ func tclStringRange(s string, start, end interface{}) string {
 	if endIdx >= strLen { endIdx = strLen - 1 }
 	if startIdx > endIdx || startIdx >= strLen { return "" }
 	return s[startIdx : endIdx+1]
+}
+
+// tclStringRepeat implements TCL string repeat command (used in expression
+// context, where the count arrives as a string).
+func tclStringRepeat(s string, n interface{}) string {
+	return strings.Repeat(s, tclIndex(n, 0))
+}
+
+// tclIsXdigit implements TCL's string-is-xdigit predicate: true when the
+// string is a single hexadecimal digit (0-9, a-f, A-F). unhex.test uses it to
+// build the expected filtered output of unhex().
+func tclIsXdigit(s string) bool {
+	if len(s) != 1 {
+		return false
+	}
+	c := s[0]
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
 
 func tclIndex(idx interface{}, length int) int {

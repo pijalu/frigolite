@@ -65,8 +65,7 @@ func Test_changes2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		}
 	}
-	stmt = "" // TCL namespace variable
-	_ = stmt // suppress unused warning
+	_ = stmt // prepared statement handle
 	{ // do_test "1.1"
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
@@ -75,7 +74,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
 	}
-	// sqlite3_reset $::stmt (unsupported command, not transpiled)
+	// sqlite3_reset $stmt
 	{ // "1.2"
 		_res = db.Exec("\n  DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		if _res.Error != nil {
@@ -90,7 +89,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
 	}
-	// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+	// sqlite3_finalize $stmt
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -102,8 +101,7 @@ func Test_changes2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(t);\n")
 		}
 	}
-	stmt = "" // TCL namespace variable
-	_ = stmt // suppress unused warning
+	_ = stmt // prepared statement handle
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES (1, 'v1'), (2, 'v2');\n")
 		if _res.Error != nil {
@@ -130,7 +128,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "sqlite3_reset $::stmt"})
 		_ = _list
 	}
-	// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+	// sqlite3_finalize $stmt
 	{ // "2.4"
 		r = db.Query("\n  SELECT * FROM log;\n")
 		if r.Error != nil {

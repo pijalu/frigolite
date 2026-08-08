@@ -444,7 +444,22 @@ func Test_dbstatus(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 				}
 			}
-			{ // "5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "5.1" (prepare-step internals; SQL side effects only)
+				// prepared stmt: SELECT * FROM t1 (bind/step emulation)
+				_ = stmt // prepared statement handle
+				_res = db.Exec("SELECT * FROM t1")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+				}
+				_res = db.Exec("SELECT * FROM t1")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+				}
+				_res = db.Exec("SELECT * FROM t1")
+				if _res.Error != nil {
+					t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+				}
+				// sqlite3_reset $stmt
 			}
 			{ // do_test "5.2"
 				// sqlite3_stmt_status $::stmt -1 0 (unsupported command, not transpiled)
@@ -474,5 +489,5 @@ func Test_dbstatus(t *testing.T) {
 						}
 					}
 				}
-				// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+				// sqlite3_finalize $stmt
 }

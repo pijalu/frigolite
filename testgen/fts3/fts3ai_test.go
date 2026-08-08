@@ -88,12 +88,74 @@ func Test_fts3ai(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 1")
 		}
 	}
-	{ // "fts3ai-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fts3ai-1.2" (prepare-step internals; SQL side effects only)
+		sql = "INSERT INTO t1 (rowid, content) VALUES(2, 'two')"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 2")
+		}
 	}
-	{ // "fts3ai-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fts3ai-1.3" (prepare-step internals; SQL side effects only)
+		sql = "INSERT INTO t1 (rowid, content) VALUES(3, 'three')"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
+		// sqlite3_finalize $STMT
+		sql = "UPDATE t1 SET content = 'trois' WHERE rowid = 3"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 3")
+		}
 	}
-	{ // "fts3ai-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fts3ai-1.4" (prepare-step internals; SQL side effects only)
+		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(4, 'four')}"
+		_ = sql16 // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_step $STMT (unknown prepared statement)
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 4")
+		}
 	}
-	{ // "fts3ai-1.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fts3ai-1.5" (prepare-step internals; SQL side effects only)
+		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(5, 'five')}"
+		_ = sql16 // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_step $STMT (unknown prepared statement)
+		// sqlite3_finalize $STMT
+		sql = "UPDATE t1 SET content = 'cinq' WHERE rowid = 5"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
+		// sqlite3_finalize $STMT
+		r = db.Query("SELECT content FROM t1 WHERE rowid = 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 5")
+		}
 	}
 }

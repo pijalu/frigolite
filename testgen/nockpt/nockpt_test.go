@@ -167,8 +167,8 @@ func Test_nockpt(t *testing.T) {
 		{ // do_test "2.0"
 			_ = tclLIndex("sqlite3_exec $::db1 {\n      PRAGMA journal_mode = wal;\n      CREATE TABLE t1(x PRIMARY KEY, y UNIQUE, z);\n      INSERT INTO t1 VALUES(1, 2, 3);\n      PRAGMA wal_checkpoint;\n    }", "0") // lindex result
 		}
-		stmt = "sqlite3_prepare $::db1 \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
-		_ = stmt // suppress unused warning
+		// prepared stmt: SELECT * FROM t1 (bind/step emulation)
+		_ = stmt // prepared statement handle
 		// sqlite3_close_v2 $::db1 (unsupported command, not transpiled)
 		{
 			var _catchErr error
@@ -231,7 +231,14 @@ func Test_nockpt(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT\n")
 			}
 		}
-		{ // "2.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "2.5" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $stmt
+			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+			_ = db3
+			r = db.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
+			}
 		}
 	}
 }

@@ -157,7 +157,17 @@ func Test_e_uri(t *testing.T) {
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
-		{ // "1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "1.2" (prepare-step internals; SQL side effects only)
+			os.Remove("file:test.db2")
+			// prepared STMT: ATTACH 'file:test.db2' AS aux (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("ATTACH 'file:test.db2' AS aux")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "ATTACH 'file:test.db2' AS aux")
+			}
+			// sqlite3_finalize $STMT
+			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
+			_ = _list
 		}
 		// sqlite3_close $DB (unsupported command, not transpiled)
 		{ // do_test "1.3"
@@ -167,7 +177,17 @@ func Test_e_uri(t *testing.T) {
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
-		{ // "1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "1.4" (prepare-step internals; SQL side effects only)
+			os.Remove("file:test.db2")
+			// prepared STMT: ATTACH 'file:test.db2' AS aux (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("ATTACH 'file:test.db2' AS aux")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "ATTACH 'file:test.db2' AS aux")
+			}
+			// sqlite3_finalize $STMT
+			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
+			_ = _list
 		}
 		// sqlite3_close $DB (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)
@@ -179,7 +199,17 @@ func Test_e_uri(t *testing.T) {
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
-		{ // "1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "1.6" (prepare-step internals; SQL side effects only)
+			os.Remove("file:test.db2")
+			// prepared STMT: ATTACH 'file:test.db2' AS aux (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("ATTACH 'file:test.db2' AS aux")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "ATTACH 'file:test.db2' AS aux")
+			}
+			// sqlite3_finalize $STMT
+			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
+			_ = _list
 		}
 		// sqlite3_close $DB (unsupported command, not transpiled)
 		{ // do_test "1.7"
@@ -189,7 +219,17 @@ func Test_e_uri(t *testing.T) {
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
-		{ // "1.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "1.8" (prepare-step internals; SQL side effects only)
+			os.Remove("file:test.db2")
+			// prepared STMT: ATTACH 'file:test.db2' AS aux (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("ATTACH 'file:test.db2' AS aux")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "ATTACH 'file:test.db2' AS aux")
+			}
+			// sqlite3_finalize $STMT
+			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
+			_ = _list
 		}
 		// sqlite3_close $DB (unsupported command, not transpiled)
 	}
@@ -469,14 +509,17 @@ func Test_e_uri(t *testing.T) {
 												// sqlite3_enable_shared_cache $shared_default (unsupported command, not transpiled)
 												DB = ""
 												_ = DB // suppress unused warning
-												STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
-												_ = STMT // suppress unused warning
+												// prepared STMT: SELECT * FROM t1 (bind/step emulation)
+												_ = STMT // prepared statement handle
 												_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES('ko');\n  ")
 												if _res.Error != nil {
 													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES('ko');\n  ")
 												}
-												// sqlite3_step $STMT (unsupported command, not transpiled)
-												// sqlite3_finalize $STMT (unsupported command, not transpiled)
+												_res = db.Exec("SELECT * FROM t1")
+												if _res.Error != nil {
+													t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+												}
+												// sqlite3_finalize $STMT
 												RES_0 = "not an error"
 												_ = RES_0 // suppress unused warning
 												RES_1 = "database table is locked: t1"

@@ -191,9 +191,9 @@ func Test_collate5(t *testing.T) {
 		}
 		for _, ii := range tclSplitList(lens) {
 		_ = ii // suppress unused warning
-			_res = db.Exec("INSERT INTO collate5t3 VALUES(" + ii + ", '" + "a $ii" + "');")
+			_res = db.Exec("INSERT INTO collate5t3 VALUES(" + ii + ", '" + tclStringRepeat("a", ii) + "');")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO collate5t3 VALUES(" + ii + ", '" + "a $ii" + "');")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO collate5t3 VALUES(" + ii + ", '" + tclStringRepeat("a", ii) + "');")
 			}
 		}
 		// expr [llength [execsql {\n    COMMIT;\n    SELECT * FROM collate5t3 UNION SELECT * FR... (not evaluated)

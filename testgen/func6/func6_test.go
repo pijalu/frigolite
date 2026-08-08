@@ -129,7 +129,7 @@ func Test_func6(t *testing.T) {
 		_ = _r // suppress unused warning
 		// offset_contains_record $offset $F $r (unsupported command, not transpiled)
 	}
-	z100 = strings.TrimSpace("\"0 \" 100")
+	z100 = strings.TrimSpace(tclStringRepeat("0 ", "100"))
 	_ = z100 // suppress unused warning
 	{ // "func6-110"
 		r = db.Query("\n  SELECT offrec(sqlite_offset(d), a, b, c, d) FROM t1 ORDER BY rowid\n")

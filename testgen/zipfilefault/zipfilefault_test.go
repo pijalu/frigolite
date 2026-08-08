@@ -122,7 +122,7 @@ func Test_zipfilefault(t *testing.T) {
 	// do_faultsim_test 5.2 -faults oom* -prep {\n  forcedelete test.zip\n} -body {\n  execsql {\n    IN... (unsupported command, not transpiled)
 	// do_faultsim_test 5.3 -faults oom* -prep {\n  forcedelete test.zip\n  execsql { \n    DROP T...} -... (unsupported command, not transpiled)
 	// do_faultsim_test 6.1 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      VALUES...} -... (unsupported command, not transpiled)
-	big = "0123456789 1000"
+	big = tclStringRepeat("0123456789", "1000")
 	_ = big // suppress unused warning
 	// do_faultsim_test 6.2 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      VALUES...} -... (unsupported command, not transpiled)
 	// do_faultsim_test 7.0 -faults oom* -prep {\n  catch { db close }\n  sqlite3 db ""\n} -body {\n  lo... (unsupported command, not transpiled)

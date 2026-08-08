@@ -82,11 +82,11 @@ func Test_fts3ah(t *testing.T) {
 	_ = doc2 // suppress unused warning
 	doc3 = "bigtermdoc {a c e} $len"
 	_ = doc3 // suppress unused warning
-	aterm = "a $len"
+	aterm = tclStringRepeat("a", _len)
 	_ = aterm // suppress unused warning
-	bterm = "b $len"
+	bterm = tclStringRepeat("b", _len)
 	_ = bterm // suppress unused warning
-	xterm = "x $len"
+	xterm = tclStringRepeat("x", _len)
 	_ = xterm // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, " + sqlLiteral(doc1) + ");\n  INSERT INTO t1 (rowid, content) VALUES(2, " + sqlLiteral(doc2) + ");\n  INSERT INTO t1 (rowid, content) VALUES(3, " + sqlLiteral(doc3) + ");\n")
 	if _res.Error != nil {

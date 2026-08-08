@@ -131,7 +131,7 @@ type Engine struct {
 	writableSchema    bool                             // PRAGMA writable_schema setting (permits sqlite_schema edits)
 	dqsDDL            bool                             // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
 	dqsDML            bool                             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
-	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 100000, matching SQLite test builds)
+	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 1000000, matching the SQLite test suite's needs; percentile-7.0 recurses to 1M rows)
 	reverseUnordered  bool                             // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
 	caseSensitiveLike bool                             // PRAGMA case_sensitive_like: LIKE comparisons are case-sensitive
 	selectDepth       int                              // current SELECT nesting depth (1 = top-level statement)
@@ -766,7 +766,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		autoIncSeq:        make(map[uint32]int64),
 		hasTriggersCache:  make(map[string]bool),
 		encoding:          "UTF-8",
-		recursiveCTELimit: 100000,
+		recursiveCTELimit: 1000000,
 		exprDepthLimit:    1000, // SQLite default SQLITE_LIMIT_EXPR_DEPTH
 		dqsDDL:            true, // SQLite default: double-quoted strings allowed in DDL
 		dqsDML:            true, // SQLite default: double-quoted strings allowed in DML

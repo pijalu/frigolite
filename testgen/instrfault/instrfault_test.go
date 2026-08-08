@@ -67,9 +67,9 @@ func Test_instrfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "instrfault"
 	_ = testprefix // suppress unused warning
-	NEEDLE = "\"abcdefghijklmnopqrstuvwxyz\" 10" // TCL namespace variable
+	NEEDLE = tclStringRepeat("abcdefghijklmnopqrstuvwxyz", "10") // TCL namespace variable
 	_ = NEEDLE // suppress unused warning
-	HAYSTACK = "123 10" + NEEDLE + "456 10" // TCL namespace variable
+	HAYSTACK = tclStringRepeat("123", "10") + NEEDLE + tclStringRepeat("456", "10") // TCL namespace variable
 	_ = HAYSTACK // suppress unused warning
 	for _, enc := range tclSplitList("utf8\n  utf16") {
 	_ = enc // suppress unused warning

@@ -248,7 +248,7 @@ func Test_corrupt(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-			text = "$i 220"
+			text = tclStringRepeat(i, "220")
 			_ = text // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(text) + ") ")
 			if _res.Error != nil {

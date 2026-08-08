@@ -69,7 +69,7 @@ func Test_e_blobclose(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_blobclose"
 	_ = testprefix // suppress unused warning
-	dots = ". 40"
+	dots = tclStringRepeat(".", "40")
 	_ = dots // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-100, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-1000, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10000, " + sqlLiteral(dots) + ");\n")

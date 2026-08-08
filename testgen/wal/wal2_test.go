@@ -731,7 +731,7 @@ func Test_wal2(t *testing.T) {
 					}
 					S = ""
 					_ = S // suppress unused warning
-					for _, sq := range tclSplitList("split $sql \"\n\"") {
+					for _, sq := range strings.Split(sql, "\\n") {
 					_ = sq // suppress unused warning
 						sq = strings.TrimSpace(sq)
 						_ = sq // suppress unused warning
@@ -1039,7 +1039,7 @@ func Test_wal2(t *testing.T) {
 						}
 						blob = tclStringRange("tvfs shm $::filename", "0", "16383")
 						_ = blob // suppress unused warning
-						blob += "[binary format c 55] 16384"
+						blob += tclStringRepeat("binary format c 55", "16384")
 						// tvfs shm $::filename $blob (unsupported command, not transpiled)
 						{ // do_test "wal2-11.3"
 							_res = db2.Exec(" SELECT * FROM t1 ")

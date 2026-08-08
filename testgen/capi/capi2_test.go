@@ -88,10 +88,11 @@ func Test_capi2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c)")
 		}
-		VM = "sqlite3_prepare $DB {SELECT name, rowid FROM sqlite_master} -1 TAIL"
-		_ = VM // suppress unused warning
+		// prepared VM: SELECT name, rowid FROM sqlite_master (bind/step emulation)
+		_ = VM // prepared statement handle
 	}
-	{ // "capi2-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-1.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $VM (unknown prepared statement)
 	}
 	{ // do_test "capi2-1.3"
 		// sqlite3_data_count $VM (unsupported command, not transpiled)
@@ -102,29 +103,32 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-1.5"
 		// get_column_names $VM (unsupported command, not transpiled)
 	}
-	{ // "capi2-1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-1.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $VM (unknown prepared statement)
 	}
 	{ // do_test "capi2-1.7"
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
-	{ // "capi2-1.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-1.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $VM (unknown prepared statement)
 	}
 	{ // do_test "capi2-1.9"
-		// sqlite3_reset $VM (unsupported command, not transpiled)
+		// sqlite3_reset $VM
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
 	{ // do_test "capi2-1.10"
 		// sqlite3_data_count $VM (unsupported command, not transpiled)
 	}
-	{ // "capi2-1.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-1.11" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi2-2.1"
 		var SQL = "\n    SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end\n  "
 		_ = SQL // suppress unused warning
-		VM = "sqlite3_prepare $DB $SQL -1 SQL"
-		_ = VM // suppress unused warning
+		// prepared VM: $SQL (bind/step emulation)
+		_ = VM // prepared statement handle
 	}
 	{ // do_test "capi2-2.2"
 		_r = "SQLITE_ROW"
@@ -136,22 +140,24 @@ func Test_capi2(t *testing.T) {
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
-	{ // "capi2-2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-2.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi2-2.5"
-		VM = "sqlite3_prepare $DB $SQL -1 SQL"
-		_ = VM // suppress unused warning
+		// prepared VM: $SQL (bind/step emulation)
+		_ = VM // prepared statement handle
 	}
 	{ // do_test "capi2-2.6"
 		_r = "SQLITE_ROW"
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
-	{ // "capi2-2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-2.7" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi2-2.8"
-		VM = "sqlite3_prepare $DB $SQL -1 SQL"
-		_ = VM // suppress unused warning
+		// prepared VM: $SQL (bind/step emulation)
+		_ = VM // prepared statement handle
 		_list := tclList([]string{SQL, VM})
 		_ = _list
 	}
@@ -160,7 +166,7 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {select bogus from sqlite_master} -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -176,7 +182,7 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {select bogus from } -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -192,7 +198,7 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {;;;;select bogus from sqlite_master} -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -208,7 +214,7 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {select bogus from sqlite_master;x;} -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -224,7 +230,7 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {select bogus from sqlite_master;;;x;} -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -240,7 +246,7 @@ func Test_capi2(t *testing.T) {
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {select 5/0;} -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare (standalone prepare; not emulated)
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -255,15 +261,16 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
-	{ // "capi2-3.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-3.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi2-3.9"
 		_res = db.Exec("CREATE UNIQUE INDEX i1 ON t1(a)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE UNIQUE INDEX i1 ON t1(a)")
 		}
-		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(1,2,3)} -1 TAIL"
-		_ = VM // suppress unused warning
+		// prepared VM: INSERT INTO t1 VALUES(1,2,3) (bind/step emulation)
+		_ = VM // prepared statement handle
 	}
 	{ // do_test "capi2-3.9b"
 	}
@@ -273,13 +280,14 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.10b"
 	}
-	{ // "capi2-3.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-3.11" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi2-3.11b"
 	}
 	{ // do_test "capi2-3.13"
-		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(1,3,4)} -1 TAIL"
-		_ = VM // suppress unused warning
+		// prepared VM: INSERT INTO t1 VALUES(1,3,4) (bind/step emulation)
+		_ = VM // prepared statement handle
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
@@ -290,8 +298,8 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-3.15"
-		VM = "sqlite3_prepare $DB {CREATE TABLE t2(a NOT NULL, b)} -1 TAIL"
-		_ = VM // suppress unused warning
+		// prepared VM: CREATE TABLE t2(a NOT NULL, b) (bind/step emulation)
+		_ = VM // prepared statement handle
 	}
 	{ // do_test "capi2-3.16"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
@@ -302,8 +310,8 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-3.18"
-		VM = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(NULL,2)} -1 TAIL"
-		_ = VM // suppress unused warning
+		// prepared VM: INSERT INTO t2 VALUES(NULL,2) (bind/step emulation)
+		_ = VM // prepared statement handle
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
@@ -317,28 +325,35 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE a1(message_id, name , UNIQUE(message_id, name) );\n    INSERT INTO a1 VALUES(1, 1);\n  ")
 		}
 	}
-	{ // "capi2-3.21" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-3.21" (prepare-step internals; SQL side effects only)
+		// prepared VM: INSERT INTO a1 VALUES(1, 1) (bind/step emulation)
+		_ = VM // prepared statement handle
+		_res = db.Exec("INSERT INTO a1 VALUES(1, 1)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 VALUES(1, 1)")
+		}
 	}
 	{ // do_test "capi2-3.22"
 		// sqlite3_errcode $DB (unsupported command, not transpiled)
 	}
-	{ // "capi2-3.23" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-3.23" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi2-3.24"
 		_list := tclList([]string{"0", "sqlite3_extended_errcode $DB"})
 		_ = _list
 	}
 	{ // do_test "capi2-4.1"
-		VM1 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(1,2)} -1 TAIL"
-		_ = VM1 // suppress unused warning
+		// prepared VM1: INSERT INTO t2 VALUES(1,2) (bind/step emulation)
+		_ = VM1 // prepared statement handle
 	}
 	{ // do_test "capi2-4.2"
-		VM2 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"
-		_ = VM2 // suppress unused warning
+		// prepared VM2: INSERT INTO t2 VALUES(2,3) (bind/step emulation)
+		_ = VM2 // prepared statement handle
 	}
 	{ // do_test "capi2-4.3"
-		VM3 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(3,4)} -1 TAIL"
-		_ = VM3 // suppress unused warning
+		// prepared VM3: INSERT INTO t2 VALUES(3,4) (bind/step emulation)
+		_ = VM3 // prepared statement handle
 	}
 	{ // do_test "capi2-4.4"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM2", "get_column_names $VM2"})
@@ -350,7 +365,8 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
 		}
 	}
-	{ // "capi2-4.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-4.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM2
 	}
 	{ // do_test "capi2-4.7"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM3", "get_column_names $VM3"})
@@ -362,7 +378,8 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
 		}
 	}
-	{ // "capi2-4.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-4.9" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM3
 	}
 	{ // do_test "capi2-4.10"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
@@ -374,15 +391,16 @@ func Test_capi2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2 ORDER BY a")
 		}
 	}
-	{ // "capi2-4.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-4.12" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM1
 	}
 	{ // do_test "capi2-5.1"
-		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
-		_ = VM1 // suppress unused warning
-		VM2 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
-		_ = VM2 // suppress unused warning
-		VM3 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
-		_ = VM3 // suppress unused warning
+		// prepared VM1: SELECT * FROM t2 (bind/step emulation)
+		_ = VM1 // prepared statement handle
+		// prepared VM2: SELECT * FROM t2 (bind/step emulation)
+		_ = VM2 // prepared statement handle
+		// prepared VM3: SELECT * FROM t2 (bind/step emulation)
+		_ = VM3 // prepared statement handle
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
 	}
@@ -410,13 +428,15 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM3", "get_column_names $VM3"})
 		_ = _list
 	}
-	{ // "capi2-5.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-5.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM3
 	}
 	{ // do_test "capi2-5.9"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
 	}
-	{ // "capi2-5.10" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-5.10" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM1
 	}
 	{ // do_test "capi2-5.11"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM2", "get_column_names $VM2"})
@@ -426,15 +446,16 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM2", "get_column_names $VM2"})
 		_ = _list
 	}
-	{ // "capi2-5.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-5.11" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM2
 	}
 	{ // do_test "capi2-6.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;\n  ")
 		}
-		VM1 = "sqlite3_prepare $DB {SELECT * FROM t3} -1 TAIL"
-		_ = VM1 // suppress unused warning
+		// prepared VM1: SELECT * FROM t3 (bind/step emulation)
+		_ = VM1 // prepared statement handle
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		_res = db.Exec("BEGIN")
@@ -548,7 +569,8 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
 	}
-	{ // "capi2-6.99" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-6.99" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM1
 	}
 	_res = db.Exec("ROLLBACK")
 	_ = _res // catchsql
@@ -629,14 +651,25 @@ func Test_capi2(t *testing.T) {
 		_ = x // suppress unused warning
 		_ = tclLIndex(x, "0") // lindex result
 	}
-	{ // "capi2-8.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-8.1" (prepare-step internals; SQL side effects only)
+		// prepared VM1: SELECT * FROM t2 (bind/step emulation)
+		_ = VM1 // prepared statement handle
+		// sqlite3_finalize $VM1
 	}
-	{ // "capi2-9.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-9.1" (prepare-step internals; SQL side effects only)
+		// prepared VM1: SELECT * FROM t2 (bind/step emulation)
+		_ = VM1 // prepared statement handle
+		_res = db.Exec("SELECT * FROM t2")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+		}
+		// sqlite3_finalize $VM1
 	}
-	{ // "capi2-10.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi2-10.1" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $v_0
 	}
 	{ // do_test "capi2-10.2"
-		// sqlite3_reset 0 (unsupported command, not transpiled)
+		// sqlite3_reset $v_0
 	}
 	// proc definition (not transpiled)
 	{ // do_test "capi2-11.1"

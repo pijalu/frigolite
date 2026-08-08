@@ -75,7 +75,11 @@ func Test_backup5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    INSERT INTO t1 VALUES(zeroblob(1000), zeroblob(1000));\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n  ")
 		}
 	}
-	{ // "1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.2" (prepare-step internals; SQL side effects only)
+		db2, err = frigolite.Open("test.db2")
+		if err != nil { t.Fatal(err) }
+		_ = stmt // prepared statement handle
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
 	{ // do_test "1.3"
 		_list := tclList([]string{"0", msg})
@@ -85,7 +89,7 @@ func Test_backup5(t *testing.T) {
 		// sqlite3_errmsg db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.5"
-		// sqlite3_reset $stmt (unsupported command, not transpiled)
+		// sqlite3_reset $stmt
 		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 		// B step 200 (unsupported command, not transpiled)
 		// B finish (unsupported command, not transpiled)

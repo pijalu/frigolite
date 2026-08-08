@@ -245,7 +245,7 @@ func Test_shell5(t *testing.T) {
 		strings.ReplaceAll(strings.ReplaceAll(res, "\\n", "|"), "\\n\\r", "|")
 	}
 	{ // do_test "shell5-1.5.1"
-		str = "X 999"
+		str = tclStringRepeat("X", "999")
 		_ = str // suppress unused warning
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning

@@ -96,7 +96,7 @@ func Test_windowfault(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	big = "x 900"
+	big = tclStringRepeat("x", "900")
 	_ = big // suppress unused warning
 	{ // "9.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA cache_size = 2;\n  CREATE TABLE t(x INTEGER PRIMARY KEY, y TEXT);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1900\n  )\n  INSERT INTO t(y) SELECT " + sqlLiteral(big) + " FROM s;\n")

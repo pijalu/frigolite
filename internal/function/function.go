@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -87,6 +88,15 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "TOTAL", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &totalAgg{} }})
 	r.register(&Func{Name: "GROUP_CONCAT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
 	r.register(&Func{Name: "STRING_AGG", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
+	// Ordered-set percentile aggregates (SQLite ext/misc/percentile.c):
+	//   percentile(Y,P)      P in [0,100], continuous
+	//   percentile_cont(Y,P) P in [0,1], continuous
+	//   percentile_disc(Y,P) P in [0,1], discrete
+	//   median(Y)            == percentile(Y,50)
+	r.register(&Func{Name: "PERCENTILE", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }, WrongArgMsg: true})
+	r.register(&Func{Name: "PERCENTILE_CONT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(false, false) }, WrongArgMsg: true})
+	r.register(&Func{Name: "PERCENTILE_DISC", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return newPercentileAgg(true, false) }, WrongArgMsg: true})
+	r.register(&Func{Name: "MEDIAN", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return newPercentileAgg(false, true) }, WrongArgMsg: true})
 
 	// Scalar functions
 	r.register(&Func{Name: "ABS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnABS})
@@ -105,6 +115,10 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "RANDOMBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnRANDOMBLOB})
 	r.register(&Func{Name: "RANDSTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnRANDSTR})
 	r.register(&Func{Name: "ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnZEROBLOB})
+	// test_zeroblob: the TCL test-harness variant of zeroblob() that skips
+	// the SQLITE_MAX_LENGTH check (test1.c test_zeroblob). Negative lengths
+	// produce the empty blob.
+	r.register(&Func{Name: "TEST_ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTestZeroblob})
 	r.register(&Func{Name: "LIKELIHOOD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnLIKELIHOOD})
 	r.register(&Func{Name: "LIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLIKELY})
 	r.register(&Func{Name: "UNLIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNLIKELY})
@@ -430,6 +444,156 @@ func fnMD5SUM() Aggregator {
 	return &md5sumAgg{}
 }
 
+// percentileAgg implements the ordered-set percentile family from SQLite's
+// ext/misc/percentile.c:
+//   percentile(Y,P)      P in [0,100], continuous (linear interpolation)
+//   percentile_cont(Y,P) P in [0,1], continuous
+//   percentile_disc(Y,P) P in [0,1], discrete (nearest-rank)
+//   median(Y)            == percentile(Y,50)
+//
+// Semantics (mirroring percentStep/percentCompute in percentile.c):
+//   - NULL Y values are ignored.
+//   - A non-NULL, non-numeric Y yields "input to <fn>() is not numeric".
+//   - An Inf or NaN Y yields "Inf input to <fn>()".
+//   - The fraction P must be numeric and within [0,mxFrac]; otherwise "the
+//     fraction argument to <fn>() is not between 0.0 and <mxFrac>" where
+//     mxFrac is 100.0 for percentile() and 1.0 for the others.
+//   - Every row must supply the same fraction (within an absolute 0.001
+//     tolerance in the normalized 0..1 space); otherwise "the fraction
+//     argument to <fn>() is not the same for all input rows".
+//   - The result is ix = rPct*(n-1); continuous interpolates between the
+//     floor and ceil entries, discrete takes the floor entry. Always a REAL.
+type percentileAgg struct {
+	discrete bool // percentile_disc: nearest-rank (no interpolation)
+	pct100   bool // percentile(): fraction is in [0,100], normalized by /100
+	name     string
+	rPct     float64
+	rPctSet  bool
+	values   []float64
+}
+
+func newPercentileAgg(discrete, pct100 bool) Aggregator {
+	name := "percentile()"
+	switch {
+	case pct100:
+		name = "percentile()"
+	case discrete:
+		name = "percentile_disc()"
+	default:
+		name = "percentile_cont()"
+	}
+	return &percentileAgg{discrete: discrete, pct100: pct100, name: name}
+}
+
+// percentileFracUpper returns the upper bound of the fraction argument's range.
+func (p *percentileAgg) fracUpper() float64 {
+	if p.pct100 {
+		return 100.0
+	}
+	return 1.0
+}
+
+func (p *percentileAgg) Step(args []interface{}) error {
+	mxFrac := p.fracUpper()
+	if len(args) > 1 {
+		rPct, ok := numericFraction(args[1])
+		if !ok {
+			return fmt.Errorf("the fraction argument to %s is not between 0.0 and %.1f", p.name, mxFrac)
+		}
+		rPct /= mxFrac
+		if rPct < 0.0 || rPct > 1.0 {
+			return fmt.Errorf("the fraction argument to %s is not between 0.0 and %.1f", p.name, mxFrac)
+		}
+		if !p.rPctSet {
+			p.rPct = rPct
+			p.rPctSet = true
+		} else if !percentSameValue(p.rPct, rPct) {
+			return fmt.Errorf("the fraction argument to %s is not the same for all input rows", p.name)
+		}
+	} else {
+		// median(Y): fraction is fixed at 0.5 (requirement 13).
+		if !p.rPctSet {
+			p.rPct = 0.5
+			p.rPctSet = true
+		}
+	}
+	if len(args) == 0 || args[0] == nil {
+		return nil // NULL Y is ignored
+	}
+	f, ok := numericValue(args[0])
+	if !ok {
+		return fmt.Errorf("input to %s is not numeric", p.name)
+	}
+	if math.IsInf(f, 0) || math.IsNaN(f) {
+		return fmt.Errorf("Inf input to %s", p.name)
+	}
+	p.values = append(p.values, f)
+	return nil
+}
+
+func (p *percentileAgg) Final() (interface{}, error) {
+	if len(p.values) == 0 {
+		return nil, nil // no non-NULL entries -> NULL
+	}
+	sort.Float64s(p.values)
+	n := len(p.values)
+	ix := p.rPct * float64(n-1)
+	i1 := int(ix)
+	if i1 >= n {
+		i1 = n - 1
+	}
+	if p.discrete {
+		return p.values[i1], nil
+	}
+	i2 := i1
+	if ix != float64(i1) && i1 != n-1 {
+		i2 = i1 + 1
+	}
+	v1 := p.values[i1]
+	v2 := p.values[i2]
+	return v1 + (v2-v1)*(ix-float64(i1)), nil
+}
+
+// numericFraction converts a fraction argument to a float64, reporting whether
+// it is numeric. SQLite's percentStep uses sqlite3_value_numeric_type, which
+// accepts INTEGER and REAL and converts numeric-looking TEXT ('50' → 50);
+// non-numeric text and blobs yield the "not between" error.
+func numericFraction(v interface{}) (float64, bool) {
+	switch x := v.(type) {
+	case int64:
+		return float64(x), true
+	case float64:
+		return x, true
+	case string:
+		f, err := strconv.ParseFloat(strings.TrimSpace(x), 64)
+		if err != nil {
+			return 0, false
+		}
+		return f, true
+	}
+	return 0, false
+}
+
+// numericValue converts a Y argument to a float64, reporting whether it is
+// numeric. SQLite's percentile accepts INTEGER and REAL; TEXT/BLOB yield the
+// "not numeric" error even if they look numeric.
+func numericValue(v interface{}) (float64, bool) {
+	switch x := v.(type) {
+	case int64:
+		return float64(x), true
+	case float64:
+		return x, true
+	}
+	return 0, false
+}
+
+// percentSameValue mirrors percentile.c's percentSameValue: two doubles are
+// "the same" when they differ by 0.001 or less.
+func percentSameValue(a, b float64) bool {
+	d := a - b
+	return d >= -0.001 && d <= 0.001
+}
+
 // --- Scalar function implementations ---
 
 func fnABS(args []interface{}) (interface{}, error) {
@@ -747,6 +911,17 @@ func fnZEROBLOB(args []interface{}) (interface{}, error) {
 	}
 	if n > 1000000000 { // SQLITE_MAX_LENGTH default
 		return nil, fmt.Errorf("string or blob too big")
+	}
+	return make([]byte, n), nil
+}
+
+// fnTestZeroblob is the TCL test-harness test_zeroblob(N): like zeroblob but
+// without the SQLITE_MAX_LENGTH check (test1.c test_zeroblob). Negative
+// lengths return the empty blob.
+func fnTestZeroblob(args []interface{}) (interface{}, error) {
+	n := int(toInt64(args[0]))
+	if n <= 0 {
+		return []byte{}, nil
 	}
 	return make([]byte, n), nil
 }

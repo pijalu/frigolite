@@ -97,8 +97,7 @@ func Test_badutf2(t *testing.T) {
 		}
 	}
 	{ // do_test "badutf2-4.0"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	// foreach {i len uval xstr ustr u2u} "1 1 00     \x00         {}        {}\n2 1 01     \x01         \"\\u0001\" 01\n3 1 3F     ?         \"\\u003F\" 3F\n4 1 7F     \x7f         \"\\u007F\" 7F\n5 1 80     \x80         \"\\u0080\" C280\n6 1 C3BF   \xff         \"\\u00FF\" C3BF\n7 3 EFBFBD � \"\\uFFFD\" {}"
@@ -169,7 +168,11 @@ func Test_badutf2(t *testing.T) {
 			}
 			if tclBool(i + "==5 && " + tcl_version + ">=8.7") {
 			} else {
-				{ // "badutf2-4.1." + i (uses_stmt_journal/prepare-step internals, not transpiled)
+				{ // "badutf2-4.1." + i (prepare-step internals; SQL side effects only)
+					// sqlite3_reset $S
+					// sqlite3_bind_text $S (unknown prepared statement)
+					// sqlite3_step $S (unknown prepared statement)
+					// utf8_to_ustr2 [ sqlite3_column_text $S 0 ] (unsupported command, not transpiled)
 				}
 			}
 			{ // do_test "badutf2-5.1." + i
@@ -179,6 +182,7 @@ func Test_badutf2(t *testing.T) {
 				}
 			}
 		}
-		{ // "badutf2-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "badutf2-4.2" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $S
 		}
 }

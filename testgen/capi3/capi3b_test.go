@@ -92,15 +92,38 @@ func Test_capi3b(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	{ // "capi3b-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-1.4" (prepare-step internals; SQL side effects only)
+		// prepared VM: INSERT INTO t1 VALUES(3) (bind/step emulation)
+		_ = VM // prepared statement handle
+		_res = db.Exec("INSERT INTO t1 VALUES(3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(3)")
+		}
 	}
-	{ // "capi3b-1.5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-1.5.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t1 VALUES(3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(3)")
+		}
 	}
-	{ // "capi3b-1.5.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-1.5.2" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t1 VALUES(3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(3)")
+		}
 	}
-	{ // "capi3b-1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-1.6" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		_res = db.Exec("INSERT INTO t1 VALUES(3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(3)")
+		}
 	}
-	{ // "capi3b-1.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-1.7" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi3b-1.8"
 		r = db.Query("SELECT * FROM t1")
@@ -114,32 +137,74 @@ func Test_capi3b(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	{ // "capi3b-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.1" (prepare-step internals; SQL side effects only)
+		// prepared VM1: SELECT * FROM t1 (bind/step emulation)
+		_ = VM1 // prepared statement handle
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
 	}
 	{ // do_test "capi3b-2.2"
 		// sqlite3_column_text $VM1 0 (unsupported command, not transpiled)
 	}
-	{ // "capi3b-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.3" (prepare-step internals; SQL side effects only)
+		// prepared VM2: INSERT INTO t1 VALUES(4) (bind/step emulation)
+		_ = VM2 // prepared statement handle
+		_res = db.Exec("INSERT INTO t1 VALUES(4)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(4)")
+		}
 	}
-	{ // "capi3b-2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.4" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
 	}
 	{ // do_test "capi3b-2.5"
 		// sqlite3_column_text $VM1 0 (unsupported command, not transpiled)
 	}
-	{ // "capi3b-2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.6" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t1 VALUES(4)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(4)")
+		}
 	}
-	{ // "capi3b-2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.7" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
 	}
 	{ // do_test "capi3b-2.8"
 		// sqlite3_column_text $VM1 0 (unsupported command, not transpiled)
 	}
-	{ // "capi3b-2.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.9" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t1 VALUES(4)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(4)")
+		}
 	}
-	{ // "capi3b-2.10" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.10" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
 	}
-	{ // "capi3b-2.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.11" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t1 VALUES(4)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(4)")
+		}
 	}
-	{ // "capi3b-2.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3b-2.12" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $VM1
+		// sqlite3_finalize $VM2
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
 	}
 	{
 		var _catchErr error

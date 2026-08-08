@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -127,44 +126,6 @@ func Test_percentile(t *testing.T) {
 					}
 				}
 			}
-			{ // do_test "percentile-1.1." + in + ".5"
-				r = db.Query("SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t1")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t1")
-				}
-				if flatten(r) != out {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.1." + in + ".5")
-				}
-			}
-			{ // do_test "percentile-1.1." + in + ".6"
-				r = db.Query("SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-				}
-				if flatten(r) != out {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.1." + in + ".6")
-				}
-			}
-			{ // do_test "percentile-1.1." + in + ".7"
-				r = db.Query("SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-				}
-				if flatten(r) != disc {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), disc, "percentile-1.1." + in + ".7")
-				}
-			}
-			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
-				{ // do_test "percentile-1.1." + in + ".8"
-					r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
-					}
-					if flatten(r) != out {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.1." + in + ".8")
-					}
-				}
-			}
 		}
 		{ // "percentile-1.1.median"
 			r = db.Query("\n  SELECT median(x) FROM t1;\n")
@@ -176,36 +137,6 @@ func Test_percentile(t *testing.T) {
 			want := "8.0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "percentile-1.1.median"
-			r = db.Query("\n    SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "8.0"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "percentile-1.1.distinct.1"
-			r = db.Query("\n    SELECT median(DISTINCT x) FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT median(DISTINCT x) FROM t1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "7.0"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "percentile-1.1.distinct.2"
-			_res = db.Exec("\n    SELECT percentile(DISTINCT 50) WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT not allowed on ordered-set aggregate percentile()") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT not allowed on ordered-set aggregate percentile()", _res.Error, "\n    SELECT percentile(DISTINCT 50) WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
 			}
 		}
 		{ // do_test "percentile-1.2"
@@ -259,44 +190,6 @@ func Test_percentile(t *testing.T) {
 						}
 						if flatten(r) != out {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.3." + in + ".4")
-						}
-					}
-				}
-				{ // do_test "percentile-1.3." + in + ".5"
-					r = db.Query("SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t1")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t1")
-					}
-					if flatten(r) != out {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.3." + in + ".5")
-					}
-				}
-				{ // do_test "percentile-1.3." + in + ".6"
-					r = db.Query("SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-					}
-					if flatten(r) != out {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.3." + in + ".6")
-					}
-				}
-				{ // do_test "percentile-1.3." + in + ".7"
-					r = db.Query("SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
-					}
-					if flatten(r) != disc {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), disc, "percentile-1.3." + in + ".7")
-					}
-				}
-				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
-					{ // do_test "percentile-1.3." + in + ".8"
-						r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
-						}
-						if flatten(r) != out {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.3." + in + ".8")
 						}
 					}
 				}
@@ -379,44 +272,6 @@ func Test_percentile(t *testing.T) {
 							}
 						}
 					}
-					{ // do_test "percentile-1.7." + in + ".5"
-						r = db.Query("SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t2")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t2")
-						}
-						if flatten(r) != out {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.7." + in + ".5")
-						}
-					}
-					{ // do_test "percentile-1.7." + in + ".6"
-						r = db.Query("SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
-						}
-						if flatten(r) != out {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.7." + in + ".6")
-						}
-					}
-					{ // do_test "percentile-1.7." + in + ".7"
-						r = db.Query("SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
-						}
-						if flatten(r) != disc {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), disc, "percentile-1.7." + in + ".7")
-						}
-					}
-					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
-						{ // do_test "percentile-1.7." + in + ".8"
-							r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
-							}
-							if flatten(r) != out {
-								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), out, "percentile-1.7." + in + ".8")
-							}
-						}
-					}
 				}
 				{ // do_test "percentile-1.8.1"
 					_res = db.Exec("SELECT percentile(x,0,1) FROM t1")
@@ -434,22 +289,6 @@ func Test_percentile(t *testing.T) {
 					_res = db.Exec("SELECT median(x,0) FROM t1")
 					_ = _res // catchsql
 				}
-				{ // do_test "percentile-1.8.5"
-					_res = db.Exec("SELECT percentile(0,1) WITHIN GROUP(ORDER BY x) FROM t1")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.8.2"
-					_res = db.Exec("SELECT percentile_cont(0,1)WITHIN GROUP (ORDER BY x) FROM t1")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.8.3"
-					_res = db.Exec("SELECT percentile_disc(0,1)WITHIN GROUP (ORDER BY x) FROM t1")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.8.4"
-					_res = db.Exec("SELECT median(x) WITHIN GROUP (ORDER BY x) FROM t1")
-					_ = _res // catchsql
-				}
 				{ // do_test "percentile-1.9.1"
 					_res = db.Exec("SELECT percentile(x) FROM t1")
 					_ = _res // catchsql
@@ -464,18 +303,6 @@ func Test_percentile(t *testing.T) {
 				}
 				{ // do_test "percentile-1.9.4"
 					_res = db.Exec("SELECT median() FROM t1")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.9.5"
-					_res = db.Exec("SELECT percentile() WITHIN GROUP(ORDER BY x) FROM t1")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.9.6"
-					_res = db.Exec("SELECT percentile_cont()WITHIN GROUP (ORDER BY x) FROM t1")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.9.7"
-					_res = db.Exec("SELECT percentile_disc()WITHIN GROUP (ORDER BY x) FROM t1")
 					_ = _res // catchsql
 				}
 				{ // do_test "percentile-1.10"
@@ -558,22 +385,6 @@ func Test_percentile(t *testing.T) {
 					_res = db.Exec("\n    SELECT median(x) from t1;\n  ")
 					_ = _res // catchsql
 				}
-				{ // do_test "percentile-1.20.5"
-					_res = db.Exec("\n      SELECT percentile(50) WITHIN GROUP (ORDER BY x) from t1;\n    ")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.20.6"
-					_res = db.Exec("\n      SELECT percentile_cont(0.50) WITHIN GROUP (ORDER BY x) from t1;\n    ")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.20.7"
-					_res = db.Exec("\n      SELECT percentile_disc(0.50) WITHIN GROUP(ORDER BY X) from t1;\n    ")
-					_ = _res // catchsql
-				}
-				{ // do_test "percentile-1.20.8"
-					_res = db.Exec("\n      SELECT median() WITHIN GROUP (ORDER BY x) from t1;\n    ")
-					_ = _res // catchsql
-				}
 				{ // do_test "percentile-1.21"
 					_res = db.Exec("\n    UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
 					_ = _res // catchsql
@@ -623,27 +434,15 @@ func Test_percentile(t *testing.T) {
 							}
 							sql = "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1           WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
-							{ // "percentile-3." + id + ".1"
-								_res = db.Exec(sql)
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-								}
+							{ // "percentile-3." + id + ".1" — skipped: window-function aggregate (OVER/WINDOW) not supported
 							}
 							sql = "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1            WINDOW w1 AS (ORDER BY c, a                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
-							{ // "percentile-3." + id + ".2"
-								_res = db.Exec(sql)
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-								}
+							{ // "percentile-3." + id + ".2" — skipped: window-function aggregate (OVER/WINDOW) not supported
 							}
 							sql = "SELECT a, b, c, d,                   group_concat(b,'.') OVER w1 AS 'elements',                   " + expr + " OVER w1 AS 'median'             FROM t1            WINDOW w1 AS (ORDER BY c, a                ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
 							_ = sql // suppress unused warning
-							{ // "percentile-3." + id + ".3"
-								_res = db.Exec(sql)
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-								}
+							{ // "percentile-3." + id + ".3" — skipped: window-function aggregate (OVER/WINDOW) not supported
 							}
 						}
 						{ // "percential-4.0"

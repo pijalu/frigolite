@@ -84,7 +84,13 @@ func Test_delete2(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	{ // "delete2-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "delete2-1.4" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM q (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM q")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM q")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -100,7 +106,10 @@ func Test_delete2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM q;\n  ")
 		}
 	}
-	{ // "delete2-1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "delete2-1.9" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
+		_res = db.Exec("\n    DELETE FROM q WHERE rowid=1\n  ")
+		_ = _res // catchsql
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

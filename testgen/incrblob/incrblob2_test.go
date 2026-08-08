@@ -214,7 +214,7 @@ func Test_incrblob2(t *testing.T) {
 		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
-			data = "\"blob$ii\" 500"
+			data = tclStringRepeat("blob" + ii, "500")
 			_ = data // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(data) + ") ")
 			if _res.Error != nil {

@@ -3662,7 +3662,7 @@ func Test_printf(t *testing.T) {
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
-		res = "{ } [expr {$i-1}]" + "x"
+		res = tclStringRepeat(" ", tclExprWith("$i-1", map[string]string{"i": i})) + "x"
 		_ = res // suppress unused warning
 		{ // do_test "printf-14.90." + i
 			_res = db.Exec("\n    sqlite3_mprintf_str {%*.*s} " + i + " 500 x\n  ")
@@ -3689,14 +3689,14 @@ func Test_printf(t *testing.T) {
 	}
 	for _, _var := range tclSplitList("a b c d") {
 	_ = _var // suppress unused warning
-		_var = "$var 400"
+		_var = tclStringRepeat(_var, "400")
 		_ = _var // suppress unused warning
 	}
-	str1 = "A 360" + "%d%d%s"
+	str1 = tclStringRepeat("A", "360") + "%d%d%s"
 	_ = str1 // suppress unused warning
-	str2 = "B 5000"
+	str2 = tclStringRepeat("B", "5000")
 	_ = str2 // suppress unused warning
-	zSuccess = "A 360" + "11" + "B 5000"
+	zSuccess = tclStringRepeat("A", "360") + "11" + tclStringRepeat("B", "5000")
 	_ = zSuccess // suppress unused warning
 	for _, iRepeat := range tclSplitList("0 1") {
 	_ = iRepeat // suppress unused warning

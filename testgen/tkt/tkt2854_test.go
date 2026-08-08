@@ -113,16 +113,16 @@ func Test_tkt2854(t *testing.T) {
 	{ // do_test "tkt2854-1.7"
 		DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
 		_ = DB2 // suppress unused warning
-		STMT1 = "sqlite3_prepare $DB2 \"SELECT * FROM abc\" -1 TAIL" // TCL namespace variable
-		_ = STMT1 // suppress unused warning
-		STMT2 = "sqlite3_prepare $DB2 \"BEGIN EXCLUSIVE\" -1 TAIL" // TCL namespace variable
-		_ = STMT2 // suppress unused warning
-		STMT3 = "sqlite3_prepare $DB2 \"BEGIN IMMEDIATE\" -1 TAIL" // TCL namespace variable
-		_ = STMT3 // suppress unused warning
-		STMT4 = "sqlite3_prepare $DB2 \"BEGIN\" -1 TAIL" // TCL namespace variable
-		_ = STMT4 // suppress unused warning
-		STMT5 = "sqlite3_prepare $DB2 \"COMMIT\" -1 TAIL" // TCL namespace variable
-		_ = STMT5 // suppress unused warning
+		// prepared STMT1: SELECT * FROM abc (bind/step emulation)
+		_ = STMT1 // prepared statement handle
+		// prepared STMT2: BEGIN EXCLUSIVE (bind/step emulation)
+		_ = STMT2 // prepared statement handle
+		// prepared STMT3: BEGIN IMMEDIATE (bind/step emulation)
+		_ = STMT3 // prepared statement handle
+		// prepared STMT4: BEGIN (bind/step emulation)
+		_ = STMT4 // prepared statement handle
+		// prepared STMT5: COMMIT (bind/step emulation)
+		_ = STMT5 // prepared statement handle
 		_res = db.Exec(" BEGIN EXCLUSIVE ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")

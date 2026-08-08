@@ -89,9 +89,9 @@ func Test_tkt2409(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
 		}
 		// read_lock_db (unsupported command, not transpiled)
-		zShort = "0123456789 1" // TCL namespace variable
+		zShort = tclStringRepeat("0123456789", "1") // TCL namespace variable
 		_ = zShort // suppress unused warning
-		zLong = "0123456789 1500" // TCL namespace variable
+		zLong = tclStringRepeat("0123456789", "1500") // TCL namespace variable
 		_ = zLong // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(" + sqlLiteral(zShort) + ", " + sqlLiteral(zLong) + ");\n  ")
 		_ = _res // catchsql
@@ -106,9 +106,9 @@ func Test_tkt2409(t *testing.T) {
 		_res = db.Exec(" ROLLBACK ")
 		_ = _res // catchsql
 	}
-	zShort = "0123456789 1" // TCL namespace variable
+	zShort = tclStringRepeat("0123456789", "1") // TCL namespace variable
 	_ = zShort // suppress unused warning
-	zLong = "0123456789 1500" // TCL namespace variable
+	zLong = tclStringRepeat("0123456789", "1500") // TCL namespace variable
 	_ = zLong // suppress unused warning
 	rc = "1" // TCL namespace variable
 	_ = rc // suppress unused warning
@@ -152,9 +152,9 @@ func Test_tkt2409(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
 		}
 		// read_lock_db (unsupported command, not transpiled)
-		zShort = "0123456789 1" // TCL namespace variable
+		zShort = tclStringRepeat("0123456789", "1") // TCL namespace variable
 		_ = zShort // suppress unused warning
-		zLong = "0123456789 1500" // TCL namespace variable
+		zLong = tclStringRepeat("0123456789", "1500") // TCL namespace variable
 		_ = zLong // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 SELECT " + sqlLiteral(zShort) + ", " + sqlLiteral(zLong) + ";\n  ")
 		_ = _res // catchsql

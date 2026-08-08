@@ -248,7 +248,7 @@ func Test_malloc(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// add_test_utf16bin_collate db (unsupported command, not transpiled)
-	big = "x 200"
+	big = tclStringRepeat("x", "200")
 	_ = big // suppress unused warning
 	{ // "41.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('pqrst' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('abcde' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('uvwxy' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('klmno' || " + sqlLiteral(big) + ");\n  CREATE INDEX i1 ON t1(a);\n")

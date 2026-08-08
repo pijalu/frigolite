@@ -80,15 +80,15 @@ func Test_fts3defer2(t *testing.T) {
 		}
 	}
 	{ // "1.1.2"
-		_res = db.Exec("INSERT INTO t1 VALUES('" + "{a } 20000" + "')")
+		_res = db.Exec("INSERT INTO t1 VALUES('" + tclStringRepeat("a ", "20000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('" + "{a } 20000" + "')")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('" + tclStringRepeat("a ", "20000") + "')")
 		}
 	}
 	{ // "1.1.3"
-		_res = db.Exec("INSERT INTO t1 VALUES('" + "{z } 20000" + "')")
+		_res = db.Exec("INSERT INTO t1 VALUES('" + tclStringRepeat("z ", "20000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('" + "{z } 20000" + "')")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('" + tclStringRepeat("z ", "20000") + "')")
 		}
 	}
 	{ // "1.1.4"
@@ -171,21 +171,21 @@ func Test_fts3defer2(t *testing.T) {
 		}
 	}
 	{ // "2.1.2"
-		_res = db.Exec("INSERT INTO t2 VALUES('" + "{a } 10000" + "')")
+		_res = db.Exec("INSERT INTO t2 VALUES('" + tclStringRepeat("a ", "10000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('" + "{a } 10000" + "')")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('" + tclStringRepeat("a ", "10000") + "')")
 		}
 	}
 	{ // "2.1.3"
-		_res = db.Exec("INSERT INTO t2 VALUES('b " + "{z } 10000" + "')")
+		_res = db.Exec("INSERT INTO t2 VALUES('b " + tclStringRepeat("z ", "10000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('b " + "{z } 10000" + "')")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('b " + tclStringRepeat("z ", "10000") + "')")
 		}
 	}
 	{ // "2.1.4"
-		_res = db.Exec("\"INSERT INTO t2 VALUES('x');\" 50")
+		_res = db.Exec(tclStringRepeat("INSERT INTO t2 VALUES('x');", "50"))
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\"INSERT INTO t2 VALUES('x');\" 50")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, tclStringRepeat("INSERT INTO t2 VALUES('x');", "50"))
 		}
 	}
 	{ // "2.1.5"
@@ -267,9 +267,9 @@ func Test_fts3defer2(t *testing.T) {
 			}
 		}
 		{ // "2.3.2"
-			_res = db.Exec("\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
+			_res = db.Exec("\n  INSERT INTO t3 VALUES('f e d c b " + tclStringRepeat("a ", "10000") + "')\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES('f e d c b " + tclStringRepeat("a ", "10000") + "')\n")
 			}
 		}
 		// foreach {tn sql} "1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }"

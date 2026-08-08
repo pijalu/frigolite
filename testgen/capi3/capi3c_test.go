@@ -146,7 +146,9 @@ func Test_capi3c(t *testing.T) {
 	{ // do_test "capi3c-1.0"
 		// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
 	}
-	{ // "capi3c-1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-1.1" (prepare-step internals; SQL side effects only)
+		_ = STMT // prepared statement handle
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "capi3c-1.2.1"
 		// sqlite3_errcode $DB (unsupported command, not transpiled)
@@ -157,7 +159,11 @@ func Test_capi3c(t *testing.T) {
 	{ // do_test "capi3c-1.3"
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
-	{ // "capi3c-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-1.4" (prepare-step internals; SQL side effects only)
+		sql = "SELECT name FROM sqlite_master;SELECT 10"
+		_ = sql // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "capi3c-1.5"
 		sql = "SELECT namex FROM sqlite_master"
@@ -165,8 +171,7 @@ func Test_capi3c(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			STMT = ""
-			_ = STMT // suppress unused warning
+			_ = STMT // prepared statement handle
 		}
 	}
 	{ // do_test "capi3c-1.6.1"
@@ -178,9 +183,19 @@ func Test_capi3c(t *testing.T) {
 	{ // do_test "capi3c-1.7"
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
-	{ // "capi3c-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-2.1" (prepare-step internals; SQL side effects only)
+		sql16 = "utf16 {SELECT name FROM sqlite_master}"
+		_ = sql16 // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_finalize $STMT
+		// utf8 $::TAIL (unsupported command, not transpiled)
 	}
-	{ // "capi3c-2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-2.2" (prepare-step internals; SQL side effects only)
+		sql = "utf16 {SELECT name FROM sqlite_master;SELECT 10}"
+		_ = sql // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_finalize $STMT
+		// utf8 $TAIL (unsupported command, not transpiled)
 	}
 	{ // do_test "capi3c-2.3"
 		sql = "utf16 {SELECT namex FROM sqlite_master}"
@@ -188,8 +203,7 @@ func Test_capi3c(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			STMT = "sqlite3_prepare16_v2  $DB $sql -1 TAIL"
-			_ = STMT // suppress unused warning
+			_ = STMT // prepared statement handle
 		}
 	}
 	{ // do_test "capi3c-2.4.1"
@@ -201,11 +215,21 @@ func Test_capi3c(t *testing.T) {
 	{ // do_test "capi3c-2.5"
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
-	{ // "capi3c-2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-2.6" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("CREATE TABLE tablename(x)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tablename(x)")
+		}
+		sql16 = "utf16 {PRAGMA table_info(\"TableName\")}"
+		_ = sql16 // suppress unused warning
+		_ = STMT // prepared statement handle
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
-	{ // "capi3c-2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-2.7" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
-	{ // "capi3c-2.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-2.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "capi3c-3.1"
 		// set db2 [sqlite3_open ...] (skipped, DB connection)
@@ -270,41 +294,45 @@ func Test_capi3c(t *testing.T) {
 		}
 		sql = "SELECT * FROM t1"
 		_ = sql // suppress unused warning
-		STMT = ""
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		// sqlite3_column_count $STMT (unsupported command, not transpiled)
 	}
 	// check_header $STMT capi3c-5.1 {a b c} {VARINT BLOB VARCHAR(16)} (unsupported command, not transpiled)
 	// check_origin_header $STMT capi3c-5.1 {main main main} {t1 t1 t1} {a b c} (unsupported command, not transpiled)
-	{ // "capi3c-5.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-5.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
 	// check_header $STMT capi3c-5.3 {a b c} {VARINT BLOB VARCHAR(16)} (unsupported command, not transpiled)
 	// check_origin_header $STMT capi3c-5.3 {main main main} {t1 t1 t1} {a b c} (unsupported command, not transpiled)
 	// check_data $STMT capi3c-5.4 {INTEGER INTEGER TEXT} {1 2 3} {1.0 2.0 3.0} {1 2 3} (unsupported command, not transpiled)
-	{ // "capi3c-5.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-5.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
 	// check_header $STMT capi3c-5.6 {a b c} {VARINT BLOB VARCHAR(16)} (unsupported command, not transpiled)
 	// check_origin_header $STMT capi3c-5.6 {main main main} {t1 t1 t1} {a b c} (unsupported command, not transpiled)
 	// check_data $STMT capi3c-5.7 {TEXT TEXT NULL} {0 0 0} {0.0 0.0 0.0} {one two {}} (unsupported command, not transpiled)
-	{ // "capi3c-5.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-5.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
 	// check_header $STMT capi3c-5.9 {a b c} {VARINT BLOB VARCHAR(16)} (unsupported command, not transpiled)
 	// check_origin_header $STMT capi3c-5.9 {main main main} {t1 t1 t1} {a b c} (unsupported command, not transpiled)
 	// check_data $STMT capi3c-5.10 {FLOAT FLOAT TEXT} {1 1 1} {1.2 1.3 1.4} {1.2 1.3 1.4} (unsupported command, not transpiled)
-	{ // "capi3c-5.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-5.11" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
-	{ // "capi3c-5.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-5.12" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "capi3c-5.20"
 		sql = "SELECT a, sum(b), max(c) FROM t1 GROUP BY a"
 		_ = sql // suppress unused warning
-		STMT = ""
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		// sqlite3_column_count $STMT (unsupported command, not transpiled)
 	}
 	// check_header $STMT capi3c-5.21 {a sum(b) max(c)} {VARINT {} {}} (unsupported command, not transpiled)
 	// check_origin_header $STMT capi3c-5.22 {main {} {}} {t1 {} {}} {a {} {}} (unsupported command, not transpiled)
-	{ // "capi3c-5.23" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-5.23" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	ENC = tclExecSQL(db, "{pragma encoding}") // TCL namespace variable
 	_ = ENC // suppress unused warning
@@ -319,17 +347,18 @@ func Test_capi3c(t *testing.T) {
 		}
 		sql = "SELECT a FROM t1 order by rowid"
 		_ = sql // suppress unused warning
-		STMT = ""
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		// expr 0 → "0"
 	}
 	{ // do_test "capi3c-6.1"
 		// sqlite3_close $DB (unsupported command, not transpiled)
 	}
-	{ // "capi3c-6.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-6.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
 	}
 	// check_data $STMT capi3c-6.3 {INTEGER} {1} {1.0} {1} (unsupported command, not transpiled)
-	{ // "capi3c-6.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3c-6.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	if tclBool("clang_sanitize_address" + "==0") {
 		{ // do_test "capi3c-6.4"
@@ -477,7 +506,9 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.1.1"
 			// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3c-11.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.2" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3-11.3.1"
 			_res = db.Exec("\n    COMMIT;\n  ")
@@ -501,9 +532,11 @@ func Test_capi3c(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "capi3c-11.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.4" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-11.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.5" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "capi3c-11.6"
 			_res = db.Exec("\n    SELECT * FROM t1;\n  ")
@@ -521,7 +554,9 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.8.1"
 			// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3c-11.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.9" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-11.9.1"
 			// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
@@ -533,11 +568,14 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-11.9.3"
 			// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3c-11.10" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.10" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-11.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.11" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-11.13" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.13" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "capi3c-11.14"
 			r = db.Query("\n    SELECT a FROM t2;\n  ")
@@ -568,25 +606,28 @@ func Test_capi3c(t *testing.T) {
 			}
 		}
 		{ // do_test "capi3c-11.18"
-			STMT = ""
-			_ = STMT // suppress unused warning
+			_ = STMT // prepared statement handle
 			_res = db.Exec("\n    COMMIT;\n  ")
 			_ = _res // catchsql
 		}
-		{ // "capi3c-11.19" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.19" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-11.20"
 			_res = db.Exec("\n    BEGIN;\n    COMMIT;\n  ")
 			_ = _res // catchsql
 		}
 		{ // do_test "capi3c-11.20"
-			// sqlite3_reset $STMT (unsupported command, not transpiled)
+			// sqlite3_reset $STMT
 			_res = db.Exec("\n    COMMIT;\n  ")
 			_ = _res // catchsql
 		}
-		{ // "capi3c-11.21" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-11.21" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
-		{ // "capi3c-12.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-12.1" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-12.2"
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(3, NULL);\n  ")
@@ -600,13 +641,17 @@ func Test_capi3c(t *testing.T) {
 			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);\n  ")
 			_ = _res // catchsql
 		}
-		{ // "capi3c-12.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-12.5" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-12.5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-12.5.1" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-12.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-12.6" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-12.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-12.7" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "capi3c-12.8"
 			r = db.Query("\n    COMMIT;\n    SELECT a FROM t1;\n  ")
@@ -615,13 +660,31 @@ func Test_capi3c(t *testing.T) {
 			}
 		}
 		if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands sqlite3_clear_bindings"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
-			{ // "capi3c-13.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "capi3c-13.1" (prepare-step internals; SQL side effects only)
+				_res = db.Exec("\n      DELETE FROM t1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n    ")
+				}
+				_ = STMT // prepared statement handle
+				// sqlite3_step $STMT (unknown prepared statement)
 			}
-			{ // "capi3c-13.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "capi3c-13.2" (prepare-step internals; SQL side effects only)
+				// sqlite3_reset $STMT
+				// sqlite3_bind_text $STMT (unknown prepared statement)
+				// sqlite3_bind_text $STMT (unknown prepared statement)
+				// sqlite3_step $STMT (unknown prepared statement)
 			}
-			{ // "capi3c-13.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "capi3c-13.3" (prepare-step internals; SQL side effects only)
+				// sqlite3_reset $STMT
+				// sqlite3_clear_bindings $STMT (unsupported command, not transpiled)
+				// sqlite3_step $STMT (unknown prepared statement)
 			}
-			{ // "capi3c-13-4" (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "capi3c-13-4" (prepare-step internals; SQL side effects only)
+				// sqlite3_finalize $STMT
+				r = db.Query("\n      SELECT * FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    ")
+				}
 			}
 		}
 		if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands sqlite3_sleep"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n > r_n }() {
@@ -636,7 +699,7 @@ func Test_capi3c(t *testing.T) {
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				// sqlite3_bind_text 0 1 hello 5 (unsupported command, not transpiled)
+				// sqlite3_bind_text $v_0 (unknown prepared statement)
 				if _catchErr != nil {
 					rc = "1"
 					msg = _catchErr.Error()
@@ -647,86 +710,176 @@ func Test_capi3c(t *testing.T) {
 			}
 			rc = tclListAppend(rc, msg)
 		}
-		{ // "capi3c-15.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-15.1" (prepare-step internals; SQL side effects only)
+			sql = "SELECT * FROM t2"
+			_ = sql // suppress unused warning
+			nbytes = strconv.Itoa(len(sql))
+			_ = nbytes // suppress unused warning
+			sql += " WHERE a==1"
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-15.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-15.2" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-15.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-15.3" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
-		{ // "capi3c-16.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-16.1" (prepare-step internals; SQL side effects only)
+			sql = "DROP TABLE IF EXISTS t3"
+			_ = sql // suppress unused warning
+			_ = STMT // prepared statement handle
+			// sqlite3_finalize $STMT
+			// expr $STMT!="" (not evaluated)
 		}
-		{ // "capi3c-16.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-16.2" (prepare-step internals; SQL side effects only)
+			sql = "CREATE TABLE IF NOT EXISTS t1(x,y)"
+			_ = sql // suppress unused warning
+			_ = STMT // prepared statement handle
+			// sqlite3_finalize $STMT
+			// expr $STMT!="" (not evaluated)
 		}
-		{ // "capi3c-16.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-16.3" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_finalize $STMT
+			// expr $STMT=="" (not evaluated)
 		}
-		{ // "capi3c-16.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-16.4" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_finalize $STMT
+			// expr $STMT=="" (not evaluated)
 		}
-		{ // "capi3c-17.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.1" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-17.2"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-17.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.3" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-17.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.4" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db.Exec("CREATE INDEX i2 ON t2(a)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i2 ON t2(a)")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-17.5"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-17.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.6" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-17.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.7" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db.Exec("DROP INDEX i2")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX i2")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-17.8"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-17.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.9" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-17.10" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.10" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
+			_ = STMT // prepared statement handle
+			// sqlite3_bind_int $STMT (unknown prepared statement)
+			_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,'one');\n    INSERT INTO t1 VALUES(2,'two');\n    INSERT INTO t1 VALUES(3,'three');\n    INSERT INTO t1 VALUES(4,'four');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,'one');\n    INSERT INTO t1 VALUES(2,'two');\n    INSERT INTO t1 VALUES(3,'three');\n    INSERT INTO t1 VALUES(4,'four');\n  ")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-17.11"
 			// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-17.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.12" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-17.13" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.13" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db.Exec("CREATE INDEX i1 ON t1(a)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i1 ON t1(a)")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-17.14"
 			// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-17.15" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.15" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-17.16" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.16" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db.Exec("DROP INDEX i1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX i1")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-17.17"
 			// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-17.18" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.18" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-17.99" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-17.99" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
-		{ // "capi3c-18.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-18.1" (prepare-step internals; SQL side effects only)
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-18.2"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-18.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-18.3" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db2.Exec("BEGIN EXCLUSIVE")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-18.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-18.4" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "capi3c-18.5"
 			_res = db2.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
-		{ // "capi3c-19.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-19.1" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
+			}
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-19.2"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-19.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-19.3" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-19.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-19.4" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db.Exec("DROP TABLE t3")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t3")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-19.4.1"
 			// sqlite3_errmsg $DB (unsupported command, not transpiled)
@@ -740,7 +893,13 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-19.4.4"
 			// sqlite3_expired 0 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-19.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-19.5" (prepare-step internals; SQL side effects only)
+			// sqlite3_reset $STMT
+			_res = db.Exec("\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
+			}
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-19.5.2"
 			// sqlite3_expired $STMT (unsupported command, not transpiled)
@@ -748,30 +907,52 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-19.6"
 			// sqlite3_column_int $STMT 1 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-19.99" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-19.99" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
-		{ // "capi3c-20.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-20.1" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
+			_res = db2.Exec("CREATE TABLE t4(x)")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-20.2"
 			// sqlite3_column_int $STMT 1 (unsupported command, not transpiled)
 		}
-		{ // "capi3c-20.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-20.3" (prepare-step internals; SQL side effects only)
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		{ // "capi3c-20.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-20.4" (prepare-step internals; SQL side effects only)
+			_ = db2 // close db2: aliased to db, no-op
+			// sqlite3_finalize $STMT
 		}
-		{ // "capi3c-21.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-21.1" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			db.SetProgressHandler(toInt(5), func() bool { return true })
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-21.2"
 			// sqlite3_extended_errcode $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3c-21.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-21.3" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
-		{ // "capi3c-21.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-21.4" (prepare-step internals; SQL side effects only)
+			// prepared STMT: SELECT * FROM t3 (bind/step emulation)
+			_ = STMT // prepared statement handle
+			db.SetProgressHandler(toInt(5), func() bool { return true })
+			_res = db.Exec("SELECT * FROM t3")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t3")
+			}
 		}
 		{ // do_test "capi3c-21.5"
 			// sqlite3_errcode $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3c-21.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-21.6" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "capi3c-21.7"
 			// sqlite3_errcode $DB (unsupported command, not transpiled)
@@ -779,16 +960,25 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-21.8"
 			// sqlite3_extended_errcode $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3c-22.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "capi3c-22.1" (prepare-step internals; SQL side effects only)
+			db.SetProgressHandler(toInt(0), func() bool { return true })
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		{ // "capi3c-22.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		// sqlite3_finalize $STMT
+		{ // "capi3c-22.2" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		{ // "capi3c-22.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		// sqlite3_finalize $STMT
+		{ // "capi3c-22.3" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		{ // "capi3c-23.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		// sqlite3_finalize $STMT
+		{ // "capi3c-23.1" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-23.2"
 			// sqlite3_column_text16 $STMT 0 (unsupported command, not transpiled)
@@ -798,8 +988,10 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_column_text16 $STMT 2 (unsupported command, not transpiled)
 			// sqlite3_column_text $STMT 3 (unsupported command, not transpiled)
 		}
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
-		{ // "capi3c-23.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		// sqlite3_finalize $STMT
+		{ // "capi3c-23.4" (prepare-step internals; SQL side effects only)
+			_ = STMT // prepared statement handle
+			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // do_test "capi3c-23.5"
 			// sqlite3_column_text16 $STMT 0 (unsupported command, not transpiled)
@@ -809,7 +1001,7 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_column_text16 $STMT 2 (unsupported command, not transpiled)
 			// sqlite3_column_text $STMT 3 (unsupported command, not transpiled)
 		}
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT
 		// proc definition (not transpiled)
 		{ // do_test "capi3c-24.1"
 			_res = db.Exec(" CREATE TABLE t5(a INTEGER, b STRING, c DATETIME) ")

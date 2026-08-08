@@ -266,7 +266,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		blob = "abcdefghij 10000"
+		blob = tclStringRepeat("abcdefghij", "10000")
 		_ = blob // suppress unused warning
 		_res = db.Exec(" INSERT INTO t1 VALUES (1, " + sqlLiteral(blob) + ") ")
 		if _res.Error != nil {

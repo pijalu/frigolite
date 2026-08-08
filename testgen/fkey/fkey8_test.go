@@ -107,7 +107,15 @@ func Test_fkey8(t *testing.T) {
 				}
 			}
 			_res = db.Exec("PRAGMA foreign_keys = ON")
-			{ // "1." + tn (uses_stmt_journal/prepare-step internals, not transpiled)
+			{ // "1." + tn (prepare-step internals; SQL side effects only)
+				_res = db.Exec(schema)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+				}
+				_ = stmt // prepared statement handle
+				ret = "uses_stmt_journal $stmt"
+				_ = ret // suppress unused warning
+				// sqlite3_finalize $stmt
 			}
 		}
 		db.Close()

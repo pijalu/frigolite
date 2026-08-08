@@ -118,7 +118,7 @@ func Test_rollback2(t *testing.T) {
 	}
 	// do_rollback_test 3.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELEC... (unsupported command, not transpiled)
 	// do_rollback_test 3.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n  ...} -rollback {\n... (unsupported command, not transpiled)
-	leader = "\"abcdefghij\" 70"
+	leader = tclStringRepeat("abcdefghij", "70")
 	_ = leader // suppress unused warning
 	{ // "4.1"
 		_res = db.Exec(" UPDATE t1 SET h = " + sqlLiteral(leader) + " || h; ")

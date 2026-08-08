@@ -65,10 +65,18 @@ func Test_fkey4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c REFERENCES t1 DEFERRABLE INITIALLY DEFERRED, d);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n  ")
 		}
 	}
-	{ // "fkey4-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey4-1.2" (prepare-step internals; SQL side effects only)
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		var SQL = "INSERT INTO t2 VALUES(2,4)" // TCL namespace variable
+		_ = SQL // suppress unused warning
+		_ = STMT1 // prepared statement handle
+		// sqlite3_step $STMT1 (unknown prepared statement)
 	}
 	// verify_ex_errcode fkey4-1.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-	{ // "fkey4-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey4-1.3" (prepare-step internals; SQL side effects only)
+		_ = STMT2 // prepared statement handle
+		// sqlite3_step $STMT2 (unknown prepared statement)
 	}
 	// verify_ex_errcode fkey4-1.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 	{ // do_test "fkey4-1.4"
@@ -83,6 +91,6 @@ func Test_fkey4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_finalize $::STMT1 (unsupported command, not transpiled)
-	// sqlite3_finalize $::STMT2 (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT1
+	// sqlite3_finalize $STMT2
 }

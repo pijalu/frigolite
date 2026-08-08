@@ -110,7 +110,8 @@ func Test_fkey1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);\n  ")
 		}
 	}
-	{ // "fkey1-3.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey1-3.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // "fkey1-4.0"
 		r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE \"xx1\"(\"xx2\" TEXT PRIMARY KEY, \"xx3\" TEXT);\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('abc','def');\n  CREATE TABLE \"xx4\"(\"xx5\" TEXT REFERENCES \"xx1\" ON DELETE CASCADE);\n  INSERT INTO \"xx4\"(\"xx5\") VALUES('abc');\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('uvw','xyz');\n  SELECT 1, \"xx5\" FROM \"xx4\";\n  DELETE FROM \"xx1\";\n  SELECT 2, \"xx5\" FROM \"xx4\";\n")

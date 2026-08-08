@@ -7,6 +7,7 @@ package permutations
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -231,7 +232,7 @@ func Test_permutations(t *testing.T) {
 		_ = a // suppress unused warning
 			bIn = "1"
 			_ = bIn // suppress unused warning
-			for _, x := range tclSplitList("split $::env(QUICKTEST_OMIT) ,") {
+			for _, x := range strings.Split(env_QUICKTEST_OMIT, ",") {
 			_ = x // suppress unused warning
 				if tclBool("regexp $x [file tail $a]") {
 					bIn = "0"

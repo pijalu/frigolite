@@ -73,9 +73,17 @@ func Test_bind2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.1" (prepare-step internals; SQL side effects only)
+		// prepared stmt: SELECT ? (bind/step emulation)
+		_ = stmt // prepared statement handle
+		// sqlite3_bind_value_from_select $stmt 1 SELECT a FROM t1 (unsupported command, not transpiled)
+		_res = db.Exec("SELECT ?")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT ?")
+		}
+		// sqlite3_column_text $stmt 0 (unsupported command, not transpiled)
 	}
-	// sqlite3_finalize $stmt (unsupported command, not transpiled)
+	// sqlite3_finalize $stmt
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
 		reslist = "" // TCL namespace variable

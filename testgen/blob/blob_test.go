@@ -195,9 +195,22 @@ func Test_blob(t *testing.T) {
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
-	{ // "blob-3.0" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "blob-3.0" (prepare-step internals; SQL side effects only)
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
+		DB = "sqlite3_connection_pointer db2"
+		_ = DB // suppress unused warning
+		// prepared STMT: DELETE FROM t1 WHERE a = ? (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// sqlite3_bind_blob $STMT 1 \x12\x34\x56 → X'5c7831325c7833345c783536'
+		_res = db.Exec("DELETE FROM t1 WHERE a = X'5c7831325c7833345c783536'")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE a = X'5c7831325c7833345c783536'")
+		}
 	}
-	{ // "blob-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "blob-3.1" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // do_test "blob-3.2"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")

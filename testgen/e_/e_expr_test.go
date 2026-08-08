@@ -1499,9 +1499,14 @@ func Test_e_expr(t *testing.T) {
 																}
 															}
 														}
-														{ // "e_expr-11.7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+														{ // "e_expr-11.7.1" (prepare-step internals; SQL side effects only)
+															_ = stmt // prepared statement handle
+															// sqlite3_step $stmt (unknown prepared statement)
+															_list := tclList([]string{"sqlite3_column_type $stmt 0", "sqlite3_column_type $stmt 1", "sqlite3_column_type $stmt 2", "sqlite3_column_type $stmt 3"})
+															_ = _list
 														}
-														{ // "e_expr-11.7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+														{ // "e_expr-11.7.1" (prepare-step internals; SQL side effects only)
+															// sqlite3_finalize $stmt
 														}
 														{ // "e_expr-12.1.1"
 															r = db.Query(" SELECT 0, +0, -0 ")

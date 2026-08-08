@@ -92,8 +92,8 @@ func Test_tkt1644(t *testing.T) {
 		}
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $::DB \"SELECT * FROM temp_t1\" -1 DUMMY" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: SELECT * FROM temp_t1 (bind/step emulation)
+		_ = STMT // prepared statement handle
 		_res = db.Exec("\n      DROP TABLE temp_t1;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE temp_t1;\n    ")
@@ -108,8 +108,8 @@ func Test_tkt1644(t *testing.T) {
 		}
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $::DB \"SELECT * FROM temp_v1\" -1 DUMMY" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: SELECT * FROM temp_v1 (bind/step emulation)
+		_ = STMT // prepared statement handle
 		_res = db.Exec("\n      DROP VIEW temp_v1;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW temp_v1;\n    ")
@@ -124,8 +124,8 @@ func Test_tkt1644(t *testing.T) {
 		}
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
-		STMT = "sqlite3_prepare $::DB \"SELECT * FROM temp_v1\" -1 DUMMY" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: SELECT * FROM temp_v1 (bind/step emulation)
+		_ = STMT // prepared statement handle
 		_res = db.Exec("\n      DROP VIEW temp_v1;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW temp_v1;\n    ")

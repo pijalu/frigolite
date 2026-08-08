@@ -63,15 +63,41 @@ func Test_misc6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // "misc6-1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc6-1.1" (prepare-step internals; SQL side effects only)
+		DB = "sqlite3_connection_pointer db"
+		_ = DB // suppress unused warning
+		// sqlite3_create_function $DB (unsupported command, not transpiled)
+		// prepared STMT: SELECT hex8(?) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		sqlite_static_bind_value = "0123456789"
+		_ = sqlite_static_bind_value // suppress unused warning
+		sqlite_static_bind_nbyte = "5"
+		_ = sqlite_static_bind_nbyte // suppress unused warning
+		// sqlite_bind $STMT 1 {} static-nbytes (unsupported command, not transpiled)
+		_res = db.Exec("SELECT hex8(?)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT hex8(?)")
+		}
 	}
 	{ // do_test "misc6-1.2"
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
-	{ // "misc6-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc6-1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
+		// prepared STMT: SELECT hex16(?) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		sqlite_static_bind_value = "0123456789"
+		_ = sqlite_static_bind_value // suppress unused warning
+		sqlite_static_bind_nbyte = "5"
+		_ = sqlite_static_bind_nbyte // suppress unused warning
+		// sqlite_bind $STMT 1 {} static-nbytes (unsupported command, not transpiled)
+		_res = db.Exec("SELECT hex16(?)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT hex16(?)")
+		}
 	}
 	{ // do_test "misc6-1.4"
 		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
-	// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
 }

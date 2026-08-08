@@ -257,12 +257,22 @@ func Test_zeroblob(t *testing.T) {
 	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 	memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
-	{ // "zeroblob-7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "zeroblob-7.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT length(?) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		sqlite3_max_blobsize = "0" // TCL namespace variable
+		_ = sqlite3_max_blobsize // suppress unused warning
+		// sqlite3_bind_zeroblob $::STMT 1 450000 (unsupported command, not transpiled)
+		_res = db.Exec("SELECT length(?)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT length(?)")
+		}
 	}
 	{ // do_test "zeroblob-7.2"
 		// sqlite3_column_int $::STMT 0 (unsupported command, not transpiled)
 	}
-	{ // "zeroblob-7.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "zeroblob-7.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "zeroblob-7.4"
 		_ = sqlite3_max_blobsize // TCL namespace variable (query)
@@ -414,8 +424,8 @@ func Test_zeroblob(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	stmt = "sqlite3_prepare db \"SELECT length(?)\" -1 dummy"
-	_ = stmt // suppress unused warning
+	// prepared stmt: SELECT length(?) (bind/step emulation)
+	_ = stmt // prepared statement handle
 	{ // do_test "12.1"
 		// bind_and_run $stmt 40 (unsupported command, not transpiled)
 	}
@@ -429,9 +439,16 @@ func Test_zeroblob(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	{ // "12.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "12.5" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT length(?)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT length(?)")
+		}
+		ret = "0"
+		_ = ret // suppress unused warning
+		// sqlite3_reset $stmt
 	}
-	// sqlite3_finalize $stmt (unsupported command, not transpiled)
+	// sqlite3_finalize $stmt
 	{ // "13.100"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bbc ON t1(b, b+c);\n  INSERT INTO t1(a,b,c) VALUES(1,zeroblob(8),3);\n  SELECT a, quote(b), length(b), c FROM t1;\n")
 		if r.Error != nil {

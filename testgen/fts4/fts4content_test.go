@@ -1131,7 +1131,9 @@ func Test_fts4content(t *testing.T) {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO aa VALUES('one two three');\n")
 									}
 								}
-								{ // "13.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+								{ // "13.2.2" (prepare-step internals; SQL side effects only)
+									_ = stmt // prepared statement handle
+									// sqlite3_finalize $stmt
 								}
 								{ // do_test "13.2.2"
 									_list := tclList([]string{"0", msg})

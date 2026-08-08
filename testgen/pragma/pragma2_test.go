@@ -110,7 +110,7 @@ func Test_pragma2(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma2-2.3"
-		val = "0123456789 1000" // TCL namespace variable
+		val = tclStringRepeat("0123456789", "1000") // TCL namespace variable
 		_ = val // suppress unused warning
 		r = db.Query("\n      INSERT INTO aux.abc VALUES(1, 2, " + sqlLiteral(val) + ");\n      PRAGMA aux.freelist_count;\n    ")
 		if r.Error != nil {

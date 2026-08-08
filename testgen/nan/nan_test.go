@@ -62,14 +62,85 @@ func Test_nan(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	{ // "nan-1.1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.1.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);\n  ")
+		}
+		// prepared STMT: INSERT INTO t1 VALUES(?) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// sqlite3_bind_double $STMT 1 NaN → NULL
+		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT x, typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+		}
 	}
 	if tcl_platform_platform != "symbian" {
-		// do_realnum_test nan-1.1.2 {\n    sqlite3_bind_double $::STMT 1 +Inf\n    sqli...} {{} null inf real} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.3 {\n    sqlite3_bind_double $::STMT 1 -Inf\n    sqli...} {{} null inf real -inf real} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.4 {\n    sqlite3_bind_double $::STMT 1 -NaN\n    sqli...} {{} null inf real -inf real {} null} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.5 {\n    sqlite3_bind_double $::STMT 1 NaN0\n    sqli...} {{} null inf real -inf real {} null {} null} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.6 {\n    sqlite3_bind_double $::STMT 1 -NaN0\n    sql...} {{} null inf real -inf real {} null {} null {} null} (expr test, not transpiled)
+		{ // "nan-1.1.2" (do_realnum_test; SQL side effects only)
+			// sqlite3_bind_double $STMT 1 +Inf → 1e400
+			_res = db.Exec("INSERT INTO t1 VALUES(1e400)")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1e400)")
+			}
+			// sqlite3_reset $STMT
+			_res = db.Exec("SELECT x, typeof(x) FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+			}
+		}
+		{ // "nan-1.1.3" (do_realnum_test; SQL side effects only)
+			// sqlite3_bind_double $STMT 1 -Inf → -1e400
+			_res = db.Exec("INSERT INTO t1 VALUES(-1e400)")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-1e400)")
+			}
+			// sqlite3_reset $STMT
+			_res = db.Exec("SELECT x, typeof(x) FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+			}
+		}
+		{ // "nan-1.1.4" (do_realnum_test; SQL side effects only)
+			// sqlite3_bind_double $STMT 1 -NaN → NULL
+			_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+			}
+			// sqlite3_reset $STMT
+			_res = db.Exec("SELECT x, typeof(x) FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+			}
+		}
+		{ // "nan-1.1.5" (do_realnum_test; SQL side effects only)
+			// sqlite3_bind_double $STMT 1 NaN0 → NULL
+			_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+			}
+			// sqlite3_reset $STMT
+			_res = db.Exec("SELECT x, typeof(x) FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+			}
+		}
+		{ // "nan-1.1.6" (do_realnum_test; SQL side effects only)
+			// sqlite3_bind_double $STMT 1 -NaN0 → NULL
+			_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+			}
+			// sqlite3_reset $STMT
+			_res = db.Exec("SELECT x, typeof(x) FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+			}
+		}
 		{ // do_test "nan-1.1.7"
 			r = db.Query("\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
 			if r.Error != nil {
@@ -83,17 +154,81 @@ func Test_nan(t *testing.T) {
 			}
 		}
 	}
-	{ // "nan-1.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.2.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    DELETE FROM T1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM T1;\n  ")
+		}
+		// sqlite3_bind_double $STMT 1 NaN → NULL
+		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
+		}
 	}
-	{ // "nan-1.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.2.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_bind_double $STMT 1 +Inf → 1e400
+		_res = db.Exec("INSERT INTO t1 VALUES(1e400)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1e400)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
+		}
 	}
-	{ // "nan-1.2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.2.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_bind_double $STMT 1 -Inf → -1e400
+		_res = db.Exec("INSERT INTO t1 VALUES(-1e400)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-1e400)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
+		}
 	}
-	{ // "nan-1.2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.2.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_bind_double $STMT 1 -NaN → NULL
+		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
+		}
 	}
-	{ // "nan-1.2.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.2.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_bind_double $STMT 1 NaN0 → NULL
+		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
+		}
 	}
-	{ // "nan-1.2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-1.2.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_bind_double $STMT 1 -NaN0 → NULL
+		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
+		}
 	}
 	{ // do_test "nan-1.2.7"
 		r = db.Query("\n    UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;\n  ")
@@ -107,9 +242,23 @@ func Test_nan(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "nan-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "nan-2.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    DELETE FROM T1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM T1;\n  ")
+		}
+		// sqlite3_bind_double $STMT 1 NaN → NULL
+		_res = db.Exec("INSERT INTO t1 VALUES(NULL)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL)")
+		}
+		// sqlite3_reset $STMT
+		_res = db.Exec("SELECT x, typeof(x) FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
+		}
 	}
-	// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "nan-3.1"
 			_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(0.5);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size=1024;\n      VACUUM;\n    ")
@@ -176,9 +325,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(" + "9 307" + ".0)")
+		_res = db.Exec("INSERT INTO t1 VALUES(" + tclStringRepeat("9", "307") + ".0)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + "9 307" + ".0)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + tclStringRepeat("9", "307") + ".0)")
 		}
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -190,9 +339,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(" + "9 308" + ".0)")
+		_res = db.Exec("INSERT INTO t1 VALUES(" + tclStringRepeat("9", "308") + ".0)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + "9 308" + ".0)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + tclStringRepeat("9", "308") + ".0)")
 		}
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -204,9 +353,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(-" + "9 307" + ".0)")
+		_res = db.Exec("INSERT INTO t1 VALUES(-" + tclStringRepeat("9", "307") + ".0)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-" + "9 307" + ".0)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-" + tclStringRepeat("9", "307") + ".0)")
 		}
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -218,9 +367,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(-" + "9 308" + ".0)")
+		_res = db.Exec("INSERT INTO t1 VALUES(-" + tclStringRepeat("9", "308") + ".0)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-" + "9 308" + ".0)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-" + tclStringRepeat("9", "308") + ".0)")
 		}
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -232,7 +381,7 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		big = "-" + "0 10000" + "9 308" + "." + "0 10000"
+		big = "-" + tclStringRepeat("0", "10000") + tclStringRepeat("9", "308") + "." + tclStringRepeat("0", "10000")
 		_ = big // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(" + big + ")")
 		if _res.Error != nil {
@@ -248,7 +397,7 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		big = "0 10000" + "9 308" + "." + "0 10000"
+		big = tclStringRepeat("0", "10000") + tclStringRepeat("9", "308") + "." + tclStringRepeat("0", "10000")
 		_ = big // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(" + big + ")")
 		if _res.Error != nil {
@@ -268,9 +417,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(" + "9 309" + ".0)")
+		_res = db.Exec("INSERT INTO t1 VALUES(" + tclStringRepeat("9", "309") + ".0)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + "9 309" + ".0)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + tclStringRepeat("9", "309") + ".0)")
 		}
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -282,9 +431,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(-" + "9 309" + ".0)")
+		_res = db.Exec("INSERT INTO t1 VALUES(-" + tclStringRepeat("9", "309") + ".0)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-" + "9 309" + ".0)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-" + tclStringRepeat("9", "309") + ".0)")
 		}
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -296,9 +445,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(1234.5" + "0 10000" + "12345)")
+		_res = db.Exec("INSERT INTO t1 VALUES(1234.5" + tclStringRepeat("0", "10000") + "12345)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1234.5" + "0 10000" + "12345)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1234.5" + tclStringRepeat("0", "10000") + "12345)")
 		}
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -310,9 +459,9 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(-1234.5" + "0 10000" + "12345)")
+		_res = db.Exec("INSERT INTO t1 VALUES(-1234.5" + tclStringRepeat("0", "10000") + "12345)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-1234.5" + "0 10000" + "12345)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(-1234.5" + tclStringRepeat("0", "10000") + "12345)")
 		}
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
@@ -324,7 +473,7 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		small = "0 10000" + "." + "0 324" + "9 10000"
+		small = tclStringRepeat("0", "10000") + "." + tclStringRepeat("0", "324") + tclStringRepeat("9", "10000")
 		_ = small // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(" + small + ")")
 		if _res.Error != nil {
@@ -340,7 +489,7 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		small = "-" + "0 10000" + "." + "0 324" + "9 10000"
+		small = "-" + tclStringRepeat("0", "10000") + "." + tclStringRepeat("0", "324") + tclStringRepeat("9", "10000")
 		_ = small // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(" + small + ")")
 		if _res.Error != nil {
@@ -358,7 +507,7 @@ func Test_nan(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 			}
-			small = "0 10000" + "." + "0 323" + "9 10000"
+			small = tclStringRepeat("0", "10000") + "." + tclStringRepeat("0", "323") + tclStringRepeat("9", "10000")
 			_ = small // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + small + ")")
 			if _res.Error != nil {
@@ -374,7 +523,7 @@ func Test_nan(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 			}
-			small = "-" + "0 10000" + "." + "0 323" + "9 10000"
+			small = "-" + tclStringRepeat("0", "10000") + "." + tclStringRepeat("0", "323") + tclStringRepeat("9", "10000")
 			_ = small // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + small + ")")
 			if _res.Error != nil {
@@ -391,7 +540,7 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		small = "0 10000" + "." + "0 323" + "9 10000"
+		small = tclStringRepeat("0", "10000") + "." + tclStringRepeat("0", "323") + tclStringRepeat("9", "10000")
 		_ = small // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(" + small + ")")
 		if _res.Error != nil {
@@ -407,7 +556,7 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		small = "-" + "0 10000" + "." + "0 323" + "9 10000"
+		small = "-" + tclStringRepeat("0", "10000") + "." + tclStringRepeat("0", "323") + tclStringRepeat("9", "10000")
 		_ = small // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(" + small + ")")
 		if _res.Error != nil {

@@ -1957,9 +1957,9 @@ func Test_func4(t *testing.T) {
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 8 }() {
 		}
 		{ // "func4-6.1." + i + ".1"
-			r = db.Query("SELECT tointeger(x'" + "01 $i" + "');")
+			r = db.Query("SELECT tointeger(x'" + tclStringRepeat("01", i) + "');")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT tointeger(x'" + "01 $i" + "');")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT tointeger(x'" + tclStringRepeat("01", i) + "');")
 				return
 			}
 			got := flatten(r)
@@ -1969,9 +1969,9 @@ func Test_func4(t *testing.T) {
 			}
 		}
 		{ // "func4-6.1." + i + ".2"
-			r = db.Query("SELECT toreal(x'" + "01 $i" + "');")
+			r = db.Query("SELECT toreal(x'" + tclStringRepeat("01", i) + "');")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT toreal(x'" + "01 $i" + "');")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT toreal(x'" + tclStringRepeat("01", i) + "');")
 				return
 			}
 			got := flatten(r)

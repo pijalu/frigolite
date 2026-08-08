@@ -279,9 +279,9 @@ func Test_fts4merge(t *testing.T) {
 			{ // do_test "4.2"
 				for _, x := range tclSplitList("a c b d e f g h i j k l m n o p") {
 				_ = x // suppress unused warning
-					_res = db.Exec("INSERT INTO t4 VALUES('" + "$x 600" + "')")
+					_res = db.Exec("INSERT INTO t4 VALUES('" + tclStringRepeat(x, "600") + "')")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES('" + "$x 600" + "')")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES('" + tclStringRepeat(x, "600") + "')")
 					}
 				}
 				r = db.Query("SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level")
@@ -468,13 +468,13 @@ func Test_fts4merge(t *testing.T) {
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					a = "a 900"
+					a = tclStringRepeat("a", "900")
 					_ = a // suppress unused warning
-					b = "b 900"
+					b = tclStringRepeat("b", "900")
 					_ = b // suppress unused warning
-					c = "c 900"
+					c = tclStringRepeat("c", "900")
 					_ = c // suppress unused warning
-					d = "d 900"
+					d = tclStringRepeat("d", "900")
 					_ = d // suppress unused warning
 					_res = db.Exec("CREATE VIRTUAL TABLE t1 USING " + mod)
 					if _res.Error != nil {

@@ -267,7 +267,7 @@ func Test_misuse(t *testing.T) {
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				// sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL (unsupported command, not transpiled)
+				// sqlite3_prepare (standalone prepare; not emulated)
 				if _catchErr != nil {
 					_r = "1"
 					msg = _catchErr.Error()

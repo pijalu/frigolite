@@ -196,7 +196,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-3.2"
-		str = "1234567890 110" // TCL namespace variable
+		str = tclStringRepeat("1234567890", "110") // TCL namespace variable
 		_ = str // suppress unused warning
 		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
 		if r.Error != nil {
@@ -219,7 +219,7 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-4.1"
-		str = "1234567890 110" // TCL namespace variable
+		str = tclStringRepeat("1234567890", "110") // TCL namespace variable
 		_ = str // suppress unused warning
 		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
 		if r.Error != nil {
@@ -267,7 +267,7 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-5.2.1"
-		str = "abcdefghij 110" // TCL namespace variable
+		str = tclStringRepeat("abcdefghij", "110") // TCL namespace variable
 		_ = str // suppress unused warning
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
 		if r.Error != nil {
@@ -276,7 +276,7 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-5.2.2"
-		str = "abcdefghij 110" // TCL namespace variable
+		str = tclStringRepeat("abcdefghij", "110") // TCL namespace variable
 		_ = str // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -307,9 +307,9 @@ func Test_incrvacuum(t *testing.T) {
 	TestScriptList = "{\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t1_i ON t1(a);\n  CREATE INDEX t2_i ON t2(a);\n} {\n  INSERT INTO t1 VALUES(" + str1 + ", " + str2 + ");\n  INSERT INTO t1 VALUES(" + str1 + "||" + str2 + ", " + str2 + "||" + str1 + ");\n  INSERT INTO t2 SELECT b, a FROM t1;\n  INSERT INTO t2 SELECT a, b FROM t1;\n  INSERT INTO t1 SELECT b, a FROM t2;\n  UPDATE t2 SET b = '';\n  PRAGMA incremental_vacuum;\n} {\n  UPDATE t2 SET b = (SELECT b FROM t1 WHERE t1.oid = t2.oid);\n  PRAGMA incremental_vacuum;\n} {\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 SELECT * FROM t2;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum;\n} {\n  CREATE INDEX t3_i ON t3(a);\n  COMMIT;\n} {\n  BEGIN;\n  DROP INDEX t3_i;\n  PRAGMA incremental_vacuum;\n  INSERT INTO t3 VALUES('hello', 'world');\n  ROLLBACK;\n} {\n  INSERT INTO t3 VALUES('hello', 'world');\n}"
 	_ = TestScriptList // suppress unused warning
 	// proc definition (not transpiled)
-	str1 = "abcdefghij 130" // TCL namespace variable
+	str1 = tclStringRepeat("abcdefghij", "130") // TCL namespace variable
 	_ = str1 // suppress unused warning
-	str2 = "1234567890 105" // TCL namespace variable
+	str2 = tclStringRepeat("1234567890", "105") // TCL namespace variable
 	_ = str2 // suppress unused warning
 	os.Remove("test1.db")
 	db1, err = frigolite.Open("test1.db")
@@ -598,8 +598,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db]>1 (not evaluated)
 	}
 	{ // do_test "incrvacuum-13.2"
-		STMT = "sqlite3_prepare $::DB {PRAGMA auto_vacuum = 2} -1 DUMMY" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: PRAGMA auto_vacuum = 2 (bind/step emulation)
+		_ = STMT // prepared statement handle
 		r = db.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
@@ -640,7 +640,7 @@ func Test_incrvacuum(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		str = "\"abcdefghij\" 500"
+		str = tclStringRepeat("abcdefghij", "500")
 		_ = str // suppress unused warning
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('b', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('c', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('d', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('e', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('f', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('g', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('h', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('i', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('j', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('j', " + sqlLiteral(str) + ");\n\n    CREATE TABLE t2(x PRIMARY KEY, y);\n    INSERT INTO t2 VALUES('a', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('b', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('c', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('d', " + sqlLiteral(str) + ");\n\n    BEGIN;\n      DELETE FROM t2;\n      PRAGMA incremental_vacuum;\n  ")
 		if r.Error != nil {

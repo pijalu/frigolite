@@ -92,7 +92,7 @@ func Test_bigfile2(t *testing.T) {
 	{ // do_test "1.2"
 		// file size test.db
 	}
-	str = "k 30000"
+	str = tclStringRepeat("k", "30000")
 	_ = str // suppress unused warning
 	{ // do_test "1.3"
 		db, err = frigolite.Open("test.db")

@@ -592,7 +592,29 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3;\n    ")
 		}
 	}
-	{ // "lock-6.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "lock-6.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n  ")
+		}
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
+		_res = db.Exec(" DELETE FROM t4 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
+		}
+		r = db.Query(" SELECT * FROM sqlite_master ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sqlite_master ")
+		}
+		r = db.Query(" SELECT * FROM t4 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
+		}
 	}
 	{ // do_test "lock-6.2"
 		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;\n  ")
@@ -616,11 +638,18 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
-	{ // "lock-6.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "lock-6.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	temp_status = "unknown"
 	_ = temp_status // suppress unused warning
-	{ // "lock-7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "lock-7.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
 	{ // do_test "lock-7.2"
 		r = db.Query(" PRAGMA lock_status ")
@@ -638,7 +667,8 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
-	{ // "lock-7.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "lock-7.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "lock-999.1"
 	}

@@ -269,8 +269,7 @@ func Test_trace3(t *testing.T) {
 	{ // do_test "trace3-7.1"
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		STMT = ""
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 	}
 	{ // do_test "trace3-8.1"
 		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
@@ -308,7 +307,8 @@ func Test_trace3(t *testing.T) {
 		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
 		_ = _list
 	}
-	{ // "trace3-9.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "trace3-9.1" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "trace3-10.1"
 	}
@@ -341,42 +341,44 @@ func Test_trace3(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "12.1.0"
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		// sqlite3_bind_parameter_count $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.1"
-		// sqlite3_bind_text $STMT 1 A 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 2 B 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 3 C 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 4 D 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 5 E 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 6 F 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
 		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
-	{ // "12.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "12.1.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
+		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
-	{ // "12.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "12.1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "12.2.0"
 		_res = db.Exec("\n    CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );\n  ")
 		}
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		// sqlite3_bind_parameter_count $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.1"
-		// sqlite3_bind_text $STMT 1 A 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 2 B 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 3 C 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 4 D 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 5 E 1 (unsupported command, not transpiled)
-		// sqlite3_bind_text $STMT 6 F 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
+		// sqlite3_bind_text $STMT (unknown prepared statement)
 		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
-	{ // "12.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "12.1.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	db.Close()
 	os.Remove("test.db")

@@ -67,73 +67,232 @@ func Test_schema(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // "schema-1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-1.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n  ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-1.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-1.3" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n    DROP TABLE abc;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-1.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-2.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-2.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-2.3" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n      DROP VIEW v1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-2.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-3.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc(a, b, c);\n    ")
+		}
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-3.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-3.3" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n      DROP TRIGGER abc_trig;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER abc_trig;\n    ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-3.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-3.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-4.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
+		_ = _res // catchsql
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n    CREATE INDEX abc_index ON abc(a);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX abc_index ON abc(a);\n  ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-4.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-4.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-4.3" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n    DROP INDEX abc_index;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX abc_index;\n  ")
+		}
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-4.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-4.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-5.1" (prepare-step internals; SQL side effects only)
+		sql = "SELECT * FROM abc;"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
+		}
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
 	{ // do_test "schema-5.2"
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
-	{ // "schema-5.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-5.3" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n      DETACH aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux;\n    ")
+		}
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
-	{ // "schema-5.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-5.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-6.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-6.1" (prepare-step internals; SQL side effects only)
+		sql = "SELECT * FROM abc;"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// db function hello_function (variable-reader, inlined)
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
 	{ // do_test "schema-6.2"
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
-	{ // "schema-6.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-6.3" (prepare-step internals; SQL side effects only)
+		// sqlite_delete_function $::DB hello_function (unsupported command, not transpiled)
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
-	{ // "schema-6.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-6.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-7.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-7.1" (prepare-step internals; SQL side effects only)
+		sql = "SELECT * FROM abc;"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// add_test_collate $::DB 1 1 1 (unsupported command, not transpiled)
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
 	{ // do_test "schema-7.2"
-		// sqlite3_reset $::STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
-	{ // "schema-7.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-7.3" (prepare-step internals; SQL side effects only)
+		// add_test_collate $::DB 0 0 0 (unsupported command, not transpiled)
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
-	{ // "schema-7.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-7.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	// proc definition (not transpiled)
-	{ // "schema-8.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-8.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-8.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-8.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-8.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-8.11" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM sqlite_master (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM sqlite_master")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+		}
 	}
-	{ // "schema-8.12" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-8.12" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "schema-9.1"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
@@ -165,13 +324,26 @@ func Test_schema(t *testing.T) {
 		_res = db.Exec("\n      SELECT * FROM abcview;\n    ")
 		_ = _res // catchsql
 	}
-	{ // "schema-10.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-10.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+		}
+		sql = "SELECT * FROM abc"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
 	{ // do_test "schema-10.2"
 		_res = db.Exec("\n    CREATE TABLE t2(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
-	{ // "schema-10.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-10.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "schema-10.4"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
@@ -184,7 +356,16 @@ func Test_schema(t *testing.T) {
 	{ // do_test "schema-10.5"
 		_ = db2 // close db2: aliased to db, no-op
 	}
-	{ // "schema-11.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-11.1" (prepare-step internals; SQL side effects only)
+		// db function tstfunc (variable-reader, inlined)
+		sql = "SELECT * FROM abc"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
 	{ // do_test "schema-11.2"
 		// sqlite_delete_function $::DB tstfunc (unsupported command, not transpiled)
@@ -206,9 +387,19 @@ func Test_schema(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	{ // "schema-11.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-11.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
-	{ // "schema-11.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-11.5" (prepare-step internals; SQL side effects only)
+		// db collate tstcollate (not transpiled)
+		sql = "SELECT * FROM abc"
+		_ = sql // suppress unused warning
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		_res = db.Exec("$sql")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "$sql")
+		}
 	}
 	{ // do_test "schema-11.6"
 		db.UnregisterCollation("tstcollate")
@@ -230,15 +421,16 @@ func Test_schema(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	{ // "schema-11.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-11.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "schema-12.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t3(a, b, c);\n  ")
 		}
-		STMT = "sqlite3_prepare $::DB \"CREATE TABLE t4(a,b,c)\" -1 TAIL" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		// prepared STMT: CREATE TABLE t4(a,b,c) (bind/step emulation)
+		_ = STMT // prepared statement handle
 		_res = db.Exec("\n    ROLLBACK;\n    CREATE TABLE t4(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    CREATE TABLE t4(a, b, c);\n  ")
@@ -246,10 +438,17 @@ func Test_schema(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", ""})
 		_ = _list
 	}
-	{ // "schema-13.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-13.1" (prepare-step internals; SQL side effects only)
+		_ = S // prepared statement handle
+		// db function hello (variable-reader, inlined)
+		// db function hello (variable-reader, inlined)
+		// proc definition (not transpiled)
+		// sqlite3_step $S (unknown prepared statement)
 	}
-	{ // "schema-13.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-13.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $S (unknown prepared statement)
 	}
-	{ // "schema-13.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "schema-13.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 }

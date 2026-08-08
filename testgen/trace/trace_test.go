@@ -139,14 +139,27 @@ func Test_trace(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	{ // "trace-2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "trace-2.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: INSERT INTO t1 VALUES(2,3) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// proc definition (not transpiled)
+		TRACE_OUT = ""
+		_ = TRACE_OUT // suppress unused warning
+		_res = db.Exec("INSERT INTO t1 VALUES(2,3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(2,3)")
+		}
 	}
 	{ // do_test "trace-2.2"
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		// sqlite3_reset $STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
-	{ // "trace-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "trace-2.3" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t1 VALUES(2,3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(2,3)")
+		}
 	}
 	{ // do_test "trace-2.4"
 		TRACE_OUT = ""
@@ -161,7 +174,7 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "trace-2.6"
 		TRACE_OUT = ""
@@ -207,14 +220,27 @@ func Test_trace(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	{ // "trace-4.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "trace-4.1" (prepare-step internals; SQL side effects only)
+		// prepared STMT: INSERT INTO t2 VALUES(2,3) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// proc definition (not transpiled)
+		TRACE_OUT = ""
+		_ = TRACE_OUT // suppress unused warning
+		_res = db.Exec("INSERT INTO t2 VALUES(2,3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(2,3)")
+		}
 	}
 	{ // do_test "trace-4.2"
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		// sqlite3_reset $STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 	}
-	{ // "trace-4.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "trace-4.3" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("INSERT INTO t2 VALUES(2,3)")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(2,3)")
+		}
 	}
 	{ // do_test "trace-4.4"
 		TRACE_OUT = ""
@@ -229,7 +255,7 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "trace-4.6"
 		TRACE_OUT = ""

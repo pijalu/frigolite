@@ -499,97 +499,97 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-3.2.1"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.2"
-		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.2.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-3.2.5"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.6"
-		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.2.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.2.7" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-3.4.1"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.2"
-		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.3"
-		// sqlite3_bind_text $S 2 def 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.4"
-		// sqlite3_bind_text $S 2 ghi 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.5"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.4.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.4.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-3.5.1"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.2"
-		// sqlite3_bind_text $S 31 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.3"
-		// sqlite3_bind_text $S 32 def 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.5.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.5.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-3.6.1"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.2"
-		// sqlite3_bind_text $S 32 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.3"
-		// sqlite3_bind_text $S 33 def 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.6.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.6.5" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-3.7.1"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.2"
-		// sqlite3_bind_text $S 32 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.3"
-		// sqlite3_bind_text $S 33 def 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.4"
-		// sqlite3_bind_text $S 10 def 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.7.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.7.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-3.8.1"
 		_res = db.Exec("\n    CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);\n  ")
@@ -598,64 +598,114 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-3.8.2"
-		S = ""
-		_ = S // suppress unused warning
+		_ = S // prepared statement handle
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.3"
-		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.4"
-		// sqlite3_bind_text $S 2 def 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.7"
-		// sqlite3_bind_text $S 2 ghi% 4 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.8"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.9"
-		// sqlite3_bind_text $S 2 ghi%def 7 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.10"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.11"
-		// sqlite3_bind_text $S 2 %ab 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.12"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.12"
-		// sqlite3_bind_text $S 2 %de 3 (unsupported command, not transpiled)
+		// sqlite3_bind_text $S (unknown prepared statement)
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.13"
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	{ // "analyze3-3.8.14" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-3.8.14" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
-	{ // "analyze3-4.1.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.1.1" (prepare-step internals; SQL side effects only)
+		_ = S // prepared statement handle
+		// sqlite3_step $S (unknown prepared statement)
 	}
-	{ // "analyze3-4.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.1.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_reset $S
+		// sqlite3_bind_text $S (unknown prepared statement)
+		_res = db.Exec(" DROP TABLE t1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+		}
+		// sqlite3_step $S (unknown prepared statement)
 	}
-	{ // "analyze3-4.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
-	{ // "analyze3-4.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.2.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		}
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		_res = db.Exec("ANALYZE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+		}
+		_ = S // prepared statement handle
+		// sqlite3_step $S (unknown prepared statement)
 	}
 	// proc definition (not transpiled)
-	{ // "analyze3-4.2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.2.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_reset $S
+		// sqlite3_bind_text $S (unknown prepared statement)
+		// sqlite3_step $S (unknown prepared statement)
 	}
-	{ // "analyze3-4.2.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.2.4" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
-	{ // "analyze3-4.3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.3.1" (prepare-step internals; SQL side effects only)
+		_ = S // prepared statement handle
+		_res = db.Exec(" CREATE TABLE t2(d, e, f) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(d, e, f) ")
+		}
+		// sqlite3_step $S (unknown prepared statement)
 	}
-	{ // "analyze3-4.3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-4.3.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-5.1.1"
 		_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -680,9 +730,8 @@ func Test_analyze3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
 		}
-		S = ""
-		_ = S // suppress unused warning
-		// sqlite3_bind_text $S 1 a% 2 (unsupported command, not transpiled)
+		_ = S // prepared statement handle
+		// sqlite3_bind_text $S (unknown prepared statement)
 		R = ""
 		_ = R // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
@@ -707,12 +756,12 @@ func Test_analyze3(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
-	{ // "analyze3-5.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-5.1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S
 	}
 	{ // do_test "analyze3-5.1.1"
-		S1 = ""
-		_ = S1 // suppress unused warning
-		// sqlite3_bind_text $S1 1 b% 2 (unsupported command, not transpiled)
+		_ = S1 // prepared statement handle
+		// sqlite3_bind_text $S1 (unknown prepared statement)
 		R = ""
 		_ = R // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
@@ -725,9 +774,8 @@ func Test_analyze3(t *testing.T) {
 		_ = _r_tcl
 	}
 	{ // do_test "analyze3-5.1.2"
-		S2 = ""
-		_ = S2 // suppress unused warning
-		// sqlite3_bind_text $S2 1 a% 2 (unsupported command, not transpiled)
+		_ = S2 // prepared statement handle
+		// sqlite3_bind_text $S2 (unknown prepared statement)
 		// sqlite3_transfer_bindings $S2 $S1 (unsupported command, not transpiled)
 		R = ""
 		_ = R // suppress unused warning
@@ -740,7 +788,9 @@ func Test_analyze3(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
-	{ // "analyze3-5.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "analyze3-5.1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $S2
+		// sqlite3_finalize $S1
 	}
 	{ // do_test "analyze3-6.1"
 		_res = db.Exec(" DROP TABLE IF EXISTS t1 ")

@@ -113,7 +113,7 @@ func Test_capi3d(t *testing.T) {
 		{ // do_test "capi3-1.2." + i + ".2"
 			for _, p := range tclSplitList(tclScramble(stmtlist)) {
 			_ = p // suppress unused warning
-				// sqlite3_finalize $p (unsupported command, not transpiled)
+				// sqlite3_finalize $p
 			}
 			// sqlite3_next_stmt db 0 (unsupported command, not transpiled)
 		}
@@ -180,19 +180,25 @@ func Test_capi3d(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(6); INSERT INTO t1 VALUES(7);")
 		}
-		STMT = "sqlite3_prepare db {SELECT * FROM t1} -1 TAIL"
-		_ = STMT // suppress unused warning
+		// prepared STMT: SELECT * FROM t1 (bind/step emulation)
+		_ = STMT // prepared statement handle
 		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
 	}
-	{ // "capi3d-3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3d-3.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
+		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
 	}
-	{ // "capi3d-3.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3d-3.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $STMT (unknown prepared statement)
+		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "capi3d-3.4"
-		// sqlite3_reset $STMT (unsupported command, not transpiled)
+		// sqlite3_reset $STMT
 		// sqlite3_stmt_busy $STMT (unsupported command, not transpiled)
 	}
-	{ // "capi3d-3.99" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3d-3.99" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
+		// sqlite3_stmt_busy 0 (unsupported command, not transpiled)
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -205,7 +211,9 @@ func Test_capi3d(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")
 		}
 	}
-	{ // "capi3d-4.2.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3d-4.2.1" (prepare-step internals; SQL side effects only)
+		_ = s1 // prepared statement handle
+		// sqlite3_step $s1 (unknown prepared statement)
 	}
 	{ // do_test "capi3d-4.2.2"
 		// sqlite3_stmt_busy $::s1 (unsupported command, not transpiled)
@@ -217,7 +225,7 @@ func Test_capi3d(t *testing.T) {
 		}
 	}
 	{ // do_test "capi3d-4.2.4"
-		// sqlite3_reset $::s1 (unsupported command, not transpiled)
+		// sqlite3_reset $s1
 	}
 	{ // "capi3d-4.2.5"
 		_res = db.Exec("\n  VACUUM\n")
@@ -225,6 +233,7 @@ func Test_capi3d(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  VACUUM\n")
 		}
 	}
-	{ // "capi3d-4.2.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "capi3d-4.2.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $s1
 	}
 }

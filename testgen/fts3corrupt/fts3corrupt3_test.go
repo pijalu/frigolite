@@ -94,11 +94,11 @@ func Test_fts3corrupt3(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
 		}
 	}
-	doc1 = "\"x \" 600"
+	doc1 = tclStringRepeat("x ", "600")
 	_ = doc1 // suppress unused warning
-	doc2 = "\"y \" 600"
+	doc2 = tclStringRepeat("y ", "600")
 	_ = doc2 // suppress unused warning
-	doc3 = "\"z \" 600"
+	doc3 = tclStringRepeat("z ", "600")
 	_ = doc3 // suppress unused warning
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc1) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc2) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc3) + ");\n  COMMIT;\n")

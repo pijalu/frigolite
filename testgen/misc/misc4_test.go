@@ -73,8 +73,8 @@ func Test_misc4(t *testing.T) {
 	{ // do_test "misc4-1.2"
 		sql = "CREATE TEMP TABLE t2 AS SELECT * FROM t1"
 		_ = sql // suppress unused warning
-		stmt = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = stmt // suppress unused warning
+		// prepared stmt: $sql (bind/step emulation)
+		_ = stmt // prepared statement handle
 		_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
@@ -85,10 +85,11 @@ func Test_misc4(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "misc4-1.2.2"
-		stmt = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = stmt // suppress unused warning
+		// prepared stmt: $sql (bind/step emulation)
+		_ = stmt // prepared statement handle
 	}
-	{ // "misc4-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc4-1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
 	{ // do_test "misc4-1.4"
 		r = db.Query("\n      SELECT * FROM temp.t2;\n    ")
@@ -96,19 +97,28 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM temp.t2;\n    ")
 		}
 	}
-	{ // "misc4-1.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc4-1.5" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("DROP TABLE t2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+		}
+		// sqlite3_reset $stmt
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
-	{ // "misc4-1.6" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc4-1.6" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $stmt
 	}
 	{ // do_test "misc4-2.1"
-		stmt = "sqlite3_prepare $DB {CREATE TABLE t3(x);} -1 TAIL"
-		_ = stmt // suppress unused warning
+		// prepared stmt: CREATE TABLE t3(x); (bind/step emulation)
+		_ = stmt // prepared statement handle
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")
 		_ = _res // catchsql
 	}
-	{ // "misc4-2.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc4-2.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_step $stmt (unknown prepared statement)
 	}
-	{ // "misc4-2.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "misc4-2.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $stmt
 	}
 	{ // do_test "misc4-2.4"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")

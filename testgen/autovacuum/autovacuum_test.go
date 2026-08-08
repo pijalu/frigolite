@@ -563,9 +563,9 @@ func Test_autovacuum(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			_res = db.Exec("INSERT INTO av1 VALUES(" + i + ", '" + "X 200" + "');")
+			_res = db.Exec("INSERT INTO av1 VALUES(" + i + ", '" + tclStringRepeat("X", "200") + "');")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 VALUES(" + i + ", '" + "X 200" + "');")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 VALUES(" + i + ", '" + tclStringRepeat("X", "200") + "');")
 			}
 			// incr i 1
 			{
@@ -575,9 +575,9 @@ func Test_autovacuum(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec("INSERT INTO av1 VALUES(99, '" + "X 200" + "');")
+		_res = db.Exec("INSERT INTO av1 VALUES(99, '" + tclStringRepeat("X", "200") + "');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 VALUES(99, '" + "X 200" + "');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 VALUES(99, '" + tclStringRepeat("X", "200") + "');")
 		}
 		r = db.Query("\n    SELECT sum(a) FROM av1;\n  ")
 		if r.Error != nil {

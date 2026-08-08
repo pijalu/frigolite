@@ -163,9 +163,9 @@ func Test_fts3fault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES('b b b')")
 		}
-		_res = db.Exec("INSERT INTO t8 VALUES('" + "{c } 50000" + "')")
+		_res = db.Exec("INSERT INTO t8 VALUES('" + tclStringRepeat("c ", "50000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES('" + "{c } 50000" + "')")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES('" + tclStringRepeat("c ", "50000") + "')")
 		}
 		_res = db.Exec("INSERT INTO t8 VALUES('d d d')")
 		if _res.Error != nil {

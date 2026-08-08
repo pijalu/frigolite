@@ -175,7 +175,7 @@ func Test_malloc3(t *testing.T) {
 		_ = a // suppress unused warning
 		b = "String value " + i
 		_ = b // suppress unused warning
-		c = "X $i"
+		c = tclStringRepeat("X", i)
 		_ = c // suppress unused warning
 		sql += "INSERT INTO abc VALUES (" + a + ", '" + b + "', '" + c + "');"
 		// incr i 1
@@ -194,7 +194,7 @@ func Test_malloc3(t *testing.T) {
 	// TEST 7 {\n  do_test $testid {\n    execsql {SELECT count(*...} (unsupported command, not transpiled)
 	// SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM ...} (unsupported command, not transpiled)
 	// TEST 9 {\n  do_test $testid {\n    execsql {SELECT count(*...} (unsupported command, not transpiled)
-	padding = "X 500"
+	padding = tclStringRepeat("X", "500")
 	_ = padding // suppress unused warning
 	// PREP [subst {\n  DROP TABLE abc;\n  CREATE TABLE abc(a ... (unsupported command, not transpiled)
 	// TEST 10 {\n  do_test $testid {\n    execsql {SELECT a, b, c...} (unsupported command, not transpiled)

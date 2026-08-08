@@ -132,7 +132,7 @@ func Test_incrblob(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob-1.3.1"
-		str = ". 10000" // TCL namespace variable
+		str = tclStringRepeat(".", "10000") // TCL namespace variable
 		_ = str // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO blobs(rowid, k, v) VALUES(3, 'three', " + sqlLiteral(str) + ");\n  ")
 		if _res.Error != nil {
@@ -197,7 +197,7 @@ func Test_incrblob(t *testing.T) {
 			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".1"
-			str = "abcdefghij 2900" // TCL namespace variable
+			str = tclStringRepeat("abcdefghij", "2900") // TCL namespace variable
 			_ = str // suppress unused warning
 			_res = db.Exec("\n      BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', " + sqlLiteral(str) + " || randstr(500,500), 45);\n      COMMIT;\n    ")
 			if _res.Error != nil {

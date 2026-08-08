@@ -1056,9 +1056,9 @@ func Test_func(t *testing.T) {
 		_ = DB // suppress unused warning
 		sql = "SELECT test_auxdata( ? , a ) FROM t4;"
 		_ = sql // suppress unused warning
-		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
-		_ = STMT // suppress unused warning
-		// sqlite3_bind_text $STMT 1 hello\000 -1 (unsupported command, not transpiled)
+		// prepared STMT: $sql (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// sqlite3_bind_text $STMT 1 hello\000 → 'hello\000'
 		res = ""
 		_ = res // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
@@ -1172,7 +1172,23 @@ func Test_func(t *testing.T) {
 	}
 	{ // do_test "func-15.4"
 	}
-	{ // "func-16.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "func-16.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    CREATE TABLE tbl2(a, b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tbl2(a, b);\n  ")
+		}
+		// prepared STMT: INSERT INTO tbl2 VALUES(?, ?) (bind/step emulation)
+		_ = STMT // prepared statement handle
+		// sqlite3_bind_blob $STMT 1 abc → X'616263'
+		_res = db.Exec("INSERT INTO tbl2 VALUES(X'616263', X'616263')")
+		if _res.Error != nil {
+			t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl2 VALUES(X'616263', X'616263')")
+		}
+		// sqlite3_finalize $STMT
+		r = db.Query("\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")
+		}
 	}
 	{ // "func-16.2"
 		r = db.Query("\n  SELECT quote(4.2e+859), quote(-7.8e+904);\n")
@@ -1408,9 +1424,9 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-21.9"
-			str = "A 29998" + "CC" + "A 35537" // TCL namespace variable
+			str = tclStringRepeat("A", "29998") + "CC" + tclStringRepeat("A", "35537") // TCL namespace variable
 			_ = str // suppress unused warning
-			rep = "B 65536" // TCL namespace variable
+			rep = tclStringRepeat("B", "65536") // TCL namespace variable
 			_ = rep // suppress unused warning
 			r = db.Query("\n      SELECT LENGTH(REPLACE(" + sqlLiteral(str) + ", 'C', " + sqlLiteral(rep) + "));\n    ")
 			if r.Error != nil {
@@ -1754,7 +1770,19 @@ func Test_func(t *testing.T) {
 			_res = db.Exec("\n    INSERT INTO t28(x) VALUES(1);\n  ")
 			_ = _res // catchsql
 		}
-		{ // "func-29.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "func-29.1" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
+			}
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
+			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
+			}
 		}
 		{ // do_test "func-29.2"
 			x = tclLIndex("sqlite3_db_status db CACHE_MISS 1", "1")
@@ -1764,11 +1792,27 @@ func Test_func(t *testing.T) {
 				_ = x // suppress unused warning
 			}
 		}
-		{ // "func-29.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "func-29.3" (prepare-step internals; SQL side effects only)
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
+			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(+x) FROM t29 ORDER BY id")
+			}
 		}
 		if tclBool("permutation" + " != \"mmap\"") {
 		}
-		{ // "func-29.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "func-29.5" (prepare-step internals; SQL side effects only)
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
+			_res = db.Exec("SELECT sum(length(x)) FROM t29")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT sum(length(x)) FROM t29")
+			}
 		}
 		{ // do_test "func-29.6"
 			x = tclLIndex("sqlite3_db_status db CACHE_MISS 1", "1")

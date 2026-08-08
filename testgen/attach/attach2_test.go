@@ -165,9 +165,47 @@ func Test_attach2(t *testing.T) {
 		_res = db.Exec("\n    COMMIT\n  ")
 		_ = _res // catchsql
 	}
-	{ // "attach2-3.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "attach2-3.1" (prepare-step internals; SQL side effects only)
+		DB = "sqlite3_connection_pointer db"
+		_ = DB // suppress unused warning
+	_ = rc // suppress unused warning
+	_ = VM // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// sqlite3_prepare (standalone prepare; not emulated)
+			if _catchErr != nil {
+				rc = "1"
+				VM = _catchErr.Error()
+			} else {
+				rc = "0"
+				VM = ""
+			}
+		}
+		if tclBool(rc) {
+			rc = tclListAppend(rc, VM)
+		}
+		// sqlite3_step $VM (unknown prepared statement)
+		// sqlite3_finalize $VM
 	}
-	{ // "attach2-3.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "attach2-3.2" (prepare-step internals; SQL side effects only)
+	_ = rc // suppress unused warning
+	_ = VM // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// sqlite3_prepare (standalone prepare; not emulated)
+			if _catchErr != nil {
+				rc = "1"
+				VM = _catchErr.Error()
+			} else {
+				rc = "0"
+				VM = ""
+			}
+		}
+		if tclBool(rc) {
+			rc = tclListAppend(rc, VM)
+		}
+		// sqlite3_step $VM (unknown prepared statement)
+		// sqlite3_finalize $VM
 	}
 	db.Close()
 	i = "2"

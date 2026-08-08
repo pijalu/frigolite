@@ -68,8 +68,7 @@ func Test_carray01(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "100"
-		STMT = ""
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		// sqlite3_carray_bind $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
 		// run_stmt $STMT (unsupported command, not transpiled)
 	}
@@ -82,8 +81,7 @@ func Test_carray01(t *testing.T) {
 		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "103"
-		STMT2 = ""
-		_ = STMT2 // suppress unused warning
+		_ = STMT2 // prepared statement handle
 		// sqlite3_carray_bind $STMT2 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
 		// run_stmt $STMT2 (unsupported command, not transpiled)
 	}
@@ -187,8 +185,8 @@ func Test_carray01(t *testing.T) {
 		// sqlite3_carray_bind $STMT 3 (unsupported command, not transpiled)
 		// run_stmt $STMT (unsupported command, not transpiled)
 	}
-	// sqlite3_finalize $STMT (unsupported command, not transpiled)
-	// sqlite3_finalize $STMT2 (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
+	// sqlite3_finalize $STMT2
 	{ // "400"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table-function argument references tables to its right") {

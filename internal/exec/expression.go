@@ -2819,6 +2819,14 @@ func toFloat(v interface{}) (float64, bool) {
 		return x, true
 	case int64:
 		return float64(x), true
+	case []byte:
+		// SQLite applies the same text->numeric conversion to BLOBs in
+		// arithmetic (blob + 3 treats the blob bytes as text; a zero blob
+		// contributes 0). zeroblob(8)+3 is 3.
+		if f, ok := parseNumericPrefix(string(x)); ok {
+			return f, true
+		}
+		return 0, true
 	case string:
 		// SQLite text→numeric conversion in arithmetic uses the leading
 		// numeric prefix: '1x' → 1, 'x1' → 0, ' 12.5foo' → 12.5, and

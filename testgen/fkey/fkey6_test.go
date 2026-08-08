@@ -80,7 +80,8 @@ func Test_fkey6(t *testing.T) {
 		_res = db.Exec("DELETE FROM t1 WHERE x=2;")
 		_ = _res // catchsql
 	}
-	{ // "fkey6-1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.3" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.4"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
@@ -88,9 +89,11 @@ func Test_fkey6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
 		}
 	}
-	{ // "fkey6-1.5.1" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.5.1" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 1 (unsupported command, not transpiled)
 	}
-	{ // "fkey6-1.5.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.5.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.6"
 		_res = db.Exec("\n    ROLLBACK;\n  ")
@@ -98,7 +101,8 @@ func Test_fkey6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
 	}
-	{ // "fkey6-1.7" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.7" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.8"
 		r = db.Query("\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
@@ -106,7 +110,8 @@ func Test_fkey6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
 		}
 	}
-	{ // "fkey6-1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.9" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // "fkey6-1.10.1"
 		r = db.Query("\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
@@ -128,9 +133,19 @@ func Test_fkey6(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 	}
-	{ // "fkey6-1.20" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.20" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
+		}
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
-	{ // "fkey6-1.21" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "fkey6-1.21" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    DELETE FROM t2 WHERE y=1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2 WHERE y=1;\n  ")
+		}
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.22"
 		_res = db.Exec("\n    COMMIT;\n  ")

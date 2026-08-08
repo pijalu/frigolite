@@ -85,7 +85,7 @@ func Test_e_blobwrite(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_blobwrite"
 	_ = testprefix // suppress unused warning
-	dots = ". 40"
+	dots = tclStringRepeat(".", "40")
 	_ = dots // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-2, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-3, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-4, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-5, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-6, " + sqlLiteral(dots) + ");\n")

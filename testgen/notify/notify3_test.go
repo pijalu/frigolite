@@ -125,8 +125,7 @@ func Test_notify3(t *testing.T) {
 			_ = msg // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			stmt = "" // TCL namespace variable
-			_ = stmt // suppress unused warning
+			_ = stmt // prepared statement handle
 			if _catchErr != nil {
 				msg = "1"
 				_catchErrMsg = _catchErr.Error()

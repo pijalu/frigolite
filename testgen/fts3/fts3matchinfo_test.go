@@ -240,9 +240,9 @@ func Test_fts3matchinfo(t *testing.T) {
 	// do_matchinfo_test 4.2.5 t5 {t5 MATCH '"a b" "a b"'} { s {2} } (unsupported command, not transpiled)
 	// do_matchinfo_test 4.2.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1} } (unsupported command, not transpiled)
 	{ // "4.3.0"
-		_res = db.Exec("INSERT INTO t5 VALUES('x y " + "{b } 50000" + "')")
+		_res = db.Exec("INSERT INTO t5 VALUES('x y " + tclStringRepeat("b ", "50000") + "')")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES('x y " + "{b } 50000" + "')")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES('x y " + tclStringRepeat("b ", "50000") + "')")
 		}
 	}
 	if false {

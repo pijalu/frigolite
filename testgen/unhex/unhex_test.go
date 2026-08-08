@@ -156,9 +156,9 @@ func Test_unhex(t *testing.T) {
 				_ = _idx2
 					out = ""
 					_ = out // suppress unused warning
-					for _, x := range tclSplitList("split $hex \"\"") {
+					for _, x := range strings.Split(hex, "") {
 					_ = x // suppress unused warning
-						if tclBool("xdigit $x") {
+						if tclIsXdigit(x) {
 							out += x
 						}
 					}
@@ -188,9 +188,9 @@ func Test_unhex(t *testing.T) {
 					}
 				}
 				{ // "6.1"
-					r = db.Query("\n  SELECT hex( unhex('กABCDข', 'uE01uE02') )\n")
+					r = db.Query("\n  SELECT hex( unhex('กABCDข', 'กข') )\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('กABCDข', 'uE01uE02') )\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('กABCDข', 'กข') )\n")
 						return
 					}
 					got := flatten(r)
@@ -200,9 +200,9 @@ func Test_unhex(t *testing.T) {
 					}
 				}
 				{ // "6.2"
-					r = db.Query("\n  SELECT typeof( unhex('กABCDข', 'uE03uE02') )\n")
+					r = db.Query("\n  SELECT typeof( unhex('กABCDข', 'ฃข') )\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('กABCDข', 'uE03uE02') )\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('กABCDข', 'ฃข') )\n")
 						return
 					}
 					got := flatten(r)
@@ -212,9 +212,9 @@ func Test_unhex(t *testing.T) {
 					}
 				}
 				{ // "6.3"
-					r = db.Query("\n  SELECT hex( unhex('กAB CDuE02uE01', 'uE01 uE02') )\n")
+					r = db.Query("\n  SELECT hex( unhex('กAB CDขก', 'ก ข') )\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('กAB CDuE02uE01', 'uE01 uE02') )\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('กAB CDขก', 'ก ข') )\n")
 						return
 					}
 					got := flatten(r)

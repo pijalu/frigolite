@@ -292,7 +292,7 @@ func Test_fts4noti(t *testing.T) {
 				}
 			}
 			{ // do_test "3.2"
-				v = "\" 1\" 50000"
+				v = tclStringRepeat(" 1", "50000")
 				_ = v // suppress unused warning
 				v1 = "x " + v
 				_ = v1 // suppress unused warning

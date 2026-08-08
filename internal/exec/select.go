@@ -4382,7 +4382,9 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}
 				args[i] = util.UnwrapColumnValue(val)
 			}
 		}
-		agg.Step(args)
+		if err := agg.Step(args); err != nil {
+			return nil, err
+		}
 	}
 	result, _ := agg.Final()
 	return result, nil

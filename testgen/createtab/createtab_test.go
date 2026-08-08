@@ -89,7 +89,13 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".2"
 			// file size test.db
 		}
-		{ // "createtab-" + av + ".3" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "createtab-" + av + ".3" (prepare-step internals; SQL side effects only)
+			// prepared STMT: SELECT x FROM t1 (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("SELECT x FROM t1")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1")
+			}
 		}
 		{ // do_test "createtab-" + av + ".4"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -103,7 +109,11 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".6"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "createtab-" + av + ".7" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "createtab-" + av + ".7" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("SELECT x FROM t1")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1")
+			}
 		}
 		{ // do_test "createtab-" + av + ".8"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -117,7 +127,11 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".12"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "createtab-" + av + ".13" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "createtab-" + av + ".13" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("SELECT x FROM t1")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1")
+			}
 		}
 		{ // do_test "createtab-" + av + ".14"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
@@ -131,14 +145,23 @@ func Test_createtab(t *testing.T) {
 		{ // do_test "createtab-" + av + ".22"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "createtab-" + av + ".23" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "createtab-" + av + ".23" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("SELECT x FROM t1")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1")
+			}
 		}
 		{ // do_test "createtab-" + av + ".24"
 			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "createtab-" + av + ".30" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "createtab-" + av + ".30" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("SELECT x FROM t1")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1")
+			}
 		}
-		{ // "createtab-" + av + ".31" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "createtab-" + av + ".31" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // do_test "createtab-" + av + ".32"
 			r = db.Query("\n      SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1\n    ")
@@ -161,7 +184,7 @@ func Test_createtab(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;")
 		}
-		sql = "CREATE TABLE t1(x,UNIQUE(x" + ",x 100000" + "))"
+		sql = "CREATE TABLE t1(x,UNIQUE(x" + tclStringRepeat(",x", "100000") + "))"
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		_ = _res // catchsql

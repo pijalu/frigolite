@@ -125,9 +125,11 @@ func Test_dbstatus2(t *testing.T) {
 		_ = _len // suppress unused warning
 		// close $fd
 	}
-	{ // "1.8" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.8" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db CACHE_HIT 0 (unsupported command, not transpiled)
 	}
-	{ // "1.9" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "1.9" (prepare-step internals; SQL side effects only)
+		// sqlite3_db_status db CACHE_MISS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.1"
 		// db_write db (unsupported command, not transpiled)

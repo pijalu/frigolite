@@ -2041,13 +2041,17 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);\n  ")
 								}
 							}
-							{ // "fkey2-17.1.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-17.1.2" (prepare-step internals; SQL side effects only)
+								_ = STMT // prepared statement handle
+								// sqlite3_step $STMT (unknown prepared statement)
 							}
 							// verify_ex_errcode fkey2-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // "fkey2-17.1.3" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-17.1.3" (prepare-step internals; SQL side effects only)
+								// sqlite3_step $STMT (unknown prepared statement)
 							}
 							// verify_ex_errcode fkey2-17.1.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // "fkey2-17.1.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-17.1.4" (prepare-step internals; SQL side effects only)
+								// sqlite3_finalize $STMT
 							}
 							// verify_ex_errcode fkey2-17.1.4b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "fkey2-17.1.5"
@@ -2084,15 +2088,19 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
 								}
 							}
-							{ // "fkey2-17.1.11" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-17.1.11" (prepare-step internals; SQL side effects only)
+								_ = STMT // prepared statement handle
+								// sqlite3_step $STMT (unknown prepared statement)
 							}
 							{ // do_test "fkey2-17.1.12"
 								// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 							}
-							{ // "fkey2-17.1.13" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-17.1.13" (prepare-step internals; SQL side effects only)
+								// sqlite3_step $STMT (unknown prepared statement)
 							}
 							// verify_ex_errcode fkey2-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // "fkey2-17.1.14" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-17.1.14" (prepare-step internals; SQL side effects only)
+								// sqlite3_finalize $STMT
 							}
 							// verify_ex_errcode fkey2-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
@@ -2261,16 +2269,22 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE main(id INTEGER PRIMARY KEY);\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);\n  ")
 								}
 							}
-							{ // "fkey2-19.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-19.2" (prepare-step internals; SQL side effects only)
+								_ = S // prepared statement handle
+								// sqlite3_bind_int $S (unknown prepared statement)
+								// sqlite3_step $S (unknown prepared statement)
 							}
 							// verify_ex_errcode fkey2-19.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "fkey2-19.3"
-								// sqlite3_reset $S (unsupported command, not transpiled)
+								// sqlite3_reset $S
 							}
 							// verify_ex_errcode fkey2-19.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							{ // "fkey2-19.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-19.4" (prepare-step internals; SQL side effects only)
+								// sqlite3_bind_int $S (unknown prepared statement)
+								// sqlite3_step $S (unknown prepared statement)
 							}
-							{ // "fkey2-19.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+							{ // "fkey2-19.4" (prepare-step internals; SQL side effects only)
+								// sqlite3_finalize $S
 							}
 							_res = db.Exec("PRAGMA foreign_keys = OFF")
 							for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {

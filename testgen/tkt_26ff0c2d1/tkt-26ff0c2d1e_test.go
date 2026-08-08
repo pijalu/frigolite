@@ -62,13 +62,16 @@ func Test_tkt_26ff0c2d1e(t *testing.T) {
 		_ = DB // suppress unused warning
 		var SQL = "SELECT case when 1 then 99 else ? end + ?"
 		_ = SQL // suppress unused warning
-		STMT = ""
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 	}
 	{ // do_test "bug-20100512-2"
 		// sqlite3_bind_parameter_count $STMT (unsupported command, not transpiled)
 	}
-	{ // "bug-20100512-3" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "bug-20100512-3" (prepare-step internals; SQL side effects only)
+		// sqlite3_bind_int $STMT (unknown prepared statement)
+		// sqlite3_bind_int $STMT (unknown prepared statement)
+		// sqlite3_step $STMT (unknown prepared statement)
+		// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 	}
-	// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT
 }

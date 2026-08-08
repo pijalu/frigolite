@@ -299,14 +299,14 @@ func Test_shared6(t *testing.T) {
 		_ = db1
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
-		STMT = "" // TCL namespace variable
-		_ = STMT // suppress unused warning
+		_ = STMT // prepared statement handle
 		_res = db.Exec(" CREATE TABLE t5(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t5(a, b) ")
 		}
 	}
-	{ // "shared6-4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+	{ // "shared6-4.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_finalize $STMT
 	}
 	{ // do_test "shared6-4.X"
 		_ = db1 // close db1: aliased to db, no-op

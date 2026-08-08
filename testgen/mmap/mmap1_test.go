@@ -225,15 +225,15 @@ func Test_mmap1(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")
 		}
-		aaa = "a 400"
+		aaa = tclStringRepeat("a", "400")
 		_ = aaa // suppress unused warning
-		bbb = "b 400"
+		bbb = tclStringRepeat("b", "400")
 		_ = bbb // suppress unused warning
-		ccc = "c 400"
+		ccc = tclStringRepeat("c", "400")
 		_ = ccc // suppress unused warning
-		ddd = "d 400"
+		ddd = tclStringRepeat("d", "400")
 		_ = ddd // suppress unused warning
-		eee = "e 400"
+		eee = tclStringRepeat("e", "400")
 		_ = eee // suppress unused warning
 		{ // "4.1"
 			r = db.Query("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(bbb) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ccc) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ddd) + ");\n  SELECT * FROM t1;\n  BEGIN;\n")
@@ -247,7 +247,14 @@ func Test_mmap1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "4.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "4.2" (prepare-step internals; SQL side effects only)
+			// prepared STMT: SELECT * FROM t1 ORDER BY rowid (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 ORDER BY rowid")
+			}
+			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "4.3"
 			for _, _r := range tclSplitList("2 3 4") {
@@ -264,7 +271,8 @@ func Test_mmap1(t *testing.T) {
 				res = tclListAppend(res, "")
 			}
 		}
-		{ // "4.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "4.4" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		{ // "4.5"
 			_res = db.Exec(" COMMIT ")
@@ -293,7 +301,14 @@ func Test_mmap1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "5.2" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "5.2" (prepare-step internals; SQL side effects only)
+			// prepared STMT: SELECT * FROM t1 ORDER BY rowid (bind/step emulation)
+			_ = STMT // prepared statement handle
+			_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 ORDER BY rowid")
+			}
+			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
 		}
 		{ // "5.3"
 			_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
@@ -301,9 +316,15 @@ func Test_mmap1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
 			}
 		}
-		{ // "5.4" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "5.4" (prepare-step internals; SQL side effects only)
+			_res = db.Exec("SELECT * FROM t1 ORDER BY rowid")
+			if _res.Error != nil {
+				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 ORDER BY rowid")
+			}
+			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
 		}
-		{ // "5.5" (uses_stmt_journal/prepare-step internals, not transpiled)
+		{ // "5.5" (prepare-step internals; SQL side effects only)
+			// sqlite3_finalize $STMT
 		}
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
