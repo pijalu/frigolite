@@ -105,15 +105,15 @@ func Test_symlink2(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3"
-		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-		_ = db3
-		r = db.Query(" SELECT x, y FROM t1; ")
+		db3, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db3.Query(" SELECT x, y FROM t1; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x, y FROM t1; ")
 		}
 	}
 	{ // do_test "3.4"
-		_ = db3 // close db3: aliased to db, no-op
+		db3.Close()
 	}
 	{ // do_test "3.5"
 		_list := tclList([]string{"0", res})

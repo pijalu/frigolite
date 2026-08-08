@@ -110,10 +110,10 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-1.9"
-		var altdb *frigolite.DB
-		altdb = db // sqlite3 altdb test.db: alias to main in-memory db
-		_ = altdb
-		r = db.Query("SELECT b FROM one ORDER BY a")
+		altdb, err := frigolite.Open("test.db")
+		defer altdb.Close()
+		if err != nil { t.Fatal(err) }
+		r = altdb.Query("SELECT b FROM one ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM one ORDER BY a")
 		}

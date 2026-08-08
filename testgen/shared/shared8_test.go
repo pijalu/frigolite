@@ -71,70 +71,70 @@ func Test_shared8(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
-		_ = db1
+		db1, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		// db1.func (db command)
-		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n    INSERT INTO t1 VALUES(4, 4);\n    CREATE VIEW v1 AS SELECT a, roman(b) FROM t1;\n    SELECT * FROM v1;\n  ")
+		r = db1.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n    INSERT INTO t1 VALUES(4, 4);\n    CREATE VIEW v1 AS SELECT a, roman(b) FROM t1;\n    SELECT * FROM v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n    INSERT INTO t1 VALUES(4, 4);\n    CREATE VIEW v1 AS SELECT a, roman(b) FROM t1;\n    SELECT * FROM v1;\n  ")
 		}
 	}
 	{ // do_test "1.1"
 		db1.SetDefensive(false)
-		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
+		r = db1.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		}
 	}
 	{ // do_test "1.2"
-		r = db.Query(" SELECT * FROM v1 ")
+		r = db1.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		// db2.func (db command)
-		r = db.Query(" SELECT * FROM v1 ")
+		r = db2.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.4"
-		_ = db1 // close db1: aliased to db, no-op
-		r = db.Query(" SELECT * FROM v1 ")
+		db1.Close()
+		r = db2.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.5"
-		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-		_ = db3
+		db3, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		// db3.func (db command)
-		r = db.Query(" SELECT * FROM v1 ")
+		r = db3.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.6"
-		r = db.Query(" SELECT * FROM v1 ")
+		r = db2.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.7"
-		_ = db2 // close db2: aliased to db, no-op
-		r = db.Query(" SELECT * FROM v1 ")
+		db2.Close()
+		r = db3.Query(" SELECT * FROM v1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1 ")
 		}
 	}
 	{ // do_test "1.8"
-		_ = db3 // close db3: aliased to db, no-op
-		db4 = db // sqlite3 db4 test.db: alias to main in-memory db
-		_ = db4
-		_res = db.Exec(" SELECT * FROM v1 ")
+		db3.Close()
+		db4, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db4.Exec(" SELECT * FROM v1 ")
 		_ = _res // catchsql
 	}
 	for _, db_iter := range tclSplitList("db1 db2 db3 db4") {

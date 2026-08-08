@@ -187,15 +187,15 @@ func Test_walcksum(t *testing.T) {
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".6"
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			r = db2.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".7.0"
-			r = db.Query(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
+			r = db2.Query(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			}
@@ -241,7 +241,7 @@ func Test_walcksum(t *testing.T) {
 			// log_checksum_verify test.db-wal 3 $native (unsupported command, not transpiled)
 		}
 		{ // do_test "walcksum-1." + endian + ".9"
-			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
+			r = db2.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			}
@@ -254,7 +254,7 @@ func Test_walcksum(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 	}
 	{ // do_test "walcksum-2.1"

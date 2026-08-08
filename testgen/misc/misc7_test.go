@@ -152,10 +152,10 @@ func Test_misc7(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;\n")
 	}
 	{ // do_test "misc7-7.0"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		// sqlite3_busy_timeout [sqlite3_connection_pointer db] 2000 (unsupported command, not transpiled)
-		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n  ")
+		_res = db2.Exec("\n    BEGIN EXCLUSIVE;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN EXCLUSIVE;\n  ")
 		}
@@ -167,7 +167,7 @@ func Test_misc7(t *testing.T) {
 		_ = delay // suppress unused warning
 		result = tclListAppend(result, tclExprWith("$delay>1500000 && $delay<4000000", map[string]string{"delay": delay}))
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // do_test "misc7-7.1"
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")

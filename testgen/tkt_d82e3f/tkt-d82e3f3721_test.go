@@ -101,8 +101,8 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt-d82e3-2.1"
 		_res = db.Exec("\n    CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -127,5 +127,5 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 }

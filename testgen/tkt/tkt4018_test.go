@@ -74,9 +74,9 @@ func Test_tkt4018(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			_ = db2 // close db2: aliased to db, no-op
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			db2.Close()
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -97,9 +97,9 @@ func Test_tkt4018(t *testing.T) {
 		// testsql {INSERT INTO t1 VALUES(3, 4)} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt4018-2.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("INSERT INTO t1 VALUES(1, 2)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1, 2)")
 		}
@@ -111,15 +111,15 @@ func Test_tkt4018(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt4018-2.3"
-		_ = db2 // close db2: aliased to db, no-op
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2.Close()
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(5, 6)")
+		_res = db2.Exec("INSERT INTO t1 VALUES(5, 6)")
 		_ = _res // catchsql
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 }

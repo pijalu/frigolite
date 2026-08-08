@@ -124,14 +124,14 @@ func Test_pager2(t *testing.T) {
 				lowpoint = now
 				_ = lowpoint // suppress unused warning
 				{ // do_test "pager2.1." + otn + "." + tn
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
 					r = db.Query("\n          SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;\n        ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;\n        ")
 					}
 				}
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 			} else {
 				if func() bool { now_n, _now_e := strconv.Atoi(now); if _now_e != nil { return false }; x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return now_n > x_n }() {
 					if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; lowpoint_n, _lowpoint_e := strconv.Atoi(lowpoint); if _lowpoint_e != nil { return false }; return x_n >= lowpoint_n }() {
@@ -209,8 +209,8 @@ func Test_pager2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("file:test.db?mode=memory&cache=shared")
 		if err != nil { t.Fatal(err) }
-		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-		_ = db3
+		db3, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db1.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db2.Exec(" INSERT INTO t1 VALUES(1, 2) ")

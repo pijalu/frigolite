@@ -99,9 +99,9 @@ func Test_e_changes(t *testing.T) {
 			// do_changes_test 1.$tn.3 {\n    UPDATE t1 SET b=b+1 WHERE a<5;\n  } 5 (unsupported command, not transpiled)
 			// do_changes_test 1.$tn.4 {\n    DELETE FROM t1 WHERE a>6\n  } 4 (unsupported command, not transpiled)
 			{ // do_test "1." + tn + ".5"
-				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-				_ = db2
-				_res = db.Exec(" INSERT INTO t1 VALUES(-1, -1) ")
+				db2, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				_res = db2.Exec(" INSERT INTO t1 VALUES(-1, -1) ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(-1, -1) ")
 				}
@@ -109,7 +109,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".6"
 			}
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			// do_changes_test 1.$tn.7 {\n    CREATE UNIQUE INDEX i2 ON t1(a);\n  } 4 (unsupported command, not transpiled)
 			{ // "1." + tn + ".8"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);\n  ")

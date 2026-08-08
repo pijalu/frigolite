@@ -168,7 +168,7 @@ func Test_backup5(t *testing.T) {
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
-		_res = db.Exec("\n  ATTACH 'test.db3' AS aux;\n")
+		_res = db2.Exec("\n  ATTACH 'test.db3' AS aux;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db3' AS aux;\n")
 		}

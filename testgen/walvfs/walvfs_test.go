@@ -319,8 +319,8 @@ func Test_walvfs(t *testing.T) {
 	// tvfs script xShmMapLock (unsupported command, not transpiled)
 	// tvfs filter {xShmLock xShmMap} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "5.5"
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -331,7 +331,7 @@ func Test_walvfs(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	db.Close()
 	os.Remove("test.db")
@@ -444,13 +444,13 @@ func Test_walvfs(t *testing.T) {
 		}
 	}
 	{ // do_test "8.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(randomblob(75));\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n    INSERT INTO t1 VALUES(randomblob(75));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randomblob(75));\n  ")
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{ // "8.3"
 		r = db.Query(" \n  PRAGMA wal_checkpoint;\n  SELECT count(*) FROM t1 \n")
@@ -486,16 +486,16 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	// tvfs filter {xShmMap xShmLock} (unsupported command, not transpiled)
 	// tvfs script xShmMap (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "9.1"
-		_res = db.Exec(" SELECT count(*) FROM t1 ")
+		_res = db2.Exec(" SELECT count(*) FROM t1 ")
 		_ = _res // catchsql
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// tvfs delete (unsupported command, not transpiled)
 }

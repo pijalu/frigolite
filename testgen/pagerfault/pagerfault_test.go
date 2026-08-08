@@ -474,13 +474,13 @@ func Test_pagerfault(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test pagerfault-28a -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { ... (unsupported command, not transpiled)
 	// faultsim_restore_and_reopen (unsupported command, not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("SELECT count(*) FROM t2")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	db.Close()
 	// do_faultsim_test pagerfault-28b -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql ... (unsupported command, not transpiled)
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

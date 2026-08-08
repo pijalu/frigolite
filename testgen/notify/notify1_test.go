@@ -83,8 +83,8 @@ func Test_notify1(t *testing.T) {
 	{ // do_test "notify1-1.1"
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
@@ -95,7 +95,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-1.3"
@@ -131,7 +131,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-1.13"
@@ -168,13 +168,13 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 		}
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t2;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "notify1-2.2.2"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.2.3"
@@ -202,13 +202,13 @@ func Test_notify1(t *testing.T) {
 	}
 	{ // do_test "notify1-2.3.1"
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		os.Remove("test.db")
 		for _, con := range tclSplitList("db db2 db3") {
 		_ = con // suppress unused warning
-			var con *frigolite.DB
-			con = db // sqlite3 $con test.db: alias to main in-memory db
-			_ = con
+			con, err := frigolite.Open("test.db")
+			defer con.Close()
+			if err != nil { t.Fatal(err) }
 			// $con eval { ATTACH 'test2.db' AS aux2 } (unsupported command, not transpiled)
 			// $con eval { ATTACH 'test3.db' AS aux3 } (unsupported command, not transpiled)
 		}
@@ -222,7 +222,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; INSERT INTO t1 VALUES(1, 2) ")
 		}
-		_res = db.Exec(" BEGIN ; INSERT INTO t2 VALUES(1, 2) ")
+		_res = db2.Exec(" BEGIN ; INSERT INTO t2 VALUES(1, 2) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; INSERT INTO t2 VALUES(1, 2) ")
 		}
@@ -236,7 +236,7 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.3.4"
-		_res = db.Exec(" SELECT * FROM t3 ")
+		_res = db2.Exec(" SELECT * FROM t3 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.3.5"
@@ -275,7 +275,7 @@ func Test_notify1(t *testing.T) {
 		// db3.unlock_notify (db command)
 	}
 	{ // do_test "notify1-2.3.10"
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -294,7 +294,7 @@ func Test_notify1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{
 		var _catchErr error
@@ -328,9 +328,10 @@ func Test_notify1(t *testing.T) {
 				{ // do_test "notify1-" + tn + ".2." + ii + ".1"
 					var cmd = "db" + ii
 					_ = cmd // suppress unused warning
-					cmd = db // sqlite3 $cmd test.db: alias to main in-memory db
-					_ = cmd
-					_res = db.Exec(" SELECT * FROM t1 ")
+					_dbtmp2, err := frigolite.Open("test.db")
+					_ = _dbtmp2 // sqlite3 db connection
+					if err != nil { t.Fatal(err) }
+					_res = cmd.Exec(" SELECT * FROM t1 ")
 					_ = _res // catchsql
 				}
 				{ // do_test "notify1-" + tn + ".2." + ii + ".2"
@@ -379,10 +380,10 @@ func Test_notify1(t *testing.T) {
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
-				var conn *frigolite.DB
-				conn = db // sqlite3 $conn test.db: alias to main in-memory db
-				_ = conn
-				_res = db.Exec(" ATTACH 'test2.db' AS two ")
+				conn, err := frigolite.Open("test.db")
+				defer conn.Close()
+				if err != nil { t.Fatal(err) }
+				_res = conn.Exec(" ATTACH 'test2.db' AS two ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test2.db' AS two ")
 				}
@@ -391,7 +392,7 @@ func Test_notify1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n  ")
 			}
-			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			_res = db2.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			}
@@ -417,13 +418,13 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-6.2.3"
-			_res = db.Exec(" COMMIT ")
+			_res = db2.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
 		}
 		{ // do_test "notify1-6.3.1"
-			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			_res = db2.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 			}
@@ -455,7 +456,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-6.4.2"
-			_res = db.Exec(" COMMIT ")
+			_res = db2.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
@@ -467,15 +468,15 @@ func Test_notify1(t *testing.T) {
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		db3.Close()
 		// proc unlock_notify increments counter var unlock_notify (registered via db func)
 		{ // do_test "notify1-7.1"
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
-				var conn *frigolite.DB
-				conn = db // sqlite3 $conn test.db: alias to main in-memory db
-				_ = conn
+				conn, err := frigolite.Open("test.db")
+				defer conn.Close()
+				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 			if _res.Error != nil {
@@ -483,7 +484,7 @@ func Test_notify1(t *testing.T) {
 			}
 		}
 		{ // do_test "notify1-7.2"
-			_res = db.Exec(" SELECT * FROM t1 ")
+			_res = db2.Exec(" SELECT * FROM t1 ")
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-7.3"
@@ -509,7 +510,7 @@ func Test_notify1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 			}
-			_res = db.Exec(" SELECT * FROM t1 ")
+			_res = db2.Exec(" SELECT * FROM t1 ")
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-8.2"
@@ -520,7 +521,7 @@ func Test_notify1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
 			}
-			_res = db.Exec(" SELECT * FROM t1 ")
+			_res = db2.Exec(" SELECT * FROM t1 ")
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-8.4"
@@ -533,7 +534,7 @@ func Test_notify1(t *testing.T) {
 			}
 		}
 		{ // do_test "notify1-9.1"
-			r = db.Query("\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			r = db2.Query("\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
@@ -553,7 +554,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-9.5"
-			_res = db.Exec(" COMMIT ")
+			_res = db2.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
@@ -569,7 +570,7 @@ func Test_notify1(t *testing.T) {
 			}
 		}
 		{ // do_test "notify1-9.7"
-			r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
@@ -599,13 +600,13 @@ func Test_notify1(t *testing.T) {
 			}
 		}
 		{ // do_test "notify1-9.12"
-			_res = db.Exec(" COMMIT ")
+			_res = db2.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		db3.Close()
 		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

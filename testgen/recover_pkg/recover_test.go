@@ -172,7 +172,7 @@ func Test_recover(t *testing.T) {
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1.1"
-		r = db.Query("\n  SELECT name FROM sqlite_schema\n")
+		r = db2.Query("\n  SELECT name FROM sqlite_schema\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema\n")
 			return
@@ -184,7 +184,7 @@ func Test_recover(t *testing.T) {
 		}
 	}
 	{ // "4.1.2"
-		r = db.Query("\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
+		r = db2.Query("\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
 			return
@@ -200,7 +200,7 @@ func Test_recover(t *testing.T) {
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "4.2.1"
-		r = db.Query("\n  SELECT name FROM sqlite_schema\n")
+		r = db2.Query("\n  SELECT name FROM sqlite_schema\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema\n")
 			return
@@ -212,7 +212,7 @@ func Test_recover(t *testing.T) {
 		}
 	}
 	{ // "4.2.2"
-		r = db.Query("\n  SELECT * FROM t3\n")
+		r = db2.Query("\n  SELECT * FROM t3\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3\n")
 			return

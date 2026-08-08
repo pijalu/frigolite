@@ -96,10 +96,10 @@ func Test_shmlock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "shmlock"
 	_ = testprefix // suppress unused warning
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
-	db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-	_ = db3
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	db3, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if r.Error != nil {
@@ -113,13 +113,13 @@ func Test_shmlock(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "1.2"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db3.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -144,17 +144,17 @@ func Test_shmlock(t *testing.T) {
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
-		_ = db3 // close db3: aliased to db, no-op
+		db2.Close()
+		db3.Close()
 		if "" == "unix-excl" {
 			{ // do_test "2.0"
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
-					var dbi *frigolite.DB
-					dbi = db // sqlite3 db$i test.db: alias to main in-memory db
-					_ = dbi
-					r = db.Query(" SELECT * FROM t1 ")
+					dbi, err := frigolite.Open("test.db")
+					defer dbi.Close()
+					if err != nil { t.Fatal(err) }
+					r = dbi.Query(" SELECT * FROM t1 ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 					}
@@ -237,19 +237,19 @@ func Test_shmlock(t *testing.T) {
 				}
 			}
 		}
-		var db0 *frigolite.DB
-		db0 = db // sqlite3 db0 test.db: alias to main in-memory db
-		_ = db0
-		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
-		_ = db1
+		db0, err := frigolite.Open("test.db")
+		defer db0.Close()
+		if err != nil { t.Fatal(err) }
+		db1, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		{ // do_test "3.1"
-			r = db.Query(" SELECT * FROM t1 ")
+			r = db0.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "3.2"
-			r = db.Query(" SELECT * FROM t1 ")
+			r = db1.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 			}
@@ -281,6 +281,6 @@ func Test_shmlock(t *testing.T) {
 				}
 			}
 		}
-		_ = db0 // close db0: aliased to db, no-op
-		_ = db1 // close db1: aliased to db, no-op
+		db0.Close()
+		db1.Close()
 }

@@ -90,8 +90,8 @@ func Test_pageropt(t *testing.T) {
 	{ // do_test "pageropt-1.3"
 		// pagercount_sql {\n    SELECT length(x) FROM t1\n  } (unsupported command, not transpiled)
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	blobcontent = "db2 one {SELECT hex(x) FROM t1}"
 	_ = blobcontent // suppress unused warning
 	{ // do_test "pageropt-1.4"
@@ -150,6 +150,6 @@ func Test_pageropt(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 }

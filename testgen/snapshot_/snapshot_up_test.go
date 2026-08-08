@@ -149,9 +149,9 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" PRAGMA wal_checkpoint ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" PRAGMA wal_checkpoint ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
@@ -197,7 +197,7 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		r = db.Query("\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
+		r = db2.Query("\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;\n  ")
 		}
@@ -211,7 +211,7 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		_res = db.Exec("\n    DELETE FROM t1 WHERE a = 4;\n  ")
+		_res = db2.Exec("\n    DELETE FROM t1 WHERE a = 4;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a = 4;\n  ")
 		}
@@ -240,7 +240,7 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.15"
@@ -276,13 +276,13 @@ func Test_snapshot_up(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
-	db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-	_ = db3
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	db3, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	// proc xBusy returns constant 1 (registered via db func)
 	{ // do_test "2.1"
-		_res = db.Exec(" INSERT INTO t1 VALUES(16, 17, 18) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(16, 17, 18) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(16, 17, 18) ")
 		}
@@ -296,7 +296,7 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(19, 20, 21) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(19, 20, 21) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(19, 20, 21) ")
 		}
@@ -313,7 +313,7 @@ func Test_snapshot_up(t *testing.T) {
 		// set  (invalid identifier, skipped)
 	}
 	{ // "2.2"
-		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(19, 20, 21);\n")
+		_res = db2.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(19, 20, 21);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(19, 20, 21);\n")
 		}
@@ -331,7 +331,7 @@ func Test_snapshot_up(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "2.4"
-		r = db.Query("PRAGMA wal_checkpoint = restart")
+		r = db3.Query("PRAGMA wal_checkpoint = restart")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA wal_checkpoint = restart")
 		}

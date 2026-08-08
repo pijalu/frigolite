@@ -84,9 +84,9 @@ func Test_walcrash2(t *testing.T) {
 		}
 	}
 	{ // do_test "walcrash2-1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" SELECT count(*) FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" SELECT count(*) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 		}
@@ -94,6 +94,6 @@ func Test_walcrash2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 }

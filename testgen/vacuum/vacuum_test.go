@@ -149,9 +149,9 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum-2.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n    BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;\n  ")
 		}
@@ -183,9 +183,9 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;\n  ")
 		}
-		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-		_ = db3
-		r = db.Query("\n    -- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 LIMIT 1\n  ")
+		db3, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db3.Query("\n    -- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    -- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 LIMIT 1\n  ")
 		}
@@ -193,7 +193,7 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
-		_res = db.Exec("\n    INSERT INTO t7 VALUES(1234567890,'hello','world');\n  ")
+		_res = db3.Exec("\n    INSERT INTO t7 VALUES(1234567890,'hello','world');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t7 VALUES(1234567890,'hello','world');\n  ")
 		}
@@ -205,7 +205,7 @@ func Test_vacuum(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "vacuum-2.7"
-		r = db.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+		r = db3.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
 		}
@@ -219,17 +219,17 @@ func Test_vacuum(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "vacuum-2.10"
-		r = db.Query("\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
+		r = db3.Query("\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	_ = db3 // close db3: aliased to db, no-op
+	db3.Close()
 	{ // do_test "vacuum-3.1"
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

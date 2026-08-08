@@ -187,8 +187,8 @@ func Test_nockpt(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		{ // "2.1"
 			r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
 			if r.Error != nil {
@@ -202,7 +202,7 @@ func Test_nockpt(t *testing.T) {
 			}
 		}
 		{ // "2.2"
-			r = db.Query("\n  BEGIN;\n    SELECT * FROM y1;\n")
+			r = db2.Query("\n  BEGIN;\n    SELECT * FROM y1;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    SELECT * FROM y1;\n")
 				return
@@ -226,16 +226,16 @@ func Test_nockpt(t *testing.T) {
 			}
 		}
 		{ // "2.4"
-			_res = db.Exec("\n  COMMIT\n")
+			_res = db2.Exec("\n  COMMIT\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT\n")
 			}
 		}
 		{ // "2.5" (prepare-step internals; SQL side effects only)
 			// sqlite3_finalize $stmt
-			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-			_ = db3
-			r = db.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
+			db3, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			r = db3.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
 			}

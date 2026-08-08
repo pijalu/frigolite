@@ -169,8 +169,8 @@ func Test_e_walckpt(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		{ // do_test "6.1"
 			r = db.Query("\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			if r.Error != nil {

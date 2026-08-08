@@ -103,8 +103,8 @@ func Test_walhook(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "walhook-1.5"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		// proc definition (not transpiled)
 		_res = db.Exec(" CREATE TABLE t3(a PRIMARY KEY, b) ")
 		if _res.Error != nil {
@@ -112,7 +112,7 @@ func Test_walhook(t *testing.T) {
 		}
 		// file size test.db
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -162,7 +162,7 @@ func Test_walhook(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 		{
 			var _catchErr error

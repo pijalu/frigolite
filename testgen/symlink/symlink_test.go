@@ -112,18 +112,18 @@ func Test_symlink(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.1.4"
-		_res = db.Exec("ATTACH 'test.db2' AS aux1;")
+		_res = db2.Exec("ATTACH 'test.db2' AS aux1;")
 		_ = _res // catchsql
 	}
 	{ // do_test "1.2.1"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 		db.Close()
 		os.Remove("test.db")
@@ -340,7 +340,7 @@ func Test_symlink(t *testing.T) {
 		db2, err = frigolite.Open(path)
 		if err != nil { t.Fatal(err) }
 		{ // "5.1"
-			r = db.Query("\n  SELECT * FROM xyz;\n")
+			r = db2.Query("\n  SELECT * FROM xyz;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM xyz;\n")
 				return
@@ -357,7 +357,7 @@ func Test_symlink(t *testing.T) {
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		{ // "5.2"
-			r = db.Query("\n  SELECT * FROM xyz;\n")
+			r = db2.Query("\n  SELECT * FROM xyz;\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM xyz;\n")
 				return

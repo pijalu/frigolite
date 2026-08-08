@@ -490,9 +490,9 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	{ // do_test "savepoint-5.4.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" BEGIN ; SELECT count(*) FROM blobs ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" BEGIN ; SELECT count(*) FROM blobs ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT count(*) FROM blobs ")
 		}

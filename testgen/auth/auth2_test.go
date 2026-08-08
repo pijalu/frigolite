@@ -133,8 +133,8 @@ func Test_auth2(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "auth2-2.1"
 		authargs = "" // TCL namespace variable
@@ -174,7 +174,7 @@ func Test_auth2(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // do_test "auth2-3.1"
 		authargs = "" // TCL namespace variable
 		_ = authargs // suppress unused warning

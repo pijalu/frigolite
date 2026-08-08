@@ -64,8 +64,8 @@ func Test_busy(t *testing.T) {
 	testprefix = "busy"
 	_ = testprefix // suppress unused warning
 	{ // do_test "busy-1.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1\n  ")
@@ -104,7 +104,7 @@ func Test_busy(t *testing.T) {
 	}
 	{ // do_test "busy-2.2"
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -123,9 +123,9 @@ func Test_busy(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" BEGIN EXCLUSIVE ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" BEGIN EXCLUSIVE ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
 		}
@@ -138,7 +138,7 @@ func Test_busy(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "3.4"
-		r = db.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}
@@ -149,7 +149,7 @@ func Test_busy(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "3.6"
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -157,7 +157,7 @@ func Test_busy(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
 		}
-		r = db.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}

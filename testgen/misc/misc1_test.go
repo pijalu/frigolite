@@ -436,8 +436,8 @@ func Test_misc1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=0 WHERE 0")
 		}
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -473,7 +473,7 @@ func Test_misc1(t *testing.T) {
 				msg = ""
 			}
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "misc1-12.1"

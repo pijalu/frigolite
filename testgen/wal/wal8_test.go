@@ -62,10 +62,10 @@ func Test_wal8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "1.0"
-		r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		r = db2.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
@@ -77,14 +77,14 @@ func Test_wal8(t *testing.T) {
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "2.0"
-		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;\n  ")
+		r = db2.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;\n  ")
 		}
@@ -96,14 +96,14 @@ func Test_wal8(t *testing.T) {
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "3.0"
-		r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		r = db2.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}

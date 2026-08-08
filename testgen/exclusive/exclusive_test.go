@@ -207,9 +207,9 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive-2.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;\n  ")
 		}
@@ -221,30 +221,30 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive-2.4"
-		r = db.Query("\n    SELECT * FROM abc;\n  ")
+		r = db2.Query("\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
 		}
 	}
 	{ // do_test "exclusive-2.5"
-		_res = db.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		_res = db2.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		_ = _res // catchsql
 	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	{ // do_test "exclusive-2.6"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
+		_res = db2.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		}
-		_res = db.Exec("\n    COMMIT\n  ")
+		_res = db2.Exec("\n    COMMIT\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "exclusive-2.7"
-		_res = db.Exec("\n    COMMIT\n  ")
+		_res = db2.Exec("\n    COMMIT\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "exclusive-2.8"
-		_res = db.Exec("\n    ROLLBACK;\n  ")
+		_res = db2.Exec("\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
@@ -255,7 +255,7 @@ func Test_exclusive(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		}
-		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "exclusive-2.10"
@@ -263,7 +263,7 @@ func Test_exclusive(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n  ")
 		}
-		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "exclusive-2.11"
@@ -271,12 +271,12 @@ func Test_exclusive(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
 		}
-		r = db.Query("\n    SELECT * FROM abc;\n  ")
+		r = db2.Query("\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	if tclBool(tcl_platform_platform + " != \"windows\"\n && " + "atomic_batch_write test.db" + "==0") {
 		// proc definition (not transpiled)
 		{ // do_test "exclusive-3.0"

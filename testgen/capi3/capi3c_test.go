@@ -834,8 +834,8 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_finalize $STMT
 		}
 		{ // "capi3c-18.1" (prepare-step internals; SQL side effects only)
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
 			_ = STMT // prepared statement handle
 			// sqlite3_step $STMT (unknown prepared statement)
 		}
@@ -854,7 +854,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-18.5"
 			_res = db2.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 		{ // "capi3c-19.1" (prepare-step internals; SQL side effects only)
 			_res = db.Exec("\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
@@ -909,8 +909,8 @@ func Test_capi3c(t *testing.T) {
 		}
 		{ // "capi3c-20.1" (prepare-step internals; SQL side effects only)
 			_ = STMT // prepared statement handle
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
 			_res = db2.Exec("CREATE TABLE t4(x)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			// sqlite3_step $STMT (unknown prepared statement)
@@ -922,7 +922,7 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_step $STMT (unknown prepared statement)
 		}
 		{ // "capi3c-20.4" (prepare-step internals; SQL side effects only)
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			// sqlite3_finalize $STMT
 		}
 		{ // "capi3c-21.1" (prepare-step internals; SQL side effects only)

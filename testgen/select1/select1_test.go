@@ -1985,13 +1985,13 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		{ // do_test "select1-15.2"
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			_res = db.Exec(" DROP INDEX i1 ")
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			_res = db2.Exec(" DROP INDEX i1 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ")
 			}
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 		{ // do_test "select1-15.3"
 			r = db.Query(" SELECT 2 IN (SELECT a FROM t1) ")

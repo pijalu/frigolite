@@ -130,8 +130,8 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
@@ -144,7 +144,7 @@ func Test_cacheflush(t *testing.T) {
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.4"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
@@ -194,9 +194,9 @@ func Test_cacheflush(t *testing.T) {
 		// diskquery test.db2 { SELECT * FROM t4; } (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		}
@@ -210,7 +210,7 @@ func Test_cacheflush(t *testing.T) {
 		// diskquery test.db2 { SELECT * FROM t4; } (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2.6"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
 		// diskquery test.db { SELECT * FROM t1; } (unsupported command, not transpiled)
 	}

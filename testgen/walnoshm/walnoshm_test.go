@@ -250,15 +250,15 @@ func Test_walnoshm(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		}
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // do_test "3.2"
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -266,13 +266,13 @@ func Test_walnoshm(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 		}
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	// tvfsshm delete (unsupported command, not transpiled)
 }

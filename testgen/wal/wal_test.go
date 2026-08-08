@@ -771,8 +771,8 @@ func Test_wal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "wal-14"
 		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(10), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n  ")
 		if r.Error != nil {
@@ -793,7 +793,7 @@ func Test_wal(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -830,10 +830,10 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-15.3.3"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "wal-15.4.1"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
@@ -849,7 +849,7 @@ func Test_wal(t *testing.T) {
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "wal-15.4.4"
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -864,7 +864,7 @@ func Test_wal(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{
 		var _catchErr error
@@ -1066,13 +1066,13 @@ func Test_wal(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
 					r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 					}
-					r = db.Query(" SELECT * FROM t1 ")
+					r = db2.Query(" SELECT * FROM t1 ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 					}
@@ -1085,7 +1085,7 @@ func Test_wal(t *testing.T) {
 				}
 				{ // do_test "wal-19.3"
 					db.Close()
-					_ = db2 // close db2: aliased to db, no-op
+					db2.Close()
 					// file exists "test.db-wal"
 				}
 				{ // do_test "wal-19.4"
@@ -1142,7 +1142,7 @@ func Test_wal(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					_ = db2 // close db2: aliased to db, no-op
+					db2.Close()
 				}
 				{
 					var _catchErr error

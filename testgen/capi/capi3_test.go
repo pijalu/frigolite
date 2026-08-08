@@ -968,11 +968,11 @@ func Test_capi3(t *testing.T) {
 		{ // "capi3-18.1" (prepare-step internals; SQL side effects only)
 			// prepared STMT: SELECT * FROM t2 (bind/step emulation)
 			_ = STMT // prepared statement handle
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
 			_res = db2.Exec("CREATE TABLE t3(x)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			_res = db.Exec("SELECT * FROM t2")
 			if _res.Error != nil {
 				t.Errorf("prepared-statement exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")

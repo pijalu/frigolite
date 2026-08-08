@@ -96,9 +96,9 @@ func Test_readonly(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			_ = db2 // close db2: aliased to db, no-op
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			db2.Close()
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)

@@ -98,9 +98,9 @@ func Test_wal6(t *testing.T) {
 			}
 		}
 		{ // do_test "wal6-1.2." + jmode
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			r = db.Query("\n    PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;\n    ")
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			r = db2.Query("\n    PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;\n    ")
 			}
@@ -119,7 +119,7 @@ func Test_wal6(t *testing.T) {
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		os.Remove("test.db")
 	}
 	db.Close()
@@ -127,8 +127,8 @@ func Test_wal6(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  BEGIN;\n    SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -142,7 +142,7 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		r = db.Query("\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
+		r = db2.Query("\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 		}
@@ -190,7 +190,7 @@ func Test_wal6(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v_2_6_4) + "")
 	}
 	{ // do_test "2.x"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	// proc definition (not transpiled)
 	db.Close()
@@ -198,8 +198,8 @@ func Test_wal6(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);\n")
 		if r.Error != nil {
@@ -213,7 +213,7 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.1"
-		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
+		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
 		}
@@ -222,7 +222,7 @@ func Test_wal6(t *testing.T) {
 	// db function test4 (variable-reader, inlined)
 	db.RegisterFunction("test4", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "3.3.1"
-		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
+		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		}
@@ -232,7 +232,7 @@ func Test_wal6(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v_3_3_2) + "")
 	}
 	{ // do_test "3.x"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -259,13 +259,13 @@ func Test_wal6(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "4.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		}
-		r = db.Query(" PRAGMA wal_checkpoint = passive ")
+		r = db2.Query(" PRAGMA wal_checkpoint = passive ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint = passive ")
 		}
@@ -275,28 +275,28 @@ func Test_wal6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// hexio_write test.db-wal 0 [string repeat 00 2000] (unsupported command, not transpiled)
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "4.4.1"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "4.4.2"
-		_res = db.Exec(" SELECT * FROM t2 ")
+		_res = db2.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		if r.Error != nil {

@@ -65,10 +65,10 @@ func Test_fts3integrity(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1 VALUES('first row');\n  INSERT INTO t1 VALUES('second row');\n\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('first row');\n  INSERT INTO t2 VALUES('second row');\n")
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "1.1"
-		_res = db.Exec("\n  CREATE TABLE t3(x, y);\n")
+		_res = db2.Exec("\n  CREATE TABLE t3(x, y);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y);\n")
 		}

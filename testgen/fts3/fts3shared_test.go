@@ -70,8 +70,8 @@ func Test_fts3shared(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "fts3shared-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  BEGIN;\n  INSERT INTO t1 VALUES('We listened and looked sideways up!');\n  INSERT INTO t1 VALUES('Fear at my heart, as at a cup,');\n  INSERT INTO t1 VALUES('My life-blood seemed to sip!');\n  INSERT INTO t1 VALUES('The stars were dim, and thick the night');\n  COMMIT;\n")
 		if _res.Error != nil {
@@ -85,7 +85,7 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3shared-1.3"
-		_res = db.Exec("  \n    BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars' \n  ")
+		_res = db2.Exec("  \n    BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars' \n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "fts3shared-1.4"
@@ -104,118 +104,118 @@ func Test_fts3shared(t *testing.T) {
 		// sqlite3_get_autocommit db2 (unsupported command, not transpiled)
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	LOCKED = "1 {database table is locked}"
 	_ = LOCKED // suppress unused warning
 	os.Remove("test.db")
-	var dbR *frigolite.DB
-	dbR = db // sqlite3 dbR test.db: alias to main in-memory db
-	_ = dbR
-	var dbW *frigolite.DB
-	dbW = db // sqlite3 dbW test.db: alias to main in-memory db
-	_ = dbW
+	dbR, err := frigolite.Open("test.db")
+	defer dbR.Close()
+	if err != nil { t.Fatal(err) }
+	dbW, err := frigolite.Open("test.db")
+	defer dbW.Close()
+	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b) VALUES(1, 'd e f', 'g h i');\n  ")
+		_res = dbW.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b) VALUES(1, 'd e f', 'g h i');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b) VALUES(1, 'd e f', 'g h i');\n  ")
 		}
 	}
 	{ // do_test "2.2.1"
-		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES('j k l');\n  ")
+		_res = dbW.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES('j k l');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES('j k l');\n  ")
 		}
-		_res = db.Exec("BEGIN")
+		_res = dbR.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
 	{ // do_test "2.2.2"
-		_res = db.Exec("SELECT * FROM t1 WHERE rowid=1")
+		_res = dbR.Exec("SELECT * FROM t1 WHERE rowid=1")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.2")
 		}
 	}
 	{ // do_test "2.2.3"
-		_res = db.Exec("SELECT * FROM t1 WHERE t1 MATCH 'a'")
+		_res = dbR.Exec("SELECT * FROM t1 WHERE t1 MATCH 'a'")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.3")
 		}
 	}
 	{ // do_test "2.2.4"
-		_res = db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'a'")
+		_res = dbR.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'a'")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.4")
 		}
 	}
 	{ // do_test "2.2.5"
-		_res = db.Exec("SELECT * FROM t1")
+		_res = dbR.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.5")
 		}
 	}
 	{ // do_test "2.2.6"
-		_res = db.Exec("SELECT * FROM t1aux")
+		_res = dbR.Exec("SELECT * FROM t1aux")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.2.6")
 		}
 	}
 	{ // do_test "2.2.7"
-		_res = db.Exec("COMMIT")
+		_res = dbW.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
 	{ // do_test "2.2.8"
-		_res = db.Exec("COMMIT")
+		_res = dbR.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
 	{ // do_test "2.3.1"
-		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t2(rowid, a, b) VALUES(2, 'j k l', 'm n o');\n  ")
+		_res = dbW.Exec("\n    BEGIN;\n      INSERT INTO t2(rowid, a, b) VALUES(2, 'j k l', 'm n o');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t2(rowid, a, b) VALUES(2, 'j k l', 'm n o');\n  ")
 		}
-		_res = db.Exec("BEGIN")
+		_res = dbR.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
 	{ // do_test "2.3.3"
-		_res = db.Exec("SELECT * FROM t2 WHERE t2 MATCH 'a'")
+		_res = dbR.Exec("SELECT * FROM t2 WHERE t2 MATCH 'a'")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.3.3")
 		}
 	}
 	{ // do_test "2.3.4"
-		_res = db.Exec("SELECT rowid FROM t2 WHERE t2 MATCH 'a'")
+		_res = dbR.Exec("SELECT rowid FROM t2 WHERE t2 MATCH 'a'")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.3.4")
 		}
 	}
 	{ // do_test "2.3.6"
-		_res = db.Exec("SELECT * FROM t2aux")
+		_res = dbR.Exec("SELECT * FROM t2aux")
 		_ = _res // catchsql
 		if !tclCatchsqlMatches(_res, LOCKED) {
 			t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, LOCKED, "2.3.6")
 		}
 	}
 	{ // do_test "2.3.7"
-		_res = db.Exec("COMMIT")
+		_res = dbW.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
 	{ // do_test "2.3.8"
-		_res = db.Exec("COMMIT")
+		_res = dbR.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}

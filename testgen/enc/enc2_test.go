@@ -513,9 +513,9 @@ func Test_enc2(t *testing.T) {
 		_ = tclStringRange(enc, "0", "end-2") // string range result
 	}
 	{ // do_test "enc2-7.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
@@ -533,7 +533,7 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// proc definition (not transpiled)
 	{ // do_test "enc2-8.1"
 		// sqlite3_complete16 [utf16 "SELECT * FROM t1;"] (unsupported command, not transpiled)

@@ -70,8 +70,8 @@ func Test_capi3b(t *testing.T) {
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	DB2 = "sqlite3_connection_pointer db2"
 	_ = DB2 // suppress unused warning
 	{ // do_test "capi3b-1.1"
@@ -81,7 +81,7 @@ func Test_capi3b(t *testing.T) {
 		}
 	}
 	{ // do_test "capi3b-1.2"
-		r = db.Query("\n    SELECT * FROM t1\n  ")
+		r = db2.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
@@ -126,7 +126,7 @@ func Test_capi3b(t *testing.T) {
 		// sqlite3_finalize $VM
 	}
 	{ // do_test "capi3b-1.8"
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
@@ -209,7 +209,7 @@ func Test_capi3b(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

@@ -84,16 +84,16 @@ func Test_pendingrace(t *testing.T) {
 		_ = nPg // suppress unused warning
 		// expr ($nPg==20 (not evaluated)
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "1.1"
-		r = db.Query("\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
+		r = db2.Query("\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
 		}
 	}
 	// db_save (unsupported command, not transpiled)
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// proc definition (not transpiled)
 	// my_db_restore (unsupported command, not transpiled)
 	{ // do_test "1.2"
@@ -105,8 +105,8 @@ func Test_pendingrace(t *testing.T) {
 	seen_unlock = "0" // TCL namespace variable
 	_ = seen_unlock // suppress unused warning
 	// proc definition (not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	// tvfs filter xAccess (unsupported command, not transpiled)
 	// tvfs script xAccess (unsupported command, not transpiled)
 	seen_access = "0" // TCL namespace variable
@@ -119,7 +119,7 @@ func Test_pendingrace(t *testing.T) {
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	// tvfs2 delete (unsupported command, not transpiled)
 }

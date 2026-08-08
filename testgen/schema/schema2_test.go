@@ -223,13 +223,13 @@ func Test_schema2(t *testing.T) {
 		// sqlite3_finalize $STMT
 	}
 	{ // do_test "schema2-9.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n    DROP TABLE abc;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n    DROP TABLE abc;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
@@ -242,13 +242,13 @@ func Test_schema2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW abcview AS SELECT * FROM abc;\n    ")
 		}
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n      DROP VIEW abcview;\n    ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n      DROP VIEW abcview;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW abcview;\n    ")
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		_res = db.Exec("\n      SELECT * FROM abcview;\n    ")
 		_ = _res // catchsql
 	}
@@ -270,15 +270,15 @@ func Test_schema2(t *testing.T) {
 		// sqlite3_finalize $STMT
 	}
 	{ // do_test "schema2-10.4"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    SELECT * FROM abc\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    SELECT * FROM abc\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc\n  ")
 		}
 	}
 	{ // do_test "schema2-10.5"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{ // "schema2-11.1" (prepare-step internals; SQL side effects only)
 		// db function tstfunc (variable-reader, inlined)

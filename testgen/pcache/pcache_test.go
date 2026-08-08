@@ -84,16 +84,16 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.5"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("PRAGMA cache_size; PRAGMA cache_size=10")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("PRAGMA cache_size; PRAGMA cache_size=10")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size; PRAGMA cache_size=10")
 		}
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.6.1"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		}
@@ -114,7 +114,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.8"
-		_res = db.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
@@ -128,7 +128,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.10"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.11"

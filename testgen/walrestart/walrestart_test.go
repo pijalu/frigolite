@@ -102,8 +102,8 @@ func Test_walrestart(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "1.2"
 		r = db.Query("\n  PRAGMA wal_checkpoint;\n")
 		if r.Error != nil {
@@ -117,7 +117,7 @@ func Test_walrestart(t *testing.T) {
 		}
 	}
 	{ // "1.3"
-		_res = db.Exec("\n  UPDATE t1 SET b=randomblob(600);\n")
+		_res = db2.Exec("\n  UPDATE t1 SET b=randomblob(600);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=randomblob(600);\n")
 		}

@@ -102,12 +102,12 @@ func Test_tableopts(t *testing.T) {
 		}
 	}
 	{ // do_test "tableopt-2.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // "tableopt-3.1"
 		r = db.Query("\n  CREATE TABLE without(x INTEGER PRIMARY KEY, without TEXT);\n  INSERT INTO without VALUES(1, 'xyzzy'), (2, 'fizzle');\n  SELECT * FROM without WHERE without='xyzzy';\n")
 		if r.Error != nil {

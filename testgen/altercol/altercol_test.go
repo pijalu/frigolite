@@ -157,10 +157,10 @@ func Test_altercol(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (b, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4);\n")
 			}
 		}
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		{ // "2.1"
-			r = db.Query(" SELECT b FROM t3 ")
+			r = db2.Query(" SELECT b FROM t3 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM t3 ")
 			}
@@ -178,7 +178,7 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		{ // "2.3"
-			r = db.Query(" SELECT biglongname FROM t3 ")
+			r = db2.Query(" SELECT biglongname FROM t3 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT biglongname FROM t3 ")
 			}
@@ -322,7 +322,7 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")

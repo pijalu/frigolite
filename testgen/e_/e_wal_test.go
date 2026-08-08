@@ -175,12 +175,12 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("SELECT * FROM t1")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // "2.3.1"
 		r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -194,9 +194,9 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("SELECT * FROM t1")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // "2.3.3"
@@ -212,12 +212,12 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3.4"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("SELECT * FROM t1")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	{ // do_test "3.0"
 		db, err = frigolite.Open("test.db")
@@ -251,9 +251,9 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // "3.2.3"
@@ -269,7 +269,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.4"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // "3.2.5"
@@ -278,7 +278,7 @@ func Test_e_wal(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(7, 8);\n")
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	{ // do_test "3.4.1"
 		db, err = frigolite.Open("test.db")

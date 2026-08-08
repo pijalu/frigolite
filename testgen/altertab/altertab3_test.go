@@ -282,13 +282,13 @@ func Test_altertab3(t *testing.T) {
 		}
 	}
 	{ // do_test "8.2.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" INSERT INTO t2 VALUES (1), (2), (3) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db.Close()
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

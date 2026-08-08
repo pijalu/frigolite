@@ -153,9 +153,9 @@ func Test_snapshot2(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	{ // do_test "1.2.4"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(10, 11, 12) ")
 		}
@@ -169,7 +169,7 @@ func Test_snapshot2(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -287,13 +287,13 @@ func Test_snapshot2(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" INSERT INTO t1 VALUES('e', 'f') ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" INSERT INTO t1 VALUES('e', 'f') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('e', 'f') ")
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// sqlite3_snapshot_recover db main (unsupported command, not transpiled)
 	}
 	{ // "3.2"
@@ -356,8 +356,8 @@ func Test_snapshot2(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t2(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t2 VALUES('abc');\n  INSERT INTO t2 VALUES('def');\n  INSERT INTO t2 VALUES('ghi');\n")
 		if r.Error != nil {
@@ -371,7 +371,7 @@ func Test_snapshot2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		r = db.Query(" \n    SELECT * FROM t2;\n    BEGIN;\n  ")
+		r = db2.Query(" \n    SELECT * FROM t2;\n    BEGIN;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t2;\n    BEGIN;\n  ")
 		}
@@ -381,7 +381,7 @@ func Test_snapshot2(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "5.2"
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -394,7 +394,7 @@ func Test_snapshot2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint = RESTART ")
 		}
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -407,7 +407,7 @@ func Test_snapshot2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('jkl') ")
 		}
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}

@@ -68,8 +68,8 @@ func Test_ioerr4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);\n  ")
@@ -126,10 +126,10 @@ func Test_ioerr4(t *testing.T) {
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	tclFileCopy("test.db", "test.db-bu")
 	// do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete t...} -tclbo... (unsupported command, not transpiled)
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	os.Remove("test.db-bu")
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

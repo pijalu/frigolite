@@ -125,15 +125,15 @@ func Test_exclusive2(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive2-1.4"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		// t1sig db2 (unsupported command, not transpiled)
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-1.4")
 		}
 	}
 	{ // do_test "exclusive2-1.5"
-		_res = db.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
+		_res = db2.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b=a, a=0;\n  ")
 		}
@@ -157,7 +157,7 @@ func Test_exclusive2(t *testing.T) {
 	{ // do_test "exclusive2-1.11"
 		// expr [t1sig] eq $::sig (not evaluated)
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // do_test "exclusive2-2.1"
 		r = db.Query("PRAGMA cache_size=1000;")
 		if r.Error != nil {

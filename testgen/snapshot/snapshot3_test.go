@@ -78,15 +78,15 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-		_ = db3
-		r = db.Query("SELECT * FROM sqlite_master")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db3, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
 		}
-		r = db.Query("SELECT * FROM sqlite_master")
+		r = db3.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
 		}
@@ -95,7 +95,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -104,7 +104,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		_res = db.Exec("END")
+		_res = db2.Exec("END")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "END")
 		}
@@ -112,7 +112,7 @@ func Test_snapshot3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -133,7 +133,7 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		_res = db.Exec("BEGIN")
+		_res = db3.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -156,15 +156,15 @@ func Test_snapshot3(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "1.8"
-		_res = db.Exec("BEGIN")
+		_res = db3.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	_ = db3 // close db3: aliased to db, no-op
-	_ = db2 // close db2: aliased to db, no-op
+	db3.Close()
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -182,12 +182,12 @@ func Test_snapshot3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
-	db3 = db // sqlite3 db3 test.db: alias to main in-memory db
-	_ = db3
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	db3, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "2.0.1"
-		r = db.Query("\n  SELECT * FROM t1\n")
+		r = db2.Query("\n  SELECT * FROM t1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
 			return
@@ -199,7 +199,7 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // "2.0.2"
-		r = db.Query("\n  SELECT * FROM t1\n")
+		r = db3.Query("\n  SELECT * FROM t1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
 			return
@@ -211,7 +211,7 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // "2.2"
-		r = db.Query("\n  PRAGMA wal_checkpoint;\n")
+		r = db2.Query("\n  PRAGMA wal_checkpoint;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA wal_checkpoint;\n")
 			return
@@ -232,13 +232,13 @@ func Test_snapshot3(t *testing.T) {
 		// set  (invalid identifier, skipped)
 	}
 	{ // "2.3"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(5, 6);\n")
+		_res = db2.Exec("\n  INSERT INTO t1 VALUES(5, 6);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(5, 6);\n")
 		}
 	}
 	{ // do_test "2.2"
-		_res = db.Exec(" BEGIN ")
+		_res = db3.Exec(" BEGIN ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}

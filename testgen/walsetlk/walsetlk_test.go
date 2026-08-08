@@ -88,11 +88,11 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	// db2.timeout (db command)
 	{ // "1.1"
-		r = db.Query("\n  SELECT * FROM t1\n")
+		r = db2.Query("\n  SELECT * FROM t1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
 			return
@@ -114,7 +114,7 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	{ // "1.3"
-		r = db.Query("\n  SELECT * FROM t1\n")
+		r = db2.Query("\n  SELECT * FROM t1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
 			return
@@ -136,7 +136,7 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	{ // "1.6"
-		r = db.Query("\n  SELECT * FROM t1\n")
+		r = db2.Query("\n  SELECT * FROM t1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
 			return
@@ -150,7 +150,7 @@ func Test_walsetlk(t *testing.T) {
 	_putsMsg = fd
 	_ = _putsMsg
 	{ // "1.7"
-		r = db.Query("\n  PRAGMA wal_checkpoint = TRUNCATE\n")
+		r = db2.Query("\n  PRAGMA wal_checkpoint = TRUNCATE\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA wal_checkpoint = TRUNCATE\n")
 			return
@@ -166,7 +166,7 @@ func Test_walsetlk(t *testing.T) {
 	}
 	// close $fd
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// do_multiclient_test tn {\n\n  testvfs tvfs -fullshm 1\n  db close\n  sqlit...} (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
@@ -179,8 +179,8 @@ func Test_walsetlk(t *testing.T) {
 	sleep_count = "0" // TCL namespace variable
 	_ = sleep_count // suppress unused warning
 	// proc definition (not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	// db2.timeout (db command)
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x1(x, y);\n  BEGIN;\n    INSERT INTO x1 VALUES(1, 2);\n")
@@ -195,7 +195,7 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	{ // "3.1a"
-		r = db.Query("\n  SELECT * FROM x1\n")
+		r = db2.Query("\n  SELECT * FROM x1\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x1\n")
 		}
@@ -250,7 +250,7 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	{ // "3.6"
-		r = db.Query("\n  INSERT INTO x1 VALUES(5, 6);\n  COMMIT;\n  SELECT * FROM x1;\n")
+		r = db2.Query("\n  INSERT INTO x1 VALUES(5, 6);\n  COMMIT;\n  SELECT * FROM x1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x1 VALUES(5, 6);\n  COMMIT;\n  SELECT * FROM x1;\n")
 			return
@@ -285,7 +285,7 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	{ // "3.9"
-		r = db.Query("\n  INSERT INTO x1 VALUES(9, 10);\n  COMMIT;\n  SELECT * FROM x1;\n")
+		r = db2.Query("\n  INSERT INTO x1 VALUES(9, 10);\n  COMMIT;\n  SELECT * FROM x1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x1 VALUES(9, 10);\n  COMMIT;\n  SELECT * FROM x1;\n")
 			return
@@ -296,6 +296,6 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// tvfs delete (unsupported command, not transpiled)
 }

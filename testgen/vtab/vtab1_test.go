@@ -1245,15 +1245,15 @@ func Test_vtab1(t *testing.T) {
 				}
 			}
 			{ // do_test "19.1"
-				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-				_ = db2
+				db2, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
 				// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			}
 			{ // do_test "19.2"
 				// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			}
 			{ // do_test "19.3"
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 			}
 			{ // "20.1"
 				_res = db.Exec("\n  CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);\n")
@@ -1491,11 +1491,11 @@ func Test_vtab1(t *testing.T) {
 				}
 			}
 			{ // do_test "26.2"
-				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-				_ = db2
+				db2, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
 				_res = db2.Exec(" CREATE TABLE ty(x, y) ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 			}
 			{ // "26.3"
 				r = db.Query("\n  SELECT value FROM t1 WHERE value<5\n")

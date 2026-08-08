@@ -69,12 +69,12 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	if "" == "prepare" {
 	}
 	{ // "1.1"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			return
@@ -90,7 +90,7 @@ func Test_reservebytes(t *testing.T) {
 		// hexio_read test.db 20 1 (unsupported command, not transpiled)
 	}
 	{ // "1.2.2"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			return
@@ -108,7 +108,7 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // "1.3.4"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			return
@@ -133,7 +133,7 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // "1.4.3"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			return

@@ -498,9 +498,9 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=0 WHERE 0")
 		}
-		db2 = db // sqlite3 db2 ./test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("UPDATE t1 SET a=0")
+		db2, err = frigolite.Open("./test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("UPDATE t1 SET a=0")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-4.2"
@@ -608,11 +608,11 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
 		}
-		r = db.Query(" SELECT * FROM sqlite_master ")
+		r = db2.Query(" SELECT * FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sqlite_master ")
 		}
-		r = db.Query(" SELECT * FROM t4 ")
+		r = db2.Query(" SELECT * FROM t4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 		}
@@ -622,19 +622,19 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;\n  ")
 		}
-		r = db.Query(" SELECT * FROM t4 ")
+		r = db2.Query(" SELECT * FROM t4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 		}
 	}
 	{ // do_test "lock-6.3"
-		r = db.Query(" SELECT a FROM t4 ORDER BY a ")
+		r = db2.Query(" SELECT a FROM t4 ORDER BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t4 ORDER BY a ")
 		}
 	}
 	{ // do_test "lock-6.4"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}

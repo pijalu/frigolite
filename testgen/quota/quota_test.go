@@ -197,11 +197,11 @@ func Test_quota(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "quota-3.1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		quota = "" // TCL namespace variable
 		_ = quota // suppress unused warning
-		_res = db.Exec(" CREATE TABLE t2(a, b) ")
+		_res = db2.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a, b) ")
 		}
@@ -221,7 +221,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-3.1.6"
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// sqlite3_quota_set *test.db 0 {} (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-3.2.1"
@@ -229,9 +229,9 @@ func Test_quota(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		// sqlite3_quota_set * 4096 {} (unsupported command, not transpiled)
-		var db1a *frigolite.DB
-		db1a = db // sqlite3 db1a test.db: alias to main in-memory db
-		_ = db1a
+		db1a, err := frigolite.Open("test.db")
+		defer db1a.Close()
+		if err != nil { t.Fatal(err) }
 		db2a, err := frigolite.Open("test2.db")
 		defer db2a.Close()
 		if err != nil { t.Fatal(err) }
@@ -242,9 +242,9 @@ func Test_quota(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			}
 		}
-		var db1b *frigolite.DB
-		db1b = db // sqlite3 db1b test.db: alias to main in-memory db
-		_ = db1b
+		db1b, err := frigolite.Open("test.db")
+		defer db1b.Close()
+		if err != nil { t.Fatal(err) }
 		db2b, err := frigolite.Open("test2.db")
 		defer db2b.Close()
 		if err != nil { t.Fatal(err) }

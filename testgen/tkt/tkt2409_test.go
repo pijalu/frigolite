@@ -79,8 +79,8 @@ func Test_tkt2409(t *testing.T) {
 	// sqlite3_extended_result_codes $::DB 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	STMT = "" // TCL namespace variable
 	_ = STMT // suppress unused warning
 	{ // do_test "tkt2409-1.1"
@@ -221,5 +221,5 @@ func Test_tkt2409(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// unread_lock_db (unsupported command, not transpiled)
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 }

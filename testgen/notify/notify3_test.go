@@ -186,8 +186,8 @@ func Test_notify3(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						db2.Close()
 					}
-					db1 = db // sqlite3 db1 test.db: alias to main in-memory db
-					_ = db1
+					db1, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
 					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
 					// sqlite3_extended_result_codes db1 $enable_extended_errors (unsupported command, not transpiled)
@@ -202,7 +202,7 @@ func Test_notify3(t *testing.T) {
 					}
 					_res = db2.Exec("BEGIN EXCLUSIVE")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-					_res = db.Exec("ATTACH 'test.db2' AS two")
+					_res = db1.Exec("ATTACH 'test.db2' AS two")
 					_ = _res // catchsql
 					if !tclCatchsqlMatches(_res, result) {
 						t.Errorf("catchsql mismatch\n  got:  [%v]\n  want: [%s]\n  body: do_test %s", _res.Error, result, "notify3-2." + tn + ".1")

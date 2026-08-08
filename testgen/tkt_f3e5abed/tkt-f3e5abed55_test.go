@@ -72,9 +72,9 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		tclGlob("-nocomplain")
 	}
 	{ // do_test "tkt-f3e5abed55-1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" BEGIN; SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" BEGIN; SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN; SELECT * FROM t1 ")
 		}
@@ -88,7 +88,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt-f3e5abed55-1.5"
-		_res = db.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -105,7 +105,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		os.Remove(f)
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	if "" != "inmemory_journal" {
 		// testvfs tvfs -default 1 (unsupported command, not transpiled)
 		// tvfs script xDelete (unsupported command, not transpiled)
@@ -114,8 +114,8 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		{ // do_test "tkt-f3e5abed55-2.1"
 			_res = db.Exec("\n      ATTACH 'test.db2' AS aux;\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n        INSERT INTO t2 VALUES(3, 4);\n    ")
 			if _res.Error != nil {
@@ -123,7 +123,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 			}
 		}
 		{ // do_test "tkt-f3e5abed55-2.2"
-			r = db.Query(" BEGIN; SELECT * FROM t1 ")
+			r = db2.Query(" BEGIN; SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN; SELECT * FROM t1 ")
 			}
@@ -133,7 +133,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "tkt-f3e5abed55-2.4"
-			_res = db.Exec("COMMIT")
+			_res = db2.Exec("COMMIT")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
@@ -144,7 +144,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		}
 		{ // do_test "tkt-f3e5abed55-2.5"
 			db.Close()
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			// faultsim_restore_and_reopen (unsupported command, not transpiled)
 			r = db.Query("\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
 			if r.Error != nil {

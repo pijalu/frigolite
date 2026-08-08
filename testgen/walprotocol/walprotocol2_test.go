@@ -85,8 +85,8 @@ func Test_walprotocol2(t *testing.T) {
 	// T script lock_callback (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  SELECT * FROM x;\n")
 		if r.Error != nil {
@@ -100,7 +100,7 @@ func Test_walprotocol2(t *testing.T) {
 		}
 	}
 	{ // "2.1"
-		r = db.Query("\n  SELECT * FROM x;\n")
+		r = db2.Query("\n  SELECT * FROM x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x;\n")
 			return

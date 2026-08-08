@@ -167,23 +167,23 @@ func Test_reindex(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "reindex-3.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n    REINDEX c1;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.2"
 		// proc definition (not transpiled)
 		// db2.collation_needed (db command)
-		_res = db.Exec("\n    REINDEX c1;\n  ")
+		_res = db2.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.3"
-		_res = db.Exec("\n    REINDEX;\n  ")
+		_res = db2.Exec("\n    REINDEX;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.99"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	// foreach {tn wo} "1 \"\" 2 \"WITHOUT ROWID\""
 	_items0 := tclSplitList("1 \"\" 2 \"WITHOUT ROWID\"")

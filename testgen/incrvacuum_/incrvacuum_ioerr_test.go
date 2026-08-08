@@ -95,12 +95,12 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	os.Remove("test.db")
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
-	_ = db1
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db1, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "incrvacuum-ioerr-4.0"
-		r = db.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
+		r = db1.Query("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
 		}
@@ -119,11 +119,11 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec("COMMIT")
+		_res = db1.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		_res = db.Exec("DELETE FROM a WHERE oid")
+		_res = db1.Exec("DELETE FROM a WHERE oid")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM a WHERE oid")
 		}
@@ -176,7 +176,7 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 			}
 		}
 	}
-	_ = db1 // close db1: aliased to db, no-op
-	_ = db2 // close db2: aliased to db, no-op
+	db1.Close()
+	db2.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

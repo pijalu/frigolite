@@ -87,7 +87,7 @@ func Test_memdb2(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".2"
-				r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+				r = db2.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 					return
@@ -111,7 +111,7 @@ func Test_memdb2(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".5"
-				r = db.Query("\n      SELECT * FROM t1;\n    END;\n  ")
+				r = db2.Query("\n      SELECT * FROM t1;\n    END;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    END;\n  ")
 					return
@@ -129,7 +129,7 @@ func Test_memdb2(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".7"
-				r = db.Query("\n    SELECT * FROM t1\n  ")
+				r = db2.Query("\n    SELECT * FROM t1\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 					return

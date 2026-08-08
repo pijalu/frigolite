@@ -899,8 +899,8 @@ func Test_returning1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		{ // "24.1"
 			r = db.Query("\n    SELECT * FROM t1\n  ")
 			if r.Error != nil {
@@ -914,12 +914,12 @@ func Test_returning1(t *testing.T) {
 			}
 		}
 		{ // "24.2"
-			_res = db.Exec("\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');\n  ")
+			_res = db2.Exec("\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');\n  ")
 			}
 		}
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		{ // "24.3"
 			r = db.Query("\n    INSERT INTO ft VALUES('hello world') RETURNING *\n  ")
 			if r.Error != nil {

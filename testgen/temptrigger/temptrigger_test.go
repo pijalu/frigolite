@@ -75,8 +75,8 @@ func Test_temptrigger(t *testing.T) {
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "temptrigger-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
 		if _res.Error != nil {
@@ -100,7 +100,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-1.2.3"
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, 4) ")
 		}
@@ -116,7 +116,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-1.3"
-		_res = db.Exec(" BEGIN; CREATE TABLE t3(a, b); ROLLBACK; ")
+		_res = db2.Exec(" BEGIN; CREATE TABLE t3(a, b); ROLLBACK; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; CREATE TABLE t3(a, b); ROLLBACK; ")
 		}
@@ -141,7 +141,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{ // do_test "temptrigger-2.1"
 		db, err = frigolite.Open("test.db")
@@ -158,9 +158,9 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-2.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_ = db2 // close db2: aliased to db, no-op
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db2.Close()
 	}
 	{ // do_test "temptrigger-2.4"
 		r = db.Query("\n    INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;\n  ")
@@ -178,7 +178,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	{ // do_test "temptrigger-3.1"
@@ -274,9 +274,9 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" DROP TABLE t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 		}
@@ -293,7 +293,7 @@ func Test_temptrigger(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

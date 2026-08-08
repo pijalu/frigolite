@@ -456,15 +456,15 @@ func Test_capi2(t *testing.T) {
 		}
 		// prepared VM1: SELECT * FROM t3 (bind/step emulation)
 		_ = VM1 // prepared statement handle
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("BEGIN")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
 	{ // do_test "capi2-6.3"
-		_res = db.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -474,7 +474,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.5"
-		_res = db.Exec("INSERT INTO t3 VALUES(10);")
+		_res = db2.Exec("INSERT INTO t3 VALUES(10);")
 		_ = _res // catchsql
 	}
 	{ // do_test "capi2-6.6"
@@ -482,7 +482,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.7"
-		r = db.Query("SELECT * FROM t2")
+		r = db2.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
@@ -778,5 +778,5 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-13.11"
 		// check_origins {select * from (select * from tab1 limit 10 offset ...} (unsupported command, not transpiled)
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 }

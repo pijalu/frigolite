@@ -67,17 +67,17 @@ func Test_shared2(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "shared2-1.1"
-		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
-		_ = db1
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE numbers(a PRIMARY KEY, b);\n    INSERT INTO numbers(oid) VALUES(NULL);\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    UPDATE numbers set a = oid, b = 'abcdefghijklmnopqrstuvwxyz0123456789';\n    COMMIT;\n  ")
+		db1, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db1.Exec("\n    BEGIN;\n    CREATE TABLE numbers(a PRIMARY KEY, b);\n    INSERT INTO numbers(oid) VALUES(NULL);\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    UPDATE numbers set a = oid, b = 'abcdefghijklmnopqrstuvwxyz0123456789';\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE numbers(a PRIMARY KEY, b);\n    INSERT INTO numbers(oid) VALUES(NULL);\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    UPDATE numbers set a = oid, b = 'abcdefghijklmnopqrstuvwxyz0123456789';\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "shared2-1.2"
-		r = db.Query("\n    pragma read_uncommitted = 1;\n  ")
+		r = db2.Query("\n    pragma read_uncommitted = 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma read_uncommitted = 1;\n  ")
 		}
@@ -89,7 +89,7 @@ func Test_shared2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shared2-1.3"
-		_res = db.Exec("\n    ROLLBACK;\n  ")
+		_res = db1.Exec("\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
@@ -100,8 +100,8 @@ func Test_shared2(t *testing.T) {
 		_list := tclList([]string{a, count})
 		_ = _list
 	}
-	_ = db1 // close db1: aliased to db, no-op
-	_ = db2 // close db2: aliased to db, no-op
+	db1.Close()
+	db2.Close()
 	{ // do_test "shared2-3.2"
 		// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	}
@@ -117,38 +117,38 @@ func Test_shared2(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "shared2-4.2"
 		r = db.Query(" SELECT a, b FROM t0 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b FROM t0 ")
 		}
-		_res = db.Exec(" INSERT INTO t1(a) VALUES(1) ")
+		_res = db2.Exec(" INSERT INTO t1(a) VALUES(1) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(a) VALUES(1) ")
 		}
 	}
 	{ // do_test "shared2-4.3"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		db.Close()
 	}
 	{ // do_test "shared2-5.1"
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t2(a, b, c) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a, b, c) ")
 		}
-		_res = db.Exec(" CREATE INDEX i1 ON t2(a) ")
+		_res = db2.Exec(" CREATE INDEX i1 ON t2(a) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t2(a) ")
 		}
 	}
 	db.Close()
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	// do_multiclient_test {tn} {\n  sql1 { CREATE TABLE t1(a, b) }\n  sql2 { CREAT...} (unsupported command, not transpiled)
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

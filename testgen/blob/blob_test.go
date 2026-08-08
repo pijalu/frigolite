@@ -196,8 +196,8 @@ func Test_blob(t *testing.T) {
 		}
 	}
 	{ // "blob-3.0" (prepare-step internals; SQL side effects only)
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db2"
 		_ = DB // suppress unused warning
 		// prepared STMT: DELETE FROM t1 WHERE a = ? (bind/step emulation)
@@ -210,7 +210,7 @@ func Test_blob(t *testing.T) {
 	}
 	{ // "blob-3.1" (prepare-step internals; SQL side effects only)
 		// sqlite3_finalize $STMT
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{ // do_test "blob-3.2"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")

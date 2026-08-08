@@ -1526,15 +1526,15 @@ func Test_pager1(t *testing.T) {
 							}
 							// tv script {} (unsupported command, not transpiled)
 							{ // do_test "pager1-11.3"
-								db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-								_ = db2
-								r = db.Query("\n    PRAGMA journal_mode = TRUNCATE;\n    PRAGMA integrity_check;\n  ")
+								db2, err = frigolite.Open("test.db")
+								if err != nil { t.Fatal(err) }
+								r = db2.Query("\n    PRAGMA journal_mode = TRUNCATE;\n    PRAGMA integrity_check;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = TRUNCATE;\n    PRAGMA integrity_check;\n  ")
 								}
 							}
 							{ // do_test "pager1-11.4"
-								_ = db2 // close db2: aliased to db, no-op
+								db2.Close()
 								// file exists "test.db-journal"
 							}
 							{ // "pager1-11.5"
@@ -1563,9 +1563,9 @@ func Test_pager1(t *testing.T) {
 									_ = eff // suppress unused warning
 								}
 								{ // do_test "pager1-12." + pagesize + ".1"
-									db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-									_ = db2
-									r = db.Query("\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
+									db2, err = frigolite.Open("test.db")
+									if err != nil { t.Fatal(err) }
+									r = db2.Query("\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
 									}
@@ -1575,9 +1575,9 @@ func Test_pager1(t *testing.T) {
 									}
 								}
 								{ // do_test "pager1-12." + pagesize + ".2"
-									db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-									_ = db2
-									r = db.Query(" \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
+									db2, err = frigolite.Open("test.db")
+									if err != nil { t.Fatal(err) }
+									r = db2.Query(" \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
 									}
@@ -1588,7 +1588,7 @@ func Test_pager1(t *testing.T) {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
 									}
 								}
-								_ = db2 // close db2: aliased to db, no-op
+								db2.Close()
 							}
 							db.Close()
 							// tv delete (unsupported command, not transpiled)
@@ -1916,21 +1916,21 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-21.1"
 								// testvfs tv -noshm 1 (unsupported command, not transpiled)
-								db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-								_ = db2
-								_res = db.Exec(" SELECT * FROM ko ")
+								db2, err = frigolite.Open("test.db")
+								if err != nil { t.Fatal(err) }
+								_res = db2.Exec(" SELECT * FROM ko ")
 								_ = _res // catchsql
 							}
-							_ = db2 // close db2: aliased to db, no-op
+							db2.Close()
 							// tv delete (unsupported command, not transpiled)
 							{ // do_test "pager1-21.2"
 								// testvfs tv -iversion 1 (unsupported command, not transpiled)
-								db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-								_ = db2
-								_res = db.Exec(" SELECT * FROM ko ")
+								db2, err = frigolite.Open("test.db")
+								if err != nil { t.Fatal(err) }
+								_res = db2.Exec(" SELECT * FROM ko ")
 								_ = _res // catchsql
 							}
-							_ = db2 // close db2: aliased to db, no-op
+							db2.Close()
 							// tv delete (unsupported command, not transpiled)
 							{ // do_test "pager1-22.1.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)

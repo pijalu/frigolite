@@ -78,8 +78,8 @@ func Test_sharedlock(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "sharedlock-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n  ")
 		if _res.Error != nil {
@@ -154,6 +154,6 @@ func Test_sharedlock(t *testing.T) {
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

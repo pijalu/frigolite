@@ -112,8 +112,8 @@ func Test_pragma3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "pragma3-120"
 		_res = db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -150,14 +150,14 @@ func Test_pragma3(t *testing.T) {
 	}
 	{ // "pragma3-201" — skipped: data_version cross-connection bump not representable with db2 aliasing
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "pragma3-300"
 		r = db.Query("\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
 		if r.Error != nil {
@@ -180,7 +180,7 @@ func Test_pragma3(t *testing.T) {
 	}
 	{ // "pragma3-340" — skipped: data_version cross-connection bump not representable with db2 aliasing
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	db.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	if tclBool("wal_is_capable") {
@@ -192,8 +192,8 @@ func Test_pragma3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=WAL")
 			}
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
 			{ // "pragma3-400" — skipped: WAL-mode data_version reopen not supported
 			}
 			{ // "pragma3-410" — skipped: WAL-mode data_version reopen not supported
@@ -202,7 +202,7 @@ func Test_pragma3(t *testing.T) {
 			}
 			{ // "pragma3-430" — skipped: WAL-mode data_version reopen not supported
 			}
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 		}
 	}
 	// foreach {tn sql} "A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }"

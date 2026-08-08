@@ -66,9 +66,9 @@ func Test_jrnlmode2(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "jrnlmode2-1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -91,7 +91,7 @@ func Test_jrnlmode2(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "jrnlmode2-1.6"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-1.7"
@@ -99,11 +99,11 @@ func Test_jrnlmode2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.1"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		r = db.Query(" PRAGMA journal_mode = truncate ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")
@@ -120,9 +120,9 @@ func Test_jrnlmode2(t *testing.T) {
 		// file size test.db-journal
 	}
 	{ // do_test "jrnlmode2-2.4"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.5"
@@ -130,14 +130,14 @@ func Test_jrnlmode2(t *testing.T) {
 		os.Remove("test.db-journal")
 	}
 	{ // do_test "jrnlmode2-2.6"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" SELECT * FROM t1 ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 }

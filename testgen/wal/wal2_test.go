@@ -232,9 +232,9 @@ func Test_wal2(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 		}
@@ -244,7 +244,7 @@ func Test_wal2(t *testing.T) {
 		}
 	}
 	{ // do_test "wal2-1.1"
-		r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
+		r = db2.Query(" SELECT count(a), sum(a) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 		}
@@ -297,7 +297,7 @@ func Test_wal2(t *testing.T) {
 			}
 		}
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// tvfs delete (unsupported command, not transpiled)
 		os.Remove("test.db")
 		WRITER = "0 1 lock exclusive"
@@ -311,9 +311,9 @@ func Test_wal2(t *testing.T) {
 			// proc definition (not transpiled)
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-			_ = db2
-			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			r = db2.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 			}
@@ -323,7 +323,7 @@ func Test_wal2(t *testing.T) {
 			}
 		}
 		{ // do_test "wal2-2.1"
-			r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
+			r = db2.Query(" SELECT count(a), sum(a) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 			}
@@ -396,7 +396,7 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			db.Close()
-			_ = db2 // close db2: aliased to db, no-op
+			db2.Close()
 			// tvfs delete (unsupported command, not transpiled)
 			os.Remove("test.db")
 			if false {
@@ -812,13 +812,13 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-6.6.3"
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
-					_res = db.Exec(" SELECT * FROM t2 ")
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					_res = db2.Exec(" SELECT * FROM t2 ")
 					_ = _res // catchsql
 				}
 				{ // do_test "wal2-6.6.2"
-					_ = db2 // close db2: aliased to db, no-op
+					db2.Close()
 					// T filter {} (unsupported command, not transpiled)
 					_res = db.Exec(" INSERT INTO t2 VALUES('IX', 'X') ")
 					if _res.Error != nil {
@@ -826,13 +826,13 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-6.6.4"
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
-					_res = db.Exec(" SELECT * FROM t2 ")
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					_res = db2.Exec(" SELECT * FROM t2 ")
 					_ = _res // catchsql
 				}
 				db.Close()
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 				// T delete (unsupported command, not transpiled)
 				os.Remove("test.db")
 				{ // do_test "wal2-7.1.1"
@@ -893,14 +893,14 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-8.1.4"
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM t2 ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 					}
 				}
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 				db.Close()
 				// proc definition (not transpiled)
 				// testvfs tvfs (unsupported command, not transpiled)
@@ -922,9 +922,9 @@ func Test_wal2(t *testing.T) {
 					}
 					wih_2 = "set_tvfs_hdr $::filename"
 					_ = wih_2 // suppress unused warning
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
-					r = db.Query(" SELECT * FROM x ")
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					r = db2.Query(" SELECT * FROM x ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x ")
 					}
@@ -952,7 +952,7 @@ func Test_wal2(t *testing.T) {
 							}
 						}
 					}
-					_ = db2 // close db2: aliased to db, no-op
+					db2.Close()
 					db.Close()
 					{ // do_test "wal2-10.1.1"
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -1012,9 +1012,9 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					{ // do_test "wal2-11.1.1"
-						db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-						_ = db2
-						r = db.Query(" SELECT name FROM sqlite_master ")
+						db2, err = frigolite.Open("test.db")
+						if err != nil { t.Fatal(err) }
+						r = db2.Query(" SELECT name FROM sqlite_master ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name FROM sqlite_master ")
 						}
@@ -1047,7 +1047,7 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					db.Close()
-					_ = db2 // close db2: aliased to db, no-op
+					db2.Close()
 					// tvfs delete (unsupported command, not transpiled)
 					if tcl_platform_os != "Windows NT" {
 						// faultsim_delete_and_reopen (unsupported command, not transpiled)

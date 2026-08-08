@@ -59,53 +59,53 @@ func Test_lock7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 		}
 		db.Close()
-		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
-		_ = db1
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db1, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db1.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db2.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock7-1.2"
-		r = db.Query(" PRAGMA lock_status ")
+		r = db1.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.3"
-		r = db.Query(" PRAGMA lock_status ")
+		r = db2.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.4"
-		_res = db.Exec(" INSERT INTO t1 VALUES(1, 1) ")
+		_res = db1.Exec(" INSERT INTO t1 VALUES(1, 1) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock7-1.5"
-		_res = db.Exec(" INSERT INTO t1 VALUES(2, 2) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(2, 2) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock7-1.6"
-		r = db.Query(" PRAGMA lock_status ")
+		r = db1.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.7"
-		r = db.Query(" PRAGMA lock_status ")
+		r = db2.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "lock7-1.8"
-		_res = db.Exec(" COMMIT ")
+		_res = db1.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	_ = db1 // close db1: aliased to db, no-op
-	_ = db2 // close db2: aliased to db, no-op
+	db1.Close()
+	db2.Close()
 }

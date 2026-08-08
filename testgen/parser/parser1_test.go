@@ -75,15 +75,15 @@ func Test_parser1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "parser1-1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("SELECT * FROM t1 ORDER BY 1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // "parser1-1.4"
 		r = db.Query("\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b ASC) REFERENCES t1(a)\n  )' WHERE name='t1';\n  SELECT name FROM sqlite_master WHERE sql LIKE '%ASC%';\n")
 		if r.Error != nil {
@@ -96,15 +96,15 @@ func Test_parser1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "parser1-1.5"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("SELECT * FROM t1 ORDER BY 1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // "parser1-2.1"
 		_res = db.Exec("\n  WITH RECURSIVE\n    c(x COLLATE binary) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \"x\"") {

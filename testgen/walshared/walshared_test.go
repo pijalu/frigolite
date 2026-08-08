@@ -60,8 +60,8 @@ func Test_walshared(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "walshared-1.0"
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")
 		if r.Error != nil {
@@ -79,7 +79,7 @@ func Test_walshared(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "walshared-1.3"
-		_res = db.Exec(" PRAGMA wal_checkpoint ")
+		_res = db2.Exec(" PRAGMA wal_checkpoint ")
 		_ = _res // catchsql
 	}
 	{ // do_test "walshared-1.4"
@@ -87,7 +87,7 @@ func Test_walshared(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}

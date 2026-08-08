@@ -473,15 +473,15 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	{ // do_test "alter-5.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
 		}
 	}
 	{ // do_test "alter-5.3"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	for _, tblname := range tclSplitList(tclExecSQL(db, "{\n  SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'\n}")) {
 	_ = tblname // suppress unused warning

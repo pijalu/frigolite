@@ -121,13 +121,13 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.5"
 		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" PRAGMA journal_mode = delete ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" PRAGMA journal_mode = delete ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "journal2-1.6"
@@ -140,11 +140,11 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.8"
-		r = db.Query(" PRAGMA journal_mode = truncate ")
+		r = db2.Query(" PRAGMA journal_mode = truncate ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5, 6)  ")
 		}
@@ -156,7 +156,7 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.10"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// db function a_string (variable-reader, inlined)
 		db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64\n  ")
@@ -171,9 +171,9 @@ func Test_journal2(t *testing.T) {
 		// expr $sz>120 && $sz<200 (not evaluated)
 	}
 	{ // do_test "journal2-1.12"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
 		}
@@ -182,10 +182,10 @@ func Test_journal2(t *testing.T) {
 		// tvfs filter {xOpen xClose xDelete xWrite xTruncate} (unsupported command, not transpiled)
 		tvfs_error_on_write = "1" // TCL namespace variable
 		_ = tvfs_error_on_write // suppress unused warning
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		_ = _res // catchsql
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	tclFileCopy("test.db", "testX.db")
 	{ // do_test "journal2-1.14"
 		// file exists "test.db-journal"

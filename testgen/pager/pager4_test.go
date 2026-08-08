@@ -86,8 +86,8 @@ func Test_pager4(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  UPDATE t1 SET a=537;\n")
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("CREATE TABLE t2(x,y,z)")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "pager4-1.4"
@@ -96,7 +96,7 @@ func Test_pager4(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  UPDATE t1 SET a=948;\n")
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	os.Remove("-force")
 	// file rename test-xyz.db test.db
 	{ // "pager4-1.5"

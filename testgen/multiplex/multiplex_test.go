@@ -583,9 +583,9 @@ func Test_multiplex(t *testing.T) {
 		// file size [multiplex_name test.db 0]
 	}
 	{ // do_test "multiplex-3.1.3"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" CREATE TABLE t2(a, b) ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a, b) ")
 		}
@@ -602,14 +602,14 @@ func Test_multiplex(t *testing.T) {
 	}
 	{ // do_test "multiplex-3.1.6"
 		db.Close()
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{ // do_test "multiplex-3.2.1a"
 		// multiplex_delete test.db (unsupported command, not transpiled)
 		// multiplex_delete test2.db (unsupported command, not transpiled)
-		var db1a *frigolite.DB
-		db1a = db // sqlite3 db1a test.db: alias to main in-memory db
-		_ = db1a
+		db1a, err := frigolite.Open("test.db")
+		defer db1a.Close()
+		if err != nil { t.Fatal(err) }
 		db2a, err := frigolite.Open("test2.db")
 		defer db2a.Close()
 		if err != nil { t.Fatal(err) }
@@ -624,9 +624,9 @@ func Test_multiplex(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "multiplex-3.2.1b"
-		var db1b *frigolite.DB
-		db1b = db // sqlite3 db1b test.db: alias to main in-memory db
-		_ = db1b
+		db1b, err := frigolite.Open("test.db")
+		defer db1b.Close()
+		if err != nil { t.Fatal(err) }
 		db2b, err := frigolite.Open("test2.db")
 		defer db2b.Close()
 		if err != nil { t.Fatal(err) }

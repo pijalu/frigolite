@@ -110,9 +110,9 @@ func Test_malloc5(t *testing.T) {
 		// sqlite3_release_memory (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.2"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("PRAGMA cache_size=2; SELECT * FROM sqlite_master ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("PRAGMA cache_size=2; SELECT * FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size=2; SELECT * FROM sqlite_master ")
 		}
@@ -137,7 +137,7 @@ func Test_malloc5(t *testing.T) {
 		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.6"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE def(d, e, f);\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE def(d, e, f);\n    SELECT * FROM abc;\n  ")
@@ -145,19 +145,19 @@ func Test_malloc5(t *testing.T) {
 		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory 500] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.7"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" SELECT * FROM abc ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
 	}
 	{ // do_test "malloc5-1.8"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		// sqlite3_release_memory 500 (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.8"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		_res = db.Exec(" SELECT * FROM abc ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
 	}
 	{ // do_test "malloc5-1.9"
@@ -212,7 +212,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		}
-		r = db.Query("\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
+		r = db2.Query("\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		}
@@ -225,7 +225,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	_putsMsg := "Highwater mark: " + "sqlite3_memory_highwater"
 	_ = _putsMsg
 	soft_limit = "sqlite3_soft_heap_limit -1" // TCL namespace variable

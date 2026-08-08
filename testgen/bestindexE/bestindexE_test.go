@@ -177,8 +177,8 @@ func Test_bestindexE(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // "3.2.1"
 		r = db.Query(" SELECT * FROM x1 ")
 		if r.Error != nil {
@@ -186,7 +186,7 @@ func Test_bestindexE(t *testing.T) {
 		}
 	}
 	{ // "3.2.2"
-		_res = db.Exec(" CREATE TABLE x2(x) ")
+		_res = db2.Exec(" CREATE TABLE x2(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE x2(x) ")
 		}

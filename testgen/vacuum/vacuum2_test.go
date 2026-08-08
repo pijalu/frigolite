@@ -100,8 +100,8 @@ func Test_vacuum2(t *testing.T) {
 		}
 		// hexio_get_int [hexio_read test.db 24 4] (unsupported command, not transpiled)
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	_dbeval0 := tclExecSQL(db, "{pragma page_size}")
 	pageSize = _dbeval0
 	_ = pageSize // suppress unused warning
@@ -140,7 +140,7 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-3.6"
-		r = db.Query("PRAGMA integrity_check")
+		r = db2.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
@@ -171,7 +171,7 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-3.16"
-		r = db.Query("PRAGMA integrity_check")
+		r = db2.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
@@ -182,7 +182,7 @@ func Test_vacuum2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
 	}
-	_ = db2 // close db2: aliased to db, no-op
+	db2.Close()
 	{ // do_test "vacuum2-4.1"
 		db.Close()
 		os.Remove("test.db")

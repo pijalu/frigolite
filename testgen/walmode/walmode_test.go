@@ -187,9 +187,9 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.6"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query(" PRAGMA main.journal_mode ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" PRAGMA main.journal_mode ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 		}
@@ -201,7 +201,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.8"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -217,7 +217,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.11"
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 		r = db.Query(" PRAGMA journal_mode = delete ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
@@ -234,9 +234,9 @@ func Test_walmode(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walmode-4.14"
-		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-		_ = db2
-		r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		}
@@ -248,7 +248,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.17"
-		r = db.Query(" PRAGMA main.journal_mode ")
+		r = db2.Query(" PRAGMA main.journal_mode ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 		}
@@ -271,7 +271,7 @@ func Test_walmode(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_ = db2 // close db2: aliased to db, no-op
+		db2.Close()
 	}
 	{ // do_test "walmode-5.1.1"
 		db, err = frigolite.Open("")

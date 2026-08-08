@@ -106,8 +106,8 @@ func Test_dataversion1(t *testing.T) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dv1, _res.Error, "dataversion1-120")
 		}
 	}
-	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-	_ = db2
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
 	{ // do_test "dataversion1-130"
 		_res = db2.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

@@ -277,9 +277,9 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.2"
-					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
-					_ = db2
-					r = db.Query(" SELECT * FROM abc ")
+					db2, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
@@ -295,17 +295,17 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.4"
-					r = db.Query(" SELECT * FROM abc ")
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
 				}
 				{ // do_test "vacuum3-4.5"
-					r = db.Query("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
+					r = db2.Query("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
 					}
-					r = db.Query(" SELECT * FROM abc ")
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
@@ -315,12 +315,12 @@ func Test_vacuum3(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
 					}
-					r = db.Query(" SELECT * FROM abc ")
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
 				}
-				_ = db2 // close db2: aliased to db, no-op
+				db2.Close()
 				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "vacuum3-5.1"
