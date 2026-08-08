@@ -4,7 +4,11 @@
 > **Goal**: G5.EXPLAIN.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1+G2 (all query features produce a plan).
-> **Current state: FAILING** — EXPLAIN QUERY PLAN output differs (seen in `where`).
+> **Current state: COMPLETE** — EQP emits SQLite-shaped labels (SCAN/SEARCH/
+> USE TEMP B-TREE/COMPOUND QUERY/CO-ROUTINE/SCALAR|LIST SUBQUERY); plain
+> EXPLAIN emits the opcode-dump column shape. Testgen eqp passes, pre-tests
+> pass, EQP-shape failures in where/selectN resolved. (Committed as
+> `ff0c03807` "G5.EXPLAIN.2-3: SQLite-shape EQP emitter + pre-tests".)
 
 ## Objective
 `EXPLAIN` (bytecode-style op dump) and `EXPLAIN QUERY PLAN` (EQP: SCAN/SEARCH/
@@ -38,17 +42,32 @@ transpiler's EQP normalization, then those packages' EQP-only failures resolve.
 - `internal/exec/explain.go` — frigolite's EXPLAIN.
 
 ## Steps
-- [ ] **G5.EXPLAIN.1** Baseline eqp package; record results. Commit:
-      `G5.EXPLAIN.1: explain baseline`.
-- [ ] **G5.EXPLAIN.2** Pre-test suite (EQP shapes). Commit: `G5.EXPLAIN.2: explain pre-test`.
-- [ ] **G5.EXPLAIN.3** EQP emitter: SCAN/SEARCH/USE TEMP B-TREE/COMPOUND/
-      CO-ROUTINE labels matching SQLite shape. Commit: `G5.EXPLAIN.3: EQP shapes`.
-- [ ] **G5.EXPLAIN.4** Transpiler EQP normalization: match testgen regex patterns
-      (e.g. collapse autoindex names). Commit: `G5.EXPLAIN.4: EQP normalization`.
-- [ ] **G5.EXPLAIN.5** Triage exact-bytecode tests → N-A with evidence.
-      Commit: `G5.EXPLAIN.5: explain bytecode N-A`.
-- [ ] **G5.EXPLAIN.6** eqp green + EQP-only failures in where/selectN resolved.
-      Commit: `G5.EXPLAIN.6: explain TCL green`.
+- [x] **G5.EXPLAIN.1** Baseline eqp package; record results. — `eqp` testgen
+      passed at baseline (asserts only error-free execution, not EQP text).
+- [x] **G5.EXPLAIN.2** Pre-test suite (EQP shapes). — `frigolite_p5_explain_test.go`
+      (`TestP5Explain_*`: ScanSearch, TempBTree, Compound, Subqueries, CoRoutine,
+      PlainColumns) — all 6 pass vs sqlite3 3.51 oracle.
+- [x] **G5.EXPLAIN.3** EQP emitter: SCAN/SEARCH/USE TEMP B-TREE/COMPOUND/
+      CO-ROUTINE labels matching SQLite shape. — `internal/exec/explain.go`
+      rebuilt around a `planNode` tree rendered with the sqlite3 CLI prefixes
+      (|-- / `--, 3-space indent); covering-index ORDER BY/GROUP BY/DISTINCT,
+      COMPOUND QUERY trees, nested subquery plans, CO-ROUTINE for materialized
+      FROM subqueries. Verified byte-for-byte vs sqlite3 3.51.
+- [x] **G5.EXPLAIN.4** Transpiler EQP normalization — already present: tcl2go
+      converts TCL `\y` word boundaries to Go `\b` (gen.go ~1537), and the
+      transpiled eqp tests assert only error-free runs, so no further
+      normalization is needed for the in-scope packages.
+- [x] **G5.EXPLAIN.5** Triage exact-bytecode tests → N-A with evidence. —
+      where2-2.5/2.5b/2.6/2.6b, whereF-7.3, distinctagg-*.1 remain in the
+      tcl2go unsupported map as "EXPLAIN VDBE opcode output not implemented
+      (G5.EXPLAIN)"; documented N-A in the pre-test header (frigolite is not
+      a bytecode VDBE).
+- [x] **G5.EXPLAIN.6** eqp green + EQP-only failures in where/selectN resolved.
+      — `testgen/eqp` PASS; selectD-4.1 EQP failure (SEARCH x2 USING
+      AUTOMATIC COVERING INDEX) fixed via joinNodeFor joinRef-first ordering;
+      remaining where/selectD/select1/select6 failures are non-EQP engine
+      bugs (numeric overflow, nested-join execution, ORDER BY/ambiguous-
+      column resolution) tracked by their own phases.
 
 ## Verify command
 ```bash
