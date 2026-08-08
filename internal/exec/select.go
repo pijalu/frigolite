@@ -7017,7 +7017,11 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 		} else if ref, ok := col.Expr.(*sql.ColumnRef); ok {
 			names = append(names, ref.Name)
 		} else {
-			names = append(names, "")
+			// Unaliased expression: SQLite names the result column after the
+			// expression text (e.g. SELECT a+b names it "a+b"). Without this,
+			// CREATE TABLE ... AS SELECT of an expression produces a column
+			// with an empty name and SELECT * exposes zero columns.
+			names = append(names, sql.ExprString(col.Expr))
 		}
 	}
 	return names

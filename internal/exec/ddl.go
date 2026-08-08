@@ -719,7 +719,6 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *DatabaseCo
 	if result.Error != nil {
 		return result
 	}
-
 	if len(result.Columns) > 0 {
 		// Generate column definitions from SELECT result columns if not already defined
 		if len(s.Columns) == 0 {
@@ -796,6 +795,14 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 // named "notnull" — the derived CREATE TABLE ... AS SELECT of
 // pragma_table_info's notnull column). Plain identifiers are returned as-is.
 func quoteIdentIfKeyword(name string) string {
+	// Any name that is not a plain SQL identifier (starts with a letter or
+	// underscore and contains only letters/digits/underscores) must be
+	// quoted — e.g. expression-derived column names like "a+b" from
+	// CREATE TABLE ... AS SELECT a+b. An unquoted "a + b" would re-parse
+	// as three tokens and corrupt the derived schema.
+	if !isPlainIdentifier(name) {
+		return "\"" + strings.ReplaceAll(name, "\"", "\"\"") + "\""
+	}
 	switch strings.ToUpper(name) {
 	case "NOTNULL", "NULL", "PRIMARY", "UNIQUE", "CHECK", "DEFAULT", "REFERENCES",
 		"COLLATE", "CONSTRAINT", "GENERATED", "AUTOINCREMENT", "ON", "KEY",
@@ -1819,6 +1826,21 @@ func isDigit(c byte) bool {
 
 func isIdentStart(c byte) bool {
 	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+// isPlainIdentifier reports whether name is a bare SQL identifier (letter or
+// underscore start, then letters/digits/underscores) that needs no quoting.
+func isPlainIdentifier(name string) bool {
+	if name == "" || !isIdentStart(name[0]) {
+		return false
+	}
+	for i := 1; i < len(name); i++ {
+		c := name[i]
+		if !isIdentStart(c) && (c < '0' || c > '9') {
+			return false
+		}
+	}
+	return true
 }
 
 // validateTriggerSchemaRefs enforces SQLite's schema-scoping rules for

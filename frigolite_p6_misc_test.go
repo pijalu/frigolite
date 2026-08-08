@@ -417,3 +417,37 @@ func TestP6_IsTrueNullSemantics(t *testing.T) {
 		t.Errorf("Kleene AND/OR with NULL column: got [%s]", got)
 	}
 }
+
+// TestP6_CtasExpressionColumn covers distinct: CREATE TABLE ... AS SELECT of
+// an unaliased expression must derive a real column (SQLite names it after
+// the expression text), so SELECT * and ORDER BY 1 work on the new table.
+func TestP6_CtasExpressionColumn(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE t5(a INT, b INT);
+		CREATE UNIQUE INDEX t5x ON t5(a+b);
+		INSERT INTO t5(a,b) VALUES(0,0),(1,0),(1,1),(0,3);
+		CREATE TEMP TABLE out AS SELECT DISTINCT a+b FROM t5;
+	`).Error; err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	got := flattenQuery(t, db, "SELECT * FROM out ORDER BY 1")
+	if got != "0 1 2 3" {
+		t.Errorf("CTAS expression column: got [%s] want [0 1 2 3]", got)
+	}
+	got = flattenQuery(t, db, "SELECT count(*) FROM out")
+	if got != "4" {
+		t.Errorf("CTAS row count: got [%s] want [4]", got)
+	}
+	// The derived column must be queryable by name (SQLite names it after
+	// the expression text; the engine uses its normalized form).
+	r := db.Query("PRAGMA table_info(out)")
+	if r.Error != nil {
+		t.Fatalf("table_info: %v", r.Error)
+	}
+	if len(r.Rows) != 1 {
+		t.Errorf("CTAS table should have exactly 1 column, got %d", len(r.Rows))
+	}
+}
