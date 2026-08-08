@@ -6145,6 +6145,18 @@ var skipTests = map[string]string{
 	// BY rank() OVER() LIMIT 2 (a window function), which the engine does
 	// not execute, so the two deleted rows never leave the table.
 	"wherelimit2-6.2": "depends on window-function DELETE side effect (6.1) N-A",
+
+	// expridx1: integrity_check over corrupted secondary index b-trees
+	// (writable_schema edits, SQLITE_TESTCTRL_IMPOSTER imposter indexes, and
+	// imprecise floating-point index entries). Frigolite does not maintain
+	// secondary index b-trees, so integrity_check cannot report index
+	// corruption (same category as pragma-3.41).
+	"expridx1-1.1.1b": "integrity_check index b-tree corruption detection N-A",
+	"expridx1-1.2.1":  "integrity_check index b-tree corruption detection N-A",
+	"expridx1-1.3.1":  "integrity_check index b-tree corruption detection N-A",
+	"expridx1-2.3":    "imposter-index corruption query (idxcheck) N-A",
+	"expridx1-4.3":    "imprecise floating-point index entry integrity_check N-A",
+	"expridx1-4.6":    "imprecise floating-point index entry integrity_check N-A",
 }
 
 // skipTestFiles lists TCL test files whose tests ALL exercise engine features

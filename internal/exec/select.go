@@ -279,8 +279,10 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	}
 
 	// WITHOUT ROWID tables have no rowid/_rowid_/oid columns. SQLite rejects
-	// any reference to them with "no such column".
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	// any reference to them with "no such column" — unless the table
+	// DECLARES a column literally named rowid (then the real column shadows
+	// the pseudo-rowid and references resolve to it, expridx1).
+	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) && !tableHasRealRowIDCol(colDefs) {
 		if ref := e.findRowIDRef(s, tableEntry.Name, s.From.As, len(s.Joins) > 0); ref != "" {
 			return &Result{Error: fmt.Errorf("no such column: %s", ref)}
 		}
@@ -8559,6 +8561,18 @@ func (e *Engine) checkWhereCollations(where sql.Expr, colDefs []sql.ColumnDef, f
 // qualified to a different table (e.g. t42.rowid in a join) are allowed, as
 // are unqualified references when the query joins other tables that may
 // provide a rowid.
+// tableHasRealRowIDCol reports whether colDefs declares a column literally
+// named rowid/_rowid_/oid. Such a column shadows the pseudo-rowid, making
+// rowid references resolve to the real column (SQLite, expridx1).
+func tableHasRealRowIDCol(colDefs []sql.ColumnDef) bool {
+	for _, cd := range colDefs {
+		if isRowIDName(cd.Name) {
+			return true
+		}
+	}
+	return false
+}
+
 func (e *Engine) findRowIDRef(s *sql.SelectStmt, tableName, alias string, hasJoins bool) string {
 	check := func(expr sql.Expr) string {
 		var found string

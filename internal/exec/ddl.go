@@ -328,9 +328,20 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 				return &Result{Error: fmt.Errorf("no such column: rowid")}
 			}
 			if tc.Type == sql.ConstraintPrimaryKey {
-				for _, col := range tc.Columns {
+				// A declared column literally named rowid makes the PK
+				// reference valid (expridx1: PRIMARY KEY(b, rowid)).
+				hasReal := false
+				for _, col := range s.Columns {
 					if isRowIDName(col.Name) {
-						return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+						hasReal = true
+						break
+					}
+				}
+				if !hasReal {
+					for _, col := range tc.Columns {
+						if isRowIDName(col.Name) {
+							return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+						}
 					}
 				}
 			}
@@ -342,10 +353,21 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	// name that can be indexed at table level. A non-column expression key
 	// (e.g. substr(x,1,5)) is also rejected: "expressions prohibited in
 	// PRIMARY KEY and UNIQUE constraints" (build.c sqlite3AddPrimaryKey).
+	// Exception: a WITHOUT ROWID table may DECLARE a column literally named
+	// rowid; the constraint then refers to that real column (expridx1).
+	hasRealRowIDCol := false
+	if s.WithoutRowid {
+		for _, col := range s.Columns {
+			if isRowIDName(col.Name) {
+				hasRealRowIDCol = true
+				break
+			}
+		}
+	}
 	for _, tc := range s.Constraints {
 		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.Columns != nil {
 			for _, col := range tc.Columns {
-				if isRowIDName(col.Name) {
+				if isRowIDName(col.Name) && !hasRealRowIDCol {
 					return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
 				}
 				if col.Name == "" {

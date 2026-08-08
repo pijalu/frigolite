@@ -846,3 +846,25 @@ func TestP6_RowValueCaseAndParenSet(t *testing.T) {
 		t.Errorf("paren-set arity: got %v", err)
 	}
 }
+
+// TestP6_WithoutRowidRowidColumn covers expridx: a WITHOUT ROWID table may
+// declare a column literally named rowid; the PRIMARY KEY (b, rowid) refers
+// to the real column.
+func TestP6_WithoutRowidRowidColumn(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;
+		INSERT INTO x1 VALUES(20, 20);
+	`).Error; err != nil {
+		t.Fatalf("create WITHOUT ROWID with rowid column: %v", err)
+	}
+	if err := db.Exec(`UPDATE x1 SET b=21.0 WHERE rowid=20`).Error; err != nil {
+		t.Fatalf("update by rowid column: %v", err)
+	}
+	got := flattenQuery(t, db, "SELECT b, rowid FROM x1")
+	if got != "21.0 20" {
+		t.Errorf("WITHOUT ROWID rowid column: got [%s] want [21.0 20]", got)
+	}
+}
