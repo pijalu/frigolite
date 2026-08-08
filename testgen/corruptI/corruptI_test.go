@@ -213,6 +213,7 @@ func Test_corruptI(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t" + i + "(x)")
 			}
 			if tclBool("db one {PRAGMA page_count}" + ">" + i) {
+				break
 			}
 			// incr i 1
 			{

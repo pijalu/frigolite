@@ -531,6 +531,7 @@ func Test_io(t *testing.T) {
 				}
 			}
 			if func() bool { pgsize_n, _pgsize_e := strconv.Atoi(pgsize); if _pgsize_e != nil { return false }; SQLITE_MAX_PAGE_SIZE_n, _SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(SQLITE_MAX_PAGE_SIZE); if _SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pgsize_n > SQLITE_MAX_PAGE_SIZE_n }() {
+				continue
 			}
 			db.Close()
 			os.Remove("test.db")
@@ -573,6 +574,7 @@ func Test_io(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx1
 				if tclBool("permutation" + " == \"memsubsys1\"") {
+					continue
 				}
 				// db_restore (unsupported command, not transpiled)
 				_dbtmp2, err := frigolite.Open("test.db")

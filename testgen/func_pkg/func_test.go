@@ -1933,6 +1933,14 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0xfffd }() {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 0xfeff }() {
+				// incr i 17
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 17)
+					}
+				}
+				continue
 			}
 			{ // "func-30.5." + i
 				r = db.Query("SELECT unicode(char(" + sqlLiteral(i) + "))")

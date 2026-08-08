@@ -121,6 +121,7 @@ func Test_soak(t *testing.T) {
 				_ = sqlite_open_file_count // suppress unused warning
 			}
 			if tclBool("set_test_counter errors" + ">0") {
+				break
 			}
 			// incr iRun 1
 			{

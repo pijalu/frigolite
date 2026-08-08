@@ -186,6 +186,7 @@ func Test_fts4growth(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
 			}
 			if tclBool("db one {SELECT count(*) FROM x2_segdir WHERE level<2}" + "==2") {
+				break
 			}
 		}
 	}

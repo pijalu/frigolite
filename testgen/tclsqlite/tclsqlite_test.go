@@ -787,6 +787,7 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalErr5 error
 		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n > 40 }() {
+				continue
 			}
 			// incr cnt 1
 			{
@@ -809,6 +810,7 @@ func Test_tclsqlite(t *testing.T) {
 		var _dbevalErr8 error
 		for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n < 40 }() {
+				continue
 			}
 			// incr cnt 1
 			{

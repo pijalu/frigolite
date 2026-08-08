@@ -58,8 +58,10 @@ func Test_bigfile2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	if tclBool("file exists skip-big-file") {
+		return
 	}
 	if tcl_platform_os == "Darwin" {
+		return
 	}
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bigfile2"

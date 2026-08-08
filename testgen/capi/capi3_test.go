@@ -521,10 +521,7 @@ func Test_capi3(t *testing.T) {
 		_ = english // suppress unused warning
 		_ = _idx0
 			{ // do_test "capi3-9." + test_number
-				_res = db.Exec("sqlite3_test_errstr " + code)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "sqlite3_test_errstr " + code)
-				}
+				// sqlite3_test_errstr $code (test-harness C API, not transpiled)
 			}
 			// incr test_number 1
 			{

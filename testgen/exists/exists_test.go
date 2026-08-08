@@ -62,6 +62,7 @@ func Test_exists(t *testing.T) {
 	for _, jm := range tclSplitList("rollback wal") {
 	_ = jm // suppress unused warning
 		if tclBool("!" + "wal_is_capable" + " && " + jm + "==\"wal\"") {
+			continue
 		}
 		testprefix = "exists-" + jm
 		_ = testprefix // suppress unused warning

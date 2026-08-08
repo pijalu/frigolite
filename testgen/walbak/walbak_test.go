@@ -246,6 +246,7 @@ func Test_walbak(t *testing.T) {
 		_ = setup // suppress unused warning
 		_ = _idx0
 			if tclBool(tn + "==4 && " + "") {
+				continue
 			}
 			for _, f := range tclSplitList("glob -nocomplain test.db*") {
 			_ = f // suppress unused warning

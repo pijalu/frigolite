@@ -794,13 +794,45 @@ func Test_shell1(t *testing.T) {
 				}
 				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0x80 }() {
 					if tclBool(i + "<=0x9F || " + tcl_version + ">=9.0") {
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+						continue
 					}
 					if tcl_platform_platform == "windows" {
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+						continue
 					}
 				}
 				if tclBool(i + ">=0xE0 && " + tcl_platform_os + " == \"OpenBSD\"") {
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+					continue
 				}
 				if tclBool(i + ">=0xE0 && " + i + "<=0xEF && " + tcl_platform_os + " == \"Linux\"") {
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+					continue
 				}
 				hex = tclFormat("%02X", i)
 				_ = hex // suppress unused warning

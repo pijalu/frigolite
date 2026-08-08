@@ -383,6 +383,7 @@ func Test_incrvacuum(t *testing.T) {
 			// ::iWrite (unsupported command, not transpiled)
 		}
 		if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; iWrite_n, _iWrite_e := strconv.Atoi(iWrite); if _iWrite_e != nil { return false }; return nRow_n == iWrite_n }() {
+			break
 		}
 		// incr iWrite 1
 		{

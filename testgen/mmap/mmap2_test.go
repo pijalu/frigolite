@@ -77,6 +77,7 @@ func Test_mmap2(t *testing.T) {
 	_ = syscall // suppress unused warning
 		// test_syscall uninstall (unsupported command, not transpiled)
 		if false {
+			continue
 		}
 		i = "1"
 		_ = i // suppress unused warning

@@ -98,6 +98,7 @@ func Test_fts4merge5(t *testing.T) {
 		tc2 = "db total_changes"
 		_ = tc2 // suppress unused warning
 		if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
+			break
 		}
 		{ // "1.4." + tn + ".1"
 			_res = db.Exec("\n    INSERT INTO x1(x1) VALUES('integrity-check');\n  ")

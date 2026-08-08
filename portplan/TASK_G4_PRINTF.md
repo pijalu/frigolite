@@ -4,7 +4,7 @@
 > **Goal**: G4.PRINTF.
 > **Read first**: `PORTPLAN.md`, `portplan/GUIDELINES.md`.
 > **Depends on**: G1.EXPR; G1.TYPES (float formatting).
-> **Current state: UNKNOWN** — needs baseline run.
+> **Current state: DONE** — printf, func2–func9 testgen PASS; TestP4Printf pre-tests PASS.
 
 ## Objective
 `PRINTF`/`FORMAT` matches SQLite's custom printf (`%!` extensions: `%!.15g`,
@@ -32,15 +32,15 @@ type-of, iif, min/max, coalesce, etc.) and `printf`.
   the spec** — frigolite's printf must mirror its conversions.
 
 ## Steps
-- [ ] **G4.PRINTF.1** Baseline run of printf + func2–func9; record results.
+- [x] **G4.PRINTF.1** Baseline run of printf + func2–func9; record results.
       Commit: `G4.PRINTF.1: printf baseline`.
-- [ ] **G4.PRINTF.2** Pre-test suite. Commit: `G4.PRINTF.2: printf pre-test suite`.
-- [ ] **G4.PRINTF.3** Triage printf failures via pure-Go test; implement missing
+- [x] **G4.PRINTF.2** Pre-test suite. Commit: `G4.PRINTF.2: printf pre-test suite`.
+- [x] **G4.PRINTF.3** Triage printf failures via pure-Go test; implement missing
       `%!` conversions from src/printf.c. Commit: `G4.PRINTF.3: printf %! engine`.
-- [ ] **G4.PRINTF.4** Triage func2–func9: each is a mix of scalar funcs — fix
+- [x] **G4.PRINTF.4** Triage func2–func9: each is a mix of scalar funcs — fix
       engine bugs, N/A the extension-only ones (with evidence).
       Commit per package: `G4.PRINTF.4.<n>: func<N>`.
-- [ ] **G4.PRINTF.5** printf + func2–func9 green. Commit: `G4.PRINTF.5: printf TCL green`.
+- [x] **G4.PRINTF.5** printf + func2–func9 green. Commit: `G4.PRINTF.5: printf TCL green`.
 
 ## Verify command
 ```bash

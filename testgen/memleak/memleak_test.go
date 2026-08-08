@@ -104,6 +104,7 @@ func Test_memleak(t *testing.T) {
 		tail = "file tail $testfile"
 		_ = tail // suppress unused warning
 		if tclBool("lsearch -exact $EXCLUDE $tail" + ">=0") {
+			continue
 		}
 		LeakList = ""
 		_ = LeakList // suppress unused warning

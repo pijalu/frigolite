@@ -125,6 +125,7 @@ func Test_jrnlmode3(t *testing.T) {
 		for _, tojmode := range tclSplitList(all_journal_modes) {
 		_ = tojmode // suppress unused warning
 			if func() bool { fromjmode_n, _fromjmode_e := strconv.Atoi(fromjmode); if _fromjmode_e != nil { return false }; tojmode_n, _tojmode_e := strconv.Atoi(tojmode); if _tojmode_e != nil { return false }; return fromjmode_n == tojmode_n }() {
+				continue
 			}
 			// incr cnt 1
 			{

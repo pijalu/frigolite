@@ -94,8 +94,10 @@ func Test_mallocAll(t *testing.T) {
 		tail = "file tail $testfile"
 		_ = tail // suppress unused warning
 		if tclBool("lsearch -exact $EXCLUDE $tail" + ">=0") {
+			continue
 		}
 		if tclBool(strconv.Itoa(tclLLength(INCLUDE)) + ">0 && " + "lsearch -exact $INCLUDE $tail" + "<0") {
+			continue
 		}
 		{
 			var _catchErr error

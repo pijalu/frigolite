@@ -54,6 +54,7 @@ func Test_pager4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	if tcl_platform_os == "Windows NT" {
+		return
 	}
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + "==\"inmemory_journal\"") {

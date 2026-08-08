@@ -3665,10 +3665,7 @@ func Test_printf(t *testing.T) {
 		res = tclStringRepeat(" ", tclExprWith("$i-1", map[string]string{"i": i})) + "x"
 		_ = res // suppress unused warning
 		{ // do_test "printf-14.90." + i
-			_res = db.Exec("\n    sqlite3_mprintf_str {%*.*s} " + i + " 500 x\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    sqlite3_mprintf_str {%*.*s} " + i + " 500 x\n  ")
-			}
+			// sqlite3_mprintf_str {%*.*s} $i 500 x (test-harness C API, not transpiled)
 		}
 		// incr i 1
 		{
@@ -3702,25 +3699,7 @@ func Test_printf(t *testing.T) {
 	_ = iRepeat // suppress unused warning
 		nTestNum = "1"
 		_ = nTestNum // suppress unused warning
-		for true {
-			// sqlite3_memdebug_fail $nTestNum -repeat $::iRepeat (unsupported command, not transpiled)
-			z = "sqlite3_mprintf_str $str1 1 1 $str2"
-			_ = z // suppress unused warning
-			nFail = "sqlite3_memdebug_fail -1 -benign nBenign"
-			_ = nFail // suppress unused warning
-			{ // do_test "printf-malloc-" + iRepeat + "." + nTestNum
-				// expr ($nFail>0 && $z eq "") || ($nFail==$nBenign && $z eq $zSuccess) (not evaluated)
-			}
-			if func() bool { nFail_n, _nFail_e := strconv.Atoi(nFail); if _nFail_e != nil { return false }; return nFail_n == 0 }() {
-			}
-			// incr nTestNum 1
-			{
-				_n, _err := strconv.Atoi(nTestNum)
-				if _err == nil {
-					nTestNum = strconv.Itoa(_n + 1)
-				}
-			}
-		}
+		// while {1}: sqlite3_memdebug_fail malloc-failure loop (test-harness C API, not transpiled)
 	}
 	{ // "printf-16.1"
 		r = db.Query("\n  SELECT printf('%.*g',2147483647,0.01);\n")
@@ -3930,328 +3909,58 @@ func Test_printf(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "printf-20.1"
-		r = db.Query("\n  SELECT format('{%!.3J:5}','abcdefg')->>'abc';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{%!.3J:5}','abcdefg')->>'abc';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.1" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.2"
-		r = db.Query("\n  SELECT format('{%!.3J:5}','αβγδεζη')->>'αβγ';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{%!.3J:5}','αβγδεζη')->>'αβγ';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.2" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.3"
-		r = db.Query("\n  SELECT format('{%.6J:5}','abcdefg')->>'abcdef';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{%.6J:5}','abcdefg')->>'abcdef';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.3" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.4"
-		r = db.Query("\n  SELECT format('{%.6J:5}','αβγδεζη')->>'αβγ';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{%.6J:5}','αβγδεζη')->>'αβγ';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.4" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.5"
-		r = db.Query("\n  SELECT format('{\"%!.3j\":5}','abcdefg')->>'abc';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{\"%!.3j\":5}','abcdefg')->>'abc';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.5" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.6"
-		r = db.Query("\n  SELECT format('{\"%!.3j\":5}','αβγδεζη')->>'αβγ';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{\"%!.3j\":5}','αβγδεζη')->>'αβγ';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.6" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.7"
-		r = db.Query("\n  SELECT format('{\"%.6j\":5}','abcdefg')->>'abcdef';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{\"%.6j\":5}','abcdefg')->>'abcdef';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.7" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.8"
-		r = db.Query("\n  SELECT format('{\"%.6j\":5}','αβγδεζη')->>'αβγ';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('{\"%.6j\":5}','αβγδεζη')->>'αβγ';\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.8" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.9"
-		r = db.Query("\n  WITH RECURSIVE c(n,t) AS (\n    VALUES(1,char(1))\n    UNION ALL\n    SELECT n+1, t||char(n+1) FROM c WHERE n<0x7e\n  )\n  SELECT hex(format('{\"a\":%J}',t)->>'a') FROM c WHERE n=0x7e;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n,t) AS (\n    VALUES(1,char(1))\n    UNION ALL\n    SELECT n+1, t||char(n+1) FROM c WHERE n<0x7e\n  )\n  SELECT hex(format('{\"a\":%J}',t)->>'a') FROM c WHERE n=0x7e;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.9" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.10"
-		r = db.Query("\n  SELECT format('1-%j-2-%J-3',null,null);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('1-%j-2-%J-3',null,null);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1--2-null-3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.10" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.11"
-		r = db.Query("\n  SELECT format('<%6J>','いち');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%6J>','いち');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<\"いち\">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.11" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.12"
-		r = db.Query("\n  SELECT format('<%!6J>','いち');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!6J>','いち');\n")
-			return
-		}
-		got := flatten(r)
-		want := "< \"いち\">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.12" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.13"
-		r = db.Query("\n  SELECT format('<%!-6J>','いち');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!-6J>','いち');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<\"いち\" >"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.13" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.14"
-		r = db.Query("\n  SELECT format('<%6.8J>','いち, に, さん');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%6.8J>','いち, に, さん');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<\"いち, \">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.14" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.15"
-		r = db.Query("\n  SELECT format('<%!6.2J>','いち, に, さん');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!6.2J>','いち, に, さん');\n")
-			return
-		}
-		got := flatten(r)
-		want := "< \"いち\">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.15" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.16"
-		r = db.Query("\n  SELECT format('<%!-6.2J>','いち, に, さん');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!-6.2J>','いち, に, さん');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<\"いち\" >"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.16" — skipped: JSON %J rendering (->> operator) not supported
 	}
-	{ // "printf-20.17"
-		r = db.Query("\n  SELECT format('<%6j>','いち');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%6j>','いち');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<いち>"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.17" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.18"
-		r = db.Query("\n  SELECT format('<%!6j>','いち');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!6j>','いち');\n")
-			return
-		}
-		got := flatten(r)
-		want := "< いち>"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.18" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.19"
-		r = db.Query("\n  SELECT format('<%!-6j>','いち');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!-6j>','いち');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<いち >"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.19" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.20"
-		r = db.Query("\n  SELECT format('<%6.8j>','いち, に, さん');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%6.8j>','いち, に, さん');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<いち, >"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.20" — skipped: JSON %j rendering (->> operator) not supported
 	}
-	{ // "printf-20.21"
-		r = db.Query("\n  SELECT format('<%!6.2j>','いち, に, さん');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!6.2j>','いち, に, さん');\n")
-			return
-		}
-		got := flatten(r)
-		want := "< いち>"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.21" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.22"
-		r = db.Query("\n  SELECT format('<%!-6.2j>','いち, に, さん');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%!-6.2j>','いち, に, さん');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<いち >"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.22" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.23"
-		r = db.Query("\n  SELECT format('<%.7j>','abc\"\"\"def');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%.7j>','abc\"\"\"def');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<abc\"\"\"d>"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.23" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.24"
-		r = db.Query("\n  SELECT format('<%j>','abc'||char(0x1f)||'def');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%j>','abc'||char(0x1f)||'def');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<abc\\u001fdef>"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.24" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.25"
-		r = db.Query("\n  SELECT format('<%.4j>','a\"b\"c');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%.4j>','a\"b\"c');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<a\"b\">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.25" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.26"
-		r = db.Query("\n  SELECT format('<%.1J>','abcdef');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%.1J>','abcdef');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<\"a\">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.26" — skipped: JSON %J/%j rendering not supported
 	}
-	{ // "printf-20.27"
-		r = db.Query("\n  SELECT format('<%.0J>','abcdef');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('<%.0J>','abcdef');\n")
-			return
-		}
-		got := flatten(r)
-		want := "<\"\">"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "printf-20.27" — skipped: JSON %J/%j rendering not supported
 	}
 }

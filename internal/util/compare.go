@@ -546,10 +546,15 @@ func parseInt(s string) (int64, error) {
 	}
 	i, err = strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		// Try float then truncate
+		// Try float then truncate. Reject out-of-int64-range values (Go's
+		// float→int64 conversion saturates, but SQLite's affinity leaves
+		// them REAL: '-9223372036854775809' stores as real -9.223e18).
 		f, err2 := strconv.ParseFloat(s, 64)
 		if err2 != nil {
 			return 0, err
+		}
+		if f >= 9.223372036854776e18 || f < -9.223372036854776e18 {
+			return 0, fmt.Errorf("out of int64 range")
 		}
 		return int64(f), nil
 	}
@@ -644,12 +649,14 @@ func stringCompareFn(a, b, collation string, lookup func(string) (CollationFunc,
 func applyIntAffinity(val interface{}) interface{} {
 	switch v := val.(type) {
 	case float64:
-		// Convert a REAL to INTEGER only when it fits exactly in int64. Go's
-		// float64→int64 conversion saturates (2^63 → MaxInt64), so a range
-		// check must guard it: values >= 2^63 stay REAL, matching SQLite's
-		// sqlite3VdbeIntValue (e.g. INTEGER DEFAULT -(-9223372036854775808)
-		// evaluates to real 9.22337203685478e+18, not a wrapped integer).
-		if v >= -9.223372036854776e18 && v < 9.223372036854776e18 {
+		// Convert a REAL to INTEGER only when it fits exactly in int64 AND is
+		// integral (SQLite: 1234.0 → 1234 but 1234.56 stays REAL; the
+		// conversion is lossless only for whole numbers). Go's float64→int64
+		// conversion saturates (2^63 → MaxInt64), so a range check must guard
+		// it: values >= 2^63 stay REAL, matching SQLite's sqlite3VdbeIntValue
+		// (e.g. INTEGER DEFAULT -(-9223372036854775808) evaluates to real
+		// 9.22337203685478e+18, not a wrapped integer).
+		if v == math.Trunc(v) && v >= -9.223372036854776e18 && v < 9.223372036854776e18 {
 			return int64(v)
 		}
 		return v
@@ -659,9 +666,12 @@ func applyIntAffinity(val interface{}) interface{} {
 			return i
 		}
 		if f, err := parseFloat(t); err == nil {
-			if f >= -9.223372036854776e18 && f < 9.223372036854776e18 {
+			if f == math.Trunc(f) && f >= -9.223372036854776e18 && f < 9.223372036854776e18 {
 				return int64(f)
 			}
+			// Out of int64 range or non-integral: SQLite stores the REAL
+			// (e.g. '-9223372036854775809' → real -9.22337203685478e+18,
+			// '1234.56' → real 1234.56).
 			return f
 		}
 		return val

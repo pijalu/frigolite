@@ -121,11 +121,14 @@ func Test_uri(t *testing.T) {
 		_ = file // suppress unused warning
 		_ = _idx0
 			if func() bool { l_n, l_e := strconv.Atoi("%00 $uri"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n >= r_n }() {
+				continue
 			}
 			if tcl_platform_platform == "windows" {
 				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 14 }() {
+					break
 				}
 				if tclBool(tn + "==12 && " + tcl_version + ">=8.6") {
+					continue
 				}
 				uri = ""
 				_ = uri // suppress unused warning
@@ -176,6 +179,7 @@ func Test_uri(t *testing.T) {
 			_ = kvlist // suppress unused warning
 			_ = _idx2
 				if func() bool { l_n, l_e := strconv.Atoi("%00 $uri"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n >= r_n }() {
+					continue
 				}
 				if tclBool(tcl_platform_platform + " == \"windows\" && " + tn + ">12") {
 					continue

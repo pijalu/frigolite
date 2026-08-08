@@ -1441,8 +1441,10 @@ func Test_where(t *testing.T) {
 			var _dbevalErr3 error
 			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
 				if func() bool { parent_n, _parent_e := strconv.Atoi(parent); if _parent_e != nil { return false }; return parent_n != 0 }() {
+					continue
 				}
 				if tclBool("!" + "SCAN* $detail") {
+					continue
 				}
 				res = tclListAppend(res, "SCAN")
 				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }

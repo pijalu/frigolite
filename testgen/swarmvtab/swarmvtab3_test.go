@@ -233,6 +233,7 @@ func Test_swarmvtab3(t *testing.T) {
 					ctx = "0"
 					_ = ctx // suppress unused warning
 					if tclBool("info exists ctx_used($ctx)" + "==0") {
+						break
 					}
 				}
 				ctx_used_ctx = "1"

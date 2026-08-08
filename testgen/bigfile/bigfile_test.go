@@ -60,15 +60,19 @@ func Test_bigfile(t *testing.T) {
 	_ = vx // pre-declared from TCL source
 
 	if tclBool("file exists skip-big-file") {
+		return
 	}
 	if tcl_platform_os == "Darwin" {
+		return
 	}
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
 	// scan $::tcl_version %f vx (unsupported command, not transpiled)
 	if vx < "8.4" {
+		return
 	}
 	if tcl_platform_os == "Darwin" {
+		return
 	}
 	MAGIC_SUM = "593f1efcfdbe698c28b4b1b693f7e4cf"
 	_ = MAGIC_SUM // suppress unused warning

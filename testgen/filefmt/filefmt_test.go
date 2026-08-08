@@ -111,6 +111,7 @@ func Test_filefmt(t *testing.T) {
 	for _, pagesize := range tclSplitList("512 1024 2048 4096 8192 16384 32768") {
 	_ = pagesize // suppress unused warning
 		if tclBool("info exists SQLITE_MAX_PAGE_SIZE" + "\n          && " + pagesize + ">" + SQLITE_MAX_PAGE_SIZE) {
+			continue
 		}
 		{ // do_test "filefmt-1.5." + pagesize + ".1"
 			db.Close()

@@ -111,6 +111,7 @@ func Test_tkt2565(t *testing.T) {
 		sqlite_io_error_pending = "0" // TCL namespace variable
 		_ = sqlite_io_error_pending // suppress unused warning
 		if tclBool("!" + sqlite_io_error_hit) {
+			break
 		}
 		sqlite_io_error_hit = "0" // TCL namespace variable
 		_ = sqlite_io_error_hit // suppress unused warning

@@ -74,7 +74,7 @@ func TestP4Numeric_Math(t *testing.T) {
 		{"SELECT pow(2,-2)", "0.25"},
 		{"SELECT pow(NULL,2)", "NULL"},
 		{"SELECT sqrt(NULL)", "NULL"},
-		{"SELECT floor(1.7), floor(-1.7), floor(5)", "1.0 -2.0 5.0"},
+		{"SELECT floor(1.7), floor(-1.7), floor(5)", "1.0 -2.0 5"},
 		{"SELECT ceil(1.2), ceil(-1.2), ceiling(1.2)", "2.0 -1.0 2.0"},
 		{"SELECT trunc(1.777, 2), trunc(-1.777, 2)", "1.77 -1.77"},
 		{"SELECT trunc(1.7), trunc(-1.7)", "1.0 -1.0"},
@@ -83,7 +83,7 @@ func TestP4Numeric_Math(t *testing.T) {
 		{"SELECT mod(7.9, 2)", "1.9"},
 		{"SELECT ifnull(mod(1e400, 3),'nil')", "nil"},
 		{"SELECT ifnull(mod(7,0),'nil')", "nil"},
-		{"SELECT sign(-5), sign(0), sign(5), sign(-5.5), sign(0.0)", "-1 0 1 -1.0 0.0"},
+		{"SELECT sign(-5), sign(0), sign(5), sign(-5.5), sign(0.0)", "-1 0 1 -1 0"},
 		{"SELECT ifnull(sign(NULL),'nil')", "nil"},
 		{"SELECT degrees(3.141592653589793), radians(180)", "180.0 3.14159265358979"},
 		{"SELECT asin(0), acos(1), atan(0)", "0.0 0.0 0.0"},
@@ -126,7 +126,7 @@ func TestP4Numeric_Math(t *testing.T) {
 		{"SELECT tanh(1)", math.Tanh(1), 1e-15},
 		{"SELECT asinh(1)", math.Asinh(1), 1e-15},
 		{"SELECT acosh(2)", math.Acosh(2), 1e-15},
-		{"SELECT log(8, 2)", 3, 1e-15}, // log(X, B) base-B logarithm
+		{"SELECT log(8, 2)", 0.3333333333333333, 1e-15}, // log(X, B) = log base X of B
 	}
 	for _, c := range tol {
 		r := db.Query(c.sql)
@@ -281,8 +281,8 @@ func TestP4Numeric_ModSign(t *testing.T) {
 		{"SELECT ifnull(mod(7, 0), 'nil')", "nil"},
 		{"SELECT ifnull(mod(NULL, 2), 'nil')", "nil"},
 		{"SELECT ifnull(mod(7, NULL), 'nil')", "nil"},
-		{"SELECT sign(-0.0001), sign(0.0001)", "-1.0 1.0"},
-		{"SELECT sign(-1e400), sign(1e400)", "-1.0 1.0"},
+		{"SELECT sign(-0.0001), sign(0.0001)", "-1 1"},
+		{"SELECT sign(-1e400), sign(1e400)", "-1 1"},
 	}
 	for _, c := range cases {
 		got := flattenQuery(t, db, c.sql)

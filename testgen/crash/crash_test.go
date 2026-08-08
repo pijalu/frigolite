@@ -257,6 +257,7 @@ func Test_crash(t *testing.T) {
 			}
 		}
 		if tclBool(fin) {
+			break
 		}
 		{ // do_test "crash-4.1." + i + ".2"
 			// signature (unsupported command, not transpiled)
@@ -302,6 +303,7 @@ func Test_crash(t *testing.T) {
 			}
 		}
 		if tclBool(fin) {
+			break
 		}
 		{ // do_test "crash-4.2." + i + ".2"
 			// signature (unsupported command, not transpiled)

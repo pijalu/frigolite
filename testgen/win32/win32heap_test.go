@@ -55,6 +55,7 @@ func Test_win32heap(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	if tcl_platform_platform != "windows" {
+		return
 	}
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "win32heap"

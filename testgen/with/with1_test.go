@@ -505,7 +505,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "....# ..#*.. ..+####+. .......+####.... + ..##+*##########+.++++ .+.##################+. .............+###################+.+ ..++..#.....*#####################+. ...+#######++#######################. ....+*################################. #############################################... ....+*################################. ...+#######++#######################. ..++..#.....*#####################+. .............+###################+.+ .+.##################+. ..##+*##########+.++++ .......+####.... + ..+####+. ..#*.. ....# +."
+		want := "                                    ....#\n                                   ..#*..\n                                 ..+####+.\n                            .......+####....   +\n                           ..##+*##########+.++++\n                          .+.##################+.\n              .............+###################+.+\n              ..++..#.....*#####################+.\n             ...+#######++#######################.\n          ....+*################################.\n #############################################...\n          ....+*################################.\n             ...+#######++#######################.\n              ..++..#.....*#####################+.\n              .............+###################+.+\n                          .+.##################+.\n                           ..##+*##########+.++++\n                            .......+####....   +\n                                 ..+####+.\n                                   ..#*..\n                                    ....#\n                                    +."
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -678,7 +678,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "Alice ...Bob ...Cindy ......Dave ......Emma ......Fred ......Gail .........Harry .........Ingrid .........Jim .........Kate .........Lanny .........Mary .........Noland .........Olivia"
+		want := "Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -690,7 +690,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "Alice ...Bob ......Dave .........Harry .........Ingrid ......Emma .........Jim .........Kate ...Cindy ......Fred .........Lanny .........Mary ......Gail .........Noland .........Olivia"
+		want := "Alice\n...Bob\n......Dave\n.........Harry\n.........Ingrid\n......Emma\n.........Jim\n.........Kate\n...Cindy\n......Fred\n.........Lanny\n.........Mary\n......Gail\n.........Noland\n.........Olivia"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -702,7 +702,7 @@ func Test_with1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "Alice ...Bob ...Cindy ......Dave ......Emma ......Fred ......Gail .........Harry .........Ingrid .........Jim .........Kate .........Lanny .........Mary .........Noland .........Olivia"
+		want := "Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

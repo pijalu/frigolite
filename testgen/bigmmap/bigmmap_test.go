@@ -67,8 +67,10 @@ func Test_bigmmap(t *testing.T) {
 	_ = x // pre-declared from TCL source
 
 	if tclBool("file exists skip-big-file") {
+		return
 	}
 	if tcl_platform_os == "Darwin" {
+		return
 	}
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bigmmap"

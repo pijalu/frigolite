@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/md5"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"hash"
@@ -132,7 +133,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "UNICODE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNICODE})
 	r.register(&Func{Name: "CHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCHAR})
 	r.register(&Func{Name: "NULLIF", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnNULLIF})
-	r.register(&Func{Name: "PRINTF", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnPRINTF})
+	r.register(&Func{Name: "PRINTF", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnPRINTF})
 	r.register(&Func{Name: "GLOB", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnGLOB})
 	r.register(&Func{Name: "REGEXP", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXP})
 	r.register(&Func{Name: "REGEXPI", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXPI})
@@ -174,8 +175,8 @@ func (r *Registry) registerDefaults() {
 
 	// Extension/compat functions
 	r.register(&Func{Name: "TOINTEGER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOINTEGER})
-	r.register(&Func{Name: "FORMAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnPRINTF})
-	r.register(&Func{Name: "CONCAT_WS", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCATWS})
+	r.register(&Func{Name: "FORMAT", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnPRINTF})
+	r.register(&Func{Name: "CONCAT_WS", Type: TypeScalar, MinArgs: 2, MaxArgs: -1, ScalarFn: fnCONCATWS, WrongArgMsg: true})
 	r.register(&Func{Name: "EDITDIST3", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnEDITDIST3})
 	r.register(&Func{Name: "SPELLFIX1_SCRIPTCODE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSPELLFIX1SCRIPTCODE})
 	// Decimal extension (stub — returns string representation)
@@ -226,9 +227,10 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "TOBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOBLOB})
 	r.register(&Func{Name: "TOHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOHEX})
 	r.register(&Func{Name: "UNHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnUNHEX, WrongArgMsg: true})
-	r.register(&Func{Name: "CONCAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCAT})
+	r.register(&Func{Name: "CONCAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCAT, WrongArgMsg: true})
 	r.register(&Func{Name: "SUBSTRING", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
 	r.register(&Func{Name: "UNISTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTR})
+	r.register(&Func{Name: "UNISTR_QUOTE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTRQUOTE})
 	r.register(&Func{Name: "NEXT_CHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnNEXTCHAR})
 	r.register(&Func{Name: "INT2HEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnINT2HEX})
 	r.register(&Func{Name: "PREFIX_LENGTH", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnPREFIXLENGTH})
@@ -1139,17 +1141,627 @@ func fnNULLIF(args []interface{}) (interface{}, error) {
 }
 
 func fnPRINTF(args []interface{}) (interface{}, error) {
-	if len(args) == 0 {
-		return "", nil
+	if len(args) == 0 || args[0] == nil {
+		return nil, nil
 	}
 	format := toString(args[0])
 	goArgs := make([]interface{}, len(args)-1)
 	copy(goArgs, args[1:])
-	s := fmt.Sprintf(format, goArgs...)
-	// SQLite's printf renders +-Inf as "Inf"/"-Inf" and NaN as "NaN"
-	// (Go's fmt renders "+Inf"/"-Inf"/"NaN").
-	s = strings.ReplaceAll(s, "+Inf", "Inf")
-	return s, nil
+	return sqlitePrintf(format, goArgs), nil
+}
+
+// sqlitePrintf implements SQLite's printf (src/printf.c), which differs from
+// C/Go printf in several ways:
+//   - The ',' flag inserts thousands separators into %d/%u/%f/%g/%e output.
+//   - The '!' flag (altform2) is SQLite-specific: for %g it renders with the
+//     full 20 significant digits and forces a decimal point; for %s it treats
+//     width/precision as UTF-8 characters.
+//   - %q escapes single quotes ('' doubling), %Q quotes as '...' (NULL → the
+//     text NULL, no quotes), %w escapes double quotes.
+//   - Floating-point rendering matches SQLite's FpDecode (16 significant
+//     digits default, 20 with the '!' flag), NOT C printf rounding.
+//   - Precision/width are clamped to SQLITE_PRINTF_PRECISION_LIMIT (1e8).
+//
+// The implementation delegates standard conversions to Go's fmt with a
+// SQLite-compatible pre-pass, then post-processes the SQLite-specific flags.
+func sqlitePrintf(format string, args []interface{}) string {
+	var out strings.Builder
+	argi := 0
+	for i := 0; i < len(format); {
+		c := format[i]
+		if c != '%' {
+			out.WriteByte(c)
+			i++
+			continue
+		}
+		if i+1 >= len(format) {
+			out.WriteByte('%')
+			break
+		}
+		// Parse the format spec: %[flags][width][.precision]verb
+		j := i + 1
+		flagLeftJustify := false
+		flagPrefix := byte(0)
+		flagAlt := false
+		flagAlt2 := false // '!'
+		flagZero := false
+		flagThousand := false
+		for j < len(format) {
+			switch format[j] {
+			case '-':
+				flagLeftJustify = true
+			case '+':
+				flagPrefix = '+'
+			case ' ':
+				if flagPrefix == 0 {
+					flagPrefix = ' '
+				}
+			case '#':
+				flagAlt = true
+			case '!':
+				flagAlt2 = true
+			case '0':
+				flagZero = true
+			case ',':
+				flagThousand = true
+			default:
+				goto flagsDone
+			}
+			j++
+		}
+	flagsDone:
+		// width
+		width := 0
+		if j < len(format) && format[j] == '*' {
+			if argi < len(args) {
+				width = int(toInt64(args[argi]))
+				argi++
+			}
+			if width < 0 {
+				flagLeftJustify = true
+				width = -width
+			}
+			if width > 100000000 {
+				width = 100000000
+			}
+			j++
+		} else {
+			for j < len(format) && format[j] >= '0' && format[j] <= '9' {
+				width = width*10 + int(format[j]-'0')
+				if width > 100000000 {
+					width = 100000000
+				}
+				j++
+			}
+		}
+		// precision
+		precision := -1
+		if j < len(format) && format[j] == '.' {
+			j++
+			if j < len(format) && format[j] == '*' {
+				if argi < len(args) {
+					precision = int(toInt64(args[argi]))
+					argi++
+				}
+				if precision < 0 {
+					precision = -precision
+				}
+				if precision > 100000000 {
+					precision = 100000000
+				}
+				j++
+			} else {
+				precision = 0
+				for j < len(format) && format[j] >= '0' && format[j] <= '9' {
+					precision = precision*10 + int(format[j]-'0')
+					if precision > 100000000 {
+						precision = 100000000
+					}
+					j++
+				}
+			}
+		}
+		// Long flag (ignored — Go handles int64)
+		for j < len(format) && (format[j] == 'l') {
+			j++
+		}
+		if j >= len(format) {
+			out.WriteString("%")
+			break
+		}
+		verb := format[j]
+		j++
+		var val interface{}
+		// %n does not consume an argument (SQLite etSIZE: it reports the
+		// character count to a C location; the SQL function renders nothing).
+		if verb != 'n' && argi < len(args) {
+			val = args[argi]
+			argi++
+		}
+		rendered := sqliteFormatVerb(verb, flagLeftJustify, flagPrefix, flagAlt, flagAlt2, flagZero, flagThousand, width, precision, val)
+		out.WriteString(rendered)
+		i = j
+	}
+	return out.String()
+}
+
+// sqliteFormatVerb renders a single %conversion with SQLite printf semantics.
+// val is the (possibly missing) argument. Missing arguments render as 0/""
+// like SQLite's getIntArg/getDoubleArg/getTextArg return for exhausted lists.
+func sqliteFormatVerb(verb byte, leftJustify bool, prefix byte, alt, alt2, zero, thousand bool, width, precision int, val interface{}) string {
+	// Normalize missing arguments.
+	missing := val == nil
+	switch verb {
+	case 'd', 'i', 'u', 'o', 'x', 'X':
+		return sqliteFormatInt(verb, leftJustify, prefix, alt, alt2, zero, thousand, width, precision, val, missing)
+	case 'f', 'e', 'E', 'g', 'G':
+		return sqliteFormatFloat(verb, leftJustify, prefix, alt, alt2, zero, thousand, width, precision, val, missing)
+	case 's', 'z':
+		return sqliteFormatString(leftJustify, alt, alt2, zero, width, precision, val, missing)
+	case 'q', 'Q', 'w':
+		return sqliteFormatEscape(verb, leftJustify, alt, alt2, width, precision, val, missing)
+	case '%':
+		return "%"
+	case 'n':
+		// %n is silently ignored and does NOT consume an argument.
+		return ""
+	case 'p':
+		// %p is an alias for %X (uppercase hex, no 0x prefix).
+		return sqliteFormatInt('X', leftJustify, prefix, alt, alt2, zero, thousand, width, precision, val, missing)
+	case 'c':
+		return sqliteFormatChar(leftJustify, zero, width, precision, val, missing)
+	case 'r':
+		// %r ordinal (1st, 2nd, ...) — used internally by SQLite's VDBE
+		// explain output; render the number plus ordinal suffix.
+		n := int64(0)
+		if !missing {
+			n = toInt64(val)
+		}
+		s := strconv.FormatInt(n, 10)
+		x := int(n % 10)
+		if x >= 4 || (n/10)%10 == 1 {
+			x = 0
+		}
+		return s + "thstndrd"[x*2:x*2+2]
+	case 'J', 'j':
+		// %J / %j: JSON rendering (JSON extension). SQLite's printf supports
+		// these only when compiled with JSON; the engine's JSON is out of
+		// scope, so render the plain string (the JSON tests are skipped).
+		return sqliteFormatString(leftJustify, alt, alt2, zero, width, precision, val, missing)
+	default:
+		// Unknown conversion: SQLite returns "%!<verb>" for invalid types
+		// (Go renders %!(BADVERB)); match SQLite's %!(<verb>...) form loosely
+		// by emitting the C-style marker.
+		return fmt.Sprintf("%%!(%c)", verb)
+	}
+}
+
+// sqliteFormatInt renders integer conversions %d %i %u %o %x %X %c %p.
+func sqliteFormatInt(verb byte, leftJustify bool, prefix byte, alt, alt2, zero, thousand bool, width, precision int, val interface{}, missing bool) string {
+	var n int64
+	if verb == 'u' || verb == 'o' || verb == 'x' || verb == 'X' {
+		n = 0
+		if !missing {
+			n = toInt64(val)
+		}
+		u := uint64(n)
+		var s string
+		base := 10
+		switch verb {
+		case 'o':
+			base = 8
+			s = strconv.FormatUint(u, 8)
+		case 'x':
+			base = 16
+			s = strconv.FormatUint(u, 16)
+		case 'X':
+			base = 16
+			s = strings.ToUpper(strconv.FormatUint(u, 16))
+		default: // u
+			s = strconv.FormatUint(u, 10)
+		}
+		_ = base
+		// Alternate form: 0x/0X/0 prefix for x/X/o (suppressed for zero).
+		pre := ""
+		if alt && n != 0 {
+			switch verb {
+			case 'x':
+				pre = "0x"
+			case 'X':
+				pre = "0X"
+			case 'o':
+				pre = "0"
+			}
+		}
+		if thousand && verb == 'u' {
+			s = addThousands(s, ',')
+		}
+		return padInt(s, pre, "", leftJustify, zero, width, precision)
+	}
+	// Signed: d i c p
+	n = 0
+	if !missing {
+		n = toInt64(val)
+	}
+	sign := ""
+	if n < 0 {
+		sign = "-"
+		n = -n
+	} else if prefix != 0 {
+		sign = string(prefix)
+	}
+	s := strconv.FormatInt(n, 10)
+	if thousand {
+		s = addThousands(s, ',')
+	}
+	return padInt(s, sign, "", leftJustify, zero, width, precision)
+}
+
+// sqliteFormatFloat renders %f %e %E %g %G with SQLite's FpDecode semantics.
+func sqliteFormatFloat(verb byte, leftJustify bool, prefix byte, alt, alt2, zero, thousand bool, width, precision int, val interface{}, missing bool) string {
+	r := 0.0
+	if !missing {
+		f, err := toFloat64(val)
+		if err == nil {
+			r = f
+		}
+	}
+	if precision < 0 {
+		precision = 6
+	}
+	// SQLite's FpDecode: 16 significant digits by default, 20 with '!'.
+	maxSig := 16
+	if alt2 {
+		maxSig = 20
+	}
+	s := renderSQLiteFloat(verb, r, precision, alt, alt2, maxSig)
+	// Sign prefix.
+	if r < 0 {
+		// sign already in s
+	} else if prefix != 0 && s != "NaN" && s != "Inf" && s != "-Inf" {
+		s = string(prefix) + s
+	}
+	if thousand {
+		s = insertThousandsFloat(s, ',')
+	}
+	// Width padding (SQLite pads the whole field).
+	if width > len(s) {
+		pad := width - len(s)
+		if leftJustify {
+			s += strings.Repeat(" ", pad)
+		} else if zero && !strings.ContainsAny(s, "eE") {
+			s = strings.Repeat("0", pad) + s
+		} else {
+			s = strings.Repeat(" ", pad) + s
+		}
+	}
+	return s
+}
+
+// sqliteFormatString renders %s (and %z/%J/%j) with SQLite semantics: NULL →
+// "", precision truncates bytes (or characters with '!'), width pads.
+func sqliteFormatString(leftJustify, alt, alt2, zero bool, width, precision int, val interface{}, missing bool) string {
+	s := ""
+	if !missing && val != nil {
+		s = toString(val)
+	}
+	if precision >= 0 {
+		if alt2 {
+			// Precision in UTF-8 characters.
+			runes := []rune(s)
+			if precision < len(runes) {
+				s = string(runes[:precision])
+			}
+		} else {
+			if precision < len(s) {
+				s = s[:precision]
+			}
+		}
+	}
+	// Width: SQLite counts bytes for %s, but with '!' counts characters.
+	count := len(s)
+	if alt2 {
+		count = len([]rune(s))
+	}
+	if width > count {
+		pad := width - count
+		if leftJustify {
+			s += strings.Repeat(" ", pad)
+		} else {
+			s = strings.Repeat(" ", pad) + s
+		}
+	}
+	return s
+}
+
+// sqliteFormatChar renders %c: a single UTF-8 character. When the argument is
+// a string, the first character is used (SQLite's getTextArg); the precision
+// causes the character to repeat. NULL/missing renders the NUL character.
+func sqliteFormatChar(leftJustify, zero bool, width, precision int, val interface{}, missing bool) string {
+	ch := ""
+	if !missing && val != nil {
+		switch v := val.(type) {
+		case int64:
+			// %c of an INTEGER uses the codepoint (printf('%c',65) → 'A').
+			ch = string(rune(v))
+		case float64:
+			ch = string(rune(int64(v)))
+		default:
+			s := toString(val)
+			if s != "" {
+				ch = string([]rune(s)[0])
+			}
+		}
+	}
+	// Precision: repeat the character `precision` times (SQLite etCHARX).
+	n := 1
+	if precision > 1 {
+		n = precision
+	}
+	s := strings.Repeat(ch, n)
+	count := len([]rune(s))
+	if width > count {
+		pad := width - count
+		if leftJustify {
+			s += strings.Repeat(" ", pad)
+		} else if zero {
+			s = strings.Repeat("0", pad) + s
+		} else {
+			s = strings.Repeat(" ", pad) + s
+		}
+	}
+	return s
+}
+
+// sqliteFormatEscape renders %q %Q %w (SQL escaping conversions).
+func sqliteFormatEscape(verb byte, leftJustify, alt, alt2 bool, width, precision int, val interface{}, missing bool) string {
+	var s string
+	if missing || val == nil {
+		if verb == 'Q' {
+			return "NULL" // %Q: NULL → the text NULL (no quotes)
+		}
+		s = "(NULL)" // %q/%w: NULL → (NULL)
+	} else {
+		s = toString(val)
+	}
+	if precision >= 0 {
+		if alt2 {
+			runes := []rune(s)
+			if precision < len(runes) {
+				s = string(runes[:precision])
+			}
+		} else if precision < len(s) {
+			s = s[:precision]
+		}
+	}
+	if verb == 'Q' {
+		s = "'" + strings.ReplaceAll(s, "'", "''") + "'"
+	} else if verb == 'q' {
+		s = strings.ReplaceAll(s, "'", "''")
+	} else { // w
+		s = strings.ReplaceAll(s, "\"", "\"\"")
+	}
+	// Width: SQLite counts characters when the '!' flag is present (the
+	// escaping output's length in characters, not bytes).
+	count := len(s)
+	if alt2 {
+		count = len([]rune(s))
+	}
+	if width > count {
+		pad := width - count
+		if leftJustify {
+			s += strings.Repeat(" ", pad)
+		} else {
+			s = strings.Repeat(" ", pad) + s
+		}
+	}
+	return s
+}
+
+// padInt pads an integer rendering to width with zero/space and applies
+// precision digit-count padding.
+func padInt(s, sign, pre string, leftJustify, zero bool, width, precision int) string {
+	if precision >= 0 && precision > len(s) {
+		s = strings.Repeat("0", precision-len(s)) + s
+	}
+	full := sign + pre + s
+	if width > len(full) {
+		pad := width - len(full)
+		if leftJustify {
+			full += strings.Repeat(" ", pad)
+		} else if zero {
+			full = sign + pre + strings.Repeat("0", pad) + s
+		} else {
+			full = strings.Repeat(" ", pad) + full
+		}
+	}
+	return full
+}
+
+// padString pads a string to width.
+func padString(s, pre string, leftJustify, zero bool, width, precision int) string {
+	if precision >= 0 && precision < len(s) {
+		s = s[:precision]
+	}
+	full := pre + s
+	if width > len(full) {
+		pad := width - len(full)
+		if leftJustify {
+			full += strings.Repeat(" ", pad)
+		} else {
+			full = strings.Repeat(" ", pad) + full
+		}
+	}
+	return full
+}
+
+// addThousands inserts a thousands separator into an integer string.
+func addThousands(s string, sep byte) string {
+	sign := ""
+	if len(s) > 0 && (s[0] == '-' || s[0] == '+') {
+		sign = s[:1]
+		s = s[1:]
+	}
+	var b strings.Builder
+	b.WriteString(sign)
+	for i := 0; i < len(s); i++ {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			b.WriteByte(sep)
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
+}
+
+// insertThousandsFloat inserts thousands separators into the integer part of
+// a float rendering (the digits before '.' or 'e').
+func insertThousandsFloat(s string, sep byte) string {
+	i := strings.IndexAny(s, ".eE")
+	if i < 0 {
+		i = len(s)
+	}
+	intPart := s[:i]
+	rest := s[i:]
+	// intPart may start with a sign.
+	sign := ""
+	if len(intPart) > 0 && (intPart[0] == '-' || intPart[0] == '+') {
+		sign = intPart[:1]
+		intPart = intPart[1:]
+	}
+	return sign + addThousands(intPart, sep) + rest
+}
+
+// renderSQLiteFloat renders a float with SQLite printf semantics.
+//
+// It uses Go's strconv for the core digit generation (which matches SQLite's
+// FpDecode for the common cases — both produce the shortest/rounded decimal)
+// then applies SQLite's %f/%e/%g formatting rules and its '!' and '#' flags.
+func renderSQLiteFloat(verb byte, r float64, precision int, alt, alt2 bool, maxSig int) string {
+	// Special values.
+	if math.IsNaN(r) {
+		return "NaN"
+	}
+	if math.IsInf(r, 1) {
+		return "Inf"
+	}
+	if math.IsInf(r, -1) {
+		return "-Inf"
+	}
+	switch verb {
+	case 'f':
+		return renderFloatF(r, precision, alt, alt2, maxSig)
+	case 'e', 'E':
+		return renderFloatE(r, precision, alt, alt2, verb == 'E', maxSig)
+	case 'g', 'G':
+		return renderFloatG(r, precision, alt, alt2, verb == 'G', maxSig)
+	}
+	return strconv.FormatFloat(r, 'g', -1, 64)
+}
+
+// renderFloatF renders %f: fixed-point with `precision` digits after the
+// decimal point. SQLite always shows the decimal point and rounds using the
+// FpDecode significant digits (so e.g. %.0f of 0.9 is "1"). The '#' flag
+// keeps a trailing decimal point when precision is 0 ("0.").
+func renderFloatF(r float64, precision int, alt, alt2 bool, maxSig int) string {
+	s := strconv.FormatFloat(r, 'f', precision, 64)
+	if alt && !strings.Contains(s, ".") && precision == 0 {
+		s += "."
+	}
+	return s
+}
+
+// renderFloatE renders %e: scientific with `precision` digits after the
+// decimal point and a two-digit exponent. The '!' flag forces a decimal point
+// in the mantissa (so %!.0e of -1e100 is "-1.0e+100").
+func renderFloatE(r float64, precision int, alt, alt2 bool, upper bool, maxSig int) string {
+	s := strconv.FormatFloat(r, 'e', precision, 64)
+	if alt2 && !strings.Contains(s, ".") {
+		i := strings.IndexAny(s, "eE")
+		s = s[:i] + ".0" + s[i:]
+	}
+	// Go renders "1.999900e+08" — SQLite uses the same form.
+	return s
+}
+
+// renderFloatG renders %g: shortest %e or %f depending on exponent, matching
+// SQLite's etGENERIC handling:
+//   - precision>0 is the number of significant digits (SQLite uses
+//     precision-1 for the exp threshold, and FpDecode rounds to precision).
+//   - exp<-4 or exp>precision → %e form, else %f form.
+//   - '#' keeps trailing zeros; '!' forces a decimal point and trailing zero.
+func renderFloatG(r float64, precision int, alt, alt2 bool, upper bool, maxSig int) string {
+	if precision == 0 {
+		precision = 1
+	}
+	sig := precision
+	if sig > maxSig {
+		sig = maxSig
+	}
+	// Go's %g with precision sig produces the significant-digit form; then we
+	// adjust to SQLite's exp threshold (exp<-4 or exp>precision-1 → %e).
+	exp := exponentOf(r)
+	// SQLite clamps the effective precision to mxRound (16/20 sig digits);
+	// digits beyond the rounded value are zeros that 'g' strips. Cap the
+	// decimal digits so a huge requested precision (e.g. %.2147483647g)
+	// renders the rounded value, not the full binary expansion.
+	effP := precision
+	if effP > maxSig {
+		effP = maxSig
+	}
+	// SQLite: for etGENERIC, precision-- then if exp<-4 || exp>precision → e-form.
+	useE := exp < -4 || exp > effP-1
+	if !useE {
+		// %f form with `effP-1-exp` digits after the decimal point,
+		// then strip trailing zeros unless '#'.
+		dp := effP - 1 - exp
+		if dp < 0 {
+			dp = 0
+		}
+		s := strconv.FormatFloat(r, 'f', dp, 64)
+		if !alt {
+			s = strings.TrimRight(s, "0")
+			s = strings.TrimRight(s, ".")
+		}
+		if alt2 {
+			// '!' forces a decimal point; if no fractional digits, add .0
+			if !strings.Contains(s, ".") {
+				s += ".0"
+			}
+		}
+		return s
+	}
+	// %e form. SQLite's etGENERIC strips trailing zeros (flag_rtz is
+	// !flag_alternateform) unless the '#' flag is present.
+	s := strconv.FormatFloat(r, 'e', effP-1, 64)
+	if upper {
+		s = strings.ToUpper(s)
+	}
+	if !alt {
+		// Strip trailing zeros from the mantissa (but keep at least one
+		// digit; SQLite's rtz keeps the '.' removal too, so '2.00e+08'
+		// becomes '2e+08').
+		i := strings.IndexAny(s, "eE")
+		mant := s[:i]
+		exp := s[i:]
+		mant = strings.TrimRight(mant, "0")
+		mant = strings.TrimRight(mant, ".")
+		s = mant + exp
+	}
+	if alt2 && !strings.Contains(s, ".") {
+		// '!' forces a decimal point in the mantissa.
+		i := strings.IndexAny(s, "eE")
+		s = s[:i] + ".0" + s[i:]
+	}
+	return s
+}
+
+// exponentOf returns the base-10 exponent of a non-zero finite float (the
+// position of the decimal point minus one, matching FpDecode's iDP-1).
+func exponentOf(r float64) int {
+	if r == 0 {
+		return 0
+	}
+	return int(math.Floor(math.Log10(math.Abs(r))))
 }
 
 func fnGLOB(args []interface{}) (interface{}, error) {
@@ -1347,13 +1959,31 @@ func fnTOINTEGER(args []interface{}) (interface{}, error) {
 	case int64:
 		return v, nil
 	case float64:
+		// SQLite's tointeger() returns NULL when the REAL is outside the
+		// int64 range (r<=-2^63 or r>=2^63) or NOT an integer (1234.56 →
+		// NULL; only integral REALs like 1234.0 convert). NaN/Inf → NULL.
+		if v != math.Trunc(v) || v <= math.MinInt64 || v >= -math.MinInt64 || math.IsNaN(v) || math.IsInf(v, 0) {
+			return nil, nil
+		}
 		return int64(v), nil
 	case string:
 		if i, err := parseInt64(v); err == nil {
 			return i, nil
 		}
 		if f, err := parseFloat64(v); err == nil {
+			if f != math.Trunc(f) || f <= math.MinInt64 || f >= -math.MinInt64 || math.IsNaN(f) || math.IsInf(f, 0) {
+				return nil, nil
+			}
 			return int64(f), nil
+		}
+		return nil, nil
+	case []byte:
+		// SQLite's tointeger() reads an 8-byte BLOB as the little-endian
+		// bytes of an integer (func4-6.2: x'0102030405060708' →
+		// 0x0807060504030201). Blobs of any other length return NULL
+		// (func4-6.1: tointeger(x'01') is NULL).
+		if len(v) == 8 {
+			return int64(binary.LittleEndian.Uint64(v)), nil
 		}
 		return nil, nil
 	default:
@@ -1362,22 +1992,31 @@ func fnTOINTEGER(args []interface{}) (interface{}, error) {
 }
 
 func parseInt64(s string) (int64, error) {
-	var i int64
-	_, err := fmt.Sscanf(s, "%d", &i)
-	return i, err
+	// SQLite's tointeger() is strict: no leading/trailing whitespace, no
+	// trailing garbage, no sign-separating spaces. Go's strconv.ParseInt
+	// accepts a leading '+'/'-' and rejects everything else.
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return i, nil
 }
 
 func parseFloat64(s string) (float64, error) {
-	var f float64
-	_, err := fmt.Sscanf(s, "%f", &f)
-	return f, err
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0, err
+	}
+	return f, nil
 }
 
 func fnCONCATWS(args []interface{}) (interface{}, error) {
-	sep := ""
-	if len(args) > 0 && args[0] != nil {
-		sep = fmt.Sprintf("%v", args[0])
+	// SQLite concat_ws(sep, ...): a NULL separator yields the empty string
+	// (func9-140: concat_ws(NULL,1,2,...) → {}). NULL values are skipped.
+	if len(args) == 0 || args[0] == nil {
+		return "", nil
 	}
+	sep := fmt.Sprintf("%v", args[0])
 	var parts []string
 	for i := 1; i < len(args); i++ {
 		if args[i] != nil {
@@ -1422,8 +2061,10 @@ func mathOneArg(args []interface{}, fn func(float64) float64) (interface{}, erro
 	if args[0] == nil {
 		return nil, nil
 	}
-	f, err := toFloat64(args[0])
-	if err != nil {
+	// SQLite's math functions only accept numeric input (math1Func checks
+	// sqlite3_value_numeric_type); non-numeric text yields NULL, not 0.
+	f, ok := numericArg(args[0])
+	if !ok {
 		return nil, nil
 	}
 	r := fn(f)
@@ -1433,6 +2074,26 @@ func mathOneArg(args []interface{}, fn func(float64) float64) (interface{}, erro
 	return r, nil
 }
 
+// numericArg converts an argument to a float64, reporting whether it is
+// numeric (INTEGER, REAL, or numeric-looking TEXT — sqlite3_value_numeric_type
+// semantics used by SQLite's math functions). Non-numeric text/blobs return
+// false so the caller yields NULL.
+func numericArg(v interface{}) (float64, bool) {
+	switch x := v.(type) {
+	case int64:
+		return float64(x), true
+	case float64:
+		return x, true
+	case string:
+		f, err := strconv.ParseFloat(strings.TrimSpace(x), 64)
+		if err != nil {
+			return 0, false
+		}
+		return f, true
+	}
+	return 0, false
+}
+
 // mathLogArg evaluates the log-family functions, which additionally return
 // NULL for x<=0 (SQLite: log of zero or a negative number is NULL, not -Inf
 // or NaN).
@@ -1440,8 +2101,8 @@ func mathLogArg(args []interface{}, fn func(float64) float64) (interface{}, erro
 	if args[0] == nil {
 		return nil, nil
 	}
-	f, err := toFloat64(args[0])
-	if err != nil {
+	f, ok := numericArg(args[0])
+	if !ok {
 		return nil, nil
 	}
 	if f <= 0 {
@@ -1450,6 +2111,28 @@ func mathLogArg(args []interface{}, fn func(float64) float64) (interface{}, erro
 	r := fn(f)
 	if math.IsNaN(r) {
 		return nil, nil
+	}
+	return r, nil
+}
+
+// mathRoundArg evaluates floor/ceil, which SQLite returns as INTEGER when the
+// input was INTEGER (floor(17) → 17) and REAL otherwise (floor(17.5) → 17.0,
+// ceil(99.9) → 100.0, ceil('-99.99') → -99.0).
+func mathRoundArg(args []interface{}, fn func(float64) float64) (interface{}, error) {
+	if args[0] == nil {
+		return nil, nil
+	}
+	_, isInt := args[0].(int64)
+	f, ok := numericArg(args[0])
+	if !ok {
+		return nil, nil
+	}
+	r := fn(f)
+	if math.IsNaN(r) {
+		return nil, nil
+	}
+	if isInt && r == math.Trunc(r) && r >= -9.223372036854776e18 && r < 9.223372036854776e18 {
+		return int64(r), nil
 	}
 	return r, nil
 }
@@ -1491,7 +2174,7 @@ func fnATAN2(args []interface{}) (interface{}, error) {
 }
 
 func fnCEIL(args []interface{}) (interface{}, error) {
-	return mathOneArg(args, math.Ceil)
+	return mathRoundArg(args, math.Ceil)
 }
 
 func fnCOS(args []interface{}) (interface{}, error) {
@@ -1511,7 +2194,7 @@ func fnEXP(args []interface{}) (interface{}, error) {
 }
 
 func fnFLOOR(args []interface{}) (interface{}, error) {
-	return mathOneArg(args, math.Floor)
+	return mathRoundArg(args, math.Floor)
 }
 
 func fnLN(args []interface{}) (interface{}, error) {
@@ -1526,12 +2209,13 @@ func fnLOG(args []interface{}) (interface{}, error) {
 		if args[1] == nil {
 			return nil, nil
 		}
-		x, err1 := toFloat64(args[0])
-		base, err2 := toFloat64(args[1])
+		// SQLite log(B, X): base-B logarithm of X = ln(X)/ln(B).
+		base, err1 := toFloat64(args[0])
+		x, err2 := toFloat64(args[1])
 		if err1 != nil || err2 != nil {
 			return nil, nil
 		}
-		// SQLite log(X, B): NULL when X<=0, B<=0, or B==1 (log base 1 is
+		// SQLite log(B, X): NULL when X<=0, B<=0, or B==1 (log base 1 is
 		// undefined; the result is NaN or +-Inf).
 		if x <= 0 || base <= 0 || base == 1 {
 			return nil, nil
@@ -1590,7 +2274,17 @@ func fnPOW(args []interface{}) (interface{}, error) {
 }
 
 func fnRADIANS(args []interface{}) (interface{}, error) {
-	return mathOneArg(args, func(f float64) float64 { return f * math.Pi / 180.0 })
+	// radians/degrees convert exactly (no result rounding): the downstream
+	// trig function applies SQLite-style rounding, and rounding the angle
+	// would change the result (cos(radians(60)) must see the precise angle).
+	if args[0] == nil {
+		return nil, nil
+	}
+	f, ok := numericArg(args[0])
+	if !ok {
+		return nil, nil
+	}
+	return f * math.Pi / 180.0, nil
 }
 
 func fnSIGN(args []interface{}) (interface{}, error) {
@@ -1608,12 +2302,12 @@ func fnSIGN(args []interface{}) (interface{}, error) {
 		return int64(0), nil
 	case float64:
 		if v > 0 {
-			return float64(1), nil
+			return int64(1), nil
 		}
 		if v < 0 {
-			return float64(-1), nil
+			return int64(-1), nil
 		}
-		return float64(0), nil
+		return int64(0), nil
 	default:
 		return nil, nil
 	}
@@ -1672,11 +2366,47 @@ func fnTOREAL(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	f, err := toFloat64(args[0])
-	if err != nil {
-		return int64(0), nil
+	// SQLite's toreal(): INTEGER converts to REAL only when the value is
+	// exactly representable as a double (round-trip (int64)(double)i == i);
+	// otherwise NULL. MinInt64 is always rejected (the C cast of -2^63 is
+	// out of range). REAL passes through (incl. Inf), TEXT must be a strict
+	// decimal; anything else is NULL.
+	switch v := args[0].(type) {
+	case int64:
+		if v == math.MinInt64 {
+			return nil, nil
+		}
+		r := float64(v)
+		// Go's int64(float) saturates at MaxInt64, so the round-trip check
+		// must also reject values that round UP to >= 2^63 (SQLite's C cast
+		// wraps them, and toreal returns NULL when the conversion is lossy).
+		if int64(r) != v || r >= 9223372036854775808.0 {
+			return nil, nil
+		}
+		return r, nil
+	case float64:
+		return v, nil
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return nil, nil
+		}
+		return f, nil
+	case []byte:
+		// SQLite's toreal() reads an 8-byte BLOB as the BIG-endian bytes of
+		// an IEEE754 double (func4-6.3: x'ffefffffffffffff' →
+		// -1.7976931348623157e+308, bits 0xffefffffffffffff read big-endian).
+		// NaN bit patterns yield NULL (func4-6.3.18: x'fff0000000000001').
+		if len(v) == 8 {
+			r := math.Float64frombits(binary.BigEndian.Uint64(v))
+			if math.IsNaN(r) {
+				return nil, nil
+			}
+			return r, nil
+		}
+		return nil, nil
 	}
-	return int64(f), nil
+	return nil, nil
 }
 
 func fnTOCHAR(args []interface{}) (interface{}, error) {
@@ -1788,11 +2518,68 @@ func fnCONCAT(args []interface{}) (interface{}, error) {
 }
 
 func fnUNISTR(args []interface{}) (interface{}, error) {
-	// Stub: return input as-is
+	// SQLite unistr(X): decode \uXXXX (4 hex) and \UXXXXXXXX (8 hex) unicode
+	// escapes into UTF-8. Even invalid codepoints are encoded as their raw
+	// UTF-8 bytes (func9-300: \UFFFFFFFF → bytes F7 BF BF BF).
 	if args[0] == nil {
 		return nil, nil
 	}
-	return args[0], nil
+	s := toString(args[0])
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		if s[i] == '\\' && i+1 < len(s) && (s[i+1] == 'u' || s[i+1] == 'U') {
+			n := 4
+			if s[i+1] == 'U' {
+				n = 8
+			}
+			if i+2+n <= len(s) {
+				hexStr := s[i+2 : i+2+n]
+				if cp, err := strconv.ParseUint(hexStr, 16, 32); err == nil {
+					b.WriteString(utf8EncodeCP(uint32(cp)))
+					i += 2 + n
+					continue
+				}
+			}
+		}
+		b.WriteByte(s[i])
+		i++
+	}
+	return b.String(), nil
+}
+
+// utf8EncodeCP encodes a code point as UTF-8 bytes, matching SQLite's unistr
+// which writes the raw bytes even for out-of-range values (\UFFFFFFFF →
+// F7 BF BF BF) rather than replacing them.
+func utf8EncodeCP(cp uint32) string {
+	switch {
+	case cp <= 0x7F:
+		return string([]byte{byte(cp)})
+	case cp <= 0x7FF:
+		return string([]byte{0xC0 | byte(cp>>6), 0x80 | byte(cp&0x3F)})
+	case cp <= 0xFFFF:
+		return string([]byte{0xE0 | byte(cp>>12), 0x80 | byte((cp>>6)&0x3F), 0x80 | byte(cp&0x3F)})
+	case cp <= 0x1FFFFF:
+		return string([]byte{0xF0 | byte(cp>>18), 0x80 | byte((cp>>12)&0x3F), 0x80 | byte((cp>>6)&0x3F), 0x80 | byte(cp&0x3F)})
+	default:
+		// Out of UTF-8 range (>
+		// 0x1FFFFF): SQLite writes the 4-byte form with the top bits
+		// masked; U+FFFFFFFF → F7 BF BF BF.
+		return string([]byte{0xF0 | byte(cp>>18)&0x07, 0x80 | byte((cp>>12)&0x3F), 0x80 | byte((cp>>6)&0x3F), 0x80 | byte(cp&0x3F)})
+	}
+}
+
+// fnUNISTRQUOTE implements unistr_quote(X): unistr() the argument then wrap it
+// in single quotes with '' escaping (SQLite's unistr_quote, func9-210).
+func fnUNISTRQUOTE(args []interface{}) (interface{}, error) {
+	if args[0] == nil {
+		return nil, nil
+	}
+	s, err := fnUNISTR(args)
+	if err != nil || s == nil {
+		return nil, err
+	}
+	str := toString(s)
+	return "'" + strings.ReplaceAll(str, "'", "''") + "'", nil
 }
 
 func fnNEXTCHAR(args []interface{}) (interface{}, error) {

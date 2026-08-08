@@ -260,9 +260,20 @@ func tclRenderCell(v interface{}) string {
 	case int64:
 		return strconv.FormatInt(x, 10)
 	case float64:
+		// SQLite renders +-Inf as "Inf"/"-Inf" and NaN as "NaN" (no .0
+		// suffix — these are not ordinary decimal floats).
+		if math.IsInf(x, 1) {
+			return "Inf"
+		}
+		if math.IsInf(x, -1) {
+			return "-Inf"
+		}
+		if math.IsNaN(x) {
+			return "NaN"
+		}
 		// SQLite renders REALs with its 15-significant-digit 'g' format
-		// (the alternate-form 'bang' flag): fixed-point for exponents in
-		// [-4, 14] (e.g. 12300000.0, 0.5, 123456789.123457), exponential
+		// (matching sqlite3_column_text / the CLI): fixed-point for exponents
+		// in [-4, 14] (e.g. 12300000.0, 0.5, 123456789.123457), exponential
 		// otherwise (e.g. 9.22337203685478e+18, 1.0e-06). The decimal point
 		// is always present (the '!' alternate form).
 		s := strconv.FormatFloat(x, 'g', 15, 64)

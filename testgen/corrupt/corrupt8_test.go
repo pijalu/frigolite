@@ -83,6 +83,7 @@ func Test_corrupt8(t *testing.T) {
 		oldval = "hexio_read test.db $i 1"
 		_ = oldval // suppress unused warning
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n == 0 }() {
+			break
 		}
 		// hexio_write test.db $i 00 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".0"
@@ -98,6 +99,14 @@ func Test_corrupt8(t *testing.T) {
 		_ = k // suppress unused warning
 		for func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; return k_n <= 5 }() {
 			if func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return k_n == oldval_n }() {
+				// incr k 1
+				{
+					_n, _err := strconv.Atoi(k)
+					if _err == nil {
+						k = strconv.Itoa(_n + 1)
+					}
+				}
+				continue
 			}
 			// hexio_write test.db $i 0$k (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + "." + k

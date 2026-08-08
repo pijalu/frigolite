@@ -138,6 +138,7 @@ func Test_mutex1(t *testing.T) {
 		_ = mutexes // suppress unused warning
 		_ = _idx0
 			if mode != "serialized" {
+				continue
 			}
 			if tclBool("permutation" + "==\"inmemory_journal\"") {
 				idx = strconv.Itoa(strings.Index(mutexes, "static_prng"))

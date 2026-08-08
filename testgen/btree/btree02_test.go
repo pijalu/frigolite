@@ -91,6 +91,7 @@ func Test_btree02(t *testing.T) {
 		var _dbevalErr2 error
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 			if a == "" {
+				continue
 			}
 			_res = db.Exec("INSERT INTO t2(x,y) VALUES(" + sqlLiteral(b) + "," + sqlLiteral(cnt) + ")")
 			if _res.Error != nil {

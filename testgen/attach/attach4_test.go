@@ -120,6 +120,7 @@ func Test_attach4(t *testing.T) {
 				_ = f // suppress unused warning
 				_ = _idx1
 					if name == "main" {
+						continue
 					}
 					_res = db.Exec("ATTACH '" + f + "' AS " + name)
 					if _res.Error != nil {

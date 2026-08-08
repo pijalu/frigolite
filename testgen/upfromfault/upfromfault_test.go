@@ -75,6 +75,7 @@ func Test_upfromfault(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n < 5 }() {
+				continue
 			}
 			db.Close()
 			os.Remove("test.db")

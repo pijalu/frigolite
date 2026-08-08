@@ -2301,10 +2301,18 @@ func subValues(a, b interface{}) (interface{}, error) {
 		return ai - bi, nil
 	}
 	// Integer arithmetic must not round-trip through float64 (precision loss
-	// for large int64 values). Use int64 subtraction directly.
+	// for large int64 values). Use int64 subtraction directly, but promote to
+	// REAL when the result would overflow int64 (SQLite: -9223372036854775808
+	// - 1 is 9.22337203685478e+18, not the wrapped MaxInt64).
 	if ia, ok := a.(int64); ok {
 		if ib, ok := b.(int64); ok {
-			return ia - ib, nil
+			diff := ia - ib
+			// Detect int64 overflow: subtracting a negative from a positive
+			// (or vice versa) changes sign when it overflows.
+			if (ib > 0 && diff > ia) || (ib < 0 && diff < ia) {
+				return float64(ia) - float64(ib), nil
+			}
+			return diff, nil
 		}
 	}
 	af, aok := toFloat(a)

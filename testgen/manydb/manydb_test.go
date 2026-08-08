@@ -133,6 +133,7 @@ func Test_manydb(t *testing.T) {
 				name = "test-" + tclFormat("%08x", "0") + ".db"
 				_ = name // suppress unused warning
 				if tclBool("info exists used($name)") {
+					continue
 				}
 				dbname_i = name
 				_ = dbname_i // suppress unused warning

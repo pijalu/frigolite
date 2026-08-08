@@ -7,6 +7,7 @@ package func8
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -55,14 +56,49 @@ func Test_func8(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// proc definition (not transpiled)
-	// db function cross (variable-reader, inlined)
-	// db function full (variable-reader, inlined)
-	// db function inner (variable-reader, inlined)
-	// db function left (variable-reader, inlined)
-	// db function natural (variable-reader, inlined)
-	// db function outer (variable-reader, inlined)
-	// db function right (variable-reader, inlined)
+	// proc joinx joins args with "-" (registered via db func)
+	db.RegisterFunction("cross", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "cross")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
+	db.RegisterFunction("full", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "full")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
+	db.RegisterFunction("inner", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "inner")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
+	db.RegisterFunction("left", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "left")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
+	db.RegisterFunction("natural", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "natural")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
+	db.RegisterFunction("outer", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "outer")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
+	db.RegisterFunction("right", func(args []interface{}) (interface{}, error) {
+		var parts []string
+		parts = append(parts, "right")
+		for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+		return strings.Join(parts, "-"), nil
+	}, 0, -1)
 	{ // "func8-100"
 		_res = db.Exec("\n  CREATE TABLE cross(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE full(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE inner(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE left(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE natural(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE outer(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE right(cross,full,inner,left,natural,outer,right);\n  INSERT INTO cross VALUES(1,2,3,4,5,6,7);\n  INSERT INTO full VALUES(1,2,3,4,5,6,7);\n  INSERT INTO inner VALUES(1,2,3,4,5,6,7);\n  INSERT INTO left VALUES(1,2,3,4,5,6,7);\n  INSERT INTO natural VALUES(1,2,3,4,5,6,7);\n  INSERT INTO outer VALUES(1,2,3,4,5,6,7);\n  INSERT INTO right VALUES(1,2,3,4,5,6,7);\n")
 		if _res.Error != nil {

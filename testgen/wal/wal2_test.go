@@ -1207,6 +1207,7 @@ func Test_wal2(t *testing.T) {
 								_ = reslist // suppress unused warning
 								_ = _idx5
 									if strings.TrimSpace(sql) == "" {
+										continue
 									}
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
 									r = db.Query("PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")

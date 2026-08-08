@@ -177,6 +177,7 @@ func Test_rowid(t *testing.T) {
 			norow = "0"
 			_ = norow // suppress unused warning
 			if tclBool(norow + "!=" + x2rowid_1 + " && " + norow + "!=" + x2rowid_3) {
+				break
 			}
 		}
 		r = db.Query("SELECT x FROM t1 WHERE rowid=" + norow)
@@ -521,6 +522,7 @@ func Test_rowid(t *testing.T) {
 		_ = norow // suppress unused warning
 		for true {
 			if tclExecSQL(db, "SELECT x FROM t1 WHERE rowid=" + norow) == "" {
+				break
 			}
 			// incr norow 1
 			{
