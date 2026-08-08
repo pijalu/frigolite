@@ -2162,9 +2162,9 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.91.1"
-		r = db.Query("SELECT x FROM t1 WHERE y LIKE '" + "%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '[%'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '" + "%'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '[%'")
 			return
 		}
 		got := flatten(r)
@@ -2174,9 +2174,9 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.91.2"
-		r = db.Query("SELECT x FROM t2 WHERE y LIKE '" + "%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '[%'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '" + "%'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '[%'")
 			return
 		}
 		got := flatten(r)
@@ -2186,9 +2186,9 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.91.3"
-		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc" + "%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc[%'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc" + "%'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc[%'")
 			return
 		}
 		got := flatten(r)

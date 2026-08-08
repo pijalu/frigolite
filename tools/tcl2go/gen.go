@@ -1322,7 +1322,12 @@ func tclUnescapeQuoted(s string) string {
 			b.WriteByte('\b')
 		case 'a':
 			b.WriteByte('\a')
-		case '\\', '"', '$', '[', ']', '{', '}':
+		case '\\', '"':
+			b.WriteByte(s[i])
+		case '$', '[', ']', '{', '}':
+			// Keep the backslash so parseStringParts treats the escaped char
+			// as literal text, not as a $var or [cmd] substitution start.
+			b.WriteByte('\\')
 			b.WriteByte(s[i])
 		default:
 			// TCL drops the backslash for unrecognized escapes.
@@ -1986,14 +1991,24 @@ func parseStringPartsMode(s string, sqlQuoted, noCommands bool) []stringPart {
 		}
 
 		if ch == '\\' && pos+1 < len(s) {
-			// Escape: keep in current literal
+			// Escape: keep in current literal. For the interpolation-sensitive
+			// chars ($ [ ] { }), TCL's backslash escape makes them literal, so
+			// drop the backslash (the escaped char must not become a $var or
+			// [cmd] substitution). Other escapes (e.g. \\ and \" that survive
+			// the upstream unescape) keep the backslash for the Go %q
+			// round-trip.
 			next := s[pos+1]
 			pos += 2
 			if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
 				parts = append(parts, stringPart{})
 			}
 			last := &parts[len(parts)-1]
-			last.literal += string([]byte{'\\', next})
+			switch next {
+			case '$', '[', ']', '{', '}':
+				last.literal += string([]byte{next})
+			default:
+				last.literal += string([]byte{'\\', next})
+			}
 			continue
 		}
 
