@@ -122,23 +122,23 @@ func Test_win32longpath(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
 		}
 	}
-	longPath_1 = "\\\\?\\$path\\[pid]"
+	longPath_1 = "\\\\?$path[pid]"
 	_ = longPath_1 // suppress unused warning
-	uriPath_1a = "%5C%5C%3F%5C" + path + "\\[pid]"
+	uriPath_1a = "%5C%5C%3F%5C" + path + "[pid]"
 	_ = uriPath_1a // suppress unused warning
 	uriPath_1b = "%5C%5C%3F%5C" + rawPath + "/" + "pid"
 	_ = uriPath_1b // suppress unused warning
 	// file mkdir $longPath(1)
-	longPath_2 = longPath_1 + "\\[string repeat X 255]"
+	longPath_2 = longPath_1 + "[string repeat X 255]"
 	_ = longPath_2 // suppress unused warning
-	uriPath_2a = uriPath_1a + "\\[string repeat X 255]"
+	uriPath_2a = uriPath_1a + "[string repeat X 255]"
 	_ = uriPath_2a // suppress unused warning
 	uriPath_2b = uriPath_1b + "/" + "X 255"
 	_ = uriPath_2b // suppress unused warning
 	// file mkdir $longPath(2)
-	longPath_3 = longPath_2 + "\\[string repeat Y 255]"
+	longPath_3 = longPath_2 + "[string repeat Y 255]"
 	_ = longPath_3 // suppress unused warning
-	uriPath_3a = uriPath_2a + "\\[string repeat Y 255]"
+	uriPath_3a = uriPath_2a + "[string repeat Y 255]"
 	_ = uriPath_3a // suppress unused warning
 	uriPath_3b = uriPath_2b + "/" + "Y 255"
 	_ = uriPath_3b // suppress unused warning
@@ -209,7 +209,7 @@ func Test_win32longpath(t *testing.T) {
 		}
 	}
 	if msg == "1" {
-		_putsMsg = "Command " + "cleanup.bat" + " returns " + msg
+		_putsMsg = "Command [cleanup.bat] returns " + msg
 		_ = _putsMsg
 	}
 	os.Remove("-force")

@@ -1546,7 +1546,11 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	if isSingleBraceGroup(text) {
 		inner := text[1 : len(text)-1]
 		if strings.TrimSpace(inner) != "" {
-			text = strings.TrimSpace(inner)
+			// Trim only TRAILING whitespace: a trailing newline/spaces is
+			// TCL list formatting (db eval places each row on its own line),
+			// while a LEADING space is part of the cell value (like-16.1
+			// stores ' 1x' and expects the leading space back).
+			text = strings.TrimRight(inner, " \t\n\r")
 			unwrapped = true
 		}
 	}
@@ -1564,22 +1568,25 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 			var parts []string
 			for _, e := range elems {
 				raw := e
-				e = strings.TrimSpace(e)
-				// tclSplitList returns the INNER content of each braced
-				// element, so a `{}` element (db eval's rendering of a
-				// NULL / empty-string row) arrives as the empty string.
-				// flatten() renders NULL as "{}", so keep it as `{}` —
-				// dropping it would corrupt the expected value (e.g.
-				// `{{} 1 {} 2}` must stay `{} 1 {} 2`, not ` 1  2`).
+				// Trim only TRAILING whitespace (TCL list formatting puts
+				// each row on its own line); a leading space is part of the
+				// cell value (like-16.1 stores ' 1x') and must be preserved
+				// because flatten() renders it with that space.
+				e = strings.TrimRight(e, " \t\n\r")
 				if e == "" {
+					// tclSplitList returns the INNER content of each braced
+					// element, so a `{}` element (db eval's rendering of a
+					// NULL / empty-string row) arrives as the empty string.
+					// flatten() renders NULL as "{}", so keep it as `{}` —
+					// dropping it would corrupt the expected value (e.g.
+					// `{{} 1 {} 2}` must stay `{} 1 {} 2`, not ` 1  2`).
 					// Distinguish `{}` (empty, TCL NULL/empty rendering)
 					// from `{ }` (a single space string, which is a real
 					// value — collate1 8.2 stores a space and expects it).
 					if strings.TrimSpace(raw) == "" && strings.Contains(raw, " ") {
 						parts = append(parts, " ")
 					} else {
-						e = "{}"
-						parts = append(parts, e)
+						parts = append(parts, "{}")
 					}
 					continue
 				}
@@ -1996,19 +2003,23 @@ func parseStringPartsMode(s string, sqlQuoted, noCommands bool) []stringPart {
 			// drop the backslash (the escaped char must not become a $var or
 			// [cmd] substitution). Other escapes (e.g. \\ and \" that survive
 			// the upstream unescape) keep the backslash for the Go %q
-			// round-trip.
+			// round-trip. Inside a SQL string literal (inSQL), backslashes are
+			// SQL text (e.g. a regex '\[', a LIKE '\%'), never TCL escapes, so
+			// preserve them verbatim.
 			next := s[pos+1]
 			pos += 2
 			if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
 				parts = append(parts, stringPart{})
 			}
 			last := &parts[len(parts)-1]
-			switch next {
-			case '$', '[', ']', '{', '}':
-				last.literal += string([]byte{next})
-			default:
-				last.literal += string([]byte{'\\', next})
+			if !inSQL {
+				switch next {
+				case '$', '[', ']', '{', '}':
+					last.literal += string([]byte{next})
+					continue
+				}
 			}
+			last.literal += string([]byte{'\\', next})
 			continue
 		}
 

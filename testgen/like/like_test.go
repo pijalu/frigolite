@@ -1065,7 +1065,7 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1x 1-"
+		want := " 1x  1-"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1077,7 +1077,7 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1-"
+		want := " 1-"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

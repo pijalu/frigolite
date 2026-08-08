@@ -86,13 +86,13 @@ func Test_atof1(t *testing.T) {
 		xf = tclFormat("%.32e", x)
 		_ = xf // suppress unused warning
 		{ // do_test "atof1-1." + i + ".1"
-			_dbeval0 := tclExecSQL(db, "SELECT " + sqlLiteral(xf) + "=\\$x")
+			_dbeval0 := tclExecSQL(db, "SELECT " + sqlLiteral(xf) + "=$x")
 			y = _dbeval0
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
 				_putsMsg := "-nonewline"
 				_ = _putsMsg
-				_dbevalRows0 := db.Query("SELECT " + xf + "+0.0 AS a, " + x + " AS b")
+				_dbevalRows0 := db.Query("SELECT " + xf + "+0.0 AS a, $x AS b")
 				var _dbevalRb1 bool
 				var _dbevalErr2 error
 				for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {

@@ -1484,8 +1484,8 @@ func Test_e_expr(t *testing.T) {
 													// parameter_test e_expr-11.6.1 SELECT ?, @abc {1 {} 2 @abc} {-1 -2} (unsupported command, not transpiled)
 													// parameter_test e_expr-11.6.2 SELECT ?123, :a1 {123 ?123 124 :a1} {-123 -124} (unsupported command, not transpiled)
 													// parameter_test e_expr-11.6.3 {SELECT $a, ?8, ?, $b, ?2, $c} {\n  1 $a 8 ?8 9 {} 10 $b 2 ?2 11 $... (unsupported command, not transpiled)
-													// foreach {tn sql} "                            1  \"SELECT ?" + mvn + ", \\$::a\"                         2  \"SELECT ?" + mvn + ", ?4, @a1\"                       3  \"SELECT ?" + tclExprWith("$mvn-2", map[string]string{"mvn": mvn}) + ", :bag, @123, \\$x\"    "
-													_items17 := tclSplitList("                            1  \"SELECT ?" + mvn + ", \\$::a\"                         2  \"SELECT ?" + mvn + ", ?4, @a1\"                       3  \"SELECT ?" + tclExprWith("$mvn-2", map[string]string{"mvn": mvn}) + ", :bag, @123, \\$x\"    ")
+													// foreach {tn sql} "                            1  \"SELECT ?" + mvn + ", $::a\"                         2  \"SELECT ?" + mvn + ", ?4, @a1\"                       3  \"SELECT ?" + tclExprWith("$mvn-2", map[string]string{"mvn": mvn}) + ", :bag, @123, $x\"    "
+													_items17 := tclSplitList("                            1  \"SELECT ?" + mvn + ", $::a\"                         2  \"SELECT ?" + mvn + ", ?4, @a1\"                       3  \"SELECT ?" + tclExprWith("$mvn-2", map[string]string{"mvn": mvn}) + ", :bag, @123, $x\"    ")
 													for _idx17 := 0; _idx17+2 <= len(_items17); _idx17 += 2 {
 														tn := _items17[_idx17+0]
 														_ = tn // suppress unused warning
