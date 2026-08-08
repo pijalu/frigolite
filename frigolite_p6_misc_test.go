@@ -625,3 +625,33 @@ func TestP6_NestedJoinSameName(t *testing.T) {
 		t.Errorf("nested join aliased: got [%s]", got)
 	}
 }
+
+// TestP6_CompoundOrderByStar covers select1: a compound subquery member that
+// projects * makes the underlying table's columns available to ORDER BY, and
+// SELECT-list aliases resolve in join ON clauses.
+func TestP6_CompoundOrderByStar(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE t1(a,b);
+		CREATE TABLE t2(x,y,z);
+		INSERT INTO t1 VALUES(1,2),(3,4);
+		INSERT INTO t2 VALUES(1,2,3),(4,5,6),(7,8,9);
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, `SELECT * FROM t1,(SELECT * FROM t2 WHERE y=2 UNION ALL SELECT * FROM t2 WHERE y=3 ORDER BY y,z LIMIT 4)`)
+	if got != "1 2 1 2 3 3 4 1 2 3" {
+		t.Errorf("compound subquery ORDER BY *: got [%s]", got)
+	}
+
+	// SELECT alias resolves in ON.
+	if err := db.Exec(`CREATE TABLE t3(a INTEGER PRIMARY KEY, R); INSERT INTO t3 VALUES(1,9);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	r := db.Query(`SELECT a,(+a)b FROM t3 LEFT JOIN (SELECT 1 AS z, 2 AS y) v ON z=b`)
+	if r.Error != nil {
+		t.Errorf("ON referencing SELECT alias: %v", r.Error)
+	}
+}

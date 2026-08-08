@@ -7272,6 +7272,25 @@ func (e *Engine) validateCompoundOrderBy(s *sql.SelectStmt, orderBy []sql.OrderB
 				colNames[strings.ToLower(col.As)] = true
 			}
 		}
+		// A compound member that projects * (e.g. SELECT * FROM t2) makes the
+		// underlying table's columns available to ORDER BY (SQLite resolves
+		// ORDER BY terms against the expanded result columns).
+		for _, col := range m.Columns {
+			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+				tbl := ref.Table
+				if tbl == "" {
+					tbl = m.From.Name
+				}
+				if tbl == "" {
+					continue
+				}
+				if cols, err := e.resolveTableColumnNames(m, tbl); err == nil {
+					for _, n := range cols {
+						colNames[strings.ToLower(n)] = true
+					}
+				}
+			}
+		}
 	}
 	cur := s
 	for cur != nil {
@@ -7769,6 +7788,14 @@ func (e *Engine) validateJoinOnClauses(s *sql.SelectStmt) error {
 	}
 	available := map[string]bool{}
 	availableCols := map[string]bool{}
+	// Output column aliases (SELECT expr AS b) are resolvable in ON clauses
+	// (SQLite: SELECT a,(+a)b FROM t1 LEFT JOIN v1a ON z=b resolves b to the
+	// (+a) expression).
+	for _, col := range s.Columns {
+		if col.As != "" {
+			availableCols[col.As] = true
+		}
+	}
 	// leftTables tracks the tables joined so far and their column names, for
 	// the RIGHT/FULL NATURAL/USING ambiguity check.
 	type tableCols struct {
