@@ -211,13 +211,14 @@ func Test_schema(t *testing.T) {
 	{ // "schema-11.5" (uses_stmt_journal/prepare-step internals, not transpiled)
 	}
 	{ // do_test "schema-11.6"
-		// sqlite_delete_collation $::DB tstcollate (unsupported command, not transpiled)
+		db.UnregisterCollation("tstcollate")
 	}
 	{ // do_test "schema-11.7"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
+			// db collate tstcollate (not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

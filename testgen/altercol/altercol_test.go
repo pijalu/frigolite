@@ -465,6 +465,7 @@ func Test_altercol(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		db.RegisterCollation("nocase", func(a, b string) int { return strings.Compare(a, b) })
 		{ // "8.4.3"
 			_res = db.Exec("\n  CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT x FROM b2 ORDER BY 1 COLLATE nocase;\n")
 			if _res.Error != nil {

@@ -785,6 +785,7 @@ func Test_altertab(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// db collate compare64 (not transpiled)
 	{ // "23.1"
 		_res = db.Exec("\n  CREATE TABLE gigo(a text);\n  CREATE TABLE idx(x text COLLATE compare64);\n  CREATE VIEW v1 AS SELECT * FROM idx WHERE x='abc';\n")
 		if _res.Error != nil {

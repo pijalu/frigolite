@@ -9,6 +9,7 @@ import (
 "os"
 "regexp"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -181,7 +182,8 @@ func Test_select9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i1;\n    DROP INDEX i2;\n    DROP INDEX i3;\n    DROP INDEX i4;\n  ")
 		}
 	}
-	// proc definition (not transpiled)
+	// proc reverse collation (registered via db collate)
+	db.RegisterCollation("reverse", func(a, b string) int { return -strings.Compare(a, b) })
 	iOuterLoop = "1"
 	_ = iOuterLoop // suppress unused warning
 	for _, indexes := range tclSplitList("{\n  /* Do not create any indexes. */\n} {\n  CREATE INDEX i1 ON t1(a)\n} {\n  DROP INDEX i1;\n  CREATE INDEX i1 ON t1(b, a)\n} {\n  CREATE INDEX i2 ON t2(d DESC, e COLLATE REVERSE ASC);\n} {\n  CREATE INDEX i3 ON t1(a DESC);\n}") {

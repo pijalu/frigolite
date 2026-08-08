@@ -7,6 +7,7 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -69,7 +70,13 @@ func Test_collate2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "collate2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	// proc definition (not transpiled)
+	db.RegisterCollation("BACKWARDS", func(a, b string) int {
+	ra, rb := "", ""
+	for i := len(a) - 1; i >= 0; i-- { ra += string(a[i]) }
+	for i := len(b) - 1; i >= 0; i-- { rb += string(b[i]) }
+	return strings.Compare(ra, rb)
+})
+	// proc backwards_collate collation (registered via db collate)
 	{ // do_test "collate2-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate2t1(\n      a COLLATE BINARY, \n      b COLLATE NOCASE, \n      c COLLATE BACKWARDS\n    );\n    INSERT INTO collate2t1 VALUES( NULL, NULL, NULL );\n\n    INSERT INTO collate2t1 VALUES( 'aa', 'aa', 'aa' );\n    INSERT INTO collate2t1 VALUES( 'ab', 'ab', 'ab' );\n    INSERT INTO collate2t1 VALUES( 'ba', 'ba', 'ba' );\n    INSERT INTO collate2t1 VALUES( 'bb', 'bb', 'bb' );\n\n    INSERT INTO collate2t1 VALUES( 'aA', 'aA', 'aA' );\n    INSERT INTO collate2t1 VALUES( 'aB', 'aB', 'aB' );\n    INSERT INTO collate2t1 VALUES( 'bA', 'bA', 'bA' );\n    INSERT INTO collate2t1 VALUES( 'bB', 'bB', 'bB' );\n\n    INSERT INTO collate2t1 VALUES( 'Aa', 'Aa', 'Aa' );\n    INSERT INTO collate2t1 VALUES( 'Ab', 'Ab', 'Ab' );\n    INSERT INTO collate2t1 VALUES( 'Ba', 'Ba', 'Ba' );\n    INSERT INTO collate2t1 VALUES( 'Bb', 'Bb', 'Bb' );\n\n    INSERT INTO collate2t1 VALUES( 'AA', 'AA', 'AA' );\n    INSERT INTO collate2t1 VALUES( 'AB', 'AB', 'AB' );\n    INSERT INTO collate2t1 VALUES( 'BA', 'BA', 'BA' );\n    INSERT INTO collate2t1 VALUES( 'BB', 'BB', 'BB' );\n  ")
 		if _res.Error != nil {

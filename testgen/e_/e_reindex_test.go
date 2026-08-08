@@ -7,6 +7,8 @@ package e_
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
+"strings"
 "testing"
 )
 
@@ -140,8 +142,28 @@ func Test_e_reindex(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
+	// proc sort_by_length collation (registered via db collate)
+	// proc sort_by_value collation (registered via db collate)
+	db.RegisterCollation("collA", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
+	db.RegisterCollation("collB", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
 	BY_length = "one six two five four eight seven three"
 	_ = BY_length // suppress unused warning
 	BY_value = "one two three four five six seven eight"

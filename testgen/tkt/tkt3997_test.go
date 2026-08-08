@@ -7,6 +7,7 @@ package tkt
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -59,8 +60,10 @@ func Test_tkt3997(t *testing.T) {
 	_ = lhs // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	// proc reverse collation (registered via db collate)
 	// proc definition (not transpiled)
-	// proc definition (not transpiled)
+	db.RegisterCollation("reverse", func(a, b string) int { return -strings.Compare(a, b) })
+	// db collate usual (not transpiled)
 	{ // do_test "tkt3997-1.1"
 		_res = db.Exec("\n    create table mytext(name BLOB);\n    INSERT INTO mytext VALUES('abc');\n    INSERT INTO mytext VALUES('acd');\n    INSERT INTO mytext VALUES('afe');\n  ")
 		if _res.Error != nil {

@@ -7,6 +7,8 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
+"strings"
 "testing"
 )
 
@@ -65,15 +67,22 @@ func Test_collate7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	caseless_del = "0" // TCL namespace variable
 	_ = caseless_del // suppress unused warning
-	// proc definition (not transpiled)
+	// proc caseless_cmp collation (registered via db collate)
 	{ // do_test "collate7-1.1"
 		cmd = "incr ::caseless_del"
 		_ = cmd // suppress unused warning
-		// sqlite3_create_collation_v2 db CASELESS caseless_cmp $cmd (unsupported command, not transpiled)
+		db.RegisterCollation("CASELESS", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-1.2"
-		// sqlite_delete_collation db CASELESS (unsupported command, not transpiled)
+		db.UnregisterCollation("CASELESS")
+		// destructor fired: incr caseless_del
+		{
+			_n, _err := strconv.Atoi(caseless_del)
+			if _err == nil {
+				caseless_del = strconv.Itoa(_n + 1)
+			}
+		}
 		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-1.3"
@@ -81,7 +90,14 @@ func Test_collate7(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate7-1.4"
-		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
+		db.RegisterCollation("CASELESS", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
+		// destructor fired: incr caseless_del
+		{
+			_n, _err := strconv.Atoi(caseless_del)
+			if _err == nil {
+				caseless_del = strconv.Itoa(_n + 1)
+			}
+		}
 		db.Close()
 		_ = caseless_del // TCL namespace variable (query)
 	}
@@ -89,7 +105,7 @@ func Test_collate7(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
+		db.RegisterCollation("CASELESS", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		r = db.Query("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
@@ -104,7 +120,14 @@ func Test_collate7(t *testing.T) {
 		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.3"
-		// sqlite_delete_collation db CASELESS (unsupported command, not transpiled)
+		db.UnregisterCollation("CASELESS")
+		// destructor fired: incr caseless_del
+		{
+			_n, _err := strconv.Atoi(caseless_del)
+			if _err == nil {
+				caseless_del = strconv.Itoa(_n + 1)
+			}
+		}
 		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.4"

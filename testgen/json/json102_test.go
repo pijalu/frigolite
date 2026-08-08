@@ -315,7 +315,7 @@ func Test_json102(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "[1,null,\"3\",\"[4,5]\",\"{\\\"six\\\":7.7}\"]"
+		want := "[1,null,\"3\",\"[4,5]\",\"{\"six\":7.7}\"]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -327,7 +327,7 @@ func Test_json102(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "[1,null,\"3\",\"[4,5]\",\"{\\\"six\\\":7.7}\"]"
+		want := "[1,null,\"3\",\"[4,5]\",\"{\"six\":7.7}\"]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

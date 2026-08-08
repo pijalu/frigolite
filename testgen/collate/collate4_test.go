@@ -7,6 +7,8 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
+"strings"
 "testing"
 )
 
@@ -73,7 +75,8 @@ func Test_collate4(t *testing.T) {
 	_ = rhs // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// proc definition (not transpiled)
+	db.RegisterCollation("TEXT", func(a, b string) int { return strings.Compare(a, b) })
+	// proc text_collate collation (registered via db collate)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "collate4-1.1.0"
@@ -430,7 +433,17 @@ func Test_collate4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE collate4t1;\n  ")
 		}
 	}
-	// proc definition (not transpiled)
+	db.RegisterCollation("numeric", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
+	// proc numeric_collate collation (registered via db collate)
 	{ // do_test "collate4-4.0"
 		_res = db.Exec("\n    CREATE TABLE collate4t1(a COLLATE TEXT);\n    INSERT INTO collate4t1 VALUES('2');\n    INSERT INTO collate4t1 VALUES('10');\n    INSERT INTO collate4t1 VALUES('20');\n    INSERT INTO collate4t1 VALUES('104');\n  ")
 		if _res.Error != nil {

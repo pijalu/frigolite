@@ -224,7 +224,7 @@ func Test_enc2(t *testing.T) {
 	_ = values // suppress unused warning
 	test_collate_enc = "INVALID" // TCL namespace variable
 	_ = test_collate_enc // suppress unused warning
-	// proc definition (not transpiled)
+	// proc test_collate collation (registered via db collate)
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

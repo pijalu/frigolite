@@ -136,7 +136,9 @@ func Test_without_rowid7(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// proc definition (not transpiled)
+	db.RegisterCollation("mysort", func(a, b string) int { return strings.Compare(a, b) })
+	db.RegisterCollation("mysort2", func(a, b string) int { return strings.Compare(a, b) })
+	// proc mysort collation (registered via db collate)
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {
@@ -155,6 +157,7 @@ func Test_without_rowid7(t *testing.T) {
 	{ // do_test "3.1.2"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
+	db.RegisterCollation("mysort", func(a, b string) int { return strings.Compare(a, b) })
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i1 ON t1(b);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: mysort2") {

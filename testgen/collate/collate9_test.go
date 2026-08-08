@@ -7,6 +7,7 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -67,7 +68,8 @@ func Test_collate9(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// proc definition (not transpiled)
+	// proc reverse_sort collation (registered via db collate)
+	db.RegisterCollation("reverse sort", func(a, b string) int { return -strings.Compare(a, b) })
 	// proc definition (not transpiled)
 	{ // do_test "collate9-1.1"
 		_res = db.Exec("\n    CREATE TABLE xy(x COLLATE \"reverse sort\", y COLLATE binary);\n    INSERT INTO xy VALUES('one', 'one');\n    INSERT INTO xy VALUES('two', 'two');\n    INSERT INTO xy VALUES('three', 'three');\n  ")

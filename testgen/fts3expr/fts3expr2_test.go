@@ -133,7 +133,7 @@ func Test_fts3expr2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// proc definition (not transpiled)
+	// proc tree_to_expr collation (registered via db collate)
 	// proc definition (not transpiled)
 	iTest = "1"
 	_ = iTest // suppress unused warning

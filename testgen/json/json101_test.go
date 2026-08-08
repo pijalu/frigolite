@@ -93,7 +93,7 @@ func Test_json101(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "[1,\"{\\\\\"abc\\\\\":2.5,\\\\\"def\\\\\":null,\\\\\"ghi\\\\\":hello}\",99]"
+		want := "[1,\"{\\\"abc\\\":2.5,\\\"def\\\":null,\\\"ghi\\\":hello}\",99]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -752,7 +752,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]"
+			want := "[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\"#xyz\"]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -764,7 +764,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]"
+			want := "[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\"#xyz\"]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -812,7 +812,7 @@ func Test_json101(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\"abc\\\"xyz\""
+			want := "\"abc\"xyz\""
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

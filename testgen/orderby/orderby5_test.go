@@ -140,6 +140,7 @@ func Test_orderby5(t *testing.T) {
 	}
 	{ // "orderby5-4.2.4" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX)
 	}
+	// db collate hello (not transpiled)
 	{ // "4.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		if _res.Error != nil {

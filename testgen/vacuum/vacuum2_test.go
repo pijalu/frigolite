@@ -275,6 +275,7 @@ func Test_vacuum2(t *testing.T) {
 		res2 = tclListAppend(res2, res)
 	}
 	// proc definition (not transpiled)
+	db.RegisterCollation("cmp", func(a, b string) int { return -strings.Compare(a, b) })
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t6(x PRIMARY KEY COLLATE cmp, y) WITHOUT ROWID;\n  CREATE INDEX t6y ON t6(y);\n  INSERT INTO t6 VALUES('i', 'one');\n  INSERT INTO t6 VALUES('ii', 'one');\n  INSERT INTO t6 VALUES('iii', 'one');\n")
 		if _res.Error != nil {
@@ -283,7 +284,7 @@ func Test_vacuum2(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	// proc definition (not transpiled)
+	// proc cmp collation (registered via db collate)
 	{ // "6.2"
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {

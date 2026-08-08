@@ -4531,7 +4531,7 @@ func (e *Engine) validateRowValueUse(expr sql.Expr, topLevel bool) error {
 		// collation name at prepare time like SQLite.
 		if strings.EqualFold(v.Operator, "COLLATE") {
 			if name := getCollationName(v.Right); name != "" {
-				if err := checkCollationString(name); err != nil {
+				if err := e.checkCollationString(name); err != nil {
 					return err
 				}
 			}
@@ -7039,9 +7039,14 @@ func (e *Engine) validateCompoundOrderBy(s *sql.SelectStmt, orderBy []sql.OrderB
 		cur = cur.Union
 	}
 	for i, ob := range orderBy {
-		// Unwrap COLLATE: "1 COLLATE binary" is an ordinal with a collation.
+		// Unwrap chained COLLATE: "1 COLLATE binary COLLATE nocase" is an
+		// ordinal with a collation (each COLLATE wraps the previous).
 		expr := ob.Expr
-		if bop, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(bop.Operator, "COLLATE") {
+		for {
+			bop, ok := expr.(*sql.BinaryOp)
+			if !ok || !strings.EqualFold(bop.Operator, "COLLATE") {
+				break
+			}
 			expr = bop.Left
 		}
 		// Ordinals (1, 2, ...) are always allowed; validateOrderBy already
@@ -7153,10 +7158,16 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 				}
 			}
 		}
-		// ORDER BY 1 COLLATE nocase: strip the COLLATE operator to reveal the
-		// positional operand; the term's collation is applied by
-		// compareOrderByValues via orderByTermCollation.
-		obExpr = stripCollate(obExpr)
+		// ORDER BY 1 COLLATE nocase COLLATE binary: strip ALL COLLATE
+		// operators to reveal the positional operand; the term's collation is
+		// applied by compareOrderByValues via orderByTermCollation.
+		for {
+			prev := obExpr
+			obExpr = stripCollate(obExpr)
+			if obExpr == prev {
+				break
+			}
+		}
 		if nl, ok := obExpr.(*sql.NumericLit); ok {
 			if pos, err := strconv.ParseInt(nl.Value, 10, 64); err == nil && pos >= 1 && pos <= int64(len(rows[i])) {
 				left := rows[i][pos-1]
@@ -8121,7 +8132,7 @@ func (e *Engine) checkWhereCollations(where sql.Expr, colDefs []sql.ColumnDef, f
 				continue
 			}
 			if coll, ok := colByName[strings.ToLower(cr.Name)]; ok {
-				if err := checkCollationString(coll); err != nil {
+				if err := e.checkCollationString(coll); err != nil {
 					checkErr = err
 					return
 				}

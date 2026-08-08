@@ -7,6 +7,8 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
+"strconv"
 "strings"
 "testing"
 )
@@ -70,9 +72,33 @@ func Test_collate1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "collate1"
 	_ = testprefix // suppress unused warning
-	// proc definition (not transpiled)
+	db.RegisterCollation("HEX", func(a, b string) int {
+	aisHex, _ := regexp.MatchString("^(0x|)[1234567890abcdefABCDEF]+$", a)
+	bisHex, _ := regexp.MatchString("^(0x|)[1234567890abcdefABCDEF]+$", b)
+	if aisHex && bisHex {
+		av, _ := strconv.ParseInt(strings.TrimPrefix(a, "0x"), 16, 64)
+		bv, _ := strconv.ParseInt(strings.TrimPrefix(b, "0x"), 16, 64)
+		if av < bv { return -1 }
+		if av > bv { return 1 }
+		return 0
+	}
+	if aisHex { return -1 }
+	if bisHex { return 1 }
+	return strings.Compare(a, b)
+})
+	// proc hex_collate collation (registered via db collate)
 	// db function hex (variable-reader, inlined)
-	// proc definition (not transpiled)
+	db.RegisterCollation("numeric", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
+	// proc numeric_collate collation (registered via db collate)
 	{ // do_test "collate1-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate1t1(c1, c2);\n    INSERT INTO collate1t1 VALUES(45, hex(45));\n    INSERT INTO collate1t1 VALUES(NULL, NULL);\n    INSERT INTO collate1t1 VALUES(281, hex(281));\n  ")
 		if _res.Error != nil {
@@ -333,7 +359,7 @@ func Test_collate1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\\\"\\\"\\\""
+		want := "\"\"\""
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -356,6 +382,7 @@ func Test_collate1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
+	db.RegisterCollation("\"\"\"", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 	{ // "6.5"
 		r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
 		if r.Error != nil {
@@ -453,7 +480,7 @@ func Test_collate1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{} 1"
+		want := "  1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

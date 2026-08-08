@@ -859,6 +859,7 @@ func Test_e_expr(t *testing.T) {
 											}
 											// proc definition (not transpiled)
 											// proc definition (not transpiled)
+											// db collate reverse (not transpiled)
 											{ // "e_expr-9.1"
 												r = db.Query(" SELECT  'abcd' < 'bbbb'    COLLATE reverse ")
 												if r.Error != nil {
@@ -3299,6 +3300,7 @@ func Test_e_expr(t *testing.T) {
 																		tcl_nullvalue = ""
 																		// proc definition (not transpiled)
 																		// proc definition (not transpiled)
+																		// db collate reverse (not transpiled)
 																		{ // "e_expr-23.1.1"
 																			_res = db.Exec("\n  CREATE TABLE t1(\n    a TEXT     COLLATE NOCASE,\n    b          COLLATE REVERSE,\n    c INTEGER,\n    d BLOB\n  );\n  INSERT INTO t1 VALUES('abc', 'cba', 55, 34.5);\n")
 																			if _res.Error != nil {

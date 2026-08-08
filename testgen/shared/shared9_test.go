@@ -7,6 +7,7 @@ package shared
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -118,7 +119,9 @@ func Test_shared9(t *testing.T) {
 	_ = db2
 	for _, x := range tclSplitList("collate1 collate2 collate3") {
 	_ = x // suppress unused warning
-		// proc definition (not transpiled)
+		// proc $x collation (registered via db collate)
+		db1.RegisterCollation(x, func(a, b string) int { return strings.Compare(a, b) })
+		db2.RegisterCollation(x, func(a, b string) int { return strings.Compare(a, b) })
 	}
 	{ // do_test "2.1"
 		_res = db1.Exec("\n    CREATE TABLE t1(a, b, c COLLATE collate1);\n    CREATE INDEX i1 ON t1(a COLLATE collate2, c, b);\n  ")
@@ -136,7 +139,9 @@ func Test_shared9(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	// proc definition (not transpiled)
-	// proc definition (not transpiled)
+	// proc mycollate_db2 collation (registered via db collate)
+	// db collate mycollate (not transpiled)
+	db2.RegisterCollation("mycollate", func(a, b string) int { return strings.Compare(a, b) })
 	{ // do_test "2.3"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning
@@ -158,6 +163,8 @@ func Test_shared9(t *testing.T) {
 	_ = db1
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
+	// db collate mycollate (not transpiled)
+	db2.RegisterCollation("mycollate", func(a, b string) int { return strings.Compare(a, b) })
 	{ // do_test "2.13"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning

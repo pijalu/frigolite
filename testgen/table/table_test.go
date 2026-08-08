@@ -988,7 +988,7 @@ func Test_table(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{} savepoint t10 t11 t12 t13 t16 t2 t3 t3\\\"xyz t4\\\"abc t7 t8 t9 tablet8 test1 weird"
+			want := "{} savepoint t10 t11 t12 t13 t16 t2 t3 t3\"xyz t4\"abc t7 t8 t9 tablet8 test1 weird"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

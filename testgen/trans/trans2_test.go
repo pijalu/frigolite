@@ -146,7 +146,6 @@ func Test_trans2(t *testing.T) {
 			}
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			if _res.Error != nil {
-				print("DBG insert err:", _res.Error, "rec=", rec)
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			}
 		}
@@ -154,8 +153,6 @@ func Test_trans2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 		}
-		_dbgCnt := db.Query("SELECT count(*) FROM t1")
-		print("DBG after 1.1 count:", tclStr(_dbgCnt.Rows[0][0]), "dataCount:", tclLLength(data))
 	}
 	i = "2"
 	_ = i // suppress unused warning
@@ -186,7 +183,6 @@ func Test_trans2(t *testing.T) {
 		origres = tclHashByIndex(data, 1) + " " + tclHashByIndex(data, 3)
 		_ = origres // suppress unused warning
 		{ // do_test "trans2-" + i + ".1"
-			print("DBG delete sql:", "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
 			_res = db.Exec("DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
@@ -200,16 +196,6 @@ func Test_trans2(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
 			if flatten(r) != origres {
-				dbgIDs := db.Query("SELECT id FROM t1 ORDER BY id")
-				dbgIDs2 := []string{}
-				for _, row := range dbgIDs.Rows {
-					dbgIDs2 = append(dbgIDs2, tclStr(row[0]))
-				}
-				dbgDataIDs := []string{}
-				for _, rec := range tclSplitList(data) {
-					dbgDataIDs = append(dbgDataIDs, tclLIndex(rec, "0"))
-				}
-				print("DBG trans2-" + i + ".1 mismatch: got", flatten(r), "want", origres, "dbCount", len(dbgIDs2), "dataCount", len(dbgDataIDs), "todelCount", len(tclSplitList(todel)))
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".1")
 			}
 		}

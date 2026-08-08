@@ -7,6 +7,7 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -68,7 +69,18 @@ func Test_collate5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "collate5"
 	_ = testprefix // suppress unused warning
-	// proc definition (not transpiled)
+	db.RegisterCollation("TEXT", func(a, b string) int { return strings.Compare(a, b) })
+	db.RegisterCollation("numeric", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
+	// proc numeric_collate collation (registered via db collate)
 	{ // do_test "collate5-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate5t1(a COLLATE nocase, b COLLATE text);\n\n    INSERT INTO collate5t1 VALUES('a', 'apple');\n    INSERT INTO collate5t1 VALUES('A', 'Apple');\n    INSERT INTO collate5t1 VALUES('b', 'banana');\n    INSERT INTO collate5t1 VALUES('B', 'banana');\n    INSERT INTO collate5t1 VALUES('n', NULL);\n    INSERT INTO collate5t1 VALUES('N', NULL);\n  ")
 		if _res.Error != nil {

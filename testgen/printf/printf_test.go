@@ -4057,7 +4057,7 @@ func Test_printf(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "<\\\"いち\\\">"
+		want := "<\"いち\">"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -4201,7 +4201,7 @@ func Test_printf(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "<abc\\\"\\\"\\\"d>"
+		want := "<abc\"\"\"d>"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -4225,7 +4225,7 @@ func Test_printf(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "<a\\\"b\\\">"
+		want := "<a\"b\">"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

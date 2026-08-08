@@ -7,6 +7,7 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -59,7 +60,8 @@ func Test_collate6(t *testing.T) {
 	_ = b // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// proc definition (not transpiled)
+	db.RegisterCollation("NOCASE", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
+	// proc nocase_collate collation (registered via db collate)
 	{ // do_test "collate6-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate6log(a, b);\n    CREATE TABLE collate6tab(a COLLATE NOCASE, b COLLATE BINARY);\n  ")
 		if _res.Error != nil {

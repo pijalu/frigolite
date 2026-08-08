@@ -163,6 +163,7 @@ func Test_window6(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
+		// db collate window (not transpiled)
 		{ // "3.0"
 			r = db.Query("\n  CREATE TABLE window(x COLLATE window);\n  INSERT INTO window VALUES('bob'), ('alice'), ('cate');\n  SELECT * FROM window ORDER BY x COLLATE window;\n")
 			if r.Error != nil {

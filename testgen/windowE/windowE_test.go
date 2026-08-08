@@ -7,6 +7,7 @@ package windowE
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -61,7 +62,8 @@ func Test_windowE(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "windowE"
 	_ = testprefix // suppress unused warning
-	// proc definition (not transpiled)
+	// proc custom collation (registered via db collate)
+	db.RegisterCollation("custom", func(a, b string) int { return strings.Compare(a, b) })
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT COLLATE custom);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  CREATE INDEX t1b ON t1(b);\n")
 		if _res.Error != nil {

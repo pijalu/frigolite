@@ -545,6 +545,7 @@ func Test_indexA(t *testing.T) {
 				}
 			}
 			// proc definition (not transpiled)
+			// db collate xyz (not transpiled)
 			{ // "5.2"
 				_res = db.Exec("\n  CREATE INDEX ex1 ON t1(c) WHERE b IS 'abc' COLLATE xyz;\n")
 				if _res.Error != nil {

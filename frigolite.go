@@ -122,6 +122,15 @@ func (db *DB) RegisterCollation(name string, fn func(a, b string) int) {
 	}
 }
 
+// UnregisterCollation removes a registered custom collation sequence
+// (sqlite_delete_collation). It reports whether a collation was removed.
+func (db *DB) UnregisterCollation(name string) bool {
+	if db != nil && db.engine != nil {
+		return db.engine.UnregisterCollation(name)
+	}
+	return false
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 func Open(path string) (*DB, error) {
 	var pg *pager.Pager

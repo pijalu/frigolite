@@ -312,6 +312,17 @@ func (e *Engine) RegisterCollation(name string, fn func(a, b string) int) {
 	e.collations[strings.ToUpper(name)] = fn
 }
 
+// UnregisterCollation removes a registered custom collation sequence
+// (sqlite_delete_collation). It reports whether a collation was removed.
+func (e *Engine) UnregisterCollation(name string) bool {
+	if e == nil || e.collations == nil {
+		return false
+	}
+	_, ok := e.collations[strings.ToUpper(name)]
+	delete(e.collations, strings.ToUpper(name))
+	return ok
+}
+
 // lookupCollation returns a registered custom collation function for name
 // (case-insensitive), or nil if name is not registered.
 func (e *Engine) lookupCollation(name string) func(a, b string) int {

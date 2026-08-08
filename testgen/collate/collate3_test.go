@@ -7,6 +7,7 @@ package collate
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -95,8 +96,9 @@ func Test_collate3(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE collate3t1;\n")
 	}
-	// proc definition (not transpiled)
+	// proc caseless collation (registered via db collate)
 	{ // do_test "collate3-1.4"
+		db.RegisterCollation("caseless", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_res = db.Exec(" \n    CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n  ")
@@ -114,6 +116,7 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.6.1"
+		db.RegisterCollation("caseless", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_res = db.Exec(" CREATE INDEX i1 ON t1(a) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a) ")
@@ -145,6 +148,7 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.7.1"
+		db.RegisterCollation("caseless", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;\n  ")
@@ -182,6 +186,7 @@ func Test_collate3(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		db.RegisterCollation("caseless", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
 	}
@@ -200,6 +205,7 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	{ // do_test "collate3-2.0"
+		db.RegisterCollation("string_compare", func(a, b string) int { return strings.Compare(a, b) })
 		_res = db.Exec("\n    CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);\n  ")
@@ -282,6 +288,7 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-3.0"
+		db.RegisterCollation("string_compare", func(a, b string) int { return strings.Compare(a, b) })
 		_res = db.Exec("\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');\n  ")
@@ -354,6 +361,7 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	{ // do_test "collate3-4.6"
+		db.RegisterCollation("user_defined", func(a, b string) int { return strings.Compare(a, b) })
 		_res = db.Exec("\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);\n  ")
@@ -367,6 +375,7 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-4.8.1"
+		db.RegisterCollation("user_defined", func(a, b string) int { return strings.Compare(a, b) })
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;\n  ")
 		_ = _res // catchsql
 	}
@@ -380,8 +389,9 @@ func Test_collate3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE collate3t1;\n  ")
 		}
 	}
-	// proc definition (not transpiled)
+	// proc numeric_compare collation (registered via db collate)
 	{ // do_test "collate3-4.9"
+		// db collate user_defined (not transpiled)
 		r = db.Query("\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
@@ -395,6 +405,7 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-4.11"
+		// db collate user_defined (not transpiled)
 		_res = db.Exec("\n    SELECT * FROM collate3v1;\n  ")
 		_ = _res // catchsql
 	}

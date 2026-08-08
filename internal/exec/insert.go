@@ -3270,15 +3270,19 @@ func (e *Engine) checkCollationName(expr sql.Expr) error {
 	default:
 		return nil
 	}
-	return checkCollationString(name)
+	return e.checkCollationString(name)
 }
 
-// checkCollationString verifies that a collation name is a known sequence.
-func checkCollationString(name string) error {
+// checkCollationString verifies that a collation name is a known sequence
+// (a built-in or a registered custom collation).
+func (e *Engine) checkCollationString(name string) error {
 	switch strings.ToUpper(name) {
 	case "", "BINARY", "NOCASE", "RTRIM":
 		return nil
 	default:
+		if e.lookupCollation(name) != nil {
+			return nil
+		}
 		return fmt.Errorf("no such collation sequence: %s", name)
 	}
 }

@@ -174,6 +174,8 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		predFuncs:    predFuncs,
 		queryFuncs:   queryFuncs,
 		specialFuncs: specialFuncs,
+		collateGoFuncs: collectCollateFuncs(cmds),
+		collateDtorVars: collectCollateDtorVars(cmds),
 	}
 	tp.processCommands(cmds)
 
@@ -681,6 +683,172 @@ func collectSpecialFuncs(cmds [][]tcl.RawWord) map[string]string {
 	return result
 }
 
+// collationProcGo maps a TCL collation proc body to a Go closure expression
+// suitable for db.RegisterCollation. It recognizes the collation procs used
+// by the SQLite test suite:
+//
+//	text_collate / string_compare:   string compare $a $b            → BINARY
+//	caseless:                        string compare -nocase $a $b    → NOCASE
+//	reverse_sort:                    string compare $rhs $lhs        → reversed BINARY
+//	backwards_collate:               reverse each string, then compare → REVERSED-STRING
+//	hex_collate:                     hex-aware compare               → HEX
+//	numeric_collate:                 numeric compare                 → NUMERIC
+//
+// Returns "" when the body is not a recognized collation proc.
+func collationProcGo(body string) string {
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	// Normalize "return [string compare ...]" / "[list string compare ...]"
+	// forms by extracting the inner string-compare invocation.
+	lower := strings.ToLower(body)
+	if strings.HasPrefix(lower, "return ") {
+		lower = strings.TrimSpace(lower[len("return "):])
+	}
+	// Strip a leading command-substitution bracket so `[string compare $a $b]`
+	// is detected like the bare form.
+	scLower := strings.TrimPrefix(lower, "[")
+	// string compare $a $b  /  string compare -nocase $a $b
+	if strings.HasPrefix(lower, "[list string compare") {
+		rest := strings.TrimSpace(lower[len("[list string compare"):])
+		nocase := strings.HasPrefix(rest, "-nocase")
+		rest = strings.TrimPrefix(rest, "-nocase")
+		rest = strings.TrimSuffix(strings.TrimSpace(rest), "]")
+		rest = strings.TrimSpace(rest)
+		if nocase {
+			return "func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) }"
+		}
+		return "func(a, b string) int { return strings.Compare(a, b) }"
+	}
+	if strings.HasPrefix(scLower, "string compare") {
+		rest := strings.TrimSpace(scLower[len("string compare"):])
+		if strings.HasPrefix(rest, "-nocase") {
+			return "func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) }"
+		}
+		// Bare `string compare` (no explicit args) is TCL's string-compare
+		// command applied to the two collation operands → BINARY.
+		if strings.TrimSpace(strings.Trim(rest, "[]")) == "" {
+			return "func(a, b string) int { return strings.Compare(a, b) }"
+		}
+		// string compare $a $b → BINARY; string compare $rhs $lhs → reversed.
+		rest = strings.TrimSpace(strings.TrimPrefix(rest, "["))
+		rest = strings.TrimSuffix(rest, "]")
+		fields := strings.Fields(rest)
+		if len(fields) == 2 && fields[0] == "$a" && fields[1] == "$b" {
+			return "func(a, b string) int { return strings.Compare(a, b) }"
+		}
+		if len(fields) == 2 && fields[0] == "$rhs" && fields[1] == "$lhs" {
+			return "func(a, b string) int { return -strings.Compare(a, b) }"
+		}
+		// [string compare $a $b] as a braced command list.
+		if strings.Contains(lower, "[string compare $a $b]") {
+			return "func(a, b string) int { return strings.Compare(a, b) }"
+		}
+		if strings.Contains(lower, "[string compare -nocase $a $b]") {
+			return "func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) }"
+		}
+	}
+	// backwards_collate: reverse each string then compare.
+	if strings.Contains(lower, "split $a {}") && strings.Contains(lower, "split $b {}") && strings.Contains(lower, "string compare") {
+		return `func(a, b string) int {
+	ra, rb := "", ""
+	for i := len(a) - 1; i >= 0; i-- { ra += string(a[i]) }
+	for i := len(b) - 1; i >= 0; i-- { rb += string(b[i]) }
+	return strings.Compare(ra, rb)
+}`
+	}
+	// hex_collate: both hex → numeric compare; hex-only sorts first; else BINARY.
+	if strings.Contains(lower, "regexp") && strings.Contains(lower, "scan $lhs %x") {
+		return `func(a, b string) int {
+	aisHex, _ := regexp.MatchString("^(0x|)[1234567890abcdefABCDEF]+$", a)
+	bisHex, _ := regexp.MatchString("^(0x|)[1234567890abcdefABCDEF]+$", b)
+	if aisHex && bisHex {
+		av, _ := strconv.ParseInt(strings.TrimPrefix(a, "0x"), 16, 64)
+		bv, _ := strconv.ParseInt(strings.TrimPrefix(b, "0x"), 16, 64)
+		if av < bv { return -1 }
+		if av > bv { return 1 }
+		return 0
+	}
+	if aisHex { return -1 }
+	if bisHex { return 1 }
+	return strings.Compare(a, b)
+}`
+	}
+	// numeric_collate: numeric compare.
+	if strings.Contains(lower, "expr ($lhs>$rhs)") || (strings.Contains(lower, "expr") && strings.Contains(lower, "$lhs") && strings.Contains(lower, "$rhs")) {
+		return `func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+}`
+	}
+	return ""
+}
+
+// collectCollateFuncs scans all TCL commands for collation procs (recognized
+// by collationProcGo) and returns a map of proc name → Go closure expression.
+func collectCollateFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "proc" && len(cmd) >= 4 {
+				// cmd = [proc, NAME, {args}, {body}]
+				if val := collationProcGo(cmd[3].Text); val != "" {
+					result[cmd[1].Text] = val
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
+// collectCollateDtorVars scans all TCL commands for sqlite3_create_collation_v2
+// registrations and returns a map of collation name → Go destructor counter
+// var (the `incr ::VAR` in the destructor body, possibly via a $var holding a
+// [list incr ::VAR]). This pre-scan runs before processing so destructor
+// tracking is available to every do_test body regardless of order.
+func collectCollateDtorVars(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "sqlite3_create_collation_v2" && len(cmd) >= 5 {
+				collName := strings.TrimSpace(cmd[2].Text)
+				dtor := strings.TrimSpace(cmd[4].Text)
+				if incrVar := counterProcValue(dtor); incrVar != "" && collName != "" {
+					result[strings.ToUpper(collName)] = incrVar
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
 // queryProcValue extracts the SQL from a query-proc body like
 // "{ return [db eval {SELECT count(*), md5sum(x) FROM t3}] }" (trans.test's
 // `proc signature {}`). Returns the SQL text, or "" when the body is not a
@@ -811,6 +979,9 @@ type transpiler struct {
 	predFuncs        map[string]string     // `proc NAME {x} { expr $x < N }`: NAME compares its arg
 	queryFuncs       map[string]string     // `proc NAME {} { return [db eval {SQL}] }`: NAME returns a query result
 	specialFuncs     map[string]string     // test-infra procs (scramble/random_uuid/hash1/hash2) mapped to Go helper calls
+	collateGoFuncs   map[string]string     // `proc NAME {a b} {BODY}`: NAME is a collation proc → Go closure expr
+	collateDtorVars  map[string]string     // collation NAME → Go var incremented by sqlite3_create_collation_v2 destructor
+	varConstValues   map[string]string     // TCL var name → last simple string value (set var "lit")
 	dbClosed         bool                  // main "db" connection was closed via `db close`
 	testPrefix       string                // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
 	queryVars        map[string]bool       // TCL vars known to hold query SQL (set/append to SELECT...)
@@ -1348,6 +1519,15 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 		return w
 	}
 	text := strings.TrimSpace(w.Text)
+	// The TCL test framework processes the expected value with substitution
+	// (TCL `subst`-like unescaping): `\"` becomes `"`. Mirror that so a
+	// braced expected like {\"\"\"} (collate1 6.1, the triple-quote collation
+	// name) normalizes to the raw `"""` value that flatten() produces.
+	changed := false
+	if strings.Contains(text, `\"`) {
+		text = strings.ReplaceAll(text, `\"`, `"`)
+		changed = true
+	}
 	if text == "" {
 		// An empty braced expected value means an empty result set; the
 		// generated want should be the empty string, not the raw whitespace.
@@ -1378,6 +1558,7 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 		if elems := tclSplitList(text); len(elems) > 1 {
 			var parts []string
 			for _, e := range elems {
+				raw := e
 				e = strings.TrimSpace(e)
 				// tclSplitList returns the INNER content of each braced
 				// element, so a `{}` element (db eval's rendering of a
@@ -1386,7 +1567,16 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 				// dropping it would corrupt the expected value (e.g.
 				// `{{} 1 {} 2}` must stay `{} 1 {} 2`, not ` 1  2`).
 				if e == "" {
-					e = "{}"
+					// Distinguish `{}` (empty, TCL NULL/empty rendering)
+					// from `{ }` (a single space string, which is a real
+					// value — collate1 8.2 stores a space and expects it).
+					if strings.TrimSpace(raw) == "" && strings.Contains(raw, " ") {
+						parts = append(parts, " ")
+					} else {
+						e = "{}"
+						parts = append(parts, e)
+					}
+					continue
 				}
 				parts = append(parts, e)
 			}
@@ -1413,6 +1603,9 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 		if unwrapped {
 			return tcl.RawWord{Text: text, Braced: true}
 		}
+		if changed {
+			return tcl.RawWord{Text: text, Braced: true}
+		}
 		return w
 	}
 	// Collapse internal whitespace to single spaces (multi-row results in
@@ -1420,6 +1613,9 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	fields := strings.Fields(text)
 	if len(fields) < 2 {
 		if unwrapped {
+			return tcl.RawWord{Text: text, Braced: true}
+		}
+		if changed {
 			return tcl.RawWord{Text: text, Braced: true}
 		}
 		return w
@@ -2609,6 +2805,57 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		}
 	case "sqlite3_db_config":
 		tp.processDBConfig(args)
+	case "sqlite3_create_collation_v2":
+		// sqlite3_create_collation_v2 db NAME PROC {DESTRUCTOR} registers a
+		// custom collation (the test-only C API). The destructor body is
+		// usually `incr ::COUNTER`; track it so sqlite_delete_collation and
+		// db close fire it, matching SQLite's xDestroy callback.
+		if len(args) >= 4 {
+			collName := strings.TrimSpace(args[1].Text)
+			procArg := strings.TrimSpace(args[2].Text)
+			var goFn string
+			if f := collationProcGo(procArg); f != "" {
+				goFn = f
+			} else if fn, ok := tp.collateGoFuncs[procArg]; ok {
+				goFn = fn
+			}
+			if goFn != "" && collName != "" {
+				tp.emitLine("db.RegisterCollation(%s, %s)", tp.goStringLiteral(args[1]), goFn)
+				// Record the destructor counter (e.g. `incr ::caseless_del`)
+				// so delete/close can fire it. The destructor may be inline
+				// ({incr ::VAR}) or a $var holding a [list incr ::VAR].
+				// args = [db, NAME, PROC, DESTRUCTOR].
+				if len(args) >= 4 {
+					dtor := strings.TrimSpace(args[3].Text)
+					if strings.HasPrefix(dtor, "$") {
+						if v, ok := tp.varConstValues[tclVarToGo(strings.TrimPrefix(dtor, "$"))]; ok {
+							dtor = v
+						}
+					}
+					if incrVar := counterProcValue(dtor); incrVar != "" {
+						if tp.collateDtorVars == nil {
+							tp.collateDtorVars = make(map[string]string)
+						}
+						tp.collateDtorVars[strings.ToUpper(collName)] = incrVar
+					}
+				}
+			} else {
+				tp.emitLine("// sqlite3_create_collation_v2 %s (not transpiled)", collName)
+			}
+		}
+	case "sqlite_delete_collation":
+		// sqlite_delete_collation db NAME unregisters a collation and fires
+		// its destructor (increments the tracked counter var).
+		if len(args) >= 2 {
+			collName := strings.TrimSpace(args[1].Text)
+			tp.emitLine("db.UnregisterCollation(%s)", tp.goStringLiteral(args[1]))
+			if tp.collateDtorVars != nil {
+				if incrVar, ok := tp.collateDtorVars[strings.ToUpper(collName)]; ok {
+					tp.emitIncrCounter(incrVar)
+					delete(tp.collateDtorVars, strings.ToUpper(collName))
+				}
+			}
+		}
 	case "puts":
 		tp.processPuts(args)
 	case "forcedelete":
@@ -2726,6 +2973,20 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 					}
 					tp.predFuncs[name] = pred
 					tp.emitLine("// proc %s predicate %s (registered via db func)", name, pred)
+					break
+				}
+			}
+			// Collation procs: `proc NAME {a b} { ... }` registered via
+			// `db collate NAME procName`. Record the Go closure so the db
+			// collate handler can emit db.RegisterCollation.
+			if goFn := collationProcGo(body); goFn != "" {
+				name := strings.TrimSpace(args[0].Text)
+				if name != "" {
+					if tp.collateGoFuncs == nil {
+						tp.collateGoFuncs = make(map[string]string)
+					}
+					tp.collateGoFuncs[name] = goFn
+					tp.emitLine("// proc %s collation (registered via db collate)", name)
 					break
 				}
 			}
@@ -3422,6 +3683,8 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			predFuncs:  tp.predFuncs,
 			queryFuncs: tp.queryFuncs,
 		specialFuncs: tp.specialFuncs,
+		collateDtorVars: tp.collateDtorVars,
+		collateGoFuncs: tp.collateGoFuncs,
 			testPrefix: tp.testPrefix,
 			queryVars:  tp.queryVars,
 			dbAliases:  tp.dbAliases,
@@ -3799,6 +4062,14 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		// TCL "db close" closes the main connection. A subsequent
 		// "sqlite3 db <file>" reopens it; the emitLine below pairs with
 		// the reopen logic in processSet/processSqlite3.
+		// Fire registered collation destructors (sqlite3_create_collation_v2
+		// xDestroy), matching SQLite's behavior on connection close.
+		if tp.collateDtorVars != nil {
+			for _, incrVar := range tp.collateDtorVars {
+				tp.emitIncrCounter(incrVar)
+			}
+			tp.collateDtorVars = nil
+		}
 		tp.emitLine("db.Close()")
 		tp.dbClosed = true
 	case "null", "nullvalue":
@@ -3926,6 +4197,31 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 			tp.dbVarFuncs[strings.TrimSpace(rest[0].Text)] = true
 			tp.emitLine("// db function %s (variable-reader, inlined)", strings.TrimSpace(rest[0].Text))
 		}
+	case "collate":
+		// db collate NAME PROC / db collate NAME {string compare} registers a
+		// custom collation sequence. Emit db.RegisterCollation with a Go
+		// closure for the recognized test-suite collations; unknown procs are
+		// no-ops (the tests cannot reproduce arbitrary TCL collations).
+		if len(rest) >= 1 {
+			collName := strings.TrimSpace(rest[0].Text)
+			collWord := rest[0]
+			var goFn string
+			if len(rest) >= 2 {
+				procArg := strings.TrimSpace(rest[1].Text)
+				// Inline forms: {string compare} / "string compare" /
+				// [list string compare -nocase].
+				if f := collationProcGo(procArg); f != "" {
+					goFn = f
+				} else if fn, ok := tp.collateGoFuncs[procArg]; ok {
+					goFn = fn
+				}
+			}
+			if goFn != "" && collName != "" {
+				tp.emitLine("db.RegisterCollation(%s, %s)", tp.goStringLiteral(collWord), goFn)
+			} else {
+				tp.emitLine("// db collate %s (not transpiled)", collName)
+			}
+		}
 	case "progress":
 		// db progress N fn registers a progress callback after every N
 		// engine operations; the TCL used (e.g. progress_stop) returns
@@ -3988,6 +4284,7 @@ func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
 		queryVars:    tp.queryVars,
 		queryFuncs:   tp.queryFuncs,
 		specialFuncs: tp.specialFuncs,
+		collateGoFuncs: tp.collateGoFuncs,
 		rollbackFlag: rbFlag,
 	}
 	bodyTP.processCommands(parseCommands(rest[1].Text))
@@ -4023,6 +4320,12 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 			// must not close the shared handle.
 			tp.emitLine("_ = %s // close %s: aliased to %s, no-op", goName, dbName, target)
 		} else {
+			if tp.collateDtorVars != nil {
+				for _, incrVar := range tp.collateDtorVars {
+					tp.emitIncrCounter(incrVar)
+				}
+				tp.collateDtorVars = nil
+			}
 			tp.emitLine("%s.Close()", goName)
 		}
 	case "eval":
@@ -4047,9 +4350,34 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
 		}
-	case "cache", "function", "collate", "create_function",
+	case "cache", "function", "create_function",
 		"trace", "busy":
 		// no-op: infrastructure
+	case "collate":
+		// db collate NAME PROC / db collate NAME {string compare} registers a
+		// custom collation sequence. Emit db.RegisterCollation with a Go
+		// closure for the recognized test-suite collations; unknown procs are
+		// no-ops (the tests cannot reproduce arbitrary TCL collations).
+		if len(rest) >= 1 {
+			collName := strings.TrimSpace(rest[0].Text)
+			collWord := rest[0]
+			var goFn string
+			if len(rest) >= 2 {
+				procArg := strings.TrimSpace(rest[1].Text)
+				// Inline forms: {string compare} / "string compare" /
+				// [list string compare -nocase].
+				if f := collationProcGo(procArg); f != "" {
+					goFn = f
+				} else if fn, ok := tp.collateGoFuncs[procArg]; ok {
+					goFn = fn
+				}
+			}
+			if goFn != "" && collName != "" {
+				tp.emitLine("%s.RegisterCollation(%s, %s)", goName, tp.goStringLiteral(collWord), goFn)
+			} else {
+				tp.emitLine("// db collate %s (not transpiled)", collName)
+			}
+		}
 	case "progress":
 		// db progress N fn registers a progress callback after every N
 		// engine operations. Only transpile when N is a numeric literal or a
@@ -5066,6 +5394,8 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		testPrefix: tp.testPrefix,
 		queryFuncs: tp.queryFuncs,
 		specialFuncs: tp.specialFuncs,
+		collateGoFuncs: tp.collateGoFuncs,
+		collateDtorVars: tp.collateDtorVars,
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -6085,6 +6415,17 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 					tp.vars = append(tp.vars, goName)
 				}
 				tp.emitLine("_ = %s // suppress unused warning", goName)
+				// Track simple string-literal assignments so later commands
+				// (e.g. sqlite3_create_collation_v2's $cmd destructor) can
+				// resolve the variable's constant value.
+				if len(args) >= 2 {
+					if lit := args[1].Text; len(lit) >= 2 && ((lit[0] == '"' && lit[len(lit)-1] == '"') || (lit[0] == '{' && lit[len(lit)-1] == '}')) {
+						if tp.varConstValues == nil {
+							tp.varConstValues = make(map[string]string)
+						}
+						tp.varConstValues[goName] = lit[1 : len(lit)-1]
+					}
+				}
 			} else {
 				// set ::var without value -> query or unset, don't redeclare
 				tp.emitLine("_ = %s // TCL namespace variable (query)", goName)
@@ -6231,6 +6572,10 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				tp.vars = append(tp.vars, goName)
 			}
 			tp.emitLine("_ = %s // suppress unused warning", goName)
+			if tp.varConstValues == nil {
+				tp.varConstValues = make(map[string]string)
+			}
+			tp.varConstValues[goName] = listText
 			return
 		}
 		if len(cmdParts) > 0 && cmdParts[0] == "sqlite3" && len(cmdParts) >= 3 {
@@ -6555,6 +6900,27 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 	tp.emitLine("_n, _err := strconv.Atoi(%s)", goName)
 	tp.emitLine("if _err == nil {")
 	tp.emitLine("\t%s = strconv.Itoa(_n + %s)", goName, amountInt)
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
+}
+
+// emitIncrCounter emits a Go block that increments a TCL-counter string var
+// by one (used to fire sqlite3_create_collation_v2 destructor counters).
+func (tp *transpiler) emitIncrCounter(goName string) {
+	if !isValidGoIdent(goName) {
+		return
+	}
+	if !tp.isVarDeclared(goName) {
+		tp.emitLine("var %s = \"0\"", goName)
+		tp.vars = append(tp.vars, goName)
+	}
+	tp.emitLine("// destructor fired: incr %s", goName)
+	tp.emitLine("{")
+	tp.indent++
+	tp.emitLine("_n, _err := strconv.Atoi(%s)", goName)
+	tp.emitLine("if _err == nil {")
+	tp.emitLine("\t%s = strconv.Itoa(_n + 1)", goName)
 	tp.emitLine("}")
 	tp.indent--
 	tp.emitLine("}")

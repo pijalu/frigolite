@@ -1036,7 +1036,7 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 				}
 			}
 		}
-		if err := checkCollationString(coll); err != nil {
+		if err := e.checkCollationString(coll); err != nil {
 			return &Result{Error: err}
 		}
 	}

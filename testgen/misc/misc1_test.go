@@ -75,7 +75,18 @@ func Test_misc1(t *testing.T) {
 	_ = group // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// proc definition (not transpiled)
+	db.RegisterCollation("numeric", func(a, b string) int {
+	if a == b { return 0 }
+	af, aerr := strconv.ParseFloat(a, 64)
+	bf, berr := strconv.ParseFloat(b, 64)
+	if aerr == nil && berr == nil {
+		if af < bf { return -1 }
+		return 1
+	}
+	return strings.Compare(a, b)
+})
+	// proc numeric_collate collation (registered via db collate)
+	// db collate text (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "misc1-1.1"
 		cmd = "CREATE TABLE manycol(x0 text"

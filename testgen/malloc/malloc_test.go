@@ -167,7 +167,7 @@ func Test_malloc(t *testing.T) {
 	if tclBool(tcl_platform_platform + " != \"windows\" && " + "atomic_batch_write test.db" + "==0") {
 		// do_malloc_test 14 -tclprep {\n    catch {db close}\n    sqlite3 db2 test2.db\n...} -tclbody {\n... (unsupported command, not transpiled)
 	}
-	// proc definition (not transpiled)
+	// proc string_compare collation (registered via db collate)
 	// do_malloc_test 15 -start 4 -tclbody {\n    db collate string_compare string_compare\n  ...} (unsupported command, not transpiled)
 	// do_malloc_test 16 -tclbody {\n  db complete {SELECT "hello """||'world"' [micr...} (unsupported command, not transpiled)
 	// do_malloc_test 17 -tclbody {\n    set DB2 0\n    set STMT 0\n  \n    # open da...} -cleanup {\n... (unsupported command, not transpiled)
