@@ -612,6 +612,9 @@ func formatConditions(refs []indexedRef) string {
 		op := ref.op
 		if op == "BETWEEN" {
 			parts = append(parts, fmt.Sprintf("%s>? AND %s<?", ref.colName, ref.colName))
+		} else if op == "LIKE" {
+			// SQLite renders the LIKE-optimization range as an open interval.
+			parts = append(parts, fmt.Sprintf("%s>? AND %s<?", ref.colName, ref.colName))
 		} else {
 			parts = append(parts, fmt.Sprintf("%s%s?", ref.colName, op))
 		}
@@ -631,6 +634,44 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 	var refs []indexedRef
 	_, _ = walkExpr, walkExpr(expr, func(e2 sql.Expr) {
 		if binop, ok := e2.(*sql.BinaryOp); ok {
+			// LIKE: only a constant pattern with a non-wildcard prefix on an
+			// index whose collation matches the LIKE comparison can drive the
+			// range scan (the LIKE optimization). Handled before the generic
+			// column-to-constant guard because the pattern may be wrapped in
+			// an explicit COLLATE (x LIKE 'abc%' COLLATE nocase parses with
+			// the pattern inside a COLLATE BinaryOp), and the explicit COLLATE
+			// on the LIKE operand does not affect index selection (SQLite uses
+			// the column/index collation).
+			if binop.Operator == "LIKE" {
+				colRef, ok := binop.Left.(*sql.ColumnRef)
+				if !ok {
+					return
+				}
+				pattern, ok := likePatternConst(binop.Right)
+				if !ok {
+					return
+				}
+				prefix, ok := likePrefix(pattern, binop.Escape, binop.HasEscape)
+				if !ok || prefix == "" {
+					return
+				}
+				idxName := e.findIndexOnColumn(tableName, colRef.Name)
+				if idxName == "" {
+					return
+				}
+				coll := e.indexColumnCollation(tableName, idxName, colRef.Name)
+				if !e.likeIndexCompatible(coll) {
+					return
+				}
+				refs = append(refs, indexedRef{
+					indexName:   idxName,
+					colName:     colRef.Name,
+					constant:    prefix,
+					op:          "LIKE",
+					selectivity: estimateLikePrefixSelectivity(prefix),
+				})
+				return
+			}
 			colRef, constVal := findColAndConst(binop)
 			// Only column-to-constant predicates can drive an index SEARCH;
 			// column-to-column predicates are join terms, not constants.
@@ -666,6 +707,159 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 		}
 	})
 	return refs
+}
+
+// likePrefix returns the non-wildcard leading prefix of a LIKE pattern that a
+// range scan can use, or ("", false) when the pattern cannot drive an index
+// (leading wildcard, non-constant escape, multi-character/empty ESCAPE).
+// Escaped wildcards in the prefix (e.g. 'ab/%d%' ESCAPE '/') are literal
+// prefix characters; a '%' or '_' reached without an escape ends the prefix.
+func likePrefix(pattern, escape string, hasEscape bool) (string, bool) {
+	// An explicit empty ESCAPE (ESCAPE '') disables the optimization: SQLite
+	// only applies it when the ESCAPE is a single character. A non-empty
+	// multi-character ESCAPE is likewise refused (SQLite errors at runtime,
+	// and the optimizer never applies).
+	var esc byte
+	hasEsc := escape != ""
+	if hasEsc {
+		if len(escape) != 1 {
+			return "", false
+		}
+		esc = escape[0]
+	} else if hasEscape {
+		// Explicit ESCAPE '' — not optimizable.
+		return "", false
+	}
+	prefix := make([]byte, 0, len(pattern))
+	i := 0
+	for i < len(pattern) {
+		c := pattern[i]
+		if hasEsc && c == esc {
+			if i+1 >= len(pattern) {
+				return "", false // trailing escape char
+			}
+			prefix = append(prefix, pattern[i+1])
+			i += 2
+			continue
+		}
+		if c == '%' || c == '_' {
+			break
+		}
+		prefix = append(prefix, c)
+		i++
+	}
+	if len(prefix) == 0 {
+		return "", false
+	}
+	return string(prefix), true
+}
+
+// likePatternConst extracts the constant string pattern of a LIKE operand,
+// unwrapping an explicit COLLATE wrapper (x LIKE 'abc%' COLLATE binary parses
+// with the pattern inside a COLLATE BinaryOp). Returns ("", false) when the
+// pattern is not a constant string.
+func likePatternConst(e sql.Expr) (string, bool) {
+	switch v := e.(type) {
+	case *sql.StringLit:
+		return v.Value, true
+	case *sql.BinaryOp:
+		// COLLATE wrapper: (pattern) COLLATE (name).
+		if v.Operator == "COLLATE" {
+			return likePatternConst(v.Left)
+		}
+	}
+	return "", false
+}
+
+// estimateLikePrefixSelectivity estimates the fraction of rows a LIKE prefix
+// range scan selects. Each ASCII prefix character divides the space roughly
+// by 64 (ASCII printable range); a longer prefix is more selective.
+func estimateLikePrefixSelectivity(prefix string) float64 {
+	sel := 1.0
+	for range prefix {
+		sel /= 64
+	}
+	if sel < 0.0001 {
+		sel = 0.0001
+	}
+	return sel
+}
+
+// indexColumnCollation returns the effective collation of the named column in
+// the named index: an explicit COLLATE in the index SQL wins, otherwise the
+// column's declared collation applies. Returns "" for BINARY (default).
+func (e *Engine) indexColumnCollation(tableName, indexName, colName string) string {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || entry.Name != indexName {
+			continue
+		}
+		if coll := indexSQLColumnCollation(entry.SQL, colName); coll != "" {
+			return coll
+		}
+	}
+	// Fall back to the column's declared collation from the table DDL.
+	entry, _, err := e.findTable(tableName)
+	if err != nil || entry == nil {
+		return ""
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, colName) {
+			coll := cd.Collate
+			if coll == "" {
+				return ""
+			}
+			return strings.ToUpper(coll)
+		}
+	}
+	return ""
+}
+
+// indexSQLColumnCollation extracts an explicit COLLATE clause applied to the
+// named column in a CREATE INDEX statement (e.g. "CREATE INDEX i ON t(x
+// COLLATE nocase)"). Returns "" when the column has no explicit collation.
+func indexSQLColumnCollation(sqlStr, colName string) string {
+	upper := strings.ToUpper(sqlStr)
+	start := strings.Index(upper, "(")
+	if start < 0 {
+		return ""
+	}
+	end := strings.LastIndex(upper, ")")
+	if end < 0 || end <= start {
+		return ""
+	}
+	colsStr := sqlStr[start+1 : end]
+	for _, c := range strings.Split(colsStr, ",") {
+		col := strings.TrimSpace(c)
+		// Split "name COLLATE nocase" on the COLLATE keyword.
+		ci := strings.Index(strings.ToUpper(col), " COLLATE ")
+		if ci < 0 {
+			continue
+		}
+		name := strings.TrimSpace(col[:ci])
+		coll := strings.TrimSpace(col[ci+len(" COLLATE "):])
+		if strings.EqualFold(name, colName) && coll != "" {
+			return strings.ToUpper(coll)
+		}
+	}
+	return ""
+}
+
+// likeIndexCompatible reports whether an index with the given collation can
+// drive the LIKE optimization under the current case_sensitive_like setting.
+func (e *Engine) likeIndexCompatible(coll string) bool {
+	if e.caseSensitiveLike {
+		// Case-sensitive LIKE: a BINARY index works (no case folding needed);
+		// a NOCASE index cannot (its keys are folded, the comparison is not).
+		return coll == "" || strings.EqualFold(coll, "BINARY")
+	}
+	// Default case-insensitive LIKE: only a NOCASE index can range over the
+	// case variants; a BINARY index cannot.
+	return strings.EqualFold(coll, "NOCASE")
 }
 
 // collectAllColumnRefs walks a WHERE expression and returns an indexedRef for
@@ -801,8 +995,15 @@ func (e *Engine) findIndexOnColumn(tableName, colName string) string {
 	}
 	for _, entry := range entries {
 		if entry.Type == "index" && entry.TblName == tableName {
-			// Parse the column list from the index SQL and check if colName is in it
-			indexCols := parseIndexColumns(entry.SQL)
+			// Auto-generated indexes (sqlite_autoindex_*) have empty SQL;
+			// resolve their columns from the table's UNIQUE/PRIMARY KEY
+			// constraints.
+			var indexCols []string
+			if entry.SQL == "" {
+				indexCols = e.autoindexColumns(tableName, entry.Name)
+			} else {
+				indexCols = parseIndexColumns(entry.SQL)
+			}
 			for _, ic := range indexCols {
 				if strings.EqualFold(ic, colName) {
 					return entry.Name
@@ -811,6 +1012,80 @@ func (e *Engine) findIndexOnColumn(tableName, colName string) string {
 		}
 	}
 	return ""
+}
+
+// autoindexColumns resolves the indexed columns of a sqlite_autoindex_* entry
+// (which has empty SQL) from the table's UNIQUE/PRIMARY KEY constraints. The
+// autoindexes are numbered in creation order: column-level UNIQUE and PRIMARY
+// KEY constraints first (in column order), then table-level constraints (in
+// declaration order), skipping INTEGER PRIMARY KEY rowid aliases and duplicate
+// column sets. Returns nil for an unknown name or a non-autoindex.
+func (e *Engine) autoindexColumns(tableName, idxName string) []string {
+	if !strings.HasPrefix(idxName, "sqlite_autoindex_") {
+		return nil
+	}
+	entry, _, err := e.findTable(tableName)
+	if err != nil || entry == nil {
+		return nil
+	}
+	type uniqDef struct {
+		cols []string
+		isPK bool
+	}
+	colDefs := e.parseColumnDefs(tableName, entry.SQL)
+	colIndex := buildColumnIndex(colDefs)
+	var uniq []uniqDef
+	// Column-level constraints, in column order. INTEGER PRIMARY KEY rowid
+	// aliases consume no autoindex slot.
+	for _, cd := range colDefs {
+		if cd.Unique {
+			uniq = append(uniq, uniqDef{cols: []string{cd.Name}})
+		}
+		if cd.PrimaryKey {
+			if len(colDefs) == 1 || !(len([]string{cd.Name}) == 1 && isIPKRowidAliasCol(cd)) {
+				uniq = append(uniq, uniqDef{cols: []string{cd.Name}, isPK: true})
+			}
+		}
+	}
+	// Table-level constraints, in declaration order.
+	for _, tc := range e.tableConstraints(tableName, entry.SQL) {
+		switch tc.Type {
+		case sql.ConstraintUnique:
+			uniq = append(uniq, uniqDef{cols: constraintColumnNames(tc, colIndex, colDefs)})
+		case sql.ConstraintPrimaryKey:
+			uniq = append(uniq, uniqDef{cols: constraintColumnNames(tc, colIndex, colDefs), isPK: true})
+		}
+	}
+	seen := map[string]bool{}
+	seq := 0
+	for _, u := range uniq {
+		// INTEGER PRIMARY KEY rowid alias: no autoindex slot.
+		if u.isPK && len(u.cols) == 1 {
+			if cd, ok := findColDefByName(colDefs, u.cols[0]); ok && isIPKRowidAliasCol(cd) {
+				continue
+			}
+		}
+		key := strings.Join(u.cols, ",")
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		seq++
+		if fmt.Sprintf("sqlite_autoindex_%s_%d", tableName, seq) == idxName {
+			return u.cols
+		}
+	}
+	return nil
+}
+
+// findColDefByName returns the column definition matching a name.
+func findColDefByName(colDefs []sql.ColumnDef, name string) (sql.ColumnDef, bool) {
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, name) {
+			return cd, true
+		}
+	}
+	return sql.ColumnDef{}, false
 }
 
 // findBestCoveringIndex finds the best index that covers a column for a covering scan.

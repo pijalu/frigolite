@@ -2265,10 +2265,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		right := getExpr(getRHS(p, ruleNo, 3))
 		escape := getExpr(getRHS(p, ruleNo, 5))
 		return &sql.BinaryOp{
-			Left:     left,
-			Operator: "LIKE",
-			Right:    right,
-			Escape:   getString(escape),
+			Left:      left,
+			Operator:  "LIKE",
+			Right:     right,
+			Escape:    getString(escape),
+			HasEscape: true,
 		}
 
 	// Rule 209: expr ::= expr NOT likeop expr (NOT LIKE / NOT GLOB /

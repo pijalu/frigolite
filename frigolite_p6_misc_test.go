@@ -67,6 +67,12 @@ func openTestDB(t *testing.T) *DB {
 	return db
 }
 
+// queryError runs a query and returns its error (nil when the query
+// succeeds). Used to assert that invalid SQL is rejected.
+func queryError(db *DB, sql string) error {
+	return db.Query(sql).Error
+}
+
 func flattenQuery(t *testing.T, db *DB, sql string) string {
 	t.Helper()
 	r := db.Query(sql)

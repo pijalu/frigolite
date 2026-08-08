@@ -754,7 +754,13 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 			return nil, nil
 		}
 	}
-	if v.Operator == "LIKE" && v.Escape != "" {
+	if v.Operator == "LIKE" && (v.Escape != "" || v.HasEscape) {
+		// SQLite requires the ESCAPE expression to be a single character:
+		// ESCAPE '' and multi-character ESCAPE are runtime errors. An absent
+		// ESCAPE clause (HasEscape false, Escape "") uses the default matcher.
+		if v.HasEscape && len([]rune(v.Escape)) != 1 {
+			return nil, fmt.Errorf("ESCAPE expression must be a single character")
+		}
 		if e.caseSensitiveLike {
 			return boolToInt(likeValuesWithEscapeCS(left, right, v.Escape)), nil
 		}

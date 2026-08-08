@@ -535,6 +535,11 @@ type BinaryOp struct {
 	Right    Expr
 	Operator string // =, <, >, <=, >=, <>, +, -, *, /, AND, OR, LIKE, etc.
 	Escape   string // escape character for LIKE (optional)
+	// HasEscape is true when an explicit ESCAPE clause was present on the
+	// LIKE/GLOB operator (even with an empty string). The query planner uses
+	// it to refuse the LIKE optimization for ESCAPE '' (SQLite: the optimizer
+	// only applies when the ESCAPE is a single character).
+	HasEscape bool
 }
 
 func (e *BinaryOp) expr() {}

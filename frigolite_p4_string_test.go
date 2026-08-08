@@ -318,12 +318,72 @@ func TestP4String_ReplaceConcat(t *testing.T) {
 	}
 }
 
+// TestP4String_Like covers LIKE semantics: % and _ wildcards, ESCAPE
+// (single-char literal escape, ESCAPE precedence over wildcards), ASCII
+// case-insensitivity, code-point (not byte) matching for invalid UTF-8 bytes,
+// and PRAGMA case_sensitive_like.
+func TestP4String_Like(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	cases := []struct {
+		sql  string
+		want string
+	}{
+		{"SELECT 'abcde' LIKE 'abc%'", "1"},
+		{"SELECT 'abcde' LIKE '%d%'", "1"},
+		{"SELECT 'abcde' LIKE 'a_c_e'", "1"},
+		{"SELECT 'abcde' LIKE 'a_c'", "0"},
+		{"SELECT 'ABC' LIKE 'abc'", "1"},                // ASCII case-insensitive default
+		{"SELECT 'abc' LIKE 'ABC'", "1"},
+		{"SELECT 'ab%de' LIKE 'ab/%d%' ESCAPE '/'", "1"}, // escaped % is literal
+		{"SELECT 'abcde' LIKE 'ab/%d%' ESCAPE '/'", "0"},
+		{"SELECT 'abcd%' LIKE 'abcdx%%' ESCAPE 'x'", "1"}, // escaped % then wildcard
+		{"SELECT ifnull('abc' LIKE NULL, 'nil')", "nil"},  // NULL operand -> NULL
+		{"SELECT ifnull(NULL LIKE 'a%', 'nil')", "nil"},
+		{"SELECT 'ǀ' LIKE '%\x80'", "0"},  // code-point match: U+01C0 != U+0080
+		{"SELECT '\u0080' LIKE '%\x80'", "1"}, // lone continuation byte reads as U+0080
+		{"SELECT 'abc' LIKE 'abc%' COLLATE nocase", "1"},
+		{"SELECT 'x' LIKE '%' ESCAPE '_'", "1"},
+	}
+	for _, c := range cases {
+		got := flattenQuery(t, db, c.sql)
+		if got != c.want {
+			t.Errorf("%s\n  got:  [%s]\n  want: [%s]", c.sql, got, c.want)
+		}
+	}
+
+	// PRAGMA case_sensitive_like=ON makes LIKE case-sensitive.
+	db.Exec("PRAGMA case_sensitive_like=ON")
+	if got, want := flattenQuery(t, db, "SELECT 'ABC' LIKE 'abc'"), "0"; got != want {
+		t.Errorf("case_sensitive_like=ON: 'ABC' LIKE 'abc'\n  got:  [%s]\n  want: [%s]", got, want)
+	}
+	if got, want := flattenQuery(t, db, "SELECT 'abc' LIKE 'abc'"), "1"; got != want {
+		t.Errorf("case_sensitive_like=ON: 'abc' LIKE 'abc'\n  got:  [%s]\n  want: [%s]", got, want)
+	}
+	db.Exec("PRAGMA case_sensitive_like=OFF")
+	if got, want := flattenQuery(t, db, "SELECT 'ABC' LIKE 'abc'"), "1"; got != want {
+		t.Errorf("case_sensitive_like=OFF: 'ABC' LIKE 'abc'\n  got:  [%s]\n  want: [%s]", got, want)
+	}
+
+	// Invalid ESCAPE expressions are runtime errors (SQLite: "ESCAPE
+	// expression must be a single character").
+	for _, sql := range []string{
+		"SELECT 'abc' LIKE 'abc' ESCAPE ''",
+		"SELECT 'abc' LIKE 'abc' ESCAPE '//'",
+	} {
+		if err := queryError(db, sql); err == nil {
+			t.Errorf("expected error for %s, got nil", sql)
+		}
+	}
+}
+
 // TestP4String_All runs every P4 string sub-test; used by the verify command
 // `go test -run TestP4String`.
 func TestP4String_All(t *testing.T) {
 	for _, sub := range []string{
 		"Substr", "Instr", "Trim", "UpperLower", "Length", "Quote",
-		"HexUnhex", "CharUnicode", "ReplaceConcat",
+		"HexUnhex", "CharUnicode", "ReplaceConcat", "Like",
 	} {
 		ok := t.Run(sub, func(t *testing.T) {
 			switch sub {
@@ -345,6 +405,8 @@ func TestP4String_All(t *testing.T) {
 				TestP4String_CharUnicode(t)
 			case "ReplaceConcat":
 				TestP4String_ReplaceConcat(t)
+			case "Like":
+				TestP4String_Like(t)
 			}
 		})
 		if !ok {
