@@ -1339,6 +1339,11 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 	// Snapshot so a FOREIGN KEY violation mid-statement rolls back any
 	// conflict rows already deleted.
 	snap := e.pager.Snapshot()
+	// RowIDs deleted by an earlier change's conflict resolution. A later
+	// change targeting one of these rows must be skipped (the row is gone),
+	// not aborted — SQLite processes the remaining changes against the live
+	// table (tkt2832: UPDATE OR REPLACE SET a=1 over PK rows 2,1,3).
+	deletedByConflict := map[int64]bool{}
 
 	for _, c := range changes {
 		type conflictInfo struct {
@@ -1412,6 +1417,13 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			}
 		}
 
+		// If this change's row was deleted by an earlier change's conflict
+		// resolution, the row is gone — skip it (SQLite processes the live
+		// table; the deleted row no longer needs updating).
+		if deletedByConflict[c.rowID] {
+			continue
+		}
+
 		for _, cf := range conflicts {
 			oldRow := buildRowMapFromValues(cf.values, colDefs, cf.rowID)
 			if hasTriggers {
@@ -1427,6 +1439,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			}); err != nil {
 				return &Result{Error: err}
 			}
+			deletedByConflict[cf.rowID] = true
 			e.invalidateRowIDCache(e.tablePager(tableEntry.Name), tableEntry.RootPage)
 			if hasTriggers {
 				if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
@@ -1458,7 +1471,13 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		// If a conflict-resolution delete's trigger removed the row being
 		// updated too (e.g. a recursive DELETE FROM t0 inside an AFTER
 		// DELETE trigger), SQLite aborts the statement with the generic
-		// "constraint failed" error and rolls it back.
+		// "constraint failed" error and rolls it back. A row deleted by a
+		// PRIOR change's conflict resolution is skipped above, and a row
+		// deleted by THIS change's own conflict resolution (the new value
+		// matched its own row via a different rowid) is also skipped.
+		if deletedByConflict[c.rowID] {
+			continue
+		}
 		if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
 			// The row being updated was deleted by a trigger fired during
 			// this row's conflict resolution; abort like SQLite and roll

@@ -6246,6 +6246,21 @@ var skipTestFiles = map[string]string{
 	// MAX_PAGE_COUNT enforcement is a needed pager feature (tracked in
 	// plans/NOT_APPLICABLE.md).
 	"tkt2686": "PRAGMA max_page_count not enforced (database or disk is full) N-A; MAX_PAGE_COUNT NEEDED",
+
+	// tkt2854: shared-cache multi-connection concurrency
+	// (sqlite3_enable_shared_cache 1, db/db2 share a cache, db3 private,
+	// cross-connection read-locks and visibility). DEFERRED — needs
+	// shared-memory/locking implementation (same category as the shared
+	// package; see plans/DEFERRED.md).
+	"tkt2854": "shared-cache multi-connection concurrency not implemented DEFERRED",
+
+	// tkt3080: the tester.tcl execsql test-harness UDF — a scalar function
+	// that recursively executes its string argument as SQL (SELECT
+	// execsql('CREATE TABLE t1(x)'), and execsql(x) where x is a column
+	// holding SQL text). Frigolite's RegisterFunction callbacks have no
+	// engine access to run SQL, so the UDF cannot be implemented; this is a
+	// test-harness function, not core SQL.
+	"tkt3080": "test-harness execsql UDF (runs SQL from within a query) not implemented N-A",
 }
 
 // bodyEndsWithIndexExpr reports whether a do_test body's last command is an

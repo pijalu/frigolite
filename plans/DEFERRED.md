@@ -88,6 +88,7 @@ readers) — out of scope for the current phase.
 | sharedA | Shared-cache A (multi-connection read/write) | vacuous PASS |
 | sharedB | Shared-cache B (multi-connection locking) | vacuous PASS |
 | sharedlock | Shared-cache locking (table-level locks) | vacuous PASS |
+| tkt2854 | Shared-cache multi-connection (sqlite3_enable_shared_cache, db/db2 shared cache, db3 private; cross-connection read-locks) | skipped DEFERRED (transpiler skipTestFiles) |
 
 > **Note on "vacuous PASS"**: packages marked *vacuous PASS* compile and exit 0,
 > but the transpiler converts their WAL/thread-specific TCL commands

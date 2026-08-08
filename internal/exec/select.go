@@ -7303,6 +7303,25 @@ func validateOrderBy(orderBy []sql.OrderByTerm, numCols int) error {
 // do not match a member column (e.g. ORDER BY a+b when no member selects a
 // column named a+b) are rejected with "Nth ORDER BY term does not match any
 // column in the result set".
+// expressionMatchesCompoundResult reports whether expr exactly matches one of
+// the compound members' result-column expressions (ignoring the column alias;
+// SQLite allows ORDER BY <expr> when <expr> is also a result column).
+func (e *Engine) expressionMatchesCompoundResult(s *sql.SelectStmt, expr sql.Expr) bool {
+	cur := s
+	for cur != nil {
+		for _, col := range cur.Columns {
+			if col.Expr == nil {
+				continue
+			}
+			if sql.ExprString(expr) == sql.ExprString(col.Expr) {
+				return true
+			}
+		}
+		cur = cur.Union
+	}
+	return false
+}
+
 func (e *Engine) validateCompoundOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm) error {
 	colNames := make(map[string]bool)
 	collect := func(m *sql.SelectStmt) {
@@ -7360,6 +7379,12 @@ func (e *Engine) validateCompoundOrderBy(s *sql.SelectStmt, orderBy []sql.OrderB
 		// A bare column name (possibly wrapped in COLLATE) must match a
 		// member's result column.
 		if ref, ok := expr.(*sql.ColumnRef); ok && colNames[strings.ToLower(ref.Name)] {
+			continue
+		}
+		// An ORDER BY expression that exactly matches a member's result-column
+		// expression is allowed (SQLite: SELECT a, CAST(b AS TEXT) AS x ...
+		// UNION ALL ... ORDER BY CAST(b AS TEXT)).
+		if e.expressionMatchesCompoundResult(s, expr) {
 			continue
 		}
 		// rowid/_rowid_/oid in compound ORDER BY resolve to the source table's
