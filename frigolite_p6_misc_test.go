@@ -367,3 +367,53 @@ func TestP6_RowValueComparison(t *testing.T) {
 		t.Errorf("bare SELECT (1,2,3): expected 'row value misused', got %v", r.Error)
 	}
 }
+
+// TestP6_IsTrueNullSemantics covers istrue: IS TRUE / IS FALSE / IS NOT
+// TRUE / IS NOT FALSE with NULL operands must match SQLite (NULL is neither
+// true nor false: IS X -> 0, IS NOT X -> 1). Also covers CHECK constraints
+// over NULL columns, where the row value wraps as ColumnValue{Value:nil}.
+func TestP6_IsTrueNullSemantics(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	// Direct expression semantics (SQLite: NULL IS TRUE=0, NULL IS NOT
+	// TRUE=1, NULL IS FALSE=0, NULL IS NOT FALSE=1).
+	got := flattenQuery(t, db,
+		"SELECT NULL IS TRUE, NULL IS NOT TRUE, NULL IS FALSE, NULL IS NOT FALSE")
+	if got != "0 1 0 1" {
+		t.Errorf("NULL IS TRUE/FALSE semantics: got [%s] want [0 1 0 1]", got)
+	}
+
+	// CHECK constraints must treat NULL as passing for IS NOT TRUE / IS NOT
+	// FALSE (the column value is wrapped as ColumnValue{Value:nil}).
+	if err := db.Exec(`
+		CREATE TABLE t2(
+			a INTEGER PRIMARY KEY,
+			b BOOLEAN CHECK(b IS TRUE),
+			c BOOLEAN CHECK(c IS FALSE),
+			d BOOLEAN CHECK(d IS NOT TRUE),
+			e BOOLEAN CHECK(e IS NOT FALSE)
+		);
+		INSERT INTO t2 VALUES(1,true,false,null,null);
+	`).Error; err != nil {
+		t.Fatalf("insert with NULL IS NOT TRUE/FALSE checks: %v", err)
+	}
+	got = flattenQuery(t, db, "SELECT a,b,c,d,e FROM t2")
+	if got != "1 1 0 NULL NULL" {
+		t.Errorf("t2 row: got [%s] want [1 1 0 NULL NULL]", got)
+	}
+
+	// NULL column in Kleene AND/OR: NULL AND false = false, NULL AND true =
+	// NULL, NULL OR true = true, NULL OR false = NULL.
+	if err := db.Exec("CREATE TABLE t3(x INT); INSERT INTO t3 VALUES(NULL),(1),(0);").Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, "SELECT x AND 0, x AND 1, x OR 1, x OR 0 FROM t3 ORDER BY x")
+	// Rows ordered NULL, 0, 1 (SQLite sorts NULLs first ascending).
+	// NULL: NULL AND 0=0, NULL AND 1=NULL, NULL OR 1=1, NULL OR 0=NULL
+	// 0:    0 AND 0=0,  0 AND 1=0,   0 OR 1=1,  0 OR 0=0
+	// 1:    1 AND 0=0,  1 AND 1=1,   1 OR 1=1,  1 OR 0=1
+	if got != "0 NULL 1 NULL 0 0 1 0 0 1 1 1" {
+		t.Errorf("Kleene AND/OR with NULL column: got [%s]", got)
+	}
+}

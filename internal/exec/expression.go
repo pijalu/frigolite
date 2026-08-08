@@ -1391,6 +1391,15 @@ func isFalse(v interface{}) bool {
 	if v == nil {
 		return false
 	}
+	// A column whose stored value is NULL wraps as ColumnValue{Value: nil};
+	// NULL is not false, so unwrap before the boolean test (SQLite treats
+	// NULL as neither true nor false).
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	if v == nil {
+		return false
+	}
 	return !toBool(v)
 }
 
@@ -2275,6 +2284,12 @@ func toBool(v interface{}) bool {
 	// correctly evaluate scalar values from the database.
 	if cv, ok := v.(*util.ColumnValue); ok {
 		v = cv.Value
+	}
+	// A column whose stored value is NULL wraps as ColumnValue{Value: nil};
+	// after unwrapping, NULL must evaluate to false (SQLite treats NULL as
+	// not-true), not fall through to the default true case.
+	if v == nil {
+		return false
 	}
 	switch x := v.(type) {
 	case bool:
