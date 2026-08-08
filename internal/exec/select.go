@@ -1772,8 +1772,11 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 	if len(allRows) == 0 {
 		// An aggregate query over an empty input still yields one row (e.g.
 		// SELECT avg(b) FROM (empty) → NULL). Let the aggregate handler
-		// produce that row; only short-circuit when there are no aggregates.
-		if !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 {
+		// produce that row; only short-circuit when there are no aggregates
+		// AND no compound union (a UNION member must still be merged even
+		// when this member is empty: (SELECT 0 FROM t WHERE false) UNION ALL
+		// SELECT 0 returns 0).
+		if !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 && s.Union == nil {
 			return &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: [][]interface{}{}}
 		}
 	}

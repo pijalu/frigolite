@@ -868,3 +868,23 @@ func TestP6_WithoutRowidRowidColumn(t *testing.T) {
 		t.Errorf("WITHOUT ROWID rowid column: got [%s] want [21.0 20]", got)
 	}
 }
+
+// TestP6_EmptyUnionMember covers bloom: a compound UNION member that is an
+// empty derived table must still merge subsequent members
+// ((SELECT 0 FROM t WHERE false) UNION ALL SELECT 0 returns 0).
+func TestP6_EmptyUnionMember(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`CREATE TABLE t1(c1); INSERT INTO t1 VALUES(101);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, `SELECT * FROM (SELECT 0 FROM t1 WHERE c1 = 2) UNION ALL SELECT 0`)
+	if got != "0" {
+		t.Errorf("empty union member: got [%s] want [0]", got)
+	}
+	got = flattenQuery(t, db, `SELECT 0 IN (SELECT c_0 FROM (SELECT 0 as c_0 FROM t1 WHERE c1 = 2 ORDER BY c_0 desc) as subq_2 UNION ALL SELECT 0 as c_0)`)
+	if got != "1" {
+		t.Errorf("IN with empty union member: got [%s] want [1]", got)
+	}
+}
