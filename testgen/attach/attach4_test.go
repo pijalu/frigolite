@@ -8,6 +8,7 @@ import (
 "errors"
 "github.com/pijalu/frigolite"
 "os"
+"path/filepath"
 "strconv"
 "strings"
 "testing"
@@ -92,9 +93,10 @@ func Test_attach4(t *testing.T) {
 			}
 		}
 	}
-	{ // do_test "1.1"
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), SQLITE_MAX_ATTACHED) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", SQLITE_MAX_ATTACHED, _res.Error, "1.1")
+	{ // do_test "1.1" (sqlite3_limit SQLITE_LIMIT_ATTACHED -1)
+		got := db.Limit("SQLITE_LIMIT_ATTACHED")
+		if strconv.Itoa(got) != SQLITE_MAX_ATTACHED {
+			t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", got, SQLITE_MAX_ATTACHED, "1.1")
 		}
 	}
 	{ // do_test "1.2.1"
@@ -131,14 +133,22 @@ func Test_attach4(t *testing.T) {
 				var _dbevalRb3 bool
 				var _dbevalErr4 error
 				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
-					L = tclListAppend(L, name, "file tail $file")
+					for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
+						switch _dbevalRows2.Columns[_ci] {
+							case "name":
+								name = tclStr(_dbevalRows2.Rows[_ri][_ci])
+							case "file":
+								file = tclStr(_dbevalRows2.Rows[_ri][_ci])
+						}
+					}
+					L = tclListAppend(L, name, filepath.Base(file))
 					if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
 				}
 				if _dbevalErr4 != nil {
 					t.Errorf("db eval callback error: %v", _dbevalErr4)
 				}
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), files) {
-					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", files, _res.Error, "1.2.1")
+				if L != files {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", L, files, "1.2.1")
 				}
 			}
 			{ // "1.2.2"
@@ -187,8 +197,8 @@ func Test_attach4(t *testing.T) {
 						_ = _idx6
 							L = tclListAppend(L, name, tclExecSQL(db, "SELECT x FROM " + name + ".tbl"))
 						}
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), files) {
-							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", files, _res.Error, "1.4")
+						if L != files {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", L, files, "1.4")
 						}
 					}
 					L = ""
@@ -232,8 +242,8 @@ func Test_attach4(t *testing.T) {
 								_ = _idx8
 									L = tclListAppend(L, tclExecSQL(db, "SELECT x FROM " + name + ".tbl"), f)
 								}
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), files) {
-									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", files, _res.Error, "1.6")
+								if L != files {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", L, files, "1.6")
 								}
 							}
 							{ // do_test "1.7"
@@ -272,8 +282,8 @@ func Test_attach4(t *testing.T) {
 										_ = _idx10
 											L = tclListAppend(L, name, tclExecSQL(db, "SELECT x FROM " + name + ".tbl"))
 										}
-										if _res.Error == nil || !strings.Contains(_res.Error.Error(), files) {
-											t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", files, _res.Error, "1.8")
+										if L != files {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", L, files, "1.8")
 										}
 									}
 									db.Close()

@@ -212,7 +212,7 @@ var allStandardImports = []struct{ name, path string }{
 	{"errors", "errors"},
 	{"fmt", "fmt"},
 	{"os", "os"},
-	{"path/filepath", "path/filepath"},
+	{"filepath", "path/filepath"},
 	{"regexp", "regexp"},
 	{"sort", "sort"},
 	{"strconv", "strconv"},
@@ -2464,6 +2464,13 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		return `""`
 
 	case "file":
+		// [file tail $path] — basename of a path (used by attach4's
+		// database_list callback to strip the directory from the file
+		// column).
+		if len(args) >= 2 && args[0] == "tail" {
+			pathExpr := tp.buildStringExpr(args[1])
+			return fmt.Sprintf("filepath.Base(%s)", pathExpr)
+		}
 		return fmt.Sprintf("%q", cmdText)
 
 	case "sqlite3_step":
@@ -3500,9 +3507,21 @@ func min(a, b int) int {
 
 func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	// do_execsql_test may take an optional "-db NAME" prefix (e.g. "-db db2")
-	// selecting a different connection. In testgen all connections alias the
-	// main db, so the prefix is dropped and the SQL/expected args shift.
+	// selecting a different connection. When NAME is a real connection (a
+	// frigolite.Open on its own file, e.g. "sqlite3 db2 test.db2"), run the
+	// SQL on that handle; when NAME is aliased to main ("sqlite3 db2
+	// test.db"), run on db. The connection name is resolved the same way as
+	// processExecSQL so both forms agree.
+	dbConn := "db"
 	if len(args) >= 2 && args[0].Text == "-db" {
+		h := tclVarToGo(args[1].Text)
+		if h != "" && h != "db" && (isPreDeclaredDB(h) || tp.isVarDeclared(h)) {
+			if target, ok := tp.dbAliases[h]; ok {
+				dbConn = target
+			} else {
+				dbConn = h
+			}
+		}
 		args = args[2:]
 	}
 	if len(args) < 2 {
@@ -3547,7 +3566,7 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 		// unsupported SQL never fails the skipped test.
 		tp.emitLine("{ // %s — skipped: %s", nameExpr, reason)
 		tp.indent++
-		tp.emitLine("_res = db.Exec(%s)", tp.collectSQLExpression(args[1:2]))
+		tp.emitLine("_res = %s.Exec(%s)", dbConn, tp.collectSQLExpression(args[1:2]))
 		tp.emitLine("_ = _res")
 		tp.indent--
 		tp.emitLine("}")
@@ -3577,7 +3596,7 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 		// RAISE() outside a trigger). The statement batch must fail with
 		// the expected message.
 		errMsg := extractExpectedErrorFromLiteral(expectedExpr)
-		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %q) {", errMsg)
 		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", errMsg, sqlExpr)
 		tp.emitLine("}")
@@ -3585,7 +3604,7 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 		// Query path: the batch contains at least one result-producing
 		// statement, so run the whole batch via db.Query (rows from all
 		// statements are concatenated) and compare with the expected value.
-		tp.emitLine("r = db.Query(%s)", sqlExpr)
+		tp.emitLine("r = %s.Query(%s)", dbConn, sqlExpr)
 		tp.emitLine("if r.Error != nil {")
 		tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
 		tp.emitLine("\treturn")
@@ -3616,7 +3635,7 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			}
 			wantVar := fmt.Sprintf("_want%d", tp.varCount)
 			tp.varCount++
-			tp.emitLine("%s := db.Query(%s)", wantVar, dbEvalExpr)
+			tp.emitLine("%s := %s.Query(%s)", wantVar, dbConn, dbEvalExpr)
 			tp.emitLine("if %s.Error != nil {", wantVar)
 			tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, dbEvalExpr)
 			tp.emitLine("\treturn")
@@ -3640,12 +3659,12 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			tp.emitLine("}")
 		}
 	} else if hasQuery {
-		tp.emitLine("r = db.Query(%s)", sqlExpr)
+		tp.emitLine("r = %s.Query(%s)", dbConn, sqlExpr)
 		tp.emitLine("if r.Error != nil {")
 		tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
 		tp.emitLine("}")
 	} else {
-		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		tp.emitLine("if _res.Error != nil {")
 		tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
 		tp.emitLine("}")
@@ -3940,6 +3959,24 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
 	}
 
+	// A single `sqlite3_limit db LIMIT -1` body queries the current limit;
+	// the expected value is the limit number (e.g. attach4-1.1 expects
+	// $SQLITE_MAX_ATTACHED). Emit a direct value comparison.
+	if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
+		bodyCmds[0][0].Text == "sqlite3_limit" &&
+		strings.TrimSpace(bodyCmds[0][3].Text) == "-1" {
+		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		tp.emitLine("{ // do_test %s (sqlite3_limit %s -1)", nameExpr, limitName)
+		tp.indent++
+		tp.emitLine("got := db.Limit(%q)", limitName)
+		tp.emitLine("if strconv.Itoa(got) != %s {", expectedExpr)
+		tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", got, %s, %s)", expectedExpr, nameExpr)
+		tp.emitLine("}")
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
+
 	// TCL do_test compares the VALUE of the body script with the expected
 	// argument. The most common body form is a single `db eval { SQL }`
 	// command; transpile it with a real result comparison (query → flatten
@@ -4142,6 +4179,12 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			if bodyIsCatchsql {
 				tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
 				tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", _res.Error, %s, %s)", expectedExpr, nameExpr)
+				tp.emitLine("}")
+			} else if setVar, ok := bodyEndsWithSetVar(bodyCmds); ok {
+				// The body ends with `set VAR`; the do_test VALUE is that
+				// variable. Compare it against the expected variable/list.
+				tp.emitLine("if %s != %s {", setVar, expectedExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", %s, %s, %s)", setVar, expectedExpr, nameExpr)
 				tp.emitLine("}")
 			} else if bodyEndsWithQueryFunc(bodyCmds, tp.queryFuncs) {
 				// The body ends with a query-proc call (e.g. `execsql {...}
@@ -4786,6 +4829,30 @@ func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
 	tp.emitLine("var %s error", iterErr)
 	tp.emitLine("for _ri := 0; _ri < len(%s.Rows) && %s == nil; _ri++ {", rowsVar, iterErr)
 	tp.indent++
+	// TCL `db eval {SQL} {body}` binds the body's variables to the query's
+	// result COLUMNS by name ($name → column "name"). Shadow the outer
+	// variables with the current row's column values before the body runs.
+	// Only columns referenced by the body need binding; emit a switch over
+	// the runtime column names so any query (PRAGMA database_list, SELECT
+	// *) works without knowing the schema at transpile time.
+	tp.emitLine("for _ci := 0; _ci < len(%s.Columns); _ci++ {", rowsVar)
+	tp.indent++
+	tp.emitLine("switch %s.Columns[_ci] {", rowsVar)
+	tp.indent++
+	for _, col := range dbEvalCallbackColumns(rest[1].Text) {
+		goVar := tclVarToGo(col)
+		if !isValidGoIdent(goVar) || goVar == "" {
+			continue
+		}
+		tp.emitLine("case %q:", col)
+		tp.indent++
+		tp.emitLine("%s = tclStr(%s.Rows[_ri][_ci])", goVar, rowsVar)
+		tp.indent--
+	}
+	tp.indent--
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
 	// Transpile the body with the rollback flag wired: `db eval ROLLBACK`
 	// inside the body sets rbFlag, and the loop aborts on it.
 	bodyTP := &transpiler{
@@ -4819,6 +4886,32 @@ func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
 	}
 	tp.indent--
 	tp.emitLine("}")
+}
+
+// dbEvalCallbackColumns returns the distinct TCL variable names referenced
+// in a `db eval {SQL} {body}` callback body. These variables are bound to
+// the query result columns by name at runtime (see emitDBEvalCallback).
+func dbEvalCallbackColumns(body string) []string {
+	seen := map[string]bool{}
+	var cols []string
+	for _, tok := range strings.Fields(body) {
+		if strings.HasPrefix(tok, "$") && len(tok) > 1 {
+			name := strings.TrimLeft(tok, "${")
+			name = strings.TrimRight(name, "}")
+			// Stop at non-identifier characters (e.g. "$x," → "x").
+			for i, r := range name {
+				if !(r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (i > 0 && r >= '0' && r <= '9')) {
+					name = name[:i]
+					break
+				}
+			}
+			if name != "" && !seen[name] {
+				seen[name] = true
+				cols = append(cols, name)
+			}
+		}
+	}
+	return cols
 }
 
 // processDBForName handles dbN commands (db2, db3, etc.) — secondary DB connections.
@@ -5736,6 +5829,25 @@ func bodyEndsWithQueryFunc(bodyCmds [][]tcl.RawWord, queryFuncs map[string]strin
 	}
 	_, ok := queryFuncs[last[0].Text]
 	return ok
+}
+
+// bodyEndsWithSetVar reports whether a do_test body's last command is a bare
+// `set VAR` (a variable read). The do_test's VALUE is that variable, so the
+// assertion compares the Go variable against the expected value rather than
+// treating the body as an error expectation (attach4-1.2.1 ends with
+// `set L`). It returns the Go variable name.
+func bodyEndsWithSetVar(bodyCmds [][]tcl.RawWord) (string, bool) {
+	if len(bodyCmds) == 0 {
+		return "", false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) == 2 && last[0].Text == "set" {
+		goVar := tclVarToGo(strings.TrimPrefix(last[1].Text, "$"))
+		if isValidGoIdent(goVar) && goVar != "" {
+			return goVar, true
+		}
+	}
+	return "", false
 }
 
 // isTestCommand reports whether cmdName is a TCL test command whose first
@@ -8186,26 +8298,22 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	goName := tclVarToGo(dbName)
 
 	// Secondary connections opened on the main test database file
-	// ("sqlite3 db2 test.db") share the same database as the main "db"
-	// connection in the real TCL framework. The compat suite runs
-	// in-memory, so alias db2 to db instead of opening a separate (and
-	// empty) file connection. Closing an aliased connection is a no-op
-	// (handled in processDBForName "close").
+	// ("sqlite3 db2 test.db") are real independent connections in the TCL
+	// framework. The transpiler runs against real files (testgen mode: the
+	// main "db" is frigolite.Open("test.db")), so a real second connection
+	// sees the same committed state and supports cross-connection scenarios
+	// (e.g. attach2-4.1 attaches the same file under the same name on two
+	// connections). No alias is emitted; the connection is opened normally
+	// below.
 	if goName != "db" && len(args) >= 2 && isMainTestFile(args[1].Text) {
-		if tp.dbAliases == nil {
-			tp.dbAliases = make(map[string]string)
+		// Fall through to the normal open path below (real connection).
+		// Keep any prior alias bookkeeping consistent.
+		if tp.dbAliases != nil {
+			delete(tp.dbAliases, goName)
+			if len(tp.dbAliases) == 0 {
+				tp.dbAliases = nil
+			}
 		}
-		tp.dbAliases[goName] = "db"
-		// The alias variable may not have been declared yet (e.g.
-		// "sqlite3 altdb test.db" in trans.test). Declare it as a DB
-		// pointer before assigning the alias so the generated code compiles.
-		if !isPreDeclaredDB(goName) && !tp.isVarDeclared(goName) {
-			tp.emitLine("var %s *frigolite.DB", goName)
-			tp.vars = append(tp.vars, goName)
-		}
-		tp.emitLine("%s = db // sqlite3 %s %s: alias to main in-memory db", goName, dbName, args[1].Text)
-		tp.emitLine("_ = %s", goName)
-		return // no err to check; alias assignment cannot fail
 	}
 
 	// A secondary connection reopened on a DIFFERENT file clears any prior
