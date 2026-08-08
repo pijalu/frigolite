@@ -707,3 +707,28 @@ func TestP6_JoinOnBothLeftCols(t *testing.T) {
 		t.Errorf("join ON both-left + literal: got [%s]", got)
 	}
 }
+
+// TestP6_IntFloatBoundary covers where-27.2: comparing int64 MaxInt64 against
+// the REAL 2^63 (from 9223372036854775807+1) must be false — 2^63 is one more
+// than MaxInt64, unlike the -2^63 == MinInt64 boundary which is equal.
+func TestP6_IntFloatBoundary(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`CREATE TABLE t1(a INTEGER PRIMARY KEY); INSERT INTO t1(a) VALUES(9223372036854775807);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, `SELECT a>=9223372036854775807+1 FROM t1`)
+	if got != "0" {
+		t.Errorf("MaxInt64 >= 2^63: got [%s] want [0]", got)
+	}
+	got = flattenQuery(t, db, `SELECT a FROM t1 WHERE a>=9223372036854775807+1`)
+	if got != "" {
+		t.Errorf("WHERE MaxInt64 >= 2^63: got [%s] want []", got)
+	}
+	// MinInt64 == -2^63 is equal.
+	got = flattenQuery(t, db, `SELECT -9223372036854775808 = -9223372036854775808.0`)
+	if got != "1" {
+		t.Errorf("MinInt64 == -2^63: got [%s] want [1]", got)
+	}
+}
