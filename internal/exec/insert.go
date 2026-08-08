@@ -226,9 +226,17 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 }
 
 func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) *Result {
-	// Route FTS virtual table inserts directly to the FTS table
+	// Route FTS virtual table inserts directly to the FTS table. Honor an
+	// explicit rowid (INSERT INTO ft(rowid, x) VALUES(-45,'a a')) via
+	// InsertWithID; otherwise the FTS module auto-assigns rowids 1..N.
 	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
-		nextRowID := ftsTable.Insert(values)
+		var nextRowID int64
+		if fixedRowID != nil {
+			ftsTable.InsertWithID(*fixedRowID, values)
+			nextRowID = *fixedRowID
+		} else {
+			nextRowID = ftsTable.Insert(values)
+		}
 		e.lastRowID = nextRowID
 		return &Result{Changes: 1, LastInsertRowID: nextRowID}
 	}

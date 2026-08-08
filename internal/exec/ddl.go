@@ -2476,8 +2476,12 @@ func (e *Engine) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry, ftsT
 }
 
 // execFTSDelete handles DELETE from an FTS virtual table.
-func (e *Engine) execFTSDelete(ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, s *sql.DeleteStmt) *Result {
-	e.currentFTSMatch = ""
+func (e *Engine) execFTSDelete(tableName string, ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, s *sql.DeleteStmt) *Result {
+	// Set the FTS match context so the WHERE clause's MATCH expression
+	// resolves to this table (execFTSSelect does the same).
+	prevMatch := e.currentFTSMatch
+	e.currentFTSMatch = tableName
+	defer func() { e.currentFTSMatch = prevMatch }()
 	docIDs := ftsTable.AllRowsMap()
 	// Apply the WHERE filter first, then DELETE ... ORDER BY ... LIMIT (the
 	// SQLite extension applies to the filtered rowid set).

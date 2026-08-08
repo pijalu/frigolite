@@ -732,3 +732,50 @@ func TestP6_IntFloatBoundary(t *testing.T) {
 		t.Errorf("MinInt64 == -2^63: got [%s] want [1]", got)
 	}
 }
+
+// TestP6_DMLReturningOrderLimit covers wherelimit: DELETE/UPDATE with
+// RETURNING + ORDER BY + LIMIT (a SQLite extension the LALR grammar lacks),
+// WITH-prefixed DML with LIMIT, and FTS explicit rowids.
+func TestP6_DMLReturningOrderLimit(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE t1(x int, y int);
+		INSERT INTO t1 VALUES(1,1),(2,2),(3,3);
+	`).Error; err != nil {
+		t.Fatal(err)
+	}
+	// DELETE ... RETURNING ... ORDER BY ... LIMIT.
+	r := db.Query("DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 2")
+	if r.Error != nil {
+		t.Fatalf("DELETE RETURNING ORDER LIMIT: %v", r.Error)
+	}
+	// The remaining row must be the third (x=3).
+	got := flattenQuery(t, db, "SELECT x FROM t1")
+	if got != "3" {
+		t.Errorf("DELETE RETURNING LIMIT left: got [%s] want [3]", got)
+	}
+
+	// WITH-prefixed UPDATE with LIMIT (CTE name shadows the table for SELECT
+	// but the DML target resolves to the real table).
+	if err := db.Exec(`CREATE TABLE t2(a INT); INSERT INTO t2(a) VALUES(0),(1),(2);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Exec(`WITH t2(b) AS (SELECT * FROM (SELECT * FROM (VALUES(5)))) UPDATE t2 SET a=9 LIMIT 1;`).Error; err != nil {
+		t.Fatalf("WITH UPDATE LIMIT: %v", err)
+	}
+	got = flattenQuery(t, db, "SELECT a FROM t2 ORDER BY a")
+	if got != "1 2 9" {
+		t.Errorf("WITH UPDATE LIMIT: got [%s] want [1 2 9]", got)
+	}
+
+	// FTS explicit rowids.
+	if err := db.Exec(`CREATE VIRTUAL TABLE ft USING fts5(x); INSERT INTO ft(rowid, x) VALUES(-45, 'a a'),(12,'a b');`).Error; err != nil {
+		t.Fatalf("FTS insert: %v", err)
+	}
+	got = flattenQuery(t, db, "SELECT rowid FROM ft ORDER BY rowid")
+	if got != "-45 12" {
+		t.Errorf("FTS explicit rowids: got [%s] want [-45 12]", got)
+	}
+}

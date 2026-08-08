@@ -908,7 +908,7 @@ func (e *Engine) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		}
 	}
 
-	if rowidVal <= 0 {
+	if rowidVal == 0 {
 		return int64(0), nil
 	}
 

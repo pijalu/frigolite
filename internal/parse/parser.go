@@ -413,9 +413,10 @@ type stmtOrderLimit struct {
 // rewritten SQL plus the extracted clauses (indexed by statement order). It
 // returns hasRewrite=false when no statement needs rewriting.
 //
-// SQLite rejects ORDER BY/LIMIT combined with RETURNING on UPDATE and DELETE
-// ("near \"RETURNING\": syntax error"), so a statement that carries both a
-// clause and a RETURNING is left untouched and fails to parse.
+// SQLite allows ORDER BY/LIMIT combined with RETURNING on UPDATE and DELETE
+// (e.g. DELETE FROM t1 RETURNING x ORDER BY x LIMIT 5), so such statements
+// must also be rewritten: the LALR where_opt_ret rules (155-158) accept
+// RETURNING selcollist but not a trailing ORDER BY/LIMIT.
 //
 // The scan operates on token boundaries with parenthesis tracking so that
 // ORDER BY/LIMIT inside subqueries (e.g. SET x=(SELECT ... ORDER BY ... LIMIT
@@ -427,14 +428,12 @@ func rewriteStmtOrderLimit(input string) (string, []stmtOrderLimit, bool) {
 	}
 	spans := splitTopLevelStatements(toks)
 
+
 	// Find the statement-level ORDER BY/LIMIT clause of each top-level
-	// UPDATE/DELETE statement that has no RETURNING.
+	// UPDATE/DELETE statement (with or without RETURNING).
 	var clauseStarts []int // token index where the clause begins, per statement
 	for _, sp := range spans {
 		if !(isTopLevelStmt(toks, sp, "UPDATE") || isTopLevelStmt(toks, sp, "DELETE")) {
-			continue
-		}
-		if hasStatementReturning(toks, sp) {
 			continue
 		}
 		if start, ok := findStatementOrderLimit(toks, sp); ok {
@@ -478,29 +477,6 @@ func rewriteStmtOrderLimit(input string) (string, []stmtOrderLimit, bool) {
 type stmtSplice struct {
 	from, to int // byte offsets
 	clause   stmtOrderLimit
-}
-
-// hasStatementReturning reports whether a top-level statement span contains a
-// RETURNING keyword at parenthesis depth 0. SQLite does not allow RETURNING
-// together with ORDER BY/LIMIT on UPDATE or DELETE, so such statements must
-// not be rewritten (they should fail to parse).
-func hasStatementReturning(toks []sql.Token, sp stmtSpan) bool {
-	d := 0
-	for j := sp.start; j < sp.end; j++ {
-		switch {
-		case toks[j].Type == sql.TokenLParen:
-			d++
-		case toks[j].Type == sql.TokenRParen:
-			if d > 0 {
-				d--
-			}
-		case toks[j].Type == sql.TokenKeyword && d == 0:
-			if strings.EqualFold(toks[j].Value, "RETURNING") {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // tokenizeInput tokenizes the input, returning false on a tokenizer error.
@@ -554,14 +530,30 @@ func splitTopLevelStatements(toks []sql.Token) []stmtSpan {
 // DELETE — the check is conservative so a WITH ... statement is simply not
 // rewritten).
 func isTopLevelStmt(toks []sql.Token, sp stmtSpan, keyword string) bool {
+	d := 0
 	for j := sp.start; j < sp.end; j++ {
-		if toks[j].Type == sql.TokenKeyword && strings.EqualFold(toks[j].Value, keyword) {
-			return true
-		}
-		// Stop at the first meaningful token after the previous SEMI that is
-		// not WITH (a non-matching statement).
-		if toks[j].Type != sql.TokenIdentifier || !strings.EqualFold(toks[j].Value, "WITH") {
-			return false
+		t := toks[j]
+		switch {
+		case t.Type == sql.TokenLParen:
+			d++
+		case t.Type == sql.TokenRParen:
+			if d > 0 {
+				d--
+			}
+		case d == 0 && t.Type == sql.TokenKeyword:
+			if strings.EqualFold(t.Value, keyword) {
+				return true
+			}
+			// A WITH prefix (WITH name AS (...) name2 AS (...) ...) is skipped:
+			// WITH, AS, and COMMA separators between CTE definitions are all
+			// depth-0 keywords that precede the DML keyword. Anything else
+			// before the target keyword means this is not a matching statement.
+			if !strings.EqualFold(t.Value, "WITH") &&
+				!strings.EqualFold(t.Value, "AS") &&
+				!strings.EqualFold(t.Value, "RECURSIVE") &&
+				!strings.EqualFold(t.Value, ",") {
+				return false
+			}
 		}
 	}
 	return false

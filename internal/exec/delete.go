@@ -52,7 +52,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 
 	// Route FTS virtual table deletes
 	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
-		return e.execFTSDelete(ftsTable, colDefs, s)
+		return e.execFTSDelete(tableEntry.Name, ftsTable, colDefs, s)
 	}
 
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
