@@ -1,0 +1,892 @@
+{
+  "file": "func2.test",
+  "name": "func2",
+  "tests": [
+    {
+      "name": "func2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'Supercalifragilisticexpialidocious'",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR()",
+          "expect": "1 {wrong number of arguments to function SUBSTR()}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious')",
+          "expect": "1 {wrong number of arguments to function SUBSTR()}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1,1,1)",
+          "expect": "1 {wrong number of arguments to function SUBSTR()}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0)",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1)",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2)",
+          "expect": "upercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30)",
+          "expect": "cious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -0)",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -2)",
+          "expect": "us"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -30)",
+          "expect": "rcalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34)",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35)",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36)",
+          "expect": "Supercalifragilisticexpialidocious"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 2)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 1)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.19.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 1)",
+          "expect": "u"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 2)",
+          "expect": "up"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, 1)",
+          "expect": "c"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, 1)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -0, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.25.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.25.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 1)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.25.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 2)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -2, 1)",
+          "expect": "u"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -30, 1)",
+          "expect": "r"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.28.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.28.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 1)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.28.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 2)",
+          "expect": "Su"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.29.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.29.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 2)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.30.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.30.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.30.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.30.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 3)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.31.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.31.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.31.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.32.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.32.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, -1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.33.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.33.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -1)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.33.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -2)",
+          "expect": "S"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.34.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.34.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -1)",
+          "expect": "u"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.34.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -2)",
+          "expect": "Su"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.35.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -1)",
+          "expect": "o"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.35.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -2)",
+          "expect": "do"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, -1)",
+          "expect": "u"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, -1)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.38.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 0)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.38.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func2-1.38.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -2)",
+          "expect": "s"
+        }
+      ]
+    },
+    {
+      "name": "func2-3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR()",
+          "expect": "1 {wrong number of arguments to function SUBSTR()}"
+        }
+      ]
+    },
+    {
+      "name": "func2-3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR(x'1234')",
+          "expect": "1 {wrong number of arguments to function SUBSTR()}"
+        }
+      ]
+    },
+    {
+      "name": "func2-3.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR(x'1234', 1,1,1)",
+          "expect": "1 {wrong number of arguments to function SUBSTR()}"
+        }
+      ]
+    },
+    {
+      "name": "func2-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '' IN (zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(1)\n      )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'Supercalifragilisticexpialidocious'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -30)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -0, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -2, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -30, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -34, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -35, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', -36, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 0, -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 1, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 3, -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 30, -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 34, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 35, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUBSTR('Supercalifragilisticexpialidocious', 36, -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '' IN (zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(1)\n      )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))"
+        }
+      ]
+    }
+  ]
+}

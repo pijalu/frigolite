@@ -1,0 +1,39 @@
+{
+  "file": "tkt-8454a207b9.test",
+  "name": "tkt_8454a207b9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT -123.0;\n    SELECT b, typeof(b) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN c TEXT DEFAULT -123.5;\n    SELECT c, typeof(c) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT -'hello';\n    SELECT d, typeof(d) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN e DEFAULT -123.0;\n    SELECT e, typeof(e) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN f DEFAULT -123.5;\n    SELECT f, typeof(f) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN g DEFAULT -9223372036854775808;\n    SELECT g, typeof(g) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN h DEFAULT 9223372036854775807;\n    SELECT h, typeof(h) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

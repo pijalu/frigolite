@@ -1,0 +1,186 @@
+{
+  "file": "dbstatus2.test",
+  "name": "dbstatus2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randomblob(600));\n  INSERT INTO t1 VALUES(2, randomblob(600));\n  INSERT INTO t1 VALUES(3, randomblob(600));"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store = file;\n    PRAGMA cache_size = -1024;"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA mmap_size = 0"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a=2",
+          "expect": "{0 2 0} {0 4 0}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a=2",
+          "expect": "{0 6 0} {0 4 0}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a=2",
+          "expect": "{0 10 0} {0 4 0}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4, randomblob(600))"
+        }
+      ]
+    },
+    {
+      "name": "2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL",
+          "expect": "0 1 0"
+        }
+      ]
+    },
+    {
+      "name": "2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, randomblob(600))"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM data ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON data(a)"
+        }
+      ]
+    },
+    {
+      "name": "4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM data ORDER BY a",
+          "expect": "0 0 0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4, randomblob(600))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, randomblob(600))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM data ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON data(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM data ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

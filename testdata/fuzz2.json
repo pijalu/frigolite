@@ -1,0 +1,74 @@
+{
+  "file": "fuzz2.test",
+  "name": "fuzz2",
+  "tests": [
+    {
+      "name": "fuzz2-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT n()AND+#0;",
+          "expect": "1 {near \"#0\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT strftime()",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH(SELECT group_concat(q));",
+          "expect": "1 {no such column: q}"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-6.4a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t0 SELECT strftime();",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select e.*,0 from(s,(L))e;",
+          "expect": "1 {no such table: s}"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c.* FROM (a,b) AS c",
+          "expect": "1 {no such table: a}"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(t) FROM t0"
+        }
+      ]
+    }
+  ]
+}

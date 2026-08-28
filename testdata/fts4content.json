@@ -1,0 +1,904 @@
+{
+  "file": "fts4content.test",
+  "name": "fts4content",
+  "tests": [
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);"
+        }
+      ]
+    },
+    {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(ft1);",
+          "expect": "0 a {} 0 {} 0 \n  1 b {} 0 {} 0 \n  2 c {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, rowid FROM ft1",
+          "expect": "{w x} {x y} {y z} 1"
+        }
+      ]
+    },
+    {
+      "name": "1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM ft1 WHERE rowid=1",
+          "expect": "{w x} {y z}"
+        }
+      ]
+    },
+    {
+      "name": "1.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft1(ft1) VALUES('rebuild')"
+        }
+      ]
+    },
+    {
+      "name": "1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft1 WHERE ft1 MATCH 'x'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft1 WHERE ft1 MATCH 'a'"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE ft1;\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1, b);\n  PRAGMA table_info(ft1);",
+          "expect": "0 b {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, rowid FROM ft1",
+          "expect": "{x y} 1"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('O S W W F U C R Q I C N P Z Y Y E Y Y E');  -- 1\n  INSERT INTO t2 VALUES('Y X U V L B E H Y J C Y A I A P V F V K');  -- 2\n  INSERT INTO t2 VALUES('P W I N J H I I N I F B K D U Q B Z S F');  -- 3\n  INSERT INTO t2 VALUES('N R O R H J R H G M D I U U B O M P A U');  -- 4\n  INSERT INTO t2 VALUES('Y O V O G T P N G T N F I V B U M J M G');  -- 5\n  INSERT INTO t2 VALUES('J O B N K N E C H Z R K J O U G M K L S');  -- 6\n  INSERT INTO t2 VALUES('S Z S R I Q U A P W R X H K C Z U L S P');  -- 7\n  INSERT INTO t2 VALUES('J C H N R C K R V N M O F Z M Z A I H W');  -- 8\n  INSERT INTO t2 VALUES('O Y G I S J U U W O D Z F J K N R P R L');  -- 9\n  INSERT INTO t2 VALUES('B G L K U R U P V X Z I H V R W C Q A S');  -- 10\n  INSERT INTO t2 VALUES('T F T J F F Y V F W N X K Q A Y L X W G');  -- 11\n  INSERT INTO t2 VALUES('C J U H B Q X L C M M Y E G V F W V Z C');  -- 12\n  INSERT INTO t2 VALUES('B W L T F S G X D P H N G M R I O A X I');  -- 13\n  INSERT INTO t2 VALUES('N G Y O K Q K Z N M H U J E D H U W R K');  -- 14\n  INSERT INTO t2 VALUES('U D T R U Y F J D S J X E H Q G V A S Z');  -- 15\n  INSERT INTO t2 VALUES('M I W P J S H R J D Q I C G P C T P H R');  -- 16\n  INSERT INTO t2 VALUES('J M N I S L X Q C A B F C B Y D H V R J');  -- 17\n  INSERT INTO t2 VALUES('F V Z W J Q L P X Y E W B U Q N H X K T');  -- 18\n  INSERT INTO t2 VALUES('R F S R Y O F Q E I E G H C B H R X Y N');  -- 19\n  INSERT INTO t2 VALUES('U Q Q Q T E P D M F X P J G H X C Q D L');  -- 20"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft2 USING fts4(content=t2);\n  INSERT INTO ft2(ft2) VALUES('rebuild');\n\n  -- Modify the backing table a bit: Row 17 is missing and the contents \n  -- of row 20 do not match the FTS index contents. \n  DELETE FROM t2 WHERE rowid = 17;\n  UPDATE t2 SET x = 'a b c d e f g h i j' WHERE rowid = 20;"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft3 VALUES('a b c', 'd e f');",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft3(docid, x, y) VALUES(21, 'a b c', 'd e f');\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';",
+          "expect": "21"
+        }
+      ]
+    },
+    {
+      "name": "3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';",
+          "expect": "21"
+        }
+      ]
+    },
+    {
+      "name": "3.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';"
+        }
+      ]
+    },
+    {
+      "name": "3.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t3",
+          "expect": "21"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, quote(value) FROM ft4_stat",
+          "expect": "0 X'000000'"
+        }
+      ]
+    },
+    {
+      "name": "4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, quote(value) FROM ft4x_stat",
+          "expect": "0 X'000000'"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft4x VALUES('M G M F T');\n  INSERT INTO ft4x VALUES('Z Q C A U');\n  INSERT INTO ft4x VALUES('N L L V');\n  INSERT INTO ft4x VALUES('T F D X D');\n  INSERT INTO ft4x VALUES('Z H I S D');\n\n  SELECT id, quote(value) FROM ft4x_stat",
+          "expect": "0 X'05182B'"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft4(rowid, x) SELECT rowid, * FROM ft4x;\n  SELECT id, quote(value) FROM ft4_stat",
+          "expect": "0 X'05182B'"
+        }
+      ]
+    },
+    {
+      "name": "4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, quote(size) FROM ft4_docsize",
+          "expect": "1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
+        }
+      ]
+    },
+    {
+      "name": "4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4x_stat;\n  SELECT docid, quote(size) FROM ft4x_docsize",
+          "expect": "0 X'05182B' 1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
+        }
+      ]
+    },
+    {
+      "name": "4.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize",
+          "expect": "0 X'000000'"
+        }
+      ]
+    },
+    {
+      "name": "4.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t4(rowid, x) SELECT rowid, x FROM ft4x;\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize",
+          "expect": "0 X'05182B' 1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
+        }
+      ]
+    },
+    {
+      "name": "5.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';",
+          "expect": "t5 ft5 ft5_segments ft5_segdir \n  sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat"
+        }
+      ]
+    },
+    {
+      "name": "5.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';",
+          "expect": "t5"
+        }
+      ]
+    },
+    {
+      "name": "5.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t6%';",
+          "expect": "ft6 ft6_segments ft6_segdir \n  sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat"
+        }
+      ]
+    },
+    {
+      "name": "5.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES('a', 'b', 'c', 'd');\n  INSERT INTO ft6(ft6) VALUES('rebuild');\n  SELECT rowid FROM ft6 WHERE ft6 MATCH 'b';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "5.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE ft6;\n  SELECT * FROM t5;",
+          "expect": "a b c d"
+        }
+      ]
+    },
+    {
+      "name": "5.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t6%';"
+        }
+      ]
+    },
+    {
+      "name": "5.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';",
+          "expect": "t5 t5_content"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);",
+          "expect": "1 {no such table: main.t7}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;",
+          "expect": "{A B} {B A} {C D} {A A}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n  SELECT * FROM ft7;",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t7%'",
+          "expect": "ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 \n  ft7_docsize ft7_stat"
+        }
+      ]
+    },
+    {
+      "name": "6.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ft7;",
+          "expect": "1 {no such table: main.t7}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;",
+          "expect": "{A B} {B A} {C D} {A A}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft7(ft7) VALUES('rebuild');\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "6.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n  CREATE TABLE t7(x);"
+        }
+      ]
+    },
+    {
+      "name": "6.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "6.2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';",
+          "expect": "0 {2 {}}"
+        }
+      ]
+    },
+    {
+      "name": "7.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');"
+        }
+      ]
+    },
+    {
+      "name": "7.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft8 WHERE ft8 MATCH 'N';",
+          "expect": "13 15"
+        }
+      ]
+    },
+    {
+      "name": "7.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');"
+        }
+      ]
+    },
+    {
+      "name": "7.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft9 WHERE ft9 MATCH 'N';",
+          "expect": "13 15"
+        }
+      ]
+    },
+    {
+      "name": "7.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE name LIKE 'ft9_%';",
+          "expect": "ft9_segments ft9_segdir ft9_docsize ft9_stat"
+        }
+      ]
+    },
+    {
+      "name": "7.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ft9 WHERE ft9 MATCH 'N';",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ft10 WHERE a MATCH 'ab*';"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft10(ft10) VALUES('rebuild');"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft10 WHERE a MATCH 'ab*';",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft10 WHERE b MATCH 'abav*';",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft10 WHERE ft10 MATCH 'abas*';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'e'",
+          "expect": "2 {e f} {a b}"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'",
+          "expect": "1 {a b} {c d} 2 {e f} {a b}"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM ft1 WHERE docid=1;"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'",
+          "expect": "2 {e f} {a b}"
+        }
+      ]
+    },
+    {
+      "name": "9.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'",
+          "expect": "1 {a b} {c d} 2 {e f} {a b}"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;",
+          "expect": "1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} \n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n  3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT path, data FROM vt WHERE rowid = 2;",
+          "expect": "2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts4(content=vt);\n  INSERT INTO ft(ft) VALUES('rebuild');"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'",
+          "expect": "{...c d [e] f g...} {...c d [e] f g...}"
+        }
+      ]
+    },
+    {
+      "name": "10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'",
+          "expect": "{...r s [t] u v...} {...r s [t] u v...}"
+        }
+      ]
+    },
+    {
+      "name": "10.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM ft WHERE docid=2"
+        }
+      ]
+    },
+    {
+      "name": "10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'",
+          "expect": "{...c d [e] f g...}"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts4(content=x1);",
+          "expect": "1 {vtable constructor called recursively: x1}"
+        }
+      ]
+    },
+    {
+      "name": "12.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');"
+        }
+      ]
+    },
+    {
+      "name": "12.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "12.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1('abc');",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "12.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "12.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');"
+        }
+      ]
+    },
+    {
+      "name": "12.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "12.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1('abc');",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "12.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('rebuild');",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

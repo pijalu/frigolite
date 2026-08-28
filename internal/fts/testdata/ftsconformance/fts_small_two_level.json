@@ -1,0 +1,13 @@
+{
+  "name": "fts-small-two-level",
+  "pragmas": {"page_size": "1024"},
+  "sqlFiles": ["genesis_t1.sql"],
+  "sql": [
+    "CREATE VIRTUAL TABLE x2 USING fts4;",
+    "INSERT INTO x2 SELECT words FROM t1;",
+    "INSERT INTO x2(x2) VALUES('merge=25,4');",
+    "INSERT INTO x2 SELECT words FROM t1;",
+    "INSERT INTO x2 SELECT words FROM t1;",
+    "INSERT INTO x2(x2) VALUES('merge=25,4');"
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "file": "tkt2854.test",
+  "name": "tkt2854",
+  "tests": [
+    {
+      "name": "tkt2854-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    SELECT * FROM abc;"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "expect": "1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, 3)",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "expect": "1 {database schema is locked: main}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE",
+          "expect": "1 {database schema is locked: main}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "expect": "1 {database schema is locked: main}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE def(d, e, f)"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE"
+        }
+      ]
+    },
+    {
+      "name": "tkt2854-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE def(d, e, f)"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

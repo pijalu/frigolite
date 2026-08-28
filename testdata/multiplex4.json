@@ -1,0 +1,68 @@
+{
+  "file": "multiplex4.test",
+  "name": "multiplex4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(250000));"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=off"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=on"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=0"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN PRAGMA multiplex_truncate=0;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x) VALUES(randomblob(250000));"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=ON;\n    DROP TABLE t1;\n    VACUUM;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

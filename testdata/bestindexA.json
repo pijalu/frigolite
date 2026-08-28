@@ -1,0 +1,15 @@
+{
+  "file": "bestindexA.test",
+  "name": "bestindexA",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);"
+        }
+      ]
+    }
+  ]
+}

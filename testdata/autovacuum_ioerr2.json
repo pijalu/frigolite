@@ -1,0 +1,35 @@
+{
+  "file": "autovacuum_ioerr2.test",
+  "name": "autovacuum_ioerr2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1100,1100)); -- Page 4 is overflow\n    INSERT INTO abc VALUES(randstr(1100,1100)); -- Page 5 is overflow"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(randstr(100,100));"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n        BEGIN;\n        CREATE TABLE abc(a);\n        INSERT INTO abc VALUES(randstr(1100,1100)); -- Page 4 is overflow\n        INSERT INTO abc VALUES(randstr(1100,1100)); -- Page 5 is overflow"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(randstr(100,100));"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n        PRAGMA cache_size = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;"
+        }
+      ]
+    }
+  ]
+}

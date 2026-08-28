@@ -1,0 +1,535 @@
+{
+  "file": "json105.test",
+  "name": "json105",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}');"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-1]')) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-2]')) FROM t1",
+          "expect": "'[2,3]'"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-02]')) FROM t1",
+          "expect": "'[2,3]'"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-3]')) FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-4]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-4296967295]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-4296967296]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-4296967297]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.54",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-42969672950]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.55",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-42969672960]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-2][#-1]')) FROM t1",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[0]','$.b[#-1]')) FROM t1",
+          "expect": "'[1,4]'"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.a[#-1]')) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json105-1.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_extract(j,'$.b[#-000001]')) FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-0]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-1]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3]],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-2]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-3]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-4]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-2][#-1]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[0]','$.b[#-1]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[[2,3]],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-1]','$.b[0]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[[2,3]],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-1]','$.b[#-2]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[[2,3]],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-1]','$.b[#-1]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-2.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_remove(j,'$.b[#-2]','$.b[#-1]')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_insert(j,'$.b[#]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4,\"AAA\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-3.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_insert(j,'$.b[1][#]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3,\"AAA\"],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-3.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_insert(j,'$.b[1][#]','AAA','$.b[#]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3,\"AAA\"],4,\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-3.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_insert(j,'$.b[#]','AAA','$.b[#]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4,\"AAA\",\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[#]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4,\"AAA\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[1][#]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3,\"AAA\"],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[1][#]','AAA','$.b[#]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3,\"AAA\"],4,\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[#]','AAA','$.b[#]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4,\"AAA\",\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[#-1]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],\"AAA\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[1][#-1]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,\"AAA\"],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[1][#-1]','AAA','$.b[#-1]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,\"AAA\"],\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-4.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_set(j,'$.b[#-1]','AAA','$.b[#-1]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[#]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[1][#]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[1][#]','AAA','$.b[#]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[#]','AAA','$.b[#]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[#-1]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],\"AAA\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[1][#-1]','AAA')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,\"AAA\"],4],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[1][#-1]','AAA','$.b[#-1]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,\"AAA\"],\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-5.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(json_replace(j,'$.b[#-1]','AAA','$.b[#-1]','BBB')) FROM t1",
+          "expect": "'{\"a\":1,\"b\":[1,[2,3],\"BBB\"],\"c\":99}'"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json_extract(j, '$.b[#-]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#-]'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.20",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json_extract(j, '$.b[#9]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#9]'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.30",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json_extract(j, '$.b[#+2]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#+2]'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.40",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json_extract(j, '$.b[#-1') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#-1'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.50",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json_extract(j, '$.b[#-1x]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#-1x]'}"
+        }
+      ]
+    }
+  ]
+}

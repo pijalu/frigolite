@@ -1,0 +1,24 @@
+{
+  "file": "bigsort.test",
+  "name": "bigsort",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    }
+  ]
+}

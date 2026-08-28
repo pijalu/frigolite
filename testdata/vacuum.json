@@ -1,0 +1,464 @@
+{
+  "file": "vacuum.test",
+  "name": "vacuum",
+  "tests": [
+    {
+      "name": "vacuum-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=1024;\n  VACUUM;\n  PRAGMA page_size;",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=2048;\n  VACUUM;\n  PRAGMA page_size;",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=4096;\n  VACUUM;\n  PRAGMA page_size;",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE UNIQUE INDEX i2 ON t1(c,a);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t2;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-1.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(name,1,3) FROM sqlite_master",
+          "expect": "1 {bad function}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      VACUUM;",
+          "expect": "1 {cannot VACUUM from within a transaction}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t7 WHERE a=1234567890",
+          "expect": "1234567890 hello world"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t7;\n    SELECT count(*) FROM t7;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA empty_result_callbacks=on;\n    VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Test (TestID int primary key);\n    INSERT INTO Test VALUES (NULL);\n    CREATE VIEW viewTest AS SELECT * FROM Test;\n\n    BEGIN;\n    CREATE TABLE tempTest (TestID int primary key, Test2 int NULL);\n    INSERT INTO tempTest SELECT TestID, 1 FROM Test;\n    DROP TABLE Test;\n    CREATE TABLE Test(TestID int primary key, Test2 int NULL);\n    INSERT INTO Test SELECT * FROM tempTest;\n    DROP TABLE tempTest;\n    COMMIT;\n    VACUUM;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"abc abc\"(a, b, c);\n    INSERT INTO \"abc abc\" VALUES(1, 2, 3);\n    VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from \"abc abc\";",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM \"abc abc\";\n      INSERT INTO \"abc abc\" VALUES(X'00112233', NULL, NULL);\n      VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select count(*) from \"abc abc\" WHERE a = X'00112233';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(t);\n    VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(t);\n    CREATE TABLE t3(t);\n    DROP TABLE t2;\n    PRAGMA freelist_count;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    pragma integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA freelist_count;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(t);\n    VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE UNIQUE INDEX i2 ON t1(c,a);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "-- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES(1234567890,'hello','world');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 WHERE a=1234567890"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 WHERE a=1234567890"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7;\n    SELECT count(*) FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA empty_result_callbacks=on;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"abc abc\"(a, b, c);\n    INSERT INTO \"abc abc\" VALUES(1, 2, 3);\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from \"abc abc\";"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM \"abc abc\";\n      INSERT INTO \"abc abc\" VALUES(X'00112233', NULL, NULL);\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "select count(*) from \"abc abc\" WHERE a = X'00112233';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(t);\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(t);\n    CREATE TABLE t3(t);\n    DROP TABLE t2;\n    PRAGMA freelist_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n    pragma integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA freelist_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(t);\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

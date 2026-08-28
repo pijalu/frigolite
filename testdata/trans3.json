@@ -1,0 +1,43 @@
+{
+  "file": "trans3.test",
+  "name": "trans3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; CREATE TABLE xyzzy(abc);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ]
+}

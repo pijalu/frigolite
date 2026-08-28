@@ -1,0 +1,86 @@
+{
+  "file": "sortfault.test",
+  "name": "sortfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5;"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH r(x,y) AS (\n          SELECT 1, $::str\n          UNION ALL\n          SELECT x+1, $::str FROM r\n          LIMIT 200\n      )\n      SELECT count(x), length(y) FROM r GROUP BY (x%5)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH r(x,y) AS (\n          SELECT 100, $::str\n          UNION ALL\n          SELECT x-1, $::str FROM r\n          LIMIT 100\n      )\n      SELECT count(x), length(y) FROM r GROUP BY y COLLATE utf16bin, (x%5)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH r(x,y) AS (\n            SELECT 300, $::str2\n            UNION ALL\n            SELECT x-1, $::str2 FROM r\n            LIMIT 300\n        )\n        SELECT count(x), length(y) FROM r GROUP BY y, (x%5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1 ON t1(a,b,c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

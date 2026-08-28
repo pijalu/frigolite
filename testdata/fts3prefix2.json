@@ -1,0 +1,43 @@
+{
+  "file": "fts3prefix2.test",
+  "name": "fts3prefix2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(x, prefix=\"2,3\");\n\n  BEGIN;\n    INSERT INTO t1 VALUES('T TX T TX T TX T TX T TX');\n    INSERT INTO t1 SELECT * FROM t1;                       -- 2\n    INSERT INTO t1 SELECT * FROM t1;                       -- 4\n    INSERT INTO t1 SELECT * FROM t1;                       -- 8\n    INSERT INTO t1 SELECT * FROM t1;                       -- 16\n    INSERT INTO t1 SELECT * FROM t1;                       -- 32\n    INSERT INTO t1 SELECT * FROM t1;                       -- 64\n    INSERT INTO t1 SELECT * FROM t1;                       -- 128\n    INSERT INTO t1 SELECT * FROM t1;                       -- 256\n    INSERT INTO t1 SELECT * FROM t1;                       -- 512\n    INSERT INTO t1 SELECT * FROM t1;                       -- 1024\n    INSERT INTO t1 SELECT * FROM t1;                       -- 2048\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1 LIMIT 10;\n  INSERT INTO t1 SELECT * FROM t1 LIMIT 10;\n  INSERT INTO t1 SELECT * FROM t1 LIMIT 10;\n  DELETE FROM t1 WHERE docid > 5;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'T*';",
+          "expect": "{T TX T TX T TX T TX T TX}\n  {T TX T TX T TX T TX T TX}\n  {T TX T TX T TX T TX T TX}\n  {T TX T TX T TX T TX T TX}\n  {T TX T TX T TX T TX T TX}"
+        }
+      ]
+    }
+  ]
+}

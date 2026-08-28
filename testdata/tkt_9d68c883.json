@@ -1,0 +1,27 @@
+{
+  "file": "tkt-9d68c883.test",
+  "name": "tkt_9d68c883",
+  "tests": [
+    {
+      "name": "tkt-9d68c88-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

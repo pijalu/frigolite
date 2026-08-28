@@ -1,0 +1,83 @@
+{
+  "file": "triggerG.test",
+  "name": "triggerG",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = 1;\n  \n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1(a) VALUES(0),(2),(3),(8),(9);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c);\n  \n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    INSERT INTO t3 SELECT new.c+1 WHERE new.c<5;\n    INSERT INTO t2 SELECT new.c*100+a FROM t1 WHERE a IN (1, 2, 3, 4);\n  END;\n  \n  INSERT INTO t3 VALUES(2);\n  SELECT c FROM t3 ORDER BY c;;",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 ORDER BY b;",
+          "expect": "202 203 302 303 402 403 502 503"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a) VALUES(0),(2),(3),(8),(9);\n  DELETE FROM t2;\n  DELETE FROM t3;\n  DROP TRIGGER tr;\n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    INSERT INTO t3 SELECT new.c+1 WHERE new.c<5;\n    INSERT INTO t2 SELECT new.c*10000+xx.a*100+yy.a\n                     FROM t1 AS xx, t1 AS yy\n                    WHERE xx.a IN (1,2,3,4)\n                      AND yy.a IN (2,3,4,5);\n  END;\n\n  INSERT INTO t3 VALUES(2);\n  SELECT b FROM t2 ORDER BY b;",
+          "expect": "20202 20203 20302 20303 30202 30203 30302 30303 40202 40203 40302 40303 50202 50203 50302 50303"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n  CREATE TRIGGER tr4 AFTER INSERT ON t4 BEGIN\n    SELECT 0x2147483648e0e0099 AS y WHERE y;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1);",
+          "expect": "1 {hex literal too big: 0x2147483648e0e0099}"
+        }
+      ]
+    },
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v0(a) AS SELECT 1234;\n  CREATE TRIGGER t0001 INSTEAD OF DELETE ON v0 BEGIN\n    SELECT old.a;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM v0;",
+          "expect": "1234"
+        }
+      ]
+    },
+    {
+      "name": "410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM v0;"
+        }
+      ]
+    }
+  ]
+}

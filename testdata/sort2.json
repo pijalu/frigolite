@@ -1,0 +1,16 @@
+{
+  "file": "sort2.test",
+  "name": "sort2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA threads=7"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

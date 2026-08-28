@@ -1,0 +1,2001 @@
+{
+  "file": "select1.test",
+  "name": "select1",
+  "tests": [
+    {
+      "name": "select1-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test1(f1) SELECT f1 FROM test1 ORDER BY min(f1);",
+          "expect": "1 {misuse of aggregate: min()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM sqlite_master LIMIT 1,#1;",
+          "expect": "1 {near \"#1\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x);   INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(y,z); INSERT INTO t2 VALUES(2,3);\n  CREATE INDEX t2y ON t2(y);\n  SELECT * FROM t1,(SELECT * FROM t2 WHERE y=2 ORDER BY y,z);",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "select1-17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1,(SELECT * FROM t2 WHERE y=2 ORDER BY y,z LIMIT 4);",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "select1-17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1,(SELECT * FROM t2 WHERE y=2\n         UNION ALL SELECT * FROM t2 WHERE y=3 ORDER BY y,z LIMIT 4);",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "select1-18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(c);\n  CREATE TABLE t2(x PRIMARY KEY, y);\n  INSERT INTO t1(c) VALUES(123);\n  INSERT INTO t2(x) VALUES(123);\n  SELECT x FROM t2, t1 WHERE x BETWEEN c AND null OR x AND\n  x IN ((SELECT x FROM (SELECT x FROM t2, t1 \n  WHERE x BETWEEN (SELECT x FROM (SELECT x COLLATE rtrim \n  FROM t2, t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)) AND null\n  OR NOT EXISTS(SELECT -4.81 FROM t1, t2 WHERE x BETWEEN c AND null\n  OR x AND x IN ((SELECT x FROM (SELECT x FROM t2, t1\n  WHERE x BETWEEN (SELECT x FROM (SELECT x BETWEEN c AND null\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)) AND null\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)))) AND x IN (c)\n  ), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)));"
+        }
+      ]
+    },
+    {
+      "name": "select1-18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(c);\n  CREATE TABLE t2(x PRIMARY KEY, y);\n  INSERT INTO t1(c) VALUES(123);\n  INSERT INTO t2(x) VALUES(123);\n  SELECT x FROM t2, t1 WHERE x BETWEEN c AND (c+1) OR x AND\n  x IN ((SELECT x FROM (SELECT x FROM t2, t1 \n  WHERE x BETWEEN (SELECT x FROM (SELECT x COLLATE rtrim \n  FROM t2, t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)) AND (c+1)\n  OR NOT EXISTS(SELECT -4.81 FROM t1, t2 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN ((SELECT x FROM (SELECT x FROM t2, t1\n  WHERE x BETWEEN (SELECT x FROM (SELECT x BETWEEN c AND (c+1)\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)) AND (c+1)\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)))) AND x IN (c)\n  ), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)));",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "select1-18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t1 WHERE (\n    SELECT 2 FROM t2 WHERE (\n      SELECT 3 FROM (\n        SELECT x FROM t2 WHERE x=c OR x=(SELECT x FROM (VALUES(0)))\n      ) WHERE x>c OR x=c\n    )\n  );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "select1-18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t1, t2 WHERE (\n    SELECT 3 FROM (\n      SELECT x FROM t2 WHERE x=c OR x=(SELECT x FROM (VALUES(0)))\n    ) WHERE x>c OR x=c\n  );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "select1-19.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "select1-19.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7\n    UNION ALL SELECT 1,2,3,4,5,6,7\n    ORDER BY 1;",
+          "expect": "1 {table t1 has 1 columns but 7 values were supplied}"
+        }
+      ]
+    },
+    {
+      "name": "select1-19.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1\n    SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    UNION ALL SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n    ORDER BY 1;",
+          "expect": "1 {table t1 has 1 columns but 15 values were supplied}"
+        }
+      ]
+    },
+    {
+      "name": "select1-20.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1 (\n    a INTEGER PRIMARY KEY,\n    b AS('Y') UNIQUE\n  );\n  INSERT INTO t1(a) VALUES (10);\n  SELECT * FROM t1 JOIN t1 USING(a,b)\n   WHERE ((SELECT t1.a FROM t1 AS x GROUP BY b) AND b=0)\n      OR a = 10;",
+          "expect": "10 Y"
+        }
+      ]
+    },
+    {
+      "name": "select1-20.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ifnull(a, max((SELECT 123))), count(a) FROM t1 ;",
+          "expect": "10 1"
+        }
+      ]
+    },
+    {
+      "name": "select1-21.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a IMTEGES PRIMARY KEY,R);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x IS NULL, x FROM t2;\n  SELECT a,(+a)b,(+a)b,(+a)b,NOT EXISTS(SELECT null FROM t2),CASE z WHEN 487 THEN 992 WHEN 391 THEN 203 WHEN 10 THEN '?k<D Q' END,'' FROM t1 LEFT JOIN v1a ON z=b;"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test1",
+          "expect": "1 {no such table: test1}"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test1, test2",
+          "expect": "1 {no such table: test2}"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test2, test1",
+          "expect": "1 {no such table: test2}"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f2 FROM test1",
+          "expect": "22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f2, f1 FROM test1",
+          "expect": "22 11"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1, f2 FROM test1",
+          "expect": "11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test1",
+          "expect": "11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, * FROM test1",
+          "expect": "11 22 11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, min(f1,f2), max(f1,f2) FROM test1",
+          "expect": "11 22 11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'one', *, 'two', * FROM test1",
+          "expect": "one 11 22 two 11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test1, test2",
+          "expect": "11 22 1.1 2.2"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, 'hi' FROM test1, test2",
+          "expect": "11 22 1.1 2.2 hi"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'one', *, 'two', * FROM test1, test2",
+          "expect": "one 11 22 1.1 2.2 two 11 22 1.1 2.2"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test1.f1, test2.r1 FROM test1, test2",
+          "expect": "11 1.1"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test1.f1, test2.r1 FROM test2, test1",
+          "expect": "11 1.1"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test2, test1",
+          "expect": "1.1 2.2 11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test1 AS a, test1 AS b",
+          "expect": "11 22 11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(test1.f1,test2.r1), min(test1.f2,test2.r2)\n           FROM test2, test1",
+          "expect": "11 2.2"
+        }
+      ]
+    },
+    {
+      "name": "select1-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(test1.f1,test2.r1), max(test1.f2,test2.r2)\n           FROM test1, test2",
+          "expect": "1.1 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(f1,f2) FROM test1",
+          "expect": "1 {wrong number of arguments to function count()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(f1) FROM test1",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT Count() FROM test1",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(*) FROM test1",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(*)+1 FROM test1",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*),count(a),count(b) FROM t3",
+          "expect": "4 3 3"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*),count(a),count(b) FROM t4",
+          "expect": "1 0 1"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*),count(a),count(b) FROM t4 WHERE b=5",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(*) FROM test1",
+          "expect": "1 {wrong number of arguments to function min()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT Min(f1) FROM test1",
+          "expect": "0 11"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT MIN(f1,f2) FROM test1",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(min(a),'xyzzy') FROM t3",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(coalesce(a,'xyzzy')) FROM t3",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(b), min(b) FROM t4"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT MAX(*) FROM test1",
+          "expect": "1 {wrong number of arguments to function MAX()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT Max(f1) FROM test1",
+          "expect": "0 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(f1,f2) FROM test1",
+          "expect": "0 {22 44}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT MAX(f1,f2)+1 FROM test1",
+          "expect": "0 {23 45}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT MAX(f1)+1 FROM test1",
+          "expect": "0 34"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(max(a),'xyzzy') FROM t3",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(coalesce(a,'xyzzy')) FROM t3",
+          "expect": "xyzzy"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUM(*) FROM test1",
+          "expect": "1 {wrong number of arguments to function SUM()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT Sum(f1) FROM test1",
+          "expect": "0 44"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(f1,f2) FROM test1",
+          "expect": "1 {wrong number of arguments to function sum()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUM(f1)+1 FROM test1",
+          "expect": "0 45"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(a) FROM t3",
+          "expect": "44.0"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT XYZZY(f1) FROM test1",
+          "expect": "1 {no such function: XYZZY}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUM(min(f1,f2)) FROM test1",
+          "expect": "0 44"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT SUM(min(f1)) FROM test1",
+          "expect": "1 {misuse of aggregate function min()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(f1) AS m FROM test1 GROUP BY f1 HAVING max(m+5)<10",
+          "expect": "1 {misuse of aliased aggregate m}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(min(f1)+5,11) AS m FROM test1\n      GROUP BY f1\n     HAVING max(m+5)<10",
+          "expect": "1 {misuse of aliased aggregate m}"
+        }
+      ]
+    },
+    {
+      "name": "select1-2.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tkt2526(a,b,c PRIMARY KEY);\n    INSERT INTO tkt2526 VALUES('x','y',NULL);\n    INSERT INTO tkt2526 VALUES('x','z',NULL);"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f1<11",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f1<=11",
+          "expect": "0 11"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f1=11",
+          "expect": "0 11"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f1>=11",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f1>11",
+          "expect": "0 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f1!=11",
+          "expect": "0 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE min(f1,f2)!=11",
+          "expect": "0 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE max(f1,f2)!=11",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "select1-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE count(f1,f2)!=11",
+          "expect": "1 {wrong number of arguments to function count()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY f1",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY -f1",
+          "expect": "0 {33 11}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY min(f1,f2)",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY min(f1)",
+          "expect": "1 {misuse of aggregate: min()}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT f1 FROM test1 ORDER BY 8.4;\n#",
+          "expect": "1 {ORDER BY terms must not be non-integer constants}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT f1 FROM test1 ORDER BY '8.4';\n#",
+          "expect": "1 {ORDER BY terms must not be non-integer constants}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT f1 FROM test1 ORDER BY 'xyz';\n#",
+          "expect": "1 {ORDER BY terms must not be non-integer constants}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT f1 FROM test1 ORDER BY -8.4;\n#",
+          "expect": "1 {ORDER BY terms must not be non-integer constants}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT f1 FROM test1 ORDER BY +8.4;\n#",
+          "expect": "1 {ORDER BY terms must not be non-integer constants}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT f1 FROM test1 ORDER BY 4294967296; -- constant larger than 32 bits\n#",
+          "expect": "1 {ORDER BY terms must not be non-integer constants}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY 8.4",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY '8.4'",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,10);\n    INSERT INTO t5 VALUES(2,9);\n    SELECT * FROM t5 ORDER BY 1;",
+          "expect": "1 10 2 9"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 2;",
+          "expect": "2 9 1 10"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY +2;",
+          "expect": "2 9 1 10"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 3;",
+          "expect": "1 {1st ORDER BY term out of range - should be between 1 and 2}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY -1;",
+          "expect": "1 {1st ORDER BY term out of range - should be between 1 and 2}"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES(3,10);\n    SELECT * FROM t5 ORDER BY 2, 1 DESC;",
+          "expect": "2 9 3 10 1 10"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 DESC, b;",
+          "expect": "3 10 2 9 1 10"
+        }
+      ]
+    },
+    {
+      "name": "select1-4.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY b DESC, 1;",
+          "expect": "1 10 3 10 2 9"
+        }
+      ]
+    },
+    {
+      "name": "select1-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(f1) FROM test1 ORDER BY f2",
+          "expect": "0 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-6.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY A.f1, B.f1",
+          "expect": "0 {11 11 11 33 33 11 33 33}"
+        }
+      ]
+    },
+    {
+      "name": "select1-6.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6(a TEXT, b TEXT);\n     INSERT INTO t6 VALUES('a','0');\n     INSERT INTO t6 VALUES('b','1');\n     INSERT INTO t6 VALUES('c','2');\n     INSERT INTO t6 VALUES('d','3');\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 LIMIT 1)",
+          "expect": "a"
+        }
+      ]
+    },
+    {
+      "name": "select1-6.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 DESC LIMIT 1)",
+          "expect": "d"
+        }
+      ]
+    },
+    {
+      "name": "select1-6.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY b LIMIT 2)\n     ORDER BY a;",
+          "expect": "a b"
+        }
+      ]
+    },
+    {
+      "name": "select1-6.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY x DESC LIMIT 2)\n     ORDER BY a;",
+          "expect": "b d"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f2=;",
+          "expect": "1 {near \";\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 UNION SELECT WHERE;",
+          "expect": "1 {near \"WHERE\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 as 'hi', test2 as",
+          "expect": "1 {incomplete input}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY;",
+          "expect": "1 {near \";\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY f1 desc, f2 where;",
+          "expect": "1 {near \"where\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(f1,f2 FROM test1;",
+          "expect": "1 {near \"FROM\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(f1,f2+) FROM test1;",
+          "expect": "1 {near \")\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 ORDER BY f2, f1+;",
+          "expect": "1 {near \";\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-7.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 LIMIT 5+3 OFFSET 11 ORDER BY f2;",
+          "expect": "1 {near \"ORDER\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select1-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE 4.3+2.4 OR 1 ORDER BY f1",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE ('x' || f1) BETWEEN 'x10' AND 'x20'\n    ORDER BY f1",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "select1-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE 5-3==2\n    ORDER BY f1",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(f1/(f1-11),'x'),\n           coalesce(min(f1/(f1-11),5),'y'),\n           coalesce(max(f1/(f1-33),6),'z')\n    FROM test1 ORDER BY f1",
+          "expect": "x y 6 1.5 1.5 z"
+        }
+      ]
+    },
+    {
+      "name": "select1-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(1,2,3), -max(1,2,3)\n    FROM test1 ORDER BY f1",
+          "expect": "1 -3 1 -3"
+        }
+      ]
+    },
+    {
+      "name": "select1-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA empty_result_callbacks=on",
+          "expect": "f1 f2"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 AS x FROM test1 ORDER BY x",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 AS x FROM test1 ORDER BY -x",
+          "expect": "33 11"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1-23 AS x FROM test1 ORDER BY abs(x)",
+          "expect": "10 -12"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1-23 AS x FROM test1 ORDER BY -abs(x)",
+          "expect": "-12 10"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1-22 AS x, f2-22 as y FROM test1",
+          "expect": "-11 0 11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1-22 AS x, f2-22 as y FROM test1 WHERE x>0 AND y<50",
+          "expect": "11 22"
+        }
+      ]
+    },
+    {
+      "name": "select1-10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 COLLATE nocase AS x FROM test1 ORDER BY x",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t4 VALUES(3,4);\n    SELECT * FROM t3, t4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3, t4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t3.*, t4.b FROM t3, t4;",
+          "expect": "1 2 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \"t3\".*, t4.b FROM t3, t4;",
+          "expect": "1 2 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t3.b, t4.* FROM t3, t4;",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT t5.* FROM t3, t4;",
+          "expect": "1 {no such table: t5}"
+        }
+      ]
+    },
+    {
+      "name": "select1-11.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT t3.* FROM t3 AS x, t4;",
+          "expect": "1 {no such table: t3}"
+        }
+      ]
+    },
+    {
+      "name": "select1-12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3 VALUES(1,2);"
+        }
+      ]
+    },
+    {
+      "name": "select1-12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 UNION SELECT 3 AS 'a', 4 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-12.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 3, 4 UNION SELECT * FROM t3;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select1-12.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE a=(SELECT 1);",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "select1-12.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE a=(SELECT 2);"
+        }
+      ]
+    },
+    {
+      "name": "select1-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "select1-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master WHERE rowid>10; \n    SELECT * FROM sqlite_master WHERE rowid=10;\n    SELECT * FROM sqlite_master WHERE rowid<10;\n    SELECT * FROM sqlite_master WHERE rowid<=10;\n    SELECT * FROM sqlite_master WHERE rowid>=10;\n    SELECT * FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "select1-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 10 IN (SELECT rowid FROM sqlite_master);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "select1-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n      CREATE INDEX i1 ON t1(a);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);"
+        }
+      ]
+    },
+    {
+      "name": "select1-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1"
+        }
+      ]
+    },
+    {
+      "name": "select1-15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 IN (SELECT a FROM t1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "select1-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM (SELECT *)",
+          "expect": "1 {no tables specified}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1, test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test2, test1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test1(f1,f2) VALUES(11,22)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f2 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f2, f1 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1, f2 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, * FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, min(f1,f2), max(f1,f2) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'one', *, 'two', * FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test2(r1 real, r2 real)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test2(r1,r2) VALUES(1.1,2.2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1, test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, 'hi' FROM test1, test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'one', *, 'two', * FROM test1, test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test1.f1, test2.r1 FROM test1, test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test1.f1, test2.r1 FROM test2, test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test2, test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 AS a, test1 AS b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(test1.f1,test2.r1), min(test1.f2,test2.r2)\n           FROM test2, test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(test1.f1,test2.r1), max(test1.f2,test2.r2)\n           FROM test1, test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(f1,f2) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(f1) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT Count() FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT COUNT(*) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT COUNT(*)+1 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*),count(a),count(b) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*),count(a),count(b) FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*),count(a),count(b) FROM t4 WHERE b=5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(*) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT Min(f1) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT MIN(f1,f2) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(min(a),'xyzzy') FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(coalesce(a,'xyzzy')) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(b), min(b) FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT MAX(*) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT Max(f1) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(f1,f2) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT MAX(f1,f2)+1 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT MAX(f1)+1 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(max(a),'xyzzy') FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(coalesce(a,'xyzzy')) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUM(*) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT Sum(f1) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(f1,f2) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUM(f1)+1 FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT XYZZY(f1) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUM(min(f1,f2)) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT SUM(min(f1)) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tkt2526(a,b,c PRIMARY KEY);\n    INSERT INTO tkt2526 VALUES('x','y',NULL);\n    INSERT INTO tkt2526 VALUES('x','z',NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f1<11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f1<=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f1=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f1>=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f1>11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f1!=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE min(f1,f2)!=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE max(f1,f2)!=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE count(f1,f2)!=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY -f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY min(f1,f2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY min(f1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY 8.4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY '8.4'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,10);\n    INSERT INTO t5 VALUES(2,9);\n    SELECT * FROM t5 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY +2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(3,10);\n    SELECT * FROM t5 ORDER BY 2, 1 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 DESC, b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY b DESC, 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(f1) FROM test1 ORDER BY f2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test2(t1 text, t2 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test2 VALUES('abc','xyz')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY A.f1, B.f1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a TEXT, b TEXT);\n     INSERT INTO t6 VALUES('a','0');\n     INSERT INTO t6 VALUES('b','1');\n     INSERT INTO t6 VALUES('c','2');\n     INSERT INTO t6 VALUES('d','3');\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 DESC LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY b LIMIT 2)\n     ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY x DESC LIMIT 2)\n     ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f2=;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 UNION SELECT WHERE;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 as 'hi', test2 as"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY f1 desc, f2 where;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(f1,f2 FROM test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(f1,f2+) FROM test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 ORDER BY f2, f1+;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE 4.3+2.4 OR 1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE ('x' || f1) BETWEEN 'x10' AND 'x20'\n    ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE 5-3==2\n    ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(f1/(f1-11),'x'),\n           coalesce(min(f1/(f1-11),5),'y'),\n           coalesce(max(f1/(f1-33),6),'z')\n    FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(1,2,3), -max(1,2,3)\n    FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA empty_result_callbacks=on"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 AS x FROM test1 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 AS x FROM test1 ORDER BY -x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1-23 AS x FROM test1 ORDER BY abs(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1-23 AS x FROM test1 ORDER BY -abs(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1-22 AS x, f2-22 as y FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1-22 AS x, f2-22 as y FROM test1 WHERE x>0 AND y<50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 COLLATE nocase AS x FROM test1 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t4 VALUES(3,4);\n    SELECT * FROM t3, t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3, t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t3.*, t4.b FROM t3, t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \"t3\".*, t4.b FROM t3, t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t3.b, t4.* FROM t3, t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3 VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 UNION SELECT 3 AS 'a', 4 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 3, 4 UNION SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a=(SELECT 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a=(SELECT 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(\n        (SELECT a FROM abc WHERE a = NULL AND b >= upper.c) \n      ) FROM abc AS upper;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master WHERE rowid>10; \n    SELECT * FROM sqlite_master WHERE rowid=10;\n    SELECT * FROM sqlite_master WHERE rowid<10;\n    SELECT * FROM sqlite_master WHERE rowid<=10;\n    SELECT * FROM sqlite_master WHERE rowid>=10;\n    SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 10 IN (SELECT rowid FROM sqlite_master);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n      CREATE INDEX i1 ON t1(a);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2 IN (SELECT a FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA full_column_names=on"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA full_column_names=off"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=ON;\n     PRAGMA full_column_names=ON;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=ON;\n     PRAGMA full_column_names=OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=ON;\n  PRAGMA full_column_names=OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1<(select count(*) from test2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1<0 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

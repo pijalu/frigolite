@@ -1,0 +1,103 @@
+{
+  "file": "tkt-2d1a5c67d.test",
+  "name": "tkt_2d1a5c67d",
+  "tests": [
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(NULL, randomblob(500));\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 2\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 4\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 8\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 16\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 32\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 64\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 128"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t4 VALUES('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=$::ii"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=$::ii"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

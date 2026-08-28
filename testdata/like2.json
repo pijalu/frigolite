@@ -1,0 +1,1143 @@
+{
+  "file": "like2.test",
+  "name": "like2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INT, y COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 ON t2(y);\n    SELECT count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x INT, y COLLATE NOCASE);\n    INSERT INTO t3 SELECT x, 'abc' || y || 'xyz' FROM t1;\n    CREATE INDEX i3 ON t3(y);\n    SELECT count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE ' %'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE ' %'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc %'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '!%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '!%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc!%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '#%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '#%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc#%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\$%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\$%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\$%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '&%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '&%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc&%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '''%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '''%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc''%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '(%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '(%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc(%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE ')%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE ')%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc)%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '*%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '*%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc*%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '+%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '+%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc+%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE ',%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE ',%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc,%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '-%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '-%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc-%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '.%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '.%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc.%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '/%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '/%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc/%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '0%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '0%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc0%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '1%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '1%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc1%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '2%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '2%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc2%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '3%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '3%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc3%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '4%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '4%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc4%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '5%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '5%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc5%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '6%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '6%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc6%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '7%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '7%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc7%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '8%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '8%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc8%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '9%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '9%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc9%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE ':%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE ':%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc:%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE ';%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE ';%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc;%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '<%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '<%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc<%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '=%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '=%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc=%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '>%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '>%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc>%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '?%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '?%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc?%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '@%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '@%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc@%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'A%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'A%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcA%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'B%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'B%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcB%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'C%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'C%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcC%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'D%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'D%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcD%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'E%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'E%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcE%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'F%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'F%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcF%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'G%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'G%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcG%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'H%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'H%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcH%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'I%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'I%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcI%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'J%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'J%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcJ%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'K%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'K%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcK%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'L%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'L%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcL%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'M%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'M%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcM%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'N%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'N%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcN%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'O%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'O%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcO%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'P%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'P%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcP%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'Q%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'Q%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcQ%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'R%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'R%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcR%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'S%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'S%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcS%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'T%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'T%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcT%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'U%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'U%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcU%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'V%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'V%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcV%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'W%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'W%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcW%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'X%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'X%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcX%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'Y%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'Y%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcY%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'Z%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'Z%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcZ%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\[%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\[%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\[%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\\\%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\\\%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\\\%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\]%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\]%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\]%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '^%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '^%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc^%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '`%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '`%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc`%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'a%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'a%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abca%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'b%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'b%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcb%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'c%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'c%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcc%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'd%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'd%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcd%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'e%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'e%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abce%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'f%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'f%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcf%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'g%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'g%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcg%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'h%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'h%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abch%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'i%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'i%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abci%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'j%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'j%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcj%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'k%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'k%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abck%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'l%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'l%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcl%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'm%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'm%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcm%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'n%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'n%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcn%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'o%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'o%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abco%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'p%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'p%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcp%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'q%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'q%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcq%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'r%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'r%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcr%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 's%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 's%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcs%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 't%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 't%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abct%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'u%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'u%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcu%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'v%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'v%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcv%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'w%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'w%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcw%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'x%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'x%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcx%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'y%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'y%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcy%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE 'z%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE 'z%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abcz%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\173%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\173%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\173%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '|%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '|%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc|%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '\\175%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '\\175%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc\\175%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE y LIKE '~%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y LIKE '~%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE y LIKE 'abc~%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '\\u01C0' LIKE '%\\x80'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '\\u0080' LIKE '%\\x80'"
+        }
+      ]
+    }
+  ]
+}

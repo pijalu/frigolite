@@ -1,0 +1,26 @@
+{
+  "file": "altercorrupt.test",
+  "name": "altercorrupt",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE t2 DROP COLUMN e;\n  ALTER TABLE t1 DROP COLUMN f;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE t1 DROP COLUMN a;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    }
+  ]
+}

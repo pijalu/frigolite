@@ -1,0 +1,28 @@
+{
+  "file": "ovfl.test",
+  "name": "ovfl",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(length(c2)) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;"
+        }
+      ]
+    }
+  ]
+}

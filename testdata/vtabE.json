@@ -1,0 +1,16 @@
+{
+  "file": "vtabE.test",
+  "name": "vtabE",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

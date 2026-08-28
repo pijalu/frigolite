@@ -1,0 +1,15 @@
+{
+  "file": "aggfault.test",
+  "name": "aggfault",
+  "tests": [
+    {
+      "name": "1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);"
+        }
+      ]
+    }
+  ]
+}

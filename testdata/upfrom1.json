@@ -1,0 +1,250 @@
+{
+  "file": "upfrom1.test",
+  "name": "upfrom1",
+  "tests": [
+    {
+      "name": "1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2 3   4 5 6   7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t2 SET b = chng.b, c = chng.c FROM chng WHERE chng.a = t2.a;\n  SELECT * FROM t2 ORDER BY a;",
+          "expect": "1 100 1000   4 5 6   7 700 7000"
+        }
+      ]
+    },
+    {
+      "name": "1.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t2 SET (b, c) = (SELECT b, c FROM chng WHERE a=t2.a) \n    WHERE a IN (SELECT a FROM chng);\n  SELECT * FROM t2 ORDER BY a;",
+          "expect": "1 100 1000   4 5 6   7 700 7000"
+        }
+      ]
+    },
+    {
+      "name": "1.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INTEGER, c TEXT) WITHOUT ROWID;\n  INSERT INTO t3 VALUES(1, 1, 'one');\n  INSERT INTO t3 VALUES(2, 2, 'two');\n  INSERT INTO t3 VALUES(3, 3, 'three');\n\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(x TEXT);\n  INSERT INTO t4 VALUES('five');\n\n  SELECT * FROM t3 ORDER BY a;",
+          "expect": "1 1 one   2 2 two   3 3 three"
+        }
+      ]
+    },
+    {
+      "name": "1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET c=x FROM t4;\n  SELECT * FROM t3 ORDER BY a;",
+          "expect": "1 1 five   2 2 five   3 3 five"
+        }
+      ]
+    },
+    {
+      "name": "1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) ;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2 3   4 5 6   7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t2 SET b = chng.b, c = chng.c FROM chng WHERE chng.a = t2.a;\n  SELECT * FROM t2 ORDER BY a;",
+          "expect": "1 100 1000   4 5 6   7 700 7000"
+        }
+      ]
+    },
+    {
+      "name": "1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t2 SET (b, c) = (SELECT b, c FROM chng WHERE a=t2.a) \n    WHERE a IN (SELECT a FROM chng);\n  SELECT * FROM t2 ORDER BY a;",
+          "expect": "1 100 1000   4 5 6   7 700 7000"
+        }
+      ]
+    },
+    {
+      "name": "1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b INTEGER, c TEXT) ;\n  INSERT INTO t3 VALUES(1, 1, 'one');\n  INSERT INTO t3 VALUES(2, 2, 'two');\n  INSERT INTO t3 VALUES(3, 3, 'three');\n\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(x TEXT);\n  INSERT INTO t4 VALUES('five');\n\n  SELECT * FROM t3 ORDER BY a;",
+          "expect": "1 1 one   2 2 two   3 3 three"
+        }
+      ]
+    },
+    {
+      "name": "1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET c=x FROM t4;\n  SELECT * FROM t3 ORDER BY a;",
+          "expect": "1 1 five   2 2 five   3 3 five"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n  DROP TABLE IF EXISTS m1;\n  DROP TABLE IF EXISTS m2;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE TABLE m1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE TABLE m2(u INTEGER PRIMARY KEY, v TEXT);\n\n  INSERT INTO t5 VALUES(1, 'one', 'ONE');\n  INSERT INTO t5 VALUES(2, 'two', 'TWO');\n  INSERT INTO t5 VALUES(3, 'three', 'THREE');\n  INSERT INTO t5 VALUES(4, 'four', 'FOUR');\n\n  INSERT INTO m1 VALUES(1, 'i');\n  INSERT INTO m1 VALUES(2, 'ii');\n  INSERT INTO m1 VALUES(3, 'iii');\n\n  INSERT INTO m2 VALUES(1, 'I');\n  INSERT INTO m2 VALUES(3, 'II');\n  INSERT INTO m2 VALUES(4, 'III');"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t5 SET b=y, c=v FROM m1 LEFT JOIN m2 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;",
+          "expect": "1 i I   2 ii {}   3 iii II   4 four FOUR"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  UPDATE t1 SET b=sum(a) FROM t0;\n  SELECT * FROM t0, t1;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(y INT);  INSERT INTO t2 VALUES(2);\n  WITH t1 AS (SELECT y+100 AS x FROM t2) \n    UPDATE t1 SET x=(SELECT x FROM t1);\n  SELECT x, y FROM t1, t2;",
+          "expect": "102 2"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1 AS (SELECT y+100 AS x FROM t2)\n    UPDATE t1 SET x=x+y FROM t2;\n  SELECT x, y FROM t1, t2;",
+          "expect": "104 2"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(5);\n  CREATE VIEW t2 AS SELECT a FROM t1 UNION ALL SELECT a FROM t1;\n  CREATE TABLE t3(b,c);\n  INSERT INTO t3(b,c) VALUES(1,2);\n  UPDATE t3 SET (c,b) = (SELECT 3,4) FROM t1, t2;\n  SELECT * FROM t3;",
+          "expect": "4 3"
+        }
+      ]
+    },
+    {
+      "name": "2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b=1 FROM t5;"
+        }
+      ]
+    },
+    {
+      "name": "2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b=1 FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{"case": "lifecycle-prepare-basic", "call": "prepare", "sql": "INSERT INTO t1 VALUES(:1, ?, :abc)", "rc": "SQLITE_OK", "param_count": 3, "tail": ""}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 1, "value": ":1", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 2, "value": "", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 3, "value": ":abc", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 0, "value": "", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 4, "value": "", "errmsg": "not an error"}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": ":1", "value": 1}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": "?", "value": 0}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": ":abc", "value": 3}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": ":nope", "value": 0}
+{"case": "step-unbound", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "reset", "call": "reset", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind_int", "call": "bind_int", "index": 1, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "step-bound-int", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "reset", "call": "reset", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind_null", "call": "bind_null", "index": 0, "rc": "SQLITE_RANGE", "errmsg": "column index out of range"}
+{"case": "bind_null", "call": "bind_null", "index": 4, "rc": "SQLITE_RANGE", "errmsg": "column index out of range"}
+{"case": "bind_int", "call": "bind_int", "index": 0, "rc": "SQLITE_RANGE", "errmsg": "column index out of range"}
+{"case": "bind_int", "call": "bind_int", "index": 4, "rc": "SQLITE_RANGE", "errmsg": "column index out of range"}
+{"case": "finalize-ok", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "column index out of range"}
+{"case": "mixed-numbered", "call": "prepare", "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,?,?4,:pqr,:abc,?4)", "rc": "SQLITE_OK", "param_count": 5, "tail": ""}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 1, "value": ":abc", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 2, "value": "", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 3, "value": "", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 4, "value": "?4", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 5, "value": ":pqr", "errmsg": "not an error"}
+{"case": "parameter_name", "call": "bind_parameter_name", "index": 6, "value": "", "errmsg": "not an error"}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": ":abc", "value": 1}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": "?", "value": 0}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": "?4", "value": 4}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": ":pqr", "value": 5}
+{"case": "parameter_index", "call": "bind_parameter_index", "name": ":xyz", "value": 0}
+{"case": "finalize-mixed", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bad-param-zero", "call": "prepare", "sql": "INSERT INTO t2(a) VALUES(?0)", "rc": "SQLITE_ERROR", "errmsg": "variable number must be between ?1 and ?500000", "errcode_rc": "SQLITE_ERROR", "tail": ""}
+{"case": "bad-param-over", "call": "prepare", "sql": "INSERT INTO t2(a) VALUES(?32767)", "rc": "SQLITE_OK", "param_count": 32767, "tail": ""}
+{"case": "max-param-ok", "call": "prepare", "sql": "INSERT INTO t2(a,b) VALUES(?1, ?32766)", "rc": "SQLITE_OK", "param_count": 32766, "tail": ""}
+{"case": "param-count-max", "param_count": 32766}
+{"case": "finalize-max-param", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "prep-t3", "call": "prepare", "sql": "INSERT INTO t3 VALUES(?,?,?)", "rc": "SQLITE_OK", "param_count": 3, "tail": ""}
+{"case": "bind_double", "call": "bind_double", "index": 1, "rc": "SQLITE_OK"}
+{"case": "bind_double", "call": "bind_double", "index": 2, "rc": "SQLITE_OK"}
+{"case": "bind_int", "call": "bind_int", "index": 3, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "step-t3-real-int", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "finalize-t3", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "query", "sql": "SELECT typeof(a),typeof(b),typeof(c) FROM t3", "rows": [["real", "real", "integer"]]}
+{"case": "query", "sql": "SELECT quote(a),quote(b),quote(c) FROM t3", "rows": [["123456789.0", "1.0e-05", "7"]]}
+{"case": "prep-nul", "call": "prepare", "sql": "INSERT INTO t3 VALUES(?,?,?)", "rc": "SQLITE_OK", "param_count": 3, "tail": ""}
+{"case": "bind-nul-full", "call": "bind_text", "index": 1, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind-nul-trunc", "call": "bind_text", "index": 2, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind-nul-neg", "call": "bind_text", "index": 3, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "step-nul", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "finalize-nul", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "query", "sql": "SELECT hex(a), hex(b), hex(c) FROM t3", "rows": [["3132333435363738392E30", "312E30652D3035", "37"], ["68656C6C6F00746865726500", "68656C6C6F007468657265", "68656C6C6F"]]}
+{"case": "query", "sql": "SELECT length(a), length(cast(a AS BLOB)) FROM t3", "rows": [["11", "11"], ["5", "12"]]}
+{"case": "prep-cb", "call": "prepare", "sql": "SELECT ?,?,?", "rc": "SQLITE_OK", "param_count": 3, "tail": ""}
+{"case": "bind_int", "call": "bind_int", "index": 1, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind_int", "call": "bind_int", "index": 2, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind_int", "call": "bind_int", "index": 3, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "step-cb-bound", "call": "step", "rc": "SQLITE_ROW", "column_count": 3, "types": ["integer", "integer", "integer"], "values": ["1", "2", "3"], "errmsg_after": "another row available"}
+{"case": "reset", "call": "reset", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "clear_bindings", "call": "clear_bindings", "rc": "SQLITE_OK"}
+{"case": "step-cb-cleared", "call": "step", "rc": "SQLITE_ROW", "column_count": 3, "types": ["null", "null", "null"], "values": ["", "", ""], "errmsg_after": "another row available"}
+{"case": "finalize-cb", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "prep-double-step", "call": "prepare", "sql": "INSERT INTO t3 VALUES(1,2,3)", "rc": "SQLITE_OK", "param_count": 0, "tail": ""}
+{"case": "step-first", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "step-second-misuse", "call": "step", "rc": "SQLITE_MISUSE", "errmsg": "no more rows available", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "finalize-double-step", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "errmsg-clean", "call": "errmsg", "value": "not an error", "errcode": "SQLITE_OK"}
+{"case": "syntax-dollar-colon", "call": "prepare", "sql": "INSERT INTO t1 VALUES($abc:123,?, :abc)", "rc": "SQLITE_ERROR", "errmsg": "near \":123\": syntax error", "errcode_rc": "SQLITE_ERROR", "tail": ",?, :abc)"}
+{"case": "syntax-at-colon", "call": "prepare", "sql": "INSERT INTO t1 VALUES(@abc:xyz,?, :abc)", "rc": "SQLITE_ERROR", "errmsg": "near \":xyz\": syntax error", "errcode_rc": "SQLITE_ERROR", "tail": ",?, :abc)"}
+{"case": "prep-bind-after-done", "call": "prepare", "sql": "INSERT INTO t1 VALUES(1,2,?)", "rc": "SQLITE_OK", "param_count": 1, "tail": ""}
+{"case": "step-done-then", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "bind_int", "call": "bind_int", "index": 1, "rc": "SQLITE_MISUSE", "errmsg": "bad parameter or other API misuse"}
+{"case": "step-after-misuse-check", "call": "step", "rc": "SQLITE_MISUSE", "errmsg": "bad parameter or other API misuse", "column_count": 0, "types": [], "values": [], "errmsg_after": "bad parameter or other API misuse"}
+{"case": "reset", "call": "reset", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "bind_int", "call": "bind_int", "index": 1, "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "step-reset-bound", "call": "step", "rc": "SQLITE_DONE", "column_count": 0, "types": [], "values": [], "errmsg_after": "no more rows available"}
+{"case": "finalize-bind-after-done", "call": "finalize", "rc": "SQLITE_OK", "errmsg": "not an error"}
+{"case": "dup-names", "call": "prepare", "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,:xyz,:abc,:xy,:xyz,:abc)", "rc": "SQLITE_OK", "param_count": 3, "tail": ""}
+{"case": "dup-param-count", "param_count": 3}
+{"case": "prep-open-close-busy", "call": "prepare", "sql": "SELECT 1", "rc": "SQLITE_OK", "param_count": 0, "tail": ""}
+{"case": "close-busy", "call": "close_with_unfinalized", "rc": "SQLITE_BUSY"}

@@ -1,0 +1,216 @@
+{
+  "file": "intreal.test",
+  "name": "intreal",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT intreal(5);",
+          "expect": "5.0"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT intreal(5)=5, 6=intreal(6);",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT intreal(7)=7.0, 8.0=intreal(8);",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(intreal(9));",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a'||intreal(11)||'z';",
+          "expect": "a11.0z"
+        }
+      ]
+    },
+    {
+      "name": "150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(1.0,intreal(2),3.0), max(1,intreal(2),3);",
+          "expect": "3.0 3"
+        }
+      ]
+    },
+    {
+      "name": "160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(1.0,intreal(4),3.0), max(1,intreal(4),3);",
+          "expect": "4.0 4.0"
+        }
+      ]
+    },
+    {
+      "name": "170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(1.0,intreal(2),intreal(3),4.0),\n         max(1,intreal(2),intreal(3),4);",
+          "expect": "4.0 4"
+        }
+      ]
+    },
+    {
+      "name": "180",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(1.0,intreal(5),intreal(3),4.0),\n         max(1,intreal(5),intreal(3),4);",
+          "expect": "5.0 5.0"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a REAL);\n  INSERT INTO t2 VALUES( 836627109860825358 );\n  SELECT substr(a,1,4) FROM t2 WHERE a = CAST(836627109860825358 AS REAL);",
+          "expect": "8.36"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i2 ON t2(a);\n  SELECT substr(a,1,4) FROM t2 WHERE a = CAST(836627109860825358 AS REAL);",
+          "expect": "8.36"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0, t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));"
+        }
+      ]
+    },
+    {
+      "name": "2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0, t1 \n  WHERE (\n        t1.c1 >= CAST(8366271098608253588 AS REAL) \n    AND t1.c1 <= CAST(8366271098608253588 AS REAL)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0 (c0 REAL, c1);\n  CREATE UNIQUE INDEX i0 ON t0(c1, 0 | c0);\n  INSERT INTO t0(c0) VALUES (4750228396194493326), (0);\n  UPDATE OR REPLACE t0 SET c0 = 'a', c1 = '';\n  SELECT * FROM t0 ORDER BY t0.c1;\n  PRAGMA integrity_check;",
+          "expect": "a {} ok"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a REAL, b AS ('expr') );"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( REPLACE(0, '', 'expr') );"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT REPLACE(4, '', 'expr');"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(a), a FROM t1;",
+          "expect": "real 0.0\n  real 4.0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

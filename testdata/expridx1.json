@@ -1,0 +1,240 @@
+{
+  "file": "expridx1.test",
+  "name": "expridx1",
+  "tests": [
+    {
+      "name": "1.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=21.0 WHERE rowid=20;"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{row 3 missing from index i1}"
+        }
+      ]
+    },
+    {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=20;"
+        }
+      ]
+    },
+    {
+      "name": "1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE x1 SET b=26.0 WHERE rowid=25;\n  PRAGMA integrity_check;",
+          "expect": "{row 3 missing from index i1}"
+        }
+      ]
+    },
+    {
+      "name": "1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=25;"
+        }
+      ]
+    },
+    {
+      "name": "1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(5,  15.0);\n  INSERT INTO t1 VALUES(10, 20.0);\n  INSERT INTO t1 VALUES(15, 20.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 20.0);\n  INSERT INTO t1 VALUES(30, 20.0);\n  INSERT INTO t1 VALUES(35, 25.0);\n\n  UPDATE x1 SET b=19.0 WHERE b=20.0;\n  PRAGMA integrity_check;",
+          "expect": "{row 2 missing from index i1} \n  {row 3 missing from index i1} \n  {row 4 missing from index i1} \n  {row 5 missing from index i1}\n  {row 6 missing from index i1}"
+        }
+      ]
+    },
+    {
+      "name": "1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET c=19 WHERE rowid=2;"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM y1 WHERE a=4;"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.9999999999999992 WHERE a=6;         -- -2 ULP\n  UPDATE x1 SET b=3.9999999999999988 WHERE a=7;         -- -3 ULP"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "{index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE z1 SET b=-4.0 WHERE b=4.0;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=-4.000000000000001 WHERE a=2;          -- -1 ULP\n  UPDATE x1 SET b=-4.000000000000002 WHERE a=3;          -- -2 ULP\n  UPDATE x1 SET b=-4.000000000000003 WHERE a=4;          -- -3 ULP\n  UPDATE x1 SET b=-3.9999999999999996 WHERE a=5;         -- 1 ULP\n  UPDATE x1 SET b=-3.9999999999999992 WHERE a=6;         -- 2 ULP\n  UPDATE x1 SET b=-3.9999999999999988 WHERE a=7;         -- 3 ULP"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "{index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

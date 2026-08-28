@@ -1,0 +1,2 @@
+# Tier 2 — Query Features (30 packages, master plan §6)
+join joinA joinB joinC joinD joinE joinF joinH joinI subquery subselect count having distinct distinctagg aggerror aggfault orderby orderbyA orderbyB limit minmax sort sorterref starschema unionall exists existsexpr view countofview

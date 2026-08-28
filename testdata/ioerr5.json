@@ -1,0 +1,57 @@
+{
+  "file": "ioerr5.test",
+  "name": "ioerr5",
+  "tests": [
+    {
+      "name": "ioerr5-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE A(Id INTEGER, Name TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "ioerr5-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON a(id, name);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE A(Id INTEGER, Name TEXT)"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma locking_mode=exclusive"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON a(id, name);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma locking_mode=exclusive"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

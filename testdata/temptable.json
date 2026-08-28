@@ -1,0 +1,690 @@
+{
+  "file": "temptable.test",
+  "name": "temptable",
+  "tests": [
+    {
+      "name": "temptable-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        }
+      ]
+    },
+    {
+      "name": "temptable-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "temptable-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(8,9,0);",
+          "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "temptable-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "temptable-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';"
+        }
+      ]
+    },
+    {
+      "name": "temptable-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t2 WHERE x=1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX i2;\n    SELECT y FROM t2 WHERE x=1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    DROP TABLE t2;"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;",
+          "expect": "10 20"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(9,8,7);\n    SELECT * FROM t2;",
+          "expect": "9 8 7"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {10 20}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM temp.t2;",
+          "expect": "0 {10 20}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.t2;",
+          "expect": "0 {9 8 7}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT name FROM main.sqlite_master WHERE type='table';\n#",
+          "expect": "1 {database schema has changed}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM main.sqlite_master WHERE type='table';",
+          "expect": "0 {t1 t2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.t2;",
+          "expect": "0 {9 8 7}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {10 20}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;     -- should drop TEMP\n    SELECT * FROM t2;  -- data should be from MAIN",
+          "expect": "0 {9 8 7}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {9 8 7}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    SELECT * FROM t2;",
+          "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x unique, y);\n    INSERT INTO t2 VALUES(3,4);\n    SELECT * FROM t2;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     SELECT name FROM sqlite_master WHERE type='table'\n#",
+          "expect": "1 {database schema has changed}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table'",
+          "expect": "0 {t1 t2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;     -- drops TEMP.T2\n    SELECT * FROM t2;  -- uses MAIN.T2",
+          "expect": "0 {3 4}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-4.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE mask(a,b,c)"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT * FROM t2;\n#",
+          "expect": "1 {database schema has changed}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {3 4}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t2 WHERE x=3",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t2 WHERE x=3",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t2 WHERE x=3",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t2 WHERE x=1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "temptable-5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t2 WHERE x=3",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('xyzzy');\n    SELECT * FROM t8;",
+          "expect": "xyzzy"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t8;",
+          "expect": "xyzzy"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(x,y);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t9(x,y);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t9 VALUES(1,2);\n    SELECT * FROM t9;",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t8 VALUES('hello');\n    SELECT * FROM t8;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8,t9;",
+          "expect": "0 {xyzzy 1 2}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8,t9;",
+          "expect": "1 {no such table: t9}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS two;\n      CREATE TEMP TABLE two.abc(x,y);",
+          "expect": "1 {temporary table name must be unqualified}"
+        }
+      ]
+    },
+    {
+      "name": "temptable-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "temptable-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2;\n    SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(9,8,7);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x unique, y);\n    INSERT INTO t2 VALUES(3,4);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE mask(a,b,c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX mask ON t2(x);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('xyzzy');\n    SELECT * FROM t8;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl2(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl(a, b);\n    INSERT INTO tbl VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

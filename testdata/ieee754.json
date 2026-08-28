@@ -1,0 +1,44 @@
+{
+  "file": "ieee754.test",
+  "name": "ieee754",
+  "tests": [
+    {
+      "name": "ieee754-112",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ieee754(4503599627370495,973) is null;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "ieee754-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ieee754(0.0), hex(ieee754_to_blob(ieee754(0,-1075)));",
+          "expect": "ieee754(0,-1075) 0000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "ieee754-201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ieee754(-0.0), hex(ieee754_to_blob(ieee754(-1,-3071)));",
+          "expect": "ieee754(-1,-3071) 8000000000000000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ieee754(1,1024), ieee754(4503599627370495,972);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ieee754(-1,1024), ieee754(-4503599627370495,972);"
+        }
+      ]
+    }
+  ]
+}

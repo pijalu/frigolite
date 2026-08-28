@@ -1,0 +1,24 @@
+{
+  "file": "date3.test",
+  "name": "date3",
+  "tests": [
+    {
+      "name": "date3-2.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;"
+        }
+      ]
+    },
+    {
+      "name": "date3-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');"
+        }
+      ]
+    }
+  ]
+}

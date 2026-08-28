@@ -1,0 +1,1042 @@
+{
+  "file": "jrnlmode.test",
+  "name": "jrnlmode",
+  "tests": [
+    {
+      "name": "jrnlmode-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=EXCLUSIVE",
+          "expect": "exclusive"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(123)"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=PERSIST",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=TRUNCATE",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(y)"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(456)"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2",
+          "expect": "123 456"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=NORMAL",
+          "expect": "normal"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=PERSIST",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=TRUNCATE",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=PERSIST",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=TRUNCATE",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=EXCLUSIVE",
+          "expect": "exclusive"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(z)"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=TRUNCATE",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=NORMAL",
+          "expect": "normal"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(w)"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-8.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = exclusive;\n  CREATE TABLE tx(a);\n  PRAGMA journal_mode = off;",
+          "expect": "exclusive off"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = persist;",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.4a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = off;",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.4b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = off;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete;",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA Temp.journal_mode;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = truncate;",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;",
+          "expect": "off off"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode = OFF;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' as aux2;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux1.journal_mode = DELETE;",
+          "expect": "off memory memory"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' as aux3;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = TRUNCATE;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-1.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH aux1;\n      DETACH aux2;\n      DETACH aux3;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM def;",
+          "expect": "4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=off;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = off",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, randomblob(2000))"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma page_size=1024",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_size_limit",
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;",
+          "expect": "persist -1"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.journal_size_limit = 999999999999",
+          "expect": "999999999999"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.journal_size_limit = 10240",
+          "expect": "10240"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_size_limit = 20480",
+          "expect": "20480"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_size_limit",
+          "expect": "20480"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.journal_size_limit",
+          "expect": "10240"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.t1(a, b, c);\n      CREATE TABLE aux.t2(a, b, c);\n      CREATE TABLE aux2.t3(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t2 SET a = randomblob(1000);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t3 SET a = randomblob(1000);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-5.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;",
+          "expect": "truncate truncate"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n        SELECT * FROM t4;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n        SELECT * FROM t4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-6.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "jrnlmode-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;",
+          "expect": "memory 5"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = persist;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA Temp.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA temp.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' as aux2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux1.journal_mode = DELETE;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' as aux3;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = TRUNCATE;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH aux1;\n      DETACH aux2;\n      DETACH aux3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM def;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=off;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;\n      INSERT OR IGNORE INTO main.x SELECT * FROM a.x;\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_count"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, randomblob(2000))"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma page_size=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma journal_mode=persist"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_size_limit"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.journal_size_limit = 999999999999"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.journal_size_limit = 10240"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_size_limit = 20480"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_size_limit"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.journal_size_limit"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.t1(a, b, c);\n      CREATE TABLE aux.t2(a, b, c);\n      CREATE TABLE aux2.t3(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t2 SET a = randomblob(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t3 SET a = randomblob(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n        SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n        SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

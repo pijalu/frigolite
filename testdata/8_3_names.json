@@ -1,0 +1,90 @@
+{
+  "file": "8_3_names.test",
+  "name": "8_3_names",
+  "tests": [
+    {
+      "name": "8_3_names-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT length(x) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT length(x) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT length(x) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ATTACH 'file:./test2.db?8_3_names=1' AS db2;\n    CREATE TABLE db2.t2(y);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t2 VALUES(4);\n    COMMIT;\n    SELECT * FROM t1, t2 ORDER BY x, y",
+          "expect": "1 2 1 4 3 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;",
+          "expect": "500500"
+        }
+      ]
+    },
+    {
+      "name": "8_3_names-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT sum(x) FROM t1;",
+          "expect": "1001000"
+        }
+      ]
+    }
+  ]
+}

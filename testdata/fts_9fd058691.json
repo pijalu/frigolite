@@ -1,0 +1,61 @@
+{
+  "file": "fts-9fd058691.test",
+  "name": "fts_9fd058691",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE fts USING fts3( tags TEXT);\n  INSERT INTO fts (tags) VALUES ('tag1');\n  SELECT * FROM fts WHERE tags MATCH 'tag1';",
+          "expect": "tag1"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts USING fts3(tags TEXT);\n  INSERT INTO fts (docid, tags) VALUES (1, 'tag1');\n  INSERT INTO fts (docid, tags) VALUES (2, NULL);\n  INSERT INTO fts (docid, tags) VALUES (3, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';",
+          "expect": "tag1"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE fts SET tags = 'two' WHERE rowid = 2;\n    SELECT * FROM fts WHERE tags MATCH 'two';",
+          "expect": "two"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE fts SET tags = 'two' WHERE rowid = 2;\n    SELECT * FROM fts WHERE tags MATCH 'two';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

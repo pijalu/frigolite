@@ -1,0 +1,139 @@
+{
+  "file": "corrupt2.test",
+  "name": "corrupt2",
+  "tests": [
+    {
+      "name": "14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(randomblob(3500));\n  DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;\n  PRAGMA freelist_count;",
+          "expect": "ok 3"
+        }
+      ]
+    },
+    {
+      "name": "14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{*** in database main ***\nFreelist: size is 3 but should be 2}"
+        }
+      ]
+    },
+    {
+      "name": "14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(randomblob(2500));\n  PRAGMA freelist_count;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{*** in database main ***\nFreelist: size is 1 but should be 0}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check",
+          "expect": "0 {{*** in database main ***\nTree 1 page 1: free space corruption}}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check",
+          "expect": "0 {{*** in database main ***\nTree 1 page 1: free space corruption}}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid < 30;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA freelist_count",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA freelist_count"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = full;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(NULL, randstr(50,50));"
+        },
+        {
+          "type": "exec",
+          "sql": "$::presql INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

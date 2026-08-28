@@ -1,0 +1,92 @@
+{
+  "file": "fts3fuzz001.test",
+  "name": "fts3fuzz001",
+  "tests": [
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(x);\n\n  INSERT INTO x1 VALUES('braes brag bragged bragger bragging');\n  INSERT INTO x1 VALUES('brags braid braided braiding braids');\n  INSERT INTO x1 VALUES('brain brainchild brained braining brains');\n  INSERT INTO x1 VALUES('brainstem brainstems brainstorm brainstorms');\n  INSERT INTO x1(x1) VALUES('nodesize=24');"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(x1) VALUES('merge=10,2')"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on; -- disable schema corruption detection\n    INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-121",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

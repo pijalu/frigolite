@@ -1,0 +1,83 @@
+{
+  "file": "fts3shared.test",
+  "name": "fts3shared",
+  "tests": [
+    {
+      "name": "fts3shared-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(x);\n  BEGIN;\n  INSERT INTO t1 VALUES('We listened and looked sideways up!');\n  INSERT INTO t1 VALUES('Fear at my heart, as at a cup,');\n  INSERT INTO t1 VALUES('My life-blood seemed to sip!');\n  INSERT INTO t1 VALUES('The stars were dim, and thick the night');\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "fts3shared-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES('The steersman''s face by his lamp gleamed white;');"
+        }
+      ]
+    },
+    {
+      "name": "fts3shared-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "fts3shared-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars'",
+          "expect": "1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b) VALUES(1, 'd e f', 'g h i');"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('j k l');"
+        }
+      ]
+    },
+    {
+      "name": "2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t2(rowid, a, b) VALUES(2, 'j k l', 'm n o');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b) VALUES(1, 'd e f', 'g h i');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('j k l');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t2(rowid, a, b) VALUES(2, 'j k l', 'm n o');"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

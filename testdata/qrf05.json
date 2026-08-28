@@ -1,0 +1,15 @@
+{
+  "file": "qrf05.test",
+  "name": "qrf05",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT NOT NULL);"
+        }
+      ]
+    }
+  ]
+}

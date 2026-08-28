@@ -1,0 +1,49 @@
+{
+  "file": "thread005.test",
+  "name": "thread005",
+  "tests": [
+    {
+      "name": "thread005-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "thread005-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE b IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

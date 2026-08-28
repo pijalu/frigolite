@@ -1,0 +1,110 @@
+{
+  "file": "auth2.test",
+  "name": "auth2",
+  "tests": [
+    {
+      "name": "auth2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT max(a,b,c) FROM t1",
+          "expect": "1 {not authorized to use function: max}"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT min(a,b,c) FROM t1",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT coalesce(min(a,b,c),999) FROM t1",
+          "expect": "0 999"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT coalesce(a,b,c) FROM t1",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "auth2-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y,z);",
+          "expect": "SQLITE_INSERT sqlite_master {} main {}\nSQLITE_CREATE_TABLE t2 {} main {}\nSQLITE_UPDATE sqlite_master type main {}\nSQLITE_UPDATE sqlite_master name main {}\nSQLITE_UPDATE sqlite_master tbl_name main {}\nSQLITE_UPDATE sqlite_master rootpage main {}\nSQLITE_UPDATE sqlite_master sql main {}\nSQLITE_READ sqlite_master ROWID main {}\n"
+        }
+      ]
+    },
+    {
+      "name": "auth2-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;",
+          "expect": "SQLITE_INSERT sqlite_master {} main {}\nSQLITE_CREATE_VIEW v2 {} main {}\nSQLITE_UPDATE sqlite_master type main {}\nSQLITE_UPDATE sqlite_master name main {}\nSQLITE_UPDATE sqlite_master tbl_name main {}\nSQLITE_UPDATE sqlite_master rootpage main {}\nSQLITE_UPDATE sqlite_master sql main {}\nSQLITE_READ sqlite_master ROWID main {}\n"
+        }
+      ]
+    },
+    {
+      "name": "auth2-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM v2;",
+          "expect": "SQLITE_SELECT {} {} {} {}\nSQLITE_READ t2 x main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 z main v2\nSQLITE_READ v2 a main {}\nSQLITE_READ v2 b main {}\nSQLITE_SELECT {} {} {} v2\n"
+        }
+      ]
+    },
+    {
+      "name": "auth2-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b, a FROM v2;",
+          "expect": "SQLITE_SELECT {} {} {} {}\nSQLITE_READ t2 x main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 z main v2\nSQLITE_READ v2 b main {}\nSQLITE_READ v2 a main {}\nSQLITE_SELECT {} {} {} v2\nSQLITE_SELECT {} {} {} {}\nSQLITE_READ t2 x main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 z main v2\nSQLITE_READ v2 b main {}\nSQLITE_READ v2 a main {}\nSQLITE_SELECT {} {} {} v2\n"
+        }
+      ]
+    },
+    {
+      "name": "auth2-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1;",
+          "expect": "SQLITE_INSERT t2 {} main {}\nSQLITE_SELECT {} {} {} {}\nSQLITE_READ t1 a main {}\nSQLITE_READ t1 b main {}\nSQLITE_READ t1 c main {}\n"
+        }
+      ]
+    },
+    {
+      "name": "auth2-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  DELETE FROM t2;\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;",
+          "expect": "1 NULL 3 a NULL c"
+        }
+      ]
+    }
+  ]
+}

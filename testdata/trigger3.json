@@ -1,0 +1,246 @@
+{
+  "file": "trigger3.test",
+  "name": "trigger3",
+  "tests": [
+    {
+      "name": "trigger3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (1, 5, 6);",
+          "expect": "1 {Trigger abort}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tbl"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (2, 5, 6);",
+          "expect": "1 {Trigger fail}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (3, 5, 6);",
+          "expect": "1 {Trigger rollback}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tbl;"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 {Trigger rollback}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tbl"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (4, 5, 6);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE tbl SET c = 10;\n        SELECT * FROM tbl;",
+          "expect": "1 2 3 4 5 10"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM tbl;\n        SELECT * FROM tbl;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;",
+          "expect": "1 2 3 1 2 3 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl_view VALUES(1, 2, 3);",
+          "expect": "1 {View rollback}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl_view VALUES(2, 2, 3);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "trigger3-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl_view VALUES(3, 2, 3);",
+          "expect": "1 {View abort}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER before_tbl_insert BEFORE INSERT ON tbl BEGIN SELECT CASE \n        WHEN (new.a = 4) THEN RAISE(IGNORE) END;\n    END;\n\n    CREATE TRIGGER after_tbl_insert AFTER INSERT ON tbl BEGIN SELECT CASE \n        WHEN (new.a = 1) THEN RAISE(ABORT,    'Trigger abort') \n        WHEN (new.a = 2) THEN RAISE(FAIL,     'Trigger fail') \n        WHEN (new.a = 3) THEN RAISE(ROLLBACK, 'Trigger rollback') END;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl (a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl VALUES(4, 5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER before_tbl_update BEFORE UPDATE ON tbl BEGIN\n        SELECT CASE WHEN (old.a = 1) THEN RAISE(IGNORE) END;\n    END;\n\n    CREATE TRIGGER before_tbl_delete BEFORE DELETE ON tbl BEGIN\n        SELECT CASE WHEN (old.a = 1) THEN RAISE(IGNORE) END;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE tbl SET c = 10;\n        SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl;\n        SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER after_tbl2_insert AFTER INSERT ON tbl2 BEGIN\n        UPDATE tbl SET c = 10;\n        INSERT INTO tbl2 VALUES (new.a, new.b, new.c);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW tbl_view AS SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tbl_view_insert INSTEAD OF INSERT ON tbl_view BEGIN\n        SELECT CASE WHEN (new.a = 1) THEN RAISE(ROLLBACK, 'View rollback')\n                    WHEN (new.a = 2) THEN RAISE(IGNORE) \n                    WHEN (new.a = 3) THEN RAISE(ABORT, 'View abort') END;\n    END;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "file": "func5.test",
+  "name": "func5",
+  "tests": [
+    {
+      "name": "func5-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding=UTF16le;\n  CREATE TABLE t1(x,a,b,c);\n  INSERT INTO t1 VALUES(1,'ab','cd',1);\n  INSERT INTO t1 VALUES(2,'gh','ef',5);\n  INSERT INTO t1 VALUES(3,'pqr','fuzzy',99);\n  INSERT INTO t1 VALUES(4,'abcdefg','xy',22);\n  INSERT INTO t1 VALUES(5,'shoe','mayer',2953);\n  SELECT x FROM t1 WHERE c=instr('abcdefg',b) OR a='abcdefg' ORDER BY +x;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "func5-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE a='abcdefg' OR c=instr('abcdefg',b) ORDER BY +x;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "func5-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,2),(3,4),(5,6),(7,8);\n  SELECT x, y FROM t2 WHERE x+5=5+x ORDER BY +x;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "func5-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2\n   WHERE x+counter1('hello')=counter1('hello')+x\n   ORDER BY +x;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

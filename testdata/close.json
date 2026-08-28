@@ -1,0 +1,16 @@
+{
+  "file": "close.test",
+  "name": "close",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

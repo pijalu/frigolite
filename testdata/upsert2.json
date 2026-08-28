@@ -1,0 +1,146 @@
+{
+  "file": "upsert2.test",
+  "name": "upsert2",
+  "tests": [
+    {
+      "name": "upsert2-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "expect": "1 8 1 x 2 11 0 x 3 4 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "expect": "1 8 1 x 2 11 0 x 3 4 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "expect": "1 99 2 x 2 15 1 x 3 4 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO main.t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t2.c+1 WHERE t2.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "expect": "1 99 2 x 2 15 1 x 3 4 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-202",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t1.c+1 WHERE t1.b<excluded.b;",
+          "expect": "1 {no such column: t1.c}"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "expect": "1 99 2 x 2 15 1 x 3 4 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  CREATE TABLE record(x TEXT, y TEXT);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('before-insert',format('%d,%d,%d',new.a,new.b,new.c));\n  END;\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('after-insert',printf('%d,%d,%d',new.a,new.b,new.c));\n  END;\n  CREATE TRIGGER r3 BEFORE UPDATE ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('before-update',format('%d,%d,%d/%d,%d,%d',\n                                      old.a,old.b,old.c,new.a,new.b,new.c));\n  END;\n  CREATE TRIGGER r4 AFTER UPDATE ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('after-update',printf('%d,%d,%d/%d,%d,%d',\n                                      old.a,old.b,old.c,new.a,new.b,new.c));\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2);\n  DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=t1.c+1;\n  SELECT * FROM record",
+          "expect": "before-insert 1,2,0 before-update 1,2,0/1,2,1 after-update 1,2,0/1,2,1"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM record;",
+          "expect": "before-insert 1,2,0"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=c+1 WHERE c<0;\n  SELECT * FROM record;",
+          "expect": "before-insert 1,2,0"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 1"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('before-insert',format('%d,%d,%d',new.a,new.b,new.c));\n  END;\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('after-insert',printf('%d,%d,%d',new.a,new.b,new.c));\n  END;\n  CREATE TRIGGER r3 BEFORE UPDATE ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('before-update',format('%d,%d,%d/%d,%d,%d',\n                                      old.a,old.b,old.c,new.a,new.b,new.c));\n  END;\n  CREATE TRIGGER r4 AFTER UPDATE ON t1 BEGIN\n    INSERT INTO record(x,y)\n        VALUES('after-update',printf('%d,%d,%d/%d,%d,%d',\n                                      old.a,old.b,old.c,new.a,new.b,new.c));\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2);\n  DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=t1.c+1;\n  SELECT * FROM record",
+          "expect": "before-insert 1,2,0 before-update 1,2,0/1,2,1 after-update 1,2,0/1,2,1"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM record;",
+          "expect": "before-insert 1,2,0"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=c+1 WHERE c<0;\n  SELECT * FROM record;",
+          "expect": "before-insert 1,2,0"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-421",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 1"
+        }
+      ]
+    }
+  ]
+}

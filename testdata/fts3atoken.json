@@ -1,0 +1,241 @@
+{
+  "file": "fts3atoken.test",
+  "name": "fts3atoken",
+  "tests": [
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer('blah', fts3_tokenizer('simple')) IS NULL;",
+          "expect": "1 {fts3tokenize disabled}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v110(x) AS\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v110;",
+          "expect": "1 {unsafe use of fts3_tokenizer()}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t110(a,b);\n  CREATE TRIGGER r110 AFTER INSERT ON t110 BEGIN\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n  END;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t110(a,b) VALUES(1,2);",
+          "expect": "1 {unsafe use of fts3_tokenizer()}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t110;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(tokenize=\"\");",
+          "expect": "1 {unknown tokenizer: }"
+        }
+      ]
+    },
+    {
+      "name": "6.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(tokenize=);",
+          "expect": "1 {unknown tokenizer: }"
+        }
+      ]
+    },
+    {
+      "name": "6.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(tokenize=\"   \");",
+          "expect": "1 {unknown tokenizer:    }"
+        }
+      ]
+    },
+    {
+      "name": "6.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer(NULL);",
+          "expect": "1 {unknown tokenizer: }"
+        }
+      ]
+    },
+    {
+      "name": "6.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer(NULL, X'1234567812345678');",
+          "expect": "1 {argument type mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer(NULL, X'12345678');",
+          "expect": "1 {argument type mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize blah);",
+          "expect": "1 {unknown tokenizer: blah}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_tokenizer('blah', fts3_tokenizer('simple')) IS NULL;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_tokenizer('blah') == fts3_tokenizer('simple');",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize blah);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(content) VALUES('There was movement at the station');\n    INSERT INTO t1(content) VALUES('For the word has passed around');\n    INSERT INTO t1(content) VALUES('That the colt from ol regret had got');\n    SELECT content FROM t1 WHERE content MATCH 'movement'",
+          "expect": "{There was movement at the station}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer('nosuchtokenizer');",
+          "expect": "1 {unknown tokenizer: nosuchtokenizer}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_tokenizer_test('simple', 'I don''t see how');",
+          "expect": "{0 i I 1 don don 2 t t 3 see see 4 how how}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_tokenizer_test('porter', 'I don''t see how');",
+          "expect": "{0 i I 1 don don 2 t t 3 see see 4 how how}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken-internal",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_tokenizer_internal_test()",
+          "expect": "ok"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer('blah', fts3_tokenizer('simple')) IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer('blah') == fts3_tokenizer('simple');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(content) VALUES('There was movement at the station');\n    INSERT INTO t1(content) VALUES('For the word has passed around');\n    INSERT INTO t1(content) VALUES('That the colt from ol regret had got');\n    SELECT content FROM t1 WHERE content MATCH 'movement'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer_test('simple', 'I don''t see how');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer_test('porter', 'I don''t see how');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fts3_tokenizer_internal_test()"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

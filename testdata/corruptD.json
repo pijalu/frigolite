@@ -1,0 +1,43 @@
+{
+  "file": "corruptD.test",
+  "name": "corruptD",
+  "tests": [
+    {
+      "name": "corruptD-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "corruptD-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check",
+          "expect": "0 {{*** in database main ***\nTree 2 page 2: free space corruption} {wrong # of entries in index i1}}"
+        }
+      ]
+    },
+    {
+      "name": "corruptD-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "expect": "1 {database disk image is malformed}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 10;\n    DELETE FROM t1 WHERE a = 20;\n    DELETE FROM t1 WHERE a = 30;\n    DELETE FROM t1 WHERE a = 40;"
+        }
+      ]
+    }
+  ]
+}

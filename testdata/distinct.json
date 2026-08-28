@@ -1,0 +1,259 @@
+{
+  "file": "distinct.test",
+  "name": "distinct",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE UNIQUE INDEX i1 ON t1(b, c);\n  CREATE UNIQUE INDEX i2 ON t1(d COLLATE nocase);\n\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n\n  CREATE TABLE t3(c1 PRIMARY KEY NOT NULL, c2 NOT NULL);\n  CREATE INDEX i3 ON t3(c2);\n\n  CREATE TABLE t4(a, b NOT NULL, c NOT NULL, d NOT NULL);\n  CREATE UNIQUE INDEX t4i1 ON t4(b, c);\n  CREATE UNIQUE INDEX t4i2 ON t4(d COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b COLLATE nocase, c COLLATE nocase);\n\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');"
+        }
+      ]
+    },
+    {
+      "name": "2.A",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT DISTINCT o.a FROM t1 AS i) FROM t1 AS o ORDER BY rowid;",
+          "expect": "a A a A"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(x);\n  INSERT INTO t2\n    SELECT DISTINCT\n      CASE a WHEN 1 THEN x'0000000000'\n             WHEN 2 THEN zeroblob(5)\n             ELSE 'xyzzy' END\n      FROM t1;\n  SELECT quote(x) FROM t2 ORDER BY 1;",
+          "expect": "'xyzzy' X'0000000000'"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(3),(1),(5),(2),(6),(4),(5),(1),(3);\n  CREATE INDEX t1x ON t1(x DESC);\n  SELECT DISTINCT x FROM t1 ORDER BY x ASC;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT x FROM t1 ORDER BY x DESC;",
+          "expect": "6 5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT x FROM t1 ORDER BY x;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1x;\n  CREATE INDEX t1x ON t1(x ASC);\n  SELECT DISTINCT x FROM t1 ORDER BY x ASC;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT x FROM t1 ORDER BY x DESC;",
+          "expect": "6 5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT x FROM t1 ORDER BY x;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE jjj(x);\n  SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1) \n    FROM sqlite_master;",
+          "expect": "jjj"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE nnn(x);\n  SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1) \n    FROM sqlite_master;",
+          "expect": "mmm"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t3(a INTEGER PRIMARY KEY);\n\n  CREATE TABLE t4(x);\n  CREATE TABLE t5(y);\n  \n  INSERT INTO t5 VALUES(1), (2), (2);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t3 VALUES(2);\n  INSERT INTO t4 VALUES(2);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE person ( pid INT) ;\n  CREATE UNIQUE INDEX idx ON person ( pid ) WHERE pid == 1;\n  INSERT INTO person VALUES (1), (10), (10);\n  SELECT DISTINCT pid FROM person where pid = 10;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('a', 'c');\n\n  INSERT INTO t1 VALUES('b', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('b', 'c');\n\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n\n  INSERT INTO t1 VALUES('A', 'A');\n  INSERT INTO t1 VALUES('B', 'B');"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  DISTINCT\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1\n  ORDER  BY\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x';",
+          "expect": "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN\n  SELECT  DISTINCT\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1\n  ORDER  BY\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x';",
+          "expect": "/0 Init 0 /"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN  CREATE  TABLE t2 AS  SELECT  DISTINCT ':memory:', 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 ORDER  BY '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 42e-300, 'unixepoch', 'unixepoch', 'unixepoch' LIMIT 0xda;",
+          "expect": "/0 Init 0/"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE  TABLE t0 AS  SELECT  DISTINCT 0xda, 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 0xda-0xda-42e-300, 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0', 'lit0' ORDER  BY '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%Y-%m-%d', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', 'lit0', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', 'auto', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', ':memory:', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '%%', '';\n  SELECT count(*) FROM t0;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t2;\n  CREATE  TABLE t2 AS  SELECT  DISTINCT ':memory:', 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0.0*7/0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 ORDER  BY '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 42e-300, 'unixepoch', 'unixepoch', 'unixepoch' LIMIT 0xda;\n  SELECT count(*) FROM t2;",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN [set sql]"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

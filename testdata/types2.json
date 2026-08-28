@@ -1,0 +1,27 @@
+{
+  "file": "types2.test",
+  "name": "types2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n    i1 INTEGER,\n    i2 INTEGER,\n    n1 NUMERIC,\n    n2 NUMERIC,\n    t1 TEXT,\n    t2 TEXT,\n    o1 BLOB,\n    o2 BLOB\n  );\n  INSERT INTO t1 VALUES(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(i INTEGER, n NUMERIC, t TEXT, o XBLOBY);\n  CREATE INDEX t2i1 ON t2(i);\n  CREATE INDEX t2i2 ON t2(n);\n  CREATE INDEX t2i3 ON t2(t);\n  CREATE INDEX t2i4 ON t2(o);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(i INTEGER, n NUMERIC, t TEXT, o BLOB);\n  INSERT INTO t3 VALUES(1, 1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3, 3);\n  INSERT INTO t3 VALUES('1', '1', '1', '1');\n  INSERT INTO t3 VALUES('1.0', '1.0', '1.0', '1.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(i INTEGER, n NUMERIC, t VARCHAR(20), o LARGE BLOB);\n  INSERT INTO t4 VALUES(10, 20, 20, 30);"
+        }
+      ]
+    }
+  ]
+}

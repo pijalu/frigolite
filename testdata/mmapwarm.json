@@ -1,0 +1,57 @@
+{
+  "file": "mmapwarm.test",
+  "name": "mmapwarm",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(500) FROM s;\n  PRAGMA page_count;",
+          "expect": "507"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 1000000"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 1000000"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 1000000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,1841 @@
+{
+  "file": "json501.test",
+  "name": "json501",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{a:5,b:6}'))\n  SELECT x-\u003e\u003e'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;",
+          "expect": "5 {{\"a\":5,\"b\":6}} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[7,null,{a:5,b:6},[8,9]]'-\u003e\u003e'$[2].b';",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{ $123 : 789 }'-\u003e\u003e'$.\"$123\"';",
+          "expect": "789"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{ _123$xyz : 789 }'-\u003e\u003e'$.\"_123$xyz\"';",
+          "expect": "789"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{ MNO_123$xyz : 789 }'-\u003e\u003e'$.\"MNO_123$xyz\"';",
+          "expect": "789"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{ MNO_123$xyz : 789 }');",
+          "expect": "{{\"MNO_123$xyz\":789}}"
+        }
+      ]
+    },
+    {
+      "name": "1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json('{ MNO_123/xyz : 789 }');",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{ MNO_123æxyz : 789 }'-\u003e\u003e'MNO_123æxyz';",
+          "expect": "789"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{\"a\":5, \"b\":6, }'))\n  SELECT x-\u003e\u003e'b', json(x), json_valid(x), NOT json_error_position(x) FROM c;",
+          "expect": "6 {{\"a\":5,\"b\":6}} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a:5, b:6 , }'-\u003e\u003e'b';",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT '{a:5, b:6 ,, }'-\u003e\u003e'b';",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT '{a:5, b:6, ,}'-\u003e\u003e'b';",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x-\u003e\u003e1, json(x), json_valid(x), NOT json_error_position(x) FROM c;",
+          "expect": "6 {[5,6]} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[5, 6 , ]'-\u003e\u003e1;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT '[5, 6,,]'-\u003e\u003e1;",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT '[5, 6 , , ]'-\u003e\u003e1;",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{\"a\": ''abcd''}'))\n  SELECT x-\u003e\u003e'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;",
+          "expect": "abcd {{\"a\":\"abcd\"}} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{b: 123, ''a'': ''ab\\''cd''}'-\u003e\u003e'a';",
+          "expect": "ab'cd"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{a: \"abc'||char(0x5c,0x0a)||'xyz\"}'))\n  SELECT x-\u003e\u003e'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;",
+          "expect": "abcxyz {{\"a\":\"abcxyz\"}} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x0d)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "abcxyz"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x0d,0x0a)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "abcxyz"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x2028)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "abcxyz"
+        }
+      ]
+    },
+    {
+      "name": "5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x2029)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "abcxyz"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x27)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "abc'xyz"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x22)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "abc\"xyz"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: \"abc'||char(0x5c,0x5c)||'xyz\"}')-\u003e\u003e'a';",
+          "expect": "{abc\\xyz}"
+        }
+      ]
+    },
+    {
+      "name": "6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(('{a: \"abc\\bxyz\"}')-\u003e\u003e'a');",
+          "expect": "6162630878797A"
+        }
+      ]
+    },
+    {
+      "name": "6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(('{a: \"abc\\f\\n\\r\\t\\vxyz\"}')-\u003e\u003e'a');",
+          "expect": "6162630C0A0D090B78797A"
+        }
+      ]
+    },
+    {
+      "name": "6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(('{a: \"abc\\0xyz\"}')-\u003e\u003e'a');",
+          "expect": "6162630078797A"
+        }
+      ]
+    },
+    {
+      "name": "6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: \"abc\\x35\\x4f\\x6Exyz\"}'-\u003e\u003e'a';",
+          "expect": "abc5Onxyz"
+        }
+      ]
+    },
+    {
+      "name": "6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: \"\\x6a\\x6A\\x6b\\x6B\\x6c\\x6C\\x6d\\x6D\\x6e\\x6E\\x6f\\x6F\"}'-\u003e\u003e'a';",
+          "expect": "jjkkllmmnnoo"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: 0x0}'-\u003e\u003e'a';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: -0x0}'-\u003e\u003e'a';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: +0x0}'-\u003e\u003e'a';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: 0xabcdef}'-\u003e\u003e'a';",
+          "expect": "11259375"
+        }
+      ]
+    },
+    {
+      "name": "7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: -0xaBcDeF}'-\u003e\u003e'a';",
+          "expect": "-11259375"
+        }
+      ]
+    },
+    {
+      "name": "7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: +0xABCDEF}'-\u003e\u003e'a';",
+          "expect": "11259375"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: 4.}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "4.0 {{\"x\":4.0}}"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: +4.}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "4.0 {{\"x\":4.0}}"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: -4.}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "-4.0 {{\"x\":-4.0}}"
+        },
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: .5}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "0.5 {{\"x\":0.5}}"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: -.5}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "-0.5 {{\"x\":-0.5}}"
+        }
+      ]
+    },
+    {
+      "name": "8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: +.5}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "0.5 {{\"x\":0.5}}"
+        }
+      ]
+    },
+    {
+      "name": "8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: 4.e0}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "4.0 {{\"x\":4.0e0}}"
+        }
+      ]
+    },
+    {
+      "name": "8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: +4.e1}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "40.0 {{\"x\":4.0e1}}"
+        }
+      ]
+    },
+    {
+      "name": "8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: -4.e2}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "-400.0 {{\"x\":-4.0e2}}"
+        }
+      ]
+    },
+    {
+      "name": "8.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: .5e3}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "500.0 {{\"x\":0.5e3}}"
+        }
+      ]
+    },
+    {
+      "name": "8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: -.5e-1}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "-0.05 {{\"x\":-0.5e-1}}"
+        }
+      ]
+    },
+    {
+      "name": "8.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: +.5e-2}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "0.005 {{\"x\":0.5e-2}}"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: +Infinity}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "Inf {{\"x\":9e999}}"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: -Infinity}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "-Inf {{\"x\":-9e999}}"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: Infinity}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "Inf {{\"x\":9e999}}"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES('{x: NaN}')) SELECT x-\u003e\u003e'x', json(x) FROM c;",
+          "expect": "{} {{\"x\":null}}"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a: +123}'-\u003e'a';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ' /* abc */ { /*def*/ aaa /* xyz */ : // to the end of line\n          123 /* xyz */ , /* 123 */ }'-\u003e\u003e'aaa';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (char(0x09,0x0a,0x0b,0x0c,0x0d,0x20,0xa0,0x2028,0x2029)\n          || '{a: \"xyz\"}')-\u003e\u003e'a';",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a:' || char(0x09,0x0a,0x0b,0x0c,0x0d,0x20,0xa0,0x2028,0x2029)\n          || '\"xyz\"}')-\u003e\u003e'a';",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (char(0x1680,0x2000,0x2001,0x2002,0x2003,0x2004,0x2005,\n               0x2006,0x2007,0x2008,0x2009,0x200a,0x3000,0xfeff)\n          || '{a: \"xyz\"}')-\u003e\u003e'a';",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('{a: ' ||char(0x1680,0x2000,0x2001,0x2002,0x2003,0x2004,0x2005,\n                        0x2006,0x2007,0x2008,0x2009,0x200a,0x3000,0xfeff)\n          || ' \"xyz\"}')-\u003e\u003e'a';",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{x:''a \"b\" c''}');",
+          "expect": "{{\"x\":\"a \\\"b\\\" c\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('1') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('1') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('1') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('1') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('2') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('2') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('2') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('2') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('3') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('3') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('3') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('3') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('4') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('4') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('4') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('4') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('5') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('5') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('5') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('5') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('6') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('6') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('6') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('6') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('7') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('7') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('7') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('7') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('8') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('8') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('8') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('8') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('9') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('9') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('9') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('9') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('10') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('10') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('10') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('10') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('11') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('11') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('11') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('11') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('12') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('12') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('12') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('12') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('13') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('13') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('13') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('13') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('14') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('14') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('14') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('14') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('15') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('15') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('15') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('15') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('16') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('16') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('16') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.16.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('16') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('17') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('17') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('17') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.17.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('17') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('18') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('18') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('18') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('18') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('19') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('19') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('19') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.19.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('19') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.20.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('20') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.20.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('20') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.20.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('20') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.20.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('20') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.21.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('21') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.21.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('21') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.21.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('21') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.21.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('21') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.22.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('22') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.22.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('22') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.22.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('22') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.22.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('22') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.23.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('23') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.23.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('23') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.23.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('23') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.23.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('23') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.24.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('24') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.24.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('24') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.24.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('24') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.24.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('24') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.25.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('25') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.25.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('25') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.25.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('25') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.25.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('25') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.26.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('26') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.26.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('26') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.26.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('26') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.26.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('26') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.27.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('27') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.27.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('27') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.27.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('27') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.27.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('27') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.28.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('28') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.28.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('28') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.28.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('28') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.28.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('28') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.29.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('29') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.29.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('29') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.29.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('29') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.29.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('29') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.30.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('30') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.30.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('30') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.30.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('30') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.30.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('30') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.31.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('31') || 'xyz\"');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.31.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('\"abc' || char('31') || 'xyz\"', 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "14.31.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json('{label:\"abc' || char('31') || 'xyz\"}');",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    },
+    {
+      "name": "14.31.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb('{label:\"abc' || char('31') || 'xyz\"}') -\u003e '$';",
+          "expect": "{{\"label\":\"abcxyz\"}}"
+        }
+      ]
+    }
+  ]
+}

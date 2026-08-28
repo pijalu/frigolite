@@ -1,0 +1,343 @@
+{
+  "file": "tkt2927.test",
+  "name": "tkt2927",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    INSERT INTO t1 VALUES(4,44);\n    INSERT INTO t1 VALUES(5,55);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE host (\n     hostname text not null primary key,\n     consoleHost text,\n     consolePort text\n    );\n    INSERT INTO \"host\" VALUES('aald04','aalp03','4');\n    INSERT INTO \"host\" VALUES('aald17','aalp01','1');\n    CREATE VIEW consolemap1a as\n      select hostname, consolehost, '/dev/cuaD0.' || (consoleport-1) consoleport\n        from host where consolehost='aalp01';\n    CREATE VIEW consolemap1b as\n      select hostname hostname, consolehost consolehost, '/dev/cuaD' ||\n             substr('01',1+((consoleport-1)/16),1) ||\n             substr('0123456789abcdef',1+((consoleport-1)%16),1) consoleport\n        from host where consolehost='aalp03';\n    CREATE VIEW consolemap1 as\n      select * from consolemap1a\n      union\n      select * from consolemap1b;\n    SELECT * from consolemap1b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM consolemap1"
+        }
+      ]
+    }
+  ]
+}

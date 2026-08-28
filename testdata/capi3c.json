@@ -1,0 +1,15 @@
+{
+  "file": "capi3c.test",
+  "name": "capi3c",
+  "tests": [
+    {
+      "name": "capi3c-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,399 @@
+{
+  "file": "fts3prefix.test",
+  "name": "fts3prefix",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(prefix='1,3,6');\n\n  CREATE VIRTUAL TABLE p1 USING fts4term(t1, 1);\n  CREATE VIRTUAL TABLE p2 USING fts4term(t1, 2);\n  CREATE VIRTUAL TABLE p3 USING fts4term(t1, 3);\n  CREATE VIRTUAL TABLE terms USING fts4term(t1);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('sqlite mysql firebird');"
+        }
+      ]
+    },
+    {
+      "name": "1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term FROM p1",
+          "expect": "f m s"
+        }
+      ]
+    },
+    {
+      "name": "1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term FROM p2",
+          "expect": "fir mys sql"
+        }
+      ]
+    },
+    {
+      "name": "1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term FROM p3",
+          "expect": "firebi sqlite"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term FROM terms;",
+          "expect": "firebird mysql sqlite"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('FTS3 and FTS4 are an SQLite virtual table modules');\n  INSERT INTO t1 VALUES('that allows users to perform full-text searches on');\n  INSERT INTO t1 VALUES('a set of documents. The most common (and');\n  INSERT INTO t1 VALUES('effective) way to describe full-text searches is');\n  INSERT INTO t1 VALUES('\"what Google, Yahoo and Altavista do with');\n  INSERT INTO t1 VALUES('documents placed on the World Wide Web\". Users');\n  INSERT INTO t1 VALUES('input a term, or series of terms, perhaps');\n  INSERT INTO t1 VALUES('connected by a binary operator or grouped together');\n  INSERT INTO t1 VALUES('into a phrase, and the full-text query system');\n  INSERT INTO t1 VALUES('finds the set of documents that best matches those');\n  INSERT INTO t1 VALUES('terms considering the operators and groupings the');\n  INSERT INTO t1 VALUES('user has specified. This article describes the');\n  INSERT INTO t1 VALUES('deployment and usage of FTS3 and FTS4.');\n  INSERT INTO t1 VALUES('FTS1 and FTS2 are obsolete full-text search');\n  INSERT INTO t1 VALUES('modules for SQLite. There are known issues with');\n  INSERT INTO t1 VALUES('these older modules and their use should be');\n  INSERT INTO t1 VALUES('avoided. Portions of the original FTS3 code were');\n  INSERT INTO t1 VALUES('contributed to the SQLite project by Scott Hess of');\n  INSERT INTO t1 VALUES('Google. It is now developed and maintained as part');\n  INSERT INTO t1 VALUES('of SQLite. ');"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE docid%2;"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize')"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(prefix='1,2,3');\n  INSERT INTO t2 VALUES('On 12 September the wind direction turned and');\n  INSERT INTO t2 VALUES('William''s fleet sailed. A storm blew up and the');\n  INSERT INTO t2 VALUES('fleet was forced to take shelter at');\n  INSERT INTO t2 VALUES('Saint-Valery-sur-Somme and again wait for the wind');\n  INSERT INTO t2 VALUES('to change. On 27 September the Norman fleet');\n  INSERT INTO t2 VALUES('finally set sail, landing in England at Pevensey');\n  INSERT INTO t2 VALUES('Bay (Sussex) on 28 September. William then moved');\n  INSERT INTO t2 VALUES('to Hastings, a few miles to the east, where he');\n  INSERT INTO t2 VALUES('built a prefabricated wooden castle for a base of');\n  INSERT INTO t2 VALUES('operations. From there, he ravaged the hinterland');\n  INSERT INTO t2 VALUES('and waited for Harold''s return from the north.');\n  INSERT INTO t2 VALUES('On 12 September the wind direction turned and');\n  INSERT INTO t2 VALUES('William''s fleet sailed. A storm blew up and the');\n  INSERT INTO t2 VALUES('fleet was forced to take shelter at');\n  INSERT INTO t2 VALUES('Saint-Valery-sur-Somme and again wait for the wind');\n  INSERT INTO t2 VALUES('to change. On 27 September the Norman fleet');\n  INSERT INTO t2 VALUES('finally set sail, landing in England at Pevensey');\n  INSERT INTO t2 VALUES('Bay (Sussex) on 28 September. William then moved');\n  INSERT INTO t2 VALUES('to Hastings, a few miles to the east, where he');\n  INSERT INTO t2 VALUES('built a prefabricated wooden castle for a base of');\n  INSERT INTO t2 VALUES('operations. From there, he ravaged the hinterland');\n  INSERT INTO t2 VALUES('and waited for Harold''s return from the north.');"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT optimize(t2) FROM t2 LIMIT 1",
+          "expect": "{Index optimized}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(prefix=\"1,4\");\n  INSERT INTO t3 VALUES('one two three');\n  INSERT INTO t3 VALUES('four five six');\n  INSERT INTO t3 VALUES('seven eight nine');"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 'f*'",
+          "expect": "{four five six}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 'four*'",
+          "expect": "{four five six}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 's*'",
+          "expect": "{four five six} {seven eight nine}"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 'sev*'",
+          "expect": "{seven eight nine}"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 'one*'",
+          "expect": "{one two three}"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4(prefix=\"abc\");",
+          "expect": "1 {error parsing prefix parameter: abc}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4(prefix=\"\");",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t5 USING fts4(prefix=\"-1\");",
+          "expect": "1 {error parsing prefix parameter: -1}"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(prefix=0);\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t1 VALUES('Twas Mulga Bill, from Eaglehawk, ');\n  INSERT INTO t2 VALUES('Twas Mulga Bill, from Eaglehawk, ');"
+        }
+      ]
+    },
+    {
+      "name": "6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(quote(root)) FROM t1_segdir;"
+        }
+      ]
+    },
+    {
+      "name": "6.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,0,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('that caught the cycling craze;');\n  INSERT INTO t2 VALUES('that caught the cycling craze;');"
+        }
+      ]
+    },
+    {
+      "name": "6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(quote(root)) FROM t1_segdir;"
+        }
+      ]
+    },
+    {
+      "name": "6.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,3,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('He turned away the good old horse');\n  INSERT INTO t2 VALUES('He turned away the good old horse');"
+        }
+      ]
+    },
+    {
+      "name": "6.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,600,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('that served him many days;');\n  INSERT INTO t2 VALUES('that served him many days;');"
+        }
+      ]
+    },
+    {
+      "name": "6.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(quote(root)) FROM t1_segdir;"
+        }
+      ]
+    },
+    {
+      "name": "6.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"2147483647,2147483648,2147483649\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=);\n  INSERT INTO t1 VALUES('He dressed himself in cycling clothes');\n  INSERT INTO t2 VALUES('He dressed himself in cycling clothes');"
+        }
+      ]
+    },
+    {
+      "name": "6.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(quote(root)) FROM t1_segdir;"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t6 USING fts4(x,order=DESC);\n  INSERT INTO t6(docid, x) VALUES(-1,'a b');\n  INSERT INTO t6(docid, x) VALUES(1, 'b');"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t6 WHERE t6 MATCH '\"a* b\"';",
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t6 WHERE t6 MATCH 'a*';",
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t6 WHERE t6 MATCH 'a* b';",
+          "expect": "-1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE temp.prefixes"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE temp.terms"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS fts3check1;\n      DROP TABLE IF EXISTS fts3check2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT term, docid, col, pos FROM temp.terms"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t1_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,393 @@
+{
+  "file": "windowB.test",
+  "name": "windowB",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(NULL, 3);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n  WINDOW win AS (\n    ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(a);\n  INSERT INTO x VALUES(1);\n  INSERT INTO x VALUES(2);"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH y AS (\n      SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION BY a)\n  )\n  SELECT * FROM y;"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH y AS (\n    SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n  BY fake_column))\n  SELECT * FROM y;",
+          "expect": "1 {no such column: fake_column}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 WINDOW win AS (PARTITION BY fake_column);",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(0, 421);\n  INSERT INTO t1 VALUES(1, 844);\n  INSERT INTO t1 VALUES(2, 1001);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 0 PRECEDING AND 3 PRECEDING\n  ) FROM t1;",
+          "expect": "0 {} 1 {} 2 {}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(NULL, 123);\n  INSERT INTO t1 VALUES(NULL, 111);\n  INSERT INTO t1 VALUES('xyz', 222);\n  INSERT INTO t1 VALUES('xyz', 333);\n\n  SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 0 PRECEDING AND 3 PRECEDING\n  ) FROM t1;",
+          "expect": "{} 234 {} 234 0 {} 1 {} 2 {} xyz 555 xyz 555"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING\n  ) FROM t1;",
+          "expect": "{} 234 {} 234 0 {} 1 {} 2 {} xyz 555 xyz 555"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 0 PRECEDING AND 3 PRECEDING EXCLUDE NO OTHERS\n  ) FROM t1;",
+          "expect": "{} 234 {} 234 0 {} 1 {} 2 {} xyz 555 xyz 555"
+        }
+      ]
+    },
+    {
+      "name": "5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING EXCLUDE NO OTHERS\n  ) FROM t1;",
+          "expect": "{} 234 {} 234 0 {} 1 {} 2 {} xyz 555 xyz 555"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES('abc', 1001);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING \n  ) FROM t1;",
+          "expect": "7 {} 8 {} abc 1001"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING EXCLUDE NO OTHERS\n  ) FROM t1;",
+          "expect": "7 {} 8 {} abc 1001"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(NULL, 46);\n  INSERT INTO t1 VALUES(NULL, 45);\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(7,  1000);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES(8,  1000);\n  INSERT INTO t1 VALUES('abc', 1001);\n  INSERT INTO t1 VALUES('abc', 1004);\n  INSERT INTO t1 VALUES('xyz', 3333);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, max(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING\n  ) FROM t1;",
+          "expect": "{} 46 {} 46  7 {} 7 {} 8 {} 8 {}  abc 1004 abc 1004 xyz 3333"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING\n  ) FROM t1;",
+          "expect": "{} 45 {} 45  7 {} 7 {} 8 {} 8 {}  abc 1001 abc 1001 xyz 3333"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, max(c) OVER (\n    ORDER BY a RANGE BETWEEN 0 PRECEDING AND 2 PRECEDING\n  ) FROM t1;",
+          "expect": "{} 46 {} 46  7 {} 7 {} 8 {} 8 {}  abc 1004 abc 1004 xyz 3333"
+        }
+      ]
+    },
+    {
+      "name": "7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(c) OVER (\n    ORDER BY a RANGE BETWEEN 0 PRECEDING AND 2 PRECEDING\n  ) FROM t1;",
+          "expect": "{} 45 {} 45  7 {} 7 {} 8 {} 8 {}  abc 1001 abc 1001 xyz 3333"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t1(a, c);\n    INSERT INTO t1 VALUES('aa', 111);\n    INSERT INTO t1 VALUES('BB', 660);\n    INSERT INTO t1 VALUES('CC', 938);\n    INSERT INTO t1 VALUES('dd', 979);\n  COMMIT;\n\n  CREATE INDEX i1 ON t1(a COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(c) OVER\n    (ORDER BY a COLLATE nocase RANGE BETWEEN 10.0 PRECEDING AND 5.0 PRECEDING)\n  FROM t1;",
+          "expect": "111 660 938 979"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE seps(x);\n  INSERT INTO seps(x) VALUES ('1'), ('22'), ('333'), ('4444');\n  SELECT group_concat('-', x)\n    OVER ( ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING )\n  FROM seps;",
+          "expect": "-22- -22-333- -333-4444- -4444-"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    json_group_array( v ) OVER w,\n    json_group_array( v ) OVER w\n  FROM t1\n  window w as ( \n    range between unbounded preceding and unbounded following \n  )",
+          "expect": "{[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]}"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    group_concat( v ) OVER w,\n    json_group_array( v ) OVER w,\n    json_group_array( v ) OVER w,\n    group_concat( v ) OVER w\n  FROM t1\n  window w as ( \n    range between unbounded preceding and unbounded following \n  )",
+          "expect": "one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM json_each('[1,2,3,4,5]');",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT key, value FROM json_each('[1,2,3,4,5]');",
+          "expect": "0 1  1 2  2 3  3 4  4 5"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, value FROM json_each('[1,2,3,4,5]');",
+          "expect": "0 1  1 2  2 3  3 4  4 5"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "11.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')",
+          "expect": "5 9 12 14 15"
+        }
+      ]
+    },
+    {
+      "name": "11.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

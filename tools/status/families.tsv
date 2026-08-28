@@ -1,0 +1,245 @@
+# families.tsv — testgen package → feature family mapping.
+#
+# Format: <filepath.Match glob>\t<family>   (first match wins)
+# Family list follows portplan/DESIGN.md §L and PORTPLAN.md §0:
+# CRUD, JOIN, SCHEMA, FUNCTIONS, CTE-WINDOW, FTS, VTAB, JSON, RTREE,
+# C-API, PLANNER, WAL-CONCURRENCY, plus SESSION and OTHER for anything
+# outside the port families.
+#
+# Keep this file in sync with the PORTPLAN.md family table.
+
+# --- CRUD & query core (G1) ---
+select*	CRUD
+insert*	CRUD
+delete*	CRUD
+update*	CRUD
+values*	CRUD
+view	CRUD
+view2	CRUD
+view3	CRUD
+upsert*	CRUD
+returning*	CRUD
+without_rowid	CRUD
+tableopts	CRUD
+rowid	CRUD
+intpkey	CRUD
+queryonly	CRUD
+default_pkg	CRUD
+alias	CRUD
+all	CRUD
+types	CRUD
+temptable	CRUD
+tempdb	CRUD
+emptytable	CRUD
+upfrom*	CRUD
+
+# --- Expression & WHERE (G1.EXPR) ---
+expr*	EXPR
+where*	EXPR
+between	EXPR
+coalesce	EXPR
+istrue	EXPR
+literal	EXPR
+in	EXPR
+cast	EXPR
+numcast	EXPR
+hexlit	EXPR
+affinity	EXPR
+null	EXPR
+nulls	EXPR
+
+# --- ORDER BY / LIMIT / set ops (G1.ORDER) ---
+orderby*	ORDER
+sort*	ORDER
+limit	ORDER
+minmax	ORDER
+unionall*	ORDER
+distinct	ORDER
+distinctagg	ORDER
+unordered	ORDER
+offset	ORDER
+
+# --- JOIN / subquery / row value (G1.JOIN) ---
+join*	JOIN
+subquery*	JOIN
+subselect	JOIN
+exists*	JOIN
+rowvalue*	JOIN
+full	JOIN
+
+# --- Aggregation & views (G1.AGG) ---
+count*	AGG
+having	AGG
+agg*	AGG
+
+# --- Schema & constraints (G2) ---
+alter*	SCHEMA
+index*	SCHEMA
+expridx*	SCHEMA
+coveridxscan	SCHEMA
+indexedby	SCHEMA
+conflict	SCHEMA
+unique	SCHEMA
+trigger*	SCHEMA
+temptrigger	SCHEMA
+fkey*	SCHEMA
+check*	SCHEMA
+notnull*	SCHEMA
+trans*	SCHEMA
+collate*	SCHEMA
+savepoint*	SCHEMA
+attach*	SCHEMA
+autoinc	SCHEMA
+reindex	SCHEMA
+schema*	SCHEMA
+createtab	SCHEMA
+vacuum*	SCHEMA
+autovacuum*	SCHEMA
+gencol	SCHEMA
+strict	SCHEMA
+numindex	SCHEMA
+descidx	SCHEMA
+rowalias	SCHEMA
+
+# --- Functions (G3) ---
+instr*	FUNCTIONS
+substr	FUNCTIONS
+like	FUNCTIONS
+glob	FUNCTIONS
+quote	FUNCTIONS
+hex	FUNCTIONS
+unhex	FUNCTIONS
+round	FUNCTIONS
+nan	FUNCTIONS
+zeroblob*	FUNCTIONS
+date	FUNCTIONS
+time	FUNCTIONS
+datetime	FUNCTIONS
+julianday	FUNCTIONS
+strftime	FUNCTIONS
+timediff	FUNCTIONS
+ctime	FUNCTIONS
+printf	FUNCTIONS
+format	FUNCTIONS
+func*	FUNCTIONS
+regexp	FUNCTIONS
+basexx	FUNCTIONS
+atof	FUNCTIONS
+fpconv	FUNCTIONS
+percentile	FUNCTIONS
+decimal	FUNCTIONS
+ieee	FUNCTIONS
+icu	FUNCTIONS
+badutf	FUNCTIONS
+cast2	FUNCTIONS
+
+# --- CTE / window / filters (G4) ---
+with*	CTE-WINDOW
+window*	CTE-WINDOW
+filter*	CTE-WINDOW
+
+# --- FTS (G6.FTS) ---
+fts*	FTS
+
+# --- Virtual tables (G6.VTAB) ---
+vtab*	VTAB
+csv	VTAB
+carray*	VTAB
+intarray	VTAB
+series	VTAB
+nextchar	VTAB
+amatch*	VTAB
+spellfix*	VTAB
+closure	VTAB
+stmtvtab	VTAB
+tabfunc	VTAB
+unionvtab*	VTAB
+zipfile*	VTAB
+dbstat	VTAB
+dbpage*	VTAB
+quota*	VTAB
+swarmvtab*	VTAB
+rowvaluevtab	VTAB
+
+# --- JSON (G6.JSON) ---
+json*	JSON
+
+# --- RTree (G6.RTREE) ---
+rtree	RTREE
+
+# --- C-API (G5) ---
+bind*	C-API
+capi*	C-API
+incr*	C-API
+backup*	C-API
+hook*	C-API
+changes*	C-API
+notify*	C-API
+dbstatus	C-API
+interrupt*	C-API
+stmt*	C-API
+blob	C-API
+lastinsert	C-API
+laststmtchanges	C-API
+sqllimits	C-API
+sqllog	C-API
+progress	C-API
+dataversion	C-API
+imposter*	C-API
+e_	C-API
+tableapi	C-API
+colmeta	C-API
+exec	C-API
+
+# --- Planner / EXPLAIN / ANALYZE (G7.PLANNER) ---
+explain	PLANNER
+analyze*	PLANNER
+eqp	PLANNER
+autoindex	PLANNER
+bestindex*	PLANNER
+skipscan	PLANNER
+cost	PLANNER
+scanstatus	PLANNER
+stat*	PLANNER
+trace	PLANNER
+resolver	PLANNER
+cursorhint	PLANNER
+pushdown	PLANNER
+qrf	PLANNER
+bloom	PLANNER
+
+# --- WAL & journal (G7.WAL) ---
+wal*	WAL
+journal	WAL
+jrnlmode	WAL
+mjournal	WAL
+subjournal	WAL
+nockpt	WAL
+rollback*	WAL
+
+# --- Locking & concurrency (G7.CONCURRENCY) ---
+lock*	CONCURRENCY
+shared*	CONCURRENCY
+busy*	CONCURRENCY
+snapshot*	CONCURRENCY
+thread	CONCURRENCY
+mutex	CONCURRENCY
+manydb	CONCURRENCY
+multiplex*	CONCURRENCY
+nolock	CONCURRENCY
+superlock	CONCURRENCY
+shmlock	CONCURRENCY
+pendingrace	CONCURRENCY
+unixexcl	CONCURRENCY
+win32	CONCURRENCY
+exclusive	CONCURRENCY
+rowallock	CONCURRENCY
+
+# --- Session / RBU (G7.SESSION) ---
+session*	SESSION
+rbu*	SESSION
+
+# --- Everything else: regressions, corruption, malloc, fault injection ---
+# (tkt*, corrupt*, malloc*, mem*, mmap*, crash*, fuzz*, speed*, soak, ioerr,
+#  avfs, btree/pager internals, shell, sqldiff, misc, misuse, etc.)
+*	OTHER

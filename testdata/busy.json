@@ -1,0 +1,49 @@
+{
+  "file": "busy.test",
+  "name": "busy",
+  "tests": [
+    {
+      "name": "busy-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "busy-1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN IMMEDIATE",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "busy-1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN IMMEDIATE",
+          "expect": "0 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "busy-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(5)"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    }
+  ]
+}

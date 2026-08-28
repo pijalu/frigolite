@@ -1,0 +1,105 @@
+{
+  "file": "zipfile2.test",
+  "name": "zipfile2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH contents(name,mtime,data) AS (\n        VALUES('a.txt', 1000000, 'contents of a.txt') UNION ALL\n        VALUES('b.txt', 1000000, 'contents of b.txt')\n    ) SELECT quote( zipfile(name,NULL,mtime,data) ) FROM contents;"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test');"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE temp.zip SET name='test1' WHERE name='test2'",
+          "expect": "1 {duplicate name: \"test1\"}"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test';",
+          "expect": "1 {duplicate name: \"testnew\"}"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;",
+          "expect": "test2"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(name) FROM t1;",
+          "expect": "60000"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name,sz FROM zipfile(readfile('test.zip'));",
+          "expect": "1 {failed to read LFH at offset 0}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE hhh USING zipfile('testdir')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE hhh USING zipfile('testdir')"
+        }
+      ]
+    }
+  ]
+}

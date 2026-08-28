@@ -1,0 +1,27 @@
+{
+  "file": "keyword1.test",
+  "name": "keyword1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \\"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \\"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX \\"
+        }
+      ]
+    }
+  ]
+}

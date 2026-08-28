@@ -1,0 +1,88 @@
+{
+  "file": "walpersist.test",
+  "name": "walpersist",
+  "tests": [
+    {
+      "name": "walpersist-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint=128;\n    PRAGMA journal_size_limit=16384;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(500), randomblob(500))"
+        }
+      ]
+    },
+    {
+      "name": "walpersist-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint=128;\n    PRAGMA journal_size_limit=16384;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(500), randomblob(500))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randomblob(5000));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=OFF;\n    PRAGMA journal_size_limit=12000;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(50000));\n    UPDATE t1 SET x=randomblob(50000);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=TRUNCATE;\n    PRAGMA journal_mode=MEMORY;\n    PRAGMA journal_mode=WAL;\n    PRAGMA journal_mode=PERSIST;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

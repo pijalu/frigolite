@@ -1,0 +1,19 @@
+{
+  "file": "tkt3541.test",
+  "name": "tkt3541",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;"
+        }
+      ]
+    }
+  ]
+}

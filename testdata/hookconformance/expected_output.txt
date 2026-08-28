@@ -1,0 +1,11 @@
+changes_after_insert|1
+changes_after_second|1
+changes_after_update|1
+changes_after_delete|1
+total_changes|4
+after_rollback_count|1
+after_rollback_changes|1
+Runtime error near line 21: delete blocked (19)
+after_abort_delete|1
+Runtime error near line 26: insert blocked (19)
+unreachable_after_raise|1

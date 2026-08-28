@@ -1,0 +1,19 @@
+{
+  "file": "unionallfault.test",
+  "name": "unionallfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x,y,z);\n  CREATE TABLE t3(x,y,z);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1, (\n      SELECT x FROM t1 UNION ALL SELECT y FROM t1\n    ), t3"
+        }
+      ]
+    }
+  ]
+}

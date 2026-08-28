@@ -1,0 +1,30 @@
+{
+  "file": "corruptF.test",
+  "name": "corruptF",
+  "tests": [
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;",
+          "expect": "table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 6 {CREATE TABLE t4(x)}"
+        }
+      ]
+    },
+    {
+      "name": "2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;",
+          "expect": "table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 5 {CREATE TABLE t4(x)}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;"
+        }
+      ]
+    }
+  ]
+}

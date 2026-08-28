@@ -1,0 +1,211 @@
+{
+  "file": "rowvalueA.test",
+  "name": "rowvalueA",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) IN ( (3, 4), (5, 6), (1, 3) );",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) IN ( (3, 4), (5, 6), (1, 2) );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) IN ( (3, 2) );",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) IN ( (1, 2) );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) IN ( );",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) NOT IN ( );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (1, 2) IN ( (1, 2), (3, 4, 5), (5, 6) )",
+          "expect": "1 {IN(...) element has 3 terms - expected 2}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (1, 2) IN ( (1, 2), 4, (5, 6) )",
+          "expect": "1 {IN(...) element has 1 term - expected 2}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (1, 2, 3) IN ( (1, 2), (3, 4), (5, 6) )",
+          "expect": "1 {IN(...) element has 2 terms - expected 3}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 IN ( (1, 2), (3, 4), (5, 6) )",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x2 (x, y);\n  INSERT INTO x2 VALUES (1234, 'abc');\n\n  CREATE TABLE x1 (a, b PRIMARY KEY COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO x1 VALUES (1234, 'ABCD');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 CROSS JOIN x1 WHERE (1234, x2.y) > (x1.a, x1.b);",
+          "expect": "1234 abc 1234 ABCD"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX x1a ON x1(a);"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 CROSS JOIN x1 WHERE (1234, x2.y) > (x1.a, x1.b);",
+          "expect": "1234 abc 1234 ABCD"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a PRIMARY KEY, b COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('BBB', 'a');"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (t1.a, t1.b) <= ('BBB', 'CCC');",
+          "expect": "BBB a"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t0 (c0);\n  INSERT INTO t0 VALUES ('True');\n\n  CREATE TABLE t1 (c0 COLLATE NOCASE, c1 PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('a', 1);\n  INSERT INTO t1 VALUES ('a', 'True');"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0, t1 WHERE (t1.c1, t1.c0) <= (t0.c0, t0.c0);",
+          "expect": "True a 1 True a True"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b TEXT);\n  CREATE INDEX t1_ab ON t1(a COLLATE NOCASE, b COLLATE NOCASE);\n  INSERT INTO t1 VALUES('a',null),('b', 'ABCD');"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1\n   WHERE ('B' COLLATE nocase,'abc')>(a,b)\n   ORDER BY +a;",
+          "expect": "a NULL b ABCD"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 NOT INDEXED\n   WHERE ('B' COLLATE nocase,'abc')>(a,b)\n   ORDER BY +a;",
+          "expect": "a NULL b ABCD"
+        }
+      ]
+    }
+  ]
+}

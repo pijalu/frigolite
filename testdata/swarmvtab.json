@@ -1,0 +1,176 @@
+{
+  "file": "swarmvtab.test",
+  "name": "swarmvtab",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE s1;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');\n  SELECT count(*) FROM s1 WHERE rowid<50;",
+          "expect": "49"
+        }
+      ]
+    },
+    {
+      "name": "1.5.1.(5-seconds-or-so)",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;",
+          "expect": "80000"
+        }
+      ]
+    },
+    {
+      "name": "1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM s1 a, s1 b, s1 c \n  WHERE a.rowid=b.rowid AND b.rowid=c.rowid;",
+          "expect": "400"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 1 AND 100;",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 101 AND 200;",
+          "expect": "1 {no such rowid table: t15}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 201 AND 300;",
+          "expect": "1 {source table schema mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir');",
+          "expect": "1 {sql error: near \"FROMdir\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir', 'fetchdb');",
+          "expect": "1 {sql error: near \"FROMdir\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n    'VALUES\n        (''test.db1'', ''t1'', 1, 10),\n        (''test.db2'', ''t1'', 11, 20)\n    ', 'fetch_db_no_such_function'\n  );",
+          "expect": "1 {sql error: no such function: fetch_db_no_such_function}"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n    'VALUES\n        (''test.db1'', ''t1'', 1, 10),\n        (''test.db2'', ''t1'', 11, 20)\n    ', 'fetch_db'\n  );",
+          "expect": "1 {fetch_db error!}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n  CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n    'VALUES\n        (''test.db1'', ''t1'', 1, 10),\n        (''test.db2'', ''t1'', 11, 20)\n    ', 'fetch_db'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xyz",
+          "expect": "1 {fetch_db error!}"
+        }
+      ]
+    },
+    {
+      "name": "2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t0 WHERE rowid<=200"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "file": "tkt3581.test",
+  "name": "tkt3581",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(0,544,846);\n    INSERT INTO t1 VALUES(1,345,51);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 on t2(c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;"
+        }
+      ]
+    }
+  ]
+}

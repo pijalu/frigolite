@@ -1,0 +1,59 @@
+{
+  "file": "tkt-31338dca7e.test",
+  "name": "tkt_31338dca7e",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(111);\n    INSERT INTO t1 VALUES(222);\n    INSERT INTO t2 VALUES(333);\n    INSERT INTO t2 VALUES(444);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1x ON t1(x);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(v,w);\n    CREATE TABLE t4(x,y);\n    CREATE TABLE t5(z);\n    INSERT INTO t3 VALUES(111,222);\n    INSERT INTO t3 VALUES(333,444);\n    INSERT INTO t4 VALUES(222,333);\n    INSERT INTO t4 VALUES(444,555);\n    INSERT INTO t5 VALUES(888);\n    INSERT INTO t5 VALUES(999);\n    \n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t3v ON t3(v);\n   CREATE INDEX t4x ON t4(x);\n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    CREATE TABLE t2(e,f);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t2 VALUES(10,-8);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE TABLE t3(g);\n    INSERT INTO t3 VALUES(4);\n    CREATE TABLE t4(h);\n    INSERT INTO t4 VALUES(5);\n\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b=2 AND b NOT IN (\n               SELECT x+1 FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (+a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (+b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a,b,c,d,e,f);\n    CREATE TABLE t6(g,h);\n    CREATE TRIGGER t6r AFTER INSERT ON t6 BEGIN\n      INSERT INTO t5    \n        SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n         WHERE (a=1 AND h=4)\n            OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n    END;\n    INSERT INTO t6 VALUES(88,99);\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4,3,4);\n    INSERT INTO t1 VALUES(99,101,3,4);\n    INSERT INTO t1 VALUES(98,97,3,4);\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x+a FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f+a AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));"
+        }
+      ]
+    }
+  ]
+}

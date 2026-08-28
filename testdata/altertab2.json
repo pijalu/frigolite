@@ -1,0 +1,426 @@
+{
+  "file": "altertab2.test",
+  "name": "altertab2",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1);\n  CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES p1);\n  CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES p1(a));"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE p1 RENAME TO p2;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
+          "expect": "\n  {CREATE TABLE c1(x REFERENCES \"p2\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}\n"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
+          "expect": "\n  {CREATE TABLE c1(x REFERENCES \"p2\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}\n"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE p3 RENAME TO p2;\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
+          "expect": "\n  {CREATE TABLE c1(x REFERENCES \"p3\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p3\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p3\"(a))}\n"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "log_entry {\"newname\"}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "col1 newname"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "log_entry {\"newname\"}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "col1 newname"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "log_entry {\"newname\"}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "col1 newname"
+        }
+      ]
+    },
+    {
+      "name": "3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "log_entry {\"newname\"}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "3.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "col1 newname"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';",
+          "expect": "\n{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(a,b);\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';",
+          "expect": "\n{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(aaa,b);\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1x RENAME d TO ddd;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';",
+          "expect": "\n{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,ddd)=(aaa,b);\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c,d);\n  CREATE TRIGGER r3 AFTER INSERT ON t3 WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM t3 EXCEPT SELECT a,b,c FROM t3 ORDER BY a;\n    SELECT rowid, * FROM t3;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t3 RENAME TO t3x;\n  SELECT sql FROM sqlite_master WHERE name = 'r3';",
+          "expect": "\n  {CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a;\n    SELECT rowid, * FROM \"t3x\";\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t3x RENAME a TO abcd;\n  SELECT sql FROM sqlite_master WHERE name = 'r3';",
+          "expect": "\n  {CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN\n    SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd;\n    SELECT rowid, * FROM \"t3x\";\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n  INSERT INTO t1 VALUES(1,2,3,4,5,6);\n  CREATE TABLE t2(x,y,z);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c FROM t1 UNION SELECT d,e,f FROM t1 ORDER BY b,c;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM t1 UNION SELECT d,e,f FROM t1 ORDER BY b,c;\n  END;\n  INSERT INTO t1 VALUES(2,3,4,5,6,7);\n  SELECT * FROM t2;",
+          "expect": "1 2 3  2 3 4  4 5 6  5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 RENAME TO xyzzy;\n  SELECT sql FROM sqlite_master WHERE name='r1'",
+          "expect": "\n  {CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c;\n  END}\n"
+        },
+        {
+          "type": "query",
+          "sql": "ALTER TABLE xyzzy RENAME c TO ccc;\n  SELECT sql FROM sqlite_master WHERE name='r1'",
+          "expect": "\n  {CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc;\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c); \n  CREATE TABLE t3(d, e, f);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    UPDATE t2 SET a = new.d;\n    SELECT a, b, c FROM v1;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE t1 RENAME a TO aaa;",
+          "expect": "1 {error in trigger tr after rename: no such column: a}"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n  CREATE VIEW v4 AS SELECT * FROM t4 WHERE (a=1 AND 0) OR b=2;"
+        }
+      ]
+    },
+    {
+      "name": "8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t4 RENAME a TO c;\n  SELECT sql FROM sqlite_master WHERE name = 'v4'",
+          "expect": "{CREATE VIEW v4 AS SELECT * FROM t4 WHERE (c=1 AND 0) OR b=2}"
+        }
+      ]
+    },
+    {
+      "name": "8.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(likelihood(1,2) AND 0);\n  ALTER TABLE t0 RENAME TO t1;\n  SELECT sql FROM sqlite_master WHERE name='i0';",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n\n    SELECT group_conct(\n        123 ORDER BY (\n          SELECT 1 FROM ( VALUES(a, 'b'), ('c') )\n          )) \n    FROM t1;\n\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE t2 RENAME TO newname;",
+          "expect": "1 {error in trigger AFTER: all VALUES must have the same number of terms}"
+        }
+      ]
+    }
+  ]
+}

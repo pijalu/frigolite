@@ -1,0 +1,138 @@
+{
+  "file": "walhook.test",
+  "name": "walhook",
+  "tests": [
+    {
+      "name": "walhook-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);"
+        }
+      ]
+    },
+    {
+      "name": "walhook-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 'one')"
+        }
+      ]
+    },
+    {
+      "name": "walhook-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 'two')"
+        }
+      ]
+    },
+    {
+      "name": "walhook-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_checkpoint"
+        }
+      ]
+    },
+    {
+      "name": "walhook-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_checkpoint"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous = NORMAL",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_autocheckpoint = 10",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_autocheckpoint",
+          "expect": "10"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 'one')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 'two')"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a PRIMARY KEY, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint = 10"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

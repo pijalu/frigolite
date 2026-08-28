@@ -1,0 +1,35 @@
+{
+  "file": "substr.test",
+  "name": "substr",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(t text, b blob)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ifnull(substr(NULL,1,1),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ifnull(substr(NULL,1),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ifnull(substr('abcdefg',NULL,1),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ifnull(substring('abcdefg',NULL),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ifnull(substr('abcdefg',1,NULL),'nil')"
+        }
+      ]
+    }
+  ]
+}

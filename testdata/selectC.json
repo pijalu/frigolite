@@ -1,0 +1,374 @@
+{
+  "file": "selectC.test",
+  "name": "selectC",
+  "tests": [
+    {
+      "name": "selectC-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');"
+        }
+      ]
+    },
+    {
+      "name": "selectC-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from (select distinct a, b from t_distinct_bug)",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "selectC-4.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIEW v42b AS SELECT DISTINCT a, b FROM t_distinct_bug;\n  SELECT a FROM v42b;",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "selectC-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a, udf() from (select distinct a, b from t_distinct_bug)",
+          "expect": "1 1 1 2 1 3"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a);\n  CREATE TABLE x2(b);\n  CREATE TABLE x3(c);\n  CREATE VIEW vvv AS SELECT b FROM x2 ORDER BY 1;\n\n  INSERT INTO x1 VALUES('a'), ('b');\n  INSERT INTO x2 VALUES(22), (23), (25), (24), (21);\n  INSERT INTO x3 VALUES(302), (303), (301);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE x4 AS SELECT b FROM vvv UNION ALL SELECT c from x3;\n  SELECT * FROM x4;",
+          "expect": "21 22 23 24 25 302 303 301"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1, x4",
+          "expect": "a 21 a 22 a 23 a 24 a 25 a 302 a 303 a 301\n  b 21 b 22 b 23 b 24 b 25 b 302 b 303 b 301"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1, (SELECT b FROM vvv UNION ALL SELECT c from x3) ORDER BY 1,2;",
+          "expect": "a 21 a 22 a 23 a 24 a 25 a 301 a 302 a 303\n  b 21 b 22 b 23 b 24 b 25 b 301 b 302 b 303"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1,'aaa','bbb');\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 VALUES(2,'ccc','ddd');\n\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y IN ('aaabbb','xxx');",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c IN ('aaabbb','xxx');",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE x=2",
+          "expect": "2 cccddd"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE a=2",
+          "expect": "2 cccddd"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE +y='aaabbb'",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING y='aaabbb'",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING b||c='aaabbb'",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'\n     GROUP BY x, y",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'\n     GROUP BY x, y",
+          "expect": "1 aaabbb"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x",
+          "expect": "AAA CCC"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x",
+          "expect": "AAA CCC"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT upper(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x",
+          "expect": "AAA CCC"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x",
+          "expect": "AAA CCC"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT upper(b) AS x\n      FROM t1\n     ORDER BY x DESC",
+          "expect": "CCC AAA AAA"
+        }
+      ]
+    },
+    {
+      "name": "selectC-1.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x DESC",
+          "expect": "CCC AAA AAA"
+        }
+      ]
+    },
+    {
+      "name": "selectC-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t21a(a,b);\n      INSERT INTO t21a VALUES(1,2);\n      CREATE TABLE t21b(n);\n      CREATE TRIGGER r21 AFTER INSERT ON t21b BEGIN\n        SELECT a FROM t21a WHERE a>new.x UNION ALL\n        SELECT b FROM t21a WHERE b>new.x ORDER BY 1 LIMIT 2;\n      END;\n      INSERT INTO t21b VALUES(6);",
+          "expect": "1 {no such column: new.x}"
+        }
+      ]
+    },
+    {
+      "name": "selectC-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE person (\n        org_id          TEXT NOT NULL,\n        nickname        TEXT NOT NULL,\n        license         TEXT,\n        CONSTRAINT person_pk PRIMARY KEY (org_id, nickname),\n        CONSTRAINT person_license_uk UNIQUE (license)\n    );\n    INSERT INTO person VALUES('meyers', 'jack', '2GAT123');\n    INSERT INTO person VALUES('meyers', 'hill', 'V345FMP');\n    INSERT INTO person VALUES('meyers', 'jim', '2GAT138');\n    INSERT INTO person VALUES('smith', 'maggy', '');\n    INSERT INTO person VALUES('smith', 'jose', 'JJZ109');\n    INSERT INTO person VALUES('smith', 'jack', 'THX138');\n    INSERT INTO person VALUES('lakeside', 'dave', '953OKG');\n    INSERT INTO person VALUES('lakeside', 'amy', NULL);\n    INSERT INTO person VALUES('lake-apts', 'tom', NULL);\n    INSERT INTO person VALUES('acorn', 'hideo', 'CQB421');\n    \n    SELECT \n      org_id, \n      count((NOT (org_id IS NULL)) AND (NOT (nickname IS NULL)))\n    FROM person \n    WHERE (CASE WHEN license != '' THEN 1 ELSE 0 END)\n    GROUP BY 1;",
+          "expect": "acorn 1 lakeside 1 meyers 3 smith 2"
+        }
+      ]
+    },
+    {
+      "name": "selectC-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t2 VALUES('abc', 'xxx');\n    INSERT INTO t2 VALUES('def', 'yyy');\n    SELECT a, max(b || a) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;",
+          "expect": "abc xxxabc def yyydef"
+        }
+      ]
+    },
+    {
+      "name": "selectC-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, max(a || b) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;",
+          "expect": "xxx abcxxx yyy defyyy"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1,'aaa','bbb');\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 VALUES(2,'ccc','ddd');\n\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y IN ('aaabbb','xxx');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c IN ('aaabbb','xxx');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE x=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE +y='aaabbb'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING y='aaabbb'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     GROUP BY x, y\n    HAVING b||c='aaabbb'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE y='aaabbb'\n     GROUP BY x, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x, b||c AS y\n      FROM t1\n     WHERE b||c='aaabbb'\n     GROUP BY x, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT upper(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     GROUP BY x\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT upper(b) AS x\n      FROM t1\n     ORDER BY x DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE person (\n        org_id          TEXT NOT NULL,\n        nickname        TEXT NOT NULL,\n        license         TEXT,\n        CONSTRAINT person_pk PRIMARY KEY (org_id, nickname),\n        CONSTRAINT person_license_uk UNIQUE (license)\n    );\n    INSERT INTO person VALUES('meyers', 'jack', '2GAT123');\n    INSERT INTO person VALUES('meyers', 'hill', 'V345FMP');\n    INSERT INTO person VALUES('meyers', 'jim', '2GAT138');\n    INSERT INTO person VALUES('smith', 'maggy', '');\n    INSERT INTO person VALUES('smith', 'jose', 'JJZ109');\n    INSERT INTO person VALUES('smith', 'jack', 'THX138');\n    INSERT INTO person VALUES('lakeside', 'dave', '953OKG');\n    INSERT INTO person VALUES('lakeside', 'amy', NULL);\n    INSERT INTO person VALUES('lake-apts', 'tom', NULL);\n    INSERT INTO person VALUES('acorn', 'hideo', 'CQB421');\n    \n    SELECT \n      org_id, \n      count((NOT (org_id IS NULL)) AND (NOT (nickname IS NULL)))\n    FROM person \n    WHERE (CASE WHEN license != '' THEN 1 ELSE 0 END)\n    GROUP BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t2 VALUES('abc', 'xxx');\n    INSERT INTO t2 VALUES('def', 'yyy');\n    SELECT a, max(b || a) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b, max(a || b) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "file": "schema5.test",
+  "name": "schema5",
+  "tests": [
+    {
+      "name": "schema5-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3,4);",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "schema5-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,11,12);",
+          "expect": "1 {CHECK constraint failed: two}"
+        }
+      ]
+    },
+    {
+      "name": "schema5-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,3,4)",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "schema5-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,2,3)",
+          "expect": "1 {UNIQUE constraint failed: t1.b, t1.c}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c, PRIMARY KEY(a) UNIQUE (a) CONSTRAINT one);\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n        CONSTRAINT one PRIMARY KEY(a) CONSTRAINT two CHECK(b<10) UNIQUE(b)\n        CONSTRAINT three\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n       UNIQUE(a) CONSTRAINT one,\n       PRIMARY KEY(b,c) CONSTRAINT two\n    );\n    INSERT INTO t1 VALUES(1,2,3);"
+        }
+      ]
+    }
+  ]
+}

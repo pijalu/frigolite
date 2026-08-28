@@ -1,0 +1,13 @@
+{
+  "name": "jrnl-persist-basic",
+  "pragmas": {"page_size": "1024", "journal_mode": "PERSIST"},
+  "journalFiles": true,
+  "sql": [
+    "CREATE TABLE t1(a,b);",
+    "INSERT INTO t1 VALUES(1,'one');",
+    "INSERT INTO t1 VALUES(2,'two');",
+    "BEGIN;",
+    "INSERT INTO t1 VALUES(3,'three');",
+    "INSERT INTO t1 VALUES(4,'four');"
+  ]
+}

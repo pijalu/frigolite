@@ -1,0 +1,120 @@
+{
+  "file": "incrblob3.test",
+  "name": "incrblob3",
+  "tests": [
+    {
+      "name": "incrblob3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM blobs"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-6.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-6.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-6.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = 0"
+        }
+      ]
+    },
+    {
+      "name": "incrblob3-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM blobs"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

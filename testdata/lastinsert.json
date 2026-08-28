@@ -1,0 +1,351 @@
+{
+  "file": "lastinsert.test",
+  "name": "lastinsert",
+  "tests": [
+    {
+      "name": "lastinsert-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t1 (k integer primary key);\n        insert into t1 values (1);\n        insert into t1 values (NULL);\n        insert into t1 values (NULL);\n        select last_insert_rowid();",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-1.1w",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t1w (k integer primary key) WITHOUT ROWID;\n        insert into t1w values (123456);\n        select last_insert_rowid(); -- returns 3 from above.",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "update t1 set k=4 where k=2;\n        select last_insert_rowid();",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "delete from t1 where k=4;\n        select last_insert_rowid();",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t2 (k integer primary key, val1, val2, val3);\n        select last_insert_rowid();",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create view v as select * from t1;\n        select last_insert_rowid();",
+          "expect": "0 3"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "delete from t2;\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into t1 values (13);\n        select last_insert_rowid();",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val1 from t2;",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val2 from t2;",
+          "expect": "0 126"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val3 from t2;",
+          "expect": "0 1026"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "delete from t2;\n        drop trigger r1;\n        create trigger r1 after update on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update t1 set k=14 where k=3;\n        select last_insert_rowid();",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val1 from t2;",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val2 from t2;",
+          "expect": "0 128"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val3 from t2;",
+          "expect": "0 1028"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of insert on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into v values (15);\n        select last_insert_rowid();",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val1 from t2;",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val2 from t2;",
+          "expect": "0 130"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val3 from t2;",
+          "expect": "0 1030"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "drop trigger r1;  -- This was not created if views are disabled.",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val1 from t2;",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val2 from t2;",
+          "expect": "0 177"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val3 from t2;",
+          "expect": "0 1077"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of update on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update v set k=16 where k=14;\n        select last_insert_rowid();",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val1 from t2;",
+          "expect": "0 13"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val2 from t2;",
+          "expect": "0 132"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select val3 from t2;",
+          "expect": "0 1032"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "drop table t1; drop table t2; drop trigger r1;\n        create temp table t1 (k integer primary key);\n        create temp table t2 (k integer primary key);\n        create temp view v1 as select * from t1;\n        create temp view v2 as select * from t2;\n        create temp table rid (k integer primary key, rin, rout);\n        insert into rid values (1, NULL, NULL);\n        insert into rid values (2, NULL, NULL);\n        create temp trigger r1 instead of insert on v1 for each row begin\n            update rid set rin=last_insert_rowid() where k=1;\n            insert into t1 values (100+NEW.k);\n            insert into v2 values (100+last_insert_rowid());\n            update rid set rout=last_insert_rowid() where k=1;\n        end;\n        create temp trigger r2 instead of insert on v2 for each row begin\n            update rid set rin=last_insert_rowid() where k=2;\n            insert into t2 values (1000+NEW.k);\n            update rid set rout=last_insert_rowid() where k=2;\n        end;\n        insert into t1 values (77);\n        select last_insert_rowid();",
+          "expect": "0 77"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "insert into v1 values (5);\n        select last_insert_rowid();",
+          "expect": "0 77"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select rin from rid where k=1;",
+          "expect": "0 77"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select rout from rid where k=1;",
+          "expect": "0 105"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select rin from rid where k=2;",
+          "expect": "0 105"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select rout from rid where k=2;",
+          "expect": "0 1205"
+        }
+      ]
+    },
+    {
+      "name": "lastinsert-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(123456789012345,0)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

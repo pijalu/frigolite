@@ -1,0 +1,94 @@
+{
+  "file": "in6.test",
+  "name": "in6",
+  "tests": [
+    {
+      "name": "in6-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d FROM t1\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;",
+          "expect": "1 2 3 4 5 8 9"
+        }
+      ]
+    },
+    {
+      "name": "in6-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;",
+          "expect": "1 {} 2 {} 3 {} 4 {} 5 {} 8 {} 9 {}"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b, c, d);\n  INSERT INTO t2(b,c,d) VALUES(4,5,3),(4,5,4),(4,5,8);\n  CREATE INDEX t2bcd ON t2(b, c, d);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL AND c=5 AND d IN (2,3,4);",
+          "expect": "0 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE v0(v1);\n  CREATE TABLE v3(v5, v4);\n  INSERT INTO v0 VALUES(0);\n  CREATE INDEX v9 ON v3(v4, v4, v5);\n  SELECT quote(v5) FROM v0 LEFT JOIN v3 ON v4 = NULL AND v5 IN(0);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a TEXT, b TEXT);\n  INSERT INTO t1 VALUES(null,10),(0,10),(10,10);\n  CREATE INDEX t1ab ON t1(a,b);\n  SELECT quote(a), quote(b), '|' FROM t1 WHERE b in (SELECT a FROM t1) AND a=0;",
+          "expect": "'0' '10' |"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x TEXT);\n  INSERT INTO t2(x) VALUES(NULL),(0),(10);\n  SELECT quote(x), quote(a), quote(b), 'x'\n    FROM t2 LEFT JOIN t1 ON a=x AND b in (null,0,10);",
+          "expect": "NULL NULL NULL x '0' '0' '10' x '10' '10' '10' x"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b,c,d)\n        SELECT 100, 200+x/2, 300+x/5, x FROM c;\n    CREATE INDEX t1abc ON t1(a,b,c);\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='1000000 500000 500 50';\n    ANALYZE sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "file": "tkt-fa7bf5ec.test",
+  "name": "tkt_fa7bf5ec",
+  "tests": [
+    {
+      "name": "tkt-fa7bf5ec-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES ('a');\n    INSERT INTO t1 VALUES ('A');\n    INSERT INTO t1 VALUES ('A');\n    SELECT count(CASE WHEN x='a' THEN 1 END),\n           count(CASE WHEN x='A' THEN 1 END)\n      FROM t1;",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES ('a');\n    INSERT INTO t1 VALUES ('A');\n    INSERT INTO t1 VALUES ('A');\n    SELECT count(CASE WHEN x='a' THEN 1 END),\n           count(CASE WHEN x='A' THEN 1 END)\n      FROM t1;"
+        }
+      ]
+    }
+  ]
+}

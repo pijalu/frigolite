@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Pre-commit hook: run fast sanity checks before allowing a commit.
+# Install with: git config core.hooksPath .githooks
+#
+# The strict quality gate (gocognit <=15, gocyclo <=12, staticcheck,
+# file-size hard 1000 / soft 500, tools/quality_gate.sh) is NOT run here
+# during the COMPLEXITY-REFACTOR campaign: it is enforced at completion
+# via `make quality` / the goal verify commands. Until the campaign is
+# complete, the hook must stay FAST and NON-BLOCKING so every important
+# change can be committed immediately (no work loss).
+#
+# Only checks that currently pass are run: build + SOLID architecture tests.
+# The full test suite (JSON harness, tools/status) has pre-existing failures
+# and would block commits — it is NOT part of the pre-commit gate.
+#
+set -e
+
+echo "=== Pre-commit checks ==="
+
+echo "--- Build ---"
+go build ./...
+
+echo "--- SOLID tests ---"
+go test -timeout 30s -run "^TestSOLID_" .
+
+echo "=== All checks passed ==="

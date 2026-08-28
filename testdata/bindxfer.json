@@ -1,0 +1,15 @@
+{
+  "file": "bindxfer.test",
+  "name": "bindxfer",
+  "tests": [
+    {
+      "name": "bindxfer-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        }
+      ]
+    }
+  ]
+}

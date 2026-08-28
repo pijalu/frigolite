@@ -1,0 +1,112 @@
+{
+  "file": "upfrom2.test",
+  "name": "upfrom2",
+  "tests": [
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1 UNION ALL SELECT * FROM t1\n  )"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(11),(22),(33),(44),(55);\n  CREATE VIEW t2(b,c) AS SELECT a, COUNT(*) OVER () FROM t1;\n  CREATE TABLE t3(x,y);\n  CREATE TRIGGER t2r1 INSTEAD OF UPDATE ON t2 BEGIN\n    INSERT INTO t3(x,y) VALUES(new.b,new.c);\n  END;\n  SELECT * FROM t2;",
+          "expect": "11 5 22 5 33 5 44 5 55 5"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t2 SET c=t1.a FROM t1 WHERE t2.b=t1.a;\n  SELECT * FROM t3;",
+          "expect": "11 11 22 22 33 33 44 44 55 55"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

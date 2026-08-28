@@ -1,0 +1,200 @@
+{
+  "file": "date.test",
+  "name": "date",
+  "tests": [
+    {
+      "name": "date-6.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT datetime('2000-05-29 14:16:00','localtime');",
+          "expect": "1 {local time unavailable}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00Z','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00 +00:00','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00+00:00','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00+00:00','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00 -00:00','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00-00:00','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.25.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00-00:00','utc','utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00+05:00');",
+          "expect": "{2000-10-29 07:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00+05:00', 'utc');",
+          "expect": "{2000-10-29 07:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00Z', 'localtime');",
+          "expect": "{2000-10-29 12:30:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00Z', 'utc', 'localtime');",
+          "expect": "{2000-10-29 12:30:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00Z', 'utc', 'localtime', 'utc');",
+          "expect": "{2000-10-29 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00Z', 'utc','localtime','utc','localtime');",
+          "expect": "{2000-10-29 12:30:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-6.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT datetime('2000-10-29 12:00:00Z', 'localtime','localtime');",
+          "expect": "{2000-10-29 12:30:00}"
+        }
+      ]
+    },
+    {
+      "name": "date-13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT strftime('%Y-%m-%d %H:%M:%f', julianday('2006-09-24T10:50:26.047'))",
+          "expect": "{2006-09-24 10:50:26.047}"
+        }
+      ]
+    },
+    {
+      "name": "date-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT strftime('%Y-%m-%d %H:%M:%f', julianday('2006-09-24T10:50:26.047'))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT strftime('%s','2003-10-22 12:34:00')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

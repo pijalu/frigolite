@@ -1,0 +1,41 @@
+{
+  "file": "wal9.test",
+  "name": "wal9",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t(x);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t VALUES(randomblob(100));\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n\n    INSERT INTO t SELECT randomblob(100) FROM t;\n    INSERT INTO t SELECT randomblob(100) FROM t;\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        }
+      ]
+    }
+  ]
+}

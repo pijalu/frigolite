@@ -1,0 +1,35 @@
+{
+  "file": "upsert4.test",
+  "name": "upsert4",
+  "tests": [
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v(x INTEGER);\n  CREATE TABLE hist(x INTEGER PRIMARY KEY, cnt INTEGER);\n  CREATE TRIGGER vt AFTER INSERT ON v BEGIN\n    INSERT INTO hist VALUES(new.x, 1) ON CONFLICT(x) DO\n      UPDATE SET cnt=cnt+1;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO v VALUES(1), (4), (1), (5), (5), (8), (9), (1);\n  SELECT * FROM hist;",
+          "expect": "1 3\n  4 1\n  5 2\n  8 1\n  9 1"
+        }
+      ]
+    }
+  ]
+}

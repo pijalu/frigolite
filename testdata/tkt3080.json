@@ -1,0 +1,72 @@
+{
+  "file": "tkt3080.test",
+  "name": "tkt3080",
+  "tests": [
+    {
+      "name": "tkt3080.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3080.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');"
+        }
+      ]
+    },
+    {
+      "name": "tkt3080.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "123"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT execsql('CREATE TABLE t1(x)');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t2(y);');\n    SELECT execsql(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT execsql(x) FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

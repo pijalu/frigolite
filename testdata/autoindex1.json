@@ -1,0 +1,347 @@
+{
+  "file": "autoindex1.test",
+  "name": "autoindex1",
+  "tests": [
+    {
+      "name": "autoindex1-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 SELECT a+2, b+22 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+44 FROM t1;\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 SELECT a, 900+b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;",
+          "expect": "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;",
+          "expect": "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;",
+          "expect": "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;",
+          "expect": "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-299",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t2';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN\n  SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a);",
+          "expect": "/AUTOMATIC COVERING INDEX/"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)",
+          "expect": "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 ORDER BY d",
+          "expect": "919 930 941 952 963 974 985 996"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES(1,2);\n    INSERT INTO t4 VALUES(2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+2, b+2 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+4, b+4 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+8, b+8 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+16, b+16 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+32, b+32 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+64, b+64 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+128, b+128 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+256, b+256 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+512, b+512 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+1024, b+1024 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 SELECT a+2048, b+2048 FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t4;",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-401",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;",
+          "expect": "4087"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t501(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t502(x INTEGER PRIMARY KEY, y);\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t501',null,'1000000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t502',null,'1000');\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-500.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT b FROM t501\n   WHERE t501.a IN (SELECT x FROM t502 WHERE y=?);"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-501",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT b FROM t501\n   WHERE t501.a IN (SELECT x FROM t502 WHERE y=t501.b);"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-502",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT b FROM t501\n   WHERE t501.a=123\n     AND t501.a IN (SELECT x FROM t502 WHERE y=t501.b);"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-600",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE flock_owner(\n    owner_rec_id INTEGER CONSTRAINT flock_owner_key PRIMARY KEY,\n    flock_no VARCHAR(6) NOT NULL REFERENCES flock (flock_no),\n    owner_person_id INTEGER NOT NULL REFERENCES person (person_id),\n    owner_change_date TEXT, last_changed TEXT NOT NULL,\n    CONSTRAINT fo_owner_date UNIQUE (flock_no, owner_change_date)\n  );\n  CREATE TABLE sheep (\n    Sheep_No char(7) NOT NULL,\n    Date_of_Birth char(8),\n    Sort_DoB text,\n    Flock_Book_Vol char(2),\n    Breeder_No char(6),\n    Breeder_Person integer,\n    Originating_Flock char(6),\n    Registering_Flock char(6),\n    Tag_Prefix char(9),\n    Tag_No char(15),\n    Sort_Tag_No integer,\n    Breeders_Temp_Tag char(15),\n    Sex char(1),\n    Sheep_Name char(32),\n    Sire_No char(7),\n    Dam_No char(7),\n    Register_Code char(1),\n    Colour char(48),\n    Colour_Code char(2),\n    Pattern_Code char(8),\n    Horns char(1),\n    Litter_Size char(1),\n    Coeff_of_Inbreeding real,\n    Date_of_Registration text,\n    Date_Last_Changed text,\n    UNIQUE(Sheep_No));\n  CREATE INDEX fo_flock_no_index  \n              ON flock_owner (flock_no);\n  CREATE INDEX fo_owner_change_date_index  \n              ON flock_owner (owner_change_date);\n  CREATE INDEX fo_owner_person_id_index  \n              ON flock_owner (owner_person_id);\n  CREATE INDEX sheep_org_flock_index  \n           ON sheep (originating_flock);\n  CREATE INDEX sheep_reg_flock_index  \n           ON sheep (registering_flock);"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-600a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x.sheep_no, x.registering_flock, x.date_of_registration\n   FROM sheep x LEFT JOIN\n       (SELECT s.sheep_no, prev.flock_no, prev.owner_person_id,\n       s.date_of_registration, prev.owner_change_date\n       FROM sheep s JOIN flock_owner prev ON s.registering_flock =\n   prev.flock_no\n       AND (prev.owner_change_date \u003c= s.date_of_registration || ' 00:00:00')\n       WHERE NOT EXISTS\n           (SELECT 'x' FROM flock_owner later\n           WHERE prev.flock_no = later.flock_no\n           AND later.owner_change_date \u003e prev.owner_change_date\n           AND later.owner_change_date \u003c= s.date_of_registration||' 00:00:00')\n       ) y ON x.sheep_no = y.sheep_no\n   WHERE y.sheep_no IS NULL\n   ORDER BY x.registering_flock;"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-700",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-700a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t5 WHERE b=10 ORDER BY c;"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE accounts(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    account_name TEXT,\n    account_type TEXT,\n    data_set TEXT\n  );\n  CREATE TABLE data(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    package_id INTEGER REFERENCES package(_id),\n    mimetype_id INTEGER REFERENCES mimetype(_id) NOT NULL,\n    raw_contact_id INTEGER REFERENCES raw_contacts(_id) NOT NULL,\n    is_read_only INTEGER NOT NULL DEFAULT 0,\n    is_primary INTEGER NOT NULL DEFAULT 0,\n    is_super_primary INTEGER NOT NULL DEFAULT 0,\n    data_version INTEGER NOT NULL DEFAULT 0,\n    data1 TEXT,\n    data2 TEXT,\n    data3 TEXT,\n    data4 TEXT,\n    data5 TEXT,\n    data6 TEXT,\n    data7 TEXT,\n    data8 TEXT,\n    data9 TEXT,\n    data10 TEXT,\n    data11 TEXT,\n    data12 TEXT,\n    data13 TEXT,\n    data14 TEXT,\n    data15 TEXT,\n    data_sync1 TEXT,\n    data_sync2 TEXT,\n    data_sync3 TEXT,\n    data_sync4 TEXT \n  );\n  CREATE TABLE mimetypes(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    mimetype TEXT NOT NULL\n  );\n  CREATE TABLE raw_contacts(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    account_id INTEGER REFERENCES accounts(_id),\n    sourceid TEXT,\n    raw_contact_is_read_only INTEGER NOT NULL DEFAULT 0,\n    version INTEGER NOT NULL DEFAULT 1,\n    dirty INTEGER NOT NULL DEFAULT 0,\n    deleted INTEGER NOT NULL DEFAULT 0,\n    contact_id INTEGER REFERENCES contacts(_id),\n    aggregation_mode INTEGER NOT NULL DEFAULT 0,\n    aggregation_needed INTEGER NOT NULL DEFAULT 1,\n    custom_ringtone TEXT,\n    send_to_voicemail INTEGER NOT NULL DEFAULT 0,\n    times_contacted INTEGER NOT NULL DEFAULT 0,\n    last_time_contacted INTEGER,\n    starred INTEGER NOT NULL DEFAULT 0,\n    display_name TEXT,\n    display_name_alt TEXT,\n    display_name_source INTEGER NOT NULL DEFAULT 0,\n    phonetic_name TEXT,\n    phonetic_name_style TEXT,\n    sort_key TEXT,\n    sort_key_alt TEXT,\n    name_verified INTEGER NOT NULL DEFAULT 0,\n    sync1 TEXT,\n    sync2 TEXT,\n    sync3 TEXT,\n    sync4 TEXT,\n    sync_uid TEXT,\n    sync_version INTEGER NOT NULL DEFAULT 1,\n    has_calendar_event INTEGER NOT NULL DEFAULT 0,\n    modified_time INTEGER,\n    is_restricted INTEGER DEFAULT 0,\n    yp_source TEXT,\n    method_selected INTEGER DEFAULT 0,\n    custom_vibration_type INTEGER DEFAULT 0,\n    custom_ringtone_path TEXT,\n    message_notification TEXT,\n    message_notification_path TEXT\n  );\n  CREATE INDEX data_mimetype_data1_index ON data (mimetype_id,data1);\n  CREATE INDEX data_raw_contact_id ON data (raw_contact_id);\n  CREATE UNIQUE INDEX mime_type ON mimetypes (mimetype);\n  CREATE INDEX raw_contact_sort_key1_index ON raw_contacts (sort_key);\n  CREATE INDEX raw_contact_sort_key2_index ON raw_contacts (sort_key_alt);\n  CREATE INDEX raw_contacts_contact_id_index ON raw_contacts (contact_id);\n  CREATE INDEX raw_contacts_source_id_account_id_index\n      ON raw_contacts (sourceid, account_id);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contact_sort_key2_index','1600 4');\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contact_sort_key1_index','1600 4');\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contacts_source_id_account_id_index',\n            '1600 1600 1600');\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contacts_contact_id_index','1600 1');\n  INSERT INTO sqlite_stat1 VALUES('mimetypes','mime_type','12 1');\n  INSERT INTO sqlite_stat1\n     VALUES('data','data_mimetype_data1_index','9819 2455 3');\n  INSERT INTO sqlite_stat1 VALUES('data','data_raw_contact_id','9819 7');\n  INSERT INTO sqlite_stat1 VALUES('accounts',NULL,'1');\n  DROP TABLE IF EXISTS sqlite_stat3;\n  ANALYZE sqlite_master;\n  \n  EXPLAIN QUERY PLAN\n  SELECT * FROM \n        data JOIN mimetypes ON (data.mimetype_id=mimetypes._id) \n             JOIN raw_contacts ON (data.raw_contact_id=raw_contacts._id) \n             JOIN accounts ON (raw_contacts.account_id=accounts._id)\n   WHERE mimetype_id=10 AND data14 IS NOT NULL;",
+          "expect": "/SEARCH data .*SEARCH raw_contacts/"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-801",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM \n        data JOIN mimetypes ON (data.mimetype_id=mimetypes._id) \n             JOIN raw_contacts ON (data.raw_contact_id=raw_contacts._id) \n             JOIN accounts ON (raw_contacts.account_id=accounts._id)\n   WHERE mimetypes._id=10 AND data14 IS NOT NULL;",
+          "expect": "/SEARCH data .*SEARCH raw_contacts/"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE messages (ROWID INTEGER PRIMARY KEY AUTOINCREMENT, message_id, document_id BLOB, in_reply_to, remote_id INTEGER, sender INTEGER, subject_prefix, subject INTEGER, date_sent INTEGER, date_received INTEGER, date_created INTEGER, date_last_viewed INTEGER, mailbox INTEGER, remote_mailbox INTEGER, original_mailbox INTEGER, flags INTEGER, read, flagged, size INTEGER, color, encoding, type INTEGER, pad, conversation_id INTEGER DEFAULT -1, snippet TEXT DEFAULT NULL, fuzzy_ancestor INTEGER DEFAULT NULL, automated_conversation INTEGER DEFAULT 0, root_status INTEGER DEFAULT -1, conversation_position INTEGER DEFAULT -1);\n  CREATE INDEX date_index ON messages(date_received);\n  CREATE INDEX date_last_viewed_index ON messages(date_last_viewed);\n  CREATE INDEX date_created_index ON messages(date_created);\n  CREATE INDEX message_message_id_mailbox_index ON messages(message_id, mailbox);\n  CREATE INDEX message_document_id_index ON messages(document_id);\n  CREATE INDEX message_read_index ON messages(read);\n  CREATE INDEX message_flagged_index ON messages(flagged);\n  CREATE INDEX message_mailbox_index ON messages(mailbox, date_received);\n  CREATE INDEX message_remote_mailbox_index ON messages(remote_mailbox, remote_id);\n  CREATE INDEX message_type_index ON messages(type);\n  CREATE INDEX message_conversation_id_conversation_position_index ON messages(conversation_id, conversation_position);\n  CREATE INDEX message_fuzzy_ancestor_index ON messages(fuzzy_ancestor);\n  CREATE INDEX message_subject_fuzzy_ancestor_index ON messages(subject, fuzzy_ancestor);\n  CREATE INDEX message_sender_subject_automated_conversation_index ON messages(sender, subject, automated_conversation);\n  CREATE INDEX message_sender_index ON messages(sender);\n  CREATE INDEX message_root_status ON messages(root_status);\n  CREATE TABLE subjects (ROWID INTEGER PRIMARY KEY, subject COLLATE RTRIM, normalized_subject COLLATE RTRIM);\n  CREATE INDEX subject_subject_index ON subjects(subject);\n  CREATE INDEX subject_normalized_subject_index ON subjects(normalized_subject);\n  CREATE TABLE addresses (ROWID INTEGER PRIMARY KEY, address COLLATE NOCASE, comment, UNIQUE(address, comment));\n  CREATE INDEX addresses_address_index ON addresses(address);\n  CREATE TABLE mailboxes (ROWID INTEGER PRIMARY KEY, url UNIQUE, total_count INTEGER DEFAULT 0, unread_count INTEGER DEFAULT 0, unseen_count INTEGER DEFAULT 0, deleted_count INTEGER DEFAULT 0, unread_count_adjusted_for_duplicates INTEGER DEFAULT 0, change_identifier, source INTEGER, alleged_change_identifier);\n  CREATE INDEX mailboxes_source_index ON mailboxes(source);\n  CREATE TABLE labels (ROWID INTEGER PRIMARY KEY, message_id INTEGER NOT NULL, mailbox_id INTEGER NOT NULL, UNIQUE(message_id, mailbox_id));\n  CREATE INDEX labels_message_id_mailbox_id_index ON labels(message_id, mailbox_id);\n  CREATE INDEX labels_mailbox_id_index ON labels(mailbox_id);\n  \n  explain query plan\n  SELECT messages.ROWID,\n         messages.message_id,\n         messages.remote_id,\n         messages.date_received,\n         messages.date_sent,\n         messages.flags,\n         messages.size,\n         messages.color,\n         messages.date_last_viewed,\n         messages.subject_prefix,\n         subjects.subject,\n         sender.comment,\n         sender.address,\n         NULL,\n         messages.mailbox,\n         messages.original_mailbox,\n         NULL,\n         NULL,\n         messages.type,\n         messages.document_id,\n         sender,\n         NULL,\n         messages.conversation_id,\n         messages.conversation_position,\n         agglabels.labels\n   FROM mailboxes AS mailbox\n        JOIN messages ON mailbox.ROWID = messages.mailbox\n        LEFT OUTER JOIN subjects ON messages.subject = subjects.ROWID\n        LEFT OUTER JOIN addresses AS sender ON messages.sender = sender.ROWID\n        LEFT OUTER JOIN (\n               SELECT message_id, group_concat(mailbox_id) as labels\n               FROM labels GROUP BY message_id\n             ) AS agglabels ON messages.ROWID = agglabels.message_id\n  WHERE (mailbox.url = 'imap://email.app@imap.gmail.com/%5BGmail%5D/All%20Mail')\n    AND (messages.ROWID IN (\n            SELECT labels.message_id\n              FROM labels JOIN mailboxes ON labels.mailbox_id = mailboxes.ROWID\n             WHERE mailboxes.url = 'imap://email.app@imap.gmail.com/INBOX'))\n    AND messages.mailbox in (6,12,18,24,30,36,42,1,7,13,19,25,31,37,43,2,8,\n                             14,20,26,32,38,3,9,15,21,27,33,39,4,10,16,22,28,\n                             34,40,5,11,17,23,35,41)\n   ORDER BY date_received DESC;",
+          "expect": "/agglabels USING AUTOMATIC COVERING INDEX/"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-901",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW agg2 AS SELECT a, sum(b) AS m FROM t2 GROUP BY a;\n  EXPLAIN QUERY PLAN\n  SELECT t1.z, agg2.m\n    FROM t1 JOIN agg2 ON t1.y=agg2.m\n   WHERE t1.x IN (1,2,3);",
+          "expect": "/USING AUTOMATIC COVERING INDEX/"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t920(x);\n  INSERT INTO t920 VALUES(3),(4),(5);\n  SELECT * FROM t920,(SELECT 0 FROM t920),(VALUES(9)) WHERE 5 IN (x);",
+          "expect": "5 0 9 5 0 9 5 0 9"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-1010",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(w);\n  CREATE TABLE t12(y);\n  INSERT INTO t11 VALUES(NULL);\n  INSERT INTO t12 VALUES('notnull');"
+        }
+      ]
+    },
+    {
+      "name": "autoindex1-1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t11 LEFT JOIN t12 WHERE t12.y IS t11.w;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "autoindex-1100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');"
+        }
+      ]
+    },
+    {
+      "name": "autoindex-1110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 LEFT JOIN t3 ON (t2.d=1) WHERE t2.c = +t1.a;",
+          "expect": "1 1 1 2 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "autoindex-1120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON (t2.c=+t1.a) LEFT JOIN t3 ON (t2.d IS NULL);",
+          "expect": "1 1 1 2 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "autoindex-1200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "autoindex-1210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n  NULL NULL NULL 5    55\n  1    3    91   3    33\n  1    4    92   4    44\n"
+        }
+      ]
+    },
+    {
+      "name": "autoindex-1211",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "/SEARCH t1 USING AUTOMATIC COVERING INDEX/"
+        }
+      ]
+    }
+  ]
+}

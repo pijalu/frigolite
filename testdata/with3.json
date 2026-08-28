@@ -1,0 +1,121 @@
+{
+  "file": "with3.test",
+  "name": "with3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;",
+          "expect": "1 {no such table: m}"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1(x,y) AS\n    WITH t1(a,b) AS (VALUES(1,2))\n    SELECT * FROM nosuchtable JOIN t1;\n  SELECT * FROM v1;",
+          "expect": "1 {no such table: main.nosuchtable}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH\n  x1 AS (SELECT 10),\n  x2 AS (SELECT 11),\n  x3 AS (\n    SELECT * FROM x1 UNION ALL SELECT * FROM x2\n  ),\n  x4 AS (\n    WITH\n    x1 AS (SELECT 12),\n    x2 AS (SELECT 13)\n    SELECT * FROM x3\n  )\n  SELECT * FROM x4;"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  WITH\n    x1(a) AS (values(100))\n  INSERT INTO t1(x)\n    SELECT * FROM (WITH x2(y) AS (SELECT * FROM x1) SELECT y+a FROM x1, x2);\n  SELECT * FROM t1;",
+          "expect": "200"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE w1(pk INTEGER PRIMARY KEY, x INTEGER);\n  CREATE TABLE w2(pk INTEGER PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT EXISTS (\n    WITH RECURSIVE Table0 AS (\n      WITH RECURSIVE Table0(Col0) AS (SELECT ALL 1  ) \n      SELECT ALL (\n        WITH RECURSIVE Table0 AS (\n          WITH RECURSIVE Table0 AS (\n            WITH RECURSIVE Table0 AS (SELECT DISTINCT 1  GROUP BY 1  ) \n            SELECT DISTINCT * FROM Table0 NATURAL INNER JOIN Table0\n            WHERE Col0 = 1  \n          )\n          SELECT ALL (SELECT DISTINCT * FROM Table0) FROM Table0 WHERE Col0 = 1\n        ) \n        SELECT ALL * FROM Table0  NATURAL INNER JOIN  Table0      \n      ) FROM Table0 ) \n      SELECT DISTINCT * FROM Table0  NATURAL INNER JOIN  Table0      \n    );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    WITH t1(a) AS (VALUES(1))\n    SELECT (\n      WITH t2(b) AS (\n        WITH t3(c) AS (\n          WITH t4(d) AS (VALUES('elvis'))\n          SELECT t4a.d FROM t4 AS t4a JOIN t4 AS t4b LEFT JOIN t4 AS t4c\n        )\n        SELECT c FROM t3 WHERE a = 1\n      )\n      SELECT t2a.b FROM t2 AS t2a JOIN t2 AS t2x\n    )\n    FROM t1 GROUP BY 1\n  )\n  GROUP BY 1;",
+          "expect": "elvis"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 )\n  select * from cte2, cte1;",
+          "expect": "1 {table cte1 has 3 values for 2 columns}"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 UNION ALL SELECT z+1 FROM cte2 WHERE z<5)\n  select * from cte2, cte1;",
+          "expect": "1 {table cte1 has 3 values for 2 columns}"
+        }
+      ]
+    }
+  ]
+}

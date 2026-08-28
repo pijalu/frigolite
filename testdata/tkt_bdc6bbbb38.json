@@ -1,0 +1,19 @@
+{
+  "file": "tkt-bdc6bbbb38.test",
+  "name": "tkt_bdc6bbbb38",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3"
+        }
+      ]
+    }
+  ]
+}

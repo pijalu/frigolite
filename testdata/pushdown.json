@@ -1,0 +1,293 @@
+{
+  "file": "pushdown.test",
+  "name": "pushdown",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 'b1', 'c1');\n  INSERT INTO t1 VALUES(2, 'b2', 'c2');\n  INSERT INTO t1 VALUES(3, 'b3', 'c3');\n  INSERT INTO t1 VALUES(4, 'b4', 'c4');\n  CREATE INDEX i1 ON t1(a, c);"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n  CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE u1(a, b, c);\n  CREATE TABLE u2(x, y, z);\n\n  INSERT INTO u1 VALUES('a1', 'b1', 'c1');\n  INSERT INTO u2 VALUES('a1', 'b1', 'c1');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW v0 AS SELECT CAST(t0.c0 AS INTEGER) AS c0 FROM t0;\n  CREATE VIEW v1(a,b) AS SELECT a, b FROM t1_a UNION ALL SELECT c, 0 FROM t1_b;\n  SELECT v1.a, quote(v1.b), t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0,v1;",
+          "expect": "1 'one' 0\n  2 0     0"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, quote(b), cd FROM (\n    SELECT v1.a, v1.b, t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0, v1\n  ) WHERE a=2 AND b='0' AND cd=0;"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, quote(b), cd FROM (\n    SELECT v1.a, v1.b, t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0, v1\n  ) WHERE a=1 AND b='one' AND cd=0;",
+          "expect": "1 'one' 0"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, quote(b), cd FROM (\n    SELECT v1.a, v1.b, t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0, v1\n  ) WHERE a=2 AND b=0 AND cd=0;",
+          "expect": "2 0     0"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT, b INT, c TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES\n    (1,100,'abc'),\n    (2,200,'def'),\n    (3,300,'abc');\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INT, b INT, c TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t2(a,b,c) VALUES\n    (1,110,'efg'),\n    (2,200,'hij'),\n    (3,330,'klm');\n  CREATE VIEW v3 AS\n    SELECT a, b, c FROM t1\n    UNION ALL\n    SELECT a, b, 'xyz' FROM t2;\n  SELECT * FROM v3 WHERE a=2 AND b=200;",
+          "expect": "2 200 def 2 200 xyz"
+        }
+      ]
+    },
+    {
+      "name": "3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM v3;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INT);\n  INSERT INTO t3(c) VALUES(3);\n  CREATE TABLE t4(d INT);\n  CREATE TABLE t5(e INT);\n  INSERT INTO t5(e) VALUES(5);\n  CREATE VIEW v6(f,g) AS SELECT d, e FROM t4 RIGHT JOIN t5 ON true;\n  SELECT * FROM  t1 JOIN t2 ON false RIGHT JOIN t3 ON true CROSS JOIN v6;",
+          "expect": "- - 3 - 5"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v6 JOIN t5 ON false RIGHT JOIN t3 ON true;",
+          "expect": "- - - 3"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 JOIN t2 ON false JOIN v6 ON true RIGHT JOIN t3 ON true;",
+          "expect": "- - - - 3"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);  INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT);  INSERT INTO t3 VALUES(3);\n  CREATE TABLE t4(d INT);  INSERT INTO t4 VALUES(4);\n  CREATE TABLE t5(e INT);  INSERT INTO t5 VALUES(5);\n  SELECT *\n    FROM t1 JOIN t2 ON null RIGHT JOIN t3 ON true\n          LEFT JOIN (t4 JOIN t5 ON d+1=e) ON d=4\n   WHERE e>0;",
+          "expect": "- - 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t01(w,x,y,z);\n  CREATE TABLE t02(w,x,y,z);\n  CREATE VIEW t0(w,x,y,z) AS\n    SELECT w,x,y,z FROM t01 UNION ALL SELECT w,x,y,z FROM t02;\n  CREATE INDEX t01x ON t01(w,x,y);\n  CREATE INDEX t02x ON t02(w,x,y);\n  CREATE VIEW v1(k) AS VALUES(77),(88),(99);\n  CREATE TABLE k1(k);\n  INSERT INTO k1 SELECT * FROM v1;"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE  TABLE  t0_1(a INT , b INT, c INT);\n  CREATE  TABLE  t0_2(a INT , b INT, c INT);\n\n  INSERT INTO t0_1 (a, b, c) VALUES (1, 0, 1);\n  INSERT INTO t0_2 (a, b, c) VALUES (1, 0, 1);\n\n  CREATE  TABLE  empty1(x);\n  CREATE  TABLE  empty2(y);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t0_2.c\n    FROM (SELECT '0000' AS c0 FROM empty2 RIGHT JOIN t0_1 ON 1) AS v0 \n    LEFT JOIN empty1 ON v0.c0, t0_2 \n    RIGHT JOIN (\n           SELECT 5678 AS col0 FROM (SELECT 0)\n    ) AS sub1 ON 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t0_2.c\n    FROM (SELECT '0000' AS c0 FROM empty2 RIGHT JOIN t0_1 ON 1) AS v0 \n    LEFT JOIN empty1 ON v0.c0, t0_2 \n    RIGHT JOIN (\n           SELECT 5678 AS col0 FROM (SELECT 0)\n    ) AS sub1 ON 1 WHERE +t0_2.c;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
+          "expect": "c2"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
+          "expect": "c3"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
+          "expect": "b2"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
+          "expect": "b3"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )",
+          "expect": "one"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123",
+          "expect": "three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

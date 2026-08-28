@@ -1,0 +1,88 @@
+{
+  "file": "tkt3997.test",
+  "name": "tkt3997",
+  "tests": [
+    {
+      "name": "tkt3997-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table mytext(name BLOB);\n    INSERT INTO mytext VALUES('abc');\n    INSERT INTO mytext VALUES('acd');\n    INSERT INTO mytext VALUES('afe');"
+        }
+      ]
+    },
+    {
+      "name": "tkt3997-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name \n    FROM mytext \n    ORDER BY name COLLATE reverse",
+          "expect": "afe acd abc"
+        }
+      ]
+    },
+    {
+      "name": "tkt3997-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name \n    FROM (SELECT name FROM mytext)  \n    ORDER BY name COLLATE reverse",
+          "expect": "afe acd abc"
+        }
+      ]
+    },
+    {
+      "name": "tkt3997-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE mytext2(name COLLATE reverse);\n    INSERT INTO mytext2 SELECT name FROM mytext;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3997-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name \n    FROM (SELECT name FROM mytext2)  \n    ORDER BY name",
+          "expect": "afe acd abc"
+        }
+      ]
+    },
+    {
+      "name": "tkt3997-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name \n    FROM (SELECT name FROM mytext2)\n    ORDER BY name COLLATE usual",
+          "expect": "abc acd afe"
+        },
+        {
+          "type": "exec",
+          "sql": "create table mytext(name BLOB);\n    INSERT INTO mytext VALUES('abc');\n    INSERT INTO mytext VALUES('acd');\n    INSERT INTO mytext VALUES('afe');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name \n    FROM mytext \n    ORDER BY name COLLATE reverse"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name \n    FROM (SELECT name FROM mytext)  \n    ORDER BY name COLLATE reverse"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE mytext2(name COLLATE reverse);\n    INSERT INTO mytext2 SELECT name FROM mytext;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name \n    FROM (SELECT name FROM mytext2)  \n    ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name \n    FROM (SELECT name FROM mytext2)\n    ORDER BY name COLLATE usual"
+        }
+      ]
+    }
+  ]
+}

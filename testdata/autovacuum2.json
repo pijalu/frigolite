@@ -1,0 +1,75 @@
+{
+  "file": "autovacuum2.test",
+  "name": "autovacuum2",
+  "tests": [
+    {
+      "name": "autovacuum2-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(x);\n  VACUUM;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  PRAGMA page_count;",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  PRAGMA page_count;",
+          "expect": "9 12"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA freelist_count;\n  PRAGMA page_count;",
+          "expect": "5 8"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x);\n  PRAGMA freelist_count;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  COMMIT;\n  PRAGMA freelist_count;",
+          "expect": "9 9"
+        }
+      ]
+    }
+  ]
+}

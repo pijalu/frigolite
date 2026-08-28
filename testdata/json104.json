@@ -1,0 +1,336 @@
+{
+  "file": "json104.test",
+  "name": "json104",
+  "tests": [
+    {
+      "name": "json104-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\n       \"a\": \"b\",\n       \"c\": {\n         \"d\": \"e\",\n         \"f\": \"g\"\n       }\n     }','{\n       \"a\":\"z\",\n       \"c\": {\n         \"f\": null\n       }\n     }');",
+          "expect": "{{\"a\":\"z\",\"c\":{\"d\":\"e\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\n       \"a\": \"b\",\n       \"c\": {\n         \"d\": \"e\",\n         \"f\": \"g\"\n       }\n     }','{\n       a:\"z\",\n       c: {\n         f: null\n       }\n     }');",
+          "expect": "{{\"a\":\"z\",\"c\":{\"d\":\"e\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\n       a: \"b\",\n       c: {\n         d: \"e\",\n         f: \"g\"\n       }\n     }','{\n       \"a\":\"z\",\n       \"c\": {\n         \"f\": null\n       }\n     }');",
+          "expect": "{{\"a\":\"z\",\"c\":{\"d\":\"e\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\n       a: \"b\",\n       c: {\n         d: \"e\",\n         f: \"g\"\n       }\n     }','{\n       a:\"z\",\n       c: {\n         f: null\n       }\n     }');",
+          "expect": "{{\"a\":\"z\",\"c\":{\"d\":\"e\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\n       \"title\": \"Goodbye!\",\n       \"author\" : {\n         \"givenName\" : \"John\",\n         \"familyName\" : \"Doe\"\n       },\n       \"tags\":[ \"example\", \"sample\" ],\n       \"content\": \"This will be unchanged\"\n     }','{\n       \"title\": \"Hello!\",\n       \"phoneNumber\": \"+01-123-456-7890\",\n       \"author\": {\n         \"familyName\": null\n       },\n       \"tags\": [ \"example\" ]\n     }');",
+          "expect": "{{\"title\":\"Hello!\",\"author\":{\"givenName\":\"John\"},\"tags\":[\"example\"],\"content\":\"This will be unchanged\",\"phoneNumber\":\"+01-123-456-7890\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('[1,2,3]','{\"x\":null}');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('[1,2,3]','{\"x\":null,\"y\":1,\"z\":null}');",
+          "expect": "{{\"y\":1}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":null}}}');",
+          "expect": "{{\"a\":{\"bb\":{}}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-221",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":[1,null,3]}}}');",
+          "expect": "{{\"a\":{\"bb\":{\"ccc\":[1,null,3]}}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-222",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":[1,{\"dddd\":null},3]}}}');",
+          "expect": "{{\"a\":{\"bb\":{\"ccc\":[1,{\"dddd\":null},3]}}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"b\"}','{\"a\":\"c\"}');",
+          "expect": "{{\"a\":\"c\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-300a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(json_patch(null,'{\"a\":\"c\"}'), 'real-null');",
+          "expect": "{real-null}"
+        }
+      ]
+    },
+    {
+      "name": "json104-301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"b\"}','{\"b\":\"c\"}');",
+          "expect": "{{\"a\":\"b\",\"b\":\"c\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-302",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"b\"}','{\"a\":null}');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-303",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"b\",\"b\":\"c\"}','{\"a\":null}');",
+          "expect": "{{\"b\":\"c\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-304",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":[\"b\"]}','{\"a\":\"c\"}');",
+          "expect": "{{\"a\":\"c\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-305",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"c\"}','{\"a\":[\"b\"]}');",
+          "expect": "{{\"a\":[\"b\"]}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-306",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":{\"b\":\"c\"}}','{\"a\":{\"b\":\"d\",\"c\":null}}');",
+          "expect": "{{\"a\":{\"b\":\"d\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-307",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":[{\"b\":\"c\"}]}','{\"a\":[1]}');",
+          "expect": "{{\"a\":[1]}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-308",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('[\"a\",\"b\"]','[\"c\",\"d\"]');",
+          "expect": "{[\"c\",\"d\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json104-309",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"b\"}','[\"c\"]');",
+          "expect": "{[\"c\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json104-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"foo\"}','null');",
+          "expect": "{null}"
+        }
+      ]
+    },
+    {
+      "name": "json104-310a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(json_patch('{\"a\":\"foo\"}',null), 'real-null');",
+          "expect": "{real-null}"
+        }
+      ]
+    },
+    {
+      "name": "json104-311",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\":\"foo\"}','\"bar\"');",
+          "expect": "{\"bar\"}"
+        }
+      ]
+    },
+    {
+      "name": "json104-312",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"e\":null}','{\"a\":1}');",
+          "expect": "{{\"e\":null,\"a\":1}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-313",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('[1,2]','{\"a\":\"b\",\"c\":null}');",
+          "expect": "{{\"a\":\"b\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-314",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":null}}}');",
+          "expect": "{{\"a\":{\"bb\":{}}}}"
+        }
+      ]
+    },
+    {
+      "name": "json104-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"x\":{\"one\":1}}','{\"x\":{\"two\":2},\"x\":\"three\"}');",
+          "expect": "{{\"x\":\"three\"}}"
+        }
+      ]
+    },
+    {
+      "name": "401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE obj(x);\n  INSERT INTO obj VALUES('{\"a\":1,\"b\":2}');\n  SELECT * FROM obj;",
+          "expect": "{{\"a\":1,\"b\":2}}"
+        }
+      ]
+    },
+    {
+      "name": "402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE obj SET x = json_insert(x, '$.c', 3);\n  SELECT * FROM obj;",
+          "expect": "{{\"a\":1,\"b\":2,\"c\":3}}"
+        }
+      ]
+    },
+    {
+      "name": "403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(x, '$.b') FROM obj;\n  SELECT json_extract(x, '$.\"b\"') FROM obj;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE obj SET x = json_set(x, '$.\"b\"', 555);\n  SELECT json_extract(x, '$.b') FROM obj;\n  SELECT json_extract(x, '$.\"b\"') FROM obj;",
+          "expect": "555 555"
+        }
+      ]
+    },
+    {
+      "name": "405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE obj SET x = json_set(x, '$.\"d\"', 4);\n  SELECT json_extract(x, '$.\"d\"') FROM obj;",
+          "expect": "4"
+        }
+      ]
+    }
+  ]
+}

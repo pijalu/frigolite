@@ -1,0 +1,150 @@
+{
+  "file": "vtab3.test",
+  "name": "vtab3",
+  "tests": [
+    {
+      "name": "vtab3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pachyderm;"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);",
+          "expect": "1 {not authorized}"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);",
+          "expect": "1 {not authorized}"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant pachyderm"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pachyderm;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pachyderm;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pachyderm;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

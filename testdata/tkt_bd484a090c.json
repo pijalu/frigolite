@@ -1,0 +1,47 @@
+{
+  "file": "tkt-bd484a090c.test",
+  "name": "tkt_bd484a090c",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT datetime('now', 'localtime')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT datetime('now', 'utc')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT datetime('now', 'localtime')",
+          "expect": "1 {local time unavailable}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT datetime('2000-01-01', 'utc')",
+          "expect": "1 {local time unavailable}"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

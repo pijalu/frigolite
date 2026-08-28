@@ -1,0 +1,16 @@
+{
+  "file": "badutf.test",
+  "name": "badutf",
+  "tests": [
+    {
+      "name": "badutf-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF8",
+          "expect": "0 {x 80}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "file": "fts3aj.test",
+  "name": "fts3aj",
+  "tests": [
+    {
+      "name": "fts3aj-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;"
+        }
+      ]
+    },
+    {
+      "name": "fts3aj-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS two;\n    CREATE VIRTUAL TABLE two.t2 USING fts3(content);\n    INSERT INTO t2 (rowid, content) VALUES(1, 'hello world');\n    INSERT INTO t2 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO t2 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM t2 WHERE t2 MATCH 'hello';\n    DETACH DATABASE two;"
+        }
+      ]
+    },
+    {
+      "name": "fts3aj-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS two;\n    CREATE VIRTUAL TABLE two.t2 USING fts3(content);\n    INSERT INTO t2 (rowid, content) VALUES(1, 'hello world');\n    INSERT INTO t2 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO t2 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM t2 WHERE t2 MATCH 'hello';\n    DETACH DATABASE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts3(content);\n  INSERT INTO t3 (rowid, content) VALUES(1, 'hello world');"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE two"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE two"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE two"
+        }
+      ]
+    }
+  ]
+}

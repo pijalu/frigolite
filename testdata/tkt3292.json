@@ -1,0 +1,63 @@
+{
+  "file": "tkt3292.test",
+  "name": "tkt3292",
+  "tests": [
+    {
+      "name": "tkt3292-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b>=1;",
+          "expect": "0 1 1 1 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3292-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(3, 0);\n    INSERT INTO t1 VALUES(4, 2);\n    SELECT * FROM t1 WHERE b>=1;",
+          "expect": "0 1 1 1 2 1 4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt3292-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t2 VALUES(0, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(1, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(2, 1, 'hello', x'012345');\n    CREATE INDEX i2 ON t2(b,c,d);\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';",
+          "expect": "0 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt3292-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(3, 1, 'hello', x'012344');\n    INSERT INTO t2 VALUES(4, 1, 'hello', x'012346');\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';",
+          "expect": "0 1 2 4"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b>=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 0);\n    INSERT INTO t1 VALUES(4, 2);\n    SELECT * FROM t1 WHERE b>=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t2 VALUES(0, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(1, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(2, 1, 'hello', x'012345');\n    CREATE INDEX i2 ON t2(b,c,d);\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(3, 1, 'hello', x'012344');\n    INSERT INTO t2 VALUES(4, 1, 'hello', x'012346');\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

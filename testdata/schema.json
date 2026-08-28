@@ -1,0 +1,229 @@
+{
+  "file": "schema.test",
+  "name": "schema",
+  "tests": [
+    {
+      "name": "schema-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "schema-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        }
+      ]
+    },
+    {
+      "name": "schema-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "schema-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1;"
+        }
+      ]
+    },
+    {
+      "name": "schema-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;"
+        }
+      ]
+    },
+    {
+      "name": "schema-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER abc_trig;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER abc_trig;"
+        }
+      ]
+    },
+    {
+      "name": "schema-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX abc_index ON abc(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX abc_index ON abc(a);"
+        }
+      ]
+    },
+    {
+      "name": "schema-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX abc_index;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX abc_index;"
+        }
+      ]
+    },
+    {
+      "name": "schema-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;"
+        }
+      ]
+    },
+    {
+      "name": "schema-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH aux;"
+        }
+      ]
+    },
+    {
+      "name": "schema-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "schema-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW abcview AS SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW abcview AS SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW abcview;"
+        }
+      ]
+    },
+    {
+      "name": "schema-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "schema-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, c);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "schema-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "schema-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    CREATE TABLE t4(a, b, c);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

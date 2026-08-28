@@ -1,0 +1,452 @@
+// Package rename provides token-level SQL rename utilities for ALTER TABLE RENAME.
+//
+// It uses the SQL parser to identify exact byte ranges of identifiers (table names,
+// column names, table qualifiers) in SQL text, enabling precise rename without
+// the false positives that string/regex-based approaches produce.
+package rename
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+
+	"github.com/pijalu/frigolite/internal/parse"
+	"github.com/pijalu/frigolite/internal/sql"
+)
+
+// RenameContext tracks the rename operation state.
+type RenameContext struct {
+	OldName   string // the name being replaced
+	NewName   string // the replacement name
+	QuotedNew string // NewName, double-quoted if needed
+	IsTable   bool   // true = rename table, false = rename column
+	TableName string // for column renames: which table's column
+}
+
+// RenameRange represents a byte range in the original SQL text to replace.
+type RenameRange struct {
+	Start int
+	End   int
+}
+
+// FindRenameTokens parses SQL text and returns all byte ranges that should be
+// replaced when renaming a table or column. Each range is (start, end) in the original text.
+//
+// For RENAME TABLE (ctx.IsTable=true):
+//   - Finds all TableRef nodes where Name matches OldName
+//   - Finds all ColumnRef nodes with Table qualifier matching OldName
+//   - Finds trigger ON table names matching OldName
+//
+// For RENAME COLUMN (ctx.IsTable=false):
+//   - Finds all ColumnRef nodes where Name matches OldName AND
+//     (Table qualifier is empty or matches ctx.TableName)
+func FindRenameTokens(sqlText string, ctx *RenameContext) ([]RenameRange, error) {
+	stmts, perr := parse.ParseSQL(sqlText)
+	if perr != nil {
+		return nil, fmt.Errorf("error parsing SQL: %w", perr)
+	}
+
+	var ranges []RenameRange
+
+	for _, stmt := range stmts {
+		collectRanges(stmt, ctx, &ranges)
+	}
+
+	// Deduplicate overlapping ranges
+	ranges = deduplicateRanges(ranges)
+
+	return ranges, nil
+}
+
+// collectRanges walks a statement and collects rename ranges matching the context.
+func collectRanges(stmt sql.Stmt, ctx *RenameContext, ranges *[]RenameRange) {
+	switch s := stmt.(type) {
+	case *sql.SelectStmt:
+		collectSelectRanges(s, ctx, ranges)
+	case *sql.InsertStmt:
+		collectInsertRanges(s, ctx, ranges)
+	case *sql.UpdateStmt:
+		// UPDATE table SET ... — the table name. UpdateStmt doesn't have
+		// TokenInfo on its Table field yet, so no token-level rename here;
+		// the string replacement handles it.
+	case *sql.DeleteStmt:
+		// Same as UPDATE — no TokenInfo on DeleteStmt.Table yet.
+	case *sql.CreateTriggerStmt:
+		collectTriggerRanges(s, ctx, ranges)
+	case *sql.CreateViewStmt:
+		if s.Select != nil {
+			collectSelectRanges(s.Select, ctx, ranges)
+		}
+	case *sql.CreateIndexStmt:
+		collectIndexRanges(s, ctx, ranges)
+	case *sql.CreateTableStmt:
+		collectTableRanges(s, ctx, ranges)
+	}
+}
+
+// collectInsertRanges walks an INSERT statement's SELECT for rename ranges.
+func collectInsertRanges(s *sql.InsertStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	if s.Select != nil {
+		collectSelectRanges(s.Select, ctx, ranges)
+	}
+}
+
+// collectTriggerRanges collects the trigger ON table name and walks the
+// trigger body statements.
+func collectTriggerRanges(s *sql.CreateTriggerStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	// Trigger ON table name
+	if ctx.IsTable && strings.EqualFold(s.Table, ctx.OldName) && s.TableTok.Start != 0 {
+		*ranges = append(*ranges, RenameRange{Start: s.TableTok.Start, End: s.TableTok.End})
+	}
+	// Walk trigger body statements
+	for _, bodyStmt := range s.Statements {
+		collectRanges(bodyStmt, ctx, ranges)
+	}
+}
+
+// collectIndexRanges collects the CREATE INDEX table name and walks the
+// partial-index WHERE expression.
+func collectIndexRanges(s *sql.CreateIndexStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	if ctx.IsTable && strings.EqualFold(s.Table, ctx.OldName) && s.TableTok.Start != 0 {
+		*ranges = append(*ranges, RenameRange{Start: s.TableTok.Start, End: s.TableTok.End})
+	}
+	// Walk the WHERE clause (partial index expressions)
+	if s.Where != nil {
+		collectExprRange(s.Where, ctx, ranges)
+	}
+}
+
+// collectTableRanges collects the CREATE TABLE name and walks column
+// defaults/CHECK constraints plus table-level constraints.
+func collectTableRanges(s *sql.CreateTableStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	// CREATE TABLE name — rename the table name in its own CREATE SQL
+	if ctx.IsTable && strings.EqualFold(s.Name, ctx.OldName) && s.NameTok.Start != 0 {
+		*ranges = append(*ranges, RenameRange{Start: s.NameTok.Start, End: s.NameTok.End})
+	}
+	// Walk column definitions (defaults, CHECK constraints)
+	for _, col := range s.Columns {
+		if col.Check != nil {
+			collectExprRange(col.Check, ctx, ranges)
+		}
+		if col.Default != nil {
+			collectExprRange(col.Default, ctx, ranges)
+		}
+	}
+	// Walk table-level constraints (CHECK expressions)
+	for _, cons := range s.Constraints {
+		if cons.Expr != nil {
+			collectExprRange(cons.Expr, ctx, ranges)
+		}
+	}
+}
+
+// collectSelectRanges walks a SELECT statement for rename ranges.
+func collectSelectRanges(sel *sql.SelectStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	if sel == nil {
+		return
+	}
+
+	// FROM clause table reference
+	collectTableRefRange(sel.From, ctx, ranges)
+
+	// JOIN clauses
+	for _, join := range sel.Joins {
+		collectTableRefRange(join.Table, ctx, ranges)
+	}
+
+	// WHERE, HAVING expressions
+	if sel.Where != nil {
+		collectExprRange(sel.Where, ctx, ranges)
+	}
+	if sel.Having != nil {
+		collectExprRange(sel.Having, ctx, ranges)
+	}
+
+	// GROUP BY expressions
+	for _, expr := range sel.GroupBy {
+		collectExprRange(expr, ctx, ranges)
+	}
+
+	// ORDER BY expressions
+	for _, ob := range sel.OrderBy {
+		collectExprRange(ob.Expr, ctx, ranges)
+	}
+
+	// SELECT columns
+	for _, col := range sel.Columns {
+		collectExprRange(col.Expr, ctx, ranges)
+	}
+
+	// UNION subquery
+	if sel.Union != nil {
+		collectSelectRanges(sel.Union, ctx, ranges)
+	}
+
+	// CTEs
+	for _, cte := range sel.CTEs {
+		if cte.Select != nil {
+			collectSelectRanges(cte.Select, ctx, ranges)
+		}
+	}
+}
+
+// collectTableRefRange checks a TableRef for matching rename targets.
+func collectTableRefRange(ref sql.TableRef, ctx *RenameContext, ranges *[]RenameRange) {
+	if ref.Name == "" {
+		return
+	}
+
+	// Strip schema prefix for comparison
+	compareName := ref.Name
+	if dotIdx := strings.LastIndex(compareName, "."); dotIdx >= 0 {
+		compareName = compareName[dotIdx+1:]
+	}
+
+	if ctx.IsTable && strings.EqualFold(compareName, ctx.OldName) {
+		// For schema-qualified names, NameTok covers the last part (the table name itself)
+		if ref.NameTok.Start != 0 || ref.NameTok.End != 0 {
+			*ranges = append(*ranges, RenameRange{Start: ref.NameTok.Start, End: ref.NameTok.End})
+		} else {
+			// Fallback: if no TokenInfo, try to find it in the full name
+			// This handles schema-qualified names where we only want the last part
+			if dotIdx := strings.LastIndex(ref.Name, "."); dotIdx >= 0 {
+				// Can't determine position without TokenInfo
+				return
+			}
+		}
+	}
+
+	// Walk subquery
+	if ref.Subquery != nil {
+		collectSelectRanges(ref.Subquery, ctx, ranges)
+	}
+}
+
+// collectExprRange walks an expression tree for rename targets.
+func collectExprRange(expr sql.Expr, ctx *RenameContext, ranges *[]RenameRange) {
+	if expr == nil {
+		return
+	}
+	switch expr.(type) {
+	case *sql.UnaryOp, *sql.ParenExpr, *sql.CastExpr, *sql.IsNull, *sql.IsNotNull,
+		*sql.IsTrue, *sql.IsFalse, *sql.Subquery, *sql.ExistsExpr:
+		collectExprUnaryWalk(expr, ctx, ranges)
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom, *sql.Between, *sql.RowValue:
+		collectExprPairWalk(expr, ctx, ranges)
+	case *sql.ColumnRef, *sql.FuncCall, *sql.CaseExpr, *sql.InList:
+		collectExprTarget(expr, ctx, ranges)
+	}
+}
+
+// collectExprUnaryWalk descends into the single operand of unary-expression
+// nodes and the SELECT of subquery nodes.
+func collectExprUnaryWalk(expr sql.Expr, ctx *RenameContext, ranges *[]RenameRange) {
+	switch e := expr.(type) {
+	case *sql.UnaryOp:
+		collectExprRange(e.Operand, ctx, ranges)
+	case *sql.ParenExpr:
+		collectExprRange(e.Expr, ctx, ranges)
+	case *sql.CastExpr:
+		collectExprRange(e.Operand, ctx, ranges)
+	case *sql.IsNull:
+		collectExprRange(e.Operand, ctx, ranges)
+	case *sql.IsNotNull:
+		collectExprRange(e.Operand, ctx, ranges)
+	case *sql.IsTrue:
+		collectExprRange(e.Operand, ctx, ranges)
+	case *sql.IsFalse:
+		collectExprRange(e.Operand, ctx, ranges)
+	case *sql.Subquery:
+		collectExprSelect(e.Select, ctx, ranges)
+	case *sql.ExistsExpr:
+		collectExprSelect(e.Select, ctx, ranges)
+	}
+}
+
+// collectExprPairWalk descends into the two operands of binary-expression
+// nodes and the elements of row-value nodes.
+func collectExprPairWalk(expr sql.Expr, ctx *RenameContext, ranges *[]RenameRange) {
+	switch e := expr.(type) {
+	case *sql.BinaryOp:
+		collectExprRange(e.Left, ctx, ranges)
+		collectExprRange(e.Right, ctx, ranges)
+	case *sql.IsDistinctFrom:
+		collectExprRange(e.Left, ctx, ranges)
+		collectExprRange(e.Right, ctx, ranges)
+	case *sql.IsNotDistinctFrom:
+		collectExprRange(e.Left, ctx, ranges)
+		collectExprRange(e.Right, ctx, ranges)
+	case *sql.Between:
+		collectExprRange(e.Operand, ctx, ranges)
+		collectExprRange(e.Low, ctx, ranges)
+		collectExprRange(e.High, ctx, ranges)
+	case *sql.RowValue:
+		for _, v := range e.Values {
+			collectExprRange(v, ctx, ranges)
+		}
+	}
+}
+
+// collectExprTarget handles column references and the compound expression
+// nodes that need special walking (function calls, CASE, IN lists).
+func collectExprTarget(expr sql.Expr, ctx *RenameContext, ranges *[]RenameRange) {
+	switch e := expr.(type) {
+	case *sql.ColumnRef:
+		collectColumnRefRange(e, ctx, ranges)
+	case *sql.FuncCall:
+		collectFuncCallRange(e, ctx, ranges)
+	case *sql.CaseExpr:
+		collectCaseExprRange(e, ctx, ranges)
+	case *sql.InList:
+		collectInListRange(e, ctx, ranges)
+	}
+}
+
+// collectFuncCallRange walks function call arguments and FILTER clause.
+func collectFuncCallRange(e *sql.FuncCall, ctx *RenameContext, ranges *[]RenameRange) {
+	for _, arg := range e.Args {
+		collectExprRange(arg, ctx, ranges)
+	}
+	// The FILTER (WHERE ...) clause references columns and must be
+	// renamed (altertab3-13.2: "SELECT a() FILTER (WHERE a>0)" renames
+	// the WHERE's a but not the function name a).
+	if e.Filter != nil {
+		collectExprRange(e.Filter, ctx, ranges)
+	}
+}
+
+// collectCaseExprRange walks CASE operand, WHEN/THEN pairs and ELSE.
+func collectCaseExprRange(e *sql.CaseExpr, ctx *RenameContext, ranges *[]RenameRange) {
+	if e.Operand != nil {
+		collectExprRange(e.Operand, ctx, ranges)
+	}
+	for _, w := range e.Whens {
+		collectExprRange(w.When, ctx, ranges)
+		collectExprRange(w.Then, ctx, ranges)
+	}
+	if e.Else != nil {
+		collectExprRange(e.Else, ctx, ranges)
+	}
+}
+
+// collectInListRange walks an IN-list operand (with SQLite's bare-column
+// exception for empty lists) and each list item.
+func collectInListRange(e *sql.InList, ctx *RenameContext, ranges *[]RenameRange) {
+	// SQLite's rename machinery does not rewrite a BARE column operand
+	// of an empty IN list ("b IN ()" stays "b" after renaming b,
+	// altertab3-3.2), but it still walks function-call operands and
+	// subquery operands whose inner references are renamed
+	// (altertab3-8.2.2: LIKELIHOOD(c0, 1.0) IN () renames c0;
+	// altertab3-10.2 keeps the subquery's table because the empty-IN
+	// operand's subquery is a separate scope SQLite does not descend
+	// into for the rename).
+	if len(e.List) > 0 {
+		collectExprRange(e.Operand, ctx, ranges)
+	} else if _, isCol := e.Operand.(*sql.ColumnRef); !isCol {
+		if _, isSubq := e.Operand.(*sql.Subquery); !isSubq {
+			collectExprRange(e.Operand, ctx, ranges)
+		}
+	}
+	for _, item := range e.List {
+		collectExprRange(item, ctx, ranges)
+	}
+}
+
+// collectExprSelect descends into a subquery SELECT, if present.
+func collectExprSelect(sel *sql.SelectStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	if sel != nil {
+		collectSelectRanges(sel, ctx, ranges)
+	}
+}
+
+// collectColumnRefRange checks a ColumnRef for matching rename targets.
+func collectColumnRefRange(ref *sql.ColumnRef, ctx *RenameContext, ranges *[]RenameRange) {
+	if ref == nil {
+		return
+	}
+	if ctx.IsTable {
+		collectTableQualifierRange(ref, ctx, ranges)
+	} else {
+		collectColumnNameRange(ref, ctx, ranges)
+	}
+}
+
+// collectTableQualifierRange renames the table qualifier in a qualified
+// column reference during a RENAME TABLE.
+func collectTableQualifierRange(ref *sql.ColumnRef, ctx *RenameContext, ranges *[]RenameRange) {
+	if ref.Table == "" || ref.TableTok.Start == 0 {
+		return
+	}
+	compareTable := ref.Table
+	if dotIdx := strings.LastIndex(compareTable, "."); dotIdx >= 0 {
+		// For schema-qualified names (schema.table.column), TableTok covers
+		// the schema part, not the table part. Skip token rename for these
+		// and let the string-replacement fallback handle them.
+		return
+	}
+	if strings.EqualFold(compareTable, ctx.OldName) {
+		*ranges = append(*ranges, RenameRange{Start: ref.TableTok.Start, End: ref.TableTok.End})
+	}
+}
+
+// collectColumnNameRange renames the column name during a RENAME COLUMN,
+// honoring any table qualifier on the reference.
+func collectColumnNameRange(ref *sql.ColumnRef, ctx *RenameContext, ranges *[]RenameRange) {
+	if !strings.EqualFold(ref.Name, ctx.OldName) {
+		return
+	}
+	// Check table qualifier: if specified, it must match ctx.TableName
+	if ref.Table == "" || strings.EqualFold(ref.Table, ctx.TableName) {
+		if ref.NameTok.Start != 0 || ref.NameTok.End != 0 {
+			*ranges = append(*ranges, RenameRange{Start: ref.NameTok.Start, End: ref.NameTok.End})
+		}
+	}
+}
+
+// deduplicateRanges removes overlapping duplicate ranges.
+func deduplicateRanges(ranges []RenameRange) []RenameRange {
+	if len(ranges) <= 1 {
+		return ranges
+	}
+
+	// Sort by start position
+	sort.Slice(ranges, func(i, j int) bool {
+		return ranges[i].Start < ranges[j].Start
+	})
+
+	// Deduplicate
+	result := make([]RenameRange, 0, len(ranges))
+	for _, r := range ranges {
+		if len(result) == 0 || result[len(result)-1].Start != r.Start || result[len(result)-1].End != r.End {
+			result = append(result, r)
+		}
+	}
+	return result
+}
+
+// ApplyRenames applies a set of byte-range replacements to a SQL text.
+// Ranges must be sorted in ascending order (they will be sorted if not).
+// Each range [start, end) is replaced with the replacement string.
+func ApplyRenames(sqlText string, ranges []RenameRange, replacement string) string {
+	if len(ranges) == 0 {
+		return sqlText
+	}
+
+	// Sort ranges in reverse order (to not invalidate offsets)
+	sorted := make([]RenameRange, len(ranges))
+	copy(sorted, ranges)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Start > sorted[j].Start
+	})
+
+	// Apply replacements from last to first
+	result := sqlText
+	for _, r := range sorted {
+		if r.Start < 0 || r.End > len(result) || r.Start >= r.End {
+			continue
+		}
+		result = result[:r.Start] + replacement + result[r.End:]
+	}
+
+	return result
+}

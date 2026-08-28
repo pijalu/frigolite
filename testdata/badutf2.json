@@ -1,0 +1,15 @@
+{
+  "file": "badutf2.test",
+  "name": "badutf2",
+  "tests": [
+    {
+      "name": "badutf2-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8'"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "file": "enc.test",
+  "name": "enc",
+  "tests": [
+    {
+      "name": "enc-12.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'utf-8';\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  ATTACH 'test.db3' AS aux;\n  CREATE TABLE aux.t3(x, y, z);\n  INSERT INTO t3 VALUES('xxx', 'yyy', 'zzz');\n  PRAGMA encoding;",
+          "expect": "UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 {attached databases must use the same text encoding as main database}"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3;\n  PRAGMA encoding = 'UTF-16le';\n  SELECT * FROM t3;",
+          "expect": "xxx yyy zzz xxx yyy zzz"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-16le';\n  PRAGMA encoding;",
+          "expect": "UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;\n  SELECT * FROM t1;",
+          "expect": "1 {attached databases must use the same text encoding as main database}"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;\n  SELECT * FROM t1;",
+          "expect": "d e f xxx yyy zzz"
+        }
+      ]
+    },
+    {
+      "name": "enc-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a COLLATE test_collate, b);\n    INSERT INTO ab VALUES(CAST (X'C388' AS TEXT), X'888800');\n    INSERT INTO ab VALUES(CAST (X'C0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808388' AS TEXT), X'888800');\n    CREATE INDEX ab_i ON ab(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "enc-11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM ab WHERE a = $::cp200;",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a COLLATE test_collate, b);\n    INSERT INTO ab VALUES(CAST (X'C388' AS TEXT), X'888800');\n    INSERT INTO ab VALUES(CAST (X'C0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808388' AS TEXT), X'888800');\n    CREATE INDEX ab_i ON ab(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM ab WHERE a = $::cp200;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA function_list"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_schema"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "file": "filectrl.test",
+  "name": "filectrl",
+  "tests": [
+    {
+      "name": "filectrl-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE x(y);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

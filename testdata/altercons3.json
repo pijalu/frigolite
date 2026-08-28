@@ -1,0 +1,276 @@
+{
+  "file": "altercons3.test",
+  "name": "altercons3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a));"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
+          "expect": "{CREATE TABLE c1(b)}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b, CONSTRAINT fk FOREIGN KEY (b) REFERENCES p1(a));"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
+          "expect": "{CREATE TABLE c1(b)}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE generated(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES generated(a));"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
+          "expect": "{CREATE TABLE c1(b)}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS c1"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\""
+        }
+      ]
+    },
+    {
+      "name": "4.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk"
+        }
+      ]
+    },
+    {
+      "name": "4.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='c1'",
+          "expect": "{CREATE TABLE c1(b)\"}"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS c1"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\""
+        }
+      ]
+    },
+    {
+      "name": "4.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk"
+        }
+      ]
+    },
+    {
+      "name": "4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='c1'",
+          "expect": "{CREATE TABLE c1(b, c)\"}"
+        }
+      ]
+    },
+    {
+      "name": "4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS c1"
+        }
+      ]
+    },
+    {
+      "name": "4.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\""
+        }
+      ]
+    },
+    {
+      "name": "4.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk"
+        }
+      ]
+    },
+    {
+      "name": "4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='c1'",
+          "expect": "{CREATE TABLE c1(b, generated)\"}"
+        }
+      ]
+    },
+    {
+      "name": "4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS c1"
+        }
+      ]
+    },
+    {
+      "name": "4.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\""
+        }
+      ]
+    },
+    {
+      "name": "4.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk"
+        }
+      ]
+    },
+    {
+      "name": "4.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='c1'",
+          "expect": "{CREATE TABLE c1(b, generated NOT NULL)\"}"
+        }
+      ]
+    },
+    {
+      "name": "4.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS c1"
+        }
+      ]
+    },
+    {
+      "name": "4.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\""
+        }
+      ]
+    },
+    {
+      "name": "4.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE c1 DROP CONSTRAINT fk"
+        }
+      ]
+    },
+    {
+      "name": "4.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='c1'",
+          "expect": "{CREATE TABLE c1(b, generated)\"}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE x1 DROP CONSTRAINT ott;"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{CREATE TABLE x1(a, b }"
+        }
+      ]
+    }
+  ]
+}

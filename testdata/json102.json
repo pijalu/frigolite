@@ -1,0 +1,3054 @@
+{
+  "file": "json102.test",
+  "name": "json102",
+  "nullToken": "NULL",
+  "tests": [
+    {
+      "name": "json102-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex','[52,3.14159]');",
+          "expect": "{{\"ex\":\"[52,3.14159]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-100b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex','[52,3.14159]'));",
+          "expect": "{{\"ex\":\"[52,3.14159]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',json('[52,3.14159]'));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',json('[52,3.14159]')));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',jsonb('[52,3.14159]'));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',jsonb('[52,3.14159]')));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',json_array(52,3.14159));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',json_array(52,3.14159)));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',jsonb_array(52,3.14159));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',jsonb_array(52,3.14159)));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(' { \"this\" : \"is\", \"a\": [ \"test\" ] } ');",
+          "expect": "{{\"this\":\"is\",\"a\":[\"test\"]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-130b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb(' { \"this\" : \"is\", \"a\": [ \"test\" ] } '));",
+          "expect": "{{\"this\":\"is\",\"a\":[\"test\"]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(1,2,'3',4);",
+          "expect": "{[1,2,\"3\",4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-140b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(1,2,'3',4));",
+          "expect": "{[1,2,\"3\",4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array('[1,2]');",
+          "expect": "{[\"[1,2]\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-150b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array('[1,2]'));",
+          "expect": "{[\"[1,2]\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(json_array(1,2));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(jsonb_array(1,2));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(json_array(1,2)));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(jsonb_array(1,2)));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(1,null,'3','[4,5]','{\"six\":7.7}');",
+          "expect": "{[1,null,\"3\",\"[4,5]\",\"{\\\"six\\\":7.7}\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-170b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(1,null,'3','[4,5]','{\"six\":7.7}'));",
+          "expect": "{[1,null,\"3\",\"[4,5]\",\"{\\\"six\\\":7.7}\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-180",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(1,null,'3',json('[4,5]'),json('{\"six\":7.7}'));",
+          "expect": "{[1,null,\"3\",[4,5],{\"six\":7.7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-180-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(1,null,'3',jsonb('[4,5]'),json('{\"six\":7.7}'));",
+          "expect": "{[1,null,\"3\",[4,5],{\"six\":7.7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-180-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(1,null,'3',json('[4,5]'),json('{\"six\":7.7}')));",
+          "expect": "{[1,null,\"3\",[4,5],{\"six\":7.7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-180-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(1,null,'3',jsonb('[4,5]'),jsonb('{\"six\":7.7}')));",
+          "expect": "{[1,null,\"3\",[4,5],{\"six\":7.7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('[1,2,3,4]');",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-190b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('[1,2,3,4]'));",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-191",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length( json_remove('[1,2,3,4]','$[2]') );",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "json102-191b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length( jsonb_remove('[1,2,3,4]','$[2]') );",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "json102-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('[1,2,3,4]', '$');",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-200b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('[1,2,3,4]'), '$');",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('[1,2,3,4]', '$[2]');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-210b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('[1,2,3,4]'), '$[2]');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('{\"one\":[1,2,3]}');",
+          "expect": "{0}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('{\"one\":[1,2,3]}');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-230b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.one');",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "json102-240",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('{\"one\":[1,2,3]}', '$.two');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-240b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.two');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-250",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$');",
+          "expect": "{{\"a\":2,\"c\":[4,5,{\"f\":7}]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-250-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$');",
+          "expect": "{{\"a\":2,\"c\":[4,5,{\"f\":7}]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-250-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$'));",
+          "expect": "{{\"a\":2,\"c\":[4,5,{\"f\":7}]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-250-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$'));",
+          "expect": "{{\"a\":2,\"c\":[4,5,{\"f\":7}]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-260",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c');",
+          "expect": "{[4,5,{\"f\":7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-260-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c');",
+          "expect": "{[4,5,{\"f\":7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-260-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c'));",
+          "expect": "{[4,5,{\"f\":7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-260-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c'));",
+          "expect": "{[4,5,{\"f\":7}]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-270",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2]');",
+          "expect": "{{\"f\":7}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-270-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c[2]');",
+          "expect": "{{\"f\":7}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-270-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c[2]'));",
+          "expect": "{{\"f\":7}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-270-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2]'));",
+          "expect": "{{\"f\":7}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-280",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2].f');",
+          "expect": "{7}"
+        }
+      ]
+    },
+    {
+      "name": "json102-280b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2].f');",
+          "expect": "{7}"
+        }
+      ]
+    },
+    {
+      "name": "json102-290",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5],\"f\":7}','$.c','$.a');",
+          "expect": "{[[4,5],2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-290-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5],\"f\":7}'),'$.c','$.a');",
+          "expect": "{[[4,5],2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-290-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5],\"f\":7}','$.c','$.a'));",
+          "expect": "{[[4,5],2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-290-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5],\"f\":7}'),'$.c','$.a'));",
+          "expect": "{[[4,5],2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-300b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x', '$.a');",
+          "expect": "{[null,2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-310-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.x', '$.a');",
+          "expect": "{[null,2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-310-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.x', '$.a'));",
+          "expect": "{[null,2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-310-43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x', '$.a'));",
+          "expect": "{[null,2]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('{\"a\":2,\"c\":4}', '$.a', 99);",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-320-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert(jsonb('{\"a\":2,\"c\":4}'), '$.a', 99);",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-320-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_insert('{\"a\":2,\"c\":4}', '$.a', 99));",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-320-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_insert(jsonb('{\"a\":2,\"c\":4}'), '$.a', 99));",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('{\"a\":2,\"c\":4}', '$.e', 99);",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-330-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert(jsonb('{\"a\":2,\"c\":4}'), '$.e', 99);",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-330-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_insert('{\"a\":2,\"c\":4}', '$.e', 99));",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-330-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_insert(jsonb('{\"a\":2,\"c\":4}'), '$.e', 99));",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-340",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('{\"a\":2,\"c\":4}', '$.a', 99);",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-340-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace(jsonb('{\"a\":2,\"c\":4}'), '$.a', 99);",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-340-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_replace('{\"a\":2,\"c\":4}', '$.a', 99));",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-340-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_replace(jsonb('{\"a\":2,\"c\":4}'), '$.a', 99));",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-350",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('{\"a\":2,\"c\":4}', '$.e', 99);",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-350-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace(jsonb('{\"a\":2,\"c\":4}'), '$.e', 99);",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-350-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_replace('{\"a\":2,\"c\":4}', '$.e', 99));",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-350-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_replace(jsonb('{\"a\":2,\"c\":4}'), '$.e', 99));",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-360",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.a', 99);",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-360-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.a', 99);",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-360-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.a', 99));",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-360-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.a', 99));",
+          "expect": "{{\"a\":99,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-370",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.e', 99);",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-370-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.e', 99);",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-370-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.e', 99));",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-370-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.e', 99));",
+          "expect": "{{\"a\":2,\"c\":4,\"e\":99}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-380",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.c', '[97,96]');",
+          "expect": "{{\"a\":2,\"c\":\"[97,96]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-380-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '[97,96]');",
+          "expect": "{{\"a\":2,\"c\":\"[97,96]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-380-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', '[97,96]'));",
+          "expect": "{{\"a\":2,\"c\":\"[97,96]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-380-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '[97,96]'));",
+          "expect": "{{\"a\":2,\"c\":\"[97,96]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.c', json('[97,96]'));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('[97,96]'));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', json('[97,96]')));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('[97,96]')));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.c', jsonb('[97,96]'));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('[97,96]'));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', jsonb('[97,96]')));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-390-8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('[97,96]')));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.c', json_array(97,96));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json_array(97,96));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', json_array(97,96)));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json_array(97,96)));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{\"a\":2,\"c\":4}', '$.c', jsonb_array(97,96));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb_array(97,96));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', jsonb_array(97,96)));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-400-8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb_array(97,96)));",
+          "expect": "{{\"a\":2,\"c\":[97,96]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c',4);",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-410b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c',4));",
+          "expect": "{{\"a\":2,\"c\":4}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c','{e:5}');",
+          "expect": "{{\"a\":2,\"c\":\"{e:5}\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-420b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c','{e:5}'));",
+          "expect": "{{\"a\":2,\"c\":\"{e:5}\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c',json_object('e',5));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c',json_object('e',5)));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c',jsonb_object('e',5));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c',jsonb_object('e',5)));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[2]');",
+          "expect": "{[0,1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]');",
+          "expect": "{[0,1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]'));",
+          "expect": "{[0,1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]'));",
+          "expect": "{[0,1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[5]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[6]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[4294967295]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[4294967296]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[4294967297]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[42949672950]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[42949672960]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[2]','$[0]');",
+          "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]');",
+          "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]','$[0]'));",
+          "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]'));",
+          "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[0]','$[2]');",
+          "expect": "{[1,2,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]');",
+          "expect": "{[1,2,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('[0,1,2,3,4]','$[0]','$[2]'));",
+          "expect": "{[1,2,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]'));",
+          "expect": "{[1,2,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-470",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('{\"x\":25,\"y\":42}');",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-470-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('{\"x\":25,\"y\":42}'));",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-470-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('{\"x\":25,\"y\":42}'));",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-470-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('{\"x\":25,\"y\":42}')));",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-480",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('{\"x\":25,\"y\":42}','$.z');",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-480-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('{\"x\":25,\"y\":42}'),'$.z');",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-480-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('{\"x\":25,\"y\":42}','$.z'));",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-480-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('{\"x\":25,\"y\":42}'),'$.z'));",
+          "expect": "{{\"x\":25,\"y\":42}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-490",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('{\"x\":25,\"y\":42}','$.y');",
+          "expect": "{{\"x\":25}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-490-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('{\"x\":25,\"y\":42}'),'$.y');",
+          "expect": "{{\"x\":25}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-490-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('{\"x\":25,\"y\":42}','$.y'));",
+          "expect": "{{\"x\":25}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-490-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('{\"x\":25,\"y\":42}'),'$.y'));",
+          "expect": "{{\"x\":25}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('{\"x\":25,\"y\":42}','$');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-500-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('{\"x\":25,\"y\":42}'),'$');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-500-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('{\"x\":25,\"y\":42}','$'));",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-500-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('{\"x\":25,\"y\":42}'),'$'));",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-510",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}');",
+          "expect": "{object}"
+        }
+      ]
+    },
+    {
+      "name": "json102-510b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778');",
+          "expect": "{object}"
+        }
+      ]
+    },
+    {
+      "name": "json102-520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$');",
+          "expect": "{object}"
+        }
+      ]
+    },
+    {
+      "name": "json102-520b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$');",
+          "expect": "{object}"
+        }
+      ]
+    },
+    {
+      "name": "json102-530",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a');",
+          "expect": "{array}"
+        }
+      ]
+    },
+    {
+      "name": "json102-530b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a');",
+          "expect": "{array}"
+        }
+      ]
+    },
+    {
+      "name": "json102-540",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[0]');",
+          "expect": "{integer}"
+        }
+      ]
+    },
+    {
+      "name": "json102-540b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[0]');",
+          "expect": "{integer}"
+        }
+      ]
+    },
+    {
+      "name": "json102-550",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[1]');",
+          "expect": "{real}"
+        }
+      ]
+    },
+    {
+      "name": "json102-550b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[1]');",
+          "expect": "{real}"
+        }
+      ]
+    },
+    {
+      "name": "json102-560",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[2]');",
+          "expect": "{true}"
+        }
+      ]
+    },
+    {
+      "name": "json102-560b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[2]');",
+          "expect": "{true}"
+        }
+      ]
+    },
+    {
+      "name": "json102-570",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[3]');",
+          "expect": "{false}"
+        }
+      ]
+    },
+    {
+      "name": "json102-570b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[3]');",
+          "expect": "{false}"
+        }
+      ]
+    },
+    {
+      "name": "json102-580",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[4]');",
+          "expect": "{null}"
+        }
+      ]
+    },
+    {
+      "name": "json102-580b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[4]');",
+          "expect": "{null}"
+        }
+      ]
+    },
+    {
+      "name": "json102-590",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[5]');",
+          "expect": "{text}"
+        }
+      ]
+    },
+    {
+      "name": "json102-590b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[5]');",
+          "expect": "{text}"
+        }
+      ]
+    },
+    {
+      "name": "json102-600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[6]');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-600b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[6]');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-610",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(123)||'\"x\":35'||char(125));",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "json102-620",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(123)||'\"x\":35');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(32)  || '\"xyz\"')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1202",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(200) || '\"xyz\"')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1302",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1303",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1304",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1305",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1306",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1307",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1308",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1309",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1311",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1312",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1313",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1314",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1315",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1316",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1317",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1318",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1319",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1322",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1323",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1324",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1325",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1326",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1327",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1328",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1329",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1331",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1332",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1333",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1334",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1335",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1336",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1337",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1338",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1339",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1340",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1341",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1342",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1343",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1344",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1345",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1346",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1347",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1348",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1349",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1350",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1351",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1352",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1353",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1354",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1355",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1356",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1357",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1358",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1359",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1360",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1361",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1362",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1363",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1364",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1365",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1366",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1367",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1368",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1369",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1370",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1371",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1372",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1373",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1374",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1375",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1376",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1377",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1378",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1379",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1380",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1381",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1382",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1383",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1384",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1385",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1386",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1387",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1388",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1389",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1390",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1391",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1392",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1393",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1394",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1395",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1396",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1397",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1398",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1399",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(json_array('abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'),'$[0]')=='abcdef\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"uvwxyz'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":01}'), NOT json_error_position('{\"x\":01}');",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":-01}'), NOT json_error_position('{\"x\":-01}');",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":0}'), NOT json_error_position('{\"x\":0}');",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":-0}'), NOT json_error_position('{\"x\":-0}');",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":0.1}'), NOT json_error_position('{\"x\":0.1}');",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":-0.1}'), NOT json_error_position('{\"x\":-0.1}');",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1407",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":0.0000}'), NOT json_error_position('{\"x\":0.0000}');",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1408",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":-0.0000}'), NOT json_error_position('{\"x\":-0.0000}');",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1409",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":01.5}'), NOT json_error_position('{\"x\":01.5}');",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":-01.5}'), NOT json_error_position('{\"x\":-01.5}');",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1411",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":00}'), NOT json_error_position('{\"x\":00}');",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1412",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":-00}'), NOT json_error_position('{\"x\":-00}');",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "json102-1413",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":+0}'), NOT json_error_position('{\"x\":+0}');",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1414",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":+5}'), NOT json_error_position('{\"x\":+5}');",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1415",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid('{\"x\":+5.5}'), NOT json_error_position('{\"x\":+5.5}');",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "json102-1500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "json102-1501",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "json102-1600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x-\u003e'a' AS '-\u003e',\n    CASE WHEN subtype(x-\u003e'a') THEN 'json' ELSE typeof(x-\u003e'a') END AS 'type',\n    x-\u003e\u003e'a' AS '-\u003e\u003e',\n    CASE WHEN subtype(x-\u003e\u003e'a') THEN 'json' ELSE typeof(x-\u003e\u003e'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;",
+          "expect": "1 null json {} null {} null 2 123 json 123 integer 123 integer 3 4.5 json 4.5 real 4.5 real 4 {\"six\"} json six text six text 5 [7,8] json [7,8] text [7,8] json 6 {{\"b\":9}} json {{\"b\":9}} text {{\"b\":9}} json 7 {} null {} null {} null"
+        }
+      ]
+    },
+    {
+      "name": "json102-1610",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x-\u003ey AS '-\u003e',\n    CASE WHEN subtype(x-\u003ey) THEN 'json' ELSE typeof(x-\u003ey) END AS 'type',\n    x-\u003e\u003ey AS '-\u003e\u003e',\n    CASE WHEN subtype(x-\u003e\u003ey) THEN 'json' ELSE typeof(x-\u003e\u003ey) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;",
+          "expect": "0 null json {} null {} null 1 123 json 123 integer 123 integer 2 4.5 json 4.5 real 4.5 real 3 {\"six\"} json six text six text 4 [7,8] json [7,8] text [7,8] json 5 {{\"b\":9}} json {{\"b\":9}} text {{\"b\":9}} json 6 {} null {} null {} null"
+        }
+      ]
+    },
+    {
+      "name": "json102-1620",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x-\u003ey AS '-\u003e',\n    CASE WHEN subtype(if(json_valid(x),x-\u003ey)) THEN 'json'\n         ELSE typeof(x-\u003ey) END AS 'type',\n    x-\u003e\u003ey AS '-\u003e\u003e',\n    CASE WHEN subtype(x-\u003e\u003ey) THEN 'json' ELSE typeof(x-\u003e\u003ey) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;",
+          "expect": "0 null json {} null {} null 1 123 json 123 integer 123 integer 2 4.5 json 4.5 real 4.5 real 3 {\"six\"} json six text six text 4 [7,8] json [7,8] text [7,8] json 5 {{\"b\":9}} json {{\"b\":9}} text {{\"b\":9}} json 6 {} null {} null {} null"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "json102-1700",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo-\u003e\u003e'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');"
+        }
+      ]
+    },
+    {
+      "name": "json102-1710",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET memo = JSON_REMOVE(memo, '$.y');\n  PRAGMA integrity_check;\n  SELECT * FROM t1;",
+          "expect": "ok 2023-08-03 876 5 {{\"x\":77}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1720",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET memo = JSON_SET(memo, '$.y', 6)\n    WHERE a2 IN (876) AND JSON_TYPE(memo, '$.y') IS NULL;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;",
+          "expect": "ok 2023-08-03 876 5 {{\"x\":77,\"y\":6}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'-\u003e\u003e'2';",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "json102-1801",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'-\u003e\u003e2;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json102-1810",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'-\u003e\u003e'1';",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json102-1811",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'-\u003e\u003e1;",
+          "expect": "one"
+        }
+      ]
+    },
+    {
+      "name": "json102-1820",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'-\u003e'2';",
+          "expect": "{\"two\"}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1821",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'-\u003e2;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json102-1830",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'-\u003e'1';",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json102-1831",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'-\u003e1;",
+          "expect": "{\"one\"}"
+        }
+      ]
+    }
+  ]
+}

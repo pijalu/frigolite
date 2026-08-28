@@ -1,0 +1,107 @@
+{
+  "file": "json502.test",
+  "name": "json502",
+  "nullToken": "null",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_error_position('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT '{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}'-\u003e'$h[#-1]';",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{\"a\\x62c\":123}' -\u003e\u003e 'abc';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{\"abc\":123}' -\u003e\u003e 'a\\x62c';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(json_insert('{}','$.a\\',111,'$.\"b\\\\\"',222));\n  INSERT INTO t1 VALUES(jsonb_insert('{}','$.a\\',111,'$.\"b\\\\\"',222));\n  SELECT x-\u003e'$.a\\', x-\u003e'$.a\\\\', x-\u003e'$.\"a\\\\\"', x-\u003e'$.\"b\\\\\"' FROM t1;",
+          "expect": "111 null 111 222 111 null 111 222"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{\"a\\x62c\":123}','{\"ab\\x63\":456}') -\u003e\u003e 'abc';",
+          "expect": "456"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"A\\\"Key\":1}', '$.A\"Key');",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract('{\"A\\\"Key\":1}', '$.\"A\\\"Key\"');",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT JSON_SET('{}', '$.\"\\\"Key\"', 1);",
+          "expect": "{{\"\\\"Key\":1}}"
+        }
+      ]
+    }
+  ]
+}

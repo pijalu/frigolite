@@ -1,0 +1,101 @@
+{
+  "file": "softheap1.test",
+  "name": "softheap1",
+  "tests": [
+    {
+      "name": "softheap1-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA soft_heap_limit"
+        }
+      ]
+    },
+    {
+      "name": "softheap1-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA soft_heap_limit=123456; PRAGMA soft_heap_limit;",
+          "expect": "123456 123456"
+        }
+      ]
+    },
+    {
+      "name": "softheap1-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;",
+          "expect": "123456 123456"
+        }
+      ]
+    },
+    {
+      "name": "softheap1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "softheap1-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA soft_heap_limit",
+          "expect": "5000"
+        }
+      ]
+    },
+    {
+      "name": "softheap1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA soft_heap_limit"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA soft_heap_limit=123456; PRAGMA soft_heap_limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA soft_heap_limit"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

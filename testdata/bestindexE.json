@@ -1,0 +1,135 @@
+{
+  "file": "bestindexE.test",
+  "name": "bestindexE",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 WHERE a=?"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b=?"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT Delivery.ID, Customer.Name\n  FROM Delivery LEFT JOIN\n  Customer ON Delivery.Customer = Customer.OID"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n  (\n     SELECT Delivery.ID, Customer.Name\n     FROM Delivery LEFT JOIN\n     Customer ON Delivery.Customer = Customer.OID\n\n     UNION\n\n     SELECT ReturnDelivery.ID, Customer.Name\n     FROM ReturnDelivery LEFT JOIN\n     Customer ON ReturnDelivery.Customer = Customer.OID\n  )\n  WHERE ID = 1"
+        }
+      ]
+    },
+    {
+      "name": "3.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info = tcl",
+          "expect": "\n  0 a {} 0 {} 0 1 b {} 0 {} 0\n"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM tcl",
+          "expect": "123 A B"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tcl VALUES('i', 'ii') RETURNING *;",
+          "expect": "i ii"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x);"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x2(x)"
+        }
+      ]
+    },
+    {
+      "name": "3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tcl VALUES('i', 'ii') RETURNING *;",
+          "expect": "i ii"
+        }
+      ]
+    }
+  ]
+}

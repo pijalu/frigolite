@@ -1,0 +1,13 @@
+{
+  "name": "fts-small-single-merge",
+  "pragmas": {"page_size": "1024"},
+  "sql": [
+    "CREATE VIRTUAL TABLE x1 USING fts4;",
+    "INSERT INTO x1 VALUES('In the beginning God created the heaven and the earth.');",
+    "INSERT INTO x1 VALUES('And the earth was without form and void and darkness was upon the face of the deep.');",
+    "INSERT INTO x1 VALUES('And the Spirit of God moved upon the face of the waters.');",
+    "INSERT INTO x1 VALUES('And God said Let there be light and there was light.');",
+    "INSERT INTO x1 VALUES('And God saw the light that it was good and God divided the light from the darkness.');",
+    "INSERT INTO x1(x1) VALUES('merge=4,4');"
+  ]
+}

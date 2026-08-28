@@ -1,0 +1,55 @@
+{
+  "file": "triggerD.test",
+  "name": "triggerD",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(rowid, oid, _rowid_, x);\n    CREATE TABLE log(a,b,c,d,e);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r1', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r2', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r3 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r3.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r3.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r4 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r4.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r4.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r5 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r5', old.rowid, old.oid, old._rowid_, old.x);\n    END;\n    CREATE TRIGGER r6 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r6', old.rowid, old.oid, old._rowid_, old.x);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    UPDATE t1 SET rowid=rowid+1;\n    SELECT * FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(w,x,y,z);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r1', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r2', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r3 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r3.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r3.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r4 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r4.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r4.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r5 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r5', old.rowid, old.oid, old._rowid_, old.x);\n    END;\n    CREATE TRIGGER r6 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r6', old.rowid, old.oid, old._rowid_, old.x);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t300(x);\n    CREATE TEMP TABLE t300(x);\n    CREATE TABLE t301(y);\n    CREATE TRIGGER main.r300 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(10000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    ATTACH 'test2.db' AS db2;\n    CREATE TABLE db2.t2(y);\n    CREATE TABLE db2.log(z);\n    CREATE TRIGGER db2.trig AFTER INSERT ON db2.t2 BEGIN\n      INSERT INTO log(z) VALUES(new.y);\n    END;\n    INSERT INTO t2 VALUES(123);\n    SELECT * FROM log;"
+        }
+      ]
+    }
+  ]
+}

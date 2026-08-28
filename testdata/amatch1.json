@@ -1,0 +1,97 @@
+{
+  "file": "amatch1.test",
+  "name": "amatch1",
+  "tests": [
+    {
+      "name": "amatch1-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5",
+          "expect": "a abated abel abelmizraim abidah"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT term FROM t1aux WHERE term\u003e'b' AND col=0 ORDER BY 1 LIMIT 5",
+          "expect": "baalhanan babel back backward bad"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT term FROM t1aux WHERE term\u003e'b' AND col=0 LIMIT 5",
+          "expect": "baalhanan babel back backward bad"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE costs(iLang, cFrom, cTo, Cost);\n    INSERT INTO costs VALUES(0, '', '?', 100);\n    INSERT INTO costs VALUES(0, '?', '', 100);\n    INSERT INTO costs VALUES(0, '?', '?', 150);\n    CREATE TABLE vocab(w TEXT UNIQUE);\n    INSERT OR IGNORE INTO vocab SELECT term FROM t1aux;\n    CREATE VIRTUAL TABLE t2 USING approximate_match(\n      vocabulary_table=t1aux,\n      vocabulary_word=term,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t3 USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=w,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t4 USING approximate_match(\n        vocabulary_table=vtemp,\n        vocabulary_word=w,\n        edit_distances=costs\n      );"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t2\n     WHERE word MATCH 'joxxph' AND distance\u003c=300;",
+          "expect": "joseph 300"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-2.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3\n     WHERE word MATCH 'joxxph' AND distance\u003c=300;",
+          "expect": "joseph 300"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-2.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t2\n     WHERE word MATCH 'joxxph' AND distance\u003c300;"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-2.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3\n     WHERE word MATCH 'joxxph' AND distance\u003c300;"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE cost(iLang,cFrom,cTo,Cost);\n  INSERT INTO cost VALUES(0,'?','?',1);\n  CREATE TABLE vocab(word TEXT PRIMARY KEY);\n  CREATE VIRTUAL TABLE am USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=word,\n      edit_distances=cost\n  );\n  INSERT INTO vocab(word) VALUES(format('%.81c','a'));\n  SELECT length(word) FROM am WHERE word MATCH format('%.81c','a');",
+          "expect": "81"
+        }
+      ]
+    }
+  ]
+}

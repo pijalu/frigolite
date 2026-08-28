@@ -1,0 +1,107 @@
+package readline
+
+import "strings"
+
+func (rl *Instance) getHintText() {
+	if rl.HintText == nil {
+		rl.resetHintText()
+		return
+	}
+
+	hint := rl.cacheHint.Get(rl.line.Runes())
+	if len(hint) > 0 {
+		rl.hintText = hint
+		return
+	}
+
+	rl.hintText = rl.HintText(rl.line.Runes(), rl.line.RunePos())
+	rl.cacheHint.Append(rl.line.Runes(), rl.hintText)
+}
+
+func (rl *Instance) writeHintTextStr() string {
+	rl.tabMutex.Lock()
+	defer rl.tabMutex.Unlock()
+
+	if rl.HintText == nil {
+		rl.hintY.Store(0)
+		return ""
+	}
+
+	if len(rl.hintText) == 0 {
+		rl.hintText = []rune{' '}
+	}
+
+	hintText := string(rl.hintText)
+
+	if rl.modeTabCompletion.Load() && rl.tcDisplayType == TabDisplayGrid &&
+		!rl.modeTabFind && rl.modeViMode != vimCommand && len(rl.tcSuggestions) > 0 {
+		cell := (rl.tcMaxX * (rl.tcPosY - 1)) + rl.tcOffset + rl.tcPosX - 1
+		description := rl.tcDescriptions[rl.tcSuggestions[cell]]
+
+		if description != "" {
+			hintText = description
+		}
+	}
+
+	s := rl._writeHintTextStr(hintText)
+	return s
+}
+
+// ForceHintTextUpdate is a nasty function for force writing a new hint text. Use sparingly!
+func (rl *Instance) ForceHintTextUpdate(s string) {
+	rl.hintText = []rune(s)
+
+	if rl.tabMutex.TryLock() {
+		rl.print(rl._writeHintTextStr(s))
+		rl.tabMutex.Unlock()
+	}
+}
+
+// _writeHintTextStr doesn't contain any mutex locks. This will have to be
+// handled from the calling function. eg writeHintTextStr()
+func (rl *Instance) _writeHintTextStr(hintText string) string {
+	// fix bug https://github.com/lmorg/murex/issues/376
+	if rl.termWidth() == 0 {
+		rl.cacheTermWidth()
+	}
+
+	// Determine how many lines hintText spans over
+	// (Currently there is no support for carriage returns / new lines)
+	hintLength := strLen(hintText)
+	n := float64(hintLength) / float64(rl.termWidth())
+	if float64(int(n)) != n {
+		n++
+	}
+	hintY := int(n)
+
+	if hintY > 3 {
+		hintY = 3
+		hintText = hintText[:(rl.termWidth()*3)-2] + "…"
+	} else {
+		padding := (hintY * rl.termWidth()) - len(hintText)
+		if padding < 0 {
+			padding = 0
+		}
+		hintText += strings.Repeat(" ", padding)
+	}
+
+	_, lineY := rl.lineWrapCellLen()
+	posX, posY := rl.lineWrapCellPos()
+	y := lineY - posY
+	write := moveCursorDownStr(y)
+
+	write += "\r\n" + rl.HintFormatting + hintText + seqReset
+
+	write += moveCursorUpStr(hintY + lineY - posY)
+	write += moveCursorBackwardsStr(rl.termWidth())
+	write += moveCursorForwardsStr(posX)
+
+	rl.hintY.Store(int32(hintY))
+
+	return write
+}
+
+func (rl *Instance) resetHintText() {
+	rl.hintY.Store(0)
+	rl.hintText = []rune{}
+}

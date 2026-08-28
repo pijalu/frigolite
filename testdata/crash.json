@@ -1,0 +1,121 @@
+{
+  "file": "crash.test",
+  "name": "crash",
+  "tests": [
+    {
+      "name": "crash-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "crash-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc;",
+          "expect": "0 {1 2 3 4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "crash-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc;",
+          "expect": "0 {4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "crash-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "crash-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "crash-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
+        }
+      ]
+    },
+    {
+      "name": "crash-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;"
+        }
+      ]
+    },
+    {
+      "name": "crash-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);                          -- Root page 3\n    INSERT INTO abc VALUES(randstr(1500,1500), 0, 0);   -- Overflow page 4\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a), sum(b), sum(c) from abc"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);                          -- Root page 3\n    INSERT INTO abc VALUES(randstr(1500,1500), 0, 0);   -- Overflow page 4\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc2"
+        }
+      ]
+    }
+  ]
+}

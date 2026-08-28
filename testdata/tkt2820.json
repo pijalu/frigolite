@@ -1,0 +1,44 @@
+{
+  "file": "tkt2820.test",
+  "name": "tkt2820",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA vdbe_trace=ON"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1 FROM t1 ORDER BY a DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

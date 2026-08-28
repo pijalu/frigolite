@@ -1,0 +1,4083 @@
+{
+  "file": "analyzeD.test",
+  "name": "analyzeD",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(1/100), 1%10, 1 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(2/100), 2%10, 2 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(3/100), 3%10, 3 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(4/100), 4%10, 4 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(5/100), 5%10, 5 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(6/100), 6%10, 6 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(7/100), 7%10, 7 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(8/100), 8%10, 8 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(9/100), 9%10, 9 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(10/100), 10%10, 10 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(11/100), 11%10, 11 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(12/100), 12%10, 12 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(13/100), 13%10, 13 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(14/100), 14%10, 14 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(15/100), 15%10, 15 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(16/100), 16%10, 16 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(17/100), 17%10, 17 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(18/100), 18%10, 18 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(19/100), 19%10, 19 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(20/100), 20%10, 20 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(21/100), 21%10, 21 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(22/100), 22%10, 22 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(23/100), 23%10, 23 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(24/100), 24%10, 24 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(25/100), 25%10, 25 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(26/100), 26%10, 26 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(27/100), 27%10, 27 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(28/100), 28%10, 28 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(29/100), 29%10, 29 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(30/100), 30%10, 30 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(31/100), 31%10, 31 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(32/100), 32%10, 32 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(33/100), 33%10, 33 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(34/100), 34%10, 34 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(35/100), 35%10, 35 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(36/100), 36%10, 36 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(37/100), 37%10, 37 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(38/100), 38%10, 38 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(39/100), 39%10, 39 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(40/100), 40%10, 40 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(41/100), 41%10, 41 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(42/100), 42%10, 42 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(43/100), 43%10, 43 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(44/100), 44%10, 44 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(45/100), 45%10, 45 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(46/100), 46%10, 46 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(47/100), 47%10, 47 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(48/100), 48%10, 48 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(49/100), 49%10, 49 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(50/100), 50%10, 50 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(51/100), 51%10, 51 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(52/100), 52%10, 52 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(53/100), 53%10, 53 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(54/100), 54%10, 54 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(55/100), 55%10, 55 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(56/100), 56%10, 56 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(57/100), 57%10, 57 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(58/100), 58%10, 58 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(59/100), 59%10, 59 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(60/100), 60%10, 60 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(61/100), 61%10, 61 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(62/100), 62%10, 62 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(63/100), 63%10, 63 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(64/100), 64%10, 64 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(65/100), 65%10, 65 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(66/100), 66%10, 66 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(67/100), 67%10, 67 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(68/100), 68%10, 68 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(69/100), 69%10, 69 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(70/100), 70%10, 70 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(71/100), 71%10, 71 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(72/100), 72%10, 72 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(73/100), 73%10, 73 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(74/100), 74%10, 74 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(75/100), 75%10, 75 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(76/100), 76%10, 76 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(77/100), 77%10, 77 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(78/100), 78%10, 78 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(79/100), 79%10, 79 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(80/100), 80%10, 80 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(81/100), 81%10, 81 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(82/100), 82%10, 82 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(83/100), 83%10, 83 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(84/100), 84%10, 84 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(85/100), 85%10, 85 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(86/100), 86%10, 86 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(87/100), 87%10, 87 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(88/100), 88%10, 88 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(89/100), 89%10, 89 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(90/100), 90%10, 90 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(91/100), 91%10, 91 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(92/100), 92%10, 92 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(93/100), 93%10, 93 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(94/100), 94%10, 94 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(95/100), 95%10, 95 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(96/100), 96%10, 96 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(97/100), 97%10, 97 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(98/100), 98%10, 98 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(99/100), 99%10, 99 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(100/100), 100%10, 100 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(101/100), 101%10, 101 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(102/100), 102%10, 102 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(103/100), 103%10, 103 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(104/100), 104%10, 104 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(105/100), 105%10, 105 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(106/100), 106%10, 106 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(107/100), 107%10, 107 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(108/100), 108%10, 108 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(109/100), 109%10, 109 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(110/100), 110%10, 110 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(111/100), 111%10, 111 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(112/100), 112%10, 112 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(113/100), 113%10, 113 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(114/100), 114%10, 114 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(115/100), 115%10, 115 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(116/100), 116%10, 116 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(117/100), 117%10, 117 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(118/100), 118%10, 118 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(119/100), 119%10, 119 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(120/100), 120%10, 120 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(121/100), 121%10, 121 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(122/100), 122%10, 122 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(123/100), 123%10, 123 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(124/100), 124%10, 124 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(125/100), 125%10, 125 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(126/100), 126%10, 126 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(127/100), 127%10, 127 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(128/100), 128%10, 128 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(129/100), 129%10, 129 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(130/100), 130%10, 130 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(131/100), 131%10, 131 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(132/100), 132%10, 132 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(133/100), 133%10, 133 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(134/100), 134%10, 134 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(135/100), 135%10, 135 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(136/100), 136%10, 136 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(137/100), 137%10, 137 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(138/100), 138%10, 138 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(139/100), 139%10, 139 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(140/100), 140%10, 140 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(141/100), 141%10, 141 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(142/100), 142%10, 142 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(143/100), 143%10, 143 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(144/100), 144%10, 144 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(145/100), 145%10, 145 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(146/100), 146%10, 146 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(147/100), 147%10, 147 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(148/100), 148%10, 148 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(149/100), 149%10, 149 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(150/100), 150%10, 150 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(151/100), 151%10, 151 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(152/100), 152%10, 152 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(153/100), 153%10, 153 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(154/100), 154%10, 154 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(155/100), 155%10, 155 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(156/100), 156%10, 156 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(157/100), 157%10, 157 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(158/100), 158%10, 158 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(159/100), 159%10, 159 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(160/100), 160%10, 160 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(161/100), 161%10, 161 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(162/100), 162%10, 162 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(163/100), 163%10, 163 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(164/100), 164%10, 164 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(165/100), 165%10, 165 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(166/100), 166%10, 166 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(167/100), 167%10, 167 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(168/100), 168%10, 168 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(169/100), 169%10, 169 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(170/100), 170%10, 170 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(171/100), 171%10, 171 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(172/100), 172%10, 172 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(173/100), 173%10, 173 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(174/100), 174%10, 174 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(175/100), 175%10, 175 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(176/100), 176%10, 176 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(177/100), 177%10, 177 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(178/100), 178%10, 178 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(179/100), 179%10, 179 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(180/100), 180%10, 180 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(181/100), 181%10, 181 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(182/100), 182%10, 182 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(183/100), 183%10, 183 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(184/100), 184%10, 184 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(185/100), 185%10, 185 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(186/100), 186%10, 186 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(187/100), 187%10, 187 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(188/100), 188%10, 188 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(189/100), 189%10, 189 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(190/100), 190%10, 190 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(191/100), 191%10, 191 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(192/100), 192%10, 192 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(193/100), 193%10, 193 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(194/100), 194%10, 194 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(195/100), 195%10, 195 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(196/100), 196%10, 196 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(197/100), 197%10, 197 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(198/100), 198%10, 198 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(199/100), 199%10, 199 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(200/100), 200%10, 0 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(201/100), 201%10, 1 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(202/100), 202%10, 2 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(203/100), 203%10, 3 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(204/100), 204%10, 4 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(205/100), 205%10, 5 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(206/100), 206%10, 6 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(207/100), 207%10, 7 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(208/100), 208%10, 8 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(209/100), 209%10, 9 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(210/100), 210%10, 10 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(211/100), 211%10, 11 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(212/100), 212%10, 12 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(213/100), 213%10, 13 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(214/100), 214%10, 14 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(215/100), 215%10, 15 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(216/100), 216%10, 16 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(217/100), 217%10, 17 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(218/100), 218%10, 18 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(219/100), 219%10, 19 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(220/100), 220%10, 20 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(221/100), 221%10, 21 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(222/100), 222%10, 22 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(223/100), 223%10, 23 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(224/100), 224%10, 24 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(225/100), 225%10, 25 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(226/100), 226%10, 26 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(227/100), 227%10, 27 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(228/100), 228%10, 28 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(229/100), 229%10, 29 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(230/100), 230%10, 30 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(231/100), 231%10, 31 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(232/100), 232%10, 32 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(233/100), 233%10, 33 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(234/100), 234%10, 34 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(235/100), 235%10, 35 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(236/100), 236%10, 36 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(237/100), 237%10, 37 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(238/100), 238%10, 38 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(239/100), 239%10, 39 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(240/100), 240%10, 40 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(241/100), 241%10, 41 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(242/100), 242%10, 42 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(243/100), 243%10, 43 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(244/100), 244%10, 44 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(245/100), 245%10, 45 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(246/100), 246%10, 46 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(247/100), 247%10, 47 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(248/100), 248%10, 48 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(249/100), 249%10, 49 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(250/100), 250%10, 50 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(251/100), 251%10, 51 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(252/100), 252%10, 52 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(253/100), 253%10, 53 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(254/100), 254%10, 54 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(255/100), 255%10, 55 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(256/100), 256%10, 56 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(257/100), 257%10, 57 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(258/100), 258%10, 58 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(259/100), 259%10, 59 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(260/100), 260%10, 60 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(261/100), 261%10, 61 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(262/100), 262%10, 62 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(263/100), 263%10, 63 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(264/100), 264%10, 64 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(265/100), 265%10, 65 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(266/100), 266%10, 66 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(267/100), 267%10, 67 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(268/100), 268%10, 68 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(269/100), 269%10, 69 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(270/100), 270%10, 70 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(271/100), 271%10, 71 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(272/100), 272%10, 72 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(273/100), 273%10, 73 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(274/100), 274%10, 74 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(275/100), 275%10, 75 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(276/100), 276%10, 76 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(277/100), 277%10, 77 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(278/100), 278%10, 78 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(279/100), 279%10, 79 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(280/100), 280%10, 80 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(281/100), 281%10, 81 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(282/100), 282%10, 82 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(283/100), 283%10, 83 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(284/100), 284%10, 84 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(285/100), 285%10, 85 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(286/100), 286%10, 86 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(287/100), 287%10, 87 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(288/100), 288%10, 88 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(289/100), 289%10, 89 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(290/100), 290%10, 90 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(291/100), 291%10, 91 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(292/100), 292%10, 92 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(293/100), 293%10, 93 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(294/100), 294%10, 94 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(295/100), 295%10, 95 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(296/100), 296%10, 96 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(297/100), 297%10, 97 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(298/100), 298%10, 98 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(299/100), 299%10, 99 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(300/100), 300%10, 100 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(301/100), 301%10, 101 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(302/100), 302%10, 102 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(303/100), 303%10, 103 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(304/100), 304%10, 104 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(305/100), 305%10, 105 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(306/100), 306%10, 106 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(307/100), 307%10, 107 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(308/100), 308%10, 108 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(309/100), 309%10, 109 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(310/100), 310%10, 110 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(311/100), 311%10, 111 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(312/100), 312%10, 112 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(313/100), 313%10, 113 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(314/100), 314%10, 114 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(315/100), 315%10, 115 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(316/100), 316%10, 116 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(317/100), 317%10, 117 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(318/100), 318%10, 118 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(319/100), 319%10, 119 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(320/100), 320%10, 120 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(321/100), 321%10, 121 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(322/100), 322%10, 122 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(323/100), 323%10, 123 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(324/100), 324%10, 124 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(325/100), 325%10, 125 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(326/100), 326%10, 126 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(327/100), 327%10, 127 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(328/100), 328%10, 128 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(329/100), 329%10, 129 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(330/100), 330%10, 130 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(331/100), 331%10, 131 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(332/100), 332%10, 132 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(333/100), 333%10, 133 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(334/100), 334%10, 134 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(335/100), 335%10, 135 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(336/100), 336%10, 136 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(337/100), 337%10, 137 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(338/100), 338%10, 138 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(339/100), 339%10, 139 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(340/100), 340%10, 140 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(341/100), 341%10, 141 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(342/100), 342%10, 142 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(343/100), 343%10, 143 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(344/100), 344%10, 144 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(345/100), 345%10, 145 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(346/100), 346%10, 146 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(347/100), 347%10, 147 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(348/100), 348%10, 148 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(349/100), 349%10, 149 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(350/100), 350%10, 150 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(351/100), 351%10, 151 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(352/100), 352%10, 152 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(353/100), 353%10, 153 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(354/100), 354%10, 154 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(355/100), 355%10, 155 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(356/100), 356%10, 156 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(357/100), 357%10, 157 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(358/100), 358%10, 158 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(359/100), 359%10, 159 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(360/100), 360%10, 160 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(361/100), 361%10, 161 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(362/100), 362%10, 162 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(363/100), 363%10, 163 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(364/100), 364%10, 164 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(365/100), 365%10, 165 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(366/100), 366%10, 166 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(367/100), 367%10, 167 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(368/100), 368%10, 168 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(369/100), 369%10, 169 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(370/100), 370%10, 170 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(371/100), 371%10, 171 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(372/100), 372%10, 172 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(373/100), 373%10, 173 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(374/100), 374%10, 174 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(375/100), 375%10, 175 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(376/100), 376%10, 176 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(377/100), 377%10, 177 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(378/100), 378%10, 178 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(379/100), 379%10, 179 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(380/100), 380%10, 180 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(381/100), 381%10, 181 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(382/100), 382%10, 182 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(383/100), 383%10, 183 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(384/100), 384%10, 184 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(385/100), 385%10, 185 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(386/100), 386%10, 186 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(387/100), 387%10, 187 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(388/100), 388%10, 188 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(389/100), 389%10, 189 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(390/100), 390%10, 190 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(391/100), 391%10, 191 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(392/100), 392%10, 192 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(393/100), 393%10, 193 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(394/100), 394%10, 194 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(395/100), 395%10, 195 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(396/100), 396%10, 196 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(397/100), 397%10, 197 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(398/100), 398%10, 198 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(399/100), 399%10, 199 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(400/100), 400%10, 0 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(401/100), 401%10, 1 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(402/100), 402%10, 2 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(403/100), 403%10, 3 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(404/100), 404%10, 4 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(405/100), 405%10, 5 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(406/100), 406%10, 6 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(407/100), 407%10, 7 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(408/100), 408%10, 8 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(409/100), 409%10, 9 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(410/100), 410%10, 10 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(411/100), 411%10, 11 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(412/100), 412%10, 12 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(413/100), 413%10, 13 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(414/100), 414%10, 14 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(415/100), 415%10, 15 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(416/100), 416%10, 16 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(417/100), 417%10, 17 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(418/100), 418%10, 18 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(419/100), 419%10, 19 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(420/100), 420%10, 20 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(421/100), 421%10, 21 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(422/100), 422%10, 22 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(423/100), 423%10, 23 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(424/100), 424%10, 24 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(425/100), 425%10, 25 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(426/100), 426%10, 26 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(427/100), 427%10, 27 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(428/100), 428%10, 28 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(429/100), 429%10, 29 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(430/100), 430%10, 30 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(431/100), 431%10, 31 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(432/100), 432%10, 32 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(433/100), 433%10, 33 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(434/100), 434%10, 34 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(435/100), 435%10, 35 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(436/100), 436%10, 36 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(437/100), 437%10, 37 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(438/100), 438%10, 38 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(439/100), 439%10, 39 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(440/100), 440%10, 40 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(441/100), 441%10, 41 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(442/100), 442%10, 42 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(443/100), 443%10, 43 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(444/100), 444%10, 44 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(445/100), 445%10, 45 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(446/100), 446%10, 46 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(447/100), 447%10, 47 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(448/100), 448%10, 48 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(449/100), 449%10, 49 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(450/100), 450%10, 50 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(451/100), 451%10, 51 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(452/100), 452%10, 52 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(453/100), 453%10, 53 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(454/100), 454%10, 54 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(455/100), 455%10, 55 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(456/100), 456%10, 56 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(457/100), 457%10, 57 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(458/100), 458%10, 58 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(459/100), 459%10, 59 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(460/100), 460%10, 60 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(461/100), 461%10, 61 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(462/100), 462%10, 62 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(463/100), 463%10, 63 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(464/100), 464%10, 64 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(465/100), 465%10, 65 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(466/100), 466%10, 66 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(467/100), 467%10, 67 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(468/100), 468%10, 68 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(469/100), 469%10, 69 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(470/100), 470%10, 70 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(471/100), 471%10, 71 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(472/100), 472%10, 72 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(473/100), 473%10, 73 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(474/100), 474%10, 74 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(475/100), 475%10, 75 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(476/100), 476%10, 76 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(477/100), 477%10, 77 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(478/100), 478%10, 78 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(479/100), 479%10, 79 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(480/100), 480%10, 80 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(481/100), 481%10, 81 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(482/100), 482%10, 82 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(483/100), 483%10, 83 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(484/100), 484%10, 84 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(485/100), 485%10, 85 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(486/100), 486%10, 86 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(487/100), 487%10, 87 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(488/100), 488%10, 88 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(489/100), 489%10, 89 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(490/100), 490%10, 90 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(491/100), 491%10, 91 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(492/100), 492%10, 92 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(493/100), 493%10, 93 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(494/100), 494%10, 94 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(495/100), 495%10, 95 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(496/100), 496%10, 96 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(497/100), 497%10, 97 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(498/100), 498%10, 98 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(499/100), 499%10, 99 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(500/100), 500%10, 100 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(501/100), 501%10, 101 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(502/100), 502%10, 102 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(503/100), 503%10, 103 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(504/100), 504%10, 104 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(505/100), 505%10, 105 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(506/100), 506%10, 106 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(507/100), 507%10, 107 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(508/100), 508%10, 108 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(509/100), 509%10, 109 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(510/100), 510%10, 110 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(511/100), 511%10, 111 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(512/100), 512%10, 112 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(513/100), 513%10, 113 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(514/100), 514%10, 114 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(515/100), 515%10, 115 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(516/100), 516%10, 116 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(517/100), 517%10, 117 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(518/100), 518%10, 118 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(519/100), 519%10, 119 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(520/100), 520%10, 120 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(521/100), 521%10, 121 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(522/100), 522%10, 122 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(523/100), 523%10, 123 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(524/100), 524%10, 124 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(525/100), 525%10, 125 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(526/100), 526%10, 126 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(527/100), 527%10, 127 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(528/100), 528%10, 128 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(529/100), 529%10, 129 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(530/100), 530%10, 130 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(531/100), 531%10, 131 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(532/100), 532%10, 132 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(533/100), 533%10, 133 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(534/100), 534%10, 134 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(535/100), 535%10, 135 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(536/100), 536%10, 136 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(537/100), 537%10, 137 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(538/100), 538%10, 138 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(539/100), 539%10, 139 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(540/100), 540%10, 140 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(541/100), 541%10, 141 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(542/100), 542%10, 142 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(543/100), 543%10, 143 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(544/100), 544%10, 144 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(545/100), 545%10, 145 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(546/100), 546%10, 146 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(547/100), 547%10, 147 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(548/100), 548%10, 148 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(549/100), 549%10, 149 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(550/100), 550%10, 150 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(551/100), 551%10, 151 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(552/100), 552%10, 152 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(553/100), 553%10, 153 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(554/100), 554%10, 154 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(555/100), 555%10, 155 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(556/100), 556%10, 156 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(557/100), 557%10, 157 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(558/100), 558%10, 158 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(559/100), 559%10, 159 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(560/100), 560%10, 160 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(561/100), 561%10, 161 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(562/100), 562%10, 162 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(563/100), 563%10, 163 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(564/100), 564%10, 164 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(565/100), 565%10, 165 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(566/100), 566%10, 166 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(567/100), 567%10, 167 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(568/100), 568%10, 168 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(569/100), 569%10, 169 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(570/100), 570%10, 170 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(571/100), 571%10, 171 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(572/100), 572%10, 172 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(573/100), 573%10, 173 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(574/100), 574%10, 174 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(575/100), 575%10, 175 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(576/100), 576%10, 176 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(577/100), 577%10, 177 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(578/100), 578%10, 178 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(579/100), 579%10, 179 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(580/100), 580%10, 180 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(581/100), 581%10, 181 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(582/100), 582%10, 182 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(583/100), 583%10, 183 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(584/100), 584%10, 184 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(585/100), 585%10, 185 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(586/100), 586%10, 186 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(587/100), 587%10, 187 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(588/100), 588%10, 188 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(589/100), 589%10, 189 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(590/100), 590%10, 190 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(591/100), 591%10, 191 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(592/100), 592%10, 192 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(593/100), 593%10, 193 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(594/100), 594%10, 194 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(595/100), 595%10, 195 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(596/100), 596%10, 196 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(597/100), 597%10, 197 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(598/100), 598%10, 198 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(599/100), 599%10, 199 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(600/100), 600%10, 0 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(601/100), 601%10, 1 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(602/100), 602%10, 2 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(603/100), 603%10, 3 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(604/100), 604%10, 4 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(605/100), 605%10, 5 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(606/100), 606%10, 6 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(607/100), 607%10, 7 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(608/100), 608%10, 8 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(609/100), 609%10, 9 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(610/100), 610%10, 10 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(611/100), 611%10, 11 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(612/100), 612%10, 12 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(613/100), 613%10, 13 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(614/100), 614%10, 14 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(615/100), 615%10, 15 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(616/100), 616%10, 16 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(617/100), 617%10, 17 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(618/100), 618%10, 18 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(619/100), 619%10, 19 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(620/100), 620%10, 20 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(621/100), 621%10, 21 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(622/100), 622%10, 22 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(623/100), 623%10, 23 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(624/100), 624%10, 24 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(625/100), 625%10, 25 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(626/100), 626%10, 26 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(627/100), 627%10, 27 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(628/100), 628%10, 28 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(629/100), 629%10, 29 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(630/100), 630%10, 30 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(631/100), 631%10, 31 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(632/100), 632%10, 32 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(633/100), 633%10, 33 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(634/100), 634%10, 34 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(635/100), 635%10, 35 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(636/100), 636%10, 36 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(637/100), 637%10, 37 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(638/100), 638%10, 38 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(639/100), 639%10, 39 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(640/100), 640%10, 40 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(641/100), 641%10, 41 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(642/100), 642%10, 42 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(643/100), 643%10, 43 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(644/100), 644%10, 44 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(645/100), 645%10, 45 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(646/100), 646%10, 46 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(647/100), 647%10, 47 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(648/100), 648%10, 48 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(649/100), 649%10, 49 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(650/100), 650%10, 50 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(651/100), 651%10, 51 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(652/100), 652%10, 52 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(653/100), 653%10, 53 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(654/100), 654%10, 54 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(655/100), 655%10, 55 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(656/100), 656%10, 56 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(657/100), 657%10, 57 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(658/100), 658%10, 58 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(659/100), 659%10, 59 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(660/100), 660%10, 60 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(661/100), 661%10, 61 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(662/100), 662%10, 62 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(663/100), 663%10, 63 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(664/100), 664%10, 64 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(665/100), 665%10, 65 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(666/100), 666%10, 66 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(667/100), 667%10, 67 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(668/100), 668%10, 68 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(669/100), 669%10, 69 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(670/100), 670%10, 70 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(671/100), 671%10, 71 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(672/100), 672%10, 72 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(673/100), 673%10, 73 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(674/100), 674%10, 74 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(675/100), 675%10, 75 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(676/100), 676%10, 76 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(677/100), 677%10, 77 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(678/100), 678%10, 78 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(679/100), 679%10, 79 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(680/100), 680%10, 80 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(681/100), 681%10, 81 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(682/100), 682%10, 82 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(683/100), 683%10, 83 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(684/100), 684%10, 84 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(685/100), 685%10, 85 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(686/100), 686%10, 86 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(687/100), 687%10, 87 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(688/100), 688%10, 88 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(689/100), 689%10, 89 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(690/100), 690%10, 90 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(691/100), 691%10, 91 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(692/100), 692%10, 92 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(693/100), 693%10, 93 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(694/100), 694%10, 94 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(695/100), 695%10, 95 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(696/100), 696%10, 96 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(697/100), 697%10, 97 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(698/100), 698%10, 98 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(699/100), 699%10, 99 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(700/100), 700%10, 100 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(701/100), 701%10, 101 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(702/100), 702%10, 102 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(703/100), 703%10, 103 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(704/100), 704%10, 104 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(705/100), 705%10, 105 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(706/100), 706%10, 106 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(707/100), 707%10, 107 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(708/100), 708%10, 108 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(709/100), 709%10, 109 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(710/100), 710%10, 110 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(711/100), 711%10, 111 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(712/100), 712%10, 112 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(713/100), 713%10, 113 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(714/100), 714%10, 114 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(715/100), 715%10, 115 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(716/100), 716%10, 116 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(717/100), 717%10, 117 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(718/100), 718%10, 118 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(719/100), 719%10, 119 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(720/100), 720%10, 120 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(721/100), 721%10, 121 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(722/100), 722%10, 122 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(723/100), 723%10, 123 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(724/100), 724%10, 124 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(725/100), 725%10, 125 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(726/100), 726%10, 126 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(727/100), 727%10, 127 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(728/100), 728%10, 128 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(729/100), 729%10, 129 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(730/100), 730%10, 130 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(731/100), 731%10, 131 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(732/100), 732%10, 132 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(733/100), 733%10, 133 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(734/100), 734%10, 134 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(735/100), 735%10, 135 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(736/100), 736%10, 136 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(737/100), 737%10, 137 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(738/100), 738%10, 138 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(739/100), 739%10, 139 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(740/100), 740%10, 140 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(741/100), 741%10, 141 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(742/100), 742%10, 142 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(743/100), 743%10, 143 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(744/100), 744%10, 144 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(745/100), 745%10, 145 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(746/100), 746%10, 146 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(747/100), 747%10, 147 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(748/100), 748%10, 148 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(749/100), 749%10, 149 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(750/100), 750%10, 150 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(751/100), 751%10, 151 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(752/100), 752%10, 152 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(753/100), 753%10, 153 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(754/100), 754%10, 154 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(755/100), 755%10, 155 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(756/100), 756%10, 156 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(757/100), 757%10, 157 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(758/100), 758%10, 158 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(759/100), 759%10, 159 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(760/100), 760%10, 160 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(761/100), 761%10, 161 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(762/100), 762%10, 162 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(763/100), 763%10, 163 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(764/100), 764%10, 164 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(765/100), 765%10, 165 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(766/100), 766%10, 166 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(767/100), 767%10, 167 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(768/100), 768%10, 168 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(769/100), 769%10, 169 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(770/100), 770%10, 170 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(771/100), 771%10, 171 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(772/100), 772%10, 172 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(773/100), 773%10, 173 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(774/100), 774%10, 174 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(775/100), 775%10, 175 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(776/100), 776%10, 176 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(777/100), 777%10, 177 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(778/100), 778%10, 178 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(779/100), 779%10, 179 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(780/100), 780%10, 180 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(781/100), 781%10, 181 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(782/100), 782%10, 182 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(783/100), 783%10, 183 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(784/100), 784%10, 184 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(785/100), 785%10, 185 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(786/100), 786%10, 186 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(787/100), 787%10, 187 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(788/100), 788%10, 188 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(789/100), 789%10, 189 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(790/100), 790%10, 190 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(791/100), 791%10, 191 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(792/100), 792%10, 192 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(793/100), 793%10, 193 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(794/100), 794%10, 194 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(795/100), 795%10, 195 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(796/100), 796%10, 196 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(797/100), 797%10, 197 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(798/100), 798%10, 198 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(799/100), 799%10, 199 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(800/100), 800%10, 0 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(801/100), 801%10, 1 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(802/100), 802%10, 2 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(803/100), 803%10, 3 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(804/100), 804%10, 4 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(805/100), 805%10, 5 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(806/100), 806%10, 6 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(807/100), 807%10, 7 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(808/100), 808%10, 8 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(809/100), 809%10, 9 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(810/100), 810%10, 10 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(811/100), 811%10, 11 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(812/100), 812%10, 12 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(813/100), 813%10, 13 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(814/100), 814%10, 14 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(815/100), 815%10, 15 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(816/100), 816%10, 16 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(817/100), 817%10, 17 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(818/100), 818%10, 18 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(819/100), 819%10, 19 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(820/100), 820%10, 20 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(821/100), 821%10, 21 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(822/100), 822%10, 22 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(823/100), 823%10, 23 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(824/100), 824%10, 24 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(825/100), 825%10, 25 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(826/100), 826%10, 26 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(827/100), 827%10, 27 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(828/100), 828%10, 28 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(829/100), 829%10, 29 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(830/100), 830%10, 30 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(831/100), 831%10, 31 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(832/100), 832%10, 32 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(833/100), 833%10, 33 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(834/100), 834%10, 34 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(835/100), 835%10, 35 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(836/100), 836%10, 36 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(837/100), 837%10, 37 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(838/100), 838%10, 38 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(839/100), 839%10, 39 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(840/100), 840%10, 40 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(841/100), 841%10, 41 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(842/100), 842%10, 42 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(843/100), 843%10, 43 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(844/100), 844%10, 44 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(845/100), 845%10, 45 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(846/100), 846%10, 46 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(847/100), 847%10, 47 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(848/100), 848%10, 48 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(849/100), 849%10, 49 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(850/100), 850%10, 50 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(851/100), 851%10, 51 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(852/100), 852%10, 52 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(853/100), 853%10, 53 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(854/100), 854%10, 54 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(855/100), 855%10, 55 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(856/100), 856%10, 56 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(857/100), 857%10, 57 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(858/100), 858%10, 58 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(859/100), 859%10, 59 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(860/100), 860%10, 60 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(861/100), 861%10, 61 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(862/100), 862%10, 62 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(863/100), 863%10, 63 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(864/100), 864%10, 64 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(865/100), 865%10, 65 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(866/100), 866%10, 66 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(867/100), 867%10, 67 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(868/100), 868%10, 68 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(869/100), 869%10, 69 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(870/100), 870%10, 70 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(871/100), 871%10, 71 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(872/100), 872%10, 72 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(873/100), 873%10, 73 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(874/100), 874%10, 74 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(875/100), 875%10, 75 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(876/100), 876%10, 76 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(877/100), 877%10, 77 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(878/100), 878%10, 78 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(879/100), 879%10, 79 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(880/100), 880%10, 80 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(881/100), 881%10, 81 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(882/100), 882%10, 82 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(883/100), 883%10, 83 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(884/100), 884%10, 84 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(885/100), 885%10, 85 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(886/100), 886%10, 86 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(887/100), 887%10, 87 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(888/100), 888%10, 88 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(889/100), 889%10, 89 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(890/100), 890%10, 90 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(891/100), 891%10, 91 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(892/100), 892%10, 92 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(893/100), 893%10, 93 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(894/100), 894%10, 94 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(895/100), 895%10, 95 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(896/100), 896%10, 96 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(897/100), 897%10, 97 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(898/100), 898%10, 98 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(899/100), 899%10, 99 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(900/100), 900%10, 100 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(901/100), 901%10, 101 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(902/100), 902%10, 102 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(903/100), 903%10, 103 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(904/100), 904%10, 104 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(905/100), 905%10, 105 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(906/100), 906%10, 106 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(907/100), 907%10, 107 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(908/100), 908%10, 108 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(909/100), 909%10, 109 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(910/100), 910%10, 110 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(911/100), 911%10, 111 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(912/100), 912%10, 112 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(913/100), 913%10, 113 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(914/100), 914%10, 114 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(915/100), 915%10, 115 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(916/100), 916%10, 116 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(917/100), 917%10, 117 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(918/100), 918%10, 118 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(919/100), 919%10, 119 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(920/100), 920%10, 120 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(921/100), 921%10, 121 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(922/100), 922%10, 122 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(923/100), 923%10, 123 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(924/100), 924%10, 124 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(925/100), 925%10, 125 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(926/100), 926%10, 126 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(927/100), 927%10, 127 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(928/100), 928%10, 128 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(929/100), 929%10, 129 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(930/100), 930%10, 130 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(931/100), 931%10, 131 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(932/100), 932%10, 132 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(933/100), 933%10, 133 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(934/100), 934%10, 134 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(935/100), 935%10, 135 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(936/100), 936%10, 136 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(937/100), 937%10, 137 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(938/100), 938%10, 138 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(939/100), 939%10, 139 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(940/100), 940%10, 140 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(941/100), 941%10, 141 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(942/100), 942%10, 142 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(943/100), 943%10, 143 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(944/100), 944%10, 144 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(945/100), 945%10, 145 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(946/100), 946%10, 146 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(947/100), 947%10, 147 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(948/100), 948%10, 148 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(949/100), 949%10, 149 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(950/100), 950%10, 150 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(951/100), 951%10, 151 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(952/100), 952%10, 152 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(953/100), 953%10, 153 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(954/100), 954%10, 154 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(955/100), 955%10, 155 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(956/100), 956%10, 156 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(957/100), 957%10, 157 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(958/100), 958%10, 158 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(959/100), 959%10, 159 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(960/100), 960%10, 160 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(961/100), 961%10, 161 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(962/100), 962%10, 162 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(963/100), 963%10, 163 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(964/100), 964%10, 164 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(965/100), 965%10, 165 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(966/100), 966%10, 166 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(967/100), 967%10, 167 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(968/100), 968%10, 168 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(969/100), 969%10, 169 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(970/100), 970%10, 170 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(971/100), 971%10, 171 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(972/100), 972%10, 172 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(973/100), 973%10, 173 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(974/100), 974%10, 174 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(975/100), 975%10, 175 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(976/100), 976%10, 176 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(977/100), 977%10, 177 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(978/100), 978%10, 178 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(979/100), 979%10, 179 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(980/100), 980%10, 180 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(981/100), 981%10, 181 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(982/100), 982%10, 182 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(983/100), 983%10, 183 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(984/100), 984%10, 184 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(985/100), 985%10, 185 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(986/100), 986%10, 186 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(987/100), 987%10, 187 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(988/100), 988%10, 188 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(989/100), 989%10, 189 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(990/100), 990%10, 190 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(991/100), 991%10, 191 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(992/100), 992%10, 192 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(993/100), 993%10, 193 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(994/100), 994%10, 194 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(995/100), 995%10, 195 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(996/100), 996%10, 196 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(997/100), 997%10, 197 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(998/100), 998%10, 198 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES( 2*(999/100), 999%10, 199 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3001, 3001, 3001);\n    INSERT INTO t1 VALUES(3001, 3001, 3002);\n    INSERT INTO t1 VALUES(3001, 3001, 3003);\n    INSERT INTO t1 VALUES(3001, 3001, 3004);\n    INSERT INTO t1 VALUES(3001, 3001, 3005);\n    INSERT INTO t1 VALUES(3001, 3001, 3006);\n    INSERT INTO t1 VALUES(3001, 3001, 3007);\n\n    CREATE INDEX t1_ab ON t1(a, b);\n    CREATE INDEX t1_c ON t1(c);\n\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE a=3001 AND c=150;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_stat1"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE a=3001 AND c=150;"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=13 WHERE a = 3001;\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE a=13 AND c=150;"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_stat1"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE a=13 AND c=150;"
+        }
+      ]
+    }
+  ]
+}

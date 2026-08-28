@@ -1,0 +1,12 @@
+{
+  "name": "backup-pages-512",
+  "pragmas": {"page_size": "512"},
+  "sql": [
+    "CREATE TABLE t1(a, b);",
+    "CREATE INDEX i1 ON t1(a, b);",
+    "INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');",
+    "CREATE TABLE t2(x PRIMARY KEY, y) WITHOUT ROWID;",
+    "INSERT INTO t2 VALUES('k1', zeroblob(300)), ('k2', zeroblob(300));"
+  ],
+  "backup": true
+}

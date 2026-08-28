@@ -1,0 +1,39 @@
+{
+  "file": "bestindexD.test",
+  "name": "bestindexD",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n\n  CREATE TABLE t2(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT a FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT a,c FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT b FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT b FROM x1 WHERE c=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  select 1 from t2 full join x1;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  select 1 from x1 WHERE (b=? AND c=?) OR (b=? AND c=?)"
+        }
+      ]
+    }
+  ]
+}

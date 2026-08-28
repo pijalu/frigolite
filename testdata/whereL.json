@@ -1,0 +1,258 @@
+{
+  "file": "whereL.test",
+  "name": "whereL",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c, d, e);\n  CREATE TABLE t2(a INT PRIMARY KEY, f, g, h, i);\n  CREATE TABLE t3(a INT PRIMARY KEY, j, k, l, m);\n  CREATE VIEW v4 AS SELECT * FROM t2 UNION ALL SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE c3(x COLLATE binary, y COLLATE nocase, z COLLATE binary);\n  CREATE INDEX c3x ON c3(x);\n  INSERT INTO c3 VALUES('ABC', 'ABC', 'abc');\n  SELECT * FROM c3 WHERE x=y AND y=z AND z='abc';",
+          "expect": "ABC ABC abc"
+        }
+      ]
+    },
+    {
+      "name": "201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c3 WHERE x='abc' AND y='abc' AND z='abc';"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE A(id INTEGER PRIMARY KEY, label TEXT);\n  CREATE TABLE B(id INTEGER PRIMARY KEY, label TEXT, Aid INTEGER);\n  CREATE TABLE C(\n    id INTEGER PRIMARY KEY,\n    xx INTEGER NOT NULL,\n    yy INTEGER,\n    zz INTEGER\n  );\n  CREATE UNIQUE INDEX x2 ON C(yy);\n  CREATE UNIQUE INDEX x4 ON C(yy, zz);\n  INSERT INTO A(id) VALUES(1);\n  INSERT INTO B(id) VALUES(2);\n  INSERT INTO C(id,xx,yy,zz) VALUES(99,50,1,2);\n  SELECT 1\n    FROM A,\n         (SELECT id,xx,yy,zz FROM C) subq,\n         B\n   WHERE A.id='1'\n     AND A.id=subq.yy\n     AND B.id=subq.zz;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1\n    FROM A,\n         (SELECT id,xx,yy,zz FROM C) subq,\n         B\n   WHERE A.id=1\n     AND A.id=subq.yy\n     AND B.id=subq.zz;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "302",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1\n    FROM A,\n         (SELECT id,yy,zz FROM C) subq,\n         B\n   WHERE A.id='1'\n     AND A.id=subq.yy\n     AND B.id=subq.zz;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE x(a, b, c);\n  CREATE TABLE y(a, b);\n  INSERT INTO x VALUES (1, 0, 1);\n  INSERT INTO y VALUES (1, 2);\n  SELECT x.a FROM x JOIN y ON x.c = y.a WHERE x.b = 1 AND x.b = 1;"
+        }
+      ]
+    },
+    {
+      "name": "500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index=OFF;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES('0');\n  CREATE VIEW v0(c0) AS SELECT CAST(0 AS INT) FROM t0;\n  SELECT 200, * FROM t0, v0 WHERE 0 = t0.c0 AND t0.c0 = v0.c0;"
+        }
+      ]
+    },
+    {
+      "name": "510",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 200, * FROM t0, v0 WHERE t0.c0 = 0 AND t0.c0 = v0.c0;"
+        }
+      ]
+    },
+    {
+      "name": "520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 200, * FROM t0, v0 WHERE 0 = t0.c0 AND v0.c0 = t0.c0;"
+        }
+      ]
+    },
+    {
+      "name": "530",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 200, * FROM t0, v0 WHERE t0.c0 = 0 AND v0.c0 = t0.c0;"
+        }
+      ]
+    },
+    {
+      "name": "600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x TEXT);\n  CREATE TABLE t2(y TEXT);\n  INSERT INTO t1 VALUES('good'),('bad');\n  INSERT INTO t2 VALUES('good'),('bad');\n  SELECT * FROM t1 JOIN t2 ON x=y\n   WHERE x='good' AND y='good';",
+          "expect": "good good"
+        }
+      ]
+    },
+    {
+      "name": "610",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE tableA(\n    ID           int,\n    RunYearMonth int\n  );\n  INSERT INTO tableA VALUES(1,202003),(2,202003),(3,202003),(4,202004),\n    (5,202004),(6,202004),(7,202004),(8,202004);\n  CREATE TABLE tableB (\n    ID           int,\n    RunYearMonth int\n  );\n  INSERT INTO tableB VALUES(1,202004),(2,202004),(3,202004),(4,202004),\n  (5,202004);\n  SELECT *\n   FROM (\n        SELECT *\n        FROM tableA\n        WHERE RunYearMonth = 202004\n    ) AS A\n    INNER JOIN (\n        SELECT *\n        FROM tableB\n        WHERE RunYearMonth = 202004\n    ) AS B\n    ON A.ID = B.ID\n    AND A.RunYearMonth = B.RunYearMonth;",
+          "expect": "4 202004 4 202004 5 202004 5 202004"
+        }
+      ]
+    },
+    {
+      "name": "700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(v INTEGER);\n  WITH RECURSIVE c(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(v) SELECT x FROM c;\n  CREATE INDEX idx ON t1( abs(v) );\n  SELECT v FROM t1 WHERE abs(v)=1 and v=1;"
+        }
+      ]
+    },
+    {
+      "name": "800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0, c1);\n  CREATE TABLE t1(c2);\n  CREATE INDEX i0 ON t1(NULL);\n  INSERT INTO t1(c2) VALUES (0.2);\n  CREATE VIEW v0(c3) AS SELECT DISTINCT c2 FROM t1;\n  SELECT * FROM v0 LEFT JOIN t0 ON c3<NULL LEFT JOIN t1 ON 1;",
+          "expect": "0.2 NULL NULL 0.2"
+        }
+      ]
+    },
+    {
+      "name": "810",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v0 LEFT JOIN t0 ON c3<NULL LEFT JOIN t1 ON 1 WHERE c2/0.1;",
+          "expect": "0.2 NULL NULL 0.2"
+        }
+      ]
+    },
+    {
+      "name": "900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT 1.0 AS abc) WHERE abc=1;",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT 1.0 AS abc) WHERE abc LIKE '1.0';",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT 1.0 AS abc) WHERE abc=1 AND abc LIKE '1.0';",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "930",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS t0 (c0 BLOB);\n  CREATE TABLE IF NOT EXISTS t1 (c0 INTEGER);\n\n  INSERT INTO t1 VALUES ('1');\n  INSERT INTO t0 VALUES (''), (''), ('2');"
+        }
+      ]
+    },
+    {
+      "name": "940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n    FROM (SELECT 0.0 AS col_0) as subQuery\n    LEFT JOIN t0 ON ((CASE ''\n          WHEN t0.c0 THEN subQuery.col_0\n          ELSE (t0.c0) END) LIKE (((((subQuery.col_0))))))\n    LEFT JOIN t1 ON ((subQuery.col_0) == (false));",
+          "expect": "0.0 {} 1 0.0 {} 1"
+        }
+      ]
+    },
+    {
+      "name": "950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n    FROM (SELECT 0.0 AS col_0) as subQuery\n    LEFT JOIN t0 ON ((CASE ''\n          WHEN t0.c0 THEN subQuery.col_0\n          ELSE (t0.c0) END) LIKE (((((subQuery.col_0))))))\n    LEFT JOIN t1 ON ((subQuery.col_0) == (false)) WHERE t1.c0;",
+          "expect": "0.0 {} 1 0.0 {} 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

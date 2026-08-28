@@ -1,0 +1,8 @@
+{
+  "name": "backup-empty-source",
+  "pragmas": {
+    "page_size": "1024"
+  },
+  "backup": true,
+  "emptySource": true
+}

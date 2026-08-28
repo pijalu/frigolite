@@ -1,0 +1,276 @@
+{
+  "file": "bind.test",
+  "name": "bind",
+  "tests": [
+    {
+      "name": "bind-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 {} {} {} 2 {test value 1} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 {} {} {} 2 {test value 1} {} {} 3 {test value 1} {} {'test value 2'}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 123 abcdefg {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 123 abcdefg {} 2 456 abcdefg {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 123 456 789"
+        }
+      ]
+    },
+    {
+      "name": "bind-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 123 456 789 2 123 -2000000000 2000000000"
+        }
+      ]
+    },
+    {
+      "name": "bind-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "integer integer integer integer integer integer"
+        }
+      ]
+    },
+    {
+      "name": "bind-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 32 -2000000000000 2000000000000"
+        }
+      ]
+    },
+    {
+      "name": "bind-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "integer integer integer"
+        }
+      ]
+    },
+    {
+      "name": "bind-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 1234.1234 1e-05 123456789.0"
+        }
+      ]
+    },
+    {
+      "name": "bind-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "real real real"
+        }
+      ]
+    },
+    {
+      "name": "bind-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 {} 1e+300 -1e-300"
+        }
+      ]
+    },
+    {
+      "name": "bind-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "null real real"
+        }
+      ]
+    },
+    {
+      "name": "bind-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "null null null"
+        }
+      ]
+    },
+    {
+      "name": "bind-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1",
+          "expect": "1 hello . world"
+        }
+      ]
+    },
+    {
+      "name": "bind-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "text text text"
+        }
+      ]
+    },
+    {
+      "name": "bind-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "hello hello hello"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        }
+      ]
+    }
+  ]
+}

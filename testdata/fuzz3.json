@@ -1,0 +1,36 @@
+{
+  "file": "fuzz3.test",
+  "name": "fuzz3",
+  "tests": [
+    {
+      "name": "fuzz3-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    CREATE INDEX i1 ON t1(a, b, c);\n    CREATE INDEX i2 ON t2(d, e, f);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(a, b, c) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(d, e, f) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    CREATE INDEX i1 ON t1(a, b, c);\n    CREATE INDEX i2 ON t2(d, e, f);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

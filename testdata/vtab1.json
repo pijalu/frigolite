@@ -1,0 +1,2006 @@
+{
+  "file": "vtab1.test",
+  "name": "vtab1",
+  "tests": [
+    {
+      "name": "18.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');\n  CREATE VIRTUAL TABLE e6 USING echo(t6);"
+        }
+      ]
+    },
+    {
+      "name": "18.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA case_sensitive_like = ON"
+        }
+      ]
+    },
+    {
+      "name": "18.2.x",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA case_sensitive_like = OFF"
+        }
+      ]
+    },
+    {
+      "name": "20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);"
+        }
+      ]
+    },
+    {
+      "name": "20.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM (\n      SELECT a, b FROM t7 WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8 WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;",
+          "expect": "5 5 6 6 11 11 12 12"
+        }
+      ]
+    },
+    {
+      "name": "20.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM (\n      SELECT a, b FROM t7v WHERE a=11 OR b=12\n      UNION ALL\n      SELECT c, d FROM t8v WHERE c=5 OR d=6\n  )\n  ORDER BY 1, 2;",
+          "expect": "5 5 6 6 11 11 12 12"
+        }
+      ]
+    },
+    {
+      "name": "21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);"
+        }
+      ]
+    },
+    {
+      "name": "21.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t9v WHERE a<b;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "21.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t9v WHERE a=b;",
+          "expect": "2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "23.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1e",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "25.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "26.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM t1 WHERE value<5",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo;",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo;",
+          "expect": "1 {vtable constructor did not declare schema: t1}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo;",
+          "expect": "1 {vtable constructor did not declare schema: t1}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo(no_such_table);",
+          "expect": "1 {vtable constructor failed: t1}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE IF NOT EXISTS t1 USING echo(no_such_table);",
+          "expect": "1 {vtable constructor failed: t1}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE sqlite_master USING echo;",
+          "expect": "1 {object name reserved for internal use: sqlite_master}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE IF NOT EXISTS sqlite_master USING echo;",
+          "expect": "1 {object name reserved for internal use: sqlite_master}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE treal USING echo(treal);",
+          "expect": "1 {table treal already exists}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE IF NOT EXISTS treal USING echo(treal);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE treal;\n    SELECT name FROM sqlite_master ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(1, 2, 3);",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a = 10;",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo;",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(techo)",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE techo;",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE techo;\n    CREATE TABLE logmsg(log);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE treal;\n    DROP TABLE logmsg;\n    SELECT sql FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE template(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo(template);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1);",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(t1);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(t1);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE template;\n    SELECT sql FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a INTEGER, b INTEGER, c); \n    CREATE INDEX treal_idx ON treal(b);\n    CREATE VIRTUAL TABLE t1 USING echo(treal);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO treal VALUES(1, 2, 3);\n    INSERT INTO treal VALUES(4, 5, 6);\n    SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1;",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM t1;",
+          "expect": "1 1 2 3 2 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a AS d, b AS e, c AS f FROM t1;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b = 5;",
+          "expect": "4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b >= 5 AND b <= 10;",
+          "expect": "4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b BETWEEN 2 AND 10;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a MATCH 'string';",
+          "expect": "1 {unable to use function MATCH in the requested context}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-3.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b MATCH 'string';"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-5-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t1 VALUES(1, 'red', 'green');\n    INSERT INTO t1 VALUES(2, 'blue', 'black');\n    INSERT INTO t2 VALUES(1, 'spades', 'clubs');\n    INSERT INTO t2 VALUES(2, 'hearts', 'diamonds');\n    CREATE VIRTUAL TABLE et1 USING echo(t1);\n    CREATE VIRTUAL TABLE et2 USING echo(t2);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-5-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM et1, et2;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-5-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM et1, et2 WHERE et2.d = 2;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-5-6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(d);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n    SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "treal techo"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a = 5;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo;",
+          "expect": "5 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a=6 WHERE a<0;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo;",
+          "expect": "5 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo set a = a||b||c;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo;",
+          "expect": "523 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo set rowid = 10;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM techo;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-7.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(11,12,13);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo ORDER BY a;",
+          "expect": "11 12 13 523 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET b=b+1000"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo ORDER BY a;",
+          "expect": "11 1012 13 523 1002 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo WHERE a=5;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo ORDER BY a;",
+          "expect": "11 1012 13 523 1002 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-6-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE real_abc(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE echo_abc USING echo(real_abc);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO echo_abc VALUES(1, 2, 3);\n    SELECT last_insert_rowid();",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO echo_abc(rowid) VALUES(31427);\n    SELECT last_insert_rowid();",
+          "expect": "31427"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO echo_abc SELECT a||'.v2', b, c FROM echo_abc;\n    SELECT last_insert_rowid();",
+          "expect": "31429"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, a, b, c FROM echo_abc"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE echo_abc SET c = 5 WHERE b = 2;\n    SELECT last_insert_rowid();",
+          "expect": "31429"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE echo_abc SET rowid = 5 WHERE rowid = 1;\n    SELECT last_insert_rowid();",
+          "expect": "31429"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();",
+          "expect": "31429"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, a, b, c FROM echo_abc"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();",
+          "expect": "31429"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, a, b, c FROM real_abc"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM echo_abc;\n    SELECT last_insert_rowid();",
+          "expect": "31429"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, a, b, c FROM real_abc"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.7-14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA index_info('echo_abc');\n    PRAGMA index_xinfo('echo_abc');"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.8-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      CREATE VIRTUAL TABLE aux.e2 USING echo(real_abc);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.8-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE treal;\n    DROP TABLE techo;\n    DROP TABLE echo_abc;\n    DROP TABLE real_abc;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.9-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE r(a, b, c);\n    CREATE VIRTUAL TABLE e USING echo(r, e_log);\n    SELECT name FROM sqlite_master;",
+          "expect": "r e e_log"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.9-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE e;\n    SELECT name FROM sqlite_master;",
+          "expect": "r"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE e USING echo(r, e_log, virtual 1 2 3 varchar(32));"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.10-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE del(d);\n    CREATE VIRTUAL TABLE e2 USING echo(del);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.10-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO e VALUES(1, 2, 3);",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.10-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN SELECT * FROM e WHERE rowid = 2;\n    EXPLAIN QUERY PLAN SELECT * FROM e WHERE rowid = 2 ORDER BY rowid;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.10-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM e WHERE rowid||'' MATCH 'pattern';"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.10-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.11-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO r(a,b,c) VALUES(1,'?',99);\n    INSERT INTO r(a,b,c) VALUES(2,3,99);\n    SELECT a GLOB b FROM e",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.11-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a like 'b' FROM e",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.11-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a glob '2' FROM e",
+          "expect": "{1 2} {2 2}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.11-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  glob('2',a) FROM e",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.11-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  glob(a,'2') FROM e",
+          "expect": "{2 1} {2 2}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.12-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b(a, b, c);\n    CREATE TABLE c(a UNIQUE, b, c);\n    INSERT INTO b VALUES(1, 'A', 'B');\n    INSERT INTO b VALUES(2, 'C', 'D');\n    INSERT INTO b VALUES(3, 'E', 'F');\n    INSERT INTO c VALUES(3, 'G', 'H');\n    CREATE VIRTUAL TABLE echo_c USING echo(c);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.12-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_c SELECT * FROM b;",
+          "expect": "1 {echo-vtab-error: UNIQUE constraint failed: c.a}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.12-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c",
+          "expect": "3 G H"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.12-4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.12-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c",
+          "expect": "3 G H"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.12-6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.13-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE a IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.13-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO c VALUES(NULL, 15, 16);\n    SELECT * FROM echo_c WHERE a IS NULL",
+          "expect": "{} 15 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.13-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO c VALUES(15, NULL, 16);\n    SELECT * FROM echo_c WHERE b IS NULL",
+          "expect": "15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.13-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE b IS NULL AND a = 15;",
+          "expect": "15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1.13-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE NULL IS b AND a IS 15;",
+          "expect": "15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.001",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE +rowid IN (1,2,3)",
+          "expect": "1 3 G H 2 {} 15 16 3 15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.002",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid IN (1,2,3)",
+          "expect": "1 3 G H 2 {} 15 16 3 15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.003",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE +rowid IN (0,1,5,2,'a',3,NULL)",
+          "expect": "1 3 G H 2 {} 15 16 3 15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.004",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid IN (0,1,5,'a',2,3,NULL)",
+          "expect": "1 3 G H 2 {} 15 16 3 15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.005",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,1,5,'a',2,3)"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.006",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3)",
+          "expect": "1 3 G H"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.007",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE +rowid NOT IN (0,5,'a',2,3,NULL)"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.008",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3,NULL)"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.011",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE +a IN (1,3,8,'x',NULL,15,24)",
+          "expect": "3 G H 15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.012",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE a IN (1,3,8,'x',NULL,15,24)",
+          "expect": "3 G H 15 {} 16"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.013",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',15,24)",
+          "expect": "3 G H"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.014",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',NULL,15,24)"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.015",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE +a NOT IN (1,8,'x',NULL,15,24)"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE rowid = 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE a = 1"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM echo_c WHERE a IN (1, 2)",
+          "expect": "/xBestIndex {SELECT rowid, . FROM 'c' WHERE a = .} xFilter {SELECT rowid, . FROM 'c' WHERE a = .} 1/"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE VIRTUAL TABLE echo_t1 USING echo(t1);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO echo_t1(rowid) VALUES(45);\n    SELECT rowid, * FROM echo_t1;",
+          "expect": "45 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO echo_t1(rowid) VALUES(NULL);\n    SELECT rowid, * FROM echo_t1;",
+          "expect": "45 {} {} {} 46 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-15.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_t1(rowid) VALUES('new rowid');",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY, b, c);\n    INSERT INTO t2 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(4, 5, 6);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b);\n    CREATE VIRTUAL TABLE e5 USING echo_v2(t5);\n    BEGIN;\n      INSERT INTO e5 VALUES(1, 2);\n      DROP TABLE e5;\n      SAVEPOINT one;\n      ROLLBACK TO one;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "vtab1-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_master WHERE sql LIKE 'insert%'"
+        }
+      ]
+    },
+    {
+      "name": "23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING wholenumber"
+        }
+      ]
+    },
+    {
+      "name": "23.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);"
+        }
+      ]
+    },
+    {
+      "name": "23.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1e USING echo(t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE treal;\n    SELECT name FROM sqlite_master ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE techo;\n    CREATE TABLE logmsg(log);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE treal;\n    DROP TABLE logmsg;\n    SELECT sql FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE template(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(template);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo(template);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE template;\n    SELECT sql FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a INTEGER, b INTEGER, c); \n    CREATE INDEX treal_idx ON treal(b);\n    CREATE VIRTUAL TABLE t1 USING echo(treal);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO treal VALUES(1, 2, 3);\n    INSERT INTO treal VALUES(4, 5, 6);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS d, b AS e, c AS f FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b = 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b >= 5 AND b <= 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b BETWEEN 2 AND 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b MATCH 'string';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  DROP TABLE treal;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t1 VALUES(1, 'red', 'green');\n    INSERT INTO t1 VALUES(2, 'blue', 'black');\n    INSERT INTO t2 VALUES(1, 'spades', 'clubs');\n    INSERT INTO t2 VALUES(2, 'hearts', 'diamonds');\n    CREATE VIRTUAL TABLE et1 USING echo(t1);\n    CREATE VIRTUAL TABLE et2 USING echo(t2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM et1, et2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM et1, et2 WHERE et2.d = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(d);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM et1, et2 WHERE et2.d = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE et1;\n  DROP TABLE et2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n    SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a = 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a=6 WHERE a<0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo set a = a||b||c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo set rowid = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(11,12,13);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET b=b+1000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE techo(a PRIMARY KEY, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM techo"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM techo"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE real_abc(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE echo_abc USING echo(real_abc);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_abc VALUES(1, 2, 3);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_abc(rowid) VALUES(31427);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_abc SELECT a||'.v2', b, c FROM echo_abc;\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a, b, c FROM echo_abc"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE echo_abc SET c = 5 WHERE b = 2;\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE echo_abc SET rowid = 5 WHERE rowid = 1;\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a, b, c FROM echo_abc"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a, b, c FROM real_abc"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM echo_abc;\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a, b, c FROM real_abc"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_info('echo_abc');\n    PRAGMA index_xinfo('echo_abc');"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      CREATE VIRTUAL TABLE aux.e2 USING echo(real_abc);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE treal;\n    DROP TABLE techo;\n    DROP TABLE echo_abc;\n    DROP TABLE real_abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE r(a, b, c);\n    CREATE VIRTUAL TABLE e USING echo(r, e_log);\n    SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE e;\n    SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE e USING echo(r, e_log, virtual 1 2 3 varchar(32));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE del(d);\n    CREATE VIRTUAL TABLE e2 USING echo(del);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE del;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM e WHERE rowid = 2;\n    EXPLAIN QUERY PLAN SELECT * FROM e WHERE rowid = 2 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM e WHERE rowid||'' MATCH 'pattern';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO r(a,b,c) VALUES(1,'?',99);\n    INSERT INTO r(a,b,c) VALUES(2,3,99);\n    SELECT a GLOB b FROM e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a like 'b' FROM e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a glob '2' FROM e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT  glob('2',a) FROM e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT  glob(a,'2') FROM e"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b(a, b, c);\n    CREATE TABLE c(a UNIQUE, b, c);\n    INSERT INTO b VALUES(1, 'A', 'B');\n    INSERT INTO b VALUES(2, 'C', 'D');\n    INSERT INTO b VALUES(3, 'E', 'F');\n    INSERT INTO c VALUES(3, 'G', 'H');\n    CREATE VIRTUAL TABLE echo_c USING echo(c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM c"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM c"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE a IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c VALUES(NULL, 15, 16);\n    SELECT * FROM echo_c WHERE a IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c VALUES(15, NULL, 16);\n    SELECT * FROM echo_c WHERE b IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE b IS NULL AND a = 15;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE NULL IS b AND a IS 15;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE +rowid IN (1,2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid IN (1,2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE +rowid IN (0,1,5,2,'a',3,NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid IN (0,1,5,'a',2,3,NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,1,5,'a',2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE +rowid NOT IN (0,5,'a',2,3,NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM echo_c WHERE rowid NOT IN (0,5,'a',2,3,NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE +a IN (1,3,8,'x',NULL,15,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE a IN (1,3,8,'x',NULL,15,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',15,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE a NOT IN (1,8,'x',NULL,15,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE +a NOT IN (1,8,'x',NULL,15,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE rowid IN (1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE rowid = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM echo_c WHERE a IN (1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE VIRTUAL TABLE echo_t1 USING echo(t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_t1(rowid) VALUES(45);\n    SELECT rowid, * FROM echo_t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO echo_t1(rowid) VALUES(NULL);\n    SELECT rowid, * FROM echo_t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY, b, c);\n    INSERT INTO t2 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(4, 5, 6);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b);\n    CREATE VIRTUAL TABLE e5 USING echo_v2(t5);\n    BEGIN;\n      INSERT INTO e5 VALUES(1, 2);\n      DROP TABLE e5;\n      SAVEPOINT one;\n      ROLLBACK TO one;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_master WHERE sql LIKE 'insert%'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING wholenumber"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1e USING echo(t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1e SELECT 4"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2152b(x,y)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2152a; DROP TABLE t2152b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT value FROM t1 WHERE value<10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT value FROM t2 UNION ALL \n      SELECT value FROM t1 WHERE value<10"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

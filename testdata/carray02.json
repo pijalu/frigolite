@@ -1,0 +1,43 @@
+{
+  "file": "carray02.test",
+  "name": "carray02",
+  "tests": [
+    {
+      "name": "3.0.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM carray"
+        }
+      ]
+    },
+    {
+      "name": "3.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM carray('0xFFFF', 5)"
+        }
+      ]
+    },
+    {
+      "name": "3.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM carray('0xFFFF')"
+        }
+      ]
+    },
+    {
+      "name": "3.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

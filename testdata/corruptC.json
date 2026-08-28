@@ -1,0 +1,158 @@
+{
+  "file": "corruptC.test",
+  "name": "corruptC",
+  "tests": [
+    {
+      "name": "corruptC-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0 {{*** in database main ***\nTree 3 page 3: free space corruption} {wrong # of entries in index t1i1}}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET y='abcdef-uvwxyz'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;",
+          "expect": "0 {{*** in database main ***\nTree 4 page 4 cell 19: Extends off end of page} {database disk image is malformed}}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master;",
+          "expect": "1 {malformed database schema (t1i1) - corrupt database}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptC-2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master;",
+          "expect": "1 {database disk image is malformed}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

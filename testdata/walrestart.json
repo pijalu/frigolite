@@ -1,0 +1,65 @@
+{
+  "file": "walrestart.test",
+  "name": "walrestart",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20\n  ) \n  INSERT INTO t1 SELECT NULL, randomblob(600) FROM s;\n  CREATE INDEX i1 ON t1(b);\n  PRAGMA wal_checkpoint;",
+          "expect": "wal 0 49 49"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET b=randomblob(600);\n  PRAGMA wal_checkpoint;",
+          "expect": "0 45 45"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_checkpoint;",
+          "expect": "0 45 0"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_checkpoint;",
+          "expect": "/0 5. 5./"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0 ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

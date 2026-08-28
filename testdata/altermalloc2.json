@@ -1,0 +1,51 @@
+{
+  "file": "altermalloc2.test",
+  "name": "altermalloc2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(abcd, efgh);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(abcd, efgh);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE abcd\u003eefgh;"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM rr;\n\n  CREATE TRIGGER vv1 INSTEAD OF INSERT ON vv BEGIN\n    SELECT 1, 2, 3;\n  END;\n  CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n    INSERT INTO vv VALUES(new.a, new.b);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM (\n    WITH abc(d, e) AS (SELECT * FROM rr)\n    SELECT * FROM abc\n  );"
+        }
+      ]
+    }
+  ]
+}

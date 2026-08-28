@@ -1,0 +1,682 @@
+{
+  "file": "lock.test",
+  "name": "lock",
+  "tests": [
+    {
+      "name": "lock-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a int, b int)"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+          "expect": "0 t1"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {no such table: t1}"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "2 1"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {2 1}"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x int, y int)"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {8 9}"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {2 1}"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {8 9}"
+        }
+      ]
+    },
+    {
+      "name": "lock-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "9 8"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {9 8}"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1",
+          "expect": "1 {database is locked} {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1",
+          "expect": "1 {database is locked} {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {2 1} {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        }
+      ]
+    },
+    {
+      "name": "lock-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        }
+      ]
+    },
+    {
+      "name": "lock-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "lock-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=0",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "2 1"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) SELECT 3, tx_exec('SELECT y FROM t2 LIMIT 1');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3;",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=tx_exec('SELECT x FROM t2');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "9 1 9 8"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x=tx_exec('SELECT x FROM t2');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "lock-5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3;",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "lock-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "lock-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "lock-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 ORDER BY a",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "lock-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "lock-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_status"
+        }
+      ]
+    },
+    {
+      "name": "lock-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a int, b int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x int, y int)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(8,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 0 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET x=y, y=x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=0 WHERE 0"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

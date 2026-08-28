@@ -1,0 +1,15 @@
+{
+  "file": "atomic2.test",
+  "name": "atomic2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;"
+        }
+      ]
+    }
+  ]
+}

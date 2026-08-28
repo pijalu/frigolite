@@ -1,0 +1,29 @@
+{
+  "file": "thread3.test",
+  "name": "thread3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = DELETE;",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    }
+  ]
+}

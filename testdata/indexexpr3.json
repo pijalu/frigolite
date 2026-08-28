@@ -1,0 +1,23 @@
+{
+  "file": "indexexpr3.test",
+  "name": "indexexpr3",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, j);\n  CREATE INDEX i1 ON t1( a, json_extract(j, '$.x') );"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+{
+  "file": "func3.test",
+  "name": "func3",
+  "tests": [
+    {
+      "name": "func3-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood(9223372036854775807, 0.5);",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood(-9223372036854775808, 0.5);",
+          "expect": "-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood(14.125, 0.5);",
+          "expect": "14.125"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood(NULL, 0.5);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood('test-string', 0.5);",
+          "expect": "test-string"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(likelihood(x'010203000405', 0.5));",
+          "expect": "X'010203000405'"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood(123, 1.0), likelihood(456, 0.0);",
+          "expect": "123 456"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unlikely(9223372036854775807);",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unlikely(-9223372036854775808);",
+          "expect": "-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unlikely(14.125);",
+          "expect": "14.125"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unlikely(NULL);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unlikely('test-string');",
+          "expect": "test-string"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(unlikely(x'010203000405'));",
+          "expect": "X'010203000405'"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likely(CAST(1 AS INT))=='1';"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unlikely(CAST(1 AS INT))=='1';"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likelihood(CAST(1 AS INT),0.5)=='1';"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likely(9223372036854775807);",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likely(-9223372036854775808);",
+          "expect": "-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likely(14.125);",
+          "expect": "14.125"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likely(NULL);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.54",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT likely('test-string');",
+          "expect": "test-string"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.55",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(likely(x'010203000405'));",
+          "expect": "X'010203000405'"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT likelihood(123, 1.000001);",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT likelihood(123, -0.000001);",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func3-5.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT likelihood(123, 0.5+0.3);",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT likelihood(min(1.0+'2.0',4*11), 0.5)"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT min(1.0+'2.0',4*11)"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT unlikely(min(1.0+'2.0',4*11))"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT min(1.0+'2.0',4*11)"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT likely(min(1.0+'2.0',4*11))"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT min(1.0+'2.0',4*11)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

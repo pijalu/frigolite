@@ -1,0 +1,24 @@
+{
+  "file": "altertrig.test",
+  "name": "altertrig",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  CREATE TABLE t4(a);\n\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, t3;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER r1;\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t5); \n  END;"
+        }
+      ]
+    }
+  ]
+}

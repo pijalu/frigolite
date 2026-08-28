@@ -1,0 +1,699 @@
+{
+  "file": "enc2.test",
+  "name": "enc2",
+  "tests": [
+    {
+      "name": "enc2-11.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding=UTF8;\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('this is a test');\n  PRAGMA encoding=UTF16;\n  SELECT * FROM t1;",
+          "expect": "{this is a test}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as aux;",
+          "expect": "1 {attached databases must use the same text encoding as main database}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;",
+          "expect": "one two three four five UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-16LE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-16BE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-16LE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-16BE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-16BE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-16LE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "one two three four five UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5-12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate",
+          "expect": "1 {no such collation sequence: test_collate}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;",
+          "expect": "one two three four five UTF-16BE"
+        }
+      ]
+    },
+    {
+      "name": "enc2-5.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a varchar collate test_collate);"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-8 sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16LE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16BE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16LE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16LE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16BE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16BE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16LE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_function('sqlite')",
+          "expect": "{UTF-16BE sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "enc2-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-16';\n    SELECT * FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "enc2-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding;",
+          "expect": "UTF-16"
+        }
+      ]
+    },
+    {
+      "name": "enc2-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "enc2-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "enc2-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding;",
+          "expect": "UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc2-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;",
+          "expect": "UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc2-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-16le';\n    PRAGMA encoding;",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "enc2-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master;\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;",
+          "expect": "UTF-8"
+        }
+      ]
+    },
+    {
+      "name": "enc2-9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE abc(a, b, c);\n    PRAGMA encoding;",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "enc2-9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;",
+          "expect": "UTF-16le"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two', 'II', 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('three','III',3);\n    INSERT INTO t1 VALUES('four','IV',4);\n    INSERT INTO t1 VALUES('five','V',5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 'one';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 'four';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a IN ('one', 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding = 'UTF-16LE'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding = 'UTF-16BE'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a varchar collate test_collate);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding = 'UTF-8'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding = 'UTF-16LE'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding = 'UTF-16BE'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_function('sqlite')"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16';\n    SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le';\n    PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE abc(a, b, c);\n    PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF8"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16le"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16be"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = \\"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

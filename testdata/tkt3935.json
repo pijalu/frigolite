@@ -1,0 +1,115 @@
+{
+  "file": "tkt3935.test",
+  "name": "tkt3935",
+  "tests": [
+    {
+      "name": "tkt3935.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT j1.b FROM ( SELECT * FROM t1 INNER JOIN t2 ON a=c ) AS j1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT j1.b FROM (t1 INNER JOIN t2 ON a=c) AS j1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (t1) AS t ON b USING(a)",
+          "expect": "1 {near \"USING\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (t1) AS t ON b",
+          "expect": "1 {a JOIN clause is required before ON}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1) AS t ON b USING(a)",
+          "expect": "1 {near \"USING\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1) AS t ON b",
+          "expect": "1 {a JOIN clause is required before ON}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 AS t ON b",
+          "expect": "1 {a JOIN clause is required before ON}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 AS t ON b USING(a)",
+          "expect": "1 {near \"USING\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3935.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 AS t USING(a)",
+          "expect": "1 {a JOIN clause is required before USING}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT j1.b FROM ( SELECT * FROM t1 INNER JOIN t2 ON a=c ) AS j1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT j1.b FROM (t1 INNER JOIN t2 ON a=c) AS j1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5243 @@
+{
+  "file": "analyze5.test",
+  "name": "analyze5",
+  "tests": [
+    {
+      "name": "analyze5-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,0,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,1,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,2,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,3,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,4,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,5,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,6,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,7,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,8,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,9,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,10,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,11,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,12,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,13,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,14,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,15,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,16,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,17,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,18,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,19,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,20,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,21,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,22,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,23,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,24,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,25,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,26,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,27,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,28,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,29,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,30,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,31,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,32,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,33,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,34,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,35,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,36,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,37,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,38,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,39,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,40,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,41,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,42,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,43,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,44,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,45,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,46,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,47,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,48,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,49,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,50,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,51,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,52,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,53,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,54,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,55,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,56,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,57,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,58,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,59,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,60,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,61,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,62,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,63,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,64,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,65,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,66,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,67,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,68,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,69,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,70,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,71,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,72,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,73,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,74,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,75,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,76,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,77,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,78,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,79,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,80,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,81,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,82,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,83,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,84,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,85,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,86,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,87,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,88,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,89,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,90,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,91,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,92,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,93,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,94,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,95,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,96,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,97,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,98,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,99,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,100,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,101,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,102,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,103,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,104,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,105,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,106,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,107,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,108,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,109,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,110,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,111,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,112,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,113,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,114,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,115,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,116,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,117,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,118,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,119,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,120,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,121,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,122,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,123,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,124,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,125,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,126,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,127,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,128,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,129,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,130,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,131,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,132,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,133,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,134,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,135,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,136,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,137,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,138,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,139,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,140,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,141,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,142,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,143,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,144,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,145,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,146,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,147,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,148,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,149,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,150,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,151,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,152,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,153,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,154,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,155,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,156,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,157,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,158,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,159,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,160,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,161,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,162,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,163,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,164,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,165,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,166,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,167,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,168,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,169,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,170,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,171,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,172,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,173,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,174,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,175,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,176,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,177,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,178,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,179,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,180,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,181,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,182,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,183,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,184,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,185,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,186,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,187,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,188,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,189,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,190,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,191,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,192,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,193,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,194,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,195,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,196,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,197,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,198,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,199,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,200,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,201,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,202,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,203,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,204,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,205,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,206,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,207,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,208,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,209,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,210,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,211,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,212,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,213,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,214,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,215,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,216,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,217,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,218,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,219,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,220,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,221,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,222,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,223,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,224,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,225,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,226,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,227,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,228,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,229,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,230,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,231,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,232,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,233,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,234,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,235,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,236,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,237,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,238,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,239,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,240,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,241,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,242,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,243,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,244,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,245,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,246,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,247,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,248,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,249,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,250,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,251,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,252,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,253,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,254,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,255,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,256,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,257,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,258,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,259,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,260,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,261,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,262,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,263,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,264,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,265,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,266,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,267,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,268,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,269,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,270,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,271,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,272,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,273,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,274,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,275,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,276,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,277,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,278,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,279,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,280,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,281,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,282,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,283,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,284,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,285,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,286,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,287,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,288,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,289,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,290,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,291,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,292,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,293,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,294,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,295,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,296,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,297,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,298,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,299,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,300,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,301,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,302,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,303,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,304,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,305,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,306,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,307,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,308,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,309,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,310,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,311,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,312,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,313,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,314,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,315,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,316,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,317,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,318,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,319,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,320,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,321,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,322,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,323,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,324,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,325,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,326,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,327,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,328,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,329,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,330,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,331,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,332,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,333,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,334,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,335,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,336,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,337,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,338,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,339,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,340,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,341,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,342,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,343,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,344,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,345,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,346,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,347,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,348,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,349,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,350,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,351,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,352,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,353,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,354,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,355,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,356,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,357,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,358,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,359,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,360,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,361,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,362,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,363,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,364,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,365,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,366,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,367,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,368,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,369,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,370,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,371,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,372,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,373,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,374,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,375,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,376,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,377,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,378,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,379,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,380,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,381,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,382,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,383,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,384,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,385,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,386,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,387,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,388,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,389,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,390,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,391,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,392,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,393,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,394,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,395,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,396,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,397,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,398,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0.5,,,0,0,399,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,400,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,401,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,402,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,403,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,404,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,405,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,406,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,407,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,408,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,409,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,410,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,411,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,412,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,413,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,414,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,415,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,416,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,417,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,418,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,419,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,420,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,421,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,422,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,423,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,424,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,425,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,426,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,427,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,428,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,429,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,430,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,431,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,432,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,433,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,434,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,435,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,436,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,437,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,438,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,439,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,440,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,441,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,442,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,443,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,444,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,445,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,446,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,447,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,448,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,449,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,450,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,451,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,452,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,453,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,454,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,455,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,456,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,457,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,458,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,459,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,460,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,461,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,462,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,463,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,464,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,465,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,466,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,467,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,468,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,469,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,470,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,471,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,472,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,473,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,474,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,475,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,476,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,477,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,478,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,479,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,480,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,481,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,482,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,483,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,484,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,485,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,486,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,487,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,488,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,489,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,490,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,491,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,492,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,493,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,494,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,495,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,496,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,497,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,498,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,499,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,500,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,501,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,502,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,503,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,504,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,505,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,506,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,507,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,508,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,509,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,510,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,511,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,512,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,513,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,514,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,515,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,516,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,517,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,518,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,519,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,520,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,521,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,522,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,523,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,524,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,525,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,526,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,527,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,528,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,529,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,530,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,531,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,532,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,533,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,534,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,535,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,536,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,537,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,538,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,539,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,540,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,541,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,542,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,543,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,544,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,545,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,546,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,547,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,548,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,549,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,550,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,551,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,552,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,553,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,554,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,555,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,556,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,557,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,558,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,559,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,560,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,561,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,562,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,563,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,564,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,565,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,566,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,567,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,568,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,569,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,570,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,571,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,572,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,573,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,574,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,575,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,576,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,577,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,578,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,579,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,580,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,581,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,582,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,583,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,584,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,585,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,586,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,587,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,588,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,589,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,590,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,591,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,592,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,593,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,594,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,595,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,596,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,597,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,598,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,599,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,600,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,601,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,602,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,603,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,604,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,605,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,606,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,607,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,608,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,609,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,610,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,611,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,612,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,613,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,614,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,615,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,616,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,617,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,618,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,619,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,620,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,621,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,622,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,623,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,624,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,625,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,626,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,627,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,628,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,629,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,630,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,631,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,632,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,633,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,634,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,635,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,636,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,637,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,638,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,639,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,640,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,641,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,642,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,643,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,644,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,645,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,646,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,647,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,648,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,649,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,650,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,651,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,652,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,653,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,654,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,655,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,656,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,657,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,658,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,659,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,660,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,661,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,662,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,663,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,664,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,665,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,666,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,667,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,668,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,669,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,670,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,671,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,672,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,673,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,674,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,675,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,676,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,677,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,678,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,679,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,680,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,681,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,682,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,683,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,684,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,685,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,686,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,687,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,688,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,689,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,690,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,691,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,692,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,693,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,694,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,695,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,696,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,697,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,698,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1.5,,,1,1,699,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,700,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,701,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,702,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,703,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,704,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,705,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,706,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,707,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,708,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,709,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,710,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,711,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,712,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,713,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,714,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,715,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,716,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,717,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,718,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,719,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,720,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,721,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,722,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,723,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,724,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,725,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,726,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,727,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,728,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,729,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,730,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,731,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,732,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,733,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,734,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,735,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,736,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,737,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,738,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,739,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,740,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,741,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,742,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,743,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,744,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,745,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,746,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,747,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,748,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,749,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,750,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,751,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,752,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,753,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,754,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,755,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,756,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,757,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,758,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,759,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,760,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,761,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,762,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,763,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,764,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,765,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,766,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,767,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,768,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,769,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,770,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,771,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,772,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,773,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,774,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,775,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,776,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,777,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,778,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,779,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,780,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,781,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,782,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,783,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,784,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,785,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,786,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,787,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,788,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,789,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,790,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,791,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,792,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,793,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,794,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,795,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,796,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,797,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,798,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,799,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,800,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,801,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,802,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,803,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,804,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,805,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,806,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,807,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,808,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,809,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,810,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,811,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,812,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,813,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,814,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,815,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,816,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,817,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,818,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,819,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,820,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,821,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,822,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,823,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,824,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,825,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,826,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,827,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,828,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,829,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,830,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,831,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,832,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,833,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,834,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,835,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,836,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,837,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,838,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,839,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,840,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,841,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,842,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,843,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,844,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,845,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,846,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,847,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,848,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,849,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,850,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,851,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,852,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,853,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,854,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,855,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,856,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,857,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,858,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,859,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,860,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,861,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,862,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,863,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,864,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,865,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,866,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,867,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,868,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,869,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,870,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,871,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,872,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,873,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2.5,,,2,2,874,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,875,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,876,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,877,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,878,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,879,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,880,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,881,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,882,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,883,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,884,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,885,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,886,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,887,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,888,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,889,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,890,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,891,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,892,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,893,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,894,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,895,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,896,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,897,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,898,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,899,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,900,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,901,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,902,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,903,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,904,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,905,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,906,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,907,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,908,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,909,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,910,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,911,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,912,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,913,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,914,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,915,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,916,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,917,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,918,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,919,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,920,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,921,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,922,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,923,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,924,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,925,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,926,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,927,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,928,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,929,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,930,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,931,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,932,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,933,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,934,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,935,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,936,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,937,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,938,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,939,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,940,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,941,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,942,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,943,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,944,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,945,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,946,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,947,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,948,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,949,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,950,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,951,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,952,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,953,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,954,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,955,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,956,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,957,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,958,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,959,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,960,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,961,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,962,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,963,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,964,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,965,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,966,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,967,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,968,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,969,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,970,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,971,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,972,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,973,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,974,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,975,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,976,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,977,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,978,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,979,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,980,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,981,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,982,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,983,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,984,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,985,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,986,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,987,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,988,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,989,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,990,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,991,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,992,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,993,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,994,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,995,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,996,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,997,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,998,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.5,,,3,3,999,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1t ON t1(t);  -- 0.5, 1.5, 2.5, and 3.5\n    CREATE INDEX t1u ON t1(u);  -- text\n    CREATE INDEX t1v ON t1(v);  -- mixed case text\n    CREATE INDEX t1w ON t1(w);  -- integers 0, 1, 2 and a few NULLs\n    CREATE INDEX t1x ON t1(x);  -- integers 1, 2, 3 and many NULLs\n    CREATE INDEX t1y ON t1(y);  -- integers 0 and very few 1s\n    CREATE INDEX t1z ON t1(z);  -- integers 0, 1, 2, and 3\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT lindex(test_decode(sample),0) \n      FROM sqlite_stat4 WHERE idx='t1u' ORDER BY nlt;",
+          "expect": "alpha bravo charlie delta"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1",
+          "expect": "alpha bravo charlie delta"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1",
+          "expect": "t1t 8 t1u 8 t1v 8 t1w 8 t1x 8 t1y 9 t1z 8"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=0 AND z\u003c=0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=1 AND z\u003c=1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.3b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=2 AND z\u003c=2} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.4b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=3 AND z\u003c=3} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.5b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=4 AND z\u003c=4} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.6b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-1 AND z\u003c=-1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.7b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e1 AND z\u003c3} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.8b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e0 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.9b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=1 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.10b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e1 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.11b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=2 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.12b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e2 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.13b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=3 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.14b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e3 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.15b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=4 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.16b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=-1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.17b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.18b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.19b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.20b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c2} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.21b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=2} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.22b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c3} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.31b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=0.0 AND z\u003c=0.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.32b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=1.0 AND z\u003c=1.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.33b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=2.0 AND z\u003c=2.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.34b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=3.0 AND z\u003c=3.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.35b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=4.0 AND z\u003c=4.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.36b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-1.0 AND z\u003c=-1.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.37b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e1.5 AND z\u003c3.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.38b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e0.5 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.39b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=1.0 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.40b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e1.5 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.41b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=2.0 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.42b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e2.1 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.43b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=3.0 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.44b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e3.2 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.45b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=4.0 AND z\u003c100} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.46b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=-1.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.47b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=0.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.48b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c0.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.49b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=1.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.50b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c2.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.51b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c=2.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.52b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z\u003e=-100 AND z\u003c3.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.101b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=-1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.102b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.103b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.104b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=2} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.105b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=3} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.106b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=4} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.107b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=-10.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.108b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=0.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.109b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=1.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.110b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=2.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.111b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=3.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.112b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=4.0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.113b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=1.5} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.114b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=2.5} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.201b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (-1)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.202b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (0)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.203b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (1)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.204b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (2)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.205b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (3)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.206b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (4)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.207b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (0.5)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.208b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (0,1)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.209b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (0,1,2)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.210b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (0,1,2,3)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.211b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (0,1,2,3,4,5)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.212b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (1,2)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.213b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (2,3)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.214b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=3 OR z=2} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.215b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z IN (-1,3)} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.216b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE z=-1 OR z=3} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.300b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE y=0} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.301b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE y=1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.302b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE y=0.1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.400b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE x IS NULL} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.500b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE x IS NULL AND u='charlie'} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.501b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE x=1 AND u='charlie'} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.502b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE x IS NULL} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.503b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE x=1} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.504b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE x IS NOT NULL} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.505b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE +x IS NOT NULL} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "analyze5-1.506b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 NOT INDEXED WHERE y +y z +z\n                     ORDER BY +rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE upper(x) IS NOT NULL} ORDER BY +rowid",
+          "expect": "ok"
+        }
+      ]
+    }
+  ]
+}

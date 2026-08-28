@@ -1,0 +1,144 @@
+{
+  "file": "alterqf.test",
+  "name": "alterqf",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE VIEW v1 AS SELECT \"a\", \"b\", 'notacolumn!', \"c\" FROM t1}}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not''a''column!', \"c\" FROM t1}}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not\"a\"column!', \"c\" FROM t1}}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE VIEW v1 AS SELECT 'val', count(\"b\") FROM t1 GROUP BY 'abc'}}"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE TABLE xyz(a CHECK (a!='str'), b AS (a||'str'))}}"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE INDEX i1 ON t1(a || 'str', \"b\", 'val')}}"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT 'abcd'; END}}"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE VIEW v1 AS SELECT 'string' 'alias' FROM t1}}"
+        }
+      ]
+    },
+    {
+      "name": "1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE INDEX i1 ON t1(a) WHERE \"b\"='bb'}}"
+        }
+      ]
+    },
+    {
+      "name": "1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE TABLE t2(abc, xyz CHECK (xyz != '123'))}}"
+        }
+      ]
+    },
+    {
+      "name": "1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_rename_quotefix('main', $before)",
+          "expect": "{CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max('str', new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", ',') OVER (ORDER BY c||'str');\n      UPDATE t1 SET c= b + 'str';\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = 'o.a' AND t1.b IN('t1.b')\n      );\n    END;\n }}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;",
+          "expect": "{CREATE TABLE x1(\n      one, \"four\", three, PRIMARY KEY(one), \n      CHECK (three!='xyz'), CHECK (\"four\"!=\"one\")\n  ) WITHOUT ROWID}\n  {CREATE INDEX x1i ON x1(one+\"four\"+'four') WHERE 'five'}\n  {CREATE TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET \"four\"=new.three || 'new' WHERE one=new.one||'';\n  END}\n"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "file": "pageropt.test",
+  "name": "pageropt",
+  "tests": [
+    {
+      "name": "pageropt-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;",
+          "expect": "0 2 0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

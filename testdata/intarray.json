@@ -1,0 +1,55 @@
+{
+  "file": "intarray.test",
+  "name": "intarray",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT b FROM t1 WHERE a IN (12,34,56,78) ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT type, name FROM temp.sqlite_master\n     ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE ia1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a IN ia3 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a IN ia3 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(b) FROM t1 WHERE a NOT IN ia3 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a IN ia1;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t3(p,q);\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3 WHERE p IN ia1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3 WHERE p IN ia1;"
+        }
+      ]
+    }
+  ]
+}

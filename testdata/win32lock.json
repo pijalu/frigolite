@@ -1,0 +1,55 @@
+{
+  "file": "win32lock.test",
+  "name": "win32lock",
+  "tests": [
+    {
+      "name": "win32lock-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(5);\n    COMMIT;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "win32lock-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(6);\n    COMMIT;",
+          "expect": "{1 {disk I/O error}} {0 0} SQLITE_IOERR_LOCK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size=0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, length(y) FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, length(y) FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,74 @@
+{
+  "file": "tkt35xx.test",
+  "name": "tkt35xx",
+  "tests": [
+    {
+      "name": "tkt35xx-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;"
+        }
+      ]
+    },
+    {
+      "name": "tkt35xx-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));"
+        }
+      ]
+    },
+    {
+      "name": "tkt35xx-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t5(e PRIMARY KEY, f);\n    DROP TABLE t5;\n    INSERT INTO t3(a, b) SELECT c, d FROM t4;",
+          "expect": "1 {UNIQUE constraint failed: t3.a}"
+        }
+      ]
+    },
+    {
+      "name": "tkt35xx-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "tkt35xx-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3",
+          "expect": "5"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1, zeroblob(676));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3"
+        }
+      ]
+    }
+  ]
+}

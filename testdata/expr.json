@@ -1,0 +1,524 @@
+{
+  "file": "expr.test",
+  "name": "expr",
+  "tests": [
+    {
+      "name": "expr-1.127",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 IS #1;",
+          "expect": "1 {near \"#1\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "expr-13.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \"\" <= '';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "expr-13.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '' <= \"\";",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "expr-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  SELECT count(*) FROM t1\n   WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "expr-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1\n   WHERE (x OR (8==9)) != (NOT NOT x);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "expr-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(NOT x) FROM t1\n   WHERE x",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "expr-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n   WHERE x",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "expr-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');"
+        }
+      ]
+    },
+    {
+      "name": "expr-16.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND 0),a)\n  FROM dual LEFT JOIN t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "expr-16.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "expr-16.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT implies_nonnull_row( (b=1 AND a=2)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "expr-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM test1 ORDER BY a",
+          "expect": "{} 0 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024 11 2048 12 4096 13 8192 14 16384 15 32768 16 65536 17 131072 18 262144 19 524288 20 1048576"
+        }
+      ]
+    },
+    {
+      "name": "expr-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CURRENT_TIME",
+          "expect": "15:34:09"
+        }
+      ]
+    },
+    {
+      "name": "expr-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CURRENT_DATE",
+          "expect": "2006-09-01"
+        }
+      ]
+    },
+    {
+      "name": "expr-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CURRENT_TIMESTAMP",
+          "expect": "{2006-09-01 15:34:09}"
+        }
+      ]
+    },
+    {
+      "name": "expr-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CURRENT_TIME==time('now');"
+        }
+      ]
+    },
+    {
+      "name": "expr-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CURRENT_DATE==date('now');"
+        }
+      ]
+    },
+    {
+      "name": "expr-8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CURRENT_TIMESTAMP==datetime('now');"
+        }
+      ]
+    },
+    {
+      "name": "expr-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(-('-'||'123'))"
+        }
+      ]
+    },
+    {
+      "name": "expr-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' LIKE 'abc' ESCAPE ''",
+          "expect": "1 {ESCAPE expression must be a single character}"
+        }
+      ]
+    },
+    {
+      "name": "expr-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' LIKE 'abc' ESCAPE 'ab'",
+          "expect": "1 {ESCAPE expression must be a single character}"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(9223372036854775807)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(00000009223372036854775807)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(+9223372036854775807)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(+000000009223372036854775807)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(9223372036854775808)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(00000009223372036854775808)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(+9223372036854775808)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(+0000009223372036854775808)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(-9223372036854775808)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(-00000009223372036854775808)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(-9223372036854775809)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "expr-11.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(-00000009223372036854775809)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "expr-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (CASE a>4 THEN 1 ELSE 0 END) FROM test1;",
+          "expect": "1 {near \"THEN\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "expr-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (CASE WHEN a>4 THEN 1 ELSE 0) FROM test1;",
+          "expect": "1 {near \")\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "expr-13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0+'9223372036854775807'",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "expr-13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '9223372036854775807'+0",
+          "expect": "9223372036854775807"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(i1 int, i2 int, t1 text, t2 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test1 VALUES(1,2,'hello','world')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; UPDATE test1 SET %s; SELECT %s FROM test1; ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; UPDATE test1 SET %s; SELECT %s FROM test1; ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(a int, b int);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM test1 WHERE %s ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CURRENT_TIME"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CURRENT_DATE"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CURRENT_TIMESTAMP"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CURRENT_TIME==time('now');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CURRENT_DATE==date('now');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CURRENT_TIMESTAMP==datetime('now');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(-('-'||'123'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(9223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(00000009223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(+9223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(+000000009223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(9223372036854775808)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(00000009223372036854775808)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(+9223372036854775808)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(+0000009223372036854775808)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(-9223372036854775808)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(-00000009223372036854775808)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(-9223372036854775809)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(-00000009223372036854775809)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 12345678901234567890;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0+'9223372036854775807'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '9223372036854775807'+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0+'9223372036854775808'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '9223372036854775808'+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0+'9223372036854775807.0'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '9223372036854775807.0'+0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,98 @@
+{
+  "file": "fts3ai.test",
+  "name": "fts3ai",
+  "tests": [
+    {
+      "name": "fts3ai-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "fts3ai-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (rowid, content) VALUES(1, 'one')"
+        }
+      ]
+    },
+    {
+      "name": "fts3ai-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT content FROM t1 WHERE rowid = 2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "fts3ai-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT content FROM t1 WHERE rowid = 3",
+          "expect": "trois"
+        }
+      ]
+    },
+    {
+      "name": "fts3ai-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT content FROM t1 WHERE rowid = 4",
+          "expect": "four"
+        }
+      ]
+    },
+    {
+      "name": "fts3ai-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT content FROM t1 WHERE rowid = 5",
+          "expect": "cinq"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (rowid, content) VALUES(1, 'one')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = \"UTF-16le\";\n  CREATE VIRTUAL TABLE t1 USING fts3(content);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

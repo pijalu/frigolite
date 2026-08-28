@@ -1,0 +1,171 @@
+{
+  "file": "corrupt6.test",
+  "name": "corrupt6",
+  "tests": [
+    {
+      "name": "corrupt6-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "corrupt6-1.10.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT substr(x,1,8) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

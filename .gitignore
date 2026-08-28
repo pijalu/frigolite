@@ -1,0 +1,62 @@
+# Binaries
+/build/
+/frigolite
+/frigolite.exe
+
+# Binary in CLI module (built by go build without Makefile)
+cmd/frigolite/frigolite
+
+# Binary for tools/status (built by `go build` in tools/status)
+tools/status/status
+
+# Test artifacts
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+coverage.out
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+
+# Temp
+/tmp/
+*.bak
+
+# Agent metadata
+.goa/
+*.bak
+test.db2
+?
+test.db*
+
+# Junk artifacts from test runs (SQL-generated file names)
+cannot-read
+file:*
+
+# Local build artifacts
+/tools/go-lemon/go-lemon
+go-lemon
+_check_delete_db.py
+testgen/main/testdb
+testgen/misc/mydir
+testgen/misc/file join*
+tools/tcl2go/testgen/
+testgen/swarmvtab/remote_test.db*
+
+# Local build artifacts
+/tcl2go
+orafixture

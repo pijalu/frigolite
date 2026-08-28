@@ -1,0 +1,19 @@
+{
+  "file": "bigmmap.test",
+  "name": "bigmmap",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 4096;\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n  WITH  s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 100 )\n  INSERT INTO t0 SELECT i, 't0', randomblob(800) FROM s;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%'"
+        }
+      ]
+    }
+  ]
+}

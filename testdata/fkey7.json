@@ -1,0 +1,110 @@
+{
+  "file": "fkey7.test",
+  "name": "fkey7",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pX(x PRIMARY KEY);\n    CREATE TABLE cX(a INTEGER PRIMARY KEY, b REFERENCES pX);"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cX VALUES(11, zeroblob(40));",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p4 (id INTEGER NOT NULL PRIMARY KEY);\n    INSERT INTO p4 VALUES(1), (2), (3);\n\n    CREATE TABLE c4(x INTEGER REFERENCES p4(id) DEFERRABLE INITIALLY DEFERRED);\n    CREATE INDEX c4_x ON c4(x);\n    INSERT INTO c4 VALUES(1), (2), (3);\n\n    ANALYZE;\n    INSERT INTO p4(id) VALUES(4);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL INTO child VALUES(123), (123);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM child;"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_key_check;"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent VALUES(123);\n  INSERT OR FAIL INTO child VALUES(123), (123);",
+          "expect": "1 {UNIQUE constraint failed: child.c}"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM child;",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_key_check;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

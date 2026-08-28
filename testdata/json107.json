@@ -1,0 +1,146 @@
+{
+  "file": "json107.test",
+  "name": "json107",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid( CAST('{\"a\":1}' AS BLOB) );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid( CAST('{\"a\":1}' AS BLOB), 1);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid( CAST('{\"a\":1}' AS BLOB), 2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid( CAST('{\"a\":1}' AS BLOB), 4);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid( CAST('{\"a\":1}' AS BLOB), 8);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST('{\"a\":123}' AS blob) -\u003e 'a';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST('{\"a\":123}' AS blob) -\u003e\u003e 'a';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(CAST('{\"a\":123}' AS blob), '$.a');",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert(CAST('{\"a\":123}' AS blob),'$.b',456);",
+          "expect": "{{\"a\":123,\"b\":456}}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(CAST('{\"a\":123,\"b\":456}' AS blob),'$.a');",
+          "expect": "{{\"b\":456}}"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(CAST('{\"a\":123,\"b\":456}' AS blob),'$.a',789);",
+          "expect": "{{\"a\":789,\"b\":456}}"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace(CAST('{\"a\":123,\"b\":456}' AS blob),'$.a',789);",
+          "expect": "{{\"a\":789,\"b\":456}}"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(CAST('{\"a\":123,\"b\":456}' AS blob));",
+          "expect": "object"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(CAST('{\"a\":123,\"b\":456}' AS blob));",
+          "expect": "{{\"a\":123,\"b\":456}}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "file": "vtab9.test",
+  "name": "vtab9",
+  "tests": [
+    {
+      "name": "vtab9-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(a);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n    INSERT INTO t1 SELECT 'hello';\n    SELECT rowid, * FROM t1;",
+          "expect": "1 hello"
+        }
+      ]
+    },
+    {
+      "name": "vtab9-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a,b,c);\n    CREATE VIRTUAL TABLE t3 USING echo(t2);\n    CREATE TABLE d1(a,b,c);\n    INSERT INTO d1 VALUES(1,2,3);\n    INSERT INTO d1 VALUES('a','b','c');\n    INSERT INTO d1 VALUES(NULL,'x',123.456);\n    INSERT INTO d1 VALUES(x'6869',123456789,-12345);\n    INSERT INTO t3(a,b,c) SELECT * FROM d1;\n    SELECT rowid, * FROM t3;",
+          "expect": "1 1 2 3 2 a b c 3 {} x 123.456 4 hi 123456789 -12345"
+        }
+      ]
+    },
+    {
+      "name": "vtab9-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     CREATE TABLE t4(a);\n#     CREATE VIRTUAL TABLE t5 USING echo(t4);\n#     INSERT INTO t4 VALUES('hello');\n#     SELECT rowid, a FROM t5;\n#"
+        }
+      ]
+    },
+    {
+      "name": "vtab9-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     INSERT INTO t5(rowid, a) VALUES(1, 'goodbye');\n#"
+        }
+      ]
+    },
+    {
+      "name": "vtab9-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     REPLACE INTO t5(rowid, a) VALUES(1, 'goodbye');\n#     SELECT * FROM t5;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n    INSERT INTO t1 SELECT 'hello';\n    SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c);\n    CREATE VIRTUAL TABLE t3 USING echo(t2);\n    CREATE TABLE d1(a,b,c);\n    INSERT INTO d1 VALUES(1,2,3);\n    INSERT INTO d1 VALUES('a','b','c');\n    INSERT INTO d1 VALUES(NULL,'x',123.456);\n    INSERT INTO d1 VALUES(x'6869',123456789,-12345);\n    INSERT INTO t3(a,b,c) SELECT * FROM d1;\n    SELECT rowid, * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "#     CREATE TABLE t4(a);\n#     CREATE VIRTUAL TABLE t5 USING echo(t4);\n#     INSERT INTO t4 VALUES('hello');\n#     SELECT rowid, a FROM t5;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#     INSERT INTO t5(rowid, a) VALUES(1, 'goodbye');\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#     REPLACE INTO t5(rowid, a) VALUES(1, 'goodbye');\n#     SELECT * FROM t5;\n#"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,34 @@
+{
+  "file": "fts4onepass.test",
+  "name": "fts4onepass",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(rowid, content) VALUES(1, '1 2 3');\n  INSERT INTO ft(rowid, content) VALUES(2, '4 5 6');\n  INSERT INTO ft(rowid, content) VALUES(3, '7 8 9');"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;",
+          "expect": "3"
+        }
+      ]
+    }
+  ]
+}

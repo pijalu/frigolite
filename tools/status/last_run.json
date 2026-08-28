@@ -1,0 +1,4529 @@
+{
+  "version": 1,
+  "generated_at": "2026-08-20T16:44:59Z",
+  "concurrency": 8,
+  "timeout": "1m0s",
+  "packages": {
+    "affinity2": {
+      "state": "pass",
+      "duration": "1.148s"
+    },
+    "affinity3": {
+      "state": "pass",
+      "duration": "1.882s"
+    },
+    "aggerror": {
+      "state": "fail",
+      "duration": "927ms",
+      "error": "T 7;\n            SELECT x_count(*) FROM t1;\n          \n    aggerror_test.go:75: query error: no such function: x_count\n          sql: \n            INSERT INTO t1 VALUES(40);\n            SELECT x_count(*) FROM t1;\n          \n    aggerror_test.go:81: expected error containing \"value of 40 handed to x_count\", got: no such function: x_count\n          sql: \n            SELECT x_count(a) FROM t1;\n          \n    aggerror_test.go:87: query error: no such function: x_count\n          sql: \n            SELECT x_count(*) FROM t1\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/aggerror\t0.323s\nFAIL"
+    },
+    "aggfault": {
+      "state": "pass",
+      "duration": "2.128s"
+    },
+    "aggnested": {
+      "state": "pass",
+      "duration": "1.641s"
+    },
+    "aggorderby": {
+      "state": "fail",
+      "duration": "4.618s",
+      "error": "--- FAIL: Test_aggorderby (2.23s)\n    aggorderby_test.go:235: result mismatch\n          got:  [aaa#aaa]\n          want: [aaa#aaa bbb#bbb]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/aggorderby\t3.986s\nFAIL"
+    },
+    "alias": {
+      "state": "pass",
+      "duration": "1.387s"
+    },
+    "all": {
+      "state": "pass",
+      "duration": "2.623s"
+    },
+    "alter": {
+      "state": "fail",
+      "duration": "1.963s",
+      "error": "MN b UNIQUE;\n          \n    alter_test.go:814: expected error containing \"Cannot add a PRIMARY KEY column\", got: duplicate column name: \"b\"\n          sql: \n            ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n          \n    alter_test.go:839: expected error containing \"table sqlite_master may not be altered\", got: \u003cnil\u003e\n          sql: ALTER TABLE sqlite_master ADD COLUMN xyz\n    alter_test.go:839: expected error containing \"table sqlite_stat1 may not be altered\", got: \u003cnil\u003e\n          sql: ALTER TABLE sqlite_stat1 ADD COLUMN xyz\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter\t1.672s\nFAIL"
+    },
+    "alter2": {
+      "state": "skipped"
+    },
+    "alter3": {
+      "state": "fail",
+      "duration": "1.993s",
+      "error": " error containing \"Cannot add a NOT NULL column with default value NULL\", got: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL;\n          \n    alter3_test.go:166: expected success, got error: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n          \n    alter3_test.go:180: expected error containing \"Cannot add a column with non-constant default\", got: \u003cnil\u003e\n          sql: \n            alter table t1 add column d DEFAULT CURRENT_TIME;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter3\t1.716s\nFAIL"
+    },
+    "alter4": {
+      "state": "fail",
+      "duration": "2.003s",
+      "error": "ss, got error: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n          \n    alter4_test.go:195: expected error containing \"Cannot add a column with non-constant default\", got: \u003cnil\u003e\n          sql: \n            alter table t1 add column d DEFAULT CURRENT_TIME;\n          \n    alter4_test.go:201: expected error containing \"Cannot add a column with non-constant default\", got: duplicate column name: \"d\"\n          sql: \n            alter table t1 add column d default (-5+1);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter4\t1.729s\nFAIL"
+    },
+    "alterauth": {
+      "state": "fail",
+      "duration": "1.995s",
+      "error": ".go:117: result mismatch\n          got:  [{}]\n          want: [SQLITE_ALTER_TABLE main t2 {} {}]\n          body: do_test 1.3\n    alterauth_test.go:124: expected error containing \"not authorized\", got: \u003cnil\u003e\n          sql:  ALTER TABLE t2 RENAME TO t3 \n    alterauth_test.go:130: expected error containing \"not authorized\", got: no such table: t2\n          sql:  ALTER TABLE t2 RENAME d TO ddd \n    alterauth_test.go:136: expected error containing \"not authorized\", got: no such table: t2\n          sql:  ALTER TABLE t2 ADD COLUMN e \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alterauth\t1.730s\nFAIL"
+    },
+    "alterauth2": {
+      "state": "pass",
+      "duration": "2.002s"
+    },
+    "altercol": {
+      "state": "pass",
+      "duration": "2.031s"
+    },
+    "altercons": {
+      "state": "fail",
+      "duration": "1.777s",
+      "error": "s (0.01s)\n    altercons_test.go:187: result mismatch\n          got:  [SQLITE_ERROR]\n          want: [SQLITE_CONSTRAINT]\n          body: do_test 5.2.2\n    altercons_test.go:492: expected error containing \"constraint failed\", got: \u003cnil\u003e\n          sql: \n          ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n    altercons_test.go:504: result mismatch\n          got:  [CREATE TABLE t1(x, y, z, CONSTRAINT bill CHECK (y!=2), CONSTRAINT bill CHECK (y!=2))]\n          want: [CREATE TABLE t1(x, y, z, CONSTRAINT bill CHECK (y!=2))]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/altercons\t1.318s\nFAIL"
+    },
+    "altercons2": {
+      "state": "pass",
+      "duration": "1.762s"
+    },
+    "altercons3": {
+      "state": "pass",
+      "duration": "1.755s"
+    },
+    "altercorrupt": {
+      "state": "pass",
+      "duration": "1.748s"
+    },
+    "alterdropcol": {
+      "state": "pass",
+      "duration": "51.736s"
+    },
+    "alterdropcol2": {
+      "state": "pass",
+      "duration": "1.751s"
+    },
+    "alterfault": {
+      "state": "pass",
+      "duration": "1.723s"
+    },
+    "alterlegacy": {
+      "state": "pass",
+      "duration": "1.753s"
+    },
+    "altermalloc": {
+      "state": "pass",
+      "duration": "1.767s"
+    },
+    "altermalloc2": {
+      "state": "pass",
+      "duration": "1.992s"
+    },
+    "altermalloc3": {
+      "state": "pass",
+      "duration": "1.997s"
+    },
+    "alterqf": {
+      "state": "pass",
+      "duration": "2.007s"
+    },
+    "altertab": {
+      "state": "pass",
+      "duration": "1.807s"
+    },
+    "altertab2": {
+      "state": "pass",
+      "duration": "1.78s"
+    },
+    "altertab3": {
+      "state": "pass",
+      "duration": "2.621s"
+    },
+    "altertrig": {
+      "state": "pass",
+      "duration": "1.765s"
+    },
+    "amatch1": {
+      "state": "skipped"
+    },
+    "analyze": {
+      "state": "skipped"
+    },
+    "analyze3": {
+      "state": "skipped"
+    },
+    "analyze4": {
+      "state": "skipped"
+    },
+    "analyze5": {
+      "state": "skipped"
+    },
+    "analyze6": {
+      "state": "skipped"
+    },
+    "analyze7": {
+      "state": "skipped"
+    },
+    "analyze8": {
+      "state": "skipped"
+    },
+    "analyze9": {
+      "state": "skipped"
+    },
+    "analyzeC": {
+      "state": "pass",
+      "duration": "1.761s"
+    },
+    "analyzeD": {
+      "state": "pass",
+      "duration": "1.761s"
+    },
+    "analyzeE": {
+      "state": "skipped"
+    },
+    "analyzeF": {
+      "state": "pass",
+      "duration": "1.759s"
+    },
+    "analyzeG": {
+      "state": "pass",
+      "duration": "1.717s"
+    },
+    "analyzer1": {
+      "state": "pass",
+      "duration": "1.743s"
+    },
+    "atof1": {
+      "state": "skipped"
+    },
+    "atof2": {
+      "state": "skipped"
+    },
+    "atomic": {
+      "state": "pass",
+      "duration": "1.503s"
+    },
+    "atomic2": {
+      "state": "pass",
+      "duration": "1.503s"
+    },
+    "attach": {
+      "state": "fail",
+      "duration": "1.512s",
+      "error": "  END;\n            \n    attach_test.go:671: expected error containing \"trigger r5 cannot reference objects in database temp\", got: \u003cnil\u003e\n          sql: \n              CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n                DELETE FROM t1 WHERE x\u003c(SELECT min(x) FROM temp.t6);\n              END;\n            \n    attach_test.go:766: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: \n            BEGIN;\n              INSERT INTO aux1.t1 VALUES(3, 4);\n              INSERT INTO aux2.t1 VALUES(5, 6);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach\t1.187s\nFAIL"
+    },
+    "attach2": {
+      "state": "fail",
+      "duration": "1.639s",
+      "error": "83: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(1, 2)\n          \n    attach2_test.go:313: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: \n            UPDATE file2.t1 SET a=0;\n          \n    attach2_test.go:337: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(1, 2)\n          \n    attach2_test.go:345: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: COMMIT\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach2\t1.319s\nFAIL"
+    },
+    "attach3": {
+      "state": "pass",
+      "duration": "1.76s"
+    },
+    "attach4": {
+      "state": "fail",
+      "duration": "1.756s",
+      "error": "--- FAIL: Test_attach4 (0.01s)\n    attach4_test.go:157: result mismatch\n          got:  [main test.db temp . aux0 test.db0 aux1 test.db1 aux2 test.db2 aux3 test.db3 aux4 test.db4 aux5 test.db5 aux6 test.db6 aux7 test.db7 aux8 test.db8 aux9 test.db9]\n          want: [main test.db aux0 test.db0 aux1 test.db1 aux2 test.db2 aux3 test.db3 aux4 test.db4 aux5 test.db5 aux6 test.db6 aux7 test.db7 aux8 test.db8 aux9 test.db9]\n          body: do_test 1.2.1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach4\t1.480s\nFAIL"
+    },
+    "attachmalloc": {
+      "state": "pass",
+      "duration": "1.751s"
+    },
+    "auth": {
+      "state": "skipped"
+    },
+    "auth2": {
+      "state": "skipped"
+    },
+    "auth3": {
+      "state": "skipped"
+    },
+    "autoanalyze1": {
+      "state": "skipped"
+    },
+    "autoinc": {
+      "state": "fail",
+      "duration": "1.772s",
+      "error": " sqlite_sequence SET seq='-12345678901234567890'\n              WHERE name='t1';\n            INSERT INTO t1 VALUES(NULL,6);\n            SELECT * FROM t1;\n          \n    autoinc_test.go:473: expected error containing \"database or disk is full\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t6 VALUES(NULL,1);\n          \n    autoinc_test.go:485: expected error containing \"AUTOINCREMENT is only allowed on an INTEGER PRIMARY KEY\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE t8(x TEXT PRIMARY KEY AUTOINCREMENT);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/autoinc\t1.470s\nFAIL"
+    },
+    "autoindex1": {
+      "state": "skipped"
+    },
+    "autoindex2": {
+      "state": "skipped"
+    },
+    "autoindex3": {
+      "state": "skipped"
+    },
+    "autoindex4": {
+      "state": "skipped"
+    },
+    "autoindex5": {
+      "state": "skipped"
+    },
+    "autovacuum": {
+      "state": "skipped"
+    },
+    "autovacuum2": {
+      "state": "skipped"
+    },
+    "autovacuum_ioerr2": {
+      "state": "pass",
+      "duration": "1.752s"
+    },
+    "avfs": {
+      "state": "fail",
+      "duration": "1.744s",
+      "error": "--- FAIL: Test_avfs (0.00s)\n    avfs_test.go:225: result mismatch\n          got:  [fosAvfs $fa]\n          want: [4096]\n          body: do_test 1.4\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/avfs\t1.451s\nFAIL"
+    },
+    "avtrans": {
+      "state": "fail",
+      "duration": "6.714s",
+      "error": "--- FAIL: Test_avtrans (4.97s)\n    avtrans_test.go:433: expected error containing \"cannot start a transaction within a transaction\", got: \u003cnil\u003e\n          sql: \n            BEGIN TRANSACTION;\n            SELECT a FROM one ORDER BY a;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/avtrans\t6.427s\nFAIL"
+    },
+    "backcompat": {
+      "state": "pass",
+      "duration": "1.743s"
+    },
+    "backup": {
+      "state": "pass",
+      "duration": "3.309s"
+    },
+    "backup2": {
+      "state": "pass",
+      "duration": "1.706s"
+    },
+    "backup4": {
+      "state": "pass",
+      "duration": "1.439s"
+    },
+    "backup5": {
+      "state": "pass",
+      "duration": "1.355s"
+    },
+    "backup_ioerr": {
+      "state": "skipped"
+    },
+    "backup_malloc": {
+      "state": "skipped"
+    },
+    "badutf": {
+      "state": "pass",
+      "duration": "1.358s"
+    },
+    "badutf2": {
+      "state": "pass",
+      "duration": "1.12s"
+    },
+    "basexx1": {
+      "state": "pass",
+      "duration": "1.307s"
+    },
+    "bestindex1": {
+      "state": "skipped"
+    },
+    "bestindex2": {
+      "state": "skipped"
+    },
+    "bestindex3": {
+      "state": "skipped"
+    },
+    "bestindex4": {
+      "state": "skipped"
+    },
+    "bestindex5": {
+      "state": "skipped"
+    },
+    "bestindex6": {
+      "state": "skipped"
+    },
+    "bestindex7": {
+      "state": "skipped"
+    },
+    "bestindex8": {
+      "state": "skipped"
+    },
+    "bestindex9": {
+      "state": "skipped"
+    },
+    "bestindexA": {
+      "state": "pass",
+      "duration": "920ms"
+    },
+    "bestindexB": {
+      "state": "skipped"
+    },
+    "bestindexC": {
+      "state": "skipped"
+    },
+    "bestindexD": {
+      "state": "pass",
+      "duration": "1.305s"
+    },
+    "bestindexE": {
+      "state": "skipped"
+    },
+    "bestindexF": {
+      "state": "skipped"
+    },
+    "bestindexG": {
+      "state": "skipped"
+    },
+    "between": {
+      "state": "pass",
+      "duration": "1.295s"
+    },
+    "bigfile": {
+      "state": "skipped"
+    },
+    "bigfile2": {
+      "state": "skipped"
+    },
+    "bigmmap": {
+      "state": "pass",
+      "duration": "1.286s"
+    },
+    "bigrow": {
+      "state": "pass",
+      "duration": "1.378s"
+    },
+    "bigsort": {
+      "state": "pass",
+      "duration": "1.154s"
+    },
+    "bind": {
+      "state": "skipped"
+    },
+    "bind2": {
+      "state": "skipped"
+    },
+    "bindxfer": {
+      "state": "skipped"
+    },
+    "bitvec": {
+      "state": "skipped"
+    },
+    "blob": {
+      "state": "pass",
+      "duration": "1.367s"
+    },
+    "bloom1": {
+      "state": "pass",
+      "duration": "1.531s"
+    },
+    "boundary1": {
+      "state": "pass",
+      "duration": "1.796s"
+    },
+    "boundary2": {
+      "state": "pass",
+      "duration": "4.106s"
+    },
+    "boundary3": {
+      "state": "pass",
+      "duration": "2.482s"
+    },
+    "boundary4": {
+      "state": "pass",
+      "duration": "772ms"
+    },
+    "btree01": {
+      "state": "skipped"
+    },
+    "btree02": {
+      "state": "skipped"
+    },
+    "btreefault": {
+      "state": "fail",
+      "duration": "1.026s",
+      "error": "--- FAIL: Test_btreefault (0.00s)\n    btreefault_test.go:136: result mismatch\n          got:  [25 a 25 b 25 c]\n          want: [25 a 25 b]\n          body: do_test 2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/btreefault\t0.729s\nFAIL"
+    },
+    "busy": {
+      "state": "skipped"
+    },
+    "busy2": {
+      "state": "skipped"
+    },
+    "cache": {
+      "state": "skipped"
+    },
+    "cacheflush": {
+      "state": "fail",
+      "duration": "1.018s",
+      "error": ", aa);\n            CREATE TABLE tb(b, bb);\n            INSERT INTO ta VALUES('a', randomblob(500));\n            INSERT INTO tb VALUES('b', randomblob(500));\n            BEGIN;\n              UPDATE ta SET a = 'A';\n              SAVEPOINT one;\n                UPDATE tb SET b = 'B';\n          \n    cacheflush_test.go:317: exec error: no such savepoint: one\n          sql:  \n            ROLLBACK TO one;\n          \n    cacheflush_test.go:349: exec error: no such savepoint: one\n          sql:  \n            ROLLBACK TO one;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/cacheflush\t0.711s\nFAIL"
+    },
+    "cachespill": {
+      "state": "pass",
+      "duration": "1.043s"
+    },
+    "capi2": {
+      "state": "pass",
+      "duration": "1.027s"
+    },
+    "capi3": {
+      "state": "fail",
+      "duration": "1.29s",
+      "error": "--- FAIL: Test_capi3 (0.00s)\n    capi3_test.go:225: result mismatch\n          got:  [SQLITE_OK]\n          want: [SQLITE_ERROR]\n          body: do_test capi3-1.8.1\n    capi3_test.go:234: result mismatch\n          got:  [not an error]\n          want: [no such column: namex]\n          body: do_test capi3-1.9\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/capi3\t0.989s\nFAIL"
+    },
+    "capi3b": {
+      "state": "pass",
+      "duration": "1.285s"
+    },
+    "capi3c": {
+      "state": "fail",
+      "duration": "1.532s",
+      "error": "--- FAIL: Test_capi3c (0.01s)\n    capi3c_test.go:203: result mismatch\n          got:  [SQLITE_OK]\n          want: [SQLITE_ERROR]\n          body: do_test capi3c-1.6.1\n    capi3c_test.go:212: result mismatch\n          got:  [not an error]\n          want: [no such column: namex]\n          body: do_test capi3c-1.7\n    capi3c_test.go:261: result mismatch\n          got:  [unable to open database file]\n          want: [bad parameter or other API misuse]\n          body: do_test capi3c-3.6.2-misuse\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/capi3c\t1.181s\nFAIL"
+    },
+    "capi3d": {
+      "state": "pass",
+      "duration": "1.266s"
+    },
+    "capi3e": {
+      "state": "pass",
+      "duration": "1.787s"
+    },
+    "carray01": {
+      "state": "skipped"
+    },
+    "carray02": {
+      "state": "skipped"
+    },
+    "carrayfault": {
+      "state": "pass",
+      "duration": "1.826s"
+    },
+    "cast": {
+      "state": "pass",
+      "duration": "1.785s"
+    },
+    "cffault": {
+      "state": "pass",
+      "duration": "1.792s"
+    },
+    "changes": {
+      "state": "pass",
+      "duration": "1m0.471s"
+    },
+    "changes2": {
+      "state": "pass",
+      "duration": "1.787s"
+    },
+    "check": {
+      "state": "fail",
+      "duration": "1.79s",
+      "error": "l: \n            CREATE TABLE t5(x, y,\n              CHECK( x*y\u003c? )\n            );\n          \n    check_test.go:430: expected error containing \"cannot commit - no transaction is active\", got: \u003cnil\u003e\n          sql: \n            COMMIT;\n          \n    check_test.go:510: expected error containing \"unknown function: myfunc()\", got: no such function: myfunc\n          sql:  INSERT INTO t6 VALUES(8) \n    check_test.go:516: expected error containing \"no such function: myfunc\", got: \u003cnil\u003e\n          sql:  CREATE TABLE t7(a CHECK (myfunc(a))) \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/check\t1.501s\nFAIL"
+    },
+    "checkfault": {
+      "state": "pass",
+      "duration": "1.773s"
+    },
+    "chunksize": {
+      "state": "fail",
+      "duration": "1.728s",
+      "error": "--- FAIL: Test_chunksize (0.00s)\n    chunksize_test.go:109: result mismatch\n          got:  [2048]\n          want: [32768]\n          body: do_test 1.2\n    chunksize_test.go:109: result mismatch\n          got:  [2048]\n          want: [32768]\n          body: do_test 2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/chunksize\t1.458s\nFAIL"
+    },
+    "cksumvfs": {
+      "state": "skipped"
+    },
+    "close_pkg": {
+      "state": "pass",
+      "duration": "1.76s"
+    },
+    "closure01": {
+      "state": "skipped"
+    },
+    "coalesce": {
+      "state": "pass",
+      "duration": "1.758s"
+    },
+    "collate1": {
+      "state": "pass",
+      "duration": "1.509s"
+    },
+    "collate2": {
+      "state": "pass",
+      "duration": "1.505s"
+    },
+    "collate3": {
+      "state": "fail",
+      "duration": "1.526s",
+      "error": "t:  [0]\n          want: [1]\n          body: do_test collate3-5.3\n    collate3_test.go:537: expected success, got error: no such collation sequence: unk\n          sql: \n            SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n          \n    collate3_test.go:545: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test collate3-5.5\n    collate3_test.go:551: expected success, got error: no such collation sequence: unk\n          sql: \n            SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/collate3\t1.242s\nFAIL"
+    },
+    "collate4": {
+      "state": "fail",
+      "duration": "1.528s",
+      "error": "--- FAIL: Test_collate4 (0.01s)\n    collate4_test.go:429: expected error containing \"UNIQUE constraint failed: collate4t1.a\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO collate4t1 VALUES('abc');\n            INSERT INTO collate4t1 VALUES('ABC');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/collate4\t1.245s\nFAIL"
+    },
+    "collate5": {
+      "state": "pass",
+      "duration": "1.573s"
+    },
+    "collate6": {
+      "state": "pass",
+      "duration": "1.524s"
+    },
+    "collate7": {
+      "state": "fail",
+      "duration": "1.525s",
+      "error": "--- FAIL: Test_collate7 (0.00s)\n    collate7_test.go:103: expected error containing \"no such collation sequence: CASELESS\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE abc(a COLLATE CASELESS, b, c);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/collate7\t1.232s\nFAIL"
+    },
+    "collate8": {
+      "state": "pass",
+      "duration": "1.586s"
+    },
+    "collate9": {
+      "state": "pass",
+      "duration": "1.579s"
+    },
+    "collateA": {
+      "state": "pass",
+      "duration": "1.584s"
+    },
+    "collateB": {
+      "state": "pass",
+      "duration": "1.575s"
+    },
+    "colmeta": {
+      "state": "pass",
+      "duration": "1.602s"
+    },
+    "colname": {
+      "state": "fail",
+      "duration": "1.61s",
+      "error": "--- FAIL: Test_colname (0.01s)\n    colname_test.go:511: expected error containing \"no such column: a\", got: RAISE() may only be used within a trigger-program\n          sql: \n          CREATE TABLE t5 AS SELECT RAISE(abort,a);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/colname\t1.332s\nFAIL"
+    },
+    "columncount": {
+      "state": "pass",
+      "duration": "1.536s"
+    },
+    "conflict": {
+      "state": "fail",
+      "duration": "1.576s",
+      "error": "d: t2.c\n          sql: \n            UPDATE t2 SET c=c-1 WHERE c=2;\n            SELECT * FROM t2;\n          \n    conflict_test.go:868: expected error containing \"UNIQUE constraint failed: t5b.rowid\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE t5b(x);\n            INSERT INTO t5b(rowid, x) VALUES(1,10),(2,11);\n            UPDATE t5b SET rowid=rowid+1 WHERE x=10;\n          \n    conflict_test.go:913: expected error containing \"UNIQUE constraint failed: t1.x\", got: \u003cnil\u003e\n          sql: \n          INSERT INTO t1(x) VALUES(1);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict\t1.276s\nFAIL"
+    },
+    "conflict2": {
+      "state": "fail",
+      "duration": "1.574s",
+      "error": "sql: \n            INSERT INTO t2 VALUES(3,3,3,3,1);\n            SELECT * FROM t2;\n          \n    conflict2_test.go:733: expected error containing \"UNIQUE constraint failed: t2.e\", got: \u003cnil\u003e\n          sql: \n            BEGIN;\n            UPDATE t3 SET x=x+1;\n            INSERT INTO t2 VALUES(3,3,3,3,1);\n            SELECT * FROM t2;\n          \n    conflict2_test.go:777: expected success, got error: UNIQUE constraint failed: t2.c\n          sql: \n            UPDATE t2 SET c=c-1 WHERE c=2;\n            SELECT * FROM t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict2\t1.277s\nFAIL"
+    },
+    "conflict3": {
+      "state": "fail",
+      "duration": "1.519s",
+      "error": "     sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:426: expected error containing \"UNIQUE constraint failed: t1.c\", got: \u003cnil\u003e\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:468: expected error containing \"UNIQUE constraint failed: t1.c\", got: \u003cnil\u003e\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:510: expected error containing \"UNIQUE constraint failed: t1.c\", got: \u003cnil\u003e\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict3\t1.231s\nFAIL"
+    },
+    "contrib01": {
+      "state": "pass",
+      "duration": "1.533s"
+    },
+    "corrupt": {
+      "state": "skipped"
+    },
+    "corrupt2": {
+      "state": "skipped"
+    },
+    "corrupt3": {
+      "state": "skipped"
+    },
+    "corrupt4": {
+      "state": "skipped"
+    },
+    "corrupt5": {
+      "state": "skipped"
+    },
+    "corrupt6": {
+      "state": "skipped"
+    },
+    "corrupt7": {
+      "state": "skipped"
+    },
+    "corrupt8": {
+      "state": "skipped"
+    },
+    "corrupt9": {
+      "state": "skipped"
+    },
+    "corruptA": {
+      "state": "pass",
+      "duration": "1.523s"
+    },
+    "corruptB": {
+      "state": "pass",
+      "duration": "1.578s"
+    },
+    "corruptC": {
+      "state": "skipped"
+    },
+    "corruptD": {
+      "state": "pass",
+      "duration": "1.488s"
+    },
+    "corruptE": {
+      "state": "pass",
+      "duration": "1.484s"
+    },
+    "corruptF": {
+      "state": "skipped"
+    },
+    "corruptG": {
+      "state": "pass",
+      "duration": "1.504s"
+    },
+    "corruptH": {
+      "state": "pass",
+      "duration": "1.518s"
+    },
+    "corruptI": {
+      "state": "pass",
+      "duration": "1.518s"
+    },
+    "corruptJ": {
+      "state": "pass",
+      "duration": "1.487s"
+    },
+    "corruptK": {
+      "state": "pass",
+      "duration": "1.539s"
+    },
+    "corruptL": {
+      "state": "skipped"
+    },
+    "corruptM": {
+      "state": "pass",
+      "duration": "1.546s"
+    },
+    "corruptN": {
+      "state": "skipped"
+    },
+    "cost": {
+      "state": "pass",
+      "duration": "1.556s"
+    },
+    "count": {
+      "state": "fail",
+      "duration": "3.291s",
+      "error": "--- FAIL: Test_count (1.75s)\n    count_test.go:297: expected error containing \"misuse of aggregate: count()\", got: \u003cnil\u003e\n          sql: \n          SELECT * FROM t8 WHERE (a, b) IN (\n              SELECT count(t8.b), count(*) FROM t7 AS ra0 ORDER BY count(*)\n          ) AND t8.b=0; \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/count\t3.002s\nFAIL"
+    },
+    "countofview": {
+      "state": "pass",
+      "duration": "1.551s"
+    },
+    "coveridxscan": {
+      "state": "pass",
+      "duration": "1.536s"
+    },
+    "crash": {
+      "state": "skipped"
+    },
+    "crash2": {
+      "state": "skipped"
+    },
+    "crash3": {
+      "state": "skipped"
+    },
+    "crash4": {
+      "state": "skipped"
+    },
+    "crash5": {
+      "state": "skipped"
+    },
+    "crash6": {
+      "state": "skipped"
+    },
+    "crash7": {
+      "state": "skipped"
+    },
+    "crash8": {
+      "state": "skipped"
+    },
+    "crashM": {
+      "state": "pass",
+      "duration": "1.76s"
+    },
+    "createtab": {
+      "state": "pass",
+      "duration": "1.644s"
+    },
+    "cse": {
+      "state": "pass",
+      "duration": "1.532s"
+    },
+    "csv01": {
+      "state": "skipped"
+    },
+    "ctime": {
+      "state": "pass",
+      "duration": "1.285s"
+    },
+    "cursorhint": {
+      "state": "skipped"
+    },
+    "cursorhint2": {
+      "state": "skipped"
+    },
+    "dataversion1": {
+      "state": "pass",
+      "duration": "1.291s"
+    },
+    "date": {
+      "state": "pass",
+      "duration": "1.279s"
+    },
+    "date2": {
+      "state": "pass",
+      "duration": "1.234s"
+    },
+    "date3": {
+      "state": "pass",
+      "duration": "1.283s"
+    },
+    "date4": {
+      "state": "pass",
+      "duration": "1.512s"
+    },
+    "date5": {
+      "state": "pass",
+      "duration": "1.339s"
+    },
+    "dbdata": {
+      "state": "skipped"
+    },
+    "dbfuzz001": {
+      "state": "skipped"
+    },
+    "dbpage": {
+      "state": "skipped"
+    },
+    "dbpagefault": {
+      "state": "skipped"
+    },
+    "dbstatus": {
+      "state": "pass",
+      "duration": "1.528s"
+    },
+    "dbstatus2": {
+      "state": "pass",
+      "duration": "2.496s"
+    },
+    "decimal": {
+      "state": "pass",
+      "duration": "1.699s"
+    },
+    "default_pkg": {
+      "state": "pass",
+      "duration": "1.536s"
+    },
+    "delete2": {
+      "state": "fail",
+      "duration": "1.318s",
+      "error": "--- FAIL: Test_delete2 (0.00s)\n    delete2_test.go:169: result mismatch\n          got:  [{} 3 4 2 5 6]\n          want: [{} 3 4 {} 5 6]\n          body: do_test delete2-2.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/delete2\t0.999s\nFAIL"
+    },
+    "delete3": {
+      "state": "pass",
+      "duration": "10.757s"
+    },
+    "delete4": {
+      "state": "pass",
+      "duration": "1.568s"
+    },
+    "delete_db": {
+      "state": "pass",
+      "duration": "1.09s"
+    },
+    "delete_pkg": {
+      "state": "fail",
+      "duration": "1.678s",
+      "error": "    \n    delete_test.go:719: result mismatch\n          got:  [1 a b 1 c d 2 a b 2 c d 3 a b 3 c d]\n          want: [1 a b 1 c d 2 a b {} c d]\n          body: do_test delete-9.2\n    delete_test.go:760: result mismatch\n          got:  [1 a b 1 c d 2 a b 2 c d 3 a b 3 c d]\n          want: [1 a b 1 c d 2 a b {} c d 3 a b 3 c d]\n          body: do_test delete-9.3\n    delete_test.go:842: result mismatch\n          got:  [1 a b 1 c d 2 a b 2 c d 3 a b 3 c d]\n          want: [1 a b 1 c d 2 a b 2 c d]\n          body: do_test delete-9.5\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/delete_pkg\t1.360s\nFAIL"
+    },
+    "descidx1": {
+      "state": "pass",
+      "duration": "1.296s"
+    },
+    "descidx2": {
+      "state": "pass",
+      "duration": "1.186s"
+    },
+    "descidx3": {
+      "state": "pass",
+      "duration": "1.296s"
+    },
+    "diskfull": {
+      "state": "pass",
+      "duration": "1.324s"
+    },
+    "distinct": {
+      "state": "fail",
+      "duration": "1.086s",
+      "error": "--- FAIL: Test_distinct (0.01s)\n    distinct_test.go:159: result mismatch\n          got:  [a b c A B C]\n          want: [A B C a b c]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/distinct\t0.772s\nFAIL"
+    },
+    "distinct2": {
+      "state": "pass",
+      "duration": "1.323s"
+    },
+    "distinctagg": {
+      "state": "pass",
+      "duration": "1.341s"
+    },
+    "e_blobbytes": {
+      "state": "pass",
+      "duration": "1.953s"
+    },
+    "e_blobclose": {
+      "state": "pass",
+      "duration": "1.3s"
+    },
+    "e_blobopen": {
+      "state": "pass",
+      "duration": "1.293s"
+    },
+    "e_blobwrite": {
+      "state": "pass",
+      "duration": "1.187s"
+    },
+    "e_changes": {
+      "state": "pass",
+      "duration": "1.314s"
+    },
+    "e_createtable": {
+      "state": "skipped"
+    },
+    "e_delete": {
+      "state": "skipped"
+    },
+    "e_droptrigger": {
+      "state": "pass",
+      "duration": "1.186s"
+    },
+    "e_dropview": {
+      "state": "pass",
+      "duration": "1.129s"
+    },
+    "e_expr": {
+      "state": "skipped"
+    },
+    "e_fkey": {
+      "state": "fail",
+      "duration": "1.373s",
+      "error": "smatch - \\\"c7\\\" referencing \\\"p7\\\"\", got: \u003cnil\u003e\n          sql: DELETE FROM p7\n    e_fkey_test.go:670: expected error containing \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\", got: \u003cnil\u003e\n          sql: UPDATE p7 SET a = ?, b = ?\n    e_fkey_test.go:676: expected error containing \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\", got: \u003cnil\u003e\n          sql: INSERT INTO p7 SELECT ?, ?\n    e_fkey_test.go:1633: expected error containing \"FOREIGN KEY constraint failed\", got: \u003cnil\u003e\n          sql:  DELETE FROM parent WHERE x = 'key1' \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/e_fkey\t0.891s\nFAIL"
+    },
+    "e_fts3": {
+      "state": "fail",
+      "duration": "1.491s",
+      "error": " 4 5 6 7 8]\n          want: [6 7]\n    e_fts3_test.go:850: result mismatch\n          got:  [1 2 3 4 5 6 7 8]\n          want: [6 7]\n    e_fts3_test.go:850: result mismatch\n          got:  [1 2 3 4 5 6 7 8]\n          want: [6 7]\n    e_fts3_test.go:1264: expected success, got error: unable to use function MATCH in the requested context\n          sql: \n          SELECT * FROM t7, t8 WHERE a MATCH 'number' AND a MATCH 'four'\n    e_fts3_test.go:1461: result mismatch\n          got:  [{}]\n          want: [During a summer vacation in 1790]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/e_fts3\t1.147s\nFAIL"
+    },
+    "e_insert": {
+      "state": "pass",
+      "duration": "1.351s"
+    },
+    "e_reindex": {
+      "state": "pass",
+      "duration": "1.247s"
+    },
+    "e_resolve": {
+      "state": "pass",
+      "duration": "1.301s"
+    },
+    "e_select": {
+      "state": "skipped"
+    },
+    "e_select2": {
+      "state": "pass",
+      "duration": "1.225s"
+    },
+    "e_totalchanges": {
+      "state": "pass",
+      "duration": "1.246s"
+    },
+    "e_update": {
+      "state": "skipped"
+    },
+    "e_uri": {
+      "state": "skipped"
+    },
+    "e_vacuum": {
+      "state": "skipped"
+    },
+    "e_wal": {
+      "state": "skipped"
+    },
+    "e_walauto": {
+      "state": "skipped"
+    },
+    "e_walckpt": {
+      "state": "skipped"
+    },
+    "e_walhook": {
+      "state": "skipped"
+    },
+    "emptytable": {
+      "state": "pass",
+      "duration": "1.361s"
+    },
+    "enc": {
+      "state": "skipped"
+    },
+    "enc2": {
+      "state": "skipped"
+    },
+    "enc3": {
+      "state": "skipped"
+    },
+    "enc4": {
+      "state": "skipped"
+    },
+    "eqp": {
+      "state": "pass",
+      "duration": "1.349s"
+    },
+    "eqp2": {
+      "state": "pass",
+      "duration": "1.365s"
+    },
+    "errmsg": {
+      "state": "pass",
+      "duration": "1.329s"
+    },
+    "errofst1": {
+      "state": "pass",
+      "duration": "1.306s"
+    },
+    "eval": {
+      "state": "skipped"
+    },
+    "exclusive": {
+      "state": "skipped"
+    },
+    "exclusive2": {
+      "state": "skipped"
+    },
+    "exec": {
+      "state": "pass",
+      "duration": "1.283s"
+    },
+    "exists": {
+      "state": "pass",
+      "duration": "1.304s"
+    },
+    "existsexpr": {
+      "state": "fail",
+      "duration": "1.554s",
+      "error": "QUERY]\n    existsexpr_test.go:159: result mismatch\n          got:  [QUERY PLAN |--SCAN x2 `--CORRELATED SCALAR SUBQUERY 1    `--SCAN x1]\n          must not match pattern: [SUBQUERY]\n    existsexpr_test.go:171: result mismatch\n          got:  [QUERY PLAN |--SCAN x2 `--CORRELATED SCALAR SUBQUERY 1    `--SCAN x1]\n          must not match pattern: [SUBQUERY]\n    existsexpr_test.go:279: result mismatch\n          got:  [QUERY PLAN |--SCAN t1 `--CORRELATED SCALAR SUBQUERY 1    `--SCAN t2]\n          must not match pattern: [SUBQUERY]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/existsexpr\t1.245s\nFAIL"
+    },
+    "existsexpr2": {
+      "state": "pass",
+      "duration": "1.339s"
+    },
+    "existsfault": {
+      "state": "pass",
+      "duration": "1.327s"
+    },
+    "expr": {
+      "state": "pass",
+      "duration": "1.336s"
+    },
+    "expr2": {
+      "state": "pass",
+      "duration": "1.304s"
+    },
+    "exprfault": {
+      "state": "pass",
+      "duration": "1.284s"
+    },
+    "exprfault2": {
+      "state": "pass",
+      "duration": "1.005s"
+    },
+    "expridx1": {
+      "state": "pass",
+      "duration": "3.71s"
+    },
+    "expridx2": {
+      "state": "pass",
+      "duration": "1.347s"
+    },
+    "extension01": {
+      "state": "pass",
+      "duration": "1.502s"
+    },
+    "external_reader": {
+      "state": "pass",
+      "duration": "1.542s"
+    },
+    "extraquick": {
+      "state": "pass",
+      "duration": "1.546s"
+    },
+    "fallocate": {
+      "state": "skipped"
+    },
+    "filectrl": {
+      "state": "fail",
+      "duration": "1.542s",
+      "error": "--- FAIL: Test_filectrl (0.00s)\n    filectrl_test.go:105: result mismatch\n          got:  [file_control_tempfilename db]\n          want: [/etilqs_/]\n          body: do_test filectrl-1.6\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/filectrl\t1.251s\nFAIL"
+    },
+    "filefmt": {
+      "state": "skipped"
+    },
+    "filter1": {
+      "state": "fail",
+      "duration": "1.292s",
+      "error": "--- FAIL: Test_filter1 (0.01s)\n    filter1_test.go:232: result mismatch\n          got:  [1 4 {} 2 8 {}]\n          want: [1 3 {} 2 6 {}]\n    filter1_test.go:250: result mismatch\n          got:  [1 x 5 2 8 {}]\n          want: [1 x 5 2 6 {}]\n    filter1_test.go:285: result mismatch\n          got:  [2.0 10.0 5.0]\n          want: [2.0 5.0 10.0]\n    filter1_test.go:379: result mismatch\n          got:  [0]\n          want: [1 1]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/filter1\t1.008s\nFAIL"
+    },
+    "filter2": {
+      "state": "pass",
+      "duration": "1.291s"
+    },
+    "filterfault": {
+      "state": "pass",
+      "duration": "1.272s"
+    },
+    "fkey1": {
+      "state": "fail",
+      "duration": "1.278s",
+      "error": "--- FAIL: Test_fkey1 (0.01s)\n    fkey1_test.go:177: result mismatch\n          got:  [{}]\n          want: [INSERT OR REPLACE INTO t11 VALUES(2,3); INSERT OR REPLACE INTO t11 VALUES(2,3); INSERT OR REPLACE INTO t11 VALUES(2,3);]\n          body: do_test fkey1-5.2.1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey1\t0.991s\nFAIL"
+    },
+    "fkey2": {
+      "state": "fail",
+      "duration": "1.377s",
+      "error": "main {} SQLITE_READ nought b main {}]\n          body: do_test fkey2-18.5\n    fkey2_test.go:2526: result mismatch\n          got:  [{}]\n          want: [SQLITE_INSERT two {} main {} SQLITE_READ one a main {}]\n          body: do_test fkey2-18.7\n    fkey2_test.go:2533: expected error containing \"FOREIGN KEY constraint failed\", got: \u003cnil\u003e\n          sql:  INSERT INTO short VALUES(1, 3, 2) \n    fkey2_test.go:2551: expected error containing \"FOREIGN KEY constraint failed\", got: \u003cnil\u003e\n          sql:  UPDATE short SET f = 2 WHERE f IS NULL \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey2\t0.936s\nFAIL"
+    },
+    "fkey3": {
+      "state": "pass",
+      "duration": "1.271s"
+    },
+    "fkey4": {
+      "state": "fail",
+      "duration": "120ms",
+      "error": "# github.com/pijalu/frigolite/testgen/fkey4 [github.com/pijalu/frigolite/testgen/fkey4.test]\ntestgen/fkey4/fkey4_test.go:81:13: DB.Exec undefined (type string has no field or method Exec)\ntestgen/fkey4/fkey4_test.go:82:29: DB.SetLastErr undefined (type string has no field or method SetLastErr)\ntestgen/fkey4/fkey4_test.go:91:13: DB.Exec undefined (type string has no field or method Exec)\ntestgen/fkey4/fkey4_test.go:92:29: DB.SetLastErr undefined (type string has no field or method SetLastErr)\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey4 [build failed]\nFAIL"
+    },
+    "fkey5": {
+      "state": "fail",
+      "duration": "1.168s",
+      "error": "--- FAIL: Test_fkey5 (0.02s)\n    fkey5_test.go:583: result mismatch\n          got:  [t1 5 t2 0 t1 9 t2 0]\n          want: [t1 9 t2 0]\n    fkey5_test.go:595: result mismatch\n          got:  [t1 5 t2 0 x t1 9 t2 0 x]\n          want: [t1 9 t2 0 x]\n    fkey5_test.go:613: result mismatch\n          got:  [t1 5 t2 0 x t1 9 t2 0 x]\n          want: [t1 9 t2 0 x]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey5\t0.851s\nFAIL"
+    },
+    "fkey6": {
+      "state": "fail",
+      "duration": "1.273s",
+      "error": "--- FAIL: Test_fkey6 (0.01s)\n    fkey6_test.go:364: query error: table t3 has 4 columns but 2 values were supplied\n          sql: \n            BEGIN;\n              INSERT INTO t2 VALUES(1,0),(2,1);\n              CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n              INSERT INTO t3 VALUES(3,3);\n              PRAGMA defer_foreign_keys=ON;\n              DELETE FROM t2;\n            COMMIT;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey6\t0.970s\nFAIL"
+    },
+    "fkey7": {
+      "state": "pass",
+      "duration": "1.258s"
+    },
+    "fkey8": {
+      "state": "fail",
+      "duration": "1.392s",
+      "error": "KEY,\n              pid REFERENCES p1(pid) ON UPDATE CASCADE);\n        \n          INSERT INTO aux.p1 VALUES (10);\n          INSERT INTO aux.p1 VALUES (20);\n        \n          INSERT INTO aux.c1 VALUES(11, 10);\n          INSERT INTO aux.c1 VALUES(12, 10);\n          INSERT INTO aux.c1 VALUES(21, 20);\n          INSERT INTO aux.c1 VALUES(22, 20);\n    fkey8_test.go:303: result mismatch\n          got:  [200]\n          want: [100 200]\n    fkey8_test.go:315: result mismatch\n          got:  [{}]\n          want: [11 100 12 100 21 200 22 200]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey8\t1.081s\nFAIL"
+    },
+    "fkey_malloc": {
+      "state": "pass",
+      "duration": "1.404s"
+    },
+    "fordelete": {
+      "state": "pass",
+      "duration": "1.511s"
+    },
+    "format4": {
+      "state": "skipped"
+    },
+    "fpconv1": {
+      "state": "pass",
+      "duration": "2.894s"
+    },
+    "fts3": {
+      "state": "pass",
+      "duration": "1.509s"
+    },
+    "fts3aa": {
+      "state": "pass",
+      "duration": "1.532s"
+    },
+    "fts3ab": {
+      "state": "pass",
+      "duration": "1.518s"
+    },
+    "fts3ac": {
+      "state": "pass",
+      "duration": "1.542s"
+    },
+    "fts3ad": {
+      "state": "pass",
+      "duration": "1.522s"
+    },
+    "fts3ae": {
+      "state": "pass",
+      "duration": "1.272s"
+    },
+    "fts3af": {
+      "state": "pass",
+      "duration": "1.257s"
+    },
+    "fts3ag": {
+      "state": "fail",
+      "duration": "1.261s",
+      "error": "--- FAIL: Test_fts3ag (0.00s)\n    fts3ag_test.go:122: expected error containing \"malformed MATCH expression: [-this -something]\", got: \u003cnil\u003e\n          sql: SELECT rowid FROM t1 WHERE t1 MATCH '-this -something'\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3ag\t0.970s\nFAIL"
+    },
+    "fts3ah": {
+      "state": "skipped"
+    },
+    "fts3ai": {
+      "state": "skipped"
+    },
+    "fts3aj": {
+      "state": "skipped"
+    },
+    "fts3ak": {
+      "state": "skipped"
+    },
+    "fts3al": {
+      "state": "skipped"
+    },
+    "fts3am": {
+      "state": "skipped"
+    },
+    "fts3an": {
+      "state": "skipped"
+    },
+    "fts3ao": {
+      "state": "skipped"
+    },
+    "fts3atoken": {
+      "state": "skipped"
+    },
+    "fts3atoken2": {
+      "state": "skipped"
+    },
+    "fts3auto": {
+      "state": "skipped"
+    },
+    "fts3aux1": {
+      "state": "skipped"
+    },
+    "fts3aux2": {
+      "state": "skipped"
+    },
+    "fts3b": {
+      "state": "fail",
+      "duration": "2.4s",
+      "error": "--- FAIL: Test_fts3b (1.13s)\n    fts3b_test.go:214: expected error containing \"SQL logic error\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t4 (rowid, docid, c) VALUES (14, 15, 'bad test');\n            SELECT * FROM t4 WHERE docid = 14;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3b\t1.940s\nFAIL"
+    },
+    "fts3c": {
+      "state": "pass",
+      "duration": "1.295s"
+    },
+    "fts3comp1": {
+      "state": "fail",
+      "duration": "125ms",
+      "error": "# github.com/pijalu/frigolite/testgen/fts3comp1 [github.com/pijalu/frigolite/testgen/fts3comp1.test]\ntestgen/fts3comp1/fts3comp1_test.go:113:5: undefined: stringsMap\ntestgen/fts3comp1/fts3comp1_test.go:120:12: undefined: stringsMap\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3comp1 [build failed]\nFAIL"
+    },
+    "fts3conf": {
+      "state": "fail",
+      "duration": "1.559s",
+      "error": "--- FAIL: Test_fts3conf (0.01s)\n    fts3conf_test.go:208: query error: database disk image is malformed\n          sql: \n            CREATE VIRTUAL TABLE t3 USING fts4;\n            REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n            SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3conf\t1.217s\nFAIL"
+    },
+    "fts3corrupt": {
+      "state": "pass",
+      "duration": "1.299s"
+    },
+    "fts3corrupt2": {
+      "state": "pass",
+      "duration": "1.555s"
+    },
+    "fts3corrupt3": {
+      "state": "fail",
+      "duration": "1.561s",
+      "error": "--- FAIL: Test_fts3corrupt3 (0.00s)\n    fts3corrupt3_test.go:96: expected success, got error: database disk image is malformed\n          sql: \n          SELECT rowid FROM t1 WHERE t1 MATCH 'one'\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3corrupt3\t1.283s\nFAIL"
+    },
+    "fts3corrupt4": {
+      "state": "fail",
+      "duration": "2.612s",
+      "error": " t2;\n    fts3corrupt4_test.go:26756: expected error containing \"database disk image is malformed\", got: SQL logic error\n          sql: \n          INSERT INTO t1(t1) SELECT x FROM t2;\n    fts3corrupt4_test.go:29687: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n          SELECT (matchinfo(t1, c ) ) FROM t1 WHERE t1 MATCH 'M*M*M*M*';\n    fts3corrupt4_test.go:38182: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n          SELECT * FROM t1, t2;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3corrupt4\t1.087s\nFAIL"
+    },
+    "fts3corrupt5": {
+      "state": "skipped"
+    },
+    "fts3corrupt6": {
+      "state": "skipped"
+    },
+    "fts3corrupt7": {
+      "state": "skipped"
+    },
+    "fts3cov": {
+      "state": "skipped"
+    },
+    "fts3d": {
+      "state": "skipped"
+    },
+    "fts3defer": {
+      "state": "skipped"
+    },
+    "fts3defer2": {
+      "state": "skipped"
+    },
+    "fts3defer3": {
+      "state": "skipped"
+    },
+    "fts3drop": {
+      "state": "skipped"
+    },
+    "fts3dropmod": {
+      "state": "skipped"
+    },
+    "fts3e": {
+      "state": "skipped"
+    },
+    "fts3expr": {
+      "state": "skipped"
+    },
+    "fts3expr2": {
+      "state": "skipped"
+    },
+    "fts3expr3": {
+      "state": "skipped"
+    },
+    "fts3expr4": {
+      "state": "skipped"
+    },
+    "fts3expr5": {
+      "state": "skipped"
+    },
+    "fts3f": {
+      "state": "skipped"
+    },
+    "fts3fault": {
+      "state": "skipped"
+    },
+    "fts3fault2": {
+      "state": "skipped"
+    },
+    "fts3fault3": {
+      "state": "skipped"
+    },
+    "fts3first": {
+      "state": "skipped"
+    },
+    "fts3fuzz001": {
+      "state": "fail",
+      "duration": "1.064s",
+      "error": "--- FAIL: Test_fts3fuzz001 (0.01s)\n    fts3fuzz001_test.go:1316: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1(t1) VALUES('optimize');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3fuzz001\t0.746s\nFAIL"
+    },
+    "fts3integrity": {
+      "state": "skipped"
+    },
+    "fts3join": {
+      "state": "pass",
+      "duration": "1.053s"
+    },
+    "fts3malloc": {
+      "state": "skipped"
+    },
+    "fts3matchinfo": {
+      "state": "pass",
+      "duration": "1.119s"
+    },
+    "fts3matchinfo2": {
+      "state": "pass",
+      "duration": "1.206s"
+    },
+    "fts3misc": {
+      "state": "skipped"
+    },
+    "fts3near": {
+      "state": "pass",
+      "duration": "1.308s"
+    },
+    "fts3offsets": {
+      "state": "skipped"
+    },
+    "fts3prefix": {
+      "state": "pass",
+      "duration": "1.543s"
+    },
+    "fts3prefix2": {
+      "state": "pass",
+      "duration": "4.956s"
+    },
+    "fts3query": {
+      "state": "skipped"
+    },
+    "fts3rank": {
+      "state": "pass",
+      "duration": "1.462s"
+    },
+    "fts3rnd": {
+      "state": "skipped"
+    },
+    "fts3shared": {
+      "state": "skipped"
+    },
+    "fts3snippet": {
+      "state": "pass",
+      "duration": "1.577s"
+    },
+    "fts3snippet2": {
+      "state": "pass",
+      "duration": "1.546s"
+    },
+    "fts3sort": {
+      "state": "skipped"
+    },
+    "fts3tok1": {
+      "state": "pass",
+      "duration": "1.521s"
+    },
+    "fts3tok_err": {
+      "state": "pass",
+      "duration": "1.521s"
+    },
+    "fts3varint": {
+      "state": "skipped"
+    },
+    "fts4aa": {
+      "state": "pass",
+      "duration": "4.122s"
+    },
+    "fts4check": {
+      "state": "fail",
+      "duration": "1m1.253s",
+      "error": "o:749 +0x868\ngithub.com/pijalu/frigolite.(*DB).Exec(0x6db3ef816870, {0x6db3f07aee70, 0x62})\n\t/Users/muaddib/dev/frigolite/frigolite.go:556 +0x240\ngithub.com/pijalu/frigolite/testgen/fts4check.Test_fts4check(0x6db3ef220248)\n\t/Users/muaddib/dev/frigolite/testgen/fts4check/fts4check_test.go:233 +0x94c\ntesting.tRunner(0x6db3ef220248, 0x100721ac0)\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2036 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2101 +0x3a8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4check\t60.957s\nFAIL"
+    },
+    "fts4content": {
+      "state": "pass",
+      "duration": "1.568s"
+    },
+    "fts4docid": {
+      "state": "pass",
+      "duration": "1.279s"
+    },
+    "fts4growth": {
+      "state": "pass",
+      "duration": "28.035s"
+    },
+    "fts4growth2": {
+      "state": "pass",
+      "duration": "1.648s"
+    },
+    "fts4incr": {
+      "state": "pass",
+      "duration": "3.803s"
+    },
+    "fts4intck1": {
+      "state": "pass",
+      "duration": "995ms"
+    },
+    "fts4langid": {
+      "state": "fail",
+      "duration": "674ms",
+      "error": "--- FAIL: Test_fts4langid (0.01s)\n    fts4langid_test.go:139: result mismatch\n          got:  [CREATE TABLE t1_content(docid INTEGER PRIMARY KEY,c0a,c1b,langid)]\n          want: [CREATE TABLE 't1_content'(docid INTEGER PRIMARY KEY, 'c0a', 'c1b', langid)]\n    fts4langid_test.go:265: result mismatch\n          got:  [{}]\n          want: [2]\n    fts4langid_test.go:304: query error: no such table: t2\n          sql: \n          INSERT INTO t2(t2) VALUES('optimize');\n          SELECT count(*) FROM t2_segdir;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4langid\t0.357s\nFAIL"
+    },
+    "fts4lastrowid": {
+      "state": "pass",
+      "duration": "644ms"
+    },
+    "fts4merge": {
+      "state": "pass",
+      "duration": "1m0.401s"
+    },
+    "fts4merge2": {
+      "state": "pass",
+      "duration": "1.091s"
+    },
+    "fts4merge3": {
+      "state": "pass",
+      "duration": "766ms"
+    },
+    "fts4merge4": {
+      "state": "fail",
+      "duration": "47.137s",
+      "error": "jbe jbf jbg jbh jbi jbj jca jcb jcc jcd jce jcf jcg jch jci jcj jda jdb jdc jdd jde jdf jdg jdh jdi jdj jea jeb jec jed jee jef jeg jeh jei jej jfa jfb jfc jfd jfe jff jfg jfh jfi jfj jga jgb jgc jgd jge jgf jgg jgh jgi jgj jha jhb jhc jhd jhe jhf jhg jhh jhi jhj jia jib jic jid jie jif jig jih jii jij jja jjb jjc jjd jje jjf jjg jjh jji jjj');\n                  COMMIT;\n                \n    fts4merge4_test.go:261: result mismatch\n          got:  [0 16 1 2 2 1]\n          want: [0 4   1 3   2 1]\n          body: do_test 2.2.4.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4merge4\t46.711s\nFAIL"
+    },
+    "fts4merge5": {
+      "state": "pass",
+      "duration": "788ms"
+    },
+    "fts4min": {
+      "state": "pass",
+      "duration": "863ms"
+    },
+    "fts4noti": {
+      "state": "pass",
+      "duration": "723ms"
+    },
+    "fts4onepass": {
+      "state": "pass",
+      "duration": "811ms"
+    },
+    "fts4opt": {
+      "state": "fail",
+      "duration": "1m0.803s",
+      "error": "engine_core.go:749 +0x868\ngithub.com/pijalu/frigolite.(*DB).Exec(0x3ce014df42d0, {0x1004de37f, 0x28})\n\t/Users/muaddib/dev/frigolite/frigolite.go:556 +0x240\ngithub.com/pijalu/frigolite/testgen/fts4opt.Test_fts4opt(0x3ce014ebe248)\n\t/Users/muaddib/dev/frigolite/testgen/fts4opt/fts4opt_test.go:157 +0x7d0\ntesting.tRunner(0x3ce014ebe248, 0x100841ac0)\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2036 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2101 +0x3a8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4opt\t60.493s\nFAIL"
+    },
+    "fts4record": {
+      "state": "pass",
+      "duration": "704ms"
+    },
+    "fts4rename": {
+      "state": "pass",
+      "duration": "758ms"
+    },
+    "fts4umlaut": {
+      "state": "pass",
+      "duration": "627ms"
+    },
+    "fts4unicode": {
+      "state": "fail",
+      "duration": "1m0.626s",
+      "error": "x868\ngithub.com/pijalu/frigolite.(*DB).Exec(0x433deefc74f0, {0x100ce3f15, 0x2f5})\n\t/Users/muaddib/dev/frigolite/frigolite.go:556 +0x240\ngithub.com/pijalu/frigolite/testgen/fts4unicode.Test_fts4unicode(0x433deee20248)\n\t/Users/muaddib/dev/frigolite/testgen/fts4unicode/fts4unicode_test.go:246 +0xaa0\ntesting.tRunner(0x433deee20248, 0x101001ac0)\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2036 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2101 +0x3a8\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts4unicode\t60.295s\nFAIL"
+    },
+    "fts4upfrom": {
+      "state": "pass",
+      "duration": "634ms"
+    },
+    "fts_9fd058691": {
+      "state": "skipped"
+    },
+    "full": {
+      "state": "pass",
+      "duration": "620ms"
+    },
+    "func2": {
+      "state": "fail",
+      "duration": "646ms",
+      "error": "xpected error containing \"wrong number of arguments to function SUBSTR()\", got: function SUBSTR expects 2-3 arguments, got 0\n          sql: SELECT SUBSTR()\n    func2_test.go:668: expected error containing \"wrong number of arguments to function SUBSTR()\", got: function SUBSTR expects 2-3 arguments, got 1\n          sql: SELECT SUBSTR(x'1234')\n    func2_test.go:674: expected error containing \"wrong number of arguments to function SUBSTR()\", got: function SUBSTR expects 2-3 arguments, got 4\n          sql: SELECT SUBSTR(x'1234', 1,1,1)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func2\t0.298s\nFAIL"
+    },
+    "func3": {
+      "state": "fail",
+      "duration": "640ms",
+      "error": "st be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT likelihood(123, 1.000001);\n          \n    func3_test.go:223: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT likelihood(123, -0.000001);\n          \n    func3_test.go:229: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT likelihood(123, 0.5+0.3);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func3\t0.288s\nFAIL"
+    },
+    "func4": {
+      "state": "fail",
+      "duration": "126ms",
+      "error": "ped string constant) to type int\ntestgen/func4/func4_test.go:81: cannot convert \"3\" (untyped string constant) to type int\ntestgen/func4/func4_test.go:81: cannot convert \"1\" (untyped string constant) to type int\ntestgen/func4/func4_test.go:81: cannot convert \"2\" (untyped string constant) to type int\ntestgen/func4/func4_test.go:81: cannot convert \"3\" (untyped string constant) to type int\ntestgen/func4/func4_test.go:517:46: cannot convert \"1\" (untyped string constant) to type int\ntestgen/func4/func4_test.go:517:46: too many errors\nFAIL\tgithub.com/pijalu/frigolite/testgen/func4 [build failed]\nFAIL"
+    },
+    "func5": {
+      "state": "pass",
+      "duration": "628ms"
+    },
+    "func6": {
+      "state": "pass",
+      "duration": "644ms"
+    },
+    "func7": {
+      "state": "pass",
+      "duration": "667ms"
+    },
+    "func8": {
+      "state": "pass",
+      "duration": "613ms"
+    },
+    "func9": {
+      "state": "pass",
+      "duration": "648ms"
+    },
+    "func_pkg": {
+      "state": "fail",
+      "duration": "140ms",
+      "error": "# github.com/pijalu/frigolite/testgen/func_pkg [github.com/pijalu/frigolite/testgen/func_pkg.test]\ntestgen/func_pkg/func_test.go:1057:13: DB.Exec undefined (type string has no field or method Exec)\ntestgen/func_pkg/func_test.go:1058:29: DB.SetLastErr undefined (type string has no field or method SetLastErr)\nFAIL\tgithub.com/pijalu/frigolite/testgen/func_pkg [build failed]\nFAIL"
+    },
+    "fuzz": {
+      "state": "skipped"
+    },
+    "fuzz2": {
+      "state": "skipped"
+    },
+    "fuzz3": {
+      "state": "skipped"
+    },
+    "fuzz4": {
+      "state": "skipped"
+    },
+    "fuzz_malloc": {
+      "state": "pass",
+      "duration": "632ms"
+    },
+    "fuzz_oss1": {
+      "state": "skipped"
+    },
+    "fuzzer1": {
+      "state": "skipped"
+    },
+    "fuzzer2": {
+      "state": "skipped"
+    },
+    "fuzzerfault": {
+      "state": "skipped"
+    },
+    "gcfault": {
+      "state": "pass",
+      "duration": "618ms"
+    },
+    "gencol1": {
+      "state": "pass",
+      "duration": "685ms"
+    },
+    "having": {
+      "state": "pass",
+      "duration": "657ms"
+    },
+    "hexlit": {
+      "state": "pass",
+      "duration": "643ms"
+    },
+    "hidden": {
+      "state": "pass",
+      "duration": "630ms"
+    },
+    "hook": {
+      "state": "pass",
+      "duration": "698ms"
+    },
+    "hook2": {
+      "state": "pass",
+      "duration": "635ms"
+    },
+    "icu": {
+      "state": "pass",
+      "duration": "629ms"
+    },
+    "ieee754": {
+      "state": "pass",
+      "duration": "640ms"
+    },
+    "imposter1": {
+      "state": "skipped"
+    },
+    "in": {
+      "state": "fail",
+      "duration": "664ms",
+      "error": "\n          \n    in_test.go:542: expected error containing \"SELECTs to the left and right of UNION ALL do not have the same number of result columns\", got: sub-select returns 2 columns - expected 1\n          sql: \n            SELECT * FROM t2 WHERE a IN (\n              SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n            );\n          \n    in_test.go:643: expected error containing \"sub-select returns 2 columns - expected 1\", got: row value misused\n          sql: \n            SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/in\t0.311s\nFAIL"
+    },
+    "in2": {
+      "state": "pass",
+      "duration": "9.69s"
+    },
+    "in3": {
+      "state": "fail",
+      "duration": "655ms",
+      "error": "--- FAIL: Test_in3 (0.02s)\n    in3_test.go:256: expected error containing \"no such table: Folder\", got: \u003cnil\u003e\n          sql: \n            DELETE FROM Folders WHERE folderid IN\n            (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/in3\t0.318s\nFAIL"
+    },
+    "in4": {
+      "state": "pass",
+      "duration": "631ms"
+    },
+    "in5": {
+      "state": "pass",
+      "duration": "655ms"
+    },
+    "in6": {
+      "state": "pass",
+      "duration": "629ms"
+    },
+    "in7": {
+      "state": "pass",
+      "duration": "635ms"
+    },
+    "incrblob": {
+      "state": "skipped"
+    },
+    "incrblob2": {
+      "state": "skipped"
+    },
+    "incrblob3": {
+      "state": "pass",
+      "duration": "656ms"
+    },
+    "incrblob4": {
+      "state": "skipped"
+    },
+    "incrblob_err": {
+      "state": "skipped"
+    },
+    "incrblobfault": {
+      "state": "pass",
+      "duration": "669ms"
+    },
+    "incrcorrupt": {
+      "state": "skipped"
+    },
+    "incrvacuum": {
+      "state": "skipped"
+    },
+    "incrvacuum2": {
+      "state": "skipped"
+    },
+    "incrvacuum3": {
+      "state": "skipped"
+    },
+    "incrvacuum_ioerr": {
+      "state": "pass",
+      "duration": "629ms"
+    },
+    "index": {
+      "state": "fail",
+      "duration": "682ms",
+      "error": "IGNORE\n              );\n            \n    index_test.go:985: expected error containing \"cannot create a TEMP index on non-TEMP table \\\"t6\\\"\", got: database disk image is malformed\n          sql: \n             CREATE INDEX temp.i21 ON t6(c);\n          \n    index_test.go:991: expected success, got error: index i21 already exists\n          sql: \n             CREATE TEMP TABLE t6(x);\n             INSERT INTO temp.t6 values(1),(5),(9);\n             CREATE INDEX temp.i21 ON t6(x);\n             SELECT x FROM t6 ORDER BY x DESC;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/index\t0.310s\nFAIL"
+    },
+    "index2": {
+      "state": "pass",
+      "duration": "1.059s"
+    },
+    "index3": {
+      "state": "pass",
+      "duration": "599ms"
+    },
+    "index4": {
+      "state": "pass",
+      "duration": "2.711s"
+    },
+    "index5": {
+      "state": "fail",
+      "duration": "1m0.942s",
+      "error": "nal/exec/engine_core.go:749 +0x868\ngithub.com/pijalu/frigolite.(*DB).Exec(0xf3f834ac2d0, {0x100ed9880, 0x29})\n\t/Users/muaddib/dev/frigolite/frigolite.go:556 +0x240\ngithub.com/pijalu/frigolite/testgen/index5.Test_index5(0xf3f834f6248)\n\t/Users/muaddib/dev/frigolite/testgen/index5/index5_test.go:95 +0x1b4\ntesting.tRunner(0xf3f834f6248, 0x1011f9ac0)\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2036 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2101 +0x3a8\nFAIL\tgithub.com/pijalu/frigolite/testgen/index5\t60.558s\nFAIL"
+    },
+    "index6": {
+      "state": "fail",
+      "duration": "1.149s",
+      "error": " clauses\", got: index bad1 already exists\n          sql: \n            CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;\n          \n    index6_test.go:100: expected error containing \"non-deterministic functions prohibited in partial index WHERE clauses\", got: index bad1 already exists\n          sql: \n            CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();\n          \n    index6_test.go:106: expected success, got error: index bad1 already exists\n          sql: \n            CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/index6\t0.775s\nFAIL"
+    },
+    "index7": {
+      "state": "fail",
+      "duration": "946ms",
+      "error": " clauses\", got: index bad1 already exists\n          sql: \n            CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;\n          \n    index7_test.go:123: expected error containing \"non-deterministic functions prohibited in partial index WHERE clauses\", got: index bad1 already exists\n          sql: \n            CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();\n          \n    index7_test.go:129: expected success, got error: index bad1 already exists\n          sql: \n            CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/index7\t0.603s\nFAIL"
+    },
+    "index8": {
+      "state": "pass",
+      "duration": "639ms"
+    },
+    "index9": {
+      "state": "pass",
+      "duration": "632ms"
+    },
+    "indexA": {
+      "state": "pass",
+      "duration": "743ms"
+    },
+    "indexedby": {
+      "state": "fail",
+      "duration": "641ms",
+      "error": "--- FAIL: Test_indexedby (0.01s)\n    indexedby_test.go:147: expected error containing \"no such index: i1\", got: \u003cnil\u003e\n          sql:  SELECT * FROM v1 INDEXED BY i1 WHERE a = 'one' \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/indexedby\t0.293s\nFAIL"
+    },
+    "indexexpr1": {
+      "state": "pass",
+      "duration": "641ms"
+    },
+    "indexexpr2": {
+      "state": "pass",
+      "duration": "633ms"
+    },
+    "indexexpr3": {
+      "state": "pass",
+      "duration": "616ms"
+    },
+    "indexfault": {
+      "state": "pass",
+      "duration": "769ms"
+    },
+    "init": {
+      "state": "pass",
+      "duration": "648ms"
+    },
+    "insert": {
+      "state": "fail",
+      "duration": "679ms",
+      "error": "--- FAIL: Test_insert (0.02s)\n    insert_test.go:384: expected error containing \"no such column: t3.a\", got: \u003cnil\u003e\n          sql: \n              INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n              SELECT * FROM t3 ORDER BY a;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert\t0.307s\nFAIL"
+    },
+    "insert2": {
+      "state": "pass",
+      "duration": "831ms"
+    },
+    "insert3": {
+      "state": "fail",
+      "duration": "668ms",
+      "error": "--- FAIL: Test_insert3 (0.04s)\n    insert3_test.go:130: expected error containing \"no such column: nosuchcol\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t3 VALUES(1,2,3)\n          \n    insert3_test.go:142: expected error containing \"no such column: nosuchcol\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t4 VALUES(1,2,3)\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert3\t0.326s\nFAIL"
+    },
+    "insert4": {
+      "state": "fail",
+      "duration": "622ms",
+      "error": "--- FAIL: Test_insert4 (0.02s)\n    insert4_test.go:370: expected error containing \"cannot commit - no transaction is active\", got: \u003cnil\u003e\n          sql: COMMIT\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert4\t0.292s\nFAIL"
+    },
+    "insert5": {
+      "state": "pass",
+      "duration": "639ms"
+    },
+    "insertfault": {
+      "state": "pass",
+      "duration": "663ms"
+    },
+    "instr": {
+      "state": "pass",
+      "duration": "670ms"
+    },
+    "instrfault": {
+      "state": "pass",
+      "duration": "650ms"
+    },
+    "intarray": {
+      "state": "skipped"
+    },
+    "interrupt": {
+      "state": "skipped"
+    },
+    "interrupt2": {
+      "state": "pass",
+      "duration": "642ms"
+    },
+    "intpkey": {
+      "state": "pass",
+      "duration": "667ms"
+    },
+    "intreal": {
+      "state": "pass",
+      "duration": "647ms"
+    },
+    "io": {
+      "state": "skipped"
+    },
+    "ioerr": {
+      "state": "skipped"
+    },
+    "ioerr2": {
+      "state": "skipped"
+    },
+    "ioerr3": {
+      "state": "skipped"
+    },
+    "ioerr4": {
+      "state": "skipped"
+    },
+    "ioerr5": {
+      "state": "skipped"
+    },
+    "ioerr6": {
+      "state": "skipped"
+    },
+    "istrue": {
+      "state": "pass",
+      "duration": "655ms"
+    },
+    "join": {
+      "state": "fail",
+      "duration": "709ms",
+      "error": "         \n    join_test.go:425: expected error containing \"unknown join type: LEFT BOGUS\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 LEFT BOGUS JOIN t2;\n          \n    join_test.go:431: expected error containing \"unknown join type: INNER BOGUS CROSS\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 INNER BOGUS CROSS JOIN t2;\n          \n    join_test.go:437: expected error containing \"unknown join type: NATURAL AWK SED\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 NATURAL AWK SED JOIN t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/join\t0.321s\nFAIL"
+    },
+    "join2": {
+      "state": "pass",
+      "duration": "665ms"
+    },
+    "join3": {
+      "state": "pass",
+      "duration": "843ms"
+    },
+    "join4": {
+      "state": "pass",
+      "duration": "683ms"
+    },
+    "join5": {
+      "state": "pass",
+      "duration": "3.21s"
+    },
+    "join6": {
+      "state": "pass",
+      "duration": "899ms"
+    },
+    "join7": {
+      "state": "pass",
+      "duration": "682ms"
+    },
+    "join8": {
+      "state": "pass",
+      "duration": "746ms"
+    },
+    "join9": {
+      "state": "skipped"
+    },
+    "joinA": {
+      "state": "pass",
+      "duration": "655ms"
+    },
+    "joinB": {
+      "state": "skipped"
+    },
+    "joinC": {
+      "state": "pass",
+      "duration": "806ms"
+    },
+    "joinD": {
+      "state": "skipped"
+    },
+    "joinE": {
+      "state": "pass",
+      "duration": "832ms"
+    },
+    "joinF": {
+      "state": "skipped"
+    },
+    "joinH": {
+      "state": "skipped"
+    },
+    "joinI": {
+      "state": "skipped"
+    },
+    "journal1": {
+      "state": "skipped"
+    },
+    "journal2": {
+      "state": "skipped"
+    },
+    "journal3": {
+      "state": "skipped"
+    },
+    "jrnlmode": {
+      "state": "skipped"
+    },
+    "jrnlmode2": {
+      "state": "skipped"
+    },
+    "jrnlmode3": {
+      "state": "skipped"
+    },
+    "json101": {
+      "state": "skipped"
+    },
+    "json102": {
+      "state": "skipped"
+    },
+    "json103": {
+      "state": "skipped"
+    },
+    "json104": {
+      "state": "skipped"
+    },
+    "json105": {
+      "state": "skipped"
+    },
+    "json106": {
+      "state": "skipped"
+    },
+    "json107": {
+      "state": "skipped"
+    },
+    "json108": {
+      "state": "skipped"
+    },
+    "json109": {
+      "state": "skipped"
+    },
+    "json501": {
+      "state": "skipped"
+    },
+    "json502": {
+      "state": "skipped"
+    },
+    "jsonb01": {
+      "state": "skipped"
+    },
+    "keyword1": {
+      "state": "skipped"
+    },
+    "lastinsert": {
+      "state": "pass",
+      "duration": "719ms"
+    },
+    "laststmtchanges": {
+      "state": "pass",
+      "duration": "761ms"
+    },
+    "like": {
+      "state": "fail",
+      "duration": "692ms",
+      "error": "esult mismatch\n          got:  [sqlite3_exec_hex db SELECT substr(x,2) AS x FROM t2 WHERE +x LIKE '%ff%25']\n          want: [0 x hello]\n          body: do_test like-9.4.1\n    like_test.go:746: result mismatch\n          got:  [sqlite3_exec_hex db SELECT substr(x,2) AS x FROM t2 WHERE x LIKE '%ff%25']\n          want: [0 x hello]\n          body: do_test like-9.4.2\n    like_test.go:760: result mismatch\n          got:  [sqlite3_exec_hex db SELECT 1 FROM t2 WHERE x LIKE '%fe%25']\n          want: [0 1 1]\n          body: do_test like-9.5.1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/like\t0.310s\nFAIL"
+    },
+    "like2": {
+      "state": "pass",
+      "duration": "751ms"
+    },
+    "like3": {
+      "state": "pass",
+      "duration": "662ms"
+    },
+    "limit": {
+      "state": "fail",
+      "duration": "30.814s",
+      "error": "ce(1)\n          \n    limit_test.go:545: expected error containing \"wrong number of arguments to function replace()\", got: \u003cnil\u003e\n          sql: \n             SELECT * FROM t1 LIMIT 5 OFFSET replace(1)\n          \n    limit_test.go:551: expected error containing \"no such column: x\", got: datatype mismatch\n          sql: \n             SELECT * FROM t1 LIMIT x\n          \n    limit_test.go:557: expected error containing \"no such column: x\", got: datatype mismatch\n          sql: \n             SELECT * FROM t1 LIMIT 1 OFFSET x\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/limit\t30.458s\nFAIL"
+    },
+    "limit2": {
+      "state": "pass",
+      "duration": "743ms"
+    },
+    "literal": {
+      "state": "pass",
+      "duration": "629ms"
+    },
+    "literal2": {
+      "state": "pass",
+      "duration": "626ms"
+    },
+    "loadext": {
+      "state": "pass",
+      "duration": "667ms"
+    },
+    "loadext2": {
+      "state": "pass",
+      "duration": "631ms"
+    },
+    "lock": {
+      "state": "skipped"
+    },
+    "lock2": {
+      "state": "skipped"
+    },
+    "lock3": {
+      "state": "skipped"
+    },
+    "lock4": {
+      "state": "skipped"
+    },
+    "lock5": {
+      "state": "skipped"
+    },
+    "lock6": {
+      "state": "skipped"
+    },
+    "lock7": {
+      "state": "skipped"
+    },
+    "lookaside": {
+      "state": "pass",
+      "duration": "629ms"
+    },
+    "main": {
+      "state": "skipped"
+    },
+    "malloc": {
+      "state": "skipped"
+    },
+    "malloc3": {
+      "state": "skipped"
+    },
+    "malloc4": {
+      "state": "skipped"
+    },
+    "malloc5": {
+      "state": "skipped"
+    },
+    "malloc6": {
+      "state": "skipped"
+    },
+    "malloc7": {
+      "state": "skipped"
+    },
+    "malloc8": {
+      "state": "skipped"
+    },
+    "malloc9": {
+      "state": "skipped"
+    },
+    "mallocA": {
+      "state": "pass",
+      "duration": "620ms"
+    },
+    "mallocAll": {
+      "state": "pass",
+      "duration": "632ms"
+    },
+    "mallocB": {
+      "state": "pass",
+      "duration": "681ms"
+    },
+    "mallocC": {
+      "state": "pass",
+      "duration": "610ms"
+    },
+    "mallocD": {
+      "state": "pass",
+      "duration": "603ms"
+    },
+    "mallocE": {
+      "state": "pass",
+      "duration": "599ms"
+    },
+    "mallocF": {
+      "state": "pass",
+      "duration": "627ms"
+    },
+    "mallocG": {
+      "state": "pass",
+      "duration": "607ms"
+    },
+    "mallocH": {
+      "state": "pass",
+      "duration": "585ms"
+    },
+    "mallocI": {
+      "state": "skipped"
+    },
+    "mallocJ": {
+      "state": "pass",
+      "duration": "601ms"
+    },
+    "mallocK": {
+      "state": "skipped"
+    },
+    "mallocL": {
+      "state": "pass",
+      "duration": "613ms"
+    },
+    "mallocM": {
+      "state": "pass",
+      "duration": "607ms"
+    },
+    "manydb": {
+      "state": "skipped"
+    },
+    "mem5": {
+      "state": "pass",
+      "duration": "646ms"
+    },
+    "memdb": {
+      "state": "skipped"
+    },
+    "memdb1": {
+      "state": "skipped"
+    },
+    "memdb2": {
+      "state": "skipped"
+    },
+    "memjournal": {
+      "state": "pass",
+      "duration": "640ms"
+    },
+    "memjournal2": {
+      "state": "pass",
+      "duration": "22.293s"
+    },
+    "memleak": {
+      "state": "pass",
+      "duration": "600ms"
+    },
+    "memsubsys1": {
+      "state": "skipped"
+    },
+    "memsubsys2": {
+      "state": "skipped"
+    },
+    "merge1": {
+      "state": "pass",
+      "duration": "618ms"
+    },
+    "minmax": {
+      "state": "fail",
+      "duration": "658ms",
+      "error": "--- FAIL: Test_minmax (0.04s)\n    minmax_test.go:98: result mismatch\n          got:  [0]\n          want: [19]\n          body: do_test minmax-1.2\n    minmax_test.go:113: result mismatch\n          got:  [0]\n          want: [19]\n          body: do_test minmax-1.4\n    minmax_test.go:132: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test minmax-1.6\n    minmax_test.go:162: result mismatch\n          got:  [0]\n          want: [19]\n          body: do_test minmax-1.10\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/minmax\t0.329s\nFAIL"
+    },
+    "minmax2": {
+      "state": "fail",
+      "duration": "662ms",
+      "error": "--- FAIL: Test_minmax2 (0.04s)\n    minmax2_test.go:81: result mismatch\n          got:  [0]\n          want: [19]\n          body: do_test minmax2-1.2\n    minmax2_test.go:96: result mismatch\n          got:  [0]\n          want: [19]\n          body: do_test minmax2-1.4\n    minmax2_test.go:115: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test minmax2-1.6\n    minmax2_test.go:145: result mismatch\n          got:  [0]\n          want: [19]\n          body: do_test minmax2-1.10\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/minmax2\t0.330s\nFAIL"
+    },
+    "minmax3": {
+      "state": "pass",
+      "duration": "632ms"
+    },
+    "minmax4": {
+      "state": "pass",
+      "duration": "685ms"
+    },
+    "misc1": {
+      "state": "fail",
+      "duration": "649ms",
+      "error": "go:634: expected success, got error: table t10 already exists\n          sql: \n            CREATE TABLE t10 AS SELECT 1;\n          \n    misc1_test.go:646: expected error containing \"table test already exists\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE test(a integer, primary key(a));\n          \n    misc1_test.go:731: result mismatch\n          got:  [{}]\n          want: [0]\n          body: do_test misc1-19.11\n    misc1_test.go:739: result mismatch\n          got:  [{}]\n          want: [0]\n          body: do_test misc1-19.12\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc1\t0.311s\nFAIL"
+    },
+    "misc2": {
+      "state": "pass",
+      "duration": "892ms"
+    },
+    "misc3": {
+      "state": "pass",
+      "duration": "711ms"
+    },
+    "misc4": {
+      "state": "fail",
+      "duration": "629ms",
+      "error": "regate functions are not allowed in the GROUP BY clause\", got: \u003cnil\u003e\n          sql:  \n              SELECT ID, Value FROM Table1\n                 UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n              ORDER BY 1, 2;\n            \n    misc4_test.go:135: expected error containing \"aggregate functions are not allowed in the GROUP BY clause\", got: \u003cnil\u003e\n          sql:  \n              SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n                 UNION SELECT ID, Value FROM Table1\n              ORDER BY 1, 2;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc4\t0.289s\nFAIL"
+    },
+    "misc5": {
+      "state": "fail",
+      "duration": "840ms",
+      "error": "ontaining \"no such table: blah\", got: \u003cnil\u003e\n          sql: \n              SELECT * FROM sqlite_master \n              UNION ALL \n              SELECT * FROM sqlite_master\n              LIMIT (SELECT count(*) FROM blah);\n            \n    misc5_test.go:275: expected error containing \"unrecognized token: \\\"123abc\\\"\", got: \u003cnil\u003e\n          sql: \n            SELECT 123abc\n          \n    misc5_test.go:281: expected error containing \"unrecognized token: \\\"123.4e5ghi\\\"\", got: \u003cnil\u003e\n          sql: \n            SELECT 1*123.4e5ghi;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc5\t0.508s\nFAIL"
+    },
+    "misc6": {
+      "state": "skipped"
+    },
+    "misc7": {
+      "state": "pass",
+      "duration": "647ms"
+    },
+    "misc8": {
+      "state": "fail",
+      "duration": "593ms",
+      "error": "--- FAIL: Test_misc8 (0.01s)\n    misc8_test.go:110: expected success, got error: cannot rollback - no transaction is active\n          sql: \n          BEGIN;\n          INSERT INTO t1 VALUES(10,11,12);\n          SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n           FROM t1 ORDER BY a;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc8\t0.272s\nFAIL"
+    },
+    "misuse": {
+      "state": "fail",
+      "duration": "127ms",
+      "error": "# github.com/pijalu/frigolite/testgen/misuse [github.com/pijalu/frigolite/testgen/misuse.test]\ntestgen/misuse/misuse_test.go:269:20: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclCloseDB\nFAIL\tgithub.com/pijalu/frigolite/testgen/misuse [build failed]\nFAIL"
+    },
+    "mjournal": {
+      "state": "skipped"
+    },
+    "mmap1": {
+      "state": "skipped"
+    },
+    "mmap2": {
+      "state": "skipped"
+    },
+    "mmap3": {
+      "state": "skipped"
+    },
+    "mmap4": {
+      "state": "skipped"
+    },
+    "mmapcorrupt": {
+      "state": "skipped"
+    },
+    "mmapfault": {
+      "state": "pass",
+      "duration": "634ms"
+    },
+    "mmapwarm": {
+      "state": "skipped"
+    },
+    "multiplex": {
+      "state": "skipped"
+    },
+    "multiplex2": {
+      "state": "skipped"
+    },
+    "multiplex3": {
+      "state": "skipped"
+    },
+    "multiplex4": {
+      "state": "skipped"
+    },
+    "mutex1": {
+      "state": "pass",
+      "duration": "750ms"
+    },
+    "mutex2": {
+      "state": "pass",
+      "duration": "644ms"
+    },
+    "nan": {
+      "state": "pass",
+      "duration": "892ms"
+    },
+    "nockpt": {
+      "state": "pass",
+      "duration": "880ms"
+    },
+    "nolock": {
+      "state": "skipped"
+    },
+    "normalize": {
+      "state": "pass",
+      "duration": "766ms"
+    },
+    "notify1": {
+      "state": "skipped"
+    },
+    "notify2": {
+      "state": "skipped"
+    },
+    "notify3": {
+      "state": "skipped"
+    },
+    "notnull": {
+      "state": "fail",
+      "duration": "778ms",
+      "error": "_test.go:461: expected success, got error: NOT NULL constraint failed: t1.c\n          sql: \n            DELETE FROM t1;\n            INSERT INTO t1 VALUES(1,2,3,4,5);\n            UPDATE t1 SET c=null, d=e, e=d;\n            SELECT * FROM t1 ORDER BY a;\n          \n    notnull_test.go:467: expected success, got error: NOT NULL constraint failed: t1.d\n          sql: \n            DELETE FROM t1;\n            INSERT INTO t1 VALUES(1,2,3,4,5);\n            UPDATE t1 SET d=null, a=b, b=a;\n            SELECT * FROM t1 ORDER BY a;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/notnull\t0.460s\nFAIL"
+    },
+    "notnull2": {
+      "state": "pass",
+      "duration": "801ms"
+    },
+    "notnullfault": {
+      "state": "pass",
+      "duration": "771ms"
+    },
+    "null": {
+      "state": "fail",
+      "duration": "758ms",
+      "error": "t2 values(2,null);\n              insert into t2 values(3,null);\n              insert into t2 values(4,1);\n              select a from t2;\n            \n    null_test.go:218: query error: UNIQUE constraint failed: t3.b, t3.c\n          sql: \n              create table t3(a, b, c, unique(b,c) on conflict ignore);\n              insert into t3 values(1,1,1);\n              insert into t3 values(2,null,1);\n              insert into t3 values(3,null,1);\n              insert into t3 values(4,1,1);\n              select a from t3;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/null\t0.435s\nFAIL"
+    },
+    "nulls1": {
+      "state": "pass",
+      "duration": "756ms"
+    },
+    "nulls2": {
+      "state": "pass",
+      "duration": "776ms"
+    },
+    "numcast": {
+      "state": "pass",
+      "duration": "766ms"
+    },
+    "numindex1": {
+      "state": "pass",
+      "duration": "755ms"
+    },
+    "offset1": {
+      "state": "skipped"
+    },
+    "openv2": {
+      "state": "fail",
+      "duration": "878ms",
+      "error": "--- FAIL: Test_openv2 (0.00s)\n    openv2_test.go:106: expected error containing \"attempt to write a readonly database\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(123)\n          \n    openv2_test.go:121: expected error containing \"attempt to write a readonly database\", got: \u003cnil\u003e\n          sql: CREATE TABLE t1(x)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/openv2\t0.537s\nFAIL"
+    },
+    "orderby1": {
+      "state": "fail",
+      "duration": "1.311s",
+      "error": "--- FAIL: Test_orderby1 (0.30s)\n    orderby1_test.go:600: result mismatch\n          got:  [{}]\n          want: [5000]\n          body: do_test 8.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/orderby1\t0.960s\nFAIL"
+    },
+    "orderby2": {
+      "state": "pass",
+      "duration": "1.034s"
+    },
+    "orderby3": {
+      "state": "pass",
+      "duration": "1.025s"
+    },
+    "orderby4": {
+      "state": "pass",
+      "duration": "1.029s"
+    },
+    "orderby5": {
+      "state": "pass",
+      "duration": "1.03s"
+    },
+    "orderby6": {
+      "state": "pass",
+      "duration": "1.771s"
+    },
+    "orderby7": {
+      "state": "fail",
+      "duration": "1.245s",
+      "error": "is a test of the fts3 virtual'),\n                   (2,'table used as part of a join together'),\n                   (3,'with the DISTINCT keyword.  There was'),\n                   (4,'a bug at one time (2013-06 through 2014-04)'),\n                   (5,'that prevented this from working correctly.'),\n                   (11,'a row that occurs twice'),\n                   (12,'a row that occurs twice');\n         \n          CREATE TABLE t1(x TEXT PRIMARY KEY, y);\n          INSERT OR IGNORE INTO t1 SELECT content, rowid+100 FROM fts;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/orderby7\t0.920s\nFAIL"
+    },
+    "orderby8": {
+      "state": "pass",
+      "duration": "1.328s"
+    },
+    "orderby9": {
+      "state": "pass",
+      "duration": "1.294s"
+    },
+    "orderbyA": {
+      "state": "pass",
+      "duration": "1.284s"
+    },
+    "orderbyB": {
+      "state": "pass",
+      "duration": "1.028s"
+    },
+    "oserror": {
+      "state": "skipped"
+    },
+    "ovfl": {
+      "state": "pass",
+      "duration": "2.644s"
+    },
+    "p_8_3_names": {
+      "state": "pass",
+      "duration": "1.335s"
+    },
+    "pager1": {
+      "state": "skipped"
+    },
+    "pager2": {
+      "state": "skipped"
+    },
+    "pager3": {
+      "state": "skipped"
+    },
+    "pager4": {
+      "state": "skipped"
+    },
+    "pagerfault": {
+      "state": "skipped"
+    },
+    "pagerfault2": {
+      "state": "skipped"
+    },
+    "pagerfault3": {
+      "state": "skipped"
+    },
+    "pageropt": {
+      "state": "pass",
+      "duration": "1.283s"
+    },
+    "pagesize": {
+      "state": "skipped"
+    },
+    "parser1": {
+      "state": "pass",
+      "duration": "1.305s"
+    },
+    "pcache": {
+      "state": "pass",
+      "duration": "1.294s"
+    },
+    "pcache2": {
+      "state": "fail",
+      "duration": "774ms",
+      "error": "--- FAIL: Test_pcache2 (0.01s)\n    pcache2_test.go:82: result mismatch\n          got:  [0]\n          want: [2]\n          body: do_test pcache2-1.2\n    pcache2_test.go:93: result mismatch\n          got:  [0]\n          want: [4]\n          body: do_test pcache2-1.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/pcache2\t0.418s\nFAIL"
+    },
+    "pendingrace": {
+      "state": "skipped"
+    },
+    "percentile": {
+      "state": "fail",
+      "duration": "17.838s",
+      "error": "inf input to percentile_disc()\n          sql: \n            SELECT percentile_disc(x,0.50) from t1;\n          \n    percentile_test.go:450: expected error containing \"Inf input to median()\", got: inf input to percentile()\n          sql: \n            SELECT median(x) from t1;\n          \n    percentile_test.go:456: expected error containing \"Inf input to percentile()\", got: inf input to percentile()\n          sql: \n            UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n            SELECT percentile(x,50) from t1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/percentile\t17.476s\nFAIL"
+    },
+    "permutations": {
+      "state": "pass",
+      "duration": "1.04s"
+    },
+    "pragma": {
+      "state": "skipped"
+    },
+    "pragma2": {
+      "state": "skipped"
+    },
+    "pragma3": {
+      "state": "skipped"
+    },
+    "pragma4": {
+      "state": "skipped"
+    },
+    "pragma5": {
+      "state": "skipped"
+    },
+    "pragma6": {
+      "state": "skipped"
+    },
+    "pragmafault": {
+      "state": "pass",
+      "duration": "1.047s"
+    },
+    "prefixes": {
+      "state": "pass",
+      "duration": "1.05s"
+    },
+    "printf": {
+      "state": "pass",
+      "duration": "940ms"
+    },
+    "printf2": {
+      "state": "pass",
+      "duration": "1.029s"
+    },
+    "progress": {
+      "state": "skipped"
+    },
+    "ptrchng": {
+      "state": "fail",
+      "duration": "1.035s",
+      "error": ") FROM t1 WHERE x=4\n          \n    ptrchng_test.go:118: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'text', 'bytes', 'text') FROM t1\n          \n    ptrchng_test.go:124: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'blob', 'bytes', 'blob') FROM t1\n          \n    ptrchng_test.go:130: query error: no such function: pointer_change\n          sql: \n            SELECT pointer_change(y, 'text', 'bytes', 'blob') FROM t1\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/ptrchng\t0.736s\nFAIL"
+    },
+    "pushdown": {
+      "state": "skipped"
+    },
+    "qrf01": {
+      "state": "fail",
+      "duration": "1.034s",
+      "error": "es │ ' abcde' │ │ yes │ 'abcde ' │ │ yes │ '+0' │ │ yes │ '-0' │ │ yes │ '012345' │ │ │ 012xyz345 │ │ yes │ '0123.45' │ │ │ 12.34.56 │ │ │ 12.3e │ │ yes │ '12.3e+123' │ │ yes │ '12.3e-34' │ │ yes │ '12.3E56' │ │ yes │ '12E56' │ │ │ 12.5E5.6 │ │ │ 12.5e+ │ │ │ 12.5e- │ │ yes │ '+Inf' │ │ yes │ '-Inf' │ │ yes │ 'Inf' │ ╰─────────┴─────────────╯]\n          body: do_test 13.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/qrf01\t0.713s\nFAIL"
+    },
+    "qrf02": {
+      "state": "fail",
+      "duration": "1.037s",
+      "error": "             p5  comment      \n        ----  -------------  ----  ----  ----  -------------  --  -------------\n        0     Init           */]\n          body: do_test 1.10\n    qrf02_test.go:87: result mismatch\n          got:  [db format EXPLAIN SELECT * FROM tN]\n          want: [/.*\n        N     Rewind .*\n        N       Column .*/]\n          body: do_test 1.11\n    qrf02_test.go:96: result mismatch\n          got:  [db format EXPLAIN QUERY PLAN SELECT * FROM t1]\n          want: [QUERY PLAN `--SCAN t1]\n          body: do_test 1.20\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/qrf02\t0.728s\nFAIL"
+    },
+    "qrf03": {
+      "state": "fail",
+      "duration": "1.035s",
+      "error": "69 28695 2 0 0 0 28770 28697 28769 28698 3 0 0 0 28767 28768 28759 28746 4 0 0 0]\n          body: do_test 1.40\n    qrf03_test.go:139: result mismatch\n          got:  [db format -style column -screenwidth 52 SELECT * FROM mlink ORDER BY rowid]\n          want: [mid fid pmid pid fnid pfnid mperm isaux ----- ----- ----- ----- ---- ----- ----- ----- 28775 28774 28773 28706 1 0 0 0 28773 28706 28770 28685 1 0 0 0 28770 28736 28769 28695 2 0 0 0 28770 28697 28769 28698 3 0 0 0 28767 28768 28759 28746 4 0 0 0]\n          body: do_test 1.41\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/qrf03\t0.723s\nFAIL"
+    },
+    "qrf04": {
+      "state": "pass",
+      "duration": "1.04s"
+    },
+    "qrf05": {
+      "state": "pass",
+      "duration": "1.048s"
+    },
+    "qrf06": {
+      "state": "pass",
+      "duration": "1.048s"
+    },
+    "queryonly": {
+      "state": "pass",
+      "duration": "1.041s"
+    },
+    "quick": {
+      "state": "pass",
+      "duration": "1.035s"
+    },
+    "quickcheck": {
+      "state": "skipped"
+    },
+    "quota": {
+      "state": "skipped"
+    },
+    "quota2": {
+      "state": "skipped"
+    },
+    "quota_glob": {
+      "state": "skipped"
+    },
+    "quote": {
+      "state": "pass",
+      "duration": "1.032s"
+    },
+    "randexpr1": {
+      "state": "fail",
+      "duration": "3.697s",
+      "error": "00]\n    randexpr1_test.go:16419: result mismatch\n          got:  [100]\n          want: [19]\n    randexpr1_test.go:16437: result mismatch\n          got:  [100]\n          want: [19]\n    randexpr1_test.go:16659: result mismatch\n          got:  [13]\n          want: [17]\n    randexpr1_test.go:16671: result mismatch\n          got:  [13]\n          want: [17]\n    randexpr1_test.go:20595: result mismatch\n          got:  [513]\n          want: [1100]\n    randexpr1_test.go:22077: result mismatch\n          got:  [900]\n          want: [600]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/randexpr1\t1.690s\nFAIL"
+    },
+    "rbu": {
+      "state": "pass",
+      "duration": "775ms"
+    },
+    "rdonly": {
+      "state": "fail",
+      "duration": "779ms",
+      "error": "--- FAIL: Test_rdonly (0.00s)\n    rdonly_test.go:92: expected error containing \"attempt to write a readonly database\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(2)\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rdonly\t0.478s\nFAIL"
+    },
+    "readonly": {
+      "state": "skipped"
+    },
+    "recover_pkg": {
+      "state": "skipped"
+    },
+    "regexp1": {
+      "state": "fail",
+      "duration": "776ms",
+      "error": "--- FAIL: Test_regexp1 (0.00s)\n    regexp1_test.go:151: result mismatch\n          got:  [{}]\n          want: [1 2]\n    regexp1_test.go:211: result mismatch\n          got:  [{}]\n          want: [4]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/regexp1\t0.446s\nFAIL"
+    },
+    "regexp2": {
+      "state": "pass",
+      "duration": "781ms"
+    },
+    "reindex": {
+      "state": "fail",
+      "duration": "777ms",
+      "error": "--- FAIL: Test_reindex (0.00s)\n    reindex_test.go:112: expected error containing \"unable to identify the object to be reindexed\", got: \u003cnil\u003e\n          sql: \n            REINDEX bogus\n          \n    reindex_test.go:188: expected error containing \"no such collation sequence: c2\", got: \u003cnil\u003e\n          sql: \n            REINDEX;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/reindex\t0.422s\nFAIL"
+    },
+    "reservebytes": {
+      "state": "pass",
+      "duration": "827ms"
+    },
+    "resetdb": {
+      "state": "skipped"
+    },
+    "resolver01": {
+      "state": "fail",
+      "duration": "1.04s",
+      "error": "--- FAIL: Test_resolver01 (0.00s)\n    resolver01_test.go:62: expected success, got error: ambiguous column name: y\n          sql: \n            CREATE TABLE t1(x, y); INSERT INTO t1 VALUES(11,22);\n            CREATE TABLE t2(y, z); INSERT INTO t2 VALUES(33,44);\n            SELECT 1 AS y FROM t1, t2 ORDER BY y;\n          \n    resolver01_test.go:98: expected success, got error: ambiguous column name: y\n          sql: \n            SELECT 2 AS y FROM t1, t2 ORDER BY y COLLATE nocase;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/resolver01\t0.720s\nFAIL"
+    },
+    "returning1": {
+      "state": "pass",
+      "duration": "1.047s"
+    },
+    "returningfault": {
+      "state": "pass",
+      "duration": "1.063s"
+    },
+    "rollback": {
+      "state": "skipped"
+    },
+    "rollback2": {
+      "state": "skipped"
+    },
+    "rollbackfault": {
+      "state": "skipped"
+    },
+    "round1": {
+      "state": "pass",
+      "duration": "1.742s"
+    },
+    "rowallock": {
+      "state": "pass",
+      "duration": "1.411s"
+    },
+    "rowhash": {
+      "state": "pass",
+      "duration": "1.72s"
+    },
+    "rowid": {
+      "state": "fail",
+      "duration": "1.353s",
+      "error": "--- FAIL: Test_rowid (0.08s)\n    rowid_test.go:199: result mismatch\n          got:  [false]\n          want: [true]\n          body: do_test rowid-1.8\n    rowid_test.go:211: result mismatch\n          got:  [false]\n          want: [true]\n          body: do_test rowid-1.9\n    rowid_test.go:223: result mismatch\n          got:  [false]\n          want: [true]\n          body: do_test rowid-1.10\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rowid\t1.019s\nFAIL"
+    },
+    "rowvalue": {
+      "state": "fail",
+      "duration": "1.328s",
+      "error": "--- FAIL: Test_rowvalue (0.04s)\n    rowvalue_test.go:859: result mismatch\n          got:  [1 a A B d 2 w x y z]\n          want: [1 D A B C 2 w x y z]\n    rowvalue_test.go:871: result mismatch\n          got:  [1 a A A a 2 w x x w 3 i ii iii iv]\n          want: [1 C B A D 2 z y x w 3 i ii iii iv]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rowvalue\t0.980s\nFAIL"
+    },
+    "rowvalue2": {
+      "state": "pass",
+      "duration": "22.12s"
+    },
+    "rowvalue3": {
+      "state": "fail",
+      "duration": "1.418s",
+      "error": "--- FAIL: Test_rowvalue3 (0.02s)\n    rowvalue3_test.go:224: exec error: index k1idx already exists\n          sql:  CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) \n    rowvalue3_test.go:224: exec error: index h1 already exists\n          sql:  \n            CREATE INDEX h1 ON hh(a, b);\n            CREATE UNIQUE INDEX k1idx ON k1(x, y); \n          \n    rowvalue3_test.go:224: exec error: index h1 already exists\n          sql:  \n            CREATE INDEX h1 ON hh(a, b);\n            CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rowvalue3\t1.121s\nFAIL"
+    },
+    "rowvalue4": {
+      "state": "fail",
+      "duration": "1.478s",
+      "error": "NDEX t2abc ON t2(a ASC, b ASC, c ASC); \n    rowvalue4_test.go:135: exec error: index t2abc already exists\n          sql:  CREATE INDEX t2abc ON t2(a DESC, b, c); \n    rowvalue4_test.go:135: exec error: index t2abc already exists\n          sql:  CREATE INDEX t2abc ON t2(a DESC, b DESC) \n    rowvalue4_test.go:135: exec error: index t2abc already exists\n          sql:  CREATE INDEX t2abc ON t2(c, b, a); \n    rowvalue4_test.go:135: exec error: index t2abc already exists\n          sql:  CREATE INDEX t2abc ON t2(a DESC, b, c DESC); \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rowvalue4\t1.171s\nFAIL"
+    },
+    "rowvalue5": {
+      "state": "skipped"
+    },
+    "rowvalue6": {
+      "state": "pass",
+      "duration": "1.32s"
+    },
+    "rowvalue7": {
+      "state": "pass",
+      "duration": "1.518s"
+    },
+    "rowvalue8": {
+      "state": "pass",
+      "duration": "1.637s"
+    },
+    "rowvalue9": {
+      "state": "pass",
+      "duration": "1.304s"
+    },
+    "rowvalueA": {
+      "state": "pass",
+      "duration": "1.349s"
+    },
+    "rowvaluefault": {
+      "state": "pass",
+      "duration": "1.332s"
+    },
+    "rowvaluevtab": {
+      "state": "skipped"
+    },
+    "rtree": {
+      "state": "pass",
+      "duration": "1.274s"
+    },
+    "savepoint": {
+      "state": "fail",
+      "duration": "1.355s",
+      "error": "{}]\n          want: [SQLITE_SAVEPOINT BEGIN sp1 {} {}]\n          body: do_test savepoint-9.1\n    savepoint_test.go:869: result mismatch\n          got:  [{}]\n          want: [SQLITE_SAVEPOINT ROLLBACK sp1 {} {}]\n          body: do_test savepoint-9.2\n    savepoint_test.go:883: result mismatch\n          got:  [{}]\n          want: [SQLITE_SAVEPOINT RELEASE sp1 {} {}]\n          body: do_test savepoint-9.3\n    savepoint_test.go:1122: result mismatch\n          got:  [6144]\n          want: [8192]\n          body: do_test savepoint-11.8\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/savepoint\t1.042s\nFAIL"
+    },
+    "savepoint2": {
+      "state": "pass",
+      "duration": "12.292s"
+    },
+    "savepoint4": {
+      "state": "skipped"
+    },
+    "savepoint5": {
+      "state": "pass",
+      "duration": "1.186s"
+    },
+    "savepoint6": {
+      "state": "skipped"
+    },
+    "savepoint7": {
+      "state": "pass",
+      "duration": "1.332s"
+    },
+    "savepointfault": {
+      "state": "pass",
+      "duration": "1.288s"
+    },
+    "scanstatus": {
+      "state": "skipped"
+    },
+    "scanstatus2": {
+      "state": "skipped"
+    },
+    "schema": {
+      "state": "fail",
+      "duration": "115ms",
+      "error": "LastErr)\ntestgen/schema/schema_test.go:112:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\ntestgen/schema/schema_test.go:120:13: DB.Exec undefined (type string has no field or method Exec)\ntestgen/schema/schema_test.go:121:29: DB.SetLastErr undefined (type string has no field or method SetLastErr)\ntestgen/schema/schema_test.go:130:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\ntestgen/schema/schema_test.go:130:18: too many errors\nFAIL\tgithub.com/pijalu/frigolite/testgen/schema [build failed]\nFAIL"
+    },
+    "schema2": {
+      "state": "fail",
+      "duration": "112ms",
+      "error": "stgen/schema2/schema2_test.go:108:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\ntestgen/schema2/schema2_test.go:116:13: DB.Exec undefined (type string has no field or method Exec)\ntestgen/schema2/schema2_test.go:117:29: DB.SetLastErr undefined (type string has no field or method SetLastErr)\ntestgen/schema2/schema2_test.go:126:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\ntestgen/schema2/schema2_test.go:126:18: too many errors\nFAIL\tgithub.com/pijalu/frigolite/testgen/schema2 [build failed]\nFAIL"
+    },
+    "schema3": {
+      "state": "pass",
+      "duration": "997ms"
+    },
+    "schema4": {
+      "state": "pass",
+      "duration": "1.039s"
+    },
+    "schema5": {
+      "state": "pass",
+      "duration": "968ms"
+    },
+    "schema6": {
+      "state": "pass",
+      "duration": "1.024s"
+    },
+    "schemafault": {
+      "state": "pass",
+      "duration": "1.032s"
+    },
+    "securedel": {
+      "state": "skipped"
+    },
+    "securedel2": {
+      "state": "skipped"
+    },
+    "seekscan1": {
+      "state": "pass",
+      "duration": "2.557s"
+    },
+    "select1": {
+      "state": "fail",
+      "duration": "3.995s",
+      "error": "test.go:1749: result mismatch\n          got:  [{}]\n          want: [f1 f2]\n          body: do_test select1-9.4\n    select1_test.go:1762: result mismatch\n          got:  [{}]\n          want: [f1 f2]\n          body: do_test select1-9.5\n    select1_test.go:1870: expected error containing \"no such table: t5\", got: \u003cnil\u003e\n          sql: \n            SELECT t5.* FROM t3, t4;\n          \n    select1_test.go:1876: expected error containing \"no such table: t3\", got: \u003cnil\u003e\n          sql: \n            SELECT t3.* FROM t3 AS x, t4;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select1\t3.660s\nFAIL"
+    },
+    "select2": {
+      "state": "fail",
+      "duration": "16.836s",
+      "error": "5 6 7 8: 6 7 8]\n          body: do_test select2-1.1\n    select2_test.go:143: result mismatch\n          got:  [{}]\n          want: [4: 2 3 4]\n          body: do_test select2-1.2\n    select2_test.go:264: result mismatch\n          got:  [0]\n          want: [3]\n          body: do_test select2-3.2d\n    select2_test.go:277: result mismatch\n          got:  [0]\n          want: [3]\n          body: do_test select2-3.2e\n    select2_test.go:294: result mismatch\n          got:  [0]\n          want: [29999]\n          body: do_test select2-3.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select2\t16.504s\nFAIL"
+    },
+    "select3": {
+      "state": "fail",
+      "duration": "1.048s",
+      "error": "--- FAIL: Test_select3 (0.02s)\n    select3_test.go:189: expected error containing \"1st GROUP BY term out of range - should be between 1 and 2\", got: \u003cnil\u003e\n          sql: \n            SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;\n          \n    select3_test.go:195: expected error containing \"1st GROUP BY term out of range - should be between 1 and 2\", got: \u003cnil\u003e\n          sql: \n            SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select3\t0.738s\nFAIL"
+    },
+    "select4": {
+      "state": "fail",
+      "duration": "662ms",
+      "error": "--- FAIL: Test_select4 (0.05s)\n    select4_test.go:830: expected error containing \"SELECTs to the left and right of UNION do not have the same number of result columns\", got: table t2 has 2 values for 1 columns\n          sql: \n            INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4 UNION SELECT 5,6 ORDER BY 1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select4\t0.333s\nFAIL"
+    },
+    "select5": {
+      "state": "fail",
+      "duration": "623ms",
+      "error": "--- FAIL: Test_select5 (0.01s)\n    select5_test.go:133: expected error containing \"no such column: temp.t1.y\", got: \u003cnil\u003e\n          sql: \n            SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select5\t0.289s\nFAIL"
+    },
+    "select6": {
+      "state": "fail",
+      "duration": "806ms",
+      "error": "     SELECT * FROM t UNION ALL \n            SELECT l,m,l FROM j UNION ALL\n            SELECT * FROM k\n          )\n    select6_test.go:522: catchsql mismatch\n          got:  [SELECTs to the left and right of UNION ALL do not have the same number of result columns]\n          want: [SELECTs to the left and right of UNION ALL do not have the same number of result columns]\n          sql: \n          SELECT * FROM (\n            SELECT * FROM k UNION ALL\n            SELECT * FROM t UNION ALL \n            SELECT l,m,l FROM j \n          )\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select6\t0.470s\nFAIL"
+    },
+    "select7": {
+      "state": "fail",
+      "duration": "593ms",
+      "error": " 475 UNION ALL SELECT 476 UNION ALL SELECT 477 UNION ALL SELECT 478 UNION ALL SELECT 479 UNION ALL SELECT 480 UNION ALL SELECT 481 UNION ALL SELECT 482 UNION ALL SELECT 483 UNION ALL SELECT 484 UNION ALL SELECT 485 UNION ALL SELECT 486 UNION ALL SELECT 487 UNION ALL SELECT 488 UNION ALL SELECT 489 UNION ALL SELECT 490 UNION ALL SELECT 491 UNION ALL SELECT 492 UNION ALL SELECT 493 UNION ALL SELECT 494 UNION ALL SELECT 495 UNION ALL SELECT 496 UNION ALL SELECT 497 UNION ALL SELECT 498 UNION ALL SELECT 499 UNION ALL SELECT 99999999\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select7\t0.280s\nFAIL"
+    },
+    "select8": {
+      "state": "pass",
+      "duration": "583ms"
+    },
+    "select9": {
+      "state": "pass",
+      "duration": "619ms"
+    },
+    "selectA": {
+      "state": "pass",
+      "duration": "669ms"
+    },
+    "selectB": {
+      "state": "pass",
+      "duration": "617ms"
+    },
+    "selectC": {
+      "state": "pass",
+      "duration": "808ms"
+    },
+    "selectD": {
+      "state": "pass",
+      "duration": "840ms"
+    },
+    "selectE": {
+      "state": "pass",
+      "duration": "1.002s"
+    },
+    "selectF": {
+      "state": "pass",
+      "duration": "1.017s"
+    },
+    "selectG": {
+      "state": "pass",
+      "duration": "26.98s"
+    },
+    "selectH": {
+      "state": "fail",
+      "duration": "1.027s",
+      "error": "--- FAIL: Test_selectH (0.01s)\n    selectH_test.go:106: result mismatch\n          got:  [15 16]\n          want: [16 15]\n    selectH_test.go:186: result mismatch\n          got:  [0]\n          want: [4]\n          body: do_test 3.7\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/selectH\t0.720s\nFAIL"
+    },
+    "session": {
+      "state": "pass",
+      "duration": "1.027s"
+    },
+    "shared": {
+      "state": "skipped"
+    },
+    "shared2": {
+      "state": "skipped"
+    },
+    "shared3": {
+      "state": "skipped"
+    },
+    "shared4": {
+      "state": "skipped"
+    },
+    "shared6": {
+      "state": "skipped"
+    },
+    "shared7": {
+      "state": "skipped"
+    },
+    "shared8": {
+      "state": "skipped"
+    },
+    "shared9": {
+      "state": "skipped"
+    },
+    "sharedA": {
+      "state": "pass",
+      "duration": "1.041s"
+    },
+    "sharedB": {
+      "state": "pass",
+      "duration": "761ms"
+    },
+    "shared_err": {
+      "state": "skipped"
+    },
+    "sharedlock": {
+      "state": "skipped"
+    },
+    "shell1": {
+      "state": "pass",
+      "duration": "770ms"
+    },
+    "shell2": {
+      "state": "pass",
+      "duration": "837ms"
+    },
+    "shell3": {
+      "state": "pass",
+      "duration": "1.001s"
+    },
+    "shell4": {
+      "state": "pass",
+      "duration": "1.018s"
+    },
+    "shell5": {
+      "state": "pass",
+      "duration": "1.018s"
+    },
+    "shell6": {
+      "state": "pass",
+      "duration": "1.029s"
+    },
+    "shell7": {
+      "state": "pass",
+      "duration": "1.029s"
+    },
+    "shell8": {
+      "state": "pass",
+      "duration": "1.022s"
+    },
+    "shell9": {
+      "state": "skipped"
+    },
+    "shellA": {
+      "state": "skipped"
+    },
+    "shellB": {
+      "state": "pass",
+      "duration": "1.019s"
+    },
+    "shmlock": {
+      "state": "skipped"
+    },
+    "shortread1": {
+      "state": "fail",
+      "duration": "1.024s",
+      "error": "--- FAIL: Test_shortread1 (0.00s)\n    shortread1_test.go:73: query error: no such table: t1\n          sql: \n            COMMIT;\n            SELECT count(*) FROM t1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/shortread1\t0.720s\nFAIL"
+    },
+    "shrink": {
+      "state": "pass",
+      "duration": "1.028s"
+    },
+    "sidedelete": {
+      "state": "pass",
+      "duration": "2.238s"
+    },
+    "skipscan1": {
+      "state": "skipped"
+    },
+    "skipscan2": {
+      "state": "skipped"
+    },
+    "skipscan3": {
+      "state": "skipped"
+    },
+    "skipscan5": {
+      "state": "skipped"
+    },
+    "skipscan6": {
+      "state": "skipped"
+    },
+    "snapshot": {
+      "state": "skipped"
+    },
+    "snapshot2": {
+      "state": "skipped"
+    },
+    "snapshot3": {
+      "state": "skipped"
+    },
+    "snapshot4": {
+      "state": "skipped"
+    },
+    "snapshot_fault": {
+      "state": "skipped"
+    },
+    "snapshot_up": {
+      "state": "skipped"
+    },
+    "soak": {
+      "state": "pass",
+      "duration": "1.038s"
+    },
+    "softheap1": {
+      "state": "pass",
+      "duration": "1.036s"
+    },
+    "sort": {
+      "state": "pass",
+      "duration": "30.024s"
+    },
+    "sort2": {
+      "state": "pass",
+      "duration": "1.281s"
+    },
+    "sort3": {
+      "state": "pass",
+      "duration": "10.971s"
+    },
+    "sort4": {
+      "state": "skipped"
+    },
+    "sort5": {
+      "state": "pass",
+      "duration": "2.954s"
+    },
+    "sorterref": {
+      "state": "pass",
+      "duration": "773ms"
+    },
+    "sortfault": {
+      "state": "pass",
+      "duration": "938ms"
+    },
+    "speed1": {
+      "state": "skipped"
+    },
+    "speed1p": {
+      "state": "skipped"
+    },
+    "speed2": {
+      "state": "skipped"
+    },
+    "speed3": {
+      "state": "skipped"
+    },
+    "speed4": {
+      "state": "skipped"
+    },
+    "speed4p": {
+      "state": "pass",
+      "duration": "29.867s"
+    },
+    "spellfix": {
+      "state": "skipped"
+    },
+    "spellfix2": {
+      "state": "skipped"
+    },
+    "spellfix3": {
+      "state": "skipped"
+    },
+    "spellfix4": {
+      "state": "skipped"
+    },
+    "sqldiff1": {
+      "state": "skipped"
+    },
+    "sqllimits1": {
+      "state": "skipped"
+    },
+    "sqllog": {
+      "state": "skipped"
+    },
+    "starschema1": {
+      "state": "skipped"
+    },
+    "stat": {
+      "state": "pass",
+      "duration": "605ms"
+    },
+    "statfault": {
+      "state": "pass",
+      "duration": "626ms"
+    },
+    "stmt": {
+      "state": "pass",
+      "duration": "618ms"
+    },
+    "stmtrand": {
+      "state": "skipped"
+    },
+    "stmtvtab1": {
+      "state": "skipped"
+    },
+    "strict1": {
+      "state": "pass",
+      "duration": "787ms"
+    },
+    "strict2": {
+      "state": "pass",
+      "duration": "603ms"
+    },
+    "subjournal": {
+      "state": "fail",
+      "duration": "626ms",
+      "error": "--- FAIL: Test_subjournal (0.03s)\n    subjournal_test.go:125: result mismatch\n          got:  [ok ok ok]\n          want: [ok]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/subjournal\t0.322s\nFAIL"
+    },
+    "subquery": {
+      "state": "fail",
+      "duration": "639ms",
+      "error": "ected error containing \"misuse of aggregate: count()\", got: \u003cnil\u003e\n          sql: \n            SELECT max((SELECT a FROM (SELECT count(x) AS a FROM t35b))) FROM t35a;\n          \n    subquery_test.go:412: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test subquery-5.2\n    subquery_test.go:427: result mismatch\n          got:  [0]\n          want: [4]\n          body: do_test subquery-6.2\n    subquery_test.go:442: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test subquery-6.4\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/subquery\t0.298s\nFAIL"
+    },
+    "subquery2": {
+      "state": "pass",
+      "duration": "598ms"
+    },
+    "subselect": {
+      "state": "pass",
+      "duration": "599ms"
+    },
+    "substr": {
+      "state": "pass",
+      "duration": "609ms"
+    },
+    "subtype1": {
+      "state": "skipped"
+    },
+    "superlock": {
+      "state": "skipped"
+    },
+    "swarmvtab": {
+      "state": "skipped"
+    },
+    "swarmvtab2": {
+      "state": "skipped"
+    },
+    "swarmvtab3": {
+      "state": "skipped"
+    },
+    "swarmvtabfault": {
+      "state": "pass",
+      "duration": "610ms"
+    },
+    "symlink": {
+      "state": "skipped"
+    },
+    "symlink2": {
+      "state": "skipped"
+    },
+    "sync": {
+      "state": "pass",
+      "duration": "602ms"
+    },
+    "sync2": {
+      "state": "pass",
+      "duration": "630ms"
+    },
+    "syscall": {
+      "state": "pass",
+      "duration": "860ms"
+    },
+    "sysfault": {
+      "state": "skipped"
+    },
+    "tabfunc01": {
+      "state": "skipped"
+    },
+    "table": {
+      "state": "skipped"
+    },
+    "tableapi": {
+      "state": "pass",
+      "duration": "878ms"
+    },
+    "tableopts": {
+      "state": "pass",
+      "duration": "788ms"
+    },
+    "tclsqlite": {
+      "state": "skipped"
+    },
+    "tempdb": {
+      "state": "pass",
+      "duration": "987ms"
+    },
+    "tempdb2": {
+      "state": "pass",
+      "duration": "1.055s"
+    },
+    "tempfault": {
+      "state": "pass",
+      "duration": "1.042s"
+    },
+    "temptable": {
+      "state": "pass",
+      "duration": "1.103s"
+    },
+    "temptable2": {
+      "state": "skipped"
+    },
+    "temptable3": {
+      "state": "pass",
+      "duration": "1.096s"
+    },
+    "temptrigger": {
+      "state": "pass",
+      "duration": "1.096s"
+    },
+    "thread001": {
+      "state": "pass",
+      "duration": "1.081s"
+    },
+    "thread002": {
+      "state": "pass",
+      "duration": "1.017s"
+    },
+    "thread003": {
+      "state": "pass",
+      "duration": "1.028s"
+    },
+    "thread004": {
+      "state": "pass",
+      "duration": "1.017s"
+    },
+    "thread005": {
+      "state": "fail",
+      "duration": "119ms",
+      "error": "# github.com/pijalu/frigolite/testgen/thread005 [github.com/pijalu/frigolite/testgen/thread005.test]\ntestgen/thread005/thread005_test.go:125:19: cannot use finished_0 (variable of type string) as *frigolite.DB value in argument to tclCloseDB\ntestgen/thread005/thread005_test.go:126:19: cannot use finished_1 (variable of type string) as *frigolite.DB value in argument to tclCloseDB\nFAIL\tgithub.com/pijalu/frigolite/testgen/thread005 [build failed]\nFAIL"
+    },
+    "thread1": {
+      "state": "pass",
+      "duration": "915ms"
+    },
+    "thread2": {
+      "state": "pass",
+      "duration": "1.031s"
+    },
+    "thread3": {
+      "state": "pass",
+      "duration": "1.037s"
+    },
+    "timediff1": {
+      "state": "pass",
+      "duration": "1.061s"
+    },
+    "tkt1435": {
+      "state": "pass",
+      "duration": "1.04s"
+    },
+    "tkt1443": {
+      "state": "pass",
+      "duration": "1.044s"
+    },
+    "tkt1444": {
+      "state": "pass",
+      "duration": "1.052s"
+    },
+    "tkt1449": {
+      "state": "pass",
+      "duration": "1.307s"
+    },
+    "tkt1473": {
+      "state": "pass",
+      "duration": "1.271s"
+    },
+    "tkt1501": {
+      "state": "pass",
+      "duration": "1.279s"
+    },
+    "tkt1512": {
+      "state": "pass",
+      "duration": "1.273s"
+    },
+    "tkt1514": {
+      "state": "fail",
+      "duration": "1.277s",
+      "error": "--- FAIL: Test_tkt1514 (0.00s)\n    tkt1514_test.go:62: expected error containing \"misuse of aggregate: max()\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE t1(a,b);\n            SELECT a FROM t1 WHERE max(b)\u003c10 GROUP BY a;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt1514\t0.980s\nFAIL"
+    },
+    "tkt1536": {
+      "state": "pass",
+      "duration": "1.257s"
+    },
+    "tkt1537": {
+      "state": "pass",
+      "duration": "1.272s"
+    },
+    "tkt1567": {
+      "state": "pass",
+      "duration": "1.334s"
+    },
+    "tkt1644": {
+      "state": "fail",
+      "duration": "117ms",
+      "error": "# github.com/pijalu/frigolite/testgen/tkt1644 [github.com/pijalu/frigolite/testgen/tkt1644.test]\ntestgen/tkt1644/tkt1644_test.go:100:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\ntestgen/tkt1644/tkt1644_test.go:122:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\ntestgen/tkt1644/tkt1644_test.go:144:18: cannot use DB (variable of type string) as *frigolite.DB value in argument to tclPrepareStep\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt1644 [build failed]\nFAIL"
+    },
+    "tkt1667": {
+      "state": "pass",
+      "duration": "2.749s"
+    },
+    "tkt1873": {
+      "state": "pass",
+      "duration": "1.295s"
+    },
+    "tkt2141": {
+      "state": "pass",
+      "duration": "1.294s"
+    },
+    "tkt2192": {
+      "state": "pass",
+      "duration": "1.3s"
+    },
+    "tkt2213": {
+      "state": "pass",
+      "duration": "1.247s"
+    },
+    "tkt2251": {
+      "state": "pass",
+      "duration": "1.031s"
+    },
+    "tkt2285": {
+      "state": "pass",
+      "duration": "1.026s"
+    },
+    "tkt2332": {
+      "state": "skipped"
+    },
+    "tkt2339": {
+      "state": "pass",
+      "duration": "1.068s"
+    },
+    "tkt2391": {
+      "state": "pass",
+      "duration": "1.03s"
+    },
+    "tkt2409": {
+      "state": "skipped"
+    },
+    "tkt2450": {
+      "state": "pass",
+      "duration": "1.031s"
+    },
+    "tkt2565": {
+      "state": "fail",
+      "duration": "1.037s",
+      "error": "--- FAIL: Test_tkt2565 (0.00s)\n    tkt2565_test.go:137: result mismatch\n          got:  [{}]\n          want: [0]\n          body: do_test tkt2565-1.X\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2565\t0.682s\nFAIL"
+    },
+    "tkt2640": {
+      "state": "pass",
+      "duration": "1.268s"
+    },
+    "tkt2643": {
+      "state": "pass",
+      "duration": "1.249s"
+    },
+    "tkt2686": {
+      "state": "skipped"
+    },
+    "tkt2767": {
+      "state": "pass",
+      "duration": "1.299s"
+    },
+    "tkt2817": {
+      "state": "pass",
+      "duration": "1.294s"
+    },
+    "tkt2820": {
+      "state": "pass",
+      "duration": "1.294s"
+    },
+    "tkt2822": {
+      "state": "fail",
+      "duration": "1.295s",
+      "error": "t ORDER BY term out of range - should be between 1 and 25\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                                     11,12,13,14,15,16,17,18,19, 20, 0\n          \n    tkt2822_test.go:288: expected error containing \"22nd ORDER BY term out of range - should be between 1 and 25\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                                     11,12,13,14,15,16,17,18,19, 20, 21, 0\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2822\t0.998s\nFAIL"
+    },
+    "tkt2832": {
+      "state": "pass",
+      "duration": "1.303s"
+    },
+    "tkt2854": {
+      "state": "skipped"
+    },
+    "tkt2920": {
+      "state": "fail",
+      "duration": "1.292s",
+      "error": "--- FAIL: Test_tkt2920 (0.00s)\n    tkt2920_test.go:132: expected error containing \"cannot commit - no transaction is active\", got: \u003cnil\u003e\n          sql: COMMIT\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2920\t0.994s\nFAIL"
+    },
+    "tkt2927": {
+      "state": "pass",
+      "duration": "1.301s"
+    },
+    "tkt2942": {
+      "state": "pass",
+      "duration": "1.291s"
+    },
+    "tkt3080": {
+      "state": "skipped"
+    },
+    "tkt3093": {
+      "state": "skipped"
+    },
+    "tkt3121": {
+      "state": "pass",
+      "duration": "1.293s"
+    },
+    "tkt3201": {
+      "state": "pass",
+      "duration": "1.289s"
+    },
+    "tkt3292": {
+      "state": "pass",
+      "duration": "1.299s"
+    },
+    "tkt3298": {
+      "state": "pass",
+      "duration": "1.298s"
+    },
+    "tkt3334": {
+      "state": "pass",
+      "duration": "1.304s"
+    },
+    "tkt3346": {
+      "state": "pass",
+      "duration": "1.296s"
+    },
+    "tkt3357": {
+      "state": "pass",
+      "duration": "1.296s"
+    },
+    "tkt3419": {
+      "state": "pass",
+      "duration": "1.287s"
+    },
+    "tkt3424": {
+      "state": "pass",
+      "duration": "1.281s"
+    },
+    "tkt3442": {
+      "state": "pass",
+      "duration": "1.279s"
+    },
+    "tkt3457": {
+      "state": "pass",
+      "duration": "1.28s"
+    },
+    "tkt3461": {
+      "state": "pass",
+      "duration": "1.278s"
+    },
+    "tkt3493": {
+      "state": "pass",
+      "duration": "1.277s"
+    },
+    "tkt3508": {
+      "state": "fail",
+      "duration": "1.494s",
+      "error": "           SUBSTRATE_ISOFORM_ID VARCHAR(80),\n              SUBSTRATE_REFSEQ_ID VARCHAR(80),\n              SITE INTEGER,\n              RESIDUE VARCHAR(80),\n              ENZYME_NAME VARCHAR(80),\n              ENZYME_HPRD_ID VARCHAR(80),\n              MODIFICATION_TYPE VARCHAR(80),\n              EXPERIMENT_TYPE VARCHAR(80),\n              REFERENCE_ID VARCHAR(80)\n            );\n            select SUBSTRATE_HPRD_ID, count(substrate_refseq_id) as c\n              from modificationsTmp where c \u003e 1 group by SUBSTRATE_HPRD_ID;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3508\t1.179s\nFAIL"
+    },
+    "tkt3522": {
+      "state": "pass",
+      "duration": "1.529s"
+    },
+    "tkt3527": {
+      "state": "pass",
+      "duration": "1.531s"
+    },
+    "tkt3541": {
+      "state": "pass",
+      "duration": "1.527s"
+    },
+    "tkt3554": {
+      "state": "pass",
+      "duration": "1.527s"
+    },
+    "tkt3581": {
+      "state": "pass",
+      "duration": "1.53s"
+    },
+    "tkt35xx": {
+      "state": "fail",
+      "duration": "1.54s",
+      "error": "--- FAIL: Test_tkt35xx (0.00s)\n    tkt35xx_test.go:100: expected error containing \"cannot start a transaction within a transaction\", got: \u003cnil\u003e\n          sql: BEGIN\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt35xx\t1.254s\nFAIL"
+    },
+    "tkt3630": {
+      "state": "pass",
+      "duration": "1.531s"
+    },
+    "tkt3718": {
+      "state": "skipped"
+    },
+    "tkt3731": {
+      "state": "pass",
+      "duration": "1.528s"
+    },
+    "tkt3757": {
+      "state": "pass",
+      "duration": "1.525s"
+    },
+    "tkt3761": {
+      "state": "pass",
+      "duration": "1.521s"
+    },
+    "tkt3762": {
+      "state": "pass",
+      "duration": "1.522s"
+    },
+    "tkt3773": {
+      "state": "pass",
+      "duration": "1.529s"
+    },
+    "tkt3791": {
+      "state": "pass",
+      "duration": "1.537s"
+    },
+    "tkt3793": {
+      "state": "skipped"
+    },
+    "tkt3810": {
+      "state": "skipped"
+    },
+    "tkt3824": {
+      "state": "pass",
+      "duration": "1.534s"
+    },
+    "tkt3832": {
+      "state": "pass",
+      "duration": "1.538s"
+    },
+    "tkt3838": {
+      "state": "pass",
+      "duration": "1.542s"
+    },
+    "tkt3841": {
+      "state": "pass",
+      "duration": "1.538s"
+    },
+    "tkt3871": {
+      "state": "pass",
+      "duration": "1.552s"
+    },
+    "tkt3879": {
+      "state": "pass",
+      "duration": "1.517s"
+    },
+    "tkt3911": {
+      "state": "pass",
+      "duration": "1.538s"
+    },
+    "tkt3918": {
+      "state": "pass",
+      "duration": "1.555s"
+    },
+    "tkt3922": {
+      "state": "pass",
+      "duration": "1.552s"
+    },
+    "tkt3929": {
+      "state": "pass",
+      "duration": "1.568s"
+    },
+    "tkt3935": {
+      "state": "fail",
+      "duration": "1.526s",
+      "error": "equired before ON\", got: \u003cnil\u003e\n          sql:  SELECT a FROM (t1) AS t ON b \n    tkt3935_test.go:100: expected error containing \"a JOIN clause is required before ON\", got: \u003cnil\u003e\n          sql:  SELECT a FROM (SELECT * FROM t1) AS t ON b \n    tkt3935_test.go:106: expected error containing \"a JOIN clause is required before ON\", got: \u003cnil\u003e\n          sql:  SELECT a FROM t1 AS t ON b \n    tkt3935_test.go:118: expected error containing \"a JOIN clause is required before USING\", got: \u003cnil\u003e\n          sql:  SELECT a FROM t1 AS t USING(a) \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3935\t1.247s\nFAIL"
+    },
+    "tkt3992": {
+      "state": "fail",
+      "duration": "1.555s",
+      "error": "--- FAIL: Test_tkt3992 (0.00s)\n    tkt3992_test.go:102: result mismatch\n          got:  [{}]\n          want: [real]\n          body: do_test tkt3992-2.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3992\t1.254s\nFAIL"
+    },
+    "tkt3997": {
+      "state": "pass",
+      "duration": "1.534s"
+    },
+    "tkt4018": {
+      "state": "pass",
+      "duration": "1.871s"
+    },
+    "tkt_02a8e81d44": {
+      "state": "pass",
+      "duration": "1.516s"
+    },
+    "tkt_18458b1a": {
+      "state": "pass",
+      "duration": "1.497s"
+    },
+    "tkt_26ff0c2d1e": {
+      "state": "pass",
+      "duration": "1.763s"
+    },
+    "tkt_2a5629202f": {
+      "state": "fail",
+      "duration": "1.506s",
+      "error": "--- FAIL: Test_tkt_2a5629202f (0.00s)\n    tkt-2a5629202f_test.go:84: result mismatch\n          got:  [null/three null/four a/one b/two]\n          want: [null/four null/three a/one b/two]\n    tkt-2a5629202f_test.go:96: result mismatch\n          got:  [null/three null/four a/one b/two]\n          want: [null/four null/three a/one b/two]\n    tkt-2a5629202f_test.go:108: result mismatch\n          got:  [null/three null/four a/one b/two]\n          want: [null/four null/three a/one b/two]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_2a5629202f\t1.179s\nFAIL"
+    },
+    "tkt_2d1a5c67d": {
+      "state": "pass",
+      "duration": "1.796s"
+    },
+    "tkt_2ea2425d34": {
+      "state": "pass",
+      "duration": "1.795s"
+    },
+    "tkt_31338dca7e": {
+      "state": "pass",
+      "duration": "1.551s"
+    },
+    "tkt_313723c356": {
+      "state": "pass",
+      "duration": "1.699s"
+    },
+    "tkt_385a5b56b9": {
+      "state": "pass",
+      "duration": "1.809s"
+    },
+    "tkt_38cb5df375": {
+      "state": "pass",
+      "duration": "1.824s"
+    },
+    "tkt_3998683a16": {
+      "state": "pass",
+      "duration": "1.82s"
+    },
+    "tkt_3a77c9714e": {
+      "state": "pass",
+      "duration": "1.792s"
+    },
+    "tkt_3fe897352e": {
+      "state": "skipped"
+    },
+    "tkt_4a03edc4c8": {
+      "state": "fail",
+      "duration": "1.931s",
+      "error": "--- FAIL: Test_tkt_4a03edc4c8 (0.00s)\n    tkt-4a03edc4c8_test.go:87: result mismatch\n          got:  [1 2]\n          want: [1 1 2 2]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_4a03edc4c8\t1.605s\nFAIL"
+    },
+    "tkt_4c86b126f2": {
+      "state": "pass",
+      "duration": "2.041s"
+    },
+    "tkt_4dd95f6943": {
+      "state": "pass",
+      "duration": "2.226s"
+    },
+    "tkt_4ef7e3cfca": {
+      "state": "pass",
+      "duration": "2.035s"
+    },
+    "tkt_54844eea3f": {
+      "state": "fail",
+      "duration": "2.02s",
+      "error": "--- FAIL: Test_tkt_54844eea3f (0.00s)\n    tkt-54844eea3f_test.go:71: query error: no such column: t3.c\n          sql: \n            SELECT 'test-2', t3.c, (\n                  SELECT count(*) \n                  FROM t1 JOIN (SELECT DISTINCT t3.c AS p FROM t2) AS x ON t1.a=x.p\n            )\n            FROM t3;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_54844eea3f\t1.749s\nFAIL"
+    },
+    "tkt_5d863f876e": {
+      "state": "pass",
+      "duration": "2.011s"
+    },
+    "tkt_5e10420e8d": {
+      "state": "pass",
+      "duration": "2.015s"
+    },
+    "tkt_5ee23731f": {
+      "state": "pass",
+      "duration": "2s"
+    },
+    "tkt_6bfb98dfc0": {
+      "state": "pass",
+      "duration": "2.009s"
+    },
+    "tkt_752e1646fc": {
+      "state": "pass",
+      "duration": "2.013s"
+    },
+    "tkt_78e04e52ea": {
+      "state": "fail",
+      "duration": "1.815s",
+      "error": "--- FAIL: Test_tkt_78e04e52ea (0.00s)\n    tkt-78e04e52ea_test.go:62: query error: no tables specified\n          sql: \n            CREATE TABLE \"\"(\"\" UNIQUE, x CHAR(100));\n            CREATE TABLE t2(x);\n            INSERT INTO \"\"(\"\") VALUES(1);\n            INSERT INTO t2 VALUES(2);\n            SELECT * FROM \"\", t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_78e04e52ea\t1.509s\nFAIL"
+    },
+    "tkt_7a31705a7e6": {
+      "state": "skipped"
+    },
+    "tkt_7bbfb7d442": {
+      "state": "skipped"
+    },
+    "tkt_80ba201079": {
+      "state": "fail",
+      "duration": "2.013s",
+      "error": "--- FAIL: Test_tkt_80ba201079 (0.00s)\n    tkt-80ba201079_test.go:112: result mismatch\n          got:  [true]\n          want: [false]\n          body: do_test tkt-80ba2-150\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_80ba201079\t1.723s\nFAIL"
+    },
+    "tkt_80e031a00f": {
+      "state": "pass",
+      "duration": "2.022s"
+    },
+    "tkt_8454a207b9": {
+      "state": "pass",
+      "duration": "2.011s"
+    },
+    "tkt_868145d012": {
+      "state": "pass",
+      "duration": "2.01s"
+    },
+    "tkt_8c63ff0ec": {
+      "state": "pass",
+      "duration": "2.022s"
+    },
+    "tkt_91e2e8ba6f": {
+      "state": "pass",
+      "duration": "2.016s"
+    },
+    "tkt_99378177930f87bd": {
+      "state": "skipped"
+    },
+    "tkt_9a8b09f8e6": {
+      "state": "pass",
+      "duration": "2.011s"
+    },
+    "tkt_9d68c883": {
+      "state": "skipped"
+    },
+    "tkt_9f2eb3abac": {
+      "state": "skipped"
+    },
+    "tkt_a7b7803e": {
+      "state": "pass",
+      "duration": "2.009s"
+    },
+    "tkt_a7debbe0": {
+      "state": "pass",
+      "duration": "2.01s"
+    },
+    "tkt_a8a0d2996a": {
+      "state": "pass",
+      "duration": "2.006s"
+    },
+    "tkt_b1d3a2e531": {
+      "state": "pass",
+      "duration": "2.017s"
+    },
+    "tkt_b351d95f9": {
+      "state": "pass",
+      "duration": "2.024s"
+    },
+    "tkt_b72787b1": {
+      "state": "pass",
+      "duration": "2.019s"
+    },
+    "tkt_b75a9ca6b0": {
+      "state": "pass",
+      "duration": "2.022s"
+    },
+    "tkt_ba7cbfaedc": {
+      "state": "pass",
+      "duration": "2.023s"
+    },
+    "tkt_bd484a090c": {
+      "state": "fail",
+      "duration": "2.022s",
+      "error": "--- FAIL: Test_tkt_bd484a090c (0.00s)\n    tkt-bd484a090c_test.go:80: expected error containing \"local time unavailable\", got: \u003cnil\u003e\n          sql:  SELECT datetime('now', 'localtime') \n    tkt-bd484a090c_test.go:86: expected error containing \"local time unavailable\", got: \u003cnil\u003e\n          sql:  SELECT datetime('2000-01-01', 'utc') \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_bd484a090c\t1.752s\nFAIL"
+    },
+    "tkt_bdc6bbbb38": {
+      "state": "skipped"
+    },
+    "tkt_c48d99d690": {
+      "state": "pass",
+      "duration": "2.028s"
+    },
+    "tkt_c694113d5": {
+      "state": "fail",
+      "duration": "2.031s",
+      "error": "--- FAIL: Test_tkt_c694113d5 (0.00s)\n    tkt-c694113d5_test.go:99: result mismatch\n          got:  [a= a= a= a=]\n          want: [a=1 a=2 CREATE INDEX a=3 a=4]\n          body: do_test tkt-c694113d5.100\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_c694113d5\t1.746s\nFAIL"
+    },
+    "tkt_cbd054fa6b": {
+      "state": "pass",
+      "duration": "2.023s"
+    },
+    "tkt_d11f09d36e": {
+      "state": "fail",
+      "duration": "1m2.016s",
+      "error": "thub.com/pijalu/frigolite.(*DB).Exec(0x8112b522d0, {0x10309849c, 0x3d})\n\t/Users/muaddib/dev/frigolite/frigolite.go:556 +0x240\ngithub.com/pijalu/frigolite/testgen/tkt_d11f09d36e.Test_tkt_d11f09d36e(0x8112ba0248)\n\t/Users/muaddib/dev/frigolite/testgen/tkt_d11f09d36e/tkt-d11f09d36e_test.go:96 +0x3e0\ntesting.tRunner(0x8112ba0248, 0x1033b5ac0)\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2036 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2101 +0x3a8\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_d11f09d36e\t61.754s\nFAIL"
+    },
+    "tkt_d635236375": {
+      "state": "pass",
+      "duration": "2.011s"
+    },
+    "tkt_d82e3f3721": {
+      "state": "pass",
+      "duration": "2.008s"
+    },
+    "tkt_f3e5abed55": {
+      "state": "skipped"
+    },
+    "tkt_f67b41381a": {
+      "state": "skipped"
+    },
+    "tkt_f777251dc7a": {
+      "state": "fail",
+      "duration": "2.054s",
+      "error": "--- FAIL: Test_tkt_f777251dc7a (0.01s)\n    tkt-f777251dc7a_test.go:71: expected error containing \"abort due to ROLLBACK\", got: \u003cnil\u003e\n          sql: \n            BEGIN IMMEDIATE;\n            CREATE TABLE xyzzy(abc);\n            SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_f777251dc7a\t1.783s\nFAIL"
+    },
+    "tkt_f7b4edec": {
+      "state": "pass",
+      "duration": "2.027s"
+    },
+    "tkt_f973c7ac31": {
+      "state": "pass",
+      "duration": "2.005s"
+    },
+    "tkt_fa7bf5ec": {
+      "state": "pass",
+      "duration": "2.001s"
+    },
+    "tkt_fc62af4523": {
+      "state": "pass",
+      "duration": "2.003s"
+    },
+    "tkt_fc7bd6358f": {
+      "state": "pass",
+      "duration": "1.76s"
+    },
+    "tokenize": {
+      "state": "fail",
+      "duration": "1.751s",
+      "error": "taining \"unrecognized token: \\\"1.0d\\\"\", got: frigolite: parse error: near \"-\": syntax error\n          sql: SELECT 1.0d-10\n    tokenize_test.go:124: expected error containing \"unrecognized token: \\\"1.0e\\\"\", got: \u003cnil\u003e\n          sql: SELECT 1.0e,5\n    tokenize_test.go:130: expected error containing \"unrecognized token: \\\"1.0E\\\"\", got: frigolite: parse error: near \"10\": syntax error\n          sql: SELECT 1.0E.10\n    tokenize_test.go:136: expected error containing \"near \\\"*\\\": syntax error\", got: \u003cnil\u003e\n          sql: SELECT 1, 2 /*\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tokenize\t1.467s\nFAIL"
+    },
+    "tpch01": {
+      "state": "fail",
+      "duration": "1.71s",
+      "error": "key\n                                       and r_name = 'MIDDLE EAST'\n                                       and s_nationkey = n2.n_nationkey\n                                       and o_orderdate between  '1995-01-01' and '1996-12-31'\n                                       and p_type = 'LARGE PLATED STEEL'\n                       ) as all_nations\n               group by\n                       o_year\n               order by\n                       o_year;]\n          want: [/.* supplier .* n2 .*/]\n          body: do_test tpch01-1.1c\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tpch01\t1.436s\nFAIL"
+    },
+    "trace": {
+      "state": "fail",
+      "duration": "1.738s",
+      "error": "]\n          want: [SELECT '$::t6int', [$::t6int], 6, 6, \"?1\", 6 FROM t6]\n          body: do_test trace-6.6\n    trace_test.go:440: result mismatch\n          got:  [{}]\n          want: [SELECT '$::t6str', [$::t6str], 'test-six y''all', 'test-six y''all', \"?1\", 'test-six y''all' FROM t6]\n          body: do_test trace-6.101\n    trace_test.go:462: result mismatch\n          got:  [{}]\n          want: [SELECT '$::t6str', [$::t6str], 'test-six y''all', 'test-six y''all', \"?1\", 'test-six y''all' FROM t6]\n          body: do_test trace-6.201\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trace\t1.463s\nFAIL"
+    },
+    "trace2": {
+      "state": "pass",
+      "duration": "1.745s"
+    },
+    "trace3": {
+      "state": "fail",
+      "duration": "1.753s",
+      "error": " do_test trace3-6.1\n    trace3_test.go:321: result mismatch\n          got:  [{}]\n          want: [/^\\\\{-?\\d+ \\\\{SELECT a, b FROM t1 ORDER BY a;\\\\}\\\\} -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ -?d+ \\\\{-?\\d+ -?\\d+\\\\}$/]\n          body: do_test trace3-6.2\n    trace3_test.go:399: result mismatch\n          got:  [{}]\n          want: [/^-?\\d+$/]\n          body: do_test trace3-11.1\n    trace3_test.go:415: result mismatch\n          got:  [{}]\n          want: [/^-?\\d+$/]\n          body: do_test trace3-11.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trace3\t1.466s\nFAIL"
+    },
+    "trans": {
+      "state": "fail",
+      "duration": "6.088s",
+      "error": "--- FAIL: Test_trans (4.33s)\n    trans_test.go:447: expected error containing \"cannot start a transaction within a transaction\", got: \u003cnil\u003e\n          sql: \n            BEGIN TRANSACTION;\n            SELECT a FROM one ORDER BY a;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trans\t5.799s\nFAIL"
+    },
+    "trans2": {
+      "state": "pass",
+      "duration": "48.95s"
+    },
+    "trans3": {
+      "state": "pass",
+      "duration": "1.763s"
+    },
+    "transitive1": {
+      "state": "pass",
+      "duration": "1.785s"
+    },
+    "trigger1": {
+      "state": "fail",
+      "duration": "1.78s",
+      "error": ": \n            create view v1 as select * from t1;\n            create trigger v1t before update on v1 for each row begin\n              delete from t1 WHERE a=old.a+2;\n            end;\n          \n    trigger1_test.go:194: expected error containing \"cannot create AFTER trigger on view: v1\", got: \u003cnil\u003e\n          sql: \n            drop view v1;\n            create view v1 as select * from t1;\n            create trigger v1t AFTER update on v1 for each row begin\n              delete from t1 WHERE a=old.a+2;\n            end;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger1\t1.494s\nFAIL"
+    },
+    "trigger2": {
+      "state": "fail",
+      "duration": "1.85s",
+      "error": ":513: expected error containing \"UNIQUE constraint failed: tbl.a\", got: \u003cnil\u003e\n          sql: \n              UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n            \n    trigger2_test.go:525: expected error containing \"UNIQUE constraint failed: tbl.a\", got: \u003cnil\u003e\n          sql: \n              UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n            \n    trigger2_test.go:549: expected error containing \"UNIQUE constraint failed: tbl.a\", got: \u003cnil\u003e\n          sql: \n              UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger2\t1.576s\nFAIL"
+    },
+    "trigger3": {
+      "state": "pass",
+      "duration": "1.776s"
+    },
+    "trigger4": {
+      "state": "fail",
+      "duration": "1.326s",
+      "error": "--- FAIL: Test_trigger4 (0.06s)\n    trigger4_test.go:129: expected error containing \"no such table: main.test2\", got: no such table: test2\n          sql: \n            update test set a=222 where id=1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger4\t1.048s\nFAIL"
+    },
+    "trigger5": {
+      "state": "pass",
+      "duration": "1.251s"
+    },
+    "trigger6": {
+      "state": "pass",
+      "duration": "1.365s"
+    },
+    "trigger7": {
+      "state": "fail",
+      "duration": "1.301s",
+      "error": "--- FAIL: Test_trigger7 (0.00s)\n    trigger7_test.go:74: expected error containing \"unknown database not_a_db\", got: \u003cnil\u003e\n          sql: \n            CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n              SELECT 'no nothing';\n            END\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger7\t1.010s\nFAIL"
+    },
+    "trigger8": {
+      "state": "pass",
+      "duration": "1.378s"
+    },
+    "trigger9": {
+      "state": "pass",
+      "duration": "1.324s"
+    },
+    "triggerA": {
+      "state": "pass",
+      "duration": "1.381s"
+    },
+    "triggerB": {
+      "state": "fail",
+      "duration": "2.043s",
+      "error": "ed error containing \"no such column: wen.x\", got: UNIQUE constraint failed: x.x\n          sql: \n            CREATE TRIGGER ty AFTER INSERT ON x BEGIN\n               SELECT wen.x; -- Unrecognized name\n            END;\n            INSERT INTO x VALUES(1,2);\n          \n    triggerB_test.go:85: expected error containing \"no such column: dlo.x\", got: \u003cnil\u003e\n          sql: \n            CREATE TRIGGER tz AFTER UPDATE ON x BEGIN\n               SELECT dlo.x; -- Unrecognized name\n            END;\n            UPDATE x SET y=y+1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/triggerB\t1.745s\nFAIL"
+    },
+    "triggerC": {
+      "state": "skipped"
+    },
+    "triggerD": {
+      "state": "pass",
+      "duration": "1.271s"
+    },
+    "triggerE": {
+      "state": "pass",
+      "duration": "1.264s"
+    },
+    "triggerF": {
+      "state": "pass",
+      "duration": "1.284s"
+    },
+    "triggerG": {
+      "state": "pass",
+      "duration": "1.273s"
+    },
+    "triggerupfrom": {
+      "state": "fail",
+      "duration": "1.035s",
+      "error": "--- FAIL: Test_triggerupfrom (0.01s)\n    triggerupfrom_test.go:160: result mismatch\n          got:  [2 {}]\n          want: [2 TWO]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/triggerupfrom\t0.738s\nFAIL"
+    },
+    "trustschema1": {
+      "state": "pass",
+      "duration": "1.033s"
+    },
+    "types": {
+      "state": "pass",
+      "duration": "1.142s"
+    },
+    "types2": {
+      "state": "pass",
+      "duration": "1.527s"
+    },
+    "types3": {
+      "state": "pass",
+      "duration": "1.265s"
+    },
+    "unhex": {
+      "state": "pass",
+      "duration": "1.525s"
+    },
+    "unionall": {
+      "state": "pass",
+      "duration": "1.547s"
+    },
+    "unionall2": {
+      "state": "pass",
+      "duration": "1.53s"
+    },
+    "unionallfault": {
+      "state": "pass",
+      "duration": "1.506s"
+    },
+    "unionvtab": {
+      "state": "skipped"
+    },
+    "unionvtabfault": {
+      "state": "skipped"
+    },
+    "unique": {
+      "state": "pass",
+      "duration": "1.537s"
+    },
+    "unique2": {
+      "state": "pass",
+      "duration": "1.54s"
+    },
+    "unixexcl": {
+      "state": "pass",
+      "duration": "1.541s"
+    },
+    "unordered": {
+      "state": "pass",
+      "duration": "1.51s"
+    },
+    "update": {
+      "state": "fail",
+      "duration": "1.908s",
+      "error": "--- FAIL: Test_update (0.38s)\n    update_test.go:1023: expected error containing \"no such column: nosuchcol\", got: \u003cnil\u003e\n          sql: \n            UPDATE t3 SET a=1;\n          \n    update_test.go:1035: expected error containing \"no such column: nosuchcol\", got: \u003cnil\u003e\n          sql: \n            UPDATE t4 SET a=1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/update\t1.607s\nFAIL"
+    },
+    "update2": {
+      "state": "fail",
+      "duration": "1.537s",
+      "error": "--- FAIL: Test_update2 (0.01s)\n    update2_test.go:310: result mismatch\n          got:  [{}]\n          want: [1]\n          body: do_test 5.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/update2\t1.258s\nFAIL"
+    },
+    "upfrom1": {
+      "state": "pass",
+      "duration": "1.534s"
+    },
+    "upfrom2": {
+      "state": "pass",
+      "duration": "1.531s"
+    },
+    "upfrom3": {
+      "state": "pass",
+      "duration": "1.533s"
+    },
+    "upfrom4": {
+      "state": "pass",
+      "duration": "1.537s"
+    },
+    "upfromfault": {
+      "state": "pass",
+      "duration": "1.278s"
+    },
+    "upsert1": {
+      "state": "pass",
+      "duration": "1.422s"
+    },
+    "upsert2": {
+      "state": "pass",
+      "duration": "1.533s"
+    },
+    "upsert3": {
+      "state": "pass",
+      "duration": "1.53s"
+    },
+    "upsert4": {
+      "state": "pass",
+      "duration": "1.547s"
+    },
+    "upsert5": {
+      "state": "pass",
+      "duration": "1.561s"
+    },
+    "upsertfault": {
+      "state": "pass",
+      "duration": "1.532s"
+    },
+    "uri": {
+      "state": "skipped"
+    },
+    "uri2": {
+      "state": "skipped"
+    },
+    "utf16align": {
+      "state": "skipped"
+    },
+    "vacuum": {
+      "state": "skipped"
+    },
+    "vacuum2": {
+      "state": "skipped"
+    },
+    "vacuum3": {
+      "state": "skipped"
+    },
+    "vacuum4": {
+      "state": "skipped"
+    },
+    "vacuum5": {
+      "state": "skipped"
+    },
+    "vacuum6": {
+      "state": "skipped"
+    },
+    "vacuum_into": {
+      "state": "skipped"
+    },
+    "vacuummem": {
+      "state": "fail",
+      "duration": "6.449s",
+      "error": "exec/src/testing/testing.go:1977 +0x318\npanic({0x100ddda60?, 0x100e66050?})\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/runtime/panic.go:860 +0x12c\ngithub.com/pijalu/frigolite/testgen/vacuummem.Test_vacuummem(0x22df1ea96248)\n\t/Users/muaddib/dev/frigolite/testgen/vacuummem/vacuummem_test.go:81 +0x158\ntesting.tRunner(0x22df1ea96248, 0x100e29ac0)\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2036 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.26.7/libexec/src/testing/testing.go:2101 +0x3a8\nFAIL\tgithub.com/pijalu/frigolite/testgen/vacuummem\t6.134s\nFAIL"
+    },
+    "values": {
+      "state": "pass",
+      "duration": "1.536s"
+    },
+    "valuesfault": {
+      "state": "pass",
+      "duration": "1.535s"
+    },
+    "varint": {
+      "state": "pass",
+      "duration": "1.516s"
+    },
+    "veryquick": {
+      "state": "pass",
+      "duration": "1.493s"
+    },
+    "view": {
+      "state": "fail",
+      "duration": "1.543s",
+      "error": "--- FAIL: Test_view (0.02s)\n    view_test.go:356: expected error containing \"views may not be indexed\", got: no such table: v1\n          sql: \n            CREATE INDEX i1v1 ON v1(xyz);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/view\t1.237s\nFAIL"
+    },
+    "view2": {
+      "state": "pass",
+      "duration": "1.264s"
+    },
+    "view3": {
+      "state": "fail",
+      "duration": "28.335s",
+      "error": " VIEW v1024 AS SELECT * FROM v512 UNION SELECT * FROM v512;\n            CREATE VIEW v2048 AS SELECT * FROM v1024 UNION SELECT * FROM v1024;\n            CREATE VIEW v4096 AS SELECT * FROM v2048 UNION SELECT * FROM v2048;\n            CREATE VIEW v8192 AS SELECT * FROM v4096 UNION SELECT * FROM v4096;\n            CREATE VIEW v16384 AS SELECT * FROM v8192 UNION SELECT * FROM v8192;\n            CREATE VIEW v32768 AS SELECT * FROM v16384 UNION SELECT * FROM v16384;\n            SELECT * FROM v32768 UNION SELECT * FROM v32768;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/view3\t28.031s\nFAIL"
+    },
+    "vtab1": {
+      "state": "fail",
+      "duration": "112ms",
+      "error": "# github.com/pijalu/frigolite/testgen/vtab1 [github.com/pijalu/frigolite/testgen/vtab1.test]\ntestgen/vtab1/vtab1_test.go:1113:24: undefined: method_t2\ntestgen/vtab1/vtab1_test.go:1128:24: undefined: method_t2\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab1 [build failed]\nFAIL"
+    },
+    "vtab2": {
+      "state": "pass",
+      "duration": "1.178s"
+    },
+    "vtab3": {
+      "state": "fail",
+      "duration": "1.296s",
+      "error": "--- FAIL: Test_vtab3 (0.00s)\n    vtab3_test.go:120: result mismatch\n          got:  [{}]\n          want: [SQLITE_INSERT sqlite_master main SQLITE_CREATE_VTABLE pachyderm echo main]\n          body: do_test vtab3-1.2\n    vtab3_test.go:134: result mismatch\n          got:  [{}]\n          want: [SQLITE_DELETE sqlite_master main SQLITE_DROP_VTABLE pachyderm echo main SQLITE_DELETE pachyderm main SQLITE_DELETE sqlite_master main]\n          body: do_test vtab3-1.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab3\t0.994s\nFAIL"
+    },
+    "vtab4": {
+      "state": "pass",
+      "duration": "1.282s"
+    },
+    "vtab5": {
+      "state": "fail",
+      "duration": "1.301s",
+      "error": "BEGIN\n                SELECT 1, 2, 3;\n              END;\n            \n    vtab5_test.go:143: expected error containing \"cannot create triggers on virtual tables\", got: \u003cnil\u003e\n          sql: \n              CREATE TRIGGER trig BEFORE INSERT ON echo_strings BEGIN\n                SELECT 1, 2, 3;\n              END;\n            \n    vtab5_test.go:149: expected error containing \"virtual tables may not be indexed\", got: database disk image is malformed\n          sql: \n            CREATE INDEX echo_strings_i ON echo_strings(str);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab5\t1.015s\nFAIL"
+    },
+    "vtab6": {
+      "state": "fail",
+      "duration": "1.044s",
+      "error": "INNER OUTER JOIN t2;\n          \n    vtab6_test.go:334: expected error containing \"unknown join type: LEFT BOGUS\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 LEFT BOGUS JOIN t2;\n          \n    vtab6_test.go:543: expected error containing \"ab.xBestIndex malfunction\", got: \u003cnil\u003e\n          sql: \n            SELECT a, b, c FROM ab NATURAL JOIN bc;\n          \n    vtab6_test.go:549: expected error containing \"bc.xBestIndex malfunction\", got: \u003cnil\u003e\n          sql: \n            SELECT a, b, c FROM bc NATURAL JOIN ab;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab6\t0.740s\nFAIL"
+    },
+    "vtab7": {
+      "state": "skipped"
+    },
+    "vtab8": {
+      "state": "pass",
+      "duration": "1.033s"
+    },
+    "vtab9": {
+      "state": "pass",
+      "duration": "1.034s"
+    },
+    "vtabA": {
+      "state": "pass",
+      "duration": "1.037s"
+    },
+    "vtabB": {
+      "state": "pass",
+      "duration": "1.021s"
+    },
+    "vtabC": {
+      "state": "pass",
+      "duration": "1.235s"
+    },
+    "vtabD": {
+      "state": "pass",
+      "duration": "53.211s"
+    },
+    "vtabE": {
+      "state": "skipped"
+    },
+    "vtabF": {
+      "state": "pass",
+      "duration": "1.031s"
+    },
+    "vtabH": {
+      "state": "skipped"
+    },
+    "vtabI": {
+      "state": "pass",
+      "duration": "1.037s"
+    },
+    "vtabJ": {
+      "state": "skipped"
+    },
+    "vtabK": {
+      "state": "skipped"
+    },
+    "vtabL": {
+      "state": "skipped"
+    },
+    "vtab_alter": {
+      "state": "pass",
+      "duration": "822ms"
+    },
+    "vtab_err": {
+      "state": "pass",
+      "duration": "766ms"
+    },
+    "vtab_shared": {
+      "state": "fail",
+      "duration": "126ms",
+      "error": "# github.com/pijalu/frigolite/testgen/vtab_shared [github.com/pijalu/frigolite/testgen/vtab_shared.test]\ntestgen/vtab_shared/vtab_shared_test.go:63:6: dbClose redeclared in this block\n\ttestgen/vtab_shared/vtab_shared_test.go:52:6: other declaration of dbClose\ntestgen/vtab_shared/vtab_shared_test.go:136:20: cannot use frigolite.Open(\"test.db\") (value of type *frigolite.DB) as string value in assignment\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab_shared [build failed]\nFAIL"
+    },
+    "vtabdistinct": {
+      "state": "skipped"
+    },
+    "vtabdrop": {
+      "state": "skipped"
+    },
+    "vtabrhs1": {
+      "state": "skipped"
+    },
+    "wal": {
+      "state": "skipped"
+    },
+    "wal2": {
+      "state": "skipped"
+    },
+    "wal3": {
+      "state": "skipped"
+    },
+    "wal4": {
+      "state": "skipped"
+    },
+    "wal5": {
+      "state": "skipped"
+    },
+    "wal6": {
+      "state": "skipped"
+    },
+    "wal64k": {
+      "state": "skipped"
+    },
+    "wal7": {
+      "state": "skipped"
+    },
+    "wal8": {
+      "state": "skipped"
+    },
+    "wal9": {
+      "state": "skipped"
+    },
+    "walbak": {
+      "state": "skipped"
+    },
+    "walbig": {
+      "state": "pass",
+      "duration": "867ms"
+    },
+    "walblock": {
+      "state": "pass",
+      "duration": "1.015s"
+    },
+    "walckptnoop": {
+      "state": "skipped"
+    },
+    "walcksum": {
+      "state": "skipped"
+    },
+    "walcrash": {
+      "state": "skipped"
+    },
+    "walcrash2": {
+      "state": "skipped"
+    },
+    "walcrash3": {
+      "state": "skipped"
+    },
+    "walcrash4": {
+      "state": "skipped"
+    },
+    "walfault": {
+      "state": "skipped"
+    },
+    "walfault2": {
+      "state": "skipped"
+    },
+    "walhook": {
+      "state": "skipped"
+    },
+    "walmode": {
+      "state": "skipped"
+    },
+    "walnoshm": {
+      "state": "skipped"
+    },
+    "waloverwrite": {
+      "state": "pass",
+      "duration": "1.062s"
+    },
+    "walpersist": {
+      "state": "pass",
+      "duration": "1.09s"
+    },
+    "walprotocol": {
+      "state": "skipped"
+    },
+    "walprotocol2": {
+      "state": "skipped"
+    },
+    "walrestart": {
+      "state": "skipped"
+    },
+    "walro": {
+      "state": "pass",
+      "duration": "1.022s"
+    },
+    "walro2": {
+      "state": "pass",
+      "duration": "1.025s"
+    },
+    "walrofault": {
+      "state": "pass",
+      "duration": "992ms"
+    },
+    "walseh1": {
+      "state": "skipped"
+    },
+    "walsetlk": {
+      "state": "skipped"
+    },
+    "walsetlk2": {
+      "state": "skipped"
+    },
+    "walsetlk3": {
+      "state": "skipped"
+    },
+    "walsetlk_recover": {
+      "state": "fail",
+      "duration": "963ms",
+      "error": "--- FAIL: Test_walsetlk_recover (0.00s)\n    walsetlk_recover_test.go:138: result mismatch\n          got:  [0]\n          want: [database is locked]\n          body: do_test 1.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walsetlk_recover\t0.652s\nFAIL"
+    },
+    "walsetlk_snapshot": {
+      "state": "fail",
+      "duration": "1.037s",
+      "error": "--- FAIL: Test_walsetlk_snapshot (0.00s)\n    walsetlk_snapshot_test.go:130: result mismatch\n          got:  [0]\n          want: [SQLITE_BUSY]\n          body: do_test 1.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walsetlk_snapshot\t0.730s\nFAIL"
+    },
+    "walshared": {
+      "state": "fail",
+      "duration": "1.041s",
+      "error": "--- FAIL: Test_walshared (0.00s)\n    walshared_test.go:83: expected error containing \"database table is locked\", got: \u003cnil\u003e\n          sql:  PRAGMA wal_checkpoint \n    walshared_test.go:89: expected error containing \"database table is locked\", got: \u003cnil\u003e\n          sql:  PRAGMA wal_checkpoint \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walshared\t0.743s\nFAIL"
+    },
+    "walslow": {
+      "state": "skipped"
+    },
+    "walthread": {
+      "state": "pass",
+      "duration": "1.035s"
+    },
+    "walvfs": {
+      "state": "skipped"
+    },
+    "where": {
+      "state": "pass",
+      "duration": "7.699s"
+    },
+    "where2": {
+      "state": "pass",
+      "duration": "1.52s"
+    },
+    "where3": {
+      "state": "pass",
+      "duration": "1.047s"
+    },
+    "where4": {
+      "state": "pass",
+      "duration": "1.07s"
+    },
+    "where5": {
+      "state": "pass",
+      "duration": "635ms"
+    },
+    "where6": {
+      "state": "pass",
+      "duration": "678ms"
+    },
+    "where7": {
+      "state": "pass",
+      "duration": "908ms"
+    },
+    "where8": {
+      "state": "skipped"
+    },
+    "where9": {
+      "state": "skipped"
+    },
+    "whereA": {
+      "state": "pass",
+      "duration": "814ms"
+    },
+    "whereB": {
+      "state": "pass",
+      "duration": "818ms"
+    },
+    "whereC": {
+      "state": "pass",
+      "duration": "780ms"
+    },
+    "whereD": {
+      "state": "pass",
+      "duration": "788ms"
+    },
+    "whereE": {
+      "state": "pass",
+      "duration": "929ms"
+    },
+    "whereF": {
+      "state": "pass",
+      "duration": "906ms"
+    },
+    "whereG": {
+      "state": "fail",
+      "duration": "812ms",
+      "error": "ack\n             WHERE likelihood(cname LIKE '%bach%', 1.01)\n               AND composer.cid=track.cid\n               AND album.aid=track.aid;\n          \n    whereG_test.go:159: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT DISTINCT aname\n              FROM album, composer, track\n             WHERE likelihood(cname LIKE '%bach%', track.cid)\n               AND composer.cid=track.cid\n               AND album.aid=track.aid;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/whereG\t0.471s\nFAIL"
+    },
+    "whereH": {
+      "state": "pass",
+      "duration": "639ms"
+    },
+    "whereI": {
+      "state": "pass",
+      "duration": "664ms"
+    },
+    "whereJ": {
+      "state": "pass",
+      "duration": "742ms"
+    },
+    "whereK": {
+      "state": "pass",
+      "duration": "772ms"
+    },
+    "whereL": {
+      "state": "pass",
+      "duration": "779ms"
+    },
+    "whereM": {
+      "state": "pass",
+      "duration": "774ms"
+    },
+    "whereN": {
+      "state": "pass",
+      "duration": "775ms"
+    },
+    "wherefault": {
+      "state": "pass",
+      "duration": "767ms"
+    },
+    "wherelfault": {
+      "state": "pass",
+      "duration": "772ms"
+    },
+    "wherelimit": {
+      "state": "fail",
+      "duration": "777ms",
+      "error": " wherelimit_test.go:82: expected error containing \"ORDER BY without LIMIT on DELETE\", got: frigolite: parse error: near \"ORDER\": syntax error\n          sql: DELETE FROM t1 WHERE x=1 ORDER BY x\n    wherelimit_test.go:88: expected error containing \"ORDER BY without LIMIT on UPDATE\", got: frigolite: parse error: near \"ORDER\": syntax error\n          sql: UPDATE t1 SET y=1 WHERE x=1 ORDER BY x\n    wherelimit_test.go:106: expected error containing \"no such column: t1.x\", got: \u003cnil\u003e\n          sql: UPDATE t1 AS a SET y=1 WHERE t1.x=1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/wherelimit\t0.449s\nFAIL"
+    },
+    "wherelimit2": {
+      "state": "fail",
+      "duration": "776ms",
+      "error": "--- FAIL: Test_wherelimit2 (0.01s)\n    wherelimit2_test.go:288: result mismatch\n          got:  [{}]\n          want: [a a b b c c]\n          body: do_test 5.4\n    wherelimit2_test.go:302: result mismatch\n          got:  [{}]\n          want: [ax a bx b cx c dx d ex a]\n          body: do_test 5.5\n    wherelimit2_test.go:319: exec error: frigolite: parse error: near \"ORDER\": syntax error\n          sql: \n          WITH t2 AS MATERIALIZED (VALUES(5))\n          DELETE FROM t2 ORDER BY rank()OVER() LIMIT 2;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/wherelimit2\t0.387s\nFAIL"
+    },
+    "wherelimit3": {
+      "state": "pass",
+      "duration": "791ms"
+    },
+    "widetab1": {
+      "state": "skipped"
+    },
+    "win32heap": {
+      "state": "skipped"
+    },
+    "win32lock": {
+      "state": "skipped"
+    },
+    "win32longpath": {
+      "state": "skipped"
+    },
+    "win32nolock": {
+      "state": "skipped"
+    },
+    "window1": {
+      "state": "pass",
+      "duration": "1.217s"
+    },
+    "window2": {
+      "state": "pass",
+      "duration": "804ms"
+    },
+    "window3": {
+      "state": "pass",
+      "duration": "4.489s"
+    },
+    "window4": {
+      "state": "pass",
+      "duration": "800ms"
+    },
+    "window5": {
+      "state": "pass",
+      "duration": "644ms"
+    },
+    "window6": {
+      "state": "pass",
+      "duration": "751ms"
+    },
+    "window7": {
+      "state": "pass",
+      "duration": "911ms"
+    },
+    "window8": {
+      "state": "pass",
+      "duration": "1.256s"
+    },
+    "window9": {
+      "state": "pass",
+      "duration": "785ms"
+    },
+    "windowA": {
+      "state": "fail",
+      "duration": "781ms",
+      "error": "--- FAIL: Test_windowA (0.00s)\n    windowA_test.go:269: result mismatch\n          got:  [6 N NULL NN 7 N NULL NN 5 E 10.26 {} 4 D 10.25 {} 3 C 8.0 ED 2 B 5.55 C 1 A 5.4 {}]\n          want: [6 N NULL NN 7 N NULL NN 5 E 10.26  4 D 10.25  3 C 8.0 ED 2 B 5.55 C 1 A 5.4 ]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowA\t0.463s\nFAIL"
+    },
+    "windowB": {
+      "state": "fail",
+      "duration": "793ms",
+      "error": "\n          BY fake_column))\n          SELECT * FROM y;\n    windowB_test.go:370: result mismatch\n          got:  [-22- -333-333- -4444-4444- -4444-]\n          want: [-22- -22-333- -333-4444- -4444-]\n    windowB_test.go:387: query error: json_group_array() may not be used as a window function\n          sql: \n          SELECT \n            json_group_array( v ) OVER w,\n            json_group_array( v ) OVER w\n          FROM t1\n          window w as ( \n            range between unbounded preceding and unbounded following \n          )\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowB\t0.474s\nFAIL"
+    },
+    "windowC": {
+      "state": "fail",
+      "duration": "963ms",
+      "error": "--- FAIL: Test_windowC (0.01s)\n    windowC_test.go:147: result mismatch\n          got:  [{} 1 U\ufffdА\u0013EQx\ufffd\u0011\ufffdJ 1]\n          want: [{} 1 蕕郐䔓硑ᇍ䫎 1]\n    windowC_test.go:164: result mismatch\n          got:  [{} 1 U\ufffdА\u0013EQx\ufffd\u0011\ufffdJ 1]\n          want: [{} 1 喅킐ፅ典촑칊 1]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowC\t0.636s\nFAIL"
+    },
+    "windowD": {
+      "state": "pass",
+      "duration": "1.158s"
+    },
+    "windowE": {
+      "state": "fail",
+      "duration": "889ms",
+      "error": "4 0.0 487 0.0 488 0.0 489 0.0 490 0.0 491 0.0 494 0.0 495 0.0 496 0.0 497 0.0 498 0.0 501 0.0 502 0.0 503 0.0 504 0.0 505 0.0 508 0.0 509 0.0 510 0.0 511 0.0 512 0.0 515 0.0 516 0.0 517 0.0 518 0.0 519 0.0 522 0.0 523 0.0 524 0.0 525 0.0 526 0.0 529 0.0 530 0.0 531 0.0 532 0.0 533 0.0 536 0.0 537 1.0 538 1.0 539 1.0 540 1.0 543 1.0 544 1.0]\n    windowE_test.go:220: query error: integer overflow\n          sql: \n          SELECT id,\n            sum(x) OVER (ORDER BY id ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) \n          FROM t t1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowE\t0.571s\nFAIL"
+    },
+    "windowerr": {
+      "state": "pass",
+      "duration": "767ms"
+    },
+    "windowfault": {
+      "state": "fail",
+      "duration": "811ms",
+      "error": "--- FAIL: Test_windowfault (0.05s)\n    windowfault_test.go:188: result mismatch\n          got:  [1b22 1c22c333 22dddd333dddd4444 333e4444e55555 4444f55555f666666 55555gggggggggg666666gggggggggg7777777 666666gggggggggg7777777]\n          want: [*}{\n          1b22\n          1b22c333\n          22c333dddd4444 \n          333dddd4444e55555 \n          4444e55555f666666\n          55555f666666gggggggggg7777777 \n          666666gggggggggg7777777]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowfault\t0.503s\nFAIL"
+    },
+    "windowpushd": {
+      "state": "pass",
+      "duration": "776ms"
+    },
+    "with1": {
+      "state": "pass",
+      "duration": "5.115s"
+    },
+    "with2": {
+      "state": "pass",
+      "duration": "750ms"
+    },
+    "with3": {
+      "state": "pass",
+      "duration": "987ms"
+    },
+    "with4": {
+      "state": "pass",
+      "duration": "1.026s"
+    },
+    "with5": {
+      "state": "pass",
+      "duration": "766ms"
+    },
+    "with6": {
+      "state": "pass",
+      "duration": "752ms"
+    },
+    "withM": {
+      "state": "pass",
+      "duration": "767ms"
+    },
+    "without_rowid1": {
+      "state": "pass",
+      "duration": "779ms"
+    },
+    "without_rowid2": {
+      "state": "pass",
+      "duration": "775ms"
+    },
+    "without_rowid3": {
+      "state": "fail",
+      "duration": "897ms",
+      "error": "- FAIL: Test_without_rowid3 (0.12s)\n    without_rowid3_test.go:721: expected error containing \"UNIQUE constraint failed: node.nodeid\", got: no such table: node\n          sql: INSERT INTO node SELECT parent, 3 FROM leaf\n    without_rowid3_test.go:765: expected error containing \"CHECK constraint failed: e!=5\", got: \u003cnil\u003e\n          sql:  UPDATE ab SET a = 5 \n    without_rowid3_test.go:2758: expected error containing \"NOT NULL constraint failed: t1.a\", got: FOREIGN KEY constraint failed\n          sql:  UPDATE t1 SET a = NULL \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/without_rowid3\t0.434s\nFAIL"
+    },
+    "without_rowid4": {
+      "state": "fail",
+      "duration": "863ms",
+      "error": "or containing \"UNIQUE constraint failed: tbl.a\", got: \u003cnil\u003e\n          sql: \n              UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n            \n    without_rowid4_test.go:521: expected error containing \"UNIQUE constraint failed: tbl.a\", got: \u003cnil\u003e\n          sql: \n              UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n            \n    without_rowid4_test.go:545: expected error containing \"UNIQUE constraint failed: tbl.a\", got: \u003cnil\u003e\n          sql: \n              UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/without_rowid4\t0.534s\nFAIL"
+    },
+    "without_rowid5": {
+      "state": "pass",
+      "duration": "779ms"
+    },
+    "without_rowid6": {
+      "state": "pass",
+      "duration": "788ms"
+    },
+    "without_rowid7": {
+      "state": "pass",
+      "duration": "666ms"
+    },
+    "writecrash": {
+      "state": "skipped"
+    },
+    "zeroblob": {
+      "state": "skipped"
+    },
+    "zeroblobfault": {
+      "state": "pass",
+      "duration": "811ms"
+    },
+    "zerodamage": {
+      "state": "skipped"
+    },
+    "zipfile": {
+      "state": "skipped"
+    },
+    "zipfile2": {
+      "state": "skipped"
+    },
+    "zipfilefault": {
+      "state": "pass",
+      "duration": "641ms"
+    }
+  }
+}

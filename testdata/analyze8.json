@@ -1,0 +1,4029 @@
+{
+  "file": "analyze8.test",
+  "name": "analyze8",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0,0,0,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,0.1,0.001953125,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,0.2,0.015625,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,0.3,0.052734375,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,0.4,0.125,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,0.5,0.244140625,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,0.6,0.421875,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,0.7,0.669921875,7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8,0.8,1,8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,0.9,1.423828125,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,1,1.953125,10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,1.1,2.599609375,11)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(12,1.2,3.375,12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,1.3,4.291015625,13)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14,1.4,5.359375,14)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,1.5,6.591796875,15)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(16,1.6,8,16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,1.7,9.595703125,17)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(18,1.8,11.390625,18)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,1.9,13.396484375,19)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(20,2,15.625,20)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,2.1,18.087890625,21)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(22,2.2,20.796875,22)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,2.3,23.763671875,23)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(24,2.4,27,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,2.5,30.517578125,25)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(26,2.6,34.328125,26)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,2.7,38.443359375,27)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(28,2.8,42.875,28)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,2.9,47.634765625,29)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30,3,52.734375,30)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,3.1,58.185546875,31)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(32,3.2,64,32)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,3.3,70.189453125,33)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(34,3.4,76.765625,34)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,3.5,83.740234375,35)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(36,3.6,91.125,36)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,3.7,98.931640625,37)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(38,3.8,107.171875,38)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,3.9,115.857421875,39)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(40,4,125,40)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,4.1,134.611328125,41)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(42,4.2,144.703125,42)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,4.3,155.287109375,43)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(44,4.4,166.375,44)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,4.5,177.978515625,45)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(46,4.6,190.109375,46)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,4.7,202.779296875,47)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(48,4.8,216,48)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,4.9,229.783203125,49)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(50,5,244.140625,50)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,5.1,259.083984375,51)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(52,5.2,274.625,52)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,5.3,290.775390625,53)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(54,5.4,307.546875,54)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,5.5,324.951171875,55)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(56,5.6,343,56)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,5.7,361.705078125,57)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(58,5.8,381.078125,58)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,5.9,401.130859375,59)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(60,6,421.875,60)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,6.1,443.322265625,61)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(62,6.2,465.484375,62)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,6.3,488.373046875,63)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(64,6.4,512,64)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,6.5,536.376953125,65)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(66,6.6,561.515625,66)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,6.7,587.427734375,67)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(68,6.8,614.125,68)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,6.9,641.619140625,69)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(70,7,669.921875,70)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,7.1,699.044921875,71)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(72,7.2,729,72)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,7.3,759.798828125,73)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(74,7.4,791.453125,74)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,7.5,823.974609375,75)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(76,7.6,857.375,76)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,7.7,891.666015625,77)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(78,7.8,926.859375,78)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,7.9,962.966796875,79)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(80,8,1000,80)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,8.1,1037.970703125,81)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(82,8.2,1076.890625,82)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,8.3,1116.771484375,83)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(84,8.4,1157.625,84)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,8.5,1199.462890625,85)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(86,8.6,1242.296875,86)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,8.7,1286.138671875,87)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(88,8.8,1331,88)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,8.9,1376.892578125,89)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(90,9,1423.828125,90)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,9.1,1471.818359375,91)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(92,9.2,1520.875,92)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,9.3,1571.009765625,93)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(94,9.4,1622.234375,94)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,9.5,1674.560546875,95)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(96,9.6,1728,96)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,9.7,1782.564453125,97)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(98,9.8,1838.265625,98)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,9.9,1895.115234375,99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,10,1953.125,100)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,10.1,2012.306640625,101)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(102,10.2,2072.671875,102)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,10.3,2134.232421875,103)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(104,10.4,2197,104)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,10.5,2260.986328125,105)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(106,10.6,2326.203125,106)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,10.7,2392.662109375,107)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(108,10.8,2460.375,108)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,10.9,2529.353515625,109)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(110,11,2599.609375,110)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,11.1,2671.154296875,111)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(112,11.2,2744,112)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,11.3,2818.158203125,113)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(114,11.4,2893.640625,114)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,11.5,2970.458984375,115)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(116,11.6,3048.625,116)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,11.7,3128.150390625,117)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(118,11.8,3209.046875,118)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,11.9,3291.326171875,119)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(120,12,3375,120)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,12.1,3460.080078125,121)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(122,12.2,3546.578125,122)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,12.3,3634.505859375,123)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(124,12.4,3723.875,124)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,12.5,3814.697265625,125)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(126,12.6,3906.984375,126)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,12.7,4000.748046875,127)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(128,12.8,4096,128)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,12.9,4192.751953125,129)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(130,13,4291.015625,130)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,13.1,4390.802734375,131)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(132,13.2,4492.125,132)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,13.3,4594.994140625,133)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(134,13.4,4699.421875,134)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,13.5,4805.419921875,135)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(136,13.6,4913,136)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,13.7,5022.173828125,137)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(138,13.8,5132.953125,138)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,13.9,5245.349609375,139)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(140,14,5359.375,140)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,14.1,5475.041015625,141)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(142,14.2,5592.359375,142)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,14.3,5711.341796875,143)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(144,14.4,5832,144)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,14.5,5954.345703125,145)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(146,14.6,6078.390625,146)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,14.7,6204.146484375,147)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(148,14.8,6331.625,148)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,14.9,6460.837890625,149)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(150,15,6591.796875,150)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,15.1,6724.513671875,151)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(152,15.2,6859,152)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,15.3,6995.267578125,153)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(154,15.4,7133.328125,154)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,15.5,7273.193359375,155)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(156,15.6,7414.875,156)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,15.7,7558.384765625,157)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(158,15.8,7703.734375,158)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,15.9,7850.935546875,159)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(160,16,8000,160)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,16.1,8150.939453125,161)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(162,16.2,8303.765625,162)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,16.3,8458.490234375,163)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(164,16.4,8615.125,164)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,16.5,8773.681640625,165)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(166,16.6,8934.171875,166)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,16.7,9096.607421875,167)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(168,16.8,9261,168)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,16.9,9427.361328125,169)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(170,17,9595.703125,170)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,17.1,9766.037109375,171)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(172,17.2,9938.375,172)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,17.3,10112.728515625,173)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(174,17.4,10289.109375,174)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,17.5,10467.529296875,175)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(176,17.6,10648,176)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,17.7,10830.533203125,177)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(178,17.8,11015.140625,178)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,17.9,11201.833984375,179)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(180,18,11390.625,180)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,18.1,11581.525390625,181)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(182,18.2,11774.546875,182)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,18.3,11969.701171875,183)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(184,18.4,12167,184)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,18.5,12366.455078125,185)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(186,18.6,12568.078125,186)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,18.7,12771.880859375,187)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(188,18.8,12977.875,188)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,18.9,13186.072265625,189)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(190,19,13396.484375,190)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,19.1,13609.123046875,191)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(192,19.2,13824,192)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,19.3,14041.126953125,193)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(194,19.4,14260.515625,194)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,19.5,14482.177734375,195)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(196,19.6,14706.125,196)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,19.7,14932.369140625,197)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(198,19.8,15160.921875,198)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,19.9,15391.794921875,199)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(200,20,15625,200)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,20.1,15860.548828125,201)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(202,20.2,16098.453125,202)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,20.3,16338.724609375,203)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(204,20.4,16581.375,204)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,20.5,16826.416015625,205)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(206,20.6,17073.859375,206)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,20.7,17323.716796875,207)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(208,20.8,17576,208)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,20.9,17830.720703125,209)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(210,21,18087.890625,210)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,21.1,18347.521484375,211)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(212,21.2,18609.625,212)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,21.3,18874.212890625,213)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(214,21.4,19141.296875,214)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,21.5,19410.888671875,215)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(216,21.6,19683,216)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,21.7,19957.642578125,217)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(218,21.8,20234.828125,218)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,21.9,20514.568359375,219)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(220,22,20796.875,220)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,22.1,21081.759765625,221)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(222,22.2,21369.234375,222)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,22.3,21659.310546875,223)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(224,22.4,21952,224)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,22.5,22247.314453125,225)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(226,22.6,22545.265625,226)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,22.7,22845.865234375,227)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(228,22.8,23149.125,228)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,22.9,23455.056640625,229)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(230,23,23763.671875,230)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,23.1,24074.982421875,231)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(232,23.2,24389,232)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,23.3,24705.736328125,233)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(234,23.4,25025.203125,234)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,23.5,25347.412109375,235)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(236,23.6,25672.375,236)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,23.7,26000.103515625,237)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(238,23.8,26330.609375,238)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,23.9,26663.904296875,239)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(240,24,27000,240)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,24.1,27338.908203125,241)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(242,24.2,27680.640625,242)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,24.3,28025.208984375,243)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(244,24.4,28372.625,244)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,24.5,28722.900390625,245)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(246,24.6,29076.046875,246)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,24.7,29432.076171875,247)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(248,24.8,29791,248)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,24.9,30152.830078125,249)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(250,25,30517.578125,250)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,25.1,30885.255859375,251)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(252,25.2,31255.875,252)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,25.3,31629.447265625,253)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(254,25.4,32005.984375,254)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,25.5,32385.498046875,255)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(256,25.6,32768,256)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,25.7,33153.501953125,257)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(258,25.8,33542.015625,258)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,25.9,33933.552734375,259)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(260,26,34328.125,260)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,26.1,34725.744140625,261)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(262,26.2,35126.421875,262)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,26.3,35530.169921875,263)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(264,26.4,35937,264)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,26.5,36346.923828125,265)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(266,26.6,36759.953125,266)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,26.7,37176.099609375,267)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(268,26.8,37595.375,268)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,26.9,38017.791015625,269)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(270,27,38443.359375,270)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,27.1,38872.091796875,271)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(272,27.2,39304,272)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,27.3,39739.095703125,273)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(274,27.4,40177.390625,274)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,27.5,40618.896484375,275)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(276,27.6,41063.625,276)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,27.7,41511.587890625,277)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(278,27.8,41962.796875,278)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,27.9,42417.263671875,279)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(280,28,42875,280)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,28.1,43336.017578125,281)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(282,28.2,43800.328125,282)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,28.3,44267.943359375,283)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(284,28.4,44738.875,284)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,28.5,45213.134765625,285)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(286,28.6,45690.734375,286)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,28.7,46171.685546875,287)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(288,28.8,46656,288)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,28.9,47143.689453125,289)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(290,29,47634.765625,290)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,29.1,48129.240234375,291)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(292,29.2,48627.125,292)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,29.3,49128.431640625,293)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(294,29.4,49633.171875,294)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,29.5,50141.357421875,295)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(296,29.6,50653,296)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,29.7,51168.111328125,297)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(298,29.8,51686.703125,298)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,29.9,52208.787109375,299)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,30,52734.375,300)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,30.1,53263.478515625,301)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(302,30.2,53796.109375,302)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,30.3,54332.279296875,303)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(304,30.4,54872,304)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,30.5,55415.283203125,305)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(306,30.6,55962.140625,306)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,30.7,56512.583984375,307)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(308,30.8,57066.625,308)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,30.9,57624.275390625,309)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(310,31,58185.546875,310)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,31.1,58750.451171875,311)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(312,31.2,59319,312)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,31.3,59891.205078125,313)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(314,31.4,60467.078125,314)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,31.5,61046.630859375,315)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(316,31.6,61629.875,316)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,31.7,62216.822265625,317)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(318,31.8,62807.484375,318)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,31.9,63401.873046875,319)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(320,32,64000,320)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,32.1,64601.876953125,321)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(322,32.2,65207.515625,322)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,32.3,65816.927734375,323)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(324,32.4,66430.125,324)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,32.5,67047.119140625,325)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(326,32.6,67667.921875,326)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,32.7,68292.544921875,327)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(328,32.8,68921,328)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,32.9,69553.298828125,329)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(330,33,70189.453125,330)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,33.1,70829.474609375,331)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(332,33.2,71473.375,332)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,33.3,72121.166015625,333)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(334,33.4,72772.859375,334)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,33.5,73428.466796875,335)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(336,33.6,74088,336)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,33.7,74751.470703125,337)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(338,33.8,75418.890625,338)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,33.9,76090.271484375,339)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(340,34,76765.625,340)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,34.1,77444.962890625,341)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(342,34.2,78128.296875,342)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,34.3,78815.638671875,343)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(344,34.4,79507,344)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,34.5,80202.392578125,345)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(346,34.6,80901.828125,346)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,34.7,81605.318359375,347)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(348,34.8,82312.875,348)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,34.9,83024.509765625,349)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(350,35,83740.234375,350)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,35.1,84460.060546875,351)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(352,35.2,85184,352)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,35.3,85912.064453125,353)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(354,35.4,86644.265625,354)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,35.5,87380.615234375,355)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(356,35.6,88121.125,356)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,35.7,88865.806640625,357)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(358,35.8,89614.671875,358)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,35.9,90367.732421875,359)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(360,36,91125,360)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,36.1,91886.486328125,361)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(362,36.2,92652.203125,362)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,36.3,93422.162109375,363)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(364,36.4,94196.375,364)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,36.5,94974.853515625,365)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(366,36.6,95757.609375,366)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,36.7,96544.654296875,367)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(368,36.8,97336,368)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,36.9,98131.658203125,369)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(370,37,98931.640625,370)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,37.1,99735.958984375,371)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(372,37.2,100544.625,372)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,37.3,101357.650390625,373)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(374,37.4,102175.046875,374)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,37.5,102996.826171875,375)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(376,37.6,103823,376)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,37.7,104653.580078125,377)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(378,37.8,105488.578125,378)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,37.9,106328.005859375,379)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(380,38,107171.875,380)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,38.1,108020.197265625,381)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(382,38.2,108872.984375,382)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,38.3,109730.248046875,383)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(384,38.4,110592,384)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,38.5,111458.251953125,385)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(386,38.6,112329.015625,386)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,38.7,113204.302734375,387)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(388,38.8,114084.125,388)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,38.9,114968.494140625,389)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(390,39,115857.421875,390)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,39.1,116750.919921875,391)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(392,39.2,117649,392)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,39.3,118551.673828125,393)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(394,39.4,119458.953125,394)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,39.5,120370.849609375,395)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(396,39.6,121287.375,396)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,39.7,122208.541015625,397)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(398,39.8,123134.359375,398)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,39.9,124064.841796875,399)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(400,40,125000,400)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,40.1,125939.845703125,401)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(402,40.2,126884.390625,402)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,40.3,127833.646484375,403)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(404,40.4,128787.625,404)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,40.5,129746.337890625,405)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(406,40.6,130709.796875,406)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,40.7,131678.013671875,407)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(408,40.8,132651,408)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,40.9,133628.767578125,409)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(410,41,134611.328125,410)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,41.1,135598.693359375,411)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(412,41.2,136590.875,412)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,41.3,137587.884765625,413)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(414,41.4,138589.734375,414)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,41.5,139596.435546875,415)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(416,41.6,140608,416)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,41.7,141624.439453125,417)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(418,41.8,142645.765625,418)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,41.9,143671.990234375,419)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(420,42,144703.125,420)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,42.1,145739.181640625,421)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(422,42.2,146780.171875,422)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,42.3,147826.107421875,423)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(424,42.4,148877,424)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,42.5,149932.861328125,425)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(426,42.6,150993.703125,426)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,42.7,152059.537109375,427)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(428,42.8,153130.375,428)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,42.9,154206.228515625,429)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(430,43,155287.109375,430)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,43.1,156373.029296875,431)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(432,43.2,157464,432)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,43.3,158560.033203125,433)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(434,43.4,159661.140625,434)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,43.5,160767.333984375,435)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(436,43.6,161878.625,436)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,43.7,162995.025390625,437)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(438,43.8,164116.546875,438)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,43.9,165243.201171875,439)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(440,44,166375,440)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,44.1,167511.955078125,441)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(442,44.2,168654.078125,442)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,44.3,169801.380859375,443)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(444,44.4,170953.875,444)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,44.5,172111.572265625,445)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(446,44.6,173274.484375,446)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,44.7,174442.623046875,447)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(448,44.8,175616,448)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,44.9,176794.626953125,449)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(450,45,177978.515625,450)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,45.1,179167.677734375,451)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(452,45.2,180362.125,452)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,45.3,181561.869140625,453)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(454,45.4,182766.921875,454)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,45.5,183977.294921875,455)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(456,45.6,185193,456)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,45.7,186414.048828125,457)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(458,45.8,187640.453125,458)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,45.9,188872.224609375,459)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(460,46,190109.375,460)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,46.1,191351.916015625,461)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(462,46.2,192599.859375,462)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,46.3,193853.216796875,463)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(464,46.4,195112,464)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,46.5,196376.220703125,465)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(466,46.6,197645.890625,466)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,46.7,198921.021484375,467)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(468,46.8,200201.625,468)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,46.9,201487.712890625,469)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(470,47,202779.296875,470)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,47.1,204076.388671875,471)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(472,47.2,205379,472)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,47.3,206687.142578125,473)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(474,47.4,208000.828125,474)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,47.5,209320.068359375,475)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(476,47.6,210644.875,476)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,47.7,211975.259765625,477)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(478,47.8,213311.234375,478)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,47.9,214652.810546875,479)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(480,48,216000,480)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,48.1,217352.814453125,481)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(482,48.2,218711.265625,482)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,48.3,220075.365234375,483)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(484,48.4,221445.125,484)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,48.5,222820.556640625,485)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(486,48.6,224201.671875,486)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,48.7,225588.482421875,487)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(488,48.8,226981,488)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,48.9,228379.236328125,489)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(490,49,229783.203125,490)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,49.1,231192.912109375,491)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(492,49.2,232608.375,492)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,49.3,234029.603515625,493)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(494,49.4,235456.609375,494)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,49.5,236889.404296875,495)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(496,49.6,238328,496)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,49.7,239772.408203125,497)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(498,49.8,241222.640625,498)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,49.9,242678.708984375,499)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,50,244140.625,500)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,50.1,245608.400390625,501)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(502,50.2,247082.046875,502)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,50.3,248561.576171875,503)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(504,50.4,250047,504)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,50.5,251538.330078125,505)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(506,50.6,253035.578125,506)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,50.7,254538.755859375,507)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(508,50.8,256047.875,508)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,50.9,257562.947265625,509)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(510,51,259083.984375,510)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,51.1,260610.998046875,511)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(512,51.2,262144,512)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,51.3,263683.001953125,513)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(514,51.4,265228.015625,514)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,51.5,266779.052734375,515)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(516,51.6,268336.125,516)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,51.7,269899.244140625,517)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(518,51.8,271468.421875,518)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,51.9,273043.669921875,519)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(520,52,274625,520)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,52.1,276212.423828125,521)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(522,52.2,277805.953125,522)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,52.3,279405.599609375,523)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(524,52.4,281011.375,524)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,52.5,282623.291015625,525)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(526,52.6,284241.359375,526)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,52.7,285865.591796875,527)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(528,52.8,287496,528)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,52.9,289132.595703125,529)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(530,53,290775.390625,530)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,53.1,292424.396484375,531)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(532,53.2,294079.625,532)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,53.3,295741.087890625,533)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(534,53.4,297408.796875,534)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,53.5,299082.763671875,535)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(536,53.6,300763,536)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,53.7,302449.517578125,537)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(538,53.8,304142.328125,538)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,53.9,305841.443359375,539)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(540,54,307546.875,540)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,54.1,309258.634765625,541)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(542,54.2,310976.734375,542)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,54.3,312701.185546875,543)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(544,54.4,314432,544)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,54.5,316169.189453125,545)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(546,54.6,317912.765625,546)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,54.7,319662.740234375,547)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(548,54.8,321419.125,548)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,54.9,323181.931640625,549)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(550,55,324951.171875,550)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,55.1,326726.857421875,551)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(552,55.2,328509,552)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,55.3,330297.611328125,553)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(554,55.4,332092.703125,554)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,55.5,333894.287109375,555)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(556,55.6,335702.375,556)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,55.7,337516.978515625,557)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(558,55.8,339338.109375,558)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,55.9,341165.779296875,559)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(560,56,343000,560)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,56.1,344840.783203125,561)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(562,56.2,346688.140625,562)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,56.3,348542.083984375,563)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(564,56.4,350402.625,564)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,56.5,352269.775390625,565)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(566,56.6,354143.546875,566)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,56.7,356023.951171875,567)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(568,56.8,357911,568)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,56.9,359804.705078125,569)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(570,57,361705.078125,570)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,57.1,363612.130859375,571)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(572,57.2,365525.875,572)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,57.3,367446.322265625,573)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(574,57.4,369373.484375,574)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,57.5,371307.373046875,575)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(576,57.6,373248,576)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,57.7,375195.376953125,577)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(578,57.8,377149.515625,578)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,57.9,379110.427734375,579)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(580,58,381078.125,580)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,58.1,383052.619140625,581)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(582,58.2,385033.921875,582)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,58.3,387022.044921875,583)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(584,58.4,389017,584)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,58.5,391018.798828125,585)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(586,58.6,393027.453125,586)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,58.7,395042.974609375,587)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(588,58.8,397065.375,588)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,58.9,399094.666015625,589)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(590,59,401130.859375,590)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,59.1,403173.966796875,591)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(592,59.2,405224,592)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,59.3,407280.970703125,593)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(594,59.4,409344.890625,594)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,59.5,411415.771484375,595)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(596,59.6,413493.625,596)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,59.7,415578.462890625,597)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(598,59.8,417670.296875,598)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,59.9,419769.138671875,599)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(600,60,421875,600)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,60.1,423987.892578125,601)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(602,60.2,426107.828125,602)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,60.3,428234.818359375,603)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(604,60.4,430368.875,604)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,60.5,432510.009765625,605)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(606,60.6,434658.234375,606)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,60.7,436813.560546875,607)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(608,60.8,438976,608)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,60.9,441145.564453125,609)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(610,61,443322.265625,610)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,61.1,445506.115234375,611)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(612,61.2,447697.125,612)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,61.3,449895.306640625,613)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(614,61.4,452100.671875,614)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,61.5,454313.232421875,615)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(616,61.6,456533,616)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,61.7,458759.986328125,617)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(618,61.8,460994.203125,618)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,61.9,463235.662109375,619)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(620,62,465484.375,620)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,62.1,467740.353515625,621)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(622,62.2,470003.609375,622)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,62.3,472274.154296875,623)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(624,62.4,474552,624)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,62.5,476837.158203125,625)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(626,62.6,479129.640625,626)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,62.7,481429.458984375,627)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(628,62.8,483736.625,628)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,62.9,486051.150390625,629)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(630,63,488373.046875,630)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,63.1,490702.326171875,631)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(632,63.2,493039,632)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,63.3,495383.080078125,633)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(634,63.4,497734.578125,634)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,63.5,500093.505859375,635)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(636,63.6,502459.875,636)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,63.7,504833.697265625,637)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(638,63.8,507214.984375,638)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,63.9,509603.748046875,639)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(640,64,512000,640)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,64.1,514403.751953125,641)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(642,64.2,516815.015625,642)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,64.3,519233.802734375,643)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(644,64.4,521660.125,644)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,64.5,524093.994140625,645)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(646,64.6,526535.421875,646)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,64.7,528984.419921875,647)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(648,64.8,531441,648)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,64.9,533905.173828125,649)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(650,65,536376.953125,650)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,65.1,538856.349609375,651)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(652,65.2,541343.375,652)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,65.3,543838.041015625,653)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(654,65.4,546340.359375,654)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,65.5,548850.341796875,655)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(656,65.6,551368,656)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,65.7,553893.345703125,657)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(658,65.8,556426.390625,658)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,65.9,558967.146484375,659)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(660,66,561515.625,660)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,66.1,564071.837890625,661)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(662,66.2,566635.796875,662)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,66.3,569207.513671875,663)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(664,66.4,571787,664)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,66.5,574374.267578125,665)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(666,66.6,576969.328125,666)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,66.7,579572.193359375,667)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(668,66.8,582182.875,668)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,66.9,584801.384765625,669)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(670,67,587427.734375,670)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,67.1,590061.935546875,671)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(672,67.2,592704,672)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,67.3,595353.939453125,673)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(674,67.4,598011.765625,674)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,67.5,600677.490234375,675)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(676,67.6,603351.125,676)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,67.7,606032.681640625,677)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(678,67.8,608722.171875,678)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,67.9,611419.607421875,679)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(680,68,614125,680)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,68.1,616838.361328125,681)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(682,68.2,619559.703125,682)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,68.3,622289.037109375,683)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(684,68.4,625026.375,684)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,68.5,627771.728515625,685)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(686,68.6,630525.109375,686)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,68.7,633286.529296875,687)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(688,68.8,636056,688)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,68.9,638833.533203125,689)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(690,69,641619.140625,690)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,69.1,644412.833984375,691)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(692,69.2,647214.625,692)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,69.3,650024.525390625,693)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(694,69.4,652842.546875,694)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,69.5,655668.701171875,695)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(696,69.6,658503,696)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,69.7,661345.455078125,697)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(698,69.8,664196.078125,698)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,69.9,667054.880859375,699)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,70,669921.875,700)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,70.1,672797.072265625,701)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(702,70.2,675680.484375,702)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,70.3,678572.123046875,703)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(704,70.4,681472,704)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,70.5,684380.126953125,705)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(706,70.6,687296.515625,706)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,70.7,690221.177734375,707)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(708,70.8,693154.125,708)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,70.9,696095.369140625,709)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(710,71,699044.921875,710)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,71.1,702002.794921875,711)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(712,71.2,704969,712)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,71.3,707943.548828125,713)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(714,71.4,710926.453125,714)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,71.5,713917.724609375,715)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(716,71.6,716917.375,716)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,71.7,719925.416015625,717)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(718,71.8,722941.859375,718)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,71.9,725966.716796875,719)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(720,72,729000,720)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,72.1,732041.720703125,721)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(722,72.2,735091.890625,722)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,72.3,738150.521484375,723)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(724,72.4,741217.625,724)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,72.5,744293.212890625,725)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(726,72.6,747377.296875,726)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,72.7,750469.888671875,727)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(728,72.8,753571,728)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,72.9,756680.642578125,729)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(730,73,759798.828125,730)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,73.1,762925.568359375,731)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(732,73.2,766060.875,732)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,73.3,769204.759765625,733)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(734,73.4,772357.234375,734)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,73.5,775518.310546875,735)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(736,73.6,778688,736)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,73.7,781866.314453125,737)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(738,73.8,785053.265625,738)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,73.9,788248.865234375,739)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(740,74,791453.125,740)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,74.1,794666.056640625,741)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(742,74.2,797887.671875,742)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,74.3,801117.982421875,743)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(744,74.4,804357,744)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,74.5,807604.736328125,745)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(746,74.6,810861.203125,746)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,74.7,814126.412109375,747)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(748,74.8,817400.375,748)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,74.9,820683.103515625,749)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(750,75,823974.609375,750)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,75.1,827274.904296875,751)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(752,75.2,830584,752)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,75.3,833901.908203125,753)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(754,75.4,837228.640625,754)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,75.5,840564.208984375,755)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(756,75.6,843908.625,756)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,75.7,847261.900390625,757)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(758,75.8,850624.046875,758)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,75.9,853995.076171875,759)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(760,76,857375,760)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,76.1,860763.830078125,761)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(762,76.2,864161.578125,762)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,76.3,867568.255859375,763)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(764,76.4,870983.875,764)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,76.5,874408.447265625,765)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(766,76.6,877841.984375,766)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,76.7,881284.498046875,767)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(768,76.8,884736,768)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,76.9,888196.501953125,769)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(770,77,891666.015625,770)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,77.1,895144.552734375,771)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(772,77.2,898632.125,772)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,77.3,902128.744140625,773)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(774,77.4,905634.421875,774)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,77.5,909149.169921875,775)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(776,77.6,912673,776)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,77.7,916205.923828125,777)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(778,77.8,919747.953125,778)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,77.9,923299.099609375,779)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(780,78,926859.375,780)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,78.1,930428.791015625,781)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(782,78.2,934007.359375,782)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,78.3,937595.091796875,783)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(784,78.4,941192,784)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,78.5,944798.095703125,785)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(786,78.6,948413.390625,786)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,78.7,952037.896484375,787)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(788,78.8,955671.625,788)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,78.9,959314.587890625,789)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(790,79,962966.796875,790)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,79.1,966628.263671875,791)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(792,79.2,970299,792)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,79.3,973979.017578125,793)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(794,79.4,977668.328125,794)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,79.5,981366.943359375,795)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(796,79.6,985074.875,796)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,79.7,988792.134765625,797)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(798,79.8,992518.734375,798)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,79.9,996254.685546875,799)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(800,80,1000000,800)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,80.1,1.003754689453125e+06,801)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(802,80.2,1.007518765625e+06,802)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,80.3,1.011292240234375e+06,803)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(804,80.4,1.015075125e+06,804)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,80.5,1.018867431640625e+06,805)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(806,80.6,1.022669171875e+06,806)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,80.7,1.026480357421875e+06,807)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(808,80.8,1030301,808)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,80.9,1.034131111328125e+06,809)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(810,81,1.037970703125e+06,810)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,81.1,1.041819787109375e+06,811)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(812,81.2,1.045678375e+06,812)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,81.3,1.049546478515625e+06,813)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(814,81.4,1.053424109375e+06,814)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,81.5,1.057311279296875e+06,815)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(816,81.6,1061208,816)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,81.7,1.065114283203125e+06,817)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(818,81.8,1.069030140625e+06,818)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,81.9,1.072955583984375e+06,819)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(820,82,1.076890625e+06,820)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,82.1,1.080835275390625e+06,821)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(822,82.2,1.084789546875e+06,822)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,82.3,1.088753451171875e+06,823)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(824,82.4,1092727,824)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,82.5,1.096710205078125e+06,825)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(826,82.6,1.100703078125e+06,826)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,82.7,1.104705630859375e+06,827)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(828,82.8,1.108717875e+06,828)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,82.9,1.112739822265625e+06,829)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(830,83,1.116771484375e+06,830)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,83.1,1.120812873046875e+06,831)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(832,83.2,1124864,832)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,83.3,1.128924876953125e+06,833)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(834,83.4,1.132995515625e+06,834)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,83.5,1.137075927734375e+06,835)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(836,83.6,1.141166125e+06,836)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,83.7,1.145266119140625e+06,837)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(838,83.8,1.149375921875e+06,838)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,83.9,1.153495544921875e+06,839)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(840,84,1157625,840)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,84.1,1.161764298828125e+06,841)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(842,84.2,1.165913453125e+06,842)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,84.3,1.170072474609375e+06,843)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(844,84.4,1.174241375e+06,844)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,84.5,1.178420166015625e+06,845)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(846,84.6,1.182608859375e+06,846)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,84.7,1.186807466796875e+06,847)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(848,84.8,1191016,848)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,84.9,1.195234470703125e+06,849)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(850,85,1.199462890625e+06,850)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,85.1,1.203701271484375e+06,851)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(852,85.2,1.207949625e+06,852)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,85.3,1.212207962890625e+06,853)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(854,85.4,1.216476296875e+06,854)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,85.5,1.220754638671875e+06,855)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(856,85.6,1225043,856)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,85.7,1.229341392578125e+06,857)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(858,85.8,1.233649828125e+06,858)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,85.9,1.237968318359375e+06,859)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(860,86,1.242296875e+06,860)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,86.1,1.246635509765625e+06,861)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(862,86.2,1.250984234375e+06,862)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,86.3,1.255343060546875e+06,863)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(864,86.4,1259712,864)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,86.5,1.264091064453125e+06,865)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(866,86.6,1.268480265625e+06,866)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,86.7,1.272879615234375e+06,867)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(868,86.8,1.277289125e+06,868)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,86.9,1.281708806640625e+06,869)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(870,87,1.286138671875e+06,870)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,87.1,1.290578732421875e+06,871)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(872,87.2,1295029,872)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,87.3,1.299489486328125e+06,873)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(874,87.4,1.303960203125e+06,874)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,87.5,1.308441162109375e+06,875)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(876,87.6,1.312932375e+06,876)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,87.7,1.317433853515625e+06,877)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(878,87.8,1.321945609375e+06,878)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,87.9,1.326467654296875e+06,879)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(880,88,1331000,880)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,88.1,1.335542658203125e+06,881)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(882,88.2,1.340095640625e+06,882)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,88.3,1.344658958984375e+06,883)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(884,88.4,1.349232625e+06,884)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,88.5,1.353816650390625e+06,885)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(886,88.6,1.358411046875e+06,886)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,88.7,1.363015826171875e+06,887)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(888,88.8,1367631,888)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,88.9,1.372256580078125e+06,889)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(890,89,1.376892578125e+06,890)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,89.1,1.381539005859375e+06,891)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(892,89.2,1.386195875e+06,892)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,89.3,1.390863197265625e+06,893)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(894,89.4,1.395540984375e+06,894)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,89.5,1.400229248046875e+06,895)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(896,89.6,1404928,896)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,89.7,1.409637251953125e+06,897)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(898,89.8,1.414357015625e+06,898)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,89.9,1.419087302734375e+06,899)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(900,90,1.423828125e+06,900)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,90.1,1.428579494140625e+06,901)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(902,90.2,1.433341421875e+06,902)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,90.3,1.438113919921875e+06,903)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(904,90.4,1442897,904)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,90.5,1.447690673828125e+06,905)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(906,90.6,1.452494953125e+06,906)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,90.7,1.457309849609375e+06,907)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(908,90.8,1.462135375e+06,908)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,90.9,1.466971541015625e+06,909)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(910,91,1.471818359375e+06,910)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,91.1,1.476675841796875e+06,911)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(912,91.2,1481544,912)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,91.3,1.486422845703125e+06,913)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(914,91.4,1.491312390625e+06,914)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,91.5,1.496212646484375e+06,915)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(916,91.6,1.501123625e+06,916)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,91.7,1.506045337890625e+06,917)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(918,91.8,1.510977796875e+06,918)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,91.9,1.515921013671875e+06,919)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(920,92,1520875,920)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,92.1,1.525839767578125e+06,921)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(922,92.2,1.530815328125e+06,922)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,92.3,1.535801693359375e+06,923)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(924,92.4,1.540798875e+06,924)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,92.5,1.545806884765625e+06,925)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(926,92.6,1.550825734375e+06,926)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,92.7,1.555855435546875e+06,927)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(928,92.8,1560896,928)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,92.9,1.565947439453125e+06,929)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(930,93,1.571009765625e+06,930)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,93.1,1.576082990234375e+06,931)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(932,93.2,1.581167125e+06,932)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,93.3,1.586262181640625e+06,933)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(934,93.4,1.591368171875e+06,934)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,93.5,1.596485107421875e+06,935)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(936,93.6,1601613,936)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,93.7,1.606751861328125e+06,937)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(938,93.8,1.611901703125e+06,938)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,93.9,1.617062537109375e+06,939)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(940,94,1.622234375e+06,940)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,94.1,1.627417228515625e+06,941)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(942,94.2,1.632611109375e+06,942)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,94.3,1.637816029296875e+06,943)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(944,94.4,1643032,944)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,94.5,1.648259033203125e+06,945)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(946,94.6,1.653497140625e+06,946)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,94.7,1.658746333984375e+06,947)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(948,94.8,1.664006625e+06,948)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,94.9,1.669278025390625e+06,949)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(950,95,1.674560546875e+06,950)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,95.1,1.679854201171875e+06,951)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(952,95.2,1685159,952)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,95.3,1.690474955078125e+06,953)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(954,95.4,1.695802078125e+06,954)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,95.5,1.701140380859375e+06,955)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(956,95.6,1.706489875e+06,956)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,95.7,1.711850572265625e+06,957)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(958,95.8,1.717222484375e+06,958)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,95.9,1.722605623046875e+06,959)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(960,96,1728000,960)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,96.1,1.733405626953125e+06,961)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(962,96.2,1.738822515625e+06,962)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,96.3,1.744250677734375e+06,963)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(964,96.4,1.749690125e+06,964)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,96.5,1.755140869140625e+06,965)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(966,96.6,1.760602921875e+06,966)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,96.7,1.766076294921875e+06,967)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(968,96.8,1771561,968)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,96.9,1.777057048828125e+06,969)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(970,97,1.782564453125e+06,970)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,97.1,1.788083224609375e+06,971)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(972,97.2,1.793613375e+06,972)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,97.3,1.799154916015625e+06,973)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(974,97.4,1.804707859375e+06,974)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,97.5,1.810272216796875e+06,975)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(976,97.6,1815848,976)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,97.7,1.821435220703125e+06,977)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(978,97.8,1.827033890625e+06,978)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,97.9,1.832644021484375e+06,979)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(980,98,1.838265625e+06,980)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,98.1,1.843898712890625e+06,981)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(982,98.2,1.849543296875e+06,982)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,98.3,1.855199388671875e+06,983)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(984,98.4,1860867,984)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,98.5,1.866546142578125e+06,985)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(986,98.6,1.872236828125e+06,986)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,98.7,1.877939068359375e+06,987)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(988,98.8,1.883652875e+06,988)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,98.9,1.889378259765625e+06,989)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(990,99,1.895115234375e+06,990)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,99.1,1.900863810546875e+06,991)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(992,99.2,1906624,992)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,99.3,1.912395814453125e+06,993)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(994,99.4,1.918179265625e+06,994)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(300,99.5,1.923974365234375e+06,995)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(996,99.6,1.929781125e+06,996)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(500,99.7,1.935599556640625e+06,997)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(998,99.8,1.941429671875e+06,998)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(700,99.9,1.947271482421875e+06,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 0 AND 100000;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 800000 AND 900000;",
+          "expect": "50 376 32"
+        }
+      ]
+    }
+  ]
+}

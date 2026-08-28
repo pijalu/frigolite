@@ -1,0 +1,857 @@
+{
+  "file": "incrvacuum.test",
+  "name": "incrvacuum",
+  "tests": [
+    {
+      "name": "incrvacuum-16.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA mmap_size = 1000000;\n    BEGIN;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum = 1000;",
+          "expect": "1000000"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\n  PRAGMA incremental_vacuum(10);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 'full';\n    pragma auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 'invalid';\n    pragma auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 1;\n    pragma auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = '2';\n    pragma auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 5;\n    pragma auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 'none';\n    pragma auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 'full';\n    pragma auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES($::str);\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;\n    DELETE FROM tbl2;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES($::str);\n    CREATE TABLE tbl1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl2;\n    DROP TABLE tbl1;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES($::str);\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO tbl1 VALUES($::str);\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-5.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-5.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tbl2;",
+          "expect": "{a nice string}"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-5.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE tbl1;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(50);"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(1);",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(5);",
+          "expect": "23"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum('1');",
+          "expect": "22"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(\"+3\");",
+          "expect": "19"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum = 1;",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(2147483649);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-10.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.1-av-dflt-on",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.1-av-dflt-off",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = incremental;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 'full';\n    PRAGMA auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-11.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-13.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(10);",
+          "expect": "1 {file is not a database}"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 'full';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 'invalid';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 1;\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = '2';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 5;\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 1;\n    CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 'none';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 'incremental';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 'full';\n    pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES($::str);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;\n    DELETE FROM tbl2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES($::str);\n    CREATE TABLE tbl1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl2;\n    DROP TABLE tbl1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES($::str);\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO tbl1 VALUES($::str);\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tbl1;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'none'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'incremental'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS tbl1;\n      DROP TABLE IF EXISTS tbl2;\n      PRAGMA incremental_vacuum;\n      CREATE TABLE tbl1(a, b);\n      CREATE TABLE tbl2(a, b);\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl2 SELECT * FROM tbl1;\n      COMMIT;\n      DROP TABLE tbl1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS tbl1;\n      DROP TABLE IF EXISTS tbl2;\n      PRAGMA incremental_vacuum;\n      CREATE TABLE tbl1(a, b);\n      CREATE TABLE tbl2(a, b);\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl2 SELECT * FROM tbl1;\n      COMMIT;\n      DROP TABLE tbl1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(50);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = 'OFF';\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(5);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(\"+3\");"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(2147483649);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum=-1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'full';\n    PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma incremental_vacuum(10)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM tbl2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(a, b);\n          INSERT INTO tbl1 VALUES('hello', 'world');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

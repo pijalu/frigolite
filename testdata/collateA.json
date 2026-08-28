@@ -1,0 +1,778 @@
+{
+  "file": "collateA.test",
+  "name": "collateA",
+  "tests": [
+    {
+      "name": "collateA-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc123                         '='abc123' COLLATE RTRIM;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''",
+          "expect": "1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '",
+          "expect": "1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '  '='      ' COLLATE RTRIM, '  '='        '",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '",
+          "expect": "0 1 1"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c=''",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c=' '",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-1.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='                    '",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c=''",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c=' '",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-2.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='                    '",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "REINDEX;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '",
+          "expect": "2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "collateA-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '",
+          "expect": "2 3 4"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc123                         '='abc123' COLLATE RTRIM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '  '='      ' COLLATE RTRIM, '  '='        '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=' '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='                    '"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=' '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='                    '"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

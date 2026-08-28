@@ -1,0 +1,15 @@
+{
+  "file": "incrvacuum3.test",
+  "name": "incrvacuum3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "file": "errmsg.test",
+  "name": "errmsg",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

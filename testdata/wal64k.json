@@ -1,0 +1,38 @@
+{
+  "file": "wal64k.test",
+  "name": "wal64k",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=512;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8200)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(300) FROM c;\n  PRAGMA integrity_check;",
+          "expect": "wal ok"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randstr(900,1100) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randstr(900,1100) )"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+{
+  "file": "bestindex1.test",
+  "name": "bestindex1",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM x1 WHERE a = 'abc'"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM x1 WHERE a IN ('abc', 'def');"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1x(i INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1x VALUES(1, 'one', 1);\n  INSERT INTO t1x VALUES(2, 'two', 2);\n  INSERT INTO t1x VALUES(3, 'three', 3);\n  INSERT INTO t1x VALUES(4, 'four', 4);"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING tcl(t1_vtab use);"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "one 1 two 2 three 3 four 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE a='two'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  \n    SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid"
+        }
+      ]
+    },
+    {
+      "name": "2.2.omit.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING tcl(t1_vtab omit);"
+        }
+      ]
+    },
+    {
+      "name": "2.2.omit.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "one 1 two 2 three 3 four 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.omit.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.omit.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE a='two'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "2.2.omit.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.omit.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  \n    SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING tcl(t1_vtab use2);"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "one 1 two 2 three 3 four 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE a='two'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.use2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  \n    SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(PrimaryKey,flagA,columnA);\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE VirtualTableA USING tcl(vtab_command);\n  CREATE VIRTUAL TABLE VirtualTableB USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT primarykey FROM VirtualTableA",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM \n  VirtualTableA a CROSS JOIN VirtualTableB b ON b.PrimaryKey=a.PrimaryKey\n  WHERE a.ColumnA IN ('ValueA', 'ValueB') AND a.FlagA=0",
+          "expect": "\n  1 0 ValueA 1 0 ValueA\n  2 0 ValueA 2 0 ValueA\n  3 0 ValueB 3 0 ValueB\n  4 0 ValueB 4 0 ValueB\n"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM \n  VirtualTableA a CROSS JOIN VirtualTableB b ON b.PrimaryKey=a.PrimaryKey\n  WHERE a.FlagA=0 AND a.ColumnA IN ('ValueA', 'ValueB')",
+          "expect": "\n  1 0 ValueA 1 0 ValueA\n  2 0 ValueA 2 0 ValueA\n  3 0 ValueB 3 0 ValueB\n  4 0 ValueB 4 0 ValueB\n"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM tcl('abc');",
+          "expect": "1 {wrong number of arguments}"
+        }
+      ]
+    }
+  ]
+}

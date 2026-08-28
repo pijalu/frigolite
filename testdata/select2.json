@@ -1,0 +1,282 @@
+{
+  "file": "select2.test",
+  "name": "select2",
+  "tests": [
+    {
+      "name": "select2-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "select2-2.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "select2-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM tbl2",
+          "expect": "30000"
+        }
+      ]
+    },
+    {
+      "name": "select2-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM tbl2 WHERE f2>1000",
+          "expect": "29500"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2",
+          "expect": "500"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON tbl2(f2)"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2",
+          "expect": "500"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.2c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM tbl2 WHERE f2=1000",
+          "expect": "500"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.2d",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tbl2 WHERE 1000=f2",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.2e",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tbl2 WHERE f2=1000",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "select2-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX idx1"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)>2;",
+          "expect": "1 4 3 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO bb VALUES(0);\n    SELECT * FROM aa CROSS JOIN bb WHERE b;",
+          "expect": "1 2 1 4 3 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa CROSS JOIN bb WHERE NOT b;",
+          "expect": "1 0 3 0"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa, bb WHERE min(a,b);",
+          "expect": "1 2 1 4 3 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa, bb WHERE NOT min(a,b);",
+          "expect": "1 0 3 0"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 1 END;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "select2-4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 0 ELSE 1 END;",
+          "expect": "1 4 1 0 3 2 3 0"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(f1 int, f2 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tbl2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM tbl2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM tbl2 WHERE f2>1000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON tbl2(f2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE f2=1000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl2 WHERE 1000=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl2 WHERE f2=1000"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX idx1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE f2==2000"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)>2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO bb VALUES(0);\n    SELECT * FROM aa CROSS JOIN bb WHERE b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa CROSS JOIN bb WHERE NOT b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE min(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE NOT min(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 1 END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 0 ELSE 1 END;"
+        }
+      ]
+    }
+  ]
+}

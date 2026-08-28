@@ -1,0 +1,67 @@
+{
+  "file": "subjournal.test",
+  "name": "subjournal",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SAVEPOINT one;\n      INSERT INTO t1 VALUES(7, 8, 9);\n    ROLLBACK TO one;\n    SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t2(a BLOB);\n  CREATE INDEX i2 ON t2(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  ) INSERT INTO t2 SELECT randomblob(500) FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    UPDATE t2 SET a=randomblob(499);\n    SAVEPOINT two;\n      UPDATE t2 SET a=randomblob(498);\n    ROLLBACK TO two;\n  COMMIT;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

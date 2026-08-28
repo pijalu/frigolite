@@ -1,0 +1,123 @@
+{
+  "file": "imposter1.test",
+  "name": "imposter1",
+  "tests": [
+    {
+      "name": "imposter-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM xt1 WHERE a IS NOT NULL;"
+        }
+      ]
+    },
+    {
+      "name": "imposter-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d FROM t1 EXCEPT SELECT rowid,b,c,d FROM xt1;\n  SELECT rowid,b,c,d FROM xt1 EXCEPT SELECT a,b,c,d FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "imposter-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema=on;\n  DELETE FROM xt1 WHERE rowid=5;\n  INSERT INTO xt1(rowid,a,b,c,d) VALUES(99,'hello',1099,2022,NULL);\n  SELECT * FROM chnglog ORDER BY rowid;"
+        }
+      ]
+    },
+    {
+      "name": "imposter-1.4a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "/NULL value in t1.d/"
+        }
+      ]
+    },
+    {
+      "name": "imposter-1.4b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "/row # missing from index t1b/"
+        }
+      ]
+    },
+    {
+      "name": "imposter-1.4c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "/row # missing from index t1c/"
+        }
+      ]
+    },
+    {
+      "name": "imposter-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=NULL WHERE rowid=5;\n  PRAGMA integrity_check;",
+          "expect": "/row # missing from index t1c/"
+        }
+      ]
+    },
+    {
+      "name": "imposter-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=99 WHERE rowid IN (5,7,9);\n  SELECT c FROM t1 ORDER BY c;",
+          "expect": "1 2 3 4 6 8 10 99 99 99"
+        }
+      ]
+    },
+    {
+      "name": "imposter-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE xt1 SET c=99 WHERE rowid IN (5,7,9);\n  PRAGMA integrity_check;",
+          "expect": "/non-unique entry in index t1c/"
+        }
+      ]
+    },
+    {
+      "name": "imposter-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xt1(a,b,c,d)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

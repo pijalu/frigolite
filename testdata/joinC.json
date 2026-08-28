@@ -1,0 +1,2570 @@
+{
+  "file": "joinC.test",
+  "name": "joinC",
+  "tests": [
+    {
+      "name": "joinC-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-42",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-44",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-45",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-46",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-47",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-48",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-49",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-54",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-55",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-56",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-57",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-58",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-59",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-61",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-62",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-63",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-64",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-65",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-66",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-67",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-68",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-69",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-71",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-72",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-73",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-74",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-75",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-76",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-77",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-78",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-79",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-82",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-83",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-84",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-85",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-86",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-87",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-88",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-89",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-91",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-92",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-93",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-94",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-95",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-96",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-97",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-98",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-99",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-105",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-106",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-107",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-108",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-109",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-112",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-113",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-114",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-117",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-118",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-119",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-122",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-123",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-124",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-125",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-126",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-127",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11  -  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-128",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 LEFT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12 12 12  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17"
+        }
+      ]
+    },
+    {
+      "name": "joinC-129",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "13  - 13 13 13  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-133",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-134",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-135",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-136",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-137",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-138",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "13  - 13 13 13  -\n  15 15 15 15 15 15"
+        }
+      ]
+    },
+    {
+      "name": "joinC-139",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-142",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-143",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-144",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-145",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-146",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-147",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-148",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-149",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-151",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-152",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-153",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-154",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-155",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-156",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-157",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-158",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-159",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-161",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-162",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-163",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-164",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-165",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-166",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-167",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-168",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-169",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-171",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-172",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-173",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-174",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-175",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-176",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-177",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-178",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-179",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-180",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-181",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-182",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-183",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-184",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-185",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-186",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-187",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-188",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-189",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-191",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-192",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 RIGHT JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-193",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-194",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-195",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-196",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-197",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-198",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-199",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-202",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-203",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-204",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-205",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-206",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-207",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-208",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 INNER JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-209",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-211",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-212",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-213",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-214",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-215",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-216",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-217",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-218",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-219",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-221",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-222",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  -  -"
+        }
+      ]
+    },
+    {
+      "name": "joinC-223",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-224",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 LEFT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18 18  - 18"
+        }
+      ]
+    },
+    {
+      "name": "joinC-225",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-226",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-227",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-228",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-229",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-231",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-232",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-233",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-234",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-235",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  -  -  -  -\n  12 12  -  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-236",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "11 11  - 11 11  -\n  12 12  -  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-237",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-238",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-239",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-240",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 RIGHT JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-241",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-242",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-243",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-244",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 INNER JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-245",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-246",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-247",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-248",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 LEFT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-249",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-250",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  -  -  -  -\n  18  - 18  -  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-251",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  -  -  -  -\n  12 12 12  -  -  -\n  13  - 13  -  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-252",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 RIGHT JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12  -  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-253",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-254",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 LEFT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  -  -\n  18  - 18 18  -  -\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-255",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 RIGHT JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11  -  -\n  12 12 12 12  -  -\n  13  - 13 13  -  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        }
+      ]
+    },
+    {
+      "name": "joinC-256",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 FULL JOIN (\n  t2 FULL JOIN (\n  t3 FULL JOIN (\n  t4 FULL JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;",
+          "expect": "-  -  -  -  -  -\n   -  -  -  -  -  -\n  11 11  - 11 11  -\n  12 12 12 12  -  -\n  13  - 13 13 13  -\n  15 15 15 15 15 15\n  17 17  - 17  - 17\n  18  - 18 18  - 18\n  19  -  - 19 19 19"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE TABLE t2(a INT, b INT, d INT);\n  CREATE TABLE t3(a INT, b INT, e INT);\n  CREATE TABLE t4(a INT, b INT, f INT);\n  CREATE TABLE t5(a INT, b INT, g INT);\n  INSERT INTO t1 VALUES(11,21,31),(12,22,32),(15,25,35),(17,27,37);\n  INSERT INTO t2 VALUES(12,22,32),(13,23,33),(15,25,35),(18,28,38),\n                       (NULL,NULL,36);\n  INSERT INTO t4 VALUES(11,21,31),(13,23,33),(15,25,35),(19,29,39);\n  INSERT INTO t3 SELECT * FROM t1 UNION SELECT * FROM t2 UNION SELECT * FROM t4;\n  INSERT INTO t5 SELECT * FROM t3 WHERE a>=15;"
+        }
+      ]
+    }
+  ]
+}

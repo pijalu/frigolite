@@ -1,0 +1,94 @@
+{
+  "file": "parser1.test",
+  "name": "parser1",
+  "tests": [
+    {
+      "name": "parser1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );",
+          "expect": "1 {syntax error after column name \"b\"}"
+        }
+      ]
+    },
+    {
+      "name": "parser1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b) REFERENCES t1(a)\n  );\n  INSERT INTO t1 VALUES('abc',NULL),('xyz','abc');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase) REFERENCES t1(a)\n  )' WHERE name='t1';\n  SELECT name FROM sqlite_master WHERE sql LIKE '%collate%';",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "parser1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b ASC) REFERENCES t1(a)\n  )' WHERE name='t1';\n  SELECT name FROM sqlite_master WHERE sql LIKE '%ASC%';",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "parser1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n    c(x COLLATE binary) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;",
+          "expect": "1 {syntax error after column name \"x\"}"
+        }
+      ]
+    },
+    {
+      "name": "parser1-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n    c(x ASC) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;",
+          "expect": "1 {syntax error after column name \"x\"}"
+        }
+      ]
+    },
+    {
+      "name": "parser1-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t300(id INTEGER PRIMARY KEY);\n  CREATE TABLE t301(\n    id INTEGER PRIMARY KEY,\n    c1 INTEGER NOT NULL,\n    c2 INTEGER NOT NULL,\n    c3 BOOLEAN NOT NULL DEFAULT 0,\n    FOREIGN KEY(c1) REFERENCES t300(id) ON DELETE CASCADE ON UPDATE RESTRICT\n        /* no comma */\n    FOREIGN KEY(c2) REFERENCES t300(id) ON DELETE CASCADE ON UPDATE RESTRICT\n        /* no comma */\n    UNIQUE(c1, c2)\n  );\n  PRAGMA foreign_key_list(t301);",
+          "expect": "0 0 t300 c2 id RESTRICT CASCADE NONE 1 0 t300 c1 id RESTRICT CASCADE NONE"
+        }
+      ]
+    },
+    {
+      "name": "parser1-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(x) AND 0 FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "parser1-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(x) IN () FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "parser1-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(x) NOT IN () FROM t1;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

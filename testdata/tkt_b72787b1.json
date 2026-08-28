@@ -1,0 +1,24 @@
+{
+  "file": "tkt-b72787b1.test",
+  "name": "tkt_b72787b1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS t4(q)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

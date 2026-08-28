@@ -1,0 +1,384 @@
+{
+  "file": "vtab_shared.test",
+  "name": "vtab_shared",
+  "tests": [
+    {
+      "name": "vtab_shared-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {no such module: echo}"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *  FROM t0",
+          "expect": "1 {database table is locked: t0}"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "expect": "1 {database table is locked: sqlite_master}"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3",
+          "expect": "1 2 3 4 5 6 1 2 3 4 5 6 1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3",
+          "expect": "1 2 3 4 5 6 1 2 3 4 5 6 1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME TO t5"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;",
+          "expect": "1 2 3 4 5 six"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3",
+          "expect": "1 2 3 4 5 six"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.14.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;",
+          "expect": "1 2 3 4 5 six"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared_1.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;",
+          "expect": "1 2 3 4 5 6"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t0"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *  FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME TO t5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,139 @@
+{
+  "file": "subtype1.test",
+  "name": "subtype1",
+  "tests": [
+    {
+      "name": "subtype1-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_getsubtype('hello');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_getsubtype(test_setsubtype('hello',123));",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(test_setsubtype('hello',123));",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_setsubtype('hello',123);",
+          "expect": "hello"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a); INSERT INTO t1 VALUES ('x');\n  CREATE VIEW t2(b) AS SELECT json(TRUE);\n  CREATE TABLE t3(b); INSERT INTO t3 VALUES(json(TRUE));"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3, t1 WHERE NOT json_quote(b);",
+          "expect": "1 x"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2, t1 WHERE NOT json_quote(b);",
+          "expect": "1 x"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-230",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-231",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t4(a) AS NOT MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES ('1');\n  CREATE VIEW v0(c0) AS SELECT CASE WHEN 1 THEN json_patch('1', '1') END \n                        FROM t0 GROUP BY t0.c0;\n  SELECT * FROM v0 WHERE json_quote(v0.c0) != '1';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);",
+          "expect": "1 {\"1\"}"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';",
+          "expect": "1 {\"1\"}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

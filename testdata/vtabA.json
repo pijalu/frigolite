@@ -1,0 +1,155 @@
+{
+  "file": "vtabA.test",
+  "name": "vtabA",
+  "tests": [
+    {
+      "name": "vtabA-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1e;\n  INSERT INTO t1e SELECT 'abc','def';"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1e VALUES('ghi','jkl'),('mno','pqr'),('stu','vwx');"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c, '|' FROM t1e ORDER BY 1;",
+          "expect": "abc {} def | ghi {} jkl | mno {} pqr | stu {} vwx |"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER)"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1e USING echo(t1)"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(t1e)"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1e VALUES('value a', 'value c');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c FROM t1e;",
+          "expect": "{value a} {} {value c}"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1e;",
+          "expect": "{value a} {value c}"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1e SELECT * FROM t1e;"
+        }
+      ]
+    },
+    {
+      "name": "vtabA-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1e ORDER BY 1;",
+          "expect": "abc def abc def ghi jkl ghi jkl mno pqr mno pqr stu vwx stu vwx"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1e USING echo(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1e)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c FROM t1e;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1e;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1e SELECT * FROM t1e;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1e ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1e;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1e USING echo(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

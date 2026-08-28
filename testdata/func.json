@@ -1,0 +1,3085 @@
+{
+  "file": "func.test",
+  "name": "func",
+  "tests": [
+    {
+      "name": "func-1.0b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT octet_length(t1) FROM tbl1 ORDER BY t1;"
+        }
+      ]
+    },
+    {
+      "name": "func-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT octet_length(12345);"
+        }
+      ]
+    },
+    {
+      "name": "func-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT octet_length(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "func-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT octet_length(7.5);"
+        }
+      ]
+    },
+    {
+      "name": "func-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT octet_length(x'30313233');",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "func-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(char(350,351,352,353,354)))\n  SELECT length(x), octet_length(x) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "func-4.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(123.456 , 4294967297);",
+          "expect": "123.456"
+        }
+      ]
+    },
+    {
+      "name": "func-9.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (\n     VALUES(1)\n     UNION ALL\n     SELECT x+1 FROM c WHERE x<1040\n  )\n  SELECT \n    count(*),\n    sum(length(replace(printf('abc%.*cxyz',x,'m'),'m','nnnn'))-(6+x*4))\n  FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "13.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('constant') FROM t4;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "13.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('constant') FROM t4;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "13.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('constant') FROM t4;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "func-16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(4.2e+859), quote(-7.8e+904);",
+          "expect": "9.0e+999 -9.0e+999"
+        }
+      ]
+    },
+    {
+      "name": "func-18.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)*2.0+1) from t6;",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-18.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT total(x) - ((1<<62)*2.0+1) FROM t6",
+          "expect": "0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "func-21.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(replace(1,'',0));",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "func-22.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT trim('xyzzy',x'c0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080');",
+          "expect": "xyzzy"
+        }
+      ]
+    },
+    {
+      "name": "func-29.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t29b(a,b,c,d,e,f,g,h,i);\n  INSERT INTO t29b \n   VALUES(1, hex(randomblob(2000)), null, 0, 1, '', zeroblob(0),'x',x'01');\n  SELECT typeof(c), typeof(d), typeof(e), typeof(f),\n         typeof(g), typeof(h), typeof(i) FROM t29b;",
+          "expect": "null integer integer text blob text blob"
+        }
+      ]
+    },
+    {
+      "name": "func-29.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(f), length(g), length(h), length(i) FROM t29b;",
+          "expect": "0 0 1 1"
+        }
+      ]
+    },
+    {
+      "name": "func-29.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(f), quote(g), quote(h), quote(i) FROM t29b;",
+          "expect": "'' X'' 'x' X'01'"
+        }
+      ]
+    },
+    {
+      "name": "func-30.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unicode('$');"
+        }
+      ]
+    },
+    {
+      "name": "func-30.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(36,162,8364);"
+        }
+      ]
+    },
+    {
+      "name": "func-31.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(), length(char()), typeof(char())",
+          "expect": "{} 0 text"
+        }
+      ]
+    },
+    {
+      "name": "func-32.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_frombind(1,2,3,4);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "func-32.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_frombind(1,2,?,4);",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "func-32.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_frombind(1,(?),4,?+7);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "func-33.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v33(y) AS SELECT testdirectonly(15);\n  SELECT * FROM v33;",
+          "expect": "1 {unsafe use of testdirectonly()}"
+        }
+      ]
+    },
+    {
+      "name": "func-33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT testdirectonly(15)) AS v33;",
+          "expect": "30"
+        }
+      ]
+    },
+    {
+      "name": "func-33.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (SELECT testdirectonly(15))\n  SELECT * FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "func-33.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (SELECT * FROM v33)\n  SELECT * FROM c;",
+          "expect": "1 {unsafe use of testdirectonly()}"
+        }
+      ]
+    },
+    {
+      "name": "func-33.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t33a(a,b);\n  CREATE TABLE t33b(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.a),new.b);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "func-33.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t33a VALUES(1,2);",
+          "expect": "1 {unsafe use of testdirectonly()}"
+        }
+      ]
+    },
+    {
+      "name": "func-33.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t33a RENAME COLUMN a TO aaa;\n  SELECT sql FROM sqlite_master WHERE name='r1';",
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.aaa),new.b);\n  END}"
+        }
+      ]
+    },
+    {
+      "name": "func-34.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "func-35.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "func-35.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "func-35.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0 CHECK(ABS(-9223372036854775808)));\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "func-36.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 -> 456",
+          "expect": "123->456"
+        }
+      ]
+    },
+    {
+      "name": "func-36.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 ->> 456",
+          "expect": "123->>456"
+        }
+      ]
+    },
+    {
+      "name": "func-37.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-37.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-37.120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-38.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "func-39.101",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "func-0.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(t1 text)"
+        }
+      ]
+    },
+    {
+      "name": "func-0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a);\n     INSERT INTO t2 VALUES(1);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(345);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(67890);\n     SELECT * FROM t2;",
+          "expect": "1 {} 345 {} 67890"
+        }
+      ]
+    },
+    {
+      "name": "func-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(t1) FROM tbl1 ORDER BY t1",
+          "expect": "4 2 7 8 4"
+        }
+      ]
+    },
+    {
+      "name": "func-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(*) FROM tbl1 ORDER BY t1",
+          "expect": "1 {wrong number of arguments to function length()}"
+        }
+      ]
+    },
+    {
+      "name": "func-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(t1,5) FROM tbl1 ORDER BY t1",
+          "expect": "1 {wrong number of arguments to function length()}"
+        }
+      ]
+    },
+    {
+      "name": "func-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(t1), count(*) FROM tbl1 GROUP BY length(t1)\n           ORDER BY length(t1)",
+          "expect": "2 1 4 2 7 1 8 1"
+        }
+      ]
+    },
+    {
+      "name": "func-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(length(a),-1) FROM t2",
+          "expect": "1 -1 3 -1 5"
+        }
+      ]
+    },
+    {
+      "name": "func-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1",
+          "expect": "fr is pr so th"
+        }
+      ]
+    },
+    {
+      "name": "func-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,2,1) FROM tbl1 ORDER BY t1",
+          "expect": "r s r o h"
+        }
+      ]
+    },
+    {
+      "name": "func-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,3,3) FROM tbl1 ORDER BY t1",
+          "expect": "ee {} ogr ftw is"
+        }
+      ]
+    },
+    {
+      "name": "func-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1",
+          "expect": "e s m e s"
+        }
+      ]
+    },
+    {
+      "name": "func-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-1,2) FROM tbl1 ORDER BY t1",
+          "expect": "e s m e s"
+        }
+      ]
+    },
+    {
+      "name": "func-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-2,1) FROM tbl1 ORDER BY t1",
+          "expect": "e i a r i"
+        }
+      ]
+    },
+    {
+      "name": "func-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-2,2) FROM tbl1 ORDER BY t1",
+          "expect": "ee is am re is"
+        }
+      ]
+    },
+    {
+      "name": "func-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-4,2) FROM tbl1 ORDER BY t1",
+          "expect": "fr {} gr wa th"
+        }
+      ]
+    },
+    {
+      "name": "func-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1 FROM tbl1 ORDER BY substr(t1,2,20)",
+          "expect": "this software free program is"
+        }
+      ]
+    },
+    {
+      "name": "func-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(a,1,1) FROM t2",
+          "expect": "1 {} 3 {} 6"
+        }
+      ]
+    },
+    {
+      "name": "func-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(a,2,2) FROM t2",
+          "expect": "{} {} 45 {} 78"
+        }
+      ]
+    },
+    {
+      "name": "func-2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr('abcdefg',0x100000001,2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func-2.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr('abcdefg',1,0x100000002)",
+          "expect": "abcdefg"
+        }
+      ]
+    },
+    {
+      "name": "func-2.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(substr(x'313233343536373839',0x7ffffffffffffffe,5))",
+          "expect": "X''"
+        }
+      ]
+    },
+    {
+      "name": "func-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(t1) FROM tbl1 ORDER BY t1",
+          "expect": "5 10 8 5"
+        }
+      ]
+    },
+    {
+      "name": "func-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1",
+          "expect": "UT ch co hi"
+        }
+      ]
+    },
+    {
+      "name": "func-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,1,3) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,2,2) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,2,3) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,3,2) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,4,2) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-3,2) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(t1,-4,3) FROM tbl1 ORDER BY t1"
+        }
+      ]
+    },
+    {
+      "name": "func-3.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl1"
+        }
+      ]
+    },
+    {
+      "name": "func-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,12345678901234,-1234567890);\n      INSERT INTO t1 VALUES(3,-2,-5);"
+        }
+      ]
+    },
+    {
+      "name": "func-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,1.2345678901234,-12345.67890);\n      INSERT INTO t1 VALUES(3,-2,-5);"
+        }
+      ]
+    },
+    {
+      "name": "func-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs() FROM t1",
+          "expect": "1 {wrong number of arguments to function abs()}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(b) FROM t1 ORDER BY a",
+          "expect": "0 {2 1.2345678901234 2}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(c) FROM t1 ORDER BY a",
+          "expect": "0 {3 12345.6789 5}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(b) FROM t1 ORDER BY a",
+          "expect": "0 {2 12345678901234 2}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(c) FROM t1 ORDER BY a",
+          "expect": "0 {3 1234567890 5}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT abs(a) FROM t2",
+          "expect": "1 {} 345 {} 67890"
+        }
+      ]
+    },
+    {
+      "name": "func-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT abs(t1) FROM tbl1",
+          "expect": "0.0 0.0 0.0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(a,b,c) FROM t1",
+          "expect": "1 {wrong number of arguments to function round()}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(b,2) FROM t1 ORDER BY b",
+          "expect": "0 {-2.0 1.23 2.0}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(b,0) FROM t1 ORDER BY a",
+          "expect": "0 {2.0 1.0 -2.0}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(c) FROM t1 ORDER BY a",
+          "expect": "0 {3.0 -12346.0 -5.0}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(c,a) FROM t1 ORDER BY a",
+          "expect": "0 {3.0 -12345.68 -5.0}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'x' || round(c,a) || 'y' FROM t1 ORDER BY a",
+          "expect": "0 {x3.0y x-12345.68y x-5.0y}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round() FROM t1 ORDER BY a",
+          "expect": "1 {wrong number of arguments to function round()}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(round(a,2),'nil') FROM t2",
+          "expect": "1.0 nil 345.0 nil 67890.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(t1,2) FROM tbl1",
+          "expect": "0.0 0.0 0.0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(round(5.1,1));",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "func-4.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(round(5.1));",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "func-4.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(b,2.0) FROM t1 ORDER BY b",
+          "expect": "0 {-2.0 1.23 2.0}"
+        }
+      ]
+    },
+    {
+      "name": "func-4.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(40223.4999999999);",
+          "expect": "40223.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(40224.4999999999);",
+          "expect": "40224.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(40225.4999999999);",
+          "expect": "40225.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(1234567890.5);",
+          "expect": "1234567891.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(12345678901.5);",
+          "expect": "12345678902.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(123456789012.5);",
+          "expect": "123456789013.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(1234567890123.5);",
+          "expect": "1234567890124.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(12345678901234.5);",
+          "expect": "12345678901235.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(1234567890123.35,1);",
+          "expect": "1234567890123.4"
+        }
+      ]
+    },
+    {
+      "name": "func-4.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(1234567890123.445,2);",
+          "expect": "1234567890123.45"
+        }
+      ]
+    },
+    {
+      "name": "func-4.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(99999999999994.5);",
+          "expect": "99999999999995.0"
+        }
+      ]
+    },
+    {
+      "name": "func-4.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(9999999999999.55,1);",
+          "expect": "9999999999999.6"
+        }
+      ]
+    },
+    {
+      "name": "func-4.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(9999999999999.556,2);",
+          "expect": "9999999999999.56"
+        }
+      ]
+    },
+    {
+      "name": "func-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT upper(t1) FROM tbl1",
+          "expect": "THIS PROGRAM IS FREE SOFTWARE"
+        }
+      ]
+    },
+    {
+      "name": "func-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT lower(upper(t1)) FROM tbl1",
+          "expect": "this program is free software"
+        }
+      ]
+    },
+    {
+      "name": "func-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT upper(a), lower(a) FROM t2",
+          "expect": "1 1 {} {} 345 345 {} {} 67890 67890"
+        }
+      ]
+    },
+    {
+      "name": "func-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT upper(a,5) FROM t2",
+          "expect": "1 {wrong number of arguments to function upper()}"
+        }
+      ]
+    },
+    {
+      "name": "func-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT upper(*) FROM t2",
+          "expect": "1 {wrong number of arguments to function upper()}"
+        }
+      ]
+    },
+    {
+      "name": "func-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(a,'xyz') FROM t2",
+          "expect": "1 xyz 345 xyz 67890"
+        }
+      ]
+    },
+    {
+      "name": "func-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(upper(a),'nil') FROM t2",
+          "expect": "1 nil 345 nil 67890"
+        }
+      ]
+    },
+    {
+      "name": "func-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(nullif(1,1),'nil')",
+          "expect": "nil"
+        }
+      ]
+    },
+    {
+      "name": "func-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(nullif(1,2),'nil')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "func-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(nullif(1,NULL),'nil')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "func-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT last_insert_rowid()"
+        }
+      ]
+    },
+    {
+      "name": "func-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN SELECT sum(a) FROM t2;",
+          "expect": "68236 3 22745.33 1 67890 5"
+        }
+      ]
+    },
+    {
+      "name": "func-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN SELECT sum(a) FROM t2;",
+          "expect": "68236 3 22745.0 1 67890 5"
+        }
+      ]
+    },
+    {
+      "name": "func-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t2;",
+          "expect": "z+67890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+        }
+      ]
+    },
+    {
+      "name": "func-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;",
+          "expect": "z+1abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+        }
+      ]
+    },
+    {
+      "name": "func-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;",
+          "expect": "z+1abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+        }
+      ]
+    },
+    {
+      "name": "func-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;",
+          "expect": "z+67890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+        }
+      ]
+    },
+    {
+      "name": "func-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(x) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "func-8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "func-8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036854775807)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "func-8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(x)>0.0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "func-8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(x)>0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "func-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT random() is not null;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "func-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(random());",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "func-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT randomblob(32) is not null;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "func-9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(randomblob(32));",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "func-9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(randomblob(32)), length(randomblob(-5)),\n           length(randomblob(2000))",
+          "expect": "32 1 2000"
+        }
+      ]
+    },
+    {
+      "name": "func-9.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(x'00112233445566778899aAbBcCdDeEfF')",
+          "expect": "00112233445566778899AABBCCDDEEFF"
+        }
+      ]
+    },
+    {
+      "name": "func-9.11-utf16le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(replace('abcdefg','ef','12'))",
+          "expect": "6100620063006400310032006700"
+        }
+      ]
+    },
+    {
+      "name": "func-9.12-utf16le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(replace('abcdefg','','12'))",
+          "expect": "6100620063006400650066006700"
+        }
+      ]
+    },
+    {
+      "name": "func-9.13-utf16le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(replace('aabcdefg','a','aaa'))",
+          "expect": "610061006100610061006100620063006400650066006700"
+        }
+      ]
+    },
+    {
+      "name": "func-9.11-utf8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(replace('abcdefg','ef','12'))",
+          "expect": "61626364313267"
+        }
+      ]
+    },
+    {
+      "name": "func-9.12-utf8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(replace('abcdefg','','12'))",
+          "expect": "61626364656667"
+        }
+      ]
+    },
+    {
+      "name": "func-9.13-utf8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(replace('aabcdefg','a','aaa'))",
+          "expect": "616161616161626364656667"
+        }
+      ]
+    },
+    {
+      "name": "func-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT testfunc(NULL,NULL);",
+          "expect": "1 {first argument should be one of: int int64 string double null value}"
+        }
+      ]
+    },
+    {
+      "name": "func-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT testfunc(\n     'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n     'int', 1234\n    );",
+          "expect": "1234"
+        }
+      ]
+    },
+    {
+      "name": "func-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT testfunc(\n     'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n     'string', NULL\n    );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT testfunc(\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234\n      );",
+          "expect": "1.234"
+        }
+      ]
+    },
+    {
+      "name": "func-10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT testfunc(\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'int', 1234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'string', NULL,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'int', 1234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'string', NULL,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234\n      );",
+          "expect": "1.234"
+        }
+      ]
+    },
+    {
+      "name": "func-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_version(*);"
+        }
+      ]
+    },
+    {
+      "name": "func-12.1-utf8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_destructor('hello world'), test_destructor_count();",
+          "expect": "{hello world} 1"
+        }
+      ]
+    },
+    {
+      "name": "func-12.1-utf16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_destructor16('hello world'), test_destructor_count();",
+          "expect": "{hello world} 1"
+        }
+      ]
+    },
+    {
+      "name": "func-12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_destructor_count();",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "func-12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_destructor('hello')||' world'",
+          "expect": "{hello world}"
+        }
+      ]
+    },
+    {
+      "name": "func-12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_destructor_count();",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "func-12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(test_destructor('hello'));\n    INSERT INTO t4 VALUES(test_destructor('world'));\n    SELECT min(test_destructor(x)), max(test_destructor(x)) FROM t4;",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "func-12.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_destructor_count();",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "func-12.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4;"
+        }
+      ]
+    },
+    {
+      "name": "func-13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('hello world');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "func-13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('abc', 'def');\n    INSERT INTO t4 VALUES('ghi', 'jkl');"
+        }
+      ]
+    },
+    {
+      "name": "func-13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('hello world') FROM t4;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "func-13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('hello world', 123) FROM t4;",
+          "expect": "{0 0} {1 1}"
+        }
+      ]
+    },
+    {
+      "name": "func-13.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('hello world', a) FROM t4;",
+          "expect": "{0 0} {1 0}"
+        }
+      ]
+    },
+    {
+      "name": "func-13.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_auxdata('hello'||'world', a) FROM t4;",
+          "expect": "{0 0} {1 0}"
+        }
+      ]
+    },
+    {
+      "name": "func-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select test_error(NULL)",
+          "expect": "1 {}"
+        }
+      ]
+    },
+    {
+      "name": "func-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select test_error('this is the error message')",
+          "expect": "1 {this is the error message}"
+        }
+      ]
+    },
+    {
+      "name": "func-15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select test_error('this is the error message',12)",
+          "expect": "1 {this is the error message}"
+        }
+      ]
+    },
+    {
+      "name": "func-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "func-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT testfunc1(1,2,3);",
+          "expect": "1 {Error %d with %s percents %p}"
+        }
+      ]
+    },
+    {
+      "name": "func-18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(-99);\n    INSERT INTO t5 VALUES(10000);\n    SELECT sum(x) FROM t5;",
+          "expect": "9902"
+        }
+      ]
+    },
+    {
+      "name": "func-18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES(0.0);\n      SELECT sum(x) FROM t5;",
+          "expect": "9902.0"
+        }
+      ]
+    },
+    {
+      "name": "func-18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t5;\n    SELECT sum(x), total(x) FROM t5;",
+          "expect": "{} 0.0"
+        }
+      ]
+    },
+    {
+      "name": "func-18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5",
+          "expect": "{} 0.0"
+        }
+      ]
+    },
+    {
+      "name": "func-18.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5",
+          "expect": "{} 0.0"
+        }
+      ]
+    },
+    {
+      "name": "func-18.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES(123);\n    SELECT sum(x), total(x) FROM t5",
+          "expect": "123 123.0"
+        }
+      ]
+    },
+    {
+      "name": "func-18.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6(x INTEGER);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)+1) from t6;"
+        }
+      ]
+    },
+    {
+      "name": "func-18.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(sum(x)) FROM t6"
+        }
+      ]
+    },
+    {
+      "name": "func-18.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(-9223372036854775805);"
+        }
+      ]
+    },
+    {
+      "name": "func-18.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM \n       (SELECT 9223372036854775807 AS x UNION ALL\n        SELECT 10 AS x);",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-18.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM \n         (SELECT 9223372036854775807 AS x UNION ALL\n          SELECT -10 AS x);",
+          "expect": "0 9223372036854775797"
+        }
+      ]
+    },
+    {
+      "name": "func-18.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM \n         (SELECT -9223372036854775807 AS x UNION ALL\n          SELECT 10 AS x);",
+          "expect": "0 -9223372036854775797"
+        }
+      ]
+    },
+    {
+      "name": "func-18.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM \n       (SELECT -9223372036854775807 AS x UNION ALL\n        SELECT -10 AS x);",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-18.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT 9 AS x UNION ALL SELECT -10 AS x);",
+          "expect": "0 -1"
+        }
+      ]
+    },
+    {
+      "name": "func-18.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT -9 AS x UNION ALL SELECT 10 AS x);",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "func-18.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT -10 AS x UNION ALL SELECT 9 AS x);",
+          "expect": "0 -1"
+        }
+      ]
+    },
+    {
+      "name": "func-18.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT 10 AS x UNION ALL SELECT -9 AS x);",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "func-18.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(-9223372036854775807);",
+          "expect": "0 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "func-18.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(-9223372036854775807-1);",
+          "expect": "1 {integer overflow}"
+        }
+      ]
+    },
+    {
+      "name": "func-19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT match(a,b) FROM t1 WHERE 0;"
+        }
+      ]
+    },
+    {
+      "name": "func-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' MATCH 'xyz';",
+          "expect": "1 {unable to use function MATCH in the requested context}"
+        }
+      ]
+    },
+    {
+      "name": "func-19.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' NOT MATCH 'xyz';",
+          "expect": "1 {unable to use function MATCH in the requested context}"
+        }
+      ]
+    },
+    {
+      "name": "func-19.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT match(1,2,3);",
+          "expect": "1 {wrong number of arguments to function match()}"
+        }
+      ]
+    },
+    {
+      "name": "func-21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT replace(1,2);",
+          "expect": "1 {wrong number of arguments to function replace()}"
+        }
+      ]
+    },
+    {
+      "name": "func-21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT replace(1,2,3,4);",
+          "expect": "1 {wrong number of arguments to function replace()}"
+        }
+      ]
+    },
+    {
+      "name": "func-21.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(replace('This is the main test string', NULL, 'ALT'));",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "func-21.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(replace(NULL, 'main', 'ALT'));",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "func-21.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(replace('This is the main test string', 'main', NULL));",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "func-21.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT replace('This is the main test string', 'main', 'ALT');",
+          "expect": "{This is the ALT test string}"
+        }
+      ]
+    },
+    {
+      "name": "func-21.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT replace('This is the main test string', 'main', 'larger-main');",
+          "expect": "{This is the larger-main test string}"
+        }
+      ]
+    },
+    {
+      "name": "func-21.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT replace('aaaaaaa', 'a', '0123456789');",
+          "expect": "0123456789012345678901234567890123456789012345678901234567890123456789"
+        }
+      ]
+    },
+    {
+      "name": "func-21.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT LENGTH(REPLACE($::str, 'C', $::rep));"
+        }
+      ]
+    },
+    {
+      "name": "func-22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT trim(1,2,3)",
+          "expect": "1 {wrong number of arguments to function trim()}"
+        }
+      ]
+    },
+    {
+      "name": "func-22.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ltrim(1,2,3)",
+          "expect": "1 {wrong number of arguments to function ltrim()}"
+        }
+      ]
+    },
+    {
+      "name": "func-22.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rtrim(1,2,3)",
+          "expect": "1 {wrong number of arguments to function rtrim()}"
+        }
+      ]
+    },
+    {
+      "name": "func-22.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT trim('  hi  ');",
+          "expect": "hi"
+        }
+      ]
+    },
+    {
+      "name": "func-22.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ltrim('  hi  ');",
+          "expect": "{hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtrim('  hi  ');",
+          "expect": "{  hi}"
+        }
+      ]
+    },
+    {
+      "name": "func-22.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT trim('  hi  ','xyz');",
+          "expect": "{  hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ltrim('  hi  ','xyz');",
+          "expect": "{  hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtrim('  hi  ','xyz');",
+          "expect": "{  hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT trim('xyxzy  hi  zzzy','xyz');",
+          "expect": "{  hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ltrim('xyxzy  hi  zzzy','xyz');",
+          "expect": "{  hi  zzzy}"
+        }
+      ]
+    },
+    {
+      "name": "func-22.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtrim('xyxzy  hi  zzzy','xyz');",
+          "expect": "{xyxzy  hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT trim('  hi  ','');",
+          "expect": "{  hi  }"
+        }
+      ]
+    },
+    {
+      "name": "func-22.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))",
+          "expect": "F48FBFBF6869"
+        }
+      ]
+    },
+    {
+      "name": "func-22.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))",
+          "expect": "6869"
+        }
+      ]
+    },
+    {
+      "name": "func-22.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));",
+          "expect": "CEB2CEB3"
+        }
+      ]
+    },
+    {
+      "name": "func-22.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(trim(NULL));",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "func-22.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(trim(NULL,'xyz'));",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "func-22.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(trim('hello',NULL));",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "func-23.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT legacy_count() FROM t6;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "func-24.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(t1), string_agg(t1,',') FROM tbl1",
+          "expect": "this,program,is,free,software this,program,is,free,software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1",
+          "expect": "{this program is free software} {this program is free software}"
+        }
+      ]
+    },
+    {
+      "name": "func-24.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1",
+          "expect": "{this 2 program 3 is 4 free 5 software}"
+        }
+      ]
+    },
+    {
+      "name": "func-24.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(NULL,t1) FROM tbl1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func-24.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1",
+          "expect": "thisprogramisfreesoftware thisprogramisfreesoftware"
+        }
+      ]
+    },
+    {
+      "name": "func-24.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'BEGIN-'||group_concat(t1) FROM tbl1",
+          "expect": "BEGIN-this,program,is,free,software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1",
+          "expect": ",program,is,free,software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1",
+          "expect": ",,,,software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1",
+          "expect": "program,is,free,software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1",
+          "expect": "software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1",
+          "expect": ",is,free,software"
+        }
+      ]
+    },
+    {
+      "name": "func-24.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "func-24.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "func-25.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_isolation(t1,t1) FROM tbl1",
+          "expect": "this program is free software"
+        }
+      ]
+    },
+    {
+      "name": "func-27.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce()",
+          "expect": "1 {wrong number of arguments to function coalesce()}"
+        }
+      ]
+    },
+    {
+      "name": "func-27.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(1)",
+          "expect": "1 {wrong number of arguments to function coalesce()}"
+        }
+      ]
+    },
+    {
+      "name": "func-27.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(1,2)",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "func-28.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t28(x) VALUES(1);",
+          "expect": "1 {unknown function: nosuchfunc()}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(t1 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1 FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n     INSERT INTO t2 VALUES(1);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(345);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(67890);\n     SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(t1) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(*) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(t1,5) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(t1), count(*) FROM tbl1 GROUP BY length(t1)\n           ORDER BY length(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(length(a),-1) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,2,1) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,3,3) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-1,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-2,1) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-2,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-4,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1 FROM tbl1 ORDER BY substr(t1,2,20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(a,1,1) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(a,2,2) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr('abcdefg',0x100000001,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr('abcdefg',1,0x100000002)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(substr(x'313233343536373839',0x7ffffffffffffffe,5))"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1 FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(t1) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,1,3) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,2,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,2,3) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,3,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,4,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-1,1) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-3,2) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(t1,-4,3) FROM tbl1 ORDER BY t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1 FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,12345678901234,-1234567890);\n      INSERT INTO t1 VALUES(3,-2,-5);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,1.2345678901234,-12345.67890);\n      INSERT INTO t1 VALUES(3,-2,-5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT abs(t1) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(round(a,2),'nil') FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(t1,2) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(round(5.1,1));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(round(5.1));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(40223.4999999999);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(40224.4999999999);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(40225.4999999999);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(1234567890.5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(12345678901.5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(123456789012.5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(1234567890123.5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(12345678901234.5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(1234567890123.35,1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(1234567890123.445,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(99999999999994.5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(9999999999999.55,1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(9999999999999.556,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT upper(t1) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT lower(upper(t1)) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT upper(a), lower(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(a,'xyz') FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(upper(a),'nil') FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(nullif(1,1),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(nullif(1,2),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(nullif(1,NULL),'nil')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT last_insert_rowid()"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT sum(a) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a), count(a), round(avg(a),2), min(a), max(a), count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT sum(a) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a), count(a), avg(a), min(a), max(a), count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775807' AS x\n                          UNION ALL SELECT -9223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(sum(x)) FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036854775807)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x)>0.0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x)>0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT random() is not null;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(random());"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT randomblob(32) is not null;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(randomblob(32));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(randomblob(32)), length(randomblob(-5)),\n           length(randomblob(2000))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(x'00112233445566778899aAbBcCdDeEfF')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(replace('abcdefg','ef','12'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(replace('abcdefg','','12'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(replace('aabcdefg','a','aaa'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(replace('abcdefg','ef','12'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(replace('abcdefg','','12'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(replace('aabcdefg','a','aaa'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT testfunc(\n     'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n     'int', 1234\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT testfunc(\n     'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n     'string', NULL\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT testfunc(\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT testfunc(\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'int', 1234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'string', NULL,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'int', 1234,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'string', NULL,\n       'string', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',\n       'double', 1.234\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sqlite_version(*);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_destructor('hello world'), test_destructor_count();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_destructor16('hello world'), test_destructor_count();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_destructor_count();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_destructor('hello')||' world'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_destructor_count();"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(test_destructor('hello'));\n    INSERT INTO t4 VALUES(test_destructor('world'));\n    SELECT min(test_destructor(x)), max(test_destructor(x)) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_destructor_count();"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_auxdata('hello world');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('abc', 'def');\n    INSERT INTO t4 VALUES('ghi', 'jkl');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_auxdata('hello world') FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_auxdata('hello world', 123) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_auxdata('hello world', a) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_auxdata('hello'||'world', a) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(a), quote(b) FROM tbl2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(-99);\n    INSERT INTO t5 VALUES(10000);\n    SELECT sum(x) FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(0.0);\n      SELECT sum(x) FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n    SELECT sum(x), total(x) FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(123);\n    SELECT sum(x), total(x) FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x INTEGER);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)+1) from t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(sum(x)) FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(-9223372036854775805);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT match(a,b) FROM t1 WHERE 0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(replace('This is the main test string', NULL, 'ALT'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(replace(NULL, 'main', 'ALT'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(replace('This is the main test string', 'main', NULL));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT replace('This is the main test string', 'main', 'ALT');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT replace('This is the main test string', 'main', 'larger-main');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT replace('aaaaaaa', 'a', '0123456789');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT LENGTH(REPLACE($::str, 'C', $::rep));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT trim('  hi  ');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ltrim('  hi  ');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtrim('  hi  ');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT trim('  hi  ','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ltrim('  hi  ','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtrim('  hi  ','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT trim('xyxzy  hi  zzzy','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ltrim('xyxzy  hi  zzzy','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtrim('xyxzy  hi  zzzy','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT trim('  hi  ','');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(trim(NULL));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(trim(NULL,'xyz'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(trim('hello',NULL));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT legacy_count() FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(t1), string_agg(t1,',') FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(NULL,t1) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'BEGIN-'||group_concat(t1) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_isolation(t1,t1) FROM tbl1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(1e500), round(-1e500);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT soundex('hello')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t28(x, y DEFAULT(nosuchfunc(1)));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(+x) FROM t29 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(length(x)) FROM t29"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT testdirectonly(15)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

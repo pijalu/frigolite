@@ -1,0 +1,26 @@
+{
+  "file": "tkt-4c86b126f2.test",
+  "name": "tkt_4c86b126f2",
+  "tests": [
+    {
+      "name": "tkt-4c86b126f2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE nodes(\n     local_relpath  TEXT PRIMARY KEY,\n     moved_to  TEXT\n  );\n  INSERT INTO nodes VALUES('A',NULL);\n  INSERT INTO nodes VALUES('A/B',NULL);\n  INSERT INTO nodes VALUES('',NULL);\n  INSERT INTO nodes VALUES('A/B/C-move',NULL);\n  INSERT INTO nodes VALUES('A/B/C','A/B/C-move');\n  INSERT INTO nodes VALUES('A/B-move',NULL);\n  INSERT INTO nodes VALUES('A/B-move/C-move',NULL);\n  INSERT INTO nodes VALUES('A/B-move/C','x');\n  SELECT local_relpath, moved_to\n   FROM nodes\n  WHERE (local_relpath = 'A/B' OR\n           ((local_relpath > 'A/B/') AND (local_relpath < 'A/B0')))\n    AND moved_to IS NOT NULL;",
+          "expect": "A/B/C A/B/C-move"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4c86b126f2-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x TEXT UNIQUE, y TEXT UNIQUE, z);\n  INSERT INTO t1 VALUES('ghi','jkl','y');\n  SELECT * FROM t1 WHERE (x='ghi' OR y='jkl') AND z IS NOT NULL;",
+          "expect": "ghi jkl y"
+        }
+      ]
+    }
+  ]
+}

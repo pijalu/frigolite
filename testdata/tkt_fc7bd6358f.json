@@ -1,0 +1,23 @@
+{
+  "file": "tkt-fc7bd6358f.test",
+  "name": "tkt_fc7bd6358f",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        }
+      ]
+    }
+  ]
+}

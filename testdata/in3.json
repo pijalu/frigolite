@@ -1,0 +1,161 @@
+{
+  "file": "in3.test",
+  "name": "in3",
+  "tests": [
+    {
+      "name": "in3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "in3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);"
+        }
+      ]
+    },
+    {
+      "name": "in3-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid \n    FROM t1 \n    WHERE rowid IN (SELECT rowid FROM t1 WHERE rowid IN (1, 2));",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "in3-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select rowid from t1 where rowid IN (-1,2,4)",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "in3-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE rowid IN \n       (select rowid from t1 where rowid IN (-1,2,4))",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "in3-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;"
+        }
+      ]
+    },
+    {
+      "name": "in3-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c);\n    CREATE UNIQUE INDEX t3_i ON t3(b, a);"
+        }
+      ]
+    },
+    {
+      "name": "in3-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX t3_i2 ON t3(b)"
+        }
+      ]
+    },
+    {
+      "name": "in3-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t3_i2"
+        }
+      ]
+    },
+    {
+      "name": "in3-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Folders(\n      folderid INTEGER PRIMARY KEY, \n      parentid INTEGER, \n      rootid INTEGER, \n      path VARCHAR(255)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "in3-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM Folders WHERE folderid IN\n    (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');",
+          "expect": "1 {no such table: Folder}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);"
+        },
+        {
+          "type": "exec",
+          "sql": "select max(y) from t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid \n    FROM t1 \n    WHERE rowid IN (SELECT rowid FROM t1 WHERE rowid IN (1, 2));"
+        },
+        {
+          "type": "exec",
+          "sql": "select rowid from t1 where rowid IN (-1,2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE rowid IN \n       (select rowid from t1 where rowid IN (-1,2,4))"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a BLOB, b NUMBER ,c TEXT);\n    CREATE UNIQUE INDEX t1_i1 ON t1(a);        /* no affinity */\n    CREATE UNIQUE INDEX t1_i2 ON t1(b);        /* numeric affinity */\n    CREATE UNIQUE INDEX t1_i3 ON t1(c);        /* text affinity */\n\n    CREATE TABLE t2(x BLOB, y NUMBER, z TEXT);\n    CREATE UNIQUE INDEX t2_i1 ON t2(x);        /* no affinity */\n    CREATE UNIQUE INDEX t2_i2 ON t2(y);        /* numeric affinity */\n    CREATE UNIQUE INDEX t2_i3 ON t2(z);        /* text affinity */\n\n    INSERT INTO t1 VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES('1', '1', '1');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c);\n    CREATE UNIQUE INDEX t3_i ON t3(b, a);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 'numeric', 2);\n    INSERT INTO t3 VALUES(2, 'text', 2);\n    INSERT INTO t3 VALUES(3, 'real', 2);\n    INSERT INTO t3 VALUES(4, 'none', 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX t3_i2 ON t3(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t3_i2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Folders(\n      folderid INTEGER PRIMARY KEY, \n      parentid INTEGER, \n      rootid INTEGER, \n      path VARCHAR(255)\n    );"
+        }
+      ]
+    }
+  ]
+}

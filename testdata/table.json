@@ -1,0 +1,1157 @@
+{
+  "file": "table.test",
+  "name": "table",
+  "tests": [
+    {
+      "name": "table-16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t16(x DEFAULT(max(1)));\n  INSERT INTO t16(x) VALUES(123);\n  SELECT rowid, x FROM t16;",
+          "expect": "1 123"
+        }
+      ]
+    },
+    {
+      "name": "table-16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t16(rowid) VALUES(4);",
+          "expect": "1 {unknown function: max()}"
+        }
+      ]
+    },
+    {
+      "name": "table-16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(abs(1)));\n  INSERT INTO t16(rowid) VALUES(4);\n  SELECT rowid, x FROM t16;",
+          "expect": "4 1"
+        }
+      ]
+    },
+    {
+      "name": "table-16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(avg(1)));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;",
+          "expect": "1 {unknown function: avg()}"
+        }
+      ]
+    },
+    {
+      "name": "table-16.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(count()));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;",
+          "expect": "1 {unknown function: count()}"
+        }
+      ]
+    },
+    {
+      "name": "table-16.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(string_agg('x',',')));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;",
+          "expect": "1 {unknown function: string_agg()}"
+        }
+      ]
+    },
+    {
+      "name": "table-16.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t16 DEFAULT VALUES;",
+          "expect": "1 {unknown function: string_agg()}"
+        }
+      ]
+    },
+    {
+      "name": "table-17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES(1),(2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x TEXT, y TEXT);\n  INSERT INTO t2(x,y) VALUES(3,4);\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS\n    SELECT a AS p, coalesce(y,a) AS q FROM t1 LEFT JOIN t2 ON a=x;\n  SELECT p, q, '|' FROM t3 ORDER BY p;",
+          "expect": "1 1 | 2 2 |"
+        }
+      ]
+    },
+    {
+      "name": "table-18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  BEGIN;\n  CREATE TABLE t1 AS SELECT zeroblob(2e20);",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "table-18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "table-19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t19 AS SELECT * FROM sqlite_master;\n  SELECT name FROM t19 ORDER BY name;",
+          "expect": "{} savepoint t10 t11 t12 t13 t16 t2 t3 t3\\\"xyz t4\\\"abc t7 t8 t9 tablet8 test1 weird"
+        }
+      ]
+    },
+    {
+      "name": "table-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1 (\n      one varchar(10),\n      two text\n    )"
+        }
+      ]
+    },
+    {
+      "name": "table-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, tbl_name, type FROM sqlite_master WHERE type!='meta'",
+          "expect": "test1 test1 table"
+        }
+      ]
+    },
+    {
+      "name": "table-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, tbl_name, type from sqlite_master WHERE type!='meta'",
+          "expect": "test1 test1 table"
+        }
+      ]
+    },
+    {
+      "name": "table-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        }
+      ]
+    },
+    {
+      "name": "table-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        }
+      ]
+    },
+    {
+      "name": "table-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"create\" (f1 int)"
+        }
+      ]
+    },
+    {
+      "name": "table-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"create\""
+        }
+      ]
+    },
+    {
+      "name": "table-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(\"f1 ho\" int)"
+        }
+      ]
+    },
+    {
+      "name": "table-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"TEST1\""
+        }
+      ]
+    },
+    {
+      "name": "table-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE TEST2(one text)"
+        }
+      ]
+    },
+    {
+      "name": "table-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"test2\" (two)",
+          "expect": "1 {table \"test2\" already exists}"
+        }
+      ]
+    },
+    {
+      "name": "table-2.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sqlite_master(two text)"
+        }
+      ]
+    },
+    {
+      "name": "table-2.1c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sqlite_master(two text)"
+        }
+      ]
+    },
+    {
+      "name": "table-2.1d",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS test2(x,y)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-2.1e",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS test2(x UNIQUE, y TEXT PRIMARY KEY)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-2.1f",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE test2; SELECT name FROM sqlite_master WHERE type!='meta'"
+        }
+      ]
+    },
+    {
+      "name": "table-2.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test2(one text)"
+        }
+      ]
+    },
+    {
+      "name": "table-2.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test3(two text)"
+        }
+      ]
+    },
+    {
+      "name": "table-2.2c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name",
+          "expect": "test2 test3"
+        }
+      ]
+    },
+    {
+      "name": "table-2.2d",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX test3"
+        }
+      ]
+    },
+    {
+      "name": "table-2.2e",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name",
+          "expect": "test2 test3"
+        }
+      ]
+    },
+    {
+      "name": "table-2.2f",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test2; DROP TABLE test3"
+        }
+      ]
+    },
+    {
+      "name": "table-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE type=='table'"
+        }
+      ]
+    },
+    {
+      "name": "table-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE BIG(xyz foo)"
+        }
+      ]
+    },
+    {
+      "name": "table-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE biG(xyz foo)"
+        }
+      ]
+    },
+    {
+      "name": "table-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE bIg(xyz foo)"
+        }
+      ]
+    },
+    {
+      "name": "table-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Big(xyz foo)"
+        }
+      ]
+    },
+    {
+      "name": "table-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE big"
+        }
+      ]
+    },
+    {
+      "name": "table-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "table-4.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "table-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma vdbe_trace=on"
+        }
+      ]
+    },
+    {
+      "name": "table-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "table-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test009",
+          "expect": "1 {no such table: test009}"
+        }
+      ]
+    },
+    {
+      "name": "table-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS test009",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS sqlite_master",
+          "expect": "1 {table sqlite_master may not be dropped}"
+        }
+      ]
+    },
+    {
+      "name": "table-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN CREATE TABLE test1(f1 int)"
+        }
+      ]
+    },
+    {
+      "name": "table-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int)"
+        }
+      ]
+    },
+    {
+      "name": "table-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE 'Spaces In This Name!'(x int)"
+        }
+      ]
+    },
+    {
+      "name": "table-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      [14_vac] boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )"
+        }
+      ]
+    },
+    {
+      "name": "table-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO weird VALUES('a','b',9,0,'xyz','hi','y''all');\n    SELECT * FROM weird;",
+          "expect": "a b 9 0 xyz hi y'all"
+        }
+      ]
+    },
+    {
+      "name": "table-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE savepoint(release);\n    INSERT INTO savepoint(release) VALUES(10);\n    UPDATE savepoint SET release = 5;\n    SELECT release FROM savepoint;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "table-8.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE name='t2';",
+          "expect": "{CREATE TABLE t2(\n  \"desc\" TEXT,\n  \"asc\" TEXT,\n  \"key\" INT,\n  \"14_vac\" NUM,\n  fuzzy_dog_12 TEXT,\n  \"begin\",\n  \"end\" TEXT\n)}"
+        }
+      ]
+    },
+    {
+      "name": "table-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO [t3\"xyz] VALUES(1,2,3);\n    SELECT * FROM [t3\"xyz];",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "table-8.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE name='t4\"abc'",
+          "expect": "{CREATE TABLE \"t4\"\"abc\"(cnt,\"max(b+c)\")}"
+        }
+      ]
+    },
+    {
+      "name": "table-8.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5;",
+          "expect": "1 {no such table: t5}"
+        }
+      ]
+    },
+    {
+      "name": "table-8.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5 AS SELECT * FROM no_such_table;",
+          "expect": "1 {no such table: no_such_table}"
+        }
+      ]
+    },
+    {
+      "name": "table-8.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t10(\"col.1\" [char.3]);\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';",
+          "expect": "{CREATE TABLE t11(\"col.1\" TEXT)}"
+        }
+      ]
+    },
+    {
+      "name": "table-8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t12(\n      a INTEGER,\n      b VARCHAR(10),\n      c VARCHAR(1,10),\n      d VARCHAR(+1,-10),\n      e VARCHAR (+1,-10),\n      f \"VARCHAR (+1,-10, 5)\",\n      g BIG INTEGER\n    );\n    CREATE TABLE t13 AS SELECT * FROM t12;\n    SELECT sql FROM sqlite_master WHERE name = 't13';",
+          "expect": "{CREATE TABLE t13(\n  a INT,\n  b TEXT,\n  c TEXT,\n  d TEXT,\n  e TEXT,\n  f TEXT,\n  g INT\n)}"
+        }
+      ]
+    },
+    {
+      "name": "table-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a,b,a);",
+          "expect": "1 {duplicate column name: a}"
+        }
+      ]
+    },
+    {
+      "name": "table-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a varchar(100), b blob, a integer);",
+          "expect": "1 {duplicate column name: a}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a REFERENCES t4(a) NOT NULL);\n    INSERT INTO t6 VALUES(NULL);",
+          "expect": "1 {NOT NULL constraint failed: t6.a}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a REFERENCES t4(a) MATCH PARTIAL);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a REFERENCES t4 MATCH FULL ON DELETE SET NULL NOT NULL);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a REFERENCES t4 MATCH FULL ON UPDATE SET DEFAULT DEFAULT 1);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a NOT NULL NOT DEFERRABLE INITIALLY IMMEDIATE);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a NOT NULL DEFERRABLE INITIALLY DEFERRED);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a,\n      FOREIGN KEY (a) REFERENCES t4(b) DEFERRABLE INITIALLY DEFERRED\n    );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (b,c) REFERENCES t4(x,y) MATCH PARTIAL\n        ON UPDATE SET NULL ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED\n    );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (b,c) REFERENCES t4(x)\n    );",
+          "expect": "1 {number of columns in foreign key does not match the number of columns in the referenced table}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6",
+          "expect": "1 {number of columns in foreign key does not match the number of columns in the referenced table}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6",
+          "expect": "1 {foreign key on c should reference only one column of table t4}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6",
+          "expect": "1 {unknown column \"x\" in foreign key definition}"
+        }
+      ]
+    },
+    {
+      "name": "table-10.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6",
+          "expect": "1 {unknown column \"x\" in foreign key definition}"
+        }
+      ]
+    },
+    {
+      "name": "table-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7(\n       a integer primary key,\n       b number(5,10),\n       c character varying (8),\n       d VARCHAR(9),\n       e clob,\n       f BLOB,\n       g Text,\n       h\n    );\n    INSERT INTO t7(a) VALUES(1);\n    SELECT typeof(a), typeof(b), typeof(c), typeof(d),\n           typeof(e), typeof(f), typeof(g), typeof(h)\n    FROM t7 LIMIT 1;",
+          "expect": "integer null null null null null null null"
+        }
+      ]
+    },
+    {
+      "name": "table-11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(a+b), typeof(a||b), typeof(c+d), typeof(c||d)\n    FROM t7 LIMIT 1;",
+          "expect": "null null null null"
+        }
+      ]
+    },
+    {
+      "name": "table-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8 AS SELECT b, h, a as i, (SELECT f FROM t7) as j FROM t7;"
+        }
+      ]
+    },
+    {
+      "name": "table-12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE tbl_name = 't8'",
+          "expect": "{CREATE TABLE t8(b NUM,h,i INT,j)}"
+        }
+      ]
+    },
+    {
+      "name": "table-13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE tablet8(\n       a integer primary key,\n       tm text DEFAULT CURRENT_TIME,\n       dt text DEFAULT CURRENT_DATE,\n       dttm text DEFAULT CURRENT_TIMESTAMP\n    );\n    SELECT * FROM tablet8;"
+        }
+      ]
+    },
+    {
+      "name": "table-14.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as aux;"
+        }
+      ]
+    },
+    {
+      "name": "table-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "table-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1 (\n      one varchar(10),\n      two text\n    )"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, tbl_name, type FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, tbl_name, type from sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"create\" (f1 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"create\""
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM \"sqlite_master\" WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(\"f1 ho\" int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name as \"X\" FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"TEST1\""
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM \"sqlite_master\" WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE TEST2(one text)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sqlite_master(two text)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sqlite_master(two text)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test2; SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test2(one text)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX test3 ON test2(one)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test3(two text)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX test3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test3(two text)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test2; DROP TABLE test3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE type=='table'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE BIG(xyz foo)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE biG(xyz foo)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE bIg(xyz foo)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Big(xyz foo)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE big"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma vdbe_trace=on"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN CREATE TABLE test1(f1 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE 'Spaces In This Name!'(x int)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO 'spaces in this name!' VALUES(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      [14_vac] boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO weird VALUES('a','b',9,0,'xyz','hi','y''all');\n    SELECT * FROM weird;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE savepoint(release);\n    INSERT INTO savepoint(release) VALUES(10);\n    UPDATE savepoint SET release = 5;\n    SELECT release FROM savepoint;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE name='t2';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO [t3\"xyz] VALUES(1,2,3);\n    SELECT * FROM [t3\"xyz];"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE name='t4\"abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(\"col.1\" [char.3]);\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t12(\n      a INTEGER,\n      b VARCHAR(10),\n      c VARCHAR(1,10),\n      d VARCHAR(+1,-10),\n      e VARCHAR (+1,-10),\n      f \"VARCHAR (+1,-10, 5)\",\n      g BIG INTEGER\n    );\n    CREATE TABLE t13 AS SELECT * FROM t12;\n    SELECT sql FROM sqlite_master WHERE name = 't13';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(\n       a integer primary key,\n       b number(5,10),\n       c character varying (8),\n       d VARCHAR(9),\n       e clob,\n       f BLOB,\n       g Text,\n       h\n    );\n    INSERT INTO t7(a) VALUES(1);\n    SELECT typeof(a), typeof(b), typeof(c), typeof(d),\n           typeof(e), typeof(f), typeof(g), typeof(h)\n    FROM t7 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a+b), typeof(a||b), typeof(c+d), typeof(c||d)\n    FROM t7 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8 AS SELECT b, h, a as i, (SELECT f FROM t7) as j FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8 AS SELECT b, h, a as i, f as j FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE tbl_name = 't8'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tablet8(\n       a integer primary key,\n       tm text DEFAULT CURRENT_TIME,\n       dt text DEFAULT CURRENT_DATE,\n       dttm text DEFAULT CURRENT_TIMESTAMP\n    );\n    SELECT * FROM tablet8;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat1;\n    DROP TABLE IF EXISTS sqlite_stat2;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_stat*';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;"
+        },
+        {
+          "type": "exec",
+          "sql": "#   pragma vdbe_trace = 0;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tablet8 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tablet8 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t9;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tablet8 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t1(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tablet8 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE aux.t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

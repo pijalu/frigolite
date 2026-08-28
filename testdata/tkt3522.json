@@ -1,0 +1,19 @@
+{
+  "file": "tkt3522.test",
+  "name": "tkt3522",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tab4(\n       col0 INTEGER,\n       col1 INTEGER,\n       col2 INTEGER,\n       col3 INTEGER,\n       col4 INTEGER\n    );\n    SELECT cor1.*\n      FROM tab4 AS cor0\n      JOIN tab4 AS cor1 USING ( col4, col3, col2, col1, col0 );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tab1(col0 INTEGER);\n    CREATE TABLE tab2(col0 INTEGER);\n    SELECT cor0.* FROM tab1 NATURAL JOIN tab2 AS cor0;"
+        }
+      ]
+    }
+  ]
+}

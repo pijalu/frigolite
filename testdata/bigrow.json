@@ -1,0 +1,672 @@
+{
+  "file": "bigrow.test",
+  "name": "bigrow",
+  "tests": [
+    {
+      "name": "bigrow-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a text, b text, c text);\n    SELECT name FROM sqlite_master\n      WHERE type='table' OR type='index'\n      ORDER BY name",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc',"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, c FROM t1",
+          "expect": "abc xyz"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc2',",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY c"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 ORDER BY c",
+          "expect": "xyz xyz2"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a='abc2'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a;\n    SELECT b,c FROM t1",
+          "expect": "abc xyz"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1','2','3');\n    INSERT INTO t1 VALUES('A','B','C');\n    SELECT b FROM t1 WHERE a=='1';",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=='$::big1'",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a!='$::big1' ORDER BY a",
+          "expect": "2 B"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=='$::big1'",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=='abc'"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=='$::big1'",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1",
+          "expect": "one 30 hi"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1",
+          "expect": "one 240 hi"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'2'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'3'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'4'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'5'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'6'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'7'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'8'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-3.3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'9'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1",
+          "expect": "one 30 hi"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1",
+          "expect": "one 122880 hi"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=substr(b,1,65515)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1",
+          "expect": "one 65515 hi"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'2'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'3'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'4'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'5'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'6'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'7'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'8'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-4.4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||'9'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1",
+          "expect": "one 30 hi"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET b=b||b",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT length(b) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET b=b||b",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT length(b) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "bigrow-5.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    }
+  ]
+}

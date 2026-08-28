@@ -1,0 +1,146 @@
+{
+  "file": "tokenize.test",
+  "name": "tokenize",
+  "tests": [
+    {
+      "name": "tokenize-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e+",
+          "expect": "1 {unrecognized token: \"1.0e\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0E+",
+          "expect": "1 {unrecognized token: \"1.0E\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e-",
+          "expect": "1 {unrecognized token: \"1.0e\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0E-",
+          "expect": "1 {unrecognized token: \"1.0E\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e+/",
+          "expect": "1 {unrecognized token: \"1.0e\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0E+:",
+          "expect": "1 {unrecognized token: \"1.0E\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e-:",
+          "expect": "1 {unrecognized token: \"1.0e\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0E-/",
+          "expect": "1 {unrecognized token: \"1.0E\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0F+5",
+          "expect": "1 {unrecognized token: \"1.0F\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0d-10",
+          "expect": "1 {unrecognized token: \"1.0d\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e,5",
+          "expect": "1 {unrecognized token: \"1.0e\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0E.10",
+          "expect": "1 {unrecognized token: \"1.0E\"}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2 /*",
+          "expect": "1 {near \"*\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "tokenize-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2 /*",
+          "expect": "0 {1 2}"
+        }
+      ]
+    }
+  ]
+}

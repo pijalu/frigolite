@@ -1,0 +1,15 @@
+{
+  "file": "bestindex4.test",
+  "name": "bestindex4",
+  "tests": [
+    {
+      "name": "1.0.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd 0');\n      CREATE VIRTUAL TABLE t2 USING tcl('vtab_cmd 0');"
+        }
+      ]
+    }
+  ]
+}

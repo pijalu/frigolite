@@ -1,0 +1,74 @@
+{
+  "file": "walbig.test",
+  "name": "walbig",
+  "tests": [
+    {
+      "name": "walbig-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "walbig-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "walbig-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "walbig-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

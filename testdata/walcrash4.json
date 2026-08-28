@@ -1,0 +1,29 @@
+{
+  "file": "walcrash4.test",
+  "name": "walcrash4",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA autovacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  PRAGMA main.synchronous = full;",
+          "expect": "wal"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t[set e] (x)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

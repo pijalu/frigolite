@@ -1,0 +1,299 @@
+{
+  "file": "fkey1.test",
+  "name": "fkey1",
+  "tests": [
+    {
+      "name": "fkey1-4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=ON;\n  CREATE TABLE \"xx1\"(\"xx2\" TEXT PRIMARY KEY, \"xx3\" TEXT);\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('abc','def');\n  CREATE TABLE \"xx4\"(\"xx5\" TEXT REFERENCES \"xx1\" ON DELETE CASCADE);\n  INSERT INTO \"xx4\"(\"xx5\") VALUES('abc');\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('uvw','xyz');\n  SELECT 1, \"xx5\" FROM \"xx4\";\n  DELETE FROM \"xx1\";\n  SELECT 2, \"xx5\" FROM \"xx4\";",
+          "expect": "1 abc"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\" TEXT PRIMARY KEY, \"\"\"3\" TEXT);\n  INSERT INTO \"\"\"1\"(\"\"\"2\",\"\"\"3\") VALUES('abc','def');\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" TEXT REFERENCES \"\"\"1\" ON DELETE CASCADE);\n  INSERT INTO \"\"\"4\"(\"\"\"5\") VALUES('abc');\n  INSERT INTO \"\"\"1\"(\"\"\"2\",\"\"\"3\") VALUES('uvw','xyz');\n  SELECT 1, \"\"\"5\" FROM \"\"\"4\";\n  DELETE FROM \"\"\"1\";\n  SELECT 2, \"\"\"5\" FROM \"\"\"4\";",
+          "expect": "1 abc"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info=\"\"\"1\";",
+          "expect": "0 {\"2} TEXT 0 {} 1 1 {\"3} TEXT 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(\n    x INTEGER PRIMARY KEY, \n    parent REFERENCES t11 ON DELETE CASCADE\n  );\n  INSERT INTO t11 VALUES (1, NULL), (2, 1), (3, 2);"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t11 VALUES (2, 3);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Foo (\n    Id INTEGER PRIMARY KEY, \n    ParentId INTEGER REFERENCES Foo(Id) ON DELETE CASCADE, C1\n  );\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (1, null, 'A');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 1, 'A-2-1');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (3, 2, 'A-3-2');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (4, 3, 'A-4-3');"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 3, 'A-2-3');",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y<2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c1 VALUES(1);",
+          "expect": "1 {foreign key mismatch - \"c1\" referencing \"p1\"}"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX p1x2 ON p1(x);\n  INSERT INTO c1 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=OFF;\n  CREATE TABLE t1(a,b,c,FOREIGN KEY(a,a,a,a,a,a,a,a,a,a,a,a,a,a) REFERENCES t0);\n  INSERT INTO t1 VALUES(1,2,3);\n  PRAGMA foreign_key_check;",
+          "expect": "t1 1 t0 0"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c AS(1),d, FOREIGN KEY(c,d,b,a,b,d,b,c) REFERENCES t0);\n  PRAGMA foreign_key_check;"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  CREATE TABLE t2(a TEXT PRIMARY KEY);\n  PRAGMA writable_schema=ON;\n  CREATE TABLE sqlite_stat1(tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  UPDATE sqlite_schema SET name='sqlite_autoindex_sqlite_stat1_1' WHERE name='sqlite_autoindex_sqlite_stat1_2';\n  PRAGMA writable_schema=RESET;"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      y TEXT\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a INTEGER REFERENCES t2,\n      b INTEGER REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a integer primary key);\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);"
+        }
+      ]
+    },
+    {
+      "name": "fkey1-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      y TEXT\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a INTEGER REFERENCES t2,\n      b INTEGER REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a integer primary key);\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t11 VALUES(2,3);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

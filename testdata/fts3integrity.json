@@ -1,0 +1,25 @@
+{
+  "file": "fts3integrity.test",
+  "name": "fts3integrity",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1 VALUES('first row');\n  INSERT INTO t1 VALUES('second row');\n\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('first row');\n  INSERT INTO t2 VALUES('second row');"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "file": "thread001.test",
+  "name": "thread001",
+  "tests": [
+    {
+      "name": "t1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n            (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n            (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a INTEGER PRIMARY KEY, b);\n      CREATE INDEX ab_i ON ab(b);\n      INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab;\n      SELECT count(*) FROM ab;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \n            (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n            (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM ab;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

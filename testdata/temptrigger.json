@@ -1,0 +1,859 @@
+{
+  "file": "temptrigger.test",
+  "name": "temptrigger",
+  "tests": [
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master;\n  SELECT * FROM temp.sqlite_master;",
+          "expect": "trigger tr1 t1 0 \n  {CREATE TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT type,name,tbl_name,sql FROM aux.sqlite_master;\n  INSERT INTO aux.t1 VALUES(1,2,3);"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO main.t1 VALUES(1);",
+          "expect": "1 error"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 VALUES(new.a, new.b);\n  END;\n\n  INSERT INTO m1 VALUES(5, 6);\n  SELECT * FROM aux.a1;",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a1(e, f);\n  INSERT INTO m1 VALUES(7, 8);"
+        }
+      ]
+    },
+    {
+      "name": "7.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM main.a1",
+          "expect": "7 8"
+        }
+      ]
+    },
+    {
+      "name": "7.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM  aux.a1",
+          "expect": "5 6"
+        }
+      ]
+    },
+    {
+      "name": "7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1;\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n\n  DELETE FROM aux.a1;\n  DELETE FROM main.a1;\n  INSERT INTO aux.a1 VALUES('hello', 'world');"
+        }
+      ]
+    },
+    {
+      "name": "7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO m1 VALUES(9, 10);\n  SELECT * FROM main.a1;",
+          "expect": "world hello"
+        }
+      ]
+    },
+    {
+      "name": "7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1;\n  CREATE TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;",
+          "expect": "1 {trigger tr1 cannot reference objects in database aux}"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);"
+        }
+      ]
+    },
+    {
+      "name": "8.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+        }
+      ]
+    },
+    {
+      "name": "8.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;\n\n  INSERT INTO main.t2 VALUES('x', 'y');\n  SELECT * FROM aux.t1;",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "8.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "8.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER aux.tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+        }
+      ]
+    },
+    {
+      "name": "8.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TRIGGER tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;\n\n  UPDATE aux.t1 SET e=1, f=2;\n  SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "8.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aux.t2"
+        }
+      ]
+    },
+    {
+      "name": "8.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+        }
+      ]
+    },
+    {
+      "name": "8.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO main.t1 VALUES('a', 'b');\n  CREATE TEMP TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n\n  DELETE FROM main.t2;\n  SELECT * FROM aux.t1;"
+        }
+      ]
+    },
+    {
+      "name": "8.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "a b"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO db0.tbl VALUES('a', 'b', 'c');"
+        }
+      ]
+    },
+    {
+      "name": "9.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db0.tbl",
+          "expect": "a b c"
+        }
+      ]
+    },
+    {
+      "name": "9.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db1.tbl",
+          "expect": "b c a"
+        }
+      ]
+    },
+    {
+      "name": "9.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db2.tbl",
+          "expect": "c a b"
+        }
+      ]
+    },
+    {
+      "name": "9.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db3.tbl",
+          "expect": "a b c"
+        }
+      ]
+    },
+    {
+      "name": "9.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db4.tbl",
+          "expect": "b c a"
+        }
+      ]
+    },
+    {
+      "name": "9.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db5.tbl",
+          "expect": "c a b"
+        }
+      ]
+    },
+    {
+      "name": "9.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db6.tbl",
+          "expect": "a b c"
+        }
+      ]
+    },
+    {
+      "name": "9.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db7.tbl",
+          "expect": "b c a"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE db0.tbl SET a=1, b=2, c=3"
+        }
+      ]
+    },
+    {
+      "name": "9.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db0.tbl",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "9.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db1.tbl",
+          "expect": "2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "9.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db2.tbl",
+          "expect": "3 1 2"
+        }
+      ]
+    },
+    {
+      "name": "9.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db3.tbl",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "9.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db4.tbl",
+          "expect": "2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "9.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db5.tbl",
+          "expect": "3 1 2"
+        }
+      ]
+    },
+    {
+      "name": "9.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db6.tbl",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "9.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db7.tbl",
+          "expect": "2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM db0.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db0.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db1.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db2.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db3.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db4.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db5.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db6.tbl"
+        }
+      ]
+    },
+    {
+      "name": "9.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM db7.tbl"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tt1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4)"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tt1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; CREATE TABLE t3(a, b); ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6)"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(10, 20);\n    SELECT * FROM tt1;",
+          "expect": "10 20"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;",
+          "expect": "10 20 30 40"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO aux.t2 VALUES(1, 2);\n    SELECT * FROM aux.t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tt2",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tt2",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "temptrigger-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tt1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tt1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; CREATE TABLE t3(a, b); ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tt1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10, 20);\n    SELECT * FROM tt1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n    CREATE TEMP TABLE tt2(a, b);\n    CREATE TEMP TRIGGER tr2 AFTER INSERT ON aux.t2 BEGIN\n      INSERT INTO tt2 VALUES(new.a, new.b);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux.t2 VALUES(1, 2);\n    SELECT * FROM aux.t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tt2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux.t2 VALUES(3, 4);\n    SELECT * FROM aux.t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tt2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS db$ii"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE db$ii.tbl(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER tr$ii AFTER INSERT ON db$ii.tbl BEGIN\n        INSERT INTO db$jj.tbl VALUES(new.b, new.c, new.a);\n      END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER tru$ii AFTER UPDATE ON db$ii.tbl BEGIN\n        UPDATE db$jj.tbl SET a=new.b, b=new.c, c=new.a;\n      END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER trd$ii BEFORE DELETE ON db$ii.tbl BEGIN\n        DELETE FROM db$jj.tbl;\n      END;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

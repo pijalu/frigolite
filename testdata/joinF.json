@@ -1,0 +1,522 @@
+{
+  "file": "joinF.test",
+  "name": "joinF",
+  "tests": [
+    {
+      "name": "joinF-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "10 - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "10 - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "10 - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-42",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-44",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-45",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-46",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-47",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - - 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-48",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);"
+        }
+      ]
+    },
+    {
+      "name": "joinF-49",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        }
+      ]
+    },
+    {
+      "name": "joinF-54",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
+          "expect": "- - 20 50\n  - - 30 50"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  CREATE TABLE t4(w INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n  INSERT INTO t4 VALUES(50);"
+        }
+      ]
+    }
+  ]
+}

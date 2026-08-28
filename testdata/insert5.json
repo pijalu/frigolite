@@ -1,0 +1,67 @@
+{
+  "file": "insert5.test",
+  "name": "insert5",
+  "tests": [
+    {
+      "name": "insert5-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(2);\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t2 VALUES(3,4),(10,NULL);\n  SELECT (SELECT c FROM t2 ORDER BY coalesce(d,a) LIMIT 1) FROM t1;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "insert5-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3);"
+        }
+      ]
+    },
+    {
+      "name": "insert5-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;",
+          "expect": "2 3 2 3 2 3"
+        }
+      ]
+    },
+    {
+      "name": "insert5-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO B SELECT * FROM B;\n      INSERT INTO B\n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;",
+          "expect": "2 3 2 3 2 3"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO B SELECT * FROM B;\n      INSERT INTO B\n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;"
+        }
+      ]
+    }
+  ]
+}

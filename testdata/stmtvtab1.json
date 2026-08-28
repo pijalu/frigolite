@@ -1,0 +1,39 @@
+{
+  "file": "stmtvtab1.test",
+  "name": "stmtvtab1",
+  "tests": [
+    {
+      "name": "stmtvtab1-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_stmt WHERE NOT busy;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "stmtvtab1-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_stmt WHERE mem>5000;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "stmtvtab1-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_stmt WHERE NOT busy;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mem, sql FROM sqlite_stmt"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "file": "join4.test",
+  "name": "join4",
+  "tests": [
+    {
+      "name": "join4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'",
+          "expect": "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create index i2 on t2(z);"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'",
+          "expect": "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z>='ok'",
+          "expect": "2 two 2 niban ok"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'",
+          "expect": "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')",
+          "expect": "2 two 2 niban ok"
+        }
+      ]
+    },
+    {
+      "name": "join4-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')",
+          "expect": "1 one {} {} {} 2 two 2 niban ok 3 three {} {} {} 4 four {} {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "create index i2 on t2(z);"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z>='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')"
+        }
+      ]
+    }
+  ]
+}

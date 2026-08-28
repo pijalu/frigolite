@@ -1,0 +1,16 @@
+{
+  "file": "tkt3508.test",
+  "name": "tkt3508",
+  "tests": [
+    {
+      "name": "tkt3508-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE modificationsTmp (\n      SUBSTRATE_HPRD_ID VARCHAR(80),\n      SUBSTRATE_GENE_SYMBOL VARCHAR(80),\n      SUBSTRATE_ISOFORM_ID VARCHAR(80),\n      SUBSTRATE_REFSEQ_ID VARCHAR(80),\n      SITE INTEGER,\n      RESIDUE VARCHAR(80),\n      ENZYME_NAME VARCHAR(80),\n      ENZYME_HPRD_ID VARCHAR(80),\n      MODIFICATION_TYPE VARCHAR(80),\n      EXPERIMENT_TYPE VARCHAR(80),\n      REFERENCE_ID VARCHAR(80)\n    );\n    select SUBSTRATE_HPRD_ID, count(substrate_refseq_id) as c\n      from modificationsTmp where c > 1 group by SUBSTRATE_HPRD_ID;",
+          "expect": "1 {misuse of aggregate: count()}"
+        }
+      ]
+    }
+  ]
+}

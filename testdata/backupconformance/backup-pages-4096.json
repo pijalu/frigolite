@@ -1,0 +1,13 @@
+{
+  "name": "backup-pages-4096",
+  "pragmas": {
+    "page_size": "4096"
+  },
+  "sql": [
+    "CREATE TABLE t1(a, b);",
+    "INSERT INTO t1 VALUES(1, zeroblob(1500)), (2, zeroblob(1500));",
+    "CREATE TABLE t2(a, b);",
+    "INSERT INTO t2 VALUES(3, 'overflow-payload-three');"
+  ],
+  "backup": true
+}

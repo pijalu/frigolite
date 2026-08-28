@@ -1,0 +1,106 @@
+{
+  "file": "fts3ak.test",
+  "name": "fts3ak",
+  "tests": [
+    {
+      "name": "fts3ak-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(4, 'false world');\n    INSERT INTO t1 (rowid, content) VALUES(5, 'false door');\n    COMMIT TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';",
+          "expect": "1 3 4"
+        }
+      ]
+    },
+    {
+      "name": "fts3ak-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;"
+        }
+      ]
+    },
+    {
+      "name": "fts3ak-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;"
+        }
+      ]
+    },
+    {
+      "name": "fts3ak-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'world';",
+          "expect": "1 3 4 6"
+        }
+      ]
+    },
+    {
+      "name": "fts3ak-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(10, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(11, 'second sight');\n    ROLLBACK TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';",
+          "expect": "1 3 4 6"
+        }
+      ]
+    },
+    {
+      "name": "fts3ak-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(12, 'third world');\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'third';",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "fts3ak-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(13, 'third dimension');\n    CREATE TABLE x (c);\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'dimension';",
+          "expect": "13"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(4, 'false world');\n    INSERT INTO t1 (rowid, content) VALUES(5, 'false door');\n    COMMIT TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(6, 'another world');\n    INSERT INTO t1 (rowid, content) VALUES(7, 'another test');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    COMMIT TRANSACTION;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(8, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(9, 'second sight');\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n    ROLLBACK TRANSACTION;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'world';"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    INSERT INTO t1 (rowid, content) VALUES(10, 'second world');\n    INSERT INTO t1 (rowid, content) VALUES(11, 'second sight');\n    ROLLBACK TRANSACTION;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'world';"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(12, 'third world');\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'third';"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 (rowid, content) VALUES(13, 'third dimension');\n    CREATE TABLE x (c);\n    COMMIT;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'dimension';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, 'hello world');\n  INSERT INTO t1 (rowid, content) VALUES(2, 'hello there');\n  INSERT INTO t1 (rowid, content) VALUES(3, 'cruel world');"
+        }
+      ]
+    }
+  ]
+}

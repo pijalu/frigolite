@@ -1,0 +1,39 @@
+{
+  "file": "corruptJ.test",
+  "name": "corruptJ",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=ON; DROP TABLE t1;",
+          "expect": "1 {database disk image is malformed}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;"
+        }
+      ]
+    }
+  ]
+}

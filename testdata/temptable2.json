@@ -1,0 +1,367 @@
+{
+  "file": "temptable2.test",
+  "name": "temptable2",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<100000 )\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM X;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n    SELECT * FROM t2;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n  SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n\n  SELECT count(*) FROM t1;",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==0;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==0;\n    SAVEPOINT abc;\n      UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==1;\n    ROLLBACK TO abc;\n    UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==2;\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<10 )\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n\n  SELECT count(*) FROM t1;\n  PRAGMA temp.page_count;",
+          "expect": "10 9"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t1 SET b=randomblob(100);\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  SELECT count(*) FROM t2;\n  SELECT count(*) FROM t1;",
+          "expect": "500 10"
+        }
+      ]
+    },
+    {
+      "name": "4.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "5.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t1 SET a=2;\n    UPDATE t2 SET a=randomblob(100);\n    SELECT count(*) FROM t1;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "5.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t2 SET a=randomblob(100);\n\n  SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "5.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET x='two';             -- step 1\n  BEGIN;\n    UPDATE t2 SET a=randomblob(100); -- step 2\n    SELECT * FROM t1;                -- step 3\n  ROLLBACK;                          -- step 4\n\n  SELECT count(*) FROM t2;\n  SELECT * FROM t1;",
+          "expect": "two 500 two"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=INCREMENTAL;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(900));\n  INSERT INTO t1 VALUES(zeroblob(900));\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  BEGIN;\n  DELETE FROM t1 WHERE rowid%2;\n  PRAGMA incremental_vacuum(4);\n  ROLLBACK;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = OFF;\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<20 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x ORDER BY 1, 2;\n  PRAGMA page_count;",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA mmap_size = 512000"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 8192;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<100 )\n    INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x ORDER BY 1, 2;\n    PRAGMA page_count;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA page_size;",
+          "expect": "100 ok 8192"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 8192;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<100 )\n    INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x ORDER BY 1, 2;\n    PRAGMA page_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA page_size;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

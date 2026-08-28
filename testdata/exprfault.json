@@ -1,0 +1,44 @@
+{
+  "file": "exprfault.test",
+  "name": "exprfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);                 \n  CREATE TABLE t2(d);"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a = ( SELECT d FROM (SELECT d FROM t2) ) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex ( unhex('ABCDEF') );"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=randomblob(500);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

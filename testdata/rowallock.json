@@ -1,0 +1,14 @@
+{
+  "file": "rowallock.test",
+  "name": "rowallock",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

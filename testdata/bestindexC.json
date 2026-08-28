@@ -1,0 +1,585 @@
+{
+  "file": "bestindexC.test",
+  "name": "bestindexC",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command \"a b c d e f\");\n  CREATE VIRTUAL TABLE x2 USING tcl(vtab_command \"A B C D E F a b\");"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t_unionall AS \n    SELECT * FROM x1 UNION ALL SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_intersect AS \n    SELECT * FROM x1 INTERSECT SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_union AS \n    SELECT * FROM x1 UNION SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_except AS \n    SELECT * FROM x1 EXCEPT SELECT * FROM x2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_unionall LIMIT 8\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_unionall.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_union LIMIT 8\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_union.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_intersect LIMIT 8\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_intersect.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_except LIMIT 8\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_except.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 8\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_unionall LIMIT 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_unionall.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_union LIMIT 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_union.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_intersect LIMIT 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_intersect.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_except LIMIT 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_except.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_unionall LIMIT 4 OFFSET 2\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_unionall.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_union LIMIT 4 OFFSET 2\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_union.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_intersect LIMIT 4 OFFSET 2\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_intersect.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_except LIMIT 4 OFFSET 2\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_except.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_unionall LIMIT 8 OFFSET 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_unionall.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_union LIMIT 8 OFFSET 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_union.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_intersect LIMIT 8 OFFSET 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_intersect.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "expect": "bestindexC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t_except LIMIT 8 OFFSET 4\""
+        }
+      ]
+    },
+    {
+      "name": "1.2.t_except.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT\" SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4\"",
+          "expect": "bestindexC"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command \"a b c d e f\");\n  CREATE VIRTUAL TABLE x2 USING tcl(vtab_command \"a b e f\");"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 \n    EXCEPT\n  SELECT * FROM x2\n  LIMIT 3",
+          "expect": "c d"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"1 2 3 4 5 6 7 8 9 10\");"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE a = COALESCE('8', a) LIMIT 3",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE a = '2' LIMIT 3",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1, 5) WHERE value = (value \u0026 14) LIMIT 3",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003e2 LIMIT 4 OFFSET 1;",
+          "expect": "4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 LIMIT 5 OFFSET 3",
+          "expect": "4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 LIMIT 5 OFFSET 3",
+          "expect": "4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE y1 USING tcl(vtab_command 1);",
+          "expect": "1 {not happy!}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"PRAGMA page_size=1024\");",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(\");",
+          "expect": "1 {declare_vtab: incomplete input}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(insert)\");",
+          "expect": "1 {declare_vtab: near \"insert\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command t1);\n  CREATE TABLE t1(a, b, c, d);"
+        }
+      ]
+    },
+    {
+      "name": "5.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 $::where"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 WHERE (a, b, c) = (?, ?, ?);"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(rowid, a, b, c, d) VALUES(1, 'x', 'y', 'z', 'one');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(2, 'X', 'Y', 'Z', 'two');\n  SELECT * FROM x1 WHERE (a, b, c) = ('X', 'Y', 'Z');",
+          "expect": "X Y Z two"
+        }
+      ]
+    },
+    {
+      "name": "5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 WHERE a='x' AND b='y' AND c='z';",
+          "expect": "x y z one"
+        }
+      ]
+    },
+    {
+      "name": "5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 \n  WHERE a='x' COLLATE nocase AND b='y' COLLATE nocase AND c='z'COLLATE nocase;",
+          "expect": "x y z one X Y Z two"
+        }
+      ]
+    },
+    {
+      "name": "5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(0, 'x', 'y', 'z', 'zero');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(1, 'x', 'y', 'Z', 'one');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(2, 'x', 'Y', 'z', 'two');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(3, 'x', 'Y', 'Z', 'three');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(4, 'X', 'y', 'z', 'four');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(5, 'X', 'y', 'Z', 'five');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(6, 'X', 'Y', 'z', 'six');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(7, 'X', 'Y', 'z', 'seven');"
+        }
+      ]
+    },
+    {
+      "name": "5.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT d FROM x1 \n    WHERE a='x' AND ((b='y' AND c='z') OR (b='Y' AND c='z' COLLATE nocase))",
+          "expect": "1 {no query solution}"
+        }
+      ]
+    },
+    {
+      "name": "5.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT d FROM x1 \n    WHERE a='x' COLLATE nocase \n    AND ((b='y' AND c='z') OR (b='Y' AND c='z' COLLATE nocase))",
+          "expect": "1 {no query solution}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(2, 2);\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command t1);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 LIMIT 50",
+          "expect": "50 50 50 50"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 WHERE b=c LIMIT 5",
+          "expect": "0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM x1 WHERE t1.x=t1.y LIMIT 10) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM x1 WHERE x1.a=1) FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM x1 WHERE x1.a=1 LIMIT 1) FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM x1 WHERE x1.a=555 LIMIT 2) FROM t1",
+          "expect": "555"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "file": "shell9.test",
+  "name": "shell9",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');"
+        }
+      ]
+    },
+    {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "one two three"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(hello);"
+        }
+      ]
+    },
+    {
+      "name": "2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE virtual TABLE r1 USING fts5(x);"
+        }
+      ]
+    },
+    {
+      "name": "3.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

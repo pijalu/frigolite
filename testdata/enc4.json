@@ -1,0 +1,24 @@
+{
+  "file": "enc4.test",
+  "name": "enc4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = \\"
+        },
+        {
+          "type": "exec",
+          "sql": "select 1+1."
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

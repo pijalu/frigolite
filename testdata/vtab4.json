@@ -1,0 +1,175 @@
+{
+  "file": "vtab4.test",
+  "name": "vtab4",
+  "tests": [
+    {
+      "name": "vtab4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a = 2;"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo;"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo VALUES(1, 2, 3);\n    INSERT INTO techo VALUES(4, 5, 6);\n    INSERT INTO techo VALUES(7, 8, 9);\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sreal(a, b, c UNIQUE);\n    CREATE VIRTUAL TABLE secho USING echo(sreal);"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM secho;",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo;"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM secho;",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM techo;"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(1, 2, 3);",
+          "expect": "1 {unknown error}"
+        }
+      ]
+    },
+    {
+      "name": "vtab4-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo VALUES(1, 2, 3);\n    INSERT INTO techo VALUES(4, 5, 6);\n    INSERT INTO techo VALUES(7, 8, 9);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sreal(a, b, c UNIQUE);\n    CREATE VIRTUAL TABLE secho USING echo(sreal);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO secho SELECT * FROM techo;\n    DELETE FROM techo;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM secho;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM secho;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,206 @@
+{
+  "file": "fts3fault.test",
+  "name": "fts3fault",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "fts3fault-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4;"
+        }
+      ]
+    },
+    {
+      "name": "fts3fault-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4; \n    INSERT INTO t4 VALUES('The British Government called on');\n    INSERT INTO t4 VALUES('as pesetas then became much');"
+        }
+      ]
+    },
+    {
+      "name": "fts3fault-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t5 USING fts4; \n    INSERT INTO t5 VALUES('The British Government called on');\n    INSERT INTO t5 VALUES('as pesetas then became much');"
+        }
+      ]
+    },
+    {
+      "name": "fts3fault-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t6 USING fts4"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t8 USING fts4"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t9 USING fts4(tokenize=porter);\n    INSERT INTO t9 VALUES(\n      'this record is used toooooooooooooooooooooooooooooooooooooo try to'\n    );\n    SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to*';"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('registers the FTS3 module');\n      INSERT INTO t1 VALUES('various support functions');"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(t3) VALUES('nodesize=50')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 'x'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(rowid) FROM t3 WHERE t3 MATCH 'aa*'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4; \n    INSERT INTO t4 VALUES('The British Government called on');\n    INSERT INTO t4 VALUES('as pesetas then became much');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT optimize(t4) FROM t4 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t5 USING fts4; \n    INSERT INTO t5 VALUES('The British Government called on');\n    INSERT INTO t5 VALUES('as pesetas then became much');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t5 VALUES('influential in shaping his future outlook');\n      INSERT INTO t5 VALUES('might be acceptable to the British electorate');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t5 WHERE t5 MATCH 'british'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t6 USING fts4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b, matchinfo=fts3)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b, matchinfo=fs3)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b, matchnfo=fts3)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t8 USING fts4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mit(matchinfo(t8, 'x')) FROM t8 WHERE t8 MATCH 'a b c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mit(matchinfo(t8, 's')) FROM t8 WHERE t8 MATCH 'a b c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mit(matchinfo(t8, 'a')) FROM t8 WHERE t8 MATCH 'a b c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mit(matchinfo(t8, 'l')) FROM t8 WHERE t8 MATCH 'a b c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mit(matchinfo(t8, 'l')) FROM t8 WHERE t8 MATCH '\"a b c\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t9 USING fts4(tokenize=porter);\n    INSERT INTO t9 VALUES(\n      'this record is used toooooooooooooooooooooooooooooooooooooo try to'\n    );\n    SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to*';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to*'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=d)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

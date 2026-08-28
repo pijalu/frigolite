@@ -1,0 +1,273 @@
+{
+  "file": "resolver01.test",
+  "name": "resolver01",
+  "tests": [
+    {
+      "name": "resolver01-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(m CHAR(2));\n  INSERT INTO t4 VALUES('az');\n  INSERT INTO t4 VALUES('by');\n  INSERT INTO t4 VALUES('cx');\n  SELECT '1', substr(m,2) AS m FROM t4 ORDER BY m;\n  SELECT '2', substr(m,2) AS m FROM t4 ORDER BY m COLLATE binary;\n  SELECT '3', substr(m,2) AS m FROM t4 ORDER BY lower(m);",
+          "expect": "1 x 1 y 1 z 2 x 2 y 2 z 3 z 3 y 3 x"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(m CHAR(2));\n  INSERT INTO t5 VALUES('ax');\n  INSERT INTO t5 VALUES('bx');\n  INSERT INTO t5 VALUES('cy');\n  SELECT count(*), substr(m,2,1) AS m FROM t5 GROUP BY m ORDER BY 1, 2;",
+          "expect": "1 x 1 x 1 y"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), substr(m,2,1) AS mx FROM t5 GROUP BY m ORDER BY 1, 2;",
+          "expect": "1 x 1 x 1 y"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), substr(m,2,1) AS mx FROM t5 GROUP BY mx ORDER BY 1, 2;",
+          "expect": "1 y 2 x"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), substr(m,2,1) AS mx FROM t5\n   GROUP BY substr(m,2,1) ORDER BY 1, 2;",
+          "expect": "1 y 2 x"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t61(name);\n  SELECT min(name) FROM t61 GROUP BY lower(name);"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(name) AS name FROM t61 GROUP BY lower(name);"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t63(name);\n  INSERT INTO t63 VALUES (NULL);\n  INSERT INTO t63 VALUES ('abc');\n  SELECT count(),\n       NULLIF(name,'abc') AS name\n    FROM t63\n   GROUP BY lower(name);",
+          "expect": "1 {} 1 {}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 AS x WHERE (SELECT x AS y WHERE 3>y);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 AS x WHERE (SELECT x AS y WHERE 1>y);"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y); INSERT INTO t1 VALUES(11,22);\n    CREATE TABLE t2(y, z); INSERT INTO t2 VALUES(33,44);\n    SELECT 1 AS y FROM t1, t2 ORDER BY y;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 AS yy FROM t1, t2 ORDER BY y;",
+          "expect": "1 {ambiguous column name: y}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x,y); INSERT INTO t3 VALUES(11,44),(33,22);\n    SELECT x AS y FROM t3 ORDER BY y;",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY y;",
+          "expect": "0 {33 11}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY yy;",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY 1;",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 AS y FROM t1, t2 ORDER BY y COLLATE nocase;",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 AS yy FROM t1, t2 ORDER BY y COLLATE nocase;",
+          "expect": "1 {ambiguous column name: y}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS y FROM t3 ORDER BY y COLLATE nocase;",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY y COLLATE nocase;",
+          "expect": "0 {33 11}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY yy COLLATE nocase;",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY 1 COLLATE nocase;",
+          "expect": "0 {11 33}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 3 AS y FROM t1, t2 ORDER BY +y;",
+          "expect": "1 {ambiguous column name: y}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 AS yy FROM t1, t2 ORDER BY +y;",
+          "expect": "1 {ambiguous column name: y}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS y FROM t3 ORDER BY +y;",
+          "expect": "0 {33 11}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY +y;",
+          "expect": "0 {33 11}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x AS yy FROM t3 ORDER BY +yy",
+          "expect": "0 {11 33}"
+        }
+      ]
+    }
+  ]
+}

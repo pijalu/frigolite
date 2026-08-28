@@ -1,0 +1,19 @@
+{
+  "name": "fts-x6-growth",
+  "pragmas": {"page_size": "1024"},
+  "sqlFiles": ["genesis_t1.sql"],
+  "sql": [
+    "CREATE VIRTUAL TABLE x6 USING fts4;",
+    "INSERT INTO x6 SELECT words FROM t1;",
+    "INSERT INTO x6 SELECT words FROM t1;",
+    "INSERT INTO x6 SELECT words FROM t1;",
+    "INSERT INTO x6 SELECT words FROM t1;",
+    "INSERT INTO x6 SELECT words FROM t1;",
+    "INSERT INTO x6 SELECT words FROM t1;",
+    "INSERT INTO x6(x6) VALUES('merge=25,4');",
+    "UPDATE x6_segdir SET end_block = (SELECT substr(end_block,1,instr(end_block||' ',' ')-1)) WHERE level=1;",
+    "INSERT INTO x6(x6) VALUES('merge=25,4');",
+    "INSERT INTO x6(x6) VALUES('merge=2500,4');",
+    "INSERT INTO x6(x6) VALUES('merge=2500,2');"
+  ]
+}

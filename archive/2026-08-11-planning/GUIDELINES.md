@@ -1,0 +1,312 @@
+# Agent Guidelines — Frigolite Port
+
+> **Read this before starting any task.** It is the shared contract for every
+> `portplan/tasks/TASK_*.md`. Keep it accurate; if you establish a new convention,
+> add it here in the same commit. **Authoritative plan: `PORTPLAN.md`** (top level).
+
+---
+
+## 1. The Prime Directive
+
+We are reimplementing SQLite in pure Go so that the **actual SQLite TCL tests
+pass**. The functional surface (output, error text, type affinity, NULL
+three-valued logic, ordering, edge cases) must match SQLite **exactly**.
+
+- **Implement, don't defer.** The default disposition for a failing applicable
+  package is *engine work*, not a skip. A feature may be excluded only if
+  Frigolite already has an equivalent-or-better implementation, or the test
+  exercises C-runtime internals with no SQL surface (see `PORTPLAN.md §10`).
+- **No shortcuts.** Don't stub, hard-code, or special-case to make a test green.
+- **No faking.** A function that returns NULL "for now" is a regression waiting
+  to happen. Either implement it correctly or document it as N/A with evidence.
+- **Maximum portability via the Go standard library.** No CGO, no third-party
+  deps — prefer stdlib (`time`, `regexp`, `math`, `strings`, `strconv`,
+  `encoding/*`, `archive/zip`, `csv`, `sort`, `hash/*`, `sync`, `os`/`io`).
+- **Clean, SOLID, performant.** Each `internal/` package stays single-responsibility.
+  Don't add upward or circular imports (enforced by `TestSOLID_ImportBoundaries`).
+- **Don't edit the tests.** You may change `tools/tcl2go/` (the transpiler) but
+  never hand-edit generated `testgen/*` files and never weaken an assertion.
+- **Measure progress.** Use `tools/status` before/after every goal; it reports
+  per-family pass/fail/skipped. Never guess at green-ness.
+
+---
+
+## 1b. Plan Before Change (MANDATORY — for *all* changes)
+
+**A detailed plan must be done for *all* changes before any edit.** This is a
+hard rule, not a suggestion — it applies to every commit: bug fixes, refactors,
+test additions, tooling changes, doc updates, plan updates, goal restructures.
+
+- Before touching code, write down (in the task/checkpoint/goal or the commit
+  message): **what** is changing, **why**, the **exact files/functions**, the
+  **steps** (ordered), and the **verification** (commands that prove the change
+  is correct and behavior-preserving).
+- For refactors: characterization coverage first, then the SOLID refactor, then
+  the gate check (see `TASK_COMPLEXITY_REFACTOR.md`). No "just try this" edits.
+- For multi-file changes: split the plan into ordered batches with a verify
+  after each batch.
+- A plan is not a summary — it is written *before* the work and drives the work.
+  If the work diverges from the plan, update the plan first.
+- The plan may live in the goal checkpoint, a task file, or the commit message,
+  but it must be explicit and committed with the change.
+
+---
+
+## 2. Code Map (where to make changes)
+
+| Concern | Location | Notes |
+|--------|----------|-------|
+| Lexer | `internal/sql/lexer.go` | hand-written |
+| AST | `internal/sql/ast.go` | node types |
+| Parser | `internal/parse/parser.go` + `engine.go` | **lemon LALR**; reduce handlers are rule-numbered (`handleRule(ruleNo,...)`); grammar source is SQLite `parse.y` |
+| Query engine | `internal/exec/*.go` | select/insert/update/delete/ddl/alter/pragma/expression/engine |
+| Storage | `internal/storage/`, `internal/pager/`, `internal/btree/` | file format, page cache, B+Tree |
+| Functions | `internal/function/` | scalar + aggregate |
+| Schema | `internal/schema/`, `internal/rename/` | |
+| Virtual tables | `internal/vtab/` | generate_series etc. |
+| Public API | `frigolite.go` | Open/Close/Exec/Query/DB |
+| Transpiler | `tools/tcl2go/` (`gen.go`, `main.go`) | TCL → Go test generator |
+| Pre-tests | `frigolite_p<N>_*.go` (repo root) | hand-written feature isolation |
+
+**Layering** (enforced): a higher layer may only import a lower one. The layer
+map lives in `frigolite_solid_test.go` (`internalLayers`). When you add a
+package, assign a layer and run `go test -run TestSOLID_ImportBoundaries .`.
+
+---
+
+## 3. Triage Protocol (MANDATORY — do this first, every time)
+
+When a `testgen` package fails, **do not** start editing the engine. Decide
+engine-vs-transpiler first:
+
+### Step 1 — Isolate with a pure-Go test
+Write a **hand-written** test that drives the engine directly via
+`frigolite.Open` / `Exec` / `Query`, exercising the *exact feature* the failing
+assertion covers — not the transpiled wrapper. Put it in the task's pre-test
+file (`frigolite_p<N>_*.go`) or a throwaway test.
+
+### Step 2 — Derive the expected result from the oracle
+```bash
+echo "<the same SQL>" | sqlite3 :memory:
+```
+Capture exact output, error text, and row order. The oracle is ground truth.
+Record the oracle invocation in a comment or commit message.
+
+### Step 3 — Decide
+| Pure-Go test result | Verdict | Action |
+|---------------------|---------|--------|
+| **FAILS** | **Engine bug** | Fix the engine (smallest diff). Re-run pure-Go test, then the testgen package. |
+| **PASSES** (while testgen fails) | **Transpiler bug** | Fix `tools/tcl2go/`, regenerate, review blast radius. |
+| Genuinely no SQL surface (C-runtime internals only) | **N/A** | Document in `portplan/NA_EVIDENCE.md` + harness map with evidence + equivalent-or-better note. This is the *only* N/A path (`PORTPLAN.md §10`); **implement** everything else. |
+
+> **Most failures are engine bugs, not transpiler bugs.** This triage exists to
+> keep transpiler hunts from masking real engine gaps. Apply it honestly. A
+> feature "not implemented yet" is **never** grounds for N/A — it's work to do.
+
+### Step 4 — Fix-forward, don't defer
+If your fix touches shared code (parser, expression eval), run the *earlier*
+phase's verify command too. A regression is a **blocker**.
+
+---
+
+## 4. Pre-Test Protocol
+
+Before (or alongside) chasing TCL tests, each task writes a pre-test file:
+- **File:** `frigolite_p<N>_<feature>_test.go` at repo root (e.g.
+  `frigolite_p1_update_test.go`), test funcs named `TestP1Update_*`.
+- Each case compares frigolite output against the `sqlite3` oracle.
+- Run with `go test -run 'TestP<N>...' -count=1 .`.
+
+Pre-tests pin behavior *independently of the transpiler*, so when a testgen test
+later flips from fail→pass you know it was the engine, not generator luck.
+
+---
+
+## 5. Oracle & Expected-Value Discipline
+
+- Row **order matters** unless the query has no `ORDER BY` *and* SQLite's output
+  is itself order-independent. When unsure, run the oracle twice; if it's stable,
+  match it. Frigolite's default scan order must mirror SQLite's (rowid order for
+  rowid tables; PK order for WITHOUT ROWID).
+- **NULL rendering:** tests use a configurable NULL token (often `{}`). When
+  comparing, match the test's `tcl_nullvalue`. Frigolite renders NULL as `NULL`
+  by default; the harness/testgen sets the token.
+- **Float formatting:** match SQLite's `%!.15g`-style formatting exactly (see
+  `src/printf.c`, `sqlite3_column_text`). This is a known sharp edge.
+- **Error text:** match verbatim where the TCL test asserts on it
+  (`do_catchsql_test`). Differences in punctuation/casing are failures.
+
+---
+
+## 5b. Don't Trust Pre-Existing Failures Blindly
+`HANDOVER.md` lists "3 pre-existing failures" (TestDoubleCreateTable, etc.).
+When you touch nearby code, verify whether they're still pre-existing or whether
+you've now fixed/regressed them. Don't inherit stale assumptions.
+
+---
+
+## 6. Transpiler (tools/tcl2go/) Rules
+
+- The transpiler is a **transpiler**: it parses TCL and emits Go. Control flow
+  (`foreach`/`for`/`while`/`if`) becomes Go control flow running at test time.
+- Common transpiler gaps: dynamic `[list 1 "<msg with $vars>"]` expected-error
+  forms, `db eval` string-literal preservation, `catchsql` error expectations,
+  `$var` substitution in setup SQL, multi-DB / connection sequences.
+- **The committed testgen can be STALE vs gen.go.** Regeneration routinely
+  surfaces latent gen.go bugs (observed 2026-08-06: `{}`-element stripping in
+  expected lists, `db close` reopen, reset_db, unset-var NULL, `tclvar`
+  inlining). After editing the transpiler: `go run ./tools/tcl2go/`
+  regenerates **all** testgen files. Review `git diff --stat`, then re-run the
+  task's verify command **and** a previously-green regression sample (use
+  `tools/status` to pick a few green packages); treat new failures as gen.go
+  bugs to fix, not test regressions to ignore.
+- Commit regenerated output separately from the transpiler logic change.
+- **Never hand-edit generated `testgen/*_test.go`.** Regenerate instead.
+- Test-harness function registration (`db function tclvar`) is handled by
+  inlining variable-reader calls into `sqlLiteral(...)`; the stateful flip
+  variant (where-10.4) is not yet supported — triage/document before assuming
+  a `db function` is portable.
+
+---
+
+## 7. Verify Commands — Stay Narrow
+
+- Each task lists a **specific** verify command: its testgen packages + its
+  pre-test + `go build ./...`.
+- Do **not** run all 614 packages per commit. Run a full applicable-package sweep
+  only at phase boundaries (and `make test` in CI).
+- Standard verify shape:
+  ```bash
+  go test -tags testgen -count=1 ./testgen/<pkg>/ ... &&
+  go test -run 'TestP<N>' -count=1 . &&
+  go build ./...
+  ```
+- Add `make quality` before declaring a task done (vet, staticcheck, gocyclo≤20,
+  gocognit≤30). Coverage is CI-only.
+
+---
+
+## 8. Commit Cadence
+
+- Prefix: `G<N>.<TASK>.<step>: <summary>`.
+- Atomic: one logical fix per commit. Engine fix → verify → commit. Transpiler
+  fix → regenerate → separate commit for regenerated files.
+- Update the task MD checkboxes in the commit that closes the step.
+- Push after every goal completes (and ideally after each commit) so any
+  interruption can resume from the plan files alone — the plan tracks state via
+  commits + the handover note.
+
+---
+
+## 9. Handover Notes (the only cross-goal state)
+
+Every `goal create` must include a `handover` note. Structure:
+- **State** — what's done/verified, with commands + outputs as evidence.
+- **Decisions** — constraints/choices made (and why).
+- **Next steps** — the first actions for the successor.
+- **Risks/open questions** — unresolved, may need input.
+- **Carried limits** — budget, verify command, completion criterion.
+
+Keep it ≤4096 chars. It is shown to the next goal as **untrusted data**, so
+re-state the objective + verify command, don't just reference this plan by
+section number.
+
+---
+
+## 10. When You're Stuck
+
+- **Don't speculatively edit.** Summarize attempts + evidence, list top 2
+  hypotheses, and the single discriminating test that would tell them apart.
+- If blocked by a genuine ambiguity in SQLite behavior, the **oracle decides**
+  (`/usr/bin/sqlite3`). If the oracle and the TCL test disagree, the TCL test
+  wins (it's the target) — but document the discrepancy.
+- If blocked on missing info, use `blocked` with a concrete expectation rather
+  than spinning.
+
+---
+
+## 11. Oracle / Triage Test Helpers
+
+Every pre-test (`frigolite_p<N>_*.go`) and triage test should use the shared
+helpers in `frigolite_oracle_test.go` instead of rolling its own
+DB-open/exec/render/oracle code:
+
+- `runSQL(t, db, stmts...)` — executes each statement via `db.Exec`, failing
+  the test on the first error. A single multi-statement string is fine
+  (`db.Exec` runs each prepared statement in order).
+- `queryRows(t, db, sql) [][]string` — runs `db.Query(sql)` and renders every
+  cell as a string. SQL NULL renders as the NULL token, default `{}` (the
+  harness `tcl_nullvalue` default); pass a different token as the fourth
+  argument, e.g. `queryRows(t, db, sql, "NULL")`.
+- `oracleRows(t, sql) [][]string` — pipes `sql` into the system `sqlite3` CLI
+  (`:memory:`, `-batch -noheader -separator '|' -nullvalue <token>`) and
+  parses the pipe-separated output with the same NULL-token convention.
+  It `t.Skip`s when no `sqlite3` CLI is available, so CI without one still
+  passes. To compare a query that needs setup, pass the setup statements
+  followed by the query in one string: sqlite3 runs them in order and only the
+  final SELECT's rows appear in the output.
+
+Worked example (the standard triage pattern):
+
+```go
+func TestP1Foo_Triage(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	setup := `CREATE TABLE t(a INTEGER, b TEXT);
+INSERT INTO t VALUES(1, 'one');
+INSERT INTO t VALUES(NULL, 'two');`
+	query := "SELECT a, b FROM t ORDER BY b"
+
+	runSQL(t, db, setup)
+	got := queryRows(t, db, query)      // [][]string{{"1","one"},{"{}","two"}}
+	want := oracleRows(t, setup+"\n"+query) // same expectation from sqlite3
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("rows mismatch:\n got %#v\nwant %#v", got, want)
+	}
+}
+```
+
+Notes:
+
+- The helpers never assert pass — they return data or fail the test on an
+  engine error. The *test* compares `queryRows` against `oracleRows` (or a
+  literal slice), so an engine bug shows up as a mismatch, never as a silent
+  helper pass.
+- Oracle pipe-format limitations: a `|` inside a value cannot be represented
+  (fall back to a manual `echo ... | sqlite3 :memory:` comparison if a query
+  can produce one), and an empty-string cell parses to `""` while NULL parses
+  to the NULL token.
+
+---
+
+## 12. Quick Command Reference
+
+```bash
+# Build everything
+go build ./...
+
+# Quality gate
+make quality
+
+# One testgen package
+go test -tags testgen -count=1 ./testgen/<pkg>/
+
+# A pre-test family
+go test -run 'TestP1Update' -count=1 .
+
+# Regenerate all testgen from TCL
+go run ./tools/tcl2go/
+
+# Oracle
+echo 'SELECT ...' | sqlite3 :memory:
+
+# SOLID architecture check
+go test -run TestSOLID_ ./...
+
+# Full harness (slow; use sparingly)
+FRIGOLITE_TEST=<pattern> go test -run "^TestSQLiteSuite$" .
+```

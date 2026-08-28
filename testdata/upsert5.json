@@ -1,0 +1,157 @@
+{
+  "file": "upsert5.test",
+  "name": "upsert5",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(a,b,c,e,d) VALUES(1,2,3,4,5)\n      ON CONFLICT(c) DO UPDATE SET b=''\n      ON CONFLICT((SELECT t2 FROM nosuchtable)) DO NOTHING;",
+          "expect": "1 {no such table: nosuchtable}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(aa INTEGER PRIMARY KEY, bb INT);\n  INSERT INTO t1 VALUES(11,22);\n  CREATE UNIQUE INDEX t1bb ON t1(bb);\n  REPLACE INTO t1 VALUES(11,33)\n    ON CONFLICT(bb) DO UPDATE SET aa = 44\n    ON CONFLICT(bb) DO UPDATE SET aa = 44;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 NOT INDEXED;",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INDEXED BY t1bb;",
+          "expect": "11 33"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(aa INTEGER PRIMARY KEY, bb INT, cc INT);\n  INSERT INTO t1 VALUES(10,21,32),(11,22,33),(12,23,34);\n  CREATE UNIQUE INDEX t1bb ON t1(bb);\n  CREATE UNIQUE INDEX t1cc ON t1(cc);\n  REPLACE INTO t1 VALUES(11,44,55)\n    ON CONFLICT(bb) DO UPDATE SET aa = 99\n    ON CONFLICT(cc) DO UPDATE SET aa = 99\n    ON CONFLICT(bb) DO UPDATE SET aa = 99;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 NOT INDEXED ORDER BY +aa;",
+          "expect": "10 21 32 11 44 55 12 23 34"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INDEXED BY t1bb ORDER BY +aa;",
+          "expect": "10 21 32 11 44 55 12 23 34"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INDEXED BY t1cc ORDER BY +aa;",
+          "expect": "10 21 32 11 44 55 12 23 34"
+        }
+      ]
+    },
+    {
+      "name": "4.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b GENERATED ALWAYS AS (a+1) VIRTUAL, c REAL, d UNIQUE);\n  INSERT INTO t2(a, c, d) VALUES(555, 555, 555);"
+        }
+      ]
+    },
+    {
+      "name": "4.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "555 556 555.0 555"
+        }
+      ]
+    },
+    {
+      "name": "4.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(c, d) VALUES(22, 555)\n    ON CONFLICT(d) DO UPDATE SET a = excluded.c;"
+        }
+      ]
+    },
+    {
+      "name": "4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "22.0 23.0 555.0 555"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "file": "tkt3457.test",
+  "name": "tkt3457",
+  "tests": [
+    {
+      "name": "tkt3457-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "tkt3457-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3457-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3457-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3457-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2 3 4 5 6}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "file": "analyze6.test",
+  "name": "analyze6",
+  "tests": [
+    {
+      "name": "analyze6-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;",
+          "expect": "16 512"
+        }
+      ]
+    },
+    {
+      "name": "analyze6-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM cat, ev WHERE x=y"
+        }
+      ]
+    },
+    {
+      "name": "analyze6-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;",
+          "expect": "/*SEARCH t201 USING INDEX t201z (z=?)*/"
+        }
+      ]
+    },
+    {
+      "name": "analyze6-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;",
+          "expect": "/*SEARCH t201 USING INDEX t201z (z=?)*/"
+        }
+      ]
+    },
+    {
+      "name": "analyze6-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;",
+          "expect": "/*SEARCH t201 USING INDEX t201z (z=?)*/"
+        }
+      ]
+    }
+  ]
+}

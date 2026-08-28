@@ -1,0 +1,35 @@
+{
+  "file": "wal7.test",
+  "name": "wal7",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 SELECT x FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=25000;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=0;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA journal_size_limit=25000;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);"
+        }
+      ]
+    }
+  ]
+}

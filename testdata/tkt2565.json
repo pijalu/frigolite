@@ -1,0 +1,32 @@
+{
+  "file": "tkt2565.test",
+  "name": "tkt2565",
+  "tests": [
+    {
+      "name": "tkt2565-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE A(Id INTEGER, Name TEXT)"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE A(Id INTEGER, Name TEXT)"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma locking_mode=exclusive"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}
