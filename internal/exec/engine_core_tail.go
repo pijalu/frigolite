@@ -189,6 +189,20 @@ func (e *Engine) registerWriteIfInTx() {
 	}
 }
 
+// registerWriteUnlessReadOnly marks the cross-connection write transaction for
+// a write statement, but skips read-only statements. SQLite's pager acquires
+// RESERVED only on the first real write; a read-only PRAGMA (e.g. PRAGMA
+// lock_status) or EXPLAIN inside a deferred BEGIN must not mark a write
+// transaction, or it would wrongly block other connections' writes via the
+// cross-connection registry (lock7-1.4).
+func (e *Engine) registerWriteUnlessReadOnly(stmt sql.Stmt) {
+	switch stmt.(type) {
+	case *sql.PragmaStmt, *sql.ExplainStmt:
+		return // read-only; do not mark a cross-connection write transaction
+	}
+	e.registerWriteIfInTx()
+}
+
 // execDMLWritable runs a DML statement, rejecting writes when queryOnly is set
 // and scoping WITH (CTE) definitions to the statement.
 func (e *Engine) execDMLWritable(ctes []sql.CTEDef, fn func() *Result) *Result {
