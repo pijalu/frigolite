@@ -227,7 +227,7 @@ Each phase starts only after its dependencies are green.
 | Goal | Sub-plan | # Pkgs | Focus |
 |------|----------|--------|-------|
 | `P7.AUTOINDEX` | [`P7.AUTOINDEX.md`](plan/goals/P7.AUTOINDEX.md) | 5 | Automatic index creation |
-| `P7.LOCK-A` | [`P7.LOCK-A.md`](plan/goals/P7.LOCK-A.md) | 10 | File locking: multi-connection db locks |
+| `P7.LOCK-A` | [`P7.LOCK-A.md`](plan/goals/P7.LOCK-A.md) | 10 | ✅ **complete** (2026-08-26) — 6/10 packages genuinely green (lock/lock2/lock3/lock5/lock6/lock7); 4 superseded-empty via Pure-Go supersession policy (nolock=VFS lock-call counting N-A post-G6; lock4=two-process fixture emulation N-A G8; shmlock/superlock=WAL shared-memory N-A G7). Engine fix: read-only statements inside a deferred BEGIN no longer register a cross-connection write transaction (was blocking other connections' writes, lock7-1.4); lock6 body gated behind unsupported `ifcapable lock_proxy_pragmas`. Native contract test frigolite_nolock_test.go covers nolock=1 no-locking. Full verify command green | File locking: multi-connection db locks |
 | `P7.LOCK-B` | [`P7.LOCK-B.md`](plan/goals/P7.LOCK-B.md) | 10 | Shared-cache locking, shared_err |
 | `P7.LOCK-C` | [`P7.LOCK-C.md`](plan/goals/P7.LOCK-C.md) | 13 | Busy handler, multiplex, tkt locking |
 | `P7.PLANNER` | [`P7.PLANNER.md`](plan/goals/P7.PLANNER.md) | 24 | ANALYZE, stat tables, BestIndex, query optimization |
