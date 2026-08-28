@@ -6,9 +6,7 @@ package lock6
 
 import (
 "github.com/pijalu/frigolite"
-"github.com/pijalu/frigolite/internal/vtab"
 "os"
-"strings"
 "testing"
 )
 
@@ -100,107 +98,4 @@ func Test_lock6(t *testing.T) {
 	_ = f // suppress unused warning
 	tclChannelAppend("tf_main2.tcl", "\n  set l [open log w]\n  set script \"\"\n  while {![eof stdin]} {\n    flush stdout\n    set line [gets stdin]\n    puts $l \"READ $line\"\n    if { $line == \"OVER\" } {\n      catch {eval $script} result\n      puts $result\n      puts $l \"WRITE $result\"\n      puts OVER\n      puts $l \"WRITE OVER\"\n      flush stdout\n      set script \"\"\n    } else {\n      append script $line\n      append script \" ; \"\n    }\n  }\n  close $l\n"+"\n")
 	// close $f
-	vtab.TclVarSet("sqlite_hostid_num", "", "1")
-	sqlite_hostid_num = "1"
-	_ = sqlite_hostid_num // suppress unused warning
-	vtab.TclVarSet("using_proxy", "", "0")
-	using_proxy = "0"
-	_ = using_proxy // suppress unused warning
-	// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-	_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		name := _items0[_idx0+0]
-		_ = name // suppress unused warning
-		value := _items0[_idx0+1]
-		_ = value // suppress unused warning
-		_ = _idx0
-			vtab.TclVarSet("using_proxy", "", value)
-			using_proxy = value
-			_ = using_proxy // suppress unused warning
-		}
-		vtab.TclVarSet("env", "SQLITE_FORCE_PROXY_LOCKING", "1")
-		env_SQLITE_FORCE_PROXY_LOCKING = "1"
-		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
-		{ // do_test "lock6-1.1"
-			vtab.TclVarSet("tf1", "", "launch_testfixture")
-			tf1 = "launch_testfixture" // TCL namespace variable
-			_ = tf1 // suppress unused warning
-			// testfixture $::tf1 sqlite3_test_control_pending_byte $::sqlite_pendin... (unsupported command, not transpiled)
-			// testfixture $::tf1 {\n      set sqlite_hostid_num 2    \n      sqlite3...} (unsupported command, not transpiled)
-		}
-		vtab.TclVarSet("sqlite_hostid_num", "", "3")
-		sqlite_hostid_num = "3"
-		_ = sqlite_hostid_num // suppress unused warning
-		{ // do_test "lock6-1.2"
-			r = db.Query("pragma lock_status")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma lock_status")
-			}
-		}
-		// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
-		{ // do_test "lock6-1.3"
-			_rc := "0"
-			{
-				var _catchErr error
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
-				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-				_ = err
-				db.ResetChangesCounters()
-				r = db.Query(" select * from sqlite_master ")
-				if r.Error != nil { _catchErr = r.Error }
-				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
-				if _catchErr != nil { _rc = "1" }
-			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
-		}
-		{ // do_test "lock6-1.4"
-			lockpath = tclExecSQL(db, "{\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    } db")
-			_ = lockpath // suppress unused warning
-			got := tclListFlatten(lockpath)
-			want := tclListFlatten(":auto: (not held)")
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock6-1.4")
-			}
-		}
-		{ // do_test "lock6-1.4.1"
-			_res = db.Exec("\n      PRAGMA lock_proxy_file=\"notmine\";\n      select * from sqlite_master;\n    ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n      PRAGMA lock_proxy_file=\"notmine\";\n      select * from sqlite_master;\n    ")
-			}
-		}
-		{ // do_test "lock6-1.4.2"
-			r = db.Query("\n      PRAGMA lock_proxy_file;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file;\n    ")
-			}
-		}
-		{ // do_test "lock6-1.5"
-			// testfixture $::tf1 {\n      db eval {\n        BEGIN;\n        SELECT ...} (unsupported command, not transpiled)
-		}
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			// testfixture $::tf1 {db close} (unsupported command, not transpiled)
-		}
-		{ // do_test "lock6-1.6"
-			r = db.Query("\n      PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;\n    ")
-			}
-		}
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			// close $::tf1
-		}
-		vtab.TclVarSet("env", "SQLITE_FORCE_PROXY_LOCKING", using_proxy)
-		env_SQLITE_FORCE_PROXY_LOCKING = using_proxy
-		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
-		vtab.TclVarSet("sqlite_hostid_num", "", "0")
-		sqlite_hostid_num = "0"
-		_ = sqlite_hostid_num // suppress unused warning
-		// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

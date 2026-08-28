@@ -86,6 +86,15 @@ var unsupportedCapabilities = map[string]bool{
 	// instead, so guarded files (rtree9.test) take their skip path exactly
 	// like a C build without the flag.
 	"rtree_int_only": true,
+	// lock_proxy_pragmas / prefer_proxy_locking: the SQLite proxy-locking
+	// build option (PRAGMA lock_proxy_file, host-id based cross-process locking
+	// via a shared proxy lock file). Frigolite has no proxy-locking layer; the
+	// lock6.test body is entirely gated behind
+	// `ifcapable lock_proxy_pragmas&&prefer_proxy_locking`, so marking it
+	// unsupported drops the whole body — exactly how a stock SQLite build (no
+	// SQLITE_ENABLE_LOCKING_STYLE proxy support) runs lock6 as a no-op.
+	"lock_proxy_pragmas":  true,
+	"prefer_proxy_locking": true,
 }
 
 // ifcapableGuardFires reports whether an `ifcapable GUARD` condition is TRUE
