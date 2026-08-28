@@ -362,6 +362,17 @@ func (e *Engine) restoreAllPagers(snaps []pagerSnap) {
 }
 
 func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
+	// A write statement inside an explicit transaction marks the cross-connection
+	// write transaction so other connections' lock gates observe it (SQLite's
+	// pager acquires RESERVED on the first write). Read-only statements must NOT
+	// mark a write transaction: a read-only PRAGMA (e.g. PRAGMA lock_status) or
+	// EXPLAIN inside a deferred BEGIN must not block another connection's writes
+	// (lock7-1.4).
+	if _, isPragma := stmt.(*sql.PragmaStmt); !isPragma {
+		if _, isExplain := stmt.(*sql.ExplainStmt); !isExplain {
+			e.registerWriteIfInTx()
+		}
+	}
 	// PRAGMA query_only rejects all write statements, including DDL. PRAGMA
 	// statements are exempt (the query_only pragma itself must toggle).
 	if e.settings.queryOnly {

@@ -7,7 +7,9 @@
 // connections in the same process.
 package lockreg
 
-import "sync"
+import (
+	"sync"
+)
 
 // Global is the process-wide lock registry shared by all connections. Tests
 // run one test binary per testgen package, so process-global state is

@@ -171,15 +171,18 @@ func (e *Engine) execDispatch(stmt sql.Stmt) *Result {
 	case *sql.SavepointStmt:
 		return e.execSavepoint(s)
 	default:
-		e.registerWriteIfInTx()
 		return e.execOtherDDL(stmt)
 	}
 }
 
 // registerWriteIfInTx marks the connection's database files as having an
-// open write transaction when a write statement runs inside a transaction
-// (BEGIN ... COMMIT). Backup steps on those files return SQLITE_BUSY while
-// the transaction is open (SQLite lock semantics).
+// open write transaction when a write statement runs inside an explicit
+// transaction (BEGIN ... COMMIT). SQLite's pager only acquires RESERVED on the
+// first write, and a read-only statement (e.g. PRAGMA lock_status, EXPLAIN)
+// inside a deferred BEGIN must NOT mark a write transaction — otherwise it would
+// wrongly block other connections' writes via the cross-connection registry
+// (lock7-1.4). Only actual write statements (DML, CREATE/DROP/ALTER, ...) call
+// this.
 func (e *Engine) registerWriteIfInTx() {
 	if e.tx.inTransaction {
 		e.registerWriteTx(true)
