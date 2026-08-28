@@ -481,16 +481,28 @@ var skipTestFiles = map[string]string{
 	"securedel":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"securedel2":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-	"shared":     "multi-connection/locking not implemented DEFERRED",
-	"shared2":    "multi-connection/locking not implemented DEFERRED",
-	"shared3":    "multi-connection/locking not implemented DEFERRED",
-	"shared4":    "multi-connection/locking not implemented DEFERRED",
-	"shared6":    "multi-connection/locking not implemented DEFERRED",
-	"shared7":    "multi-connection/locking not implemented DEFERRED",
-	"shared8":    "multi-connection/locking not implemented DEFERRED",
-	"shared9":    "multi-connection/locking not implemented DEFERRED",
-	"shared_err": "multi-connection/locking not implemented DEFERRED",
-	"sharedlock": "multi-connection/locking not implemented DEFERRED",
+	// P7.LOCK-B re-skips (evidence-based, per plan/goals DoD #6 + 2026-05
+	// Pure-Go supersession policy). Shared-cache is a G7 milestone
+	// (PORTPLAN.md §G7: "No WAL/shared-memory/concurrency
+	// implementation"). Frigolite has no sqlite3_enable_shared_cache
+	// C-API, no shared pager-cache/schema registry (each Open() gets an
+	// independent pager + schema), and no table-level lock table
+	// (btree.c shared-cache locking / pager.c lockTable). The full
+	// shared*.test contract ("database table is locked: X",
+	// "database schema is locked: main", "database is already attached")
+	// therefore cannot be produced. Evidence: frigolite_shared_test.go
+	// (TestSharedCacheContract) documents the oracle contract and pins the
+	// current engine baseline. Re-enable at G7 (shared-cache).
+	"shared":     "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared2":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared3":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared4":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared6":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared7":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared8":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared9":    "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"shared_err": "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
+	"sharedlock": "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
 
 	"snapshot":        "multi-connection/locking not implemented DEFERRED",
 	"snapshot2":       "multi-connection/locking not implemented DEFERRED",
