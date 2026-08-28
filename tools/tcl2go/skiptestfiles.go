@@ -621,4 +621,41 @@ var skipTestFiles = map[string]string{
 	"win32lock":     "win32 platform-specific tests N-A",
 	"win32longpath": "win32 platform-specific tests N-A",
 	"win32nolock":   "win32 platform-specific tests N-A",
+
+	// ------------------------------------------------------------------
+	// P7.LOCK-A re-skips (evidence-based, per plan/goals DoD #6 + 2026-05
+	// Pure-Go supersession policy). These 4 packages were un-skipped and
+	// attempted; each requires infrastructure outside the current port phase
+	// (G7 WAL/shared-memory, a VFS lock-instrumentation layer, and multi-process
+	// fixture emulation). Their engine-visible contracts are covered by the green
+	// packages (lock/lock2/lock3/lock5/lock6/lock7) or, for WAL, are deferred to
+	// G7. Superseded by native engine-contract tests (frigolite_nolock_test.go).
+
+	// nolock: counts exact VFS xLock/xUnlock/xCheckReservedLock/xAccess call
+	// counts via a custom testvfs (e.g. {xLock 7 xUnlock 5}). Frigolite has no
+	// VFS layer to instrument, so the specific call counts cannot be reproduced.
+	// The engine-visible contract (nolock=1 / immutable=1 disable cross-connection
+	// locking) is covered by frigolite_nolock_test.go (LockStyleNone). Re-enable
+	// when a VFS lock-instrumentation layer is added (post-G6).
+	"nolock": "testvfs VFS lock-call counting needs a VFS instrumentation layer N-A (contract covered by frigolite_nolock_test.go)",
+
+	// lock4: requires two-process emulation — it writes test2-script.tcl and runs
+	// it as a separate OS process (exec [info nameofexec] ./test2-script.tcl &),
+	// synchronizing via test2.db-journal existence, plus sqlite3_test_control_
+	// pending_byte (C-API test control). True multi-process fixture emulation is
+	// G8 scope. The single-process cross-connection matrix it exercises is already
+	// covered by lock/lock2/lock3/lock5/lock7. Re-enable at G8 (multi-process
+	// fixture emulation).
+	"lock4": "two-process fixture emulation (test2-script.tcl subprocess) N-A (matrix covered by lock/lock2/lock3/lock5/lock7)",
+
+	// shmlock: exercises the vfs_shmlock custom VFS shared-memory locking
+	// protocol (8-slot WAL shm lock) under `ifcapable !wal {finish_test}`. Needs
+	// WAL mode + shared-memory, not implemented (G7). Re-enable at G7 (WAL/
+	// shared-memory).
+	"shmlock": "WAL shared-memory (vfs_shmlock) locking not implemented N-A",
+
+	// superlock: uses the sqlite3demo_superlock() custom C extension + WAL mode
+	// throughout. Needs WAL + shared-memory + the demo extension, not implemented
+	// (G7). Re-enable at G7 (WAL/shared-memory).
+	"superlock": "WAL/shared-memory (sqlite3demo_superlock) not implemented N-A",
 }

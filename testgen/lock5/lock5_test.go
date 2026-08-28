@@ -93,300 +93,279 @@ func Test_lock5(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db.lock")
-	vtab.TclVarSet("using_proxy", "", "0")
-	using_proxy = "0" // TCL namespace variable
-	_ = using_proxy // suppress unused warning
-	// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-	_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		name := _items1[_idx1+0]
-		_ = name // suppress unused warning
-		value := _items1[_idx1+1]
-		_ = value // suppress unused warning
-		_ = _idx1
-			vtab.TclVarSet("using_proxy", "", value)
-			using_proxy = value // TCL namespace variable
-			_ = using_proxy // suppress unused warning
+	{ // do_test "lock5-dotfile.1"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db.SetLockStyle(frigolite.LockStyleDotfile)
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 		}
-		vtab.TclVarSet("env", "SQLITE_FORCE_PROXY_LOCKING", "0")
-		env_SQLITE_FORCE_PROXY_LOCKING = "0"
-		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
-		{ // do_test "lock5-dotfile.1"
+	}
+	{ // do_test "lock5-dotfile.2"
+		// file exists "test.db.lock"
+	}
+	{ // do_test "lock5-dotfile.3"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		// file exists "test.db.lock"
+	}
+	{ // do_test "lock5-dotfile.4"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db2.SetLockStyle(frigolite.LockStyleDotfile)
+		r = db2.Query("\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "lock5-dotfile.5"
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "lock5-dotfile.6"
+		// file exists "test.db.lock"
+	}
+	{ // do_test "lock5-dotfile.7"
+		_res = db.Exec(" SELECT * FROM t1; ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, " SELECT * FROM t1; ")
+		}
+	}
+	{ // do_test "lock5-dotfile.8"
+		r = db2.Query("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+		}
+	}
+	{ // do_test "lock5-dotfile.9"
+		_res = db.Exec(" SELECT * FROM t1; ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1; ")
+		}
+	}
+	{ // do_test "lock5-dotfile.10"
+		// file exists "test.db.lock"
+	}
+	{ // do_test "lock5-dotfile.X"
+		if db2 != nil { db2.Close() }
+		_res = db.Exec("BEGIN EXCLUSIVE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
+		}
+		db.Close()
+		// file exists "test.db.lock"
+	}
+	os.Remove("test.db")
+	if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
+		{ // do_test "lock5-flock.1"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db.SetLockStyle(frigolite.LockStyleDotfile)
-			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
+			db.SetLockStyle(frigolite.LockStyleExclusive)
+			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			}
 		}
-		{ // do_test "lock5-dotfile.2"
+		{ // do_test "lock5-flock.2"
 			// file exists "test.db.lock"
 		}
-		{ // do_test "lock5-dotfile.3"
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-			}
-			// file exists "test.db.lock"
-		}
-		{ // do_test "lock5-dotfile.4"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db2.SetLockStyle(frigolite.LockStyleDotfile)
-			r = db2.Query("\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
-			}
-		}
-		{ // do_test "lock5-dotfile.5"
-			r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-			}
-		}
-		{ // do_test "lock5-dotfile.6"
-			// file exists "test.db.lock"
-		}
-		{ // do_test "lock5-dotfile.7"
-			_res = db.Exec(" SELECT * FROM t1; ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, " SELECT * FROM t1; ")
-			}
-		}
-		{ // do_test "lock5-dotfile.8"
-			r = db2.Query("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
-			}
-		}
-		{ // do_test "lock5-dotfile.9"
-			_res = db.Exec(" SELECT * FROM t1; ")
-			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1; ")
-			}
-		}
-		{ // do_test "lock5-dotfile.10"
-			// file exists "test.db.lock"
-		}
-		{ // do_test "lock5-dotfile.X"
-			if db2 != nil { db2.Close() }
-			_res = db.Exec("BEGIN EXCLUSIVE")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
-			}
-			db.Close()
-			// file exists "test.db.lock"
-		}
-		os.Remove("test.db")
-		if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
-			{ // do_test "lock5-flock.1"
-				db, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
-				db.SetLockStyle(frigolite.LockStyleExclusive)
-				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-				}
-			}
-			{ // do_test "lock5-flock.2"
-				// file exists "test.db.lock"
-			}
-			{ // "lock5-flock.3" (prepare-step internals; SQL side effects only)
-				{
-					var _catchErr error
-					_ = _catchErr // suppress unused warning
-					db2, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
-					db2.SetLockStyle(frigolite.LockStyleExclusive)
-				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
-				_ = _res // catchsql
-			}
-			{ // do_test "lock5-flock.4"
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
-				_ = _res // catchsql
-			}
-			{ // do_test "lock5-flock.5"
-				_res = db.Exec("BEGIN")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
-				_ = _res // catchsql
-			}
-			{ // do_test "lock5-flock.6"
-				r = db.Query("SELECT * FROM t1")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
-				}
-				_res = db2.Exec(" SELECT * FROM t1 ")
-				_ = _res // catchsql
-			}
-			{ // do_test "lock5-flock.7"
-				db.Close()
-				_res = db2.Exec(" SELECT * FROM t1 ")
-				_ = _res // catchsql
-			}
-			{ // do_test "lock5-flock.8"
-				if db2 != nil { db2.Close() }
-			}
-			{ // do_test "lock5-flock.9"
-				db, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
-				db.SetLockStyle(frigolite.LockStyleExclusive)
-				r = db.Query("\n    SELECT * FROM t1\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
-				}
-			}
-			{ // do_test "lock5-flock.10"
+		{ // "lock5-flock.3" (prepare-step internals; SQL side effects only)
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2.SetLockStyle(frigolite.LockStyleExclusive)
-				r = db2.Query("\n    SELECT * FROM t1\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
-				}
 			}
-			{ // do_test "lock5-flock.10"
-				r = db.Query("\n    PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;\n  ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;\n  ")
-				}
-				_res = db2.Exec("\n    SELECT * FROM t1\n  ")
-				_ = _res // catchsql
-			}
-			if "" != "inmemory_journal" {
-				{ // do_test "lock5-flock.11"
-					tclFileCopy("test.db", "test.db2")
-					tclFileCopy("test.db-journal", "test.db2-journal")
-					if db2 != nil { db2.Close() }
-					db2, err = frigolite.Open("test.db2")
-					if err != nil { t.Fatal(err) }
-					db2.SetLockStyle(frigolite.LockStyleExclusive)
-					_res = db2.Exec("\n      SELECT * FROM t1\n    ")
-					_ = _res // catchsql
-				}
-				{ // do_test "lock5-flock.12"
-					// file exists "test.db2-journal"
-				}
-			}
-			db.Close()
-			if db2 != nil { db2.Close() }
+			_res = db2.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		{ // do_test "lock5-none.1"
-			db, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db.SetLockStyle(frigolite.LockStyleNone)
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db2.SetLockStyle(frigolite.LockStyleNone)
-			r = db2.Query(" PRAGMA mmap_size = 0 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 0 ")
-			}
-			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-			}
-		}
-		{ // do_test "lock5-none.2"
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-			}
-		}
-		{ // do_test "lock5-none.3"
-			r = db2.Query(" SELECT * FROM t1; ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
-			}
-		}
-		{ // do_test "lock5-none.4"
-			r = db2.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM t1;\n  ")
-			}
-		}
-		{ // do_test "lock5-none.5"
+		{ // do_test "lock5-flock.4"
 			_res = db.Exec("COMMIT")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
-			r = db2.Query("SELECT * FROM t1")
+			_res = db2.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
+		}
+		{ // do_test "lock5-flock.5"
+			_res = db.Exec("BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+			}
+			_res = db2.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
+		}
+		{ // do_test "lock5-flock.6"
+			r = db.Query("SELECT * FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 			}
+			_res = db2.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-		{ // do_test "lock5-none.X"
+		{ // do_test "lock5-flock.7"
 			db.Close()
+			_res = db2.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
+		}
+		{ // do_test "lock5-flock.8"
 			if db2 != nil { db2.Close() }
 		}
-		vtab.TclVarSet("env", "SQLITE_FORCE_PROXY_LOCKING", using_proxy)
-		env_SQLITE_FORCE_PROXY_LOCKING = using_proxy
-		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
-		db.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		{ // do_test "lock5-flock.9"
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			db.SetLockStyle(frigolite.LockStyleExclusive)
+			r = db.Query("\n    SELECT * FROM t1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			}
+		}
+		{ // do_test "lock5-flock.10"
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			db2.SetLockStyle(frigolite.LockStyleExclusive)
+			r = db2.Query("\n    SELECT * FROM t1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			}
+		}
+		{ // do_test "lock5-flock.10"
+			r = db.Query("\n    PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;\n  ")
+			}
+			_res = db2.Exec("\n    SELECT * FROM t1\n  ")
+			_ = _res // catchsql
+		}
 		if "" != "inmemory_journal" {
-			{ // do_test "2.dotfile.1"
-				db, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
-				db.SetLockStyle(frigolite.LockStyleDotfile)
-				r = db.Query("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
-				}
-			}
-			{ // "2.dotfile.2"
-				_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
-				}
-			}
-			{ // do_test "2.dotfile.3"
-				_list := tclList([]string{"file exists test.db", "file exists test.db-journal", "file exists test.db.lock"})
-				_ = _list
-				_r = _list
-			}
-			{ // do_test "2.dotfile.4"
+			{ // do_test "lock5-flock.11"
 				tclFileCopy("test.db", "test.db2")
 				tclFileCopy("test.db-journal", "test.db2-journal")
-				os.MkdirAll("test.db2.lock", 0755)
+				if db2 != nil { db2.Close() }
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
-				db2.SetLockStyle(frigolite.LockStyleDotfile)
-				_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
+				db2.SetLockStyle(frigolite.LockStyleExclusive)
+				_res = db2.Exec("\n      SELECT * FROM t1\n    ")
 				_ = _res // catchsql
 			}
-			{ // do_test "2.dotfile.5"
-				os.Remove("test.db2.lock")
-				r = db2.Query("\n      PRAGMA integrity_check\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA integrity_check\n    ")
-				}
-			}
-			if db2 != nil { db2.Close() }
-			{ // do_test "2.dotfile.6"
-				tclFileCopy("test.db", "test.db2")
-				tclFileCopy("test.db-journal", "test.db2-journal")
-				db2, err = frigolite.Open("file:test.db2?nolock=1")
-				if err != nil { t.Fatal(err) }
-				db2.SetLockStyle(frigolite.LockStyleNone)
-				_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
-				_ = _res // catchsql
+			{ // do_test "lock5-flock.12"
+				// file exists "test.db2-journal"
 			}
 		}
+		db.Close()
+		if db2 != nil { db2.Close() }
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // do_test "lock5-none.1"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db.SetLockStyle(frigolite.LockStyleNone)
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db2.SetLockStyle(frigolite.LockStyleNone)
+		r = db2.Query(" PRAGMA mmap_size = 0 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 0 ")
+		}
+		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		}
+	}
+	{ // do_test "lock5-none.2"
+		r = db.Query(" SELECT * FROM t1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		}
+	}
+	{ // do_test "lock5-none.3"
+		r = db2.Query(" SELECT * FROM t1; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
+		}
+	}
+	{ // do_test "lock5-none.4"
+		r = db2.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "lock5-none.5"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		r = db2.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "lock5-none.X"
+		db.Close()
+		if db2 != nil { db2.Close() }
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	if "" != "inmemory_journal" {
+		{ // do_test "2.dotfile.1"
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			db.SetLockStyle(frigolite.LockStyleDotfile)
+			r = db.Query("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
+			}
+		}
+		{ // "2.dotfile.2"
+			_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));\n  ")
+			}
+		}
+		{ // do_test "2.dotfile.3"
+			_list := tclList([]string{"file exists test.db", "file exists test.db-journal", "file exists test.db.lock"})
+			_ = _list
+			_r = _list
+		}
+		{ // do_test "2.dotfile.4"
+			tclFileCopy("test.db", "test.db2")
+			tclFileCopy("test.db-journal", "test.db2-journal")
+			os.MkdirAll("test.db2.lock", 0755)
+			db2, err = frigolite.Open("test.db2")
+			if err != nil { t.Fatal(err) }
+			db2.SetLockStyle(frigolite.LockStyleDotfile)
+			_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
+			_ = _res // catchsql
+		}
+		{ // do_test "2.dotfile.5"
+			os.Remove("test.db2.lock")
+			r = db2.Query("\n      PRAGMA integrity_check\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA integrity_check\n    ")
+			}
+		}
+		if db2 != nil { db2.Close() }
+		{ // do_test "2.dotfile.6"
+			tclFileCopy("test.db", "test.db2")
+			tclFileCopy("test.db-journal", "test.db2-journal")
+			db2, err = frigolite.Open("file:test.db2?nolock=1")
+			if err != nil { t.Fatal(err) }
+			db2.SetLockStyle(frigolite.LockStyleNone)
+			_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
+			_ = _res // catchsql
+		}
+	}
 }
