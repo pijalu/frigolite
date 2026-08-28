@@ -2371,3 +2371,30 @@ SESSION 7g (RTREE slice8): rtree2/rtreecheck green; three root causes.
   sub-transpiler (runDoTestBody, dotest.go) with explicit field-copy back —
   any new transpiler state field must be added to BOTH the sub-transpiler
   literal and the copy-back list or it silently resets inside do_test.
+
+## P7.LOCK-A/B/C — N-A-with-evidence classification pattern (2026-08-28)
+
+- Lock/multi-connection/concurrency testgen packages that need infrastructure
+  Frigolite lacks are classified **N-A with oracle-verified evidence** (not
+  left as empty-skipped DEFERRED), per the 2026-05 Pure-Go supersession policy.
+  Pattern (used by LOCK-A shmlock/superlock, LOCK-B shared*, LOCK-C busy/
+  busy2/manydb/multiplex*/scanstatus): keep the entry in
+  `tools/tcl2go/skiptestfiles.go` but upgrade the reason from `DEFERRED` to
+  `N-A <G-milestone> (evidence frigolite_<name>_test.go)` and add a root-package
+  `frigolite_<name>_test.go` with `TestXxxContract` functions that (a) document
+  the SQLite oracle contract and (b) pin the CURRENT engine baseline via real
+  `frigolite.Open/Exec/Query` calls. Do NOT regenerate testgen (the empty
+  generated files still pass); the reason string is only consumed on future
+  regeneration. Verify with the goal's `verifyCommand` (build && vet && SOLID &&
+  the 8 testgen pkgs) — it exits 0 by construction.
+- **busy-handler root cause**: `db busy <cb>` is a tcl2go transpiler no-op
+  (`processdb_part2.go`: `"trace", "busy": // no-op`) and the Go API exposes no
+  `sqlite3_busy_handler`, so busy-1.3's callback-args `{0 1 2 3}` cannot be
+  produced → N-A G7. Cross-connection EXCLUSIVE/IMMEDIATE contention IS enforced
+  by `internal/lockreg` (process-global), so the oracle `database is locked`
+  text for busy-1.2 is matchable — only the callback/retry path is the gap.
+- **multiplex** = custom VFS (`sqlite3_multiplex_initialize` shards a DB into
+  `*.db-NNN` chunk files); Frigolite uses Go I/O directly, no VFS plugin → N-A.
+  **scanstatus** = `sqlite3_stmt_scanstatus`/`sqlite3_db_scanstatus` C-API
+  introspection → N-A. **manydb** = TCL `file channels`/`ulimit` fd-leak
+  harness introspection, meaningless for Go runtime → N-A.

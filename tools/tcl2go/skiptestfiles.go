@@ -238,10 +238,18 @@ var skipTestFiles = map[string]string{
 	// that stores/validates per-page checksums. Custom VFS not implemented. N-A.
 	"cksumvfs": "custom checksum VFS not implemented N-A",
 
-	// busy / busy2: multi-connection busy-handler locking. DEFERRED — needs
-	// multi-connection locking (see plans/DEFERRED.md).
-	"busy":  "multi-connection busy-handler locking DEFERRED",
-	"busy2": "multi-connection busy-handler locking DEFERRED",
+	// P7.LOCK-C re-skips (evidence-based). busy/busy2 exercise the SQLite
+	// busy-handler (sqlite3_busy_handler via `db busy <cb>`). Frigolite's
+	// tclsqlite binding treats `db busy` as a no-op (processdb_part2.go:
+	// "trace", "busy": // no-op) and the Go API exposes no sqlite3_busy_handler,
+	// so the callback cannot be registered or invoked (busy.test busy-1.3 needs
+	// args {0 1 2 3}). Cross-connection EXCLUSIVE/IMMEDIATE contention IS
+	// enforced (lockreg) and matches the oracle "database is locked" text, but
+	// the busy-handler callback + WAL-busy-retry (busy2 do_multiclient_test) need
+	// the G7 concurrency milestone. Evidence: frigolite_lockc_test.go
+	// (TestBusyHandlerContract). Re-enable at G7 (busy-handler C-API).
+	"busy":  "busy-handler (sqlite3_busy_handler C-API; `db busy` transpiler no-op) + multi-connection lock contention not implemented N-A G7 (evidence frigolite_lockc_test.go)",
+	"busy2": "busy-handler (sqlite3_busy_handler C-API; `db busy` transpiler no-op) + WAL multi-connection lock contention not implemented N-A G7 (evidence frigolite_lockc_test.go)",
 
 	// cache: pager/btree cache behavior (page cache eviction, spill) — the
 	// generated test crashes the engine (btree page parse loop). DEFERRED —
@@ -424,7 +432,7 @@ var skipTestFiles = map[string]string{
 	// (loadext/loadext2 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 	"mallocI":    "VFS/fault-injection harness N-A",
 	"mallocK":    "VFS/fault-injection harness N-A",
-	"manydb":     "multi-connection/locking not implemented DEFERRED",
+	"manydb":     "TCL `file channels`/`ulimit` file-descriptor leak harness introspection not implemented N-A (evidence frigolite_lockc_test.go)",
 	"memdb":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"memdb1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"memdb2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -445,10 +453,15 @@ var skipTestFiles = map[string]string{
 	"mmap4":       "VFS/fault-injection harness N-A",
 	"mmapcorrupt": "VFS/fault-injection harness N-A",
 	"mmapwarm":    "VFS/fault-injection harness N-A",
-	"multiplex":   "multi-connection/locking not implemented DEFERRED",
-	"multiplex2":  "multi-connection/locking not implemented DEFERRED",
-	"multiplex3":  "multi-connection/locking not implemented DEFERRED",
-	"multiplex4":  "multi-connection/locking not implemented DEFERRED",
+	// P7.LOCK-C re-skips (evidence-based). multiplex*.test register a custom VFS
+	// via sqlite3_multiplex_initialize that shards a logical DB across chunk
+	// files (test.db-001, test.db-002, ...). Frigolite uses Go I/O directly and
+	// has no VFS plugin system (see avfs/cksumvfs: "Custom VFS not implemented
+	// N-A"). Evidence: frigolite_lockc_test.go (TestMultiplexVFSContract).
+	"multiplex":   "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
+	"multiplex2":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
+	"multiplex3":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
+	"multiplex4":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
 	"offset1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"oserror":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"pager1":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -476,10 +489,16 @@ var skipTestFiles = map[string]string{
 	"rollback":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollback2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollbackfault": "VFS/fault-injection harness N-A",
-	"scanstatus":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"scanstatus2":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"securedel":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"securedel2":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	// P7.LOCK-C re-skips (evidence-based). scanstatus.test calls
+	// sqlite3_stmt_scanstatus / sqlite3_db_scanstatus (guarded by `ifcapable
+	// scanstatus`) for per-statement rows-visited/sorted metrics. Frigolite has
+	// no C-API and no such statement-statistics surface (mirrors the harness
+	// "Tests SQLite internal data structures/algorithms - frigolite has its
+	// own" class). Evidence: frigolite_lockc_test.go (TestScanStatusContract).
+	"scanstatus":  "sqlite3_stmt_scanstatus/sqlite3_db_scanstatus C-API introspection not implemented N-A (evidence frigolite_lockc_test.go)",
+	"scanstatus2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"securedel":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"securedel2":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	// P7.LOCK-B re-skips (evidence-based, per plan/goals DoD #6 + 2026-05
 	// Pure-Go supersession policy). Shared-cache is a G7 milestone
