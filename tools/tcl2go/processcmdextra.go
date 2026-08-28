@@ -44,6 +44,7 @@ func (tp *transpiler) runSubBody(args []tcl.RawWord, idx int) bool {
 		queryVars:           tp.queryVars,
 		dbAliases:           tp.dbAliases,
 		dbClosed:            tp.dbClosed,
+		fixtureVar:          tp.fixtureVar,
 		dqsDDL:              tp.dqsDDL,
 		dqsDML:              tp.dqsDML,
 		authTypeName:        tp.authTypeName,

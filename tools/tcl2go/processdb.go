@@ -253,6 +253,15 @@ func (tp *transpiler) processDBBackupRestore(kind string, rest []tcl.RawWord) {
 // registered collation destructors (sqlite3_create_collation_v2 xDestroy),
 // matching SQLite's behavior on connection close.
 func (tp *transpiler) processDBClose() {
+	// Inside a testfixture script, `db close` closes the fixture connection
+	// stored in tclFixtureDBs[tp.fixtureVar] and removes it from the map (the
+	// fixture process would terminate), so a later testfixture call reopens a
+	// fresh one.
+	if tp.fixtureVar != "" {
+		tp.emitLine("tclFixtureDBs[%q].Close()", tp.fixtureVar)
+		tp.emitLine("tclFixtureDBs[%q] = nil", tp.fixtureVar)
+		return
+	}
 	// TCL "db close" closes the main connection. A subsequent
 	// "sqlite3 db <file>" reopens it; the emitLine below pairs with
 	// the reopen logic in processSet/processSqlite3.

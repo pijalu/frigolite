@@ -474,6 +474,34 @@ func (db *DB) UnregisterCollation(name string) bool {
 	return false
 }
 
+// LockStyle selects a connection's file-locking model, mirroring SQLite's unix
+// VFS locking styles. The default (LockStyleDefault) uses the fine-grained
+// SHARED/RESERVED/PENDING/EXCLUSIVE matrix. LockStyleExclusive (unix-flock) and
+// LockStyleDotfile (unix-dotfile) collapse every lock level into a single
+// EXCLUSIVE mutex that excludes all other connections, and the dotfile style
+// additionally maintains a path+".lock" sentinel directory; LockStyleNone
+// (unix-none / nolock=1) performs no cross-connection locking at all. Set it
+// with DB.SetLockStyle immediately after Open.
+type LockStyle int
+
+const (
+	// LockStyleDefault is the fine-grained SHARED/RESERVED/PENDING/EXCLUSIVE matrix.
+	LockStyleDefault LockStyle = iota
+	// LockStyleExclusive collapses every lock level into a single EXCLUSIVE mutex (unix-flock).
+	LockStyleExclusive
+	// LockStyleDotfile is like LockStyleExclusive but also maintains a path+".lock" sentinel (unix-dotfile).
+	LockStyleDotfile
+	// LockStyleNone performs no cross-connection locking (unix-none / nolock=1).
+	LockStyleNone
+)
+
+// SetLockStyle selects this connection's file-locking model (see LockStyle).
+func (db *DB) SetLockStyle(style LockStyle) {
+	if db != nil && db.engine != nil {
+		db.engine.SetLockStyle(int(style))
+	}
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 // A SQLite URI filename ("file:path?mode=ro") is reduced to its real path
 // ("path") — URI access-mode parameters are a C-API feature the engine does

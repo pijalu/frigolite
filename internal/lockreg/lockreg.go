@@ -48,17 +48,24 @@ type Registry struct {
 	// EXCLUSIVE upgrade and now sits in PENDING: new SHARED acquisitions by
 	// other connections are denied until the holder releases (lock2-1.7).
 	pending map[string]int64
+	// dotfileRefs counts dotfile-style connections currently holding a lock on
+	// a path; the dotfile sentinel directory (path+".lock") exists iff the
+	// count > 0. Mirrors SQLite's dotlock VFS: the sentinel is created on the
+	// first lock and removed on the last unlock (os_unix.c dotlockLock/
+	// dotlockUnlock).
+	dotfileRefs map[string]int
 }
 
 // New returns an empty registry.
 func New() *Registry {
 	return &Registry{
-		exclusive:  make(map[string]int64),
-		writeTx:    make(map[string]map[int64]bool),
-		backupLock: make(map[string]int),
-		readTx:     make(map[string]map[int64]int),
-		sharedTx:   make(map[string]map[int64]bool),
-		pending:    make(map[string]int64),
+		exclusive:   make(map[string]int64),
+		writeTx:     make(map[string]map[int64]bool),
+		backupLock:  make(map[string]int),
+		readTx:      make(map[string]map[int64]int),
+		sharedTx:    make(map[string]map[int64]bool),
+		pending:     make(map[string]int64),
+		dotfileRefs: make(map[string]int),
 	}
 }
 
@@ -282,6 +289,79 @@ func (r *Registry) PendingByOther(path string, self int64) bool {
 	defer r.mu.Unlock()
 	holder, ok := r.pending[path]
 	return ok && holder != self
+}
+
+// ConnHoldsLock reports whether connID currently holds ANY lock (shared,
+// prepared-read, write, exclusive, or pending) on path. Used by the dotfile/
+// flock locking styles to drive the sentinel directory and to implement the
+// single-mutex lock matrix (os_unix.c dotlockLock / flockLock collapse every
+// lock level into one EXCLUSIVE lock).
+func (r *Registry) ConnHoldsLock(path string, connID int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.sharedTx[path][connID] ||
+		r.readTx[path][connID] > 0 ||
+		r.writeTx[path][connID] ||
+		r.exclusive[path] == connID ||
+		r.pending[path] == connID
+}
+
+// ConnLockedByOther reports whether any connection other than self currently
+// holds ANY lock on path. The dotfile and flock VFSes collapse all lock levels
+// into a single EXCLUSIVE mutex, so any holder excludes every other connection
+// (readers and writers); this differs from the default unix VFS, where multiple
+// SHARED readers may coexist.
+func (r *Registry) ConnLockedByOther(path string, self int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.exclusive[path] != 0 && r.exclusive[path] != self {
+		return true
+	}
+	if r.pending[path] != 0 && r.pending[path] != self {
+		return true
+	}
+	for cid := range r.writeTx[path] {
+		if cid != self {
+			return true
+		}
+	}
+	for cid := range r.sharedTx[path] {
+		if cid != self {
+			return true
+		}
+	}
+	for cid := range r.readTx[path] {
+		if cid != self {
+			return true
+		}
+	}
+	return false
+}
+
+// SetDotfileHeld records (on=true) or clears (on=false) that connID holds a
+// dotfile lock on path, adjusting the sentinel refcount. It returns whether
+// the aggregate hold count for path is now non-zero (the sentinel directory
+// should exist).
+func (r *Registry) SetDotfileHeld(path string, connID int64, on bool) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if on {
+		r.dotfileRefs[path]++
+	} else {
+		r.dotfileRefs[path]--
+		if r.dotfileRefs[path] <= 0 {
+			delete(r.dotfileRefs, path)
+		}
+	}
+	return r.dotfileRefs[path] > 0
+}
+
+// DotfileHeld reports whether any connection currently holds a dotfile lock on
+// path (the sentinel directory should exist).
+func (r *Registry) DotfileHeld(path string) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.dotfileRefs[path] > 0
 }
 
 func (r *Registry) ReadTxByConn(path string, connID int64) bool {

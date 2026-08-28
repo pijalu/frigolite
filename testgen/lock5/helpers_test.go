@@ -36,6 +36,25 @@ var tcl_platform_os = "Darwin"
 var tcl_platform_pointerSize = "8"
 var tcl_platform_wordSize = "8"
 
+// tclFixtureDBs emulates SQLite's launch_testfixture / testfixture second
+// process: each fixture name is a separate persistent *frigolite.DB connection
+// opened on the same database file, so cross-connection lock semantics (SHARED
+// / RESERVED / PENDING / EXCLUSIVE) apply between the main test connection and
+// the fixture connection. The lock registry (internal/lockreg) is
+// process-global and keyed by canonical file path, so a fixture connection on
+// "test.db" contends with the main connection exactly as two OS processes
+// would. Used by the multi-process locking tests (lock2/lock4/...).
+var tclFixtureDBs = map[string]*frigolite.DB{}
+
+// launchTestfixture returns a fresh fixture name (mirrors SQLite's
+// launch_testfixture, which spawns a persistent testfixture subprocess).
+var tclFixtureSeq int
+
+func launchTestfixture() string {
+	tclFixtureSeq++
+	return fmt.Sprintf("fx%d", tclFixtureSeq)
+}
+
 // tclTestLocaltime is the Go equivalent of SQLite's test1.c testLocaltime
 // (installed by sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 2):
 // even days (from 1970) are UTC-30min, odd days UTC+30min, and the specific

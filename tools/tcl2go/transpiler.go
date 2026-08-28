@@ -107,6 +107,14 @@ type transpiler struct {
 	usedChannels map[string]bool
 	// blobSeq numbers blob channels for unique Go variable names.
 	blobSeq int
+
+	// fixtureVar holds the fixture name (e.g. "tf1" from `testfixture $::tf1
+	// {...}`) when transpiling inside a testfixture script. While set, `db`
+	// refers to that fixture's persistent connection (tclFixtureDBs[name]) and
+	// `sqlite3 db FILE` / `db close` operate on the fixture map instead of the
+	// main test connection — emulating SQLite's launch_testfixture second
+	// process (cross-connection lock semantics apply).
+	fixtureVar string
 }
 
 // preparedState tracks the prepared-statement emulation state (sqlite3_prepare

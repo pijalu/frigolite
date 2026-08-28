@@ -246,6 +246,13 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 			tp.emitLine("fts3SortBuildDatabase(db, %s, %s)", nRowExpr, paramExpr)
 		},
 
+		// Multi-process locking emulation (lock2/lock4/...): a testfixture is
+		// a persistent second connection on the same file. The transpiler
+		// emulates it as a persistent in-process connection keyed in
+		// tclFixtureDBs (see processfixture.go).
+		"testfixture":        (*transpiler).processTestfixture,
+		"launch_testfixture": (*transpiler).processLaunchTestfixture,
+
 		// Incremental blob I/O (sqlite3_blob_*)
 		"sqlite3_blob_open":     (*transpiler).processSqlite3BlobOpen,
 		"sqlite3_blob_bytes":    (*transpiler).processSqlite3BlobBytes,

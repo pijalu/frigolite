@@ -2,10 +2,34 @@ package exec
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/sql"
 )
+
+// Lock-style constants mirror SQLite's unix VFS locking styles. They are
+// exported through the public frigolite.LockStyle type, which aliases these
+// int values so the engine can store the style as a plain int.
+const (
+	// LockStyleDefault is the fine-grained SHARED/RESERVED/PENDING/EXCLUSIVE
+	// matrix (the default unix VFS).
+	LockStyleDefault = iota
+	// LockStyleExclusive collapses every lock level into a single EXCLUSIVE
+	// mutex that excludes all other connections (unix-flock).
+	LockStyleExclusive
+	// LockStyleDotfile is like LockStyleExclusive but also maintains a
+	// path+".lock" sentinel directory (unix-dotfile).
+	LockStyleDotfile
+	// LockStyleNone performs no cross-connection locking (unix-none / nolock=1).
+	LockStyleNone
+)
+
+// SetLockStyle selects this connection's file-locking model.
+func (e *Engine) SetLockStyle(style int) {
+	e.lockStyle = style
+}
 
 // ConnID returns this connection's unique ID for cross-connection lock
 // tracking.
@@ -89,6 +113,7 @@ func (e *Engine) registerWriteTx(on bool) {
 	for _, k := range e.allLockKeys() {
 		lockreg.Global.SetWriteTx(k, e.connID, on)
 	}
+	e.syncDotfileSentinel()
 }
 
 // BeginExclusive marks every database file of this connection as exclusively
@@ -98,6 +123,7 @@ func (e *Engine) BeginExclusive() {
 	for _, k := range e.allLockKeys() {
 		lockreg.Global.SetExclusive(k, e.connID, true)
 	}
+	e.syncDotfileSentinel()
 }
 
 // ReleaseExclusive clears an exclusive-lock mark set by BeginExclusive
@@ -106,6 +132,7 @@ func (e *Engine) ReleaseExclusive() {
 	for _, k := range e.allLockKeys() {
 		lockreg.Global.SetExclusive(k, e.connID, false)
 	}
+	e.syncDotfileSentinel()
 }
 
 // LockKeyForDB returns the registry key for the named schema's file (used by
@@ -150,6 +177,61 @@ func (e *Engine) WriteBlockedByPreparedRead(stmt sql.Stmt) bool {
 // opening the same path (savepoint7-3.x db.Close/reopen loop).
 func (e *Engine) ReleaseAllLocks() {
 	lockreg.Global.ClearConn(e.connID)
+	e.syncDotfileSentinel()
+}
+
+// syncDotfileSentinel maintains the path+".lock" sentinel directory for the
+// unix-dotfile VFS locking style: the sentinel exists iff this connection
+// currently holds any lock on the file (os_unix.c dotlockLock creates the lock
+// directory on the first lock; dotlockUnlock removes it on the last unlock).
+// Other locking styles (default/flock/none) do not use a sentinel.
+func (e *Engine) syncDotfileSentinel() {
+	if e.lockStyle != LockStyleDotfile {
+		return
+	}
+	for _, k := range e.allLockKeys() {
+		if strings.HasPrefix(k, "mem:") {
+			continue
+		}
+		e.syncDotfileSentinelForKey(k)
+	}
+}
+
+// syncDotfileSentinelForKey reconciles the dotfile sentinel for a single file:
+// it creates the sentinel directory when this connection transitions from
+// not-holding to holding a lock, and removes it on the reverse transition
+// (unless another dotfile connection still holds the file).
+func (e *Engine) syncDotfileSentinelForKey(k string) {
+	held := lockreg.Global.ConnHoldsLock(k, e.connID)
+	if held == e.dotfileHeld[k] {
+		return
+	}
+	if held {
+		lockreg.Global.SetDotfileHeld(k, e.connID, true)
+		createDotfileSentinel(k)
+		if e.dotfileHeld == nil {
+			e.dotfileHeld = make(map[string]bool)
+		}
+		e.dotfileHeld[k] = true
+		return
+	}
+	if !lockreg.Global.SetDotfileHeld(k, e.connID, false) {
+		removeDotfileSentinel(k)
+	}
+	delete(e.dotfileHeld, k)
+}
+
+// createDotfileSentinel creates the unix-dotfile lock directory (path+".lock"),
+// mirroring SQLite's dotlockLock osMkdir. A pre-existing sentinel (created by
+// another connection or by the test harness) is tolerated.
+func createDotfileSentinel(path string) {
+	_ = os.Mkdir(path+".lock", 0o777)
+}
+
+// removeDotfileSentinel removes the unix-dotfile lock directory, mirroring
+// SQLite's dotlockUnlock osRmdir.
+func removeDotfileSentinel(path string) {
+	_ = os.Remove(path + ".lock")
 }
 
 // CrossConnLockError implements the cross-connection pager lock matrix
@@ -167,20 +249,34 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	if key == "" {
 		return nil
 	}
-	if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
-		return fmt.Errorf("database is locked")
+	switch e.lockStyle {
+	case LockStyleNone:
+		// unix-none / nolock=1: no cross-connection locking at all.
+		return nil
+	case LockStyleExclusive, LockStyleDotfile:
+		// unix-flock / unix-dotfile collapse every lock level into a single
+		// EXCLUSIVE mutex (os_unix.c flockLock / dotlockLock): any lock held
+		// by another connection excludes all other connections.
+		if lockreg.Global.ConnLockedByOther(key, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
+		return nil
+	default: // LockStyleDefault — fine-grained SHARED/RESERVED/PENDING/EXCLUSIVE matrix
+		if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
+			return fmt.Errorf("database is locked")
+		}
+		// PENDING blocks only NEW SHARED acquisitions by other connections. A
+		// connection that already holds a transaction-level SHARED lock on the file
+		// keeps reading (src/os_unix.c unixLock: the PENDING check applies on the
+		// SHARED acquire path, not to an already-held SHARED) — lock2-1.6.
+		if lockreg.Global.PendingByOther(key, e.connID) && !lockreg.Global.SharedTxByConn(key, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
+		if write && lockreg.Global.WriteTxByOther(key, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
+		return nil
 	}
-	// PENDING blocks only NEW SHARED acquisitions by other connections. A
-	// connection that already holds a transaction-level SHARED lock on the file
-	// keeps reading (src/os_unix.c unixLock: the PENDING check applies on the
-	// SHARED acquire path, not to an already-held SHARED) — lock2-1.6.
-	if lockreg.Global.PendingByOther(key, e.connID) && !lockreg.Global.SharedTxByConn(key, e.connID) {
-		return fmt.Errorf("database is locked")
-	}
-	if write && lockreg.Global.WriteTxByOther(key, e.connID) {
-		return fmt.Errorf("database is locked")
-	}
-	return nil
 }
 
 // registerSharedTx records a transaction-level SHARED lock on the named schema's
@@ -198,6 +294,7 @@ func (e *Engine) registerSharedTx(schemaName string) {
 	if key != "" {
 		lockreg.Global.SetSharedTx(key, e.connID, true)
 	}
+	e.syncDotfileSentinel()
 }
 
 // releaseSharedTx clears this connection's transaction-level SHARED lock and
@@ -208,6 +305,7 @@ func (e *Engine) releaseSharedTx() {
 		lockreg.Global.SetSharedTx(k, e.connID, false)
 		lockreg.Global.SetPending(k, e.connID, false)
 	}
+	e.syncDotfileSentinel()
 }
 
 // setPendingAll marks every database file of this connection as PENDING (a
@@ -222,9 +320,17 @@ func (e *Engine) setPendingAll() {
 // commitLockError reports whether this connection's COMMIT would be blocked by
 // another connection's SHARED (read transaction) or prepared read lock: the
 // writer must upgrade to EXCLUSIVE but another reader holds the file. Matches
-// src/pager.c sqlite3PagerSharedLock EXCLUSIVE upgrade refusal.
+// src/pager.c sqlite3PagerSharedLock EXCLUSIVE upgrade refusal. For the
+// unix-flock / unix-dotfile locking styles (which collapse every lock level
+// into a single EXCLUSIVE mutex) ANY other holder blocks the upgrade.
 func (e *Engine) commitLockError() error {
 	for _, k := range e.allLockKeys() {
+		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
+			if lockreg.Global.ConnLockedByOther(k, e.connID) {
+				return fmt.Errorf("database is locked")
+			}
+			continue
+		}
 		if lockreg.Global.SharedTxByOther(k, e.connID) {
 			return fmt.Errorf("database is locked")
 		}

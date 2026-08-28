@@ -44,6 +44,20 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 
 	goName := tclVarToGo(dbName)
 
+	// Inside a testfixture script, `sqlite3 db FILE` opens (or reopens) the
+	// fixture connection stored in tclFixtureDBs[tp.fixtureVar] rather than the
+	// main test connection. `db` is shadowed to that connection inside the
+	// emitTestfixtureBlock scope, so assign into it and update the map.
+	if tp.fixtureVar != "" && goName == "db" {
+		tp.emitLine("db, err = frigolite.Open(%s)", filename)
+		tp.emitLine("if err != nil { t.Fatal(err) }")
+		tp.emitLine("tclFixtureDBs[%q] = db", tp.fixtureVar)
+		if style := tp.lockStyleForArgs(args); style != "" {
+			tp.emitLine("db.SetLockStyle(%s)", style)
+		}
+		return
+	}
+
 	// A URI-mode open (file:test.db?mode=ro/rw/rwc) probes the C-API URI
 	// filename feature, which the pure-Go engine does not implement. Emit a
 	// no-op so the test still compiles (the URI-mode assertions are skipped
@@ -88,6 +102,42 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	if emitFatal {
 		tp.emitLine("if err != nil { t.Fatal(err) }")
 	}
+	// Apply the unix VFS locking style (unix-dotfile / unix-flock / unix-none)
+	// or the nolock=1 URI parameter as a per-connection lock model. Matches
+	// SQLite's src/os_unix.c locking styles: dotfile/flock collapse every lock
+	// level into one EXCLUSIVE mutex (and dotfile keeps a path+".lock" sentinel);
+	// none disables cross-connection locking (test/lock5.test).
+	if style := tp.lockStyleForArgs(args); style != "" {
+		tp.emitLine("%s.SetLockStyle(%s)", goName, style)
+	}
+}
+
+// lockStyleForArgs returns the Go expression selecting a connection's locking
+// style from a `sqlite3 db FILE [-vfs STYLE] [-uri]` invocation, or "" when no
+// locking style is requested. A nolock=1 URI parameter (file:test.db?nolock=1)
+// wins over an explicit -vfs unix-dotfile, matching SQLite's vfs_shmlock test
+// where nolock disables the dotfile sentinel.
+func (tp *transpiler) lockStyleForArgs(args []tcl.RawWord) string {
+	filename := ""
+	if len(args) >= 2 {
+		filename = args[1].Text
+	}
+	if strings.Contains(filename, "nolock=1") || strings.Contains(filename, "nolock=2") {
+		return "frigolite.LockStyleNone"
+	}
+	for i := 0; i < len(args)-1; i++ {
+		if strings.TrimSpace(args[i].Text) == "-vfs" {
+			switch strings.TrimSpace(args[i+1].Text) {
+			case "unix-dotfile":
+				return "frigolite.LockStyleDotfile"
+			case "unix-flock":
+				return "frigolite.LockStyleExclusive"
+			case "unix-none":
+				return "frigolite.LockStyleNone"
+			}
+		}
+	}
+	return ""
 }
 
 // processSqlite3Exec handles the TCL test-harness `sqlite3_exec db {SQL}`

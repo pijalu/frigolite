@@ -107,6 +107,10 @@ func (e *Engine) commitLockGate() *Result {
 	if !e.WriteTxOpen() {
 		return nil
 	}
+	// unix-none performs no cross-connection locking: a writer always commits.
+	if e.lockStyle == LockStyleNone {
+		return nil
+	}
 	if err := e.commitLockError(); err != nil {
 		e.setPendingAll()
 		return &Result{Error: err}
@@ -155,9 +159,21 @@ func (e *Engine) execBegin(stmt *sql.BeginStmt) *Result {
 // beginLockError reports whether a BEGIN IMMEDIATE (exclusive=false) or BEGIN
 // EXCLUSIVE (exclusive=true) would be blocked by another connection's locks
 // on any of this connection's database files. RESERVED is blocked by another
-// writer or exclusive holder; EXCLUSIVE additionally by another reader.
+// writer or exclusive holder; EXCLUSIVE additionally by another reader. The
+// unix-none locking style never blocks; the unix-flock / unix-dotfile styles
+// collapse every lock level into a single EXCLUSIVE mutex, so any other holder
+// blocks (os_unix.c flockLock / dotlockLock).
 func (e *Engine) beginLockError(exclusive bool) error {
+	if e.lockStyle == LockStyleNone {
+		return nil
+	}
 	for _, k := range e.allLockKeys() {
+		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
+			if lockreg.Global.ConnLockedByOther(k, e.connID) {
+				return fmt.Errorf("database is locked")
+			}
+			continue
+		}
 		if _, ok := lockreg.Global.ExclusiveLockedByOther(k, e.connID); ok {
 			return fmt.Errorf("database is locked")
 		}

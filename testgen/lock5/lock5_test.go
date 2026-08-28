@@ -79,6 +79,7 @@ func Test_lock5(t *testing.T) {
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
+		db.SetLockStyle(frigolite.LockStyleNone)
 		if _catchErr != nil {
 			msg = "1"
 			msg = _catchErr.Error()
@@ -113,6 +114,7 @@ func Test_lock5(t *testing.T) {
 		{ // do_test "lock5-dotfile.1"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			db.SetLockStyle(frigolite.LockStyleDotfile)
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
@@ -131,6 +133,7 @@ func Test_lock5(t *testing.T) {
 		{ // do_test "lock5-dotfile.4"
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			db2.SetLockStyle(frigolite.LockStyleDotfile)
 			r = db2.Query("\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
@@ -178,11 +181,9 @@ func Test_lock5(t *testing.T) {
 		os.Remove("test.db")
 		if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 			{ // do_test "lock5-flock.1"
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
-				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-				_ = err
-				db.ResetChangesCounters()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				db.SetLockStyle(frigolite.LockStyleExclusive)
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
@@ -197,6 +198,7 @@ func Test_lock5(t *testing.T) {
 					_ = _catchErr // suppress unused warning
 					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					db2.SetLockStyle(frigolite.LockStyleExclusive)
 				}
 				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
@@ -236,6 +238,7 @@ func Test_lock5(t *testing.T) {
 			{ // do_test "lock5-flock.9"
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				db.SetLockStyle(frigolite.LockStyleExclusive)
 				r = db.Query("\n    SELECT * FROM t1\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
@@ -244,6 +247,7 @@ func Test_lock5(t *testing.T) {
 			{ // do_test "lock5-flock.10"
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				db2.SetLockStyle(frigolite.LockStyleExclusive)
 				r = db2.Query("\n    SELECT * FROM t1\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
@@ -264,6 +268,7 @@ func Test_lock5(t *testing.T) {
 					if db2 != nil { db2.Close() }
 					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
+					db2.SetLockStyle(frigolite.LockStyleExclusive)
 					_res = db2.Exec("\n      SELECT * FROM t1\n    ")
 					_ = _res // catchsql
 				}
@@ -282,8 +287,10 @@ func Test_lock5(t *testing.T) {
 		{ // do_test "lock5-none.1"
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			db.SetLockStyle(frigolite.LockStyleNone)
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			db2.SetLockStyle(frigolite.LockStyleNone)
 			r = db2.Query(" PRAGMA mmap_size = 0 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 0 ")
@@ -335,11 +342,9 @@ func Test_lock5(t *testing.T) {
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		if "" != "inmemory_journal" {
 			{ // do_test "2.dotfile.1"
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
-				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-				_ = err
-				db.ResetChangesCounters()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				db.SetLockStyle(frigolite.LockStyleDotfile)
 				r = db.Query("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
@@ -362,6 +367,7 @@ func Test_lock5(t *testing.T) {
 				os.MkdirAll("test.db2.lock", 0755)
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
+				db2.SetLockStyle(frigolite.LockStyleDotfile)
 				_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
 				_ = _res // catchsql
 			}
@@ -378,6 +384,7 @@ func Test_lock5(t *testing.T) {
 				tclFileCopy("test.db-journal", "test.db2-journal")
 				db2, err = frigolite.Open("file:test.db2?nolock=1")
 				if err != nil { t.Fatal(err) }
+				db2.SetLockStyle(frigolite.LockStyleNone)
 				_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
 				_ = _res // catchsql
 			}

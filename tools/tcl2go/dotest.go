@@ -96,6 +96,18 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		return
 	}
 
+	tp.emitDoTestTestfixtureBodyDispatch(nameExpr, expectedExpr, bodyCmds, args)
+}
+
+// emitDoTestTestfixtureBody handles a do_test whose body opens a testfixture
+// and runs a SCRIPT on it (lock2/lock4 multi-process locking tests). The
+// result of the body is the result of SCRIPT's last command, which the
+// standard emitDoTestBodyComparison machinery computes once SCRIPT has run on
+// the fixture connection.
+func (tp *transpiler) emitDoTestTestfixtureBodyDispatch(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) {
+	if tp.emitDoTestTestfixtureBody(nameExpr, expectedExpr, bodyCmds, args) {
+		return
+	}
 	tp.emitDoTestGeneric(nameExpr, expectedExpr, bodyCmds, args)
 }
 
@@ -330,6 +342,7 @@ func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 		queryVars:           tp.queryVars,
 		dbAliases:           tp.dbAliases,
 		dbClosed:            tp.dbClosed,
+		fixtureVar:          tp.fixtureVar,
 		dqsDDL:              tp.dqsDDL,
 		dqsDML:              tp.dqsDML,
 		preparedState:       tp.preparedState,

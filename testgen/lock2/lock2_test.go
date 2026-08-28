@@ -67,7 +67,22 @@ func Test_lock2(t *testing.T) {
 		vtab.TclVarSet("tf1", "", "launch_testfixture")
 		tf1 = "launch_testfixture" // TCL namespace variable
 		_ = tf1 // suppress unused warning
-		// testfixture $::tf1 {\n    sqlite3 db test.db -key xyzzy\n    db eval {...} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tclFixtureDBs["tf1"] = db
+			_res = db.Exec("select * from sqlite_master")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select * from sqlite_master")
+			}
+			_ = db
+		}
 	}
 	{ // do_test "lock2-1.1.1"
 		r = db.Query("pragma lock_status")
@@ -83,10 +98,45 @@ func Test_lock2(t *testing.T) {
 		}
 	}
 	{ // do_test "lock2-1.3"
-		// testfixture $::tf1 {\n    db eval {\n      BEGIN;\n      SELECT * FROM...} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			_res = db.Exec("\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
+			}
+			_ = db
+		}
 	}
 	{ // do_test "lock2-1.4"
-		// testfixture $::tf1 {\n    catch { db eval { CREATE TABLE def(d, e, f) ...} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			{
+				var _catchErrMsg string // catch error message
+				_ = msg // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
+				var _catchErr error
+				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
+				if _res.Error != nil { _catchErr = _res.Error }
+				if _catchErr != nil {
+					msg = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					msg = "0"
+					_catchErrMsg = ""
+				}
+			}
+			_ = db
+		}
 	}
 	{ // do_test "lock2-1.5"
 		_res = db.Exec("\n    COMMIT;\n  ")
@@ -95,10 +145,45 @@ func Test_lock2(t *testing.T) {
 		}
 	}
 	{ // do_test "lock2-1.6"
-		// testfixture $::tf1 {\n    db eval {\n      SELECT * FROM sqlite_master...} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n      COMMIT;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_master;\n      COMMIT;\n    ")
+			}
+			_ = db
+		}
 	}
 	{ // do_test "lock2-1.7"
-		// testfixture $::tf1 {\n    catch { db eval {\n      BEGIN;\n      SELEC...} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			{
+				var _catchErrMsg string // catch error message
+				_ = msg // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
+				var _catchErr error
+				_res = db.Exec("\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
+				if _res.Error != nil { _catchErr = _res.Error }
+				if _catchErr != nil {
+					msg = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					msg = "0"
+					_catchErrMsg = ""
+				}
+			}
+			_ = db
+		}
 	}
 	{ // do_test "lock2-1.8"
 		_res = db.Exec("\n    COMMIT;\n  ")
@@ -114,12 +199,34 @@ func Test_lock2(t *testing.T) {
 	}
 	// catch (non-braced)
 	{ // do_test "lock2-1.10"
-		// testfixture $::tf1 {\n    db eval {\n      SELECT * FROM sqlite_master...} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_master;\n    ")
+			}
+			_ = db
+		}
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// testfixture $::tf1 {db close} (unsupported command, not transpiled)
+		{ // testfixture tf1
+			if tclFixtureDBs["tf1"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["tf1"] = _fxdb
+			}
+			db := tclFixtureDBs["tf1"]
+			tclFixtureDBs["tf1"].Close()
+			tclFixtureDBs["tf1"] = nil
+			_ = db
+		}
 	}
 	{
 		var _catchErr error

@@ -59,6 +59,22 @@ type Engine struct {
 	// tracking (lockreg).
 	connID int64
 
+	// lockStyle selects this connection's file-locking model (mirrors SQLite's
+	// unix VFS locking styles): LockStyleDefault uses the fine-grained
+	// SHARED/RESERVED/PENDING/EXCLUSIVE matrix; LockStyleExclusive (unix-flock)
+	// and LockStyleDotfile (unix-dotfile) collapse every level into a single
+	// EXCLUSIVE mutex that excludes all other connections, and the dotfile
+	// style additionally maintains a path+".lock" sentinel directory;
+	// LockStyleNone (unix-none / nolock=1) performs no cross-connection
+	// locking at all.
+	lockStyle int
+
+	// dotfileHeld tracks (per file path) whether THIS connection currently
+	// holds the dotfile sentinel, so the sentinel directory is created on the
+	// first lock and removed on the last unlock (os_unix.c dotlockLock/
+	// dotlockUnlock) without churning the global refcount.
+	dotfileHeld map[string]bool
+
 	// Authorization
 	authorizer auth.Authorizer // authorization callback (nil = allow all)
 

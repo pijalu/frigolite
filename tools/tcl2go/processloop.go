@@ -367,11 +367,12 @@ func (tp *transpiler) processIfCondition(args []tcl.RawWord, idx *int, first boo
 // runIfBody transpiles an if/else body in a fresh sub-transpiler sharing the
 // output buffer and state.
 func (tp *transpiler) runIfBody(bodyCmds [][]tcl.RawWord) {
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps}
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, dbClosed: tp.dbClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps}
 	bodyTP.processCommands(bodyCmds)
 	tp.indent = bodyTP.indent
 	tp.connFailedOpen = bodyTP.connFailedOpen
 	tp.connClosed = bodyTP.connClosed
+	tp.dbClosed = bodyTP.dbClosed
 	tp.varConstValues = bodyTP.varConstValues
 	tp.sqlVarValues = bodyTP.sqlVarValues
 	tp.foreachLitValues = bodyTP.foreachLitValues
