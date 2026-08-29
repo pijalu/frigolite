@@ -61,6 +61,14 @@ type Pager struct {
 	// 0 bytes when opened (pager.c lazy creation): opening it must not
 	// materialize the file.
 	openedEmpty bool
+		// headerCorrupt records that Open was given a file whose 100-byte header
+		// did not parse (bad magic, short header, etc.). SQLite defers header
+		// errors to the first statement; frigolite mirrors that so tests like
+		// corrupt2-1.2 can run their expected error-producing query against the
+		// open connection rather than seeing Open itself fail. The flag is
+		// read by the schema-init path which produces "file is not a database"
+		// on the first SELECT * FROM sqlite_master.
+		headerCorrupt bool
 	// path is the canonical database file path (filepath.Clean'd), used to
 	// derive the "-wal"/"-shm" companion files in WAL mode.
 	path string
@@ -228,23 +236,34 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	}
 
 	if info.Size() > 0 {
-		// Read the 100-byte header first: it contains the real page size.
-		headerBuf := make([]byte, HeaderSize)
-		if _, err := f.ReadAt(headerBuf, 0); err != nil {
-			f.Close()
-			return nil, fmt.Errorf("pager: read header: %w", err)
-		}
-		hdr, err := storage.ParseHeader(headerBuf)
-		if err != nil {
-			f.Close()
-			return nil, fmt.Errorf("pager: parse header: %w", err)
-		}
-		pr.pageSize = hdr.PageSize
-		// Header byte 20: bytes reserved at the end of every page (used by
-		// e.g. codec/checksum extensions). Payload distribution math must use
-		// the USABLE size (pageSize - reserved), not the raw page size —
-		// SQLite files written with reserved > 0 are otherwise unreadable.
-		pr.reserved = uint32(hdr.ReservedSpace)
+			// Read the 100-byte header first: it contains the real page size.
+			headerBuf := make([]byte, HeaderSize)
+			if _, err := f.ReadAt(headerBuf, 0); err != nil {
+				f.Close()
+				return nil, fmt.Errorf("pager: read header: %w", err)
+			}
+			hdr, err := storage.ParseHeader(headerBuf)
+			if err != nil {
+				// SQLite's sqlite3PagerOpen does NOT fail on bad header parse: the
+				// error is surfaced by the first statement that touches the page
+				// (sqlite_master scan reports "file is not a database" via
+				// btreeOpenTableCursor's locked-table flag and schema init's
+				// SQLITE_NOTADB error path). Mirroring that: keep the Pager
+				// open, default pageSize to DefaultPageSize, and let subsequent
+				// reads detect the corruption. corrupt2.test 1.2/1.3/1.5
+				// (corrupt2-1.2 expects `file is not a database` on the FIRST
+				// statement, not on Open) and many other crash-recovery tests
+				// require this deferral.
+				pr.pageSize = DefaultPageSize
+				pr.headerCorrupt = true
+			} else {
+				pr.pageSize = hdr.PageSize
+				// Header byte 20: bytes reserved at the end of every page (used by
+				// e.g. codec/checksum extensions). Payload distribution math must use
+				// the USABLE size (pageSize - reserved), not the raw page size —
+				// SQLite files written with reserved > 0 are otherwise unreadable.
+				pr.reserved = uint32(hdr.ReservedSpace)
+			}
 		// Read full page 1 into a temporary buffer
 		fullPage := make([]byte, pr.pageSize)
 		if _, err := f.ReadAt(fullPage, 0); err != nil && err != io.EOF {
@@ -401,6 +420,14 @@ func (p *Pager) ValidateHeader() error {
 	if p.header == nil || p.numPages == 0 {
 		return nil
 	}
+	// If Open observed a header that did not parse (bad magic / short header),
+	// mirror SQLite's deferral: surface "file is not a database" on the first
+	// statement that actually reads the schema btree. corrupt2.test 1.2/1.3/1.5
+	// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
+	// returns the error).
+	if p.headerCorrupt {
+		return fmt.Errorf("file is not a database")
+	}
 	freelistTrunk := binary.BigEndian.Uint32(p.header[32:36])
 	freelistCount := binary.BigEndian.Uint32(p.header[36:40])
 	largestRoot := binary.BigEndian.Uint32(p.header[52:56])
@@ -513,6 +540,16 @@ func (p *Pager) OpenedEmpty() bool { return p.openedEmpty }
 
 func (p *Pager) NumPages() uint32 { p.mu.RLock(); defer p.mu.RUnlock(); return p.numPages }
 func (p *Pager) Header() []byte   { p.mu.RLock(); defer p.mu.RUnlock(); return p.header }
+
+// IsHeaderCorrupt reports whether Open observed a 100-byte header that did
+// not parse (bad magic, short header, etc.). The schema-init path reads
+// this to surface "file is not a database" on the first SELECT * FROM
+// sqlite_master rather than failing at Open time.
+func (p *Pager) IsHeaderCorrupt() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.headerCorrupt
+}
 
 // SetAutoVacuum toggles pointer-map page reservation for subsequent
 // AllocatePage calls (btree.c sqlite3BtreeSetAutoVacuum). SQLite applies a

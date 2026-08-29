@@ -76,8 +76,8 @@ func Test_tkt3457(t *testing.T) {
 		tclFileCopy("test.db-journal", "bak.db-journal")
 		fd = "bak.db-journal"
 		_ = fd // suppress unused warning
-		// seek $fd 0
-		tclChannelAppend("bak.db-journal", "\xd9\xd5\x05\xf9 \xa1c\xd7")
+		fileChannelSeek["fd"] = 0
+		tclChannelAppendAt("bak.db-journal", "\xd9\xd5\x05\xf9 \xa1c\xd7", 0)
 		// close $fd
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {

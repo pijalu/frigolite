@@ -942,6 +942,16 @@ var activeFileChannels = map[string]string{}
 // EXPRESSION (variable TCL path) rather than a quoted literal.
 var activeFileChannelExprs = map[string]bool{}
 
+// fileChannelSeek tracks the current byte position of each write-mode file
+// channel so that `seek $fd N start` followed by `puts -nonewline $fd DATA`
+// writes to the right offset (TCL fconfigure -translation binary + seek +
+// puts is the canonical pattern for hex-corrupting a database file at a
+// known offset, used by every corrupt*.test suite). The seek offset is
+// applied via tclChannelAppendAt on the next puts. corrupt2.test 1.4/1.5
+// relies on this to write "\xFF\xFF" at byte 101 — without it the bytes
+// land at end-of-file and the corruption detection never fires.
+var fileChannelSeek = map[string]int64{}
+
 // channelDestExpr renders a channel's destination: quoted literal, or the
 // stored Go expression verbatim for variable TCL paths.
 func channelDestExpr(chName, path string) string {

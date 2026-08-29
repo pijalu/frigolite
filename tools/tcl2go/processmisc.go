@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -115,23 +116,37 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 		return
 	}
 	// puts $fd TEXT on a write-mode file channel appends TEXT plus newline.
-	if len(args) >= 2 && strings.HasPrefix(args[0].Text, "$") {
-		chName := strings.TrimPrefix(strings.TrimPrefix(args[0].Text, "$"), "::")
-		if path, ok := activeFileChannels[chName]; ok {
-			msgExpr := tp.varValueExpr(args[1:])
-			tp.emitLine("tclChannelAppend(%s, %s+\"\\n\")", channelDestExpr(chName, path), msgExpr)
-			return
-		}
-	}
-	// puts -nonewline $fd TEXT appends TEXT without a trailing newline.
-	if len(args) >= 3 && args[0].Text == "-nonewline" && strings.HasPrefix(args[1].Text, "$") {
-		chName := strings.TrimPrefix(strings.TrimPrefix(args[1].Text, "$"), "::")
-		if path, ok := activeFileChannels[chName]; ok {
-			msgExpr := tp.varValueExpr(args[2:])
-			tp.emitLine("tclChannelAppend(%s, %s)", channelDestExpr(chName, path), msgExpr)
-			return
-		}
-	}
+			if len(args) >= 2 && strings.HasPrefix(args[0].Text, "$") {
+				chName := strings.TrimPrefix(strings.TrimPrefix(args[0].Text, "$"), "::")
+				fmt.Fprintf(os.Stderr, "DEBUG puts[%v] chName=%q inMap=%v\n", args, chName, func() bool { _, ok := activeFileChannels[chName]; return ok }())
+				if path, ok := activeFileChannels[chName]; ok {
+					msgExpr := tp.varValueExpr(args[1:])
+					dest := channelDestExpr(chName, path)
+					if offset, ok := fileChannelSeek[chName]; ok {
+						tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", %d)", dest, msgExpr, offset)
+						delete(fileChannelSeek, chName)
+					} else {
+						tp.emitLine("tclChannelAppend(%s, %s+\"\\n\")", dest, msgExpr)
+					}
+					return
+				}
+			}
+			// puts -nonewline $fd TEXT appends TEXT without a trailing newline.
+						if len(args) >= 3 && args[0].Text == "-nonewline" && strings.HasPrefix(args[1].Text, "$") {
+							chName := strings.TrimPrefix(strings.TrimPrefix(args[1].Text, "$"), "::")
+							fmt.Fprintf(os.Stderr, "DEBUG puts-2[%v] chName=%q inMap=%v seek=%v\n", args, chName, func() bool { _, ok := activeFileChannels[chName]; return ok }(), fileChannelSeek[chName])
+							if path, ok := activeFileChannels[chName]; ok {
+					msgExpr := tp.varValueExpr(args[2:])
+					dest := channelDestExpr(chName, path)
+					if offset, ok := fileChannelSeek[chName]; ok {
+						tp.emitLine("tclChannelAppendAt(%s, %s, %d)", dest, msgExpr, offset)
+						delete(fileChannelSeek, chName)
+					} else {
+						tp.emitLine("tclChannelAppend(%s, %s)", dest, msgExpr)
+					}
+					return
+				}
+			}
 	// puts -nonewline $blob STR on an incremental-blob channel writes at
 	// the channel cursor.
 	if len(args) >= 2 && args[0].Text == "-nonewline" {

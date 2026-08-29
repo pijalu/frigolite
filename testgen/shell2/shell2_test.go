@@ -160,7 +160,7 @@ func Test_shell2(t *testing.T) {
 			_ = os.WriteFile("dump.txt", nil, 0644)
 			fd = "dump.txt"
 			_ = fd // suppress unused warning
-			tclChannelAppend("dump.txt", strings.Trim(hexdump, " \t\n\r\v\f")+"\n")
+			tclChannelAppendAt("dump.txt", strings.Trim(hexdump, " \t\n\r\v\f")+"\n", 0)
 			// close $fd
 			{ // "shell2-2." + tn + ".1" (CLI shell subprocess harness, not transpiled)
 				// set rc [ catchcmd "" ".open --hexdb dump.txt"]

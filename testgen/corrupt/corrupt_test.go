@@ -131,8 +131,8 @@ func Test_corrupt(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		fd = "test.db"
 		_ = fd // suppress unused warning
-		// seek $fd $i
-		tclChannelAppend("test.db", junk)
+		fileChannelSeek["fd"] = 0
+		tclChannelAppendAt("test.db", junk, 0)
 		// close $fd
 		{ // do_test "corrupt-2." + tn + ".1"
 			db, err = frigolite.Open("test.db")
@@ -436,8 +436,8 @@ func Test_corrupt(t *testing.T) {
 	db.Close()
 	fd = "test.db"
 	_ = fd // suppress unused warning
-	// seek $fd [expr 1024+8]
-	tclChannelAppend("test.db", "\x03\x14")
+	fileChannelSeek["fd"] = 1032
+	tclChannelAppendAt("test.db", "\x03\x14", 1032)
 	// close $fd
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

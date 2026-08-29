@@ -141,8 +141,8 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		f = "corrupt.db"
 		_ = f // suppress unused warning
-		// seek $f 8 start
-		tclChannelAppend("corrupt.db", "blah"+"\n")
+		fileChannelSeek["f"] = 8
+		tclChannelAppendAt("corrupt.db", "blah"+"\n", 8)
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
@@ -156,8 +156,8 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		f = "corrupt.db"
 		_ = f // suppress unused warning
-		// seek $f 16 start
-		tclChannelAppend("corrupt.db", "\x00\xff")
+		fileChannelSeek["f"] = 16
+		tclChannelAppendAt("corrupt.db", "\x00\xff", 16)
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
@@ -171,8 +171,8 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		f = "corrupt.db"
 		_ = f // suppress unused warning
-		// seek $f 101 start
-		tclChannelAppend("corrupt.db", "\xff\xff")
+		fileChannelSeek["f"] = 101
+		tclChannelAppendAt("corrupt.db", "\xff\xff", 101)
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
@@ -186,10 +186,10 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		f = "corrupt.db"
 		_ = f // suppress unused warning
-		// seek $f 101 start
-		tclChannelAppend("corrupt.db", "\x00\xc8")
-		// seek $f 200 start
-		tclChannelAppend("corrupt.db", "\x00\x00")
+		fileChannelSeek["f"] = 101
+		tclChannelAppendAt("corrupt.db", "\x00\xc8", 101)
+		fileChannelSeek["f"] = 200
+		tclChannelAppendAt("corrupt.db", "\x00\x00", 200)
 		tclChannelAppend("corrupt.db", "\x10\x00")
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
@@ -228,12 +228,12 @@ func Test_corrupt2(t *testing.T) {
 		if db2 != nil { db2.Close() }
 		fd = "corrupt.db"
 		_ = fd // suppress unused warning
-		// seek $fd [expr 1024*3 + 12]
+		fileChannelSeek["fd"] = 3084
 		zCelloffset = tclReadFile(fd)
 		_ = zCelloffset // suppress unused warning
 		// binary scan $zCelloffset S iCelloffset (test infra, not transpiled)
-		// seek $fd [expr 1024*3 + $iCelloffset]
-		tclChannelAppend("corrupt.db", "\x00\x00\x00\x00")
+		fileChannelSeek["fd"] = 0
+		tclChannelAppendAt("corrupt.db", "\x00\x00\x00\x00", 0)
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
@@ -259,19 +259,19 @@ func Test_corrupt2(t *testing.T) {
 		if db2 != nil { db2.Close() }
 		fd = "corrupt.db"
 		_ = fd // suppress unused warning
-		// seek $fd [expr 1024 + 12]
+		fileChannelSeek["fd"] = 1036
 		zCelloffset = tclReadFile(fd)
 		_ = zCelloffset // suppress unused warning
 		// binary scan $zCelloffset S iCelloffset (test infra, not transpiled)
-		// seek $fd [expr 1024 + $iCelloffset]
+		fileChannelSeek["fd"] = 0
 		zChildPage = tclReadFile(fd)
 		_ = zChildPage // suppress unused warning
-		// seek $fd [expr 2*1024 + 12]
+		fileChannelSeek["fd"] = 2060
 		zCelloffset = tclReadFile(fd)
 		_ = zCelloffset // suppress unused warning
 		// binary scan $zCelloffset S iCelloffset (test infra, not transpiled)
-		// seek $fd [expr 2*1024 + $iCelloffset]
-		tclChannelAppend("corrupt.db", zChildPage)
+		fileChannelSeek["fd"] = 0
+		tclChannelAppendAt("corrupt.db", zChildPage, 0)
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }

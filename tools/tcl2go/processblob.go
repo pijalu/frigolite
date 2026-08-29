@@ -9,6 +9,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -514,8 +515,11 @@ func (tp *transpiler) processRead(args []tcl.RawWord) {
 	tp.emitLine("// read %s", describeArgsShort(args))
 }
 
-// processSeek handles `seek $channel offset`. Blob channels seek the cursor;
-// file channels are emitted as comments.
+// processSeek handles `seek $channel offset [start|current|end]`. Blob
+// channels seek the cursor; file channels record the byte offset for the
+// next puts (tclChannelAppendAt applies it). Without this, hex corruption
+// at a known offset (corrupt2.test 1.4/1.5: seek 101 then puts "\xFF\xFF")
+// would append to end-of-file instead of overwriting byte 101.
 func (tp *transpiler) processSeek(args []tcl.RawWord) {
 	if len(args) < 2 {
 		return
@@ -524,8 +528,47 @@ func (tp *transpiler) processSeek(args []tcl.RawWord) {
 		tp.processBlobSeek(args)
 		return
 	}
-	tp.emitLine("// seek %s", describeArgsShort(args))
-}
+	chName := strings.TrimPrefix(strings.TrimPrefix(args[0].Text, "$"), "::")
+	offset := tp.varValueExpr(args[1:2])
+	whence := "start"
+	if len(args) >= 3 {
+		whence = args[2].Text
+	}
+	if _, ok := activeFileChannels[chName]; !ok {
+		tp.emitLine("// seek %s", describeArgsShort(args))
+		return
+	}
+	if whence == "start" {
+			var off int64
+			cleaned := strings.Trim(offset, `"`)
+			// Try literal int; if not, evaluate simple "A+B" expressions to a
+			// single offset (corrupt*.test sources frequently write
+			// "seek $fd [expr 1024+8]" for t1's cell-pointer area at offset
+			// 1032; without evaluating, tclChannelAppendAt is called with offset
+			// 0 and the corruption lands on the magic string).
+			if _, err := fmt.Sscanf(cleaned, "%d", &off); err != nil {
+				var a, b int64
+				if _, err2 := fmt.Sscanf(cleaned, "%d+%d", &a, &b); err2 == nil {
+					off = a + b
+				} else {
+					off = 0
+				}
+			}
+			fileChannelSeek[chName] = off
+			fmt.Fprintf(os.Stderr, "DEBUG seek-setter chName=%q offset=%q off=%d inMap=%v\n", chName, offset, off, func() bool { _, ok := activeFileChannels[chName]; return ok }())
+		}
+	switch whence {
+			case "start":
+				tp.emitLine("fileChannelSeek[%q] = %d", chName, fileChannelSeek[chName])
+			case "current":
+				tp.emitLine("fileChannelSeek[%q] += int64(%s)", chName, offset)
+			case "end":
+				tp.emitLine("fileChannelSeek[%q] = tclFileLen(%s) + int64(%s)", chName, channelDestExpr(chName, activeFileChannels[chName]), offset)
+			default:
+				tp.emitLine("// seek %s (whence=%s unsupported, defaulting to start)", describeArgsShort(args), whence)
+				tp.emitLine("fileChannelSeek[%q] = int64(%s)", chName, offset)
+			}
+		}
 
 // blobArgExpr renders a blob handle argument ($B) as a Go expression naming
 // the *frigolite.Blob variable. It emits a runtime channel resolution when

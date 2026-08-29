@@ -3927,6 +3927,46 @@ func tclChannelAppend(path, text string) {
 	_ = f.Close()
 }
 
+// fileChannelSeek tracks the current byte position of each write-mode file
+// channel so that 'seek FD OFFSET start' followed by 'puts -nonewline FD DATA'
+// overwrites bytes at OFFSET instead of appending to EOF (corrupt2.test 1.4/1.5
+// etc. rely on this to hex-corrupt a known offset).
+var fileChannelSeek = map[string]int64{}
+
+// tclChannelAppendAt writes text to a TCL file channel at a specific byte
+// offset, extending the file with zero padding if the offset is past EOF.
+// This mirrors TCL fconfigure -translation binary + seek FD OFFSET start
+// + puts -nonewline FD DATA, the canonical pattern for hex-corrupting a
+// database file at a known offset (corrupt*.test suites depend on this).
+func tclChannelAppendAt(path, text string, offset int64) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		tclChannelAppend(path, text)
+		return
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	end := int(offset) + len(text)
+	if len(data) < end {
+		padded := make([]byte, end)
+		copy(padded, data)
+		data = padded
+	}
+	copy(data[int(offset):], text)
+	_ = os.WriteFile(path, data, 0644)
+}
+
+// tclFileLen returns the current size of a file in bytes, or 0 if the file
+// is missing. Used by 'seek FD OFFSET end' resolution.
+func tclFileLen(path string) int64 {
+	st, err := os.Stat(path)
+	if err != nil {
+		return 0
+	}
+	return st.Size()
+}
+
 // tclSwapInt32Args ports rtreecheck.test's blob-surgery SQL functions onto
 // one implementation (the "$data"-substitution form cannot express the
 // 3-argument shapes):
