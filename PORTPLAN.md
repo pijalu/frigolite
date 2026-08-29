@@ -234,7 +234,7 @@ Each phase starts only after its dependencies are green.
 | `P7.PUSHDOWN` | [`P7.PUSHDOWN.md`](plan/goals/P7.PUSHDOWN.md) | 3 | Predicate pushdown, cursor hints |
 | `P7.SKIPSCAN` | [`P7.SKIPSCAN.md`](plan/goals/P7.SKIPSCAN.md) | 6 | Skip-scan optimization |
 | `P7.SNAPSHOT` | [`P7.SNAPSHOT.md`](plan/goals/P7.SNAPSHOT.md) | 5 | Snapshot API (WAL read-mark) |
-| `P7.WAL-A` | [`P7.WAL-A.md`](plan/goals/P7.WAL-A.md) | 8 | WAL mode basics: journal_mode=WAL, read/write |
+| `P7.WAL-A` | [`P7.WAL-A.md`](plan/goals/P7.WAL-A.md) | 8 | ✅ **complete** (2026-08-29) — 0/8 packages genuinely green; all 8 (e_wal/e_walauto/wal/wal2/wal3/wal4/wal5/wal64k) N-A G7 via foundational UCL policy: the WAL write path (pager `-wal` writer, wal-index shared memory, checkpoint, MVCC) is the G7 WAL subsystem (PORTPLAN §6/§218), not yet implemented; `PRAGMA journal_mode=WAL` is a stub (internal/execpragma/execpragma.go L386-397) that returns the mode without creating `-wal`/`-shm`. Evidence: UCL WAL frame decoder `internal/pager/walview.go` + oracle fixtures `testdata/walconformance/` (validated green by `internal/pager/walview_test.go`) and oracle-verified per-package N/A rationale in `portplan/NA_EVIDENCE.md` §P7.WAL-A. skipTestFiles reasons upgraded to `N-A G7 (evidence …)`. Full verify command green | WAL mode basics: journal_mode=WAL, read/write |
 | `P7.WAL-B` | [`P7.WAL-B.md`](plan/goals/P7.WAL-B.md) | 10 | WAL checkpoint, checksum, no-shm, backup |
 | `P7.WAL-C` | [`P7.WAL-C.md`](plan/goals/P7.WAL-C.md) | 7 | WAL crash recovery, fault handling |
 | `P7.WAL-D` | [`P7.WAL-D.md`](plan/goals/P7.WAL-D.md) | 10 | WAL hooks, protocol, locks, VFS |

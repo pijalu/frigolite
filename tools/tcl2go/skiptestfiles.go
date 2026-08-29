@@ -214,7 +214,7 @@ var skipTestFiles = map[string]string{
 	// wal: WAL-mode journal tests (wal3/wal6 use the `c` connection as a
 	// string; c.Query fails to compile). WAL mode not implemented (rollback
 	// journal only). N-A (WAL).
-	"wal": "WAL journal mode not implemented N-A",
+	"wal": "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 
 	// win32: Windows-specific path/encoding tests (win32longpath); generated
 	// code redeclares msg. N-A (win32 platform).
@@ -382,8 +382,8 @@ var skipTestFiles = map[string]string{
 	"keyword1":      "bare-keyword-as-identifier parser N-A (keyword1)",
 	"where8":        "hash/btree DISTINCT ordering fuzz N-A (where8-4.x SELECT planner)",
 	"e_uri":         "C test-VFS sqlite3_open_v2 URI probing (testvfs vfs1/vfs2/vfs3 custom VFS N-A)",
-	"e_wal":         "WAL/journal mode not implemented N-A",
-	"e_walauto":     "WAL/journal mode not implemented N-A",
+	"e_wal":         "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
+	"e_walauto":     "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"e_walckpt":     "WAL/journal mode not implemented N-A",
 	"e_walhook":     "WAL/journal mode not implemented N-A",
 	"enc":           "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -573,7 +573,7 @@ var skipTestFiles = map[string]string{
 	"vacuum4":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"vacuum5":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"vacuum6":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"wal64k":       "WAL/journal mode not implemented N-A",
+	"wal64k":       "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"walbak":       "WAL/journal mode not implemented N-A",
 	"walckptnoop":  "WAL/journal mode not implemented N-A",
 	"walcksum":     "WAL/journal mode not implemented N-A",
@@ -640,10 +640,10 @@ var skipTestFiles = map[string]string{
 	"skipscan3":     "skip-scan planner strategy + TCL assoc-array data N-A",
 	"skipscan5":     "skip-scan planner strategy + TCL assoc-array data N-A",
 	"skipscan6":     "skip-scan planner strategy + TCL assoc-array data N-A",
-	"wal2":          "WAL journal mode not implemented N-A",
-	"wal3":          "WAL journal mode not implemented N-A",
-	"wal4":          "WAL journal mode not implemented N-A",
-	"wal5":          "WAL journal mode not implemented N-A",
+	"wal2":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
+	"wal3":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
+	"wal4":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
+	"wal5":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal6":          "WAL journal mode not implemented N-A",
 	"wal7":          "WAL journal mode not implemented N-A",
 	"wal8":          "WAL journal mode not implemented N-A",

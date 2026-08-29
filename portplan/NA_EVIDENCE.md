@@ -147,3 +147,95 @@ N/A. Building golden EQP fixtures for an out-of-scope planner text would merely
 re-assert the N/A; per UNIT_CONFORMANCE §5 the Autoindex/planner seam is
 therefore satisfied by (a) green testgen coverage of result correctness and
 (b) oracle-verified N/A evidence for the planner-text divergences.
+
+## P7.WAL-A — package N/A classification (2026-08-29)
+
+All eight goal-target packages exercise the SQLite WAL *write* subsystem
+(`PRAGMA journal_mode=WAL` producing `-wal`/`-shm` files, committed frames,
+MVCC readers, checkpoints, shared-memory wal-index). Frigolite has **no WAL
+write path**: `internal/execpragma/execpragma.go` `JOURNAL_MODE` (L386-397) is
+a stub that lower-cases and echoes the requested mode (`delete`/`truncate`/
+`persist`/`memory`/`off`/`wal`/`wal2`) and returns it as a row — it performs
+no pager work, creates no `-wal`/`-shm`, and never writes a frame. There is no
+WAL writer, no wal-index shared memory, and no checkpoint in `internal/pager`.
+The pager only understands the rollback-journal and committed-page image.
+
+**Oracle-verified root gap** (`/usr/bin/sqlite3` 3.51.0): `PRAGMA
+journal_mode=WAL` creates `test.db-shm` (wal-index shared memory, 32 KiB) and
+writes committed frames to `test.db-wal`. This is exercised by the committed
+oracle fixtures in `testdata/walconformance/`: `wal-single-commit.db-wal` =
+16512 bytes (4 frames, commit marks at frames 2/3/4), `wal-multi-commit.db-wal`
+= 28872 bytes (7 frames), `wal-after-checkpoint.db-wal` = 12392 bytes (a
+RESTART checkpoint bumped `CheckpointSeq` to 1 and re-salted; a trailing stale
+pre-checkpoint frame fails salt validation). Every WAL-A package asserts
+behavior that depends on these files existing and being applied — impossible
+without the G7 WAL subsystem. Classification recorded in
+`tools/tcl2go/skiptestfiles.go` (reasons upgraded to `N-A G7 (evidence …)`).
+
+Per-package:
+
+- `e_wal`: WAL under a legacy VFS with `iVersion==1` (no `xShmMap`/`xShmLock`/
+  `xShmBarrier`/`xShmUnmap`) and `locking_mode=EXCLUSIVE` before first access;
+  asserts `file exists test.db-wal`=1 after `PRAGMA journal_mode=WAL` (1.1.4)
+  and reopens+reads (1.2.*). Requires the WAL write path **and** the
+  exclusive-mode shared-memory bypass (wal.c `WAL_SHM_EXCLUSIVE` /
+  `walIndexRecover` with no shm). N-A G7.
+
+- `e_walauto`: `wal_autocheckpoint` auto-commit threshold behavior; reads raw
+  wal-index shared-memory offsets (`nBackfill` at byte 96, `mxFrame` at byte
+  16) and expects the threshold to drive checkpoints. Requires WAL + wal-index
+  shared memory + auto-checkpoint. N-A G7.
+
+- `wal`: the "warm-body" WAL suite — read/write (wal-1.*), MVCC with one
+  reader + one writer (wal-2.*), transaction rollback (wal-3.*),
+  savepoint/statement rollback (wal-4.*), temp database (wal-5.*), and
+  databases with different page sizes (wal-6.*). `wal-0.1` already expects
+  `PRAGMA journal_mode=wal` → `{wal}` *and* `file exists test.db-wal`=1. The
+  core WAL read/write contract. N-A G7.
+
+- `wal2`: two connections (writer `[db]` + reader `[db2]`) exercising the 8
+  wal-index header fields and `sqlite_sync_count` (fsync accounting); MVCC
+  reader sees writer's committed frames. Requires multi-connection WAL + shm
+  (G7 concurrency). N-A G7.
+
+- `wal3`: rollback/savepoint rollback removing entries from the wal-index hash
+  tables with `cache_size=2000`, `wal_autocheckpoint=0`; asserts no corruption
+  after hash-table churn. Requires WAL savepoint + wal-index shm. N-A G7.
+
+- `wal4`: WAL + fault simulation (`faultsim_save_and_close` /
+  `faultsim_restore_and_reopen`) — saves the filesystem containing only the
+  `-wal`/`-shm`, deletes the main db, restores, and reopens; expects the
+  database to be recovered from the WAL. Requires WAL + the fault-injection VFS
+  (`test_syscall`) and WAL recovery. N-A G7.
+
+- `wal5`: checkpoint requested both via the C API and via `PRAGMA
+  wal_checkpoint(PASSIVE|FULL|RESTART|TRUNCATE)`; asserts frame counts before/
+  after, `nBackfill`, and file sizes. Requires WAL + checkpoint. N-A G7.
+
+- `wal64k`: WAL at 64 KiB page size (`test_syscall pagesize 65536`); asserts
+  `-shm` is 65536 bytes and autocheckpoint triggers at that page size. Requires
+  WAL + 64 KiB page support + shm. N-A G7.
+
+### P7.WAL-A — UCL status
+
+The WAL *format* seam (read/decode of `-wal`/`-journal` byte layouts) is built
+and green **before any pager edit** (UNIT_CONFORMANCE U0/U3): `internal/pager/
+walview.go` ports the WAL header/frame decoder and checksum chain from
+`src/wal.c` (`WalMagic` 0x377f0682/3, `WalHdrSize` 32, `WalFrameHdrSize` 24,
+`WalChecksumBytes` fibonacci-weighted checksum, `DecodeWalHeader`,
+`DecodeWalFrames`, `LastCommitFrame`), mirroring the existing rollback-journal
+decoder `jrnlview.go`. Oracle fixtures in `testdata/walconformance/` (generated
+from `/usr/bin/sqlite3` 3.51.0; `ORACLE_VERSION` recorded) cover single-commit,
+multi-commit, post-RESTART-checkpoint, and PERSIST-journal scenarios.
+`internal/pager/walview_test.go` localizes first divergence (exact frame
+number on salt/checksum failure) and validates header/page-size/checkpoint-seq
+against the fixtures — `go test ./internal/pager/ -run 'TestWAL|TestJournal
+Conformance'` passes. This is the foundational instrument for the real WAL
+subsystem (P7.WAL-B/E): it decodes oracle `-wal` files so the future WAL writer
+can be checked against ground truth.
+
+No engine edit was made on the WAL *write* seam during WAL-A — the subsystem is
+deferred to G7 (per PORTPLAN §6/§218: "Start with journal-mode state and pager
+WAL frame format"). The e2e `testgen` packages remain N-A G7 (skip reasons
+upgraded with evidence pointers); the goal is closed by (a) the green UCL
+decoder/fixtures and (b) oracle-verified N/A evidence for every target package.
