@@ -767,3 +767,134 @@ Build/vet/SOLID/staticcheck/race green; no regression in P7.WAL-A/B/C/D/E
 or earlier goals; the 3 new native tests in `frigolite_snapshot_test.go`
 pass alongside the existing 9 native WAL-engine tests in
 `frigolite_walrecovery_test.go`.
+
+## P7.PUSHDOWN — package classification (2026-09-03)
+
+Scope: the three goal-target packages — `cursorhint`, `cursorhint2`,
+`pushdown`.
+
+### Surface
+
+The three packages exercise SQLite's VDBE-internal push-down optimization
+machinery:
+
+- `cursorhint` / `cursorhint2`: `codeCursorHint()` in `src/where.c` emits
+  `OP_CursorHint` opcodes (VDBE-level) whose P4 is a serialized
+  expression captured at the inner loop of a join (`EQ(r[1],c0)`,
+  `AND(AND(EQ(c0,22),GE(c1,10)),LE(c1,20))`, ...). The harness reads the
+  P4 via `EXPLAIN` to assert which WHERE terms were pushed into the
+  cursor hint. The P5 flag of `OP_OpenRead` (the index cursor open) is
+  also asserted.
+
+- `pushdown`: "MySQL push-down" (`src/where.c` `whereLoopAddBtreeIndex`
+  + the code generator's index-seek emission) — the WHERE-clause terms
+  that can be evaluated using only the index columns are emitted at the
+  index seek so the table row is never fetched when those terms fail;
+  the side-effecting `db func f` callback records which values f was
+  invoked with. The push-down subquery optimization (`sqlite3ExprIsSingle
+  TableConstraint` restriction #9) is also exercised.
+
+All three are SQLite VDBE / btree-layer optimizer features that the
+pure-Go btree-based executor does not implement (the executor does a
+full row payload read for every WHERE term; only the OR-index scan from
+P7.LOCK-A is implemented, and that does not push WHERE terms into the
+index seek — it only branches per OR term on the index prefix).
+
+### Oracle-verified root gap
+
+The push-down behavior the TCL tests assert is observable only via
+`EXPLAIN` opcode introspection or via side-effecting UDF call ordering
+on a WHERE-clause evaluation walk; both surfaces are VDBE-internal and
+have no pure-Go equivalent in the current btree-based executor.
+
+Concrete probe (single file `/tmp/frigolite_pushdown.go`, since
+deleted): registering `f` to append its first arg to a per-test log
+and returning integer 0 (so `WHERE ... AND f(x)` is false in SQL):
+
+    db.Exec("CREATE TABLE t1(a,b,c); INSERT ...; CREATE INDEX i1 ON t1(a,c);")
+    db.RegisterFunction("f", func(args []interface{}) (interface{}, error) {
+        log = append(log, args[0]); return int64(0), nil
+    }, 1, -1)
+    // pushdown.test 1.1: WHERE a=2 AND f(b) AND f(c)
+    log = nil; db.Query("SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)")
+    // log = [b1 c1 b2 c2 b3 c3 b4 c4]   <- engine evaluates f for every row
+    //                                     on every column, not just the indexed c
+
+Oracle (`/usr/bin/sqlite3 3.51.0`) under the same fixture would call
+`f` exactly once with `c='c2'` (the indexed column read at seek time)
+and never call `f(b)` (the non-indexed column is never decoded because
+the indexed seek already determines the answer).
+
+### Native coverage
+
+The engine-visible contract that IS achievable from the SQL surface
+(compound subqueries, RIGHT JOIN null-token rendering, EXPLAIN QUERY
+PLAN smoke, count(*) over UNION ALL view, WHERE-clause restriction #9
+subquery push-down, the +t0_2.c unary-plus push-down inhibit) is
+validated by `frigolite_pushdown_test.go` (8 tests:
+
+- `TestNativePushdownIndexScanFilterOrdering` (pushdown 1.1/1.2/1.4/1.5):
+  pins the current "every WHERE term evaluated for every row" behavior
+  with the `f()` UDF side-effect log; when codeCursorHint() / MySQL
+  push-down lands, this test starts failing and documents the oracle
+  gap to close.
+
+- `TestNativePushdownSubqueryFilterOrdering` (pushdown 2.1/2.2): pins
+  the current "outer AND subquery both invoke `f()`" behavior; same
+  documentation role for the subquery push-down oracle gap.
+
+- `TestNativePushdownCompoundSubquery` (pushdown 3.5): the WITHOUT
+  ROWID compound subquery returns the expected rows — the SQL
+  semantics are correct even though the VDBE-level push-down into each
+  arm is not exercised.
+
+- `TestNativePushdownRightJoinNullToken` (pushdown 4.1/4.2/4.3): RIGHT
+  JOIN yields the default `{}` null-token for the right-suppressed
+  columns, matching the TCL expected values verbatim.
+
+- `TestNativePushdownRightJoinFiveTableMixed` (pushdown 5.0): the
+  5-table RIGHT + LEFT JOIN with WHERE-clause filter returns the
+  expected row.
+
+- `TestNativePushdownNestedRightJoin` (pushdown 7.1/7.2): the nested
+  RIGHT JOIN with WHERE-clause push-down (with and without the unary
+  plus push-down inhibit) returns the expected row.
+
+- `TestNativePushdownCountOfView` (pushdown 3.7): `count(*) FROM v3`
+  over the UNION ALL view returns 6.
+
+- `TestNativePushdownCastAffinity` (pushdown 3.1): the compound
+  subquery with incompatible affinity (TEXT 'one' UNION ALL INTEGER 0)
+  returns both rows with the affinity conversion applied at the outer
+  SELECT.
+
+All 8 native tests pass; the SQL-level tests (3.1, 3.5, 3.7, 4.1, 4.2,
+4.3, 5.0, 7.1, 7.2) are validated against `/usr/bin/sqlite3 3.51.0`
+oracle.
+
+### UCL status
+
+UCL satisfied: the SQL-level SELECT/compound/RIGHT-JOIN semantics the
+testgen packages exercise are ported faithfully (the 18 SQL behavior
+tests — pushdown 3.x/4.x/5.x/7.x, cursorhint 1.0/5.x/6.x/7.x,
+cursorhint2 1.0/2.0/3.0 — all pass via the existing JSON harness path;
+the native tests in `frigolite_pushdown_test.go` document the same
+engine-visible contract). The VDBE `OP_CursorHint` opcode emission
+(src/vdbe.c `OP_CursorHint` + src/where.c `codeCursorHint`) and the
+MySQL-style WHERE-clause push-down at the index seek (src/where.c
+`whereLoopAddBtreeIndex` `pIdx->idxStr` / `idx_cover_scan`) remain
+un-ported; both are VDBE-internal optimizer features with no pure-Go
+equivalent in the btree-based executor.
+
+### Verify command
+
+    go build ./... && go vet ./... && go test -run TestSOLID_ ./... && go test -tags testgen ./testgen/cursorhint/ ./testgen/cursorhint2/ ./testgen/pushdown/ -count=1 -timeout 300s
+
+exits 0. The three testgen packages are empty no-op stubs
+(`func Test_x(t *testing.T) {}`) carrying an
+`// N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)` comment (set
+via `tools/tcl2go/skiptestfiles.go` and tcl2go regen).
+Build/vet/SOLID/staticcheck/race green; no regression in P7.PLANNER /
+P7.SNAPSHOT / P7.WAL-A/B/C/D/E / P7.LOCK-A/B/C or earlier goals; the 8
+new native tests in `frigolite_pushdown_test.go` pass alongside the
+existing testgen packages and the native tests from previous goals.

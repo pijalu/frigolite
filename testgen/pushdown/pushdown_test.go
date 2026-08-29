@@ -9,4 +9,4 @@ import (
 )
 
 func Test_pushdown(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)

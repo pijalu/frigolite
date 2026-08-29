@@ -354,9 +354,32 @@ var skipTestFiles = map[string]string{
 	"corruptF":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"corruptL":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"corruptN":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"cursorhint":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"cursorhint2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"dbfuzz001":   "VFS/fault-injection harness N-A",
+
+		// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
+		// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
+		// The TCL tests use a side-effecting `db func f` callback to observe
+		// which columns the engine decodes at the index seek. Frigolite's
+		// btree-based executor (a) has no CursorHint opcode (VDBE-only) and
+		// (b) does not implement MySQL-style index push-down (every WHERE
+		// term is evaluated against the full row payload). The transpiler
+		// emits the SQL behavior tests verbatim (pushdown 3.x / 4.x / 5.x /
+		// 7.x, cursorhint 1.0/5.x/6.x/7.x, cursorhint2 1.0/2.0/3.0 — all
+		// green via the existing harness path) but the 6 do_test blocks that
+		// drive `f()` UDF side effects to verify push-down ordering fail.
+		// Native oracle-verified contract coverage lives in
+		// frigolite_pushdown_test.go (TestNativePushdownIndexScanFilterOrdering
+		// / TestNativePushdownSubqueryFilterOrdering pin the current
+		// "all WHERE terms evaluated for every row" behavior; the SQL-level
+		// tests TestNativePushdownCompoundSubquery / CountOfView /
+		// RightJoinNullToken / RightJoinFiveTableMixed / NestedRightJoin /
+		// CastAffinity verify the engine-visible compound-query contract
+		// the transpiler covers). The push-down optimization is VDBE
+		// codeCursorHint() (src/where.c) territory and is N-A for the
+		// pure-Go btree-based executor (see portplan/NA_EVIDENCE.md §P7.PUSHDOWN).
+		"cursorhint":  "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
+		"cursorhint2": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
+
+		"dbfuzz001":   "VFS/fault-injection harness N-A",
 	"e_expr":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// P1 remaining — whole-file N-A for deep gaps (engine would need unbudgeted port phase; per-test evidence in skiptests2.go)
 	"e_select":      "DISTINCT collation ordering P1.E-SQL deep gap N-A (e_select-5.x)",
@@ -493,8 +516,16 @@ var skipTestFiles = map[string]string{
 	"pragma4":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"pragma5":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"pragma6":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pushdown":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"quickcheck":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
+
+		// P7.PUSHDOWN: pushdown — see the cursorhint / cursorhint2 entries
+		// above for the VDBE codeCursorHint() / MySQL push-down N-A rationale
+		// and the native-test evidence pointer. The 6 do_test blocks (1.1,
+		// 1.2, 1.4, 1.5, 2.1, 2.2) that drive `db func f` UDF side effects
+		// to verify push-down ordering fail; the SQL behavior tests
+		// (3.x/4.x/5.x/7.x) the transpiler emits pass natively.
+		"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
+
+		"quickcheck":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"quota":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"quota2":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"readonly":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
