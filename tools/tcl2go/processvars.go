@@ -35,12 +35,115 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 	// runtime; naive quoting would write the raw TCL text into the channel.
 	if strings.HasPrefix(word, "[") && strings.HasSuffix(word, "]") {
 		if expr := tp.cmdExpr(strings.TrimSuffix(word[1:], "]")); expr != "" && expr != fmt.Sprintf("%q", strings.TrimSuffix(word[1:], "]")) {
-			return expr
+				return expr
+			}
 		}
+		// A `set VAR "..."` value that wraps a literal `[regsub SPEC INPUT
+		// REPL]` substitution (journal3.test 1.2.x.1: `set res
+		// "/[regsub {^00} $permissions {0.}]/"`) must be evaluated at SET
+		// time so later comparisons against $VAR see the real perm string
+		// ("/0.644/"), not the literal TCL text. The regsub body is split
+		// into SPEC, INPUT, REPL by whitespace; the resulting
+		// tclRegsub(SPEC, INPUT, REPL) call is wrapped in the literal
+		// prefix/suffix around the `[...]` substitution.
+		if spec, input, repl, ok := regsubSpecInSetValueSplit(word); ok {
+			openIdx := strings.Index(word, "[regsub ")
+			closeIdx := strings.LastIndex(word, "]")
+			if openIdx >= 0 && closeIdx > openIdx {
+				prefix := word[:openIdx]
+				suffix := word[closeIdx+1:]
+				// Render the literal $permissions reference as a Go var
+				// (the loop var) so tclRegsub actually applies the SPEC.
+				inputGo := strings.TrimSpace(input)
+				if strings.HasPrefix(inputGo, "$") {
+					inputGo = tclVarToGo(strings.TrimPrefix(inputGo, "$"))
+					if !isValidGoIdent(inputGo) {
+						inputGo = input
+					}
+				} else {
+					inputGo = strconv.Quote(inputGo)
+				}
+				// Pattern and replacement are TCL braced literals; strip
+				// the surrounding braces (if the whole word is braced)
+				// so the regex engine sees the raw characters (TCL quoting
+				// is part of the literal syntax, not the regex/replacement
+				// text). The SPEC is the whole regsub body which is
+				// brace-bracketed when there's exactly one braced group
+				// (e.g. `{^00}`); the REPL is also a single braced token.
+				pat := spec
+				if strings.HasPrefix(pat, "{") && strings.HasSuffix(pat, "}") {
+					pat = pat[1 : len(pat)-1]
+				}
+				rpl := repl
+				if strings.HasPrefix(rpl, "{") && strings.HasSuffix(rpl, "}") {
+					rpl = rpl[1 : len(rpl)-1]
+				}
+				return fmt.Sprintf("(%s + tclRegsub(%s, %s, %s) + %s)",
+					strconv.Quote(prefix), strconv.Quote(pat), inputGo, strconv.Quote(rpl), strconv.Quote(suffix))
+			}
+		}
+		return tp.goStringLiteral(args[0])
 	}
-	return tp.goStringLiteral(args[0])
+
+// between `regsub ` and the matching `]`). journal3.test 1.2.x.1 uses
+//
+//	set res "/[regsub {^00} $permissions {0.}]/"
+//
+// to build a /0.NNN/ perm string; the transpiler must evaluate the
+// regsub at SET time so the later comparison sees "/0.644/", not the
+// literal TCL text.
+func regsubSpecInSetValue(word string) (string, bool) {
+	const prefix = "[regsub "
+	idx := strings.Index(word, prefix)
+	if idx < 0 {
+		return "", false
+	}
+	rest := word[idx+len(prefix):]
+	end := strings.LastIndex(rest, "]")
+	if end < 0 {
+		return "", false
+	}
+	return rest[:end], true
 }
 
+// regsubSpecInSetValueSplit is regsubSpecInSetValue with the spec further
+// split into its 3 TCL args (pattern, input, replacement). The input is
+// left as the original TCL word (e.g. "$permissions") so the caller can
+// render it as a Go var reference; the pattern and replacement are the
+// literal TCL text (without the surrounding braces).
+func regsubSpecInSetValueSplit(word string) (pattern, input, replacement string, ok bool) {
+	spec, ok := regsubSpecInSetValue(word)
+	if !ok {
+		return "", "", "", false
+	}
+	var parts []string
+	depth := 0
+	start := 0
+	for i := 0; i < len(spec); i++ {
+		switch spec[i] {
+		case '{':
+			depth++
+		case '}':
+			if depth > 0 {
+				depth--
+			}
+		case ' ', '\t':
+			if depth == 0 {
+				if i > start {
+					parts = append(parts, spec[start:i])
+				}
+				start = i + 1
+			}
+		}
+	}
+	if start < len(spec) {
+		parts = append(parts, spec[start:])
+	}
+	if len(parts) < 3 {
+		return spec, "", "", false
+	}
+	return parts[0], parts[1], parts[2], true
+}
 // tclArrayElementRef returns the name of a TCL associative-array element
 // reference ($name($key)) in s, or "" if none. Such references cannot be
 // transpiled to a Go variable (the transpiler maps `set map(K) V` to map_K

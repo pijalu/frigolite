@@ -742,7 +742,10 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 		tp.emitTclProcAliasRegistrations(nm, valExpr)
 	}
 	tp.resolveNamespacePrefix(varName, valExpr)
-	if tp.isVarDeclared(goName) {
+	// Namespace variables whose names appear in knownGlobalVars (e.g.
+	// `oplog` — the journal2 testvfs sink) are package-level helpers-
+	// template variables; emit a plain assignment, not a `var` redeclaration.
+	if tp.isVarDeclared(goName) || knownGlobalVars()[goName] {
 		tp.emitLine("%s = %s // TCL namespace variable", goName, valExpr)
 	} else {
 		tp.emitLine("var %s = %s // TCL namespace variable", goName, valExpr)

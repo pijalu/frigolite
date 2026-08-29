@@ -788,6 +788,16 @@ func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bo
 		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
 		return
 	}
+	if bodyEndsWithFileAttributes(bodyCmds) {
+		// The body ends with `file attributes PATH -attr` (the one-arg
+		// form returns the current value as a string). The whole body
+		// runs in the sub-transpiler; the last `file attributes` call
+		// leaves its result in `_r`. Compare with the expected value
+		// (journal3.test 1.2.x.1: `file attributes test.db -permissions`
+		// returns the current Unix mode bits as a perm string).
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
 	if bodyEndsWithIndexExpr(bodyCmds) {
 		// The body ends with `expr {$idx>=0}` after `set idx [lsearch $prg
 		// OpenEphemeral]` — compare the search result against the expected
@@ -836,6 +846,30 @@ func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bo
 		return
 	}
 	tp.emitErrorResultCheck(nameExpr, expectedExpr)
+}
+
+// bodyEndsWithFileAttributes reports whether the do_test body's last command
+// is `file attributes PATH -ATTR` (the value-returning form, not the
+// setter form `file attributes PATH -ATTR VAL`). journal3.test 1.2.x.1 uses
+// this pattern: `file attributes test.db -permissions $perm ; file attributes
+// test.db -permissions` to read back the perms.
+func bodyEndsWithFileAttributes(bodyCmds [][]tcl.RawWord) bool {
+	if len(bodyCmds) < 1 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) < 2 {
+		return false
+	}
+	if last[0].Text != "file" || (last[1].Text != "attributes" && last[1].Text != "attr") {
+		return false
+	}
+	// file attributes PATH -ATTR      → 4 words: file attributes PATH -ATTR
+	// file attributes PATH -ATTR VAL  → 5 words (setter, no return value)
+	if len(last) == 5 {
+		return false
+	}
+	return true
 }
 
 // bodyIsCatchsqlCommand reports whether a do_test body's last command is a

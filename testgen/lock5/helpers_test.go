@@ -273,6 +273,16 @@ var _ = dirname
 // tcl_nullvalue controls how SQL NULL renders in query results (TCL "db null").
 var tcl_nullvalue = "{}"
 
+// oplog is the package-level event sink for the journal-sidecar
+// testvfs-equivalent hook (journal2 test suite). The hook appends
+// " OP PATH" pairs to it for every xOpen/xClose/xDelete on the
+// "<db>-journal" sidecar. The generated test resets oplog at the
+// start of each do_test block, so the value is meaningful only
+// between resets. Declared package-level so the helper hook can
+// reach it from any goroutine.
+var oplog string
+var _ = oplog
+
 // tcl_fp_digits models sqlite3_db_config db FP_DIGITS N (0 = SQLite library
 // default = shortest round-trip; N>0 = %.!Ng fixed precision). The harness
 // default is 15 significant digits, matching the pre-shortest-fpconv test
@@ -2035,6 +2045,7 @@ func tclEvalFuncs(s string) string {
 			// Find matching close paren.
 			depth := 0
 			k := j
+		findClose:
 			for k < len(s) {
 				switch s[k] {
 				case '(':
@@ -2042,7 +2053,7 @@ func tclEvalFuncs(s string) string {
 				case ')':
 					depth--
 					if depth == 0 {
-						break
+						break findClose
 					}
 				}
 				if depth == 0 {

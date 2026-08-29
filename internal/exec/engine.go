@@ -126,6 +126,10 @@ type Engine struct {
 	settings engineSettings
 	// caches groups the per-table and statement caches.
 	caches tableCaches
+	// lockingMode tracks this connection's file-locking model as set by
+	// PRAGMA locking_mode (default "normal"; "exclusive" holds the EXCLUSIVE
+	// lock for the connection's lifetime). It is a connection-level setting.
+	lockingMode string
 	// tx holds transaction state (BEGIN/COMMIT/ROLLBACK/SAVEPOINT).
 	tx txState
 	// progress holds the progress-handler state.
@@ -151,6 +155,9 @@ type Engine struct {
 	commitHook   func() int
 	rollbackHook func()
 	updateHook   func(op, db, table string, rowid int64)
+	// walHook holds the sqlite3_wal_hook callback (fires after each WAL
+	// commit with (frames appended, frames checkpointed)).
+	walHook func(nLog, nCkpt int) int
 	// returning holds RETURNING evaluation state.
 	returning returningState
 	// testState holds the backing state for test-only SQL functions.

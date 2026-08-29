@@ -9,4 +9,4 @@ import (
 )
 
 func Test_sharedlock(t *testing.T) {}
-// skipped: multi-connection/locking not implemented DEFERRED
+// skipped: shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)

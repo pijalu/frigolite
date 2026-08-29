@@ -72,11 +72,11 @@ func Test_delete_db(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	db.Close()
-	for _, f := range tclSplitList("glob -nocomplain test2*") {
+	for _, f := range tclSplitList(tclGlob("test2*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
-	for _, f := range tclSplitList("glob -nocomplain test3*") {
+	for _, f := range tclSplitList(tclGlob("test3*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
@@ -107,11 +107,11 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	db.Close()
-	for _, f := range tclSplitList("glob -nocomplain test2*") {
+	for _, f := range tclSplitList(tclGlob("test2*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
-	for _, f := range tclSplitList("glob -nocomplain test3*") {
+	for _, f := range tclSplitList(tclGlob("test3*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
@@ -210,11 +210,11 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	db.Close()
-	for _, f := range tclSplitList("glob -nocomplain test2*") {
+	for _, f := range tclSplitList(tclGlob("test2*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
-	for _, f := range tclSplitList("glob -nocomplain test3*") {
+	for _, f := range tclSplitList(tclGlob("test3*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}

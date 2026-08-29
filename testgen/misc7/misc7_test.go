@@ -308,7 +308,7 @@ func Test_misc7(t *testing.T) {
 	{ // "misc7-16.X" — skipped: do_ioerr_test fault-injection harness setup N-A
 	}
 	if tcl_platform_platform != "windows" {
-		// file attributes test.db -permissions rw-r--r--
+		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
 		if tclBool("file attributes test.db -permissions" + "==0644") {
 			{ // "misc7-17.1" — skipped: file-permission manipulation to force readonly DB open N-A
 			}
@@ -370,11 +370,8 @@ func Test_misc7(t *testing.T) {
 		}
 		{ // "misc7-23.1" — skipped: readonly-directory open via file attributes VFS N-A
 		}
-		_dbtmp0, err := frigolite.Open("tst/test.db")
-		_ = _dbtmp0 // sqlite3 db connection
-		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-		_ = err
-		db.ResetChangesCounters()
+		db, err = frigolite.Open("tst/test.db")
+		if err != nil { t.Fatal(err) }
 		{ // "misc7-23.2" — skipped: readonly-directory open via file attributes VFS N-A (SQL side effects only)
 			_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests

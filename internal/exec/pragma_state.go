@@ -72,6 +72,111 @@ func (e *Engine) PageSize(schema, value string) *execpragma.Result {
 	return pragmaResult(e.execPragmaPageSize(e.pragmaDBCtx(schema), value))
 }
 
+// JournalMode implements PRAGMA journal_mode (getter and setter). The setter
+// enables the WAL write path when value is "wal"; for the legacy rollback-journal
+// modes it records the mode so the getter reports it. A mode change requested
+// while a transaction is open is deferred (pager.c pendingJournalMode) and only
+// applied when the transaction ends, matching SQLite (test/jrnlmode3.c 3.3/3.5).
+func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
+	ctx := e.pragmaDBCtx(schema)
+	if ctx == nil || ctx.Pager == nil {
+		if value == "" {
+			return &execpragma.Result{Rows: [][]interface{}{{"delete"}}}
+		}
+		return &execpragma.Result{Error: fmt.Errorf("no such database: %s", schema)}
+	}
+	if value != "" {
+		m := strings.ToLower(strings.TrimSpace(value))
+		if e.InTransaction() && ctx.Pager.HasDirtyPages() {
+			// Defer the switch until the transaction ends (pager.c
+			// pendingJournalMode / btreeEndTransaction). When the pager
+			// is in PAGER_WRITER_CACHEMOD (already wrote dirty pages
+			// under the open transaction), sqlite3PagerOkToChangeJournalMode
+			// (pager.c:7456) returns false and OP_JournalMode (vdbe.c:8021)
+			// reports the CURRENT (active) mode — not the requested one
+			// (test/jrnlmode3.c 3.3). A bare BEGIN IMMEDIATE with no writes
+			// yet still allows the change (test/jrnlmode.c 8.21: the
+			// setter echoes the new mode). The pending change is applied
+			// by ApplyPendingJournalMode at COMMIT/ROLLBACK
+			// (internal/exec/transaction.go).
+			ctx.Pager.SetPendingJournalMode(m)
+			cur := ctx.Pager.JournalMode()
+			if cur == "" {
+				cur = "delete"
+			}
+			return &execpragma.Result{Rows: [][]interface{}{{cur}}}
+		}
+		if err := ctx.Pager.SetJournalMode(m); err != nil {
+			return &execpragma.Result{Error: err}
+		}
+		mode := ctx.Pager.JournalMode()
+		if mode == "" {
+			mode = "delete"
+		}
+		return &execpragma.Result{Rows: [][]interface{}{{mode}}}
+	}
+	mode := ctx.Pager.JournalMode()
+	if mode == "" {
+		mode = "delete"
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{mode}}}
+}
+
+// JournalSizeLimit implements PRAGMA journal_size_limit (getter and setter),
+// the per-database cap applied to a PERSIST journal file after a commit. The
+// value is stored verbatim so the getter echoes it (pragma.c journalSizeLimit).
+func (e *Engine) JournalSizeLimit(schema, value string) *execpragma.Result {
+	ctx := e.pragmaDBCtx(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return &execpragma.Result{}
+	}
+	if value != "" {
+		if n, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64); err == nil {
+			ctx.Pager.SetJournalSizeLimit(n)
+		}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{ctx.Pager.JournalSizeLimit()}}}
+}
+
+// LockingMode implements PRAGMA locking_mode (getter and setter). SQLite tracks
+// it per database but the value is a connection-level lock model; the setter
+// echoes the new mode as a result row (pragma.c PragTyp_LOCKING_MODE).
+func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
+	if value != "" {
+		m := strings.ToLower(strings.TrimSpace(value))
+		switch m {
+		case "normal", "exclusive":
+			e.lockingMode = m
+		default:
+			// Unrecognised token: leave the current mode unchanged (no error),
+			// matching SQLite's lenient handling of invalid pragma values.
+		}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode()}}}
+}
+
+// currentLockingMode returns the active locking mode (default "normal").
+func (e *Engine) currentLockingMode() string {
+	if e.lockingMode == "" {
+		return "normal"
+	}
+	return e.lockingMode
+}
+
+// WalCheckpoint implements PRAGMA wal_checkpoint (PASSIVE|FULL|RESTART|
+// TRUNCATE). It folds the WAL into the main database and resets the WAL,
+// returning SQLite's three-column result {busy, log, checkpointed}.
+func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
+	ctx := e.pragmaDBCtx(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}
+	}
+	if err := ctx.Pager.Checkpoint(); err != nil {
+		return &execpragma.Result{Error: err}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}
+}
+
 // PageCount implements PRAGMA page_count: the current number of pages in the
 // named schema's database.
 func (e *Engine) PageCount(schema string) int64 {

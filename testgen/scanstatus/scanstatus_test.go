@@ -9,4 +9,4 @@ import (
 )
 
 func Test_scanstatus(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: sqlite3_stmt_scanstatus/sqlite3_db_scanstatus C-API introspection not implemented N-A (evidence frigolite_lockc_test.go)

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_multiplex(t *testing.T) {}
-// skipped: multi-connection/locking not implemented DEFERRED
+// skipped: custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)

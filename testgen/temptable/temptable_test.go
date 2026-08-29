@@ -432,7 +432,7 @@ func Test_temptable(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// file attributes test.db -readonly 0
+		// file attributes "test.db" -readonly (unsupported attribute)
 	}
 	{ // do_test "temptable-8.0"
 		db.Close()

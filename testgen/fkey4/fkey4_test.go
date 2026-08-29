@@ -75,7 +75,7 @@ func Test_fkey4(t *testing.T) {
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
 		vtab.TclVarSet("SQL", "", "INSERT INTO t2 VALUES(2,4)")
-		var SQL = "INSERT INTO t2 VALUES(2,4)" // TCL namespace variable
+		SQL = "INSERT INTO t2 VALUES(2,4)" // TCL namespace variable
 		_ = SQL // suppress unused warning
 		// prepared STMT1: $::SQL (bind/step emulation)
 		tclPrepareStep(db, SQL, "STMT1")

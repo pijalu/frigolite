@@ -460,9 +460,16 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// lock_status reports "unlocked" after the statement completes (SQLite
 	// commits autocommit statements by flushing). Flushing writes dirty pages
 	// to disk without touching the in-memory page cache, so btree state is
-	// preserved.
+	// preserved. A flush failure (e.g. a WAL write I/O error under fault
+	// injection) is a real commit error and must propagate: the caller rolls
+	// the statement's in-memory pages back via the pre-statement snapshot and
+	// surfaces SQLITE_IOERR, mirroring SQLite's "commit fails → transaction
+	// rolled back" semantics (a swallowed error would leave the statement
+	// reporting success while nothing reached durable storage).
 	if e.pager != nil {
-		_ = e.pager.Flush()
+		if err := e.pager.Flush(); err != nil {
+			return &Result{Error: err}
+		}
 	}
 	return nil
 }

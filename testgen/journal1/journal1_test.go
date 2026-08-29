@@ -5,8 +5,83 @@
 package journal1
 
 import (
+"github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
-func Test_journal1(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+func Test_journal1(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool(tcl_platform_platform + " == \"windows\"\n || " + "atomic_batch_write test.db") {
+		return
+	}
+	{ // do_test "journal1-1.1"
+		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(10,400));\n    INSERT INTO t1 VALUES(2,randstr(10,400));\n    INSERT INTO t1 SELECT a+2, a||b FROM t1;\n    INSERT INTO t1 SELECT a+4, a||b FROM t1;\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(10,400));\n    INSERT INTO t1 VALUES(2,randstr(10,400));\n    INSERT INTO t1 SELECT a+2, a||b FROM t1;\n    INSERT INTO t1 SELECT a+4, a||b FROM t1;\n    SELECT count(*) FROM t1;\n  ")
+		}
+	}
+	{ // do_test "journal1-1.2"
+		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t1;\n  ")
+		}
+		tclFileCopy("test.db-journal", "test.db-journal-bu")
+		_res = db.Exec("\n    ROLLBACK;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
+		}
+		db.Close()
+		os.Remove("test.db")
+		tclFileCopy("test.db-journal-bu", "test.db-journal")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT * FROM sqlite_master\n  ")
+		_ = _res // catchsql
+	}
+}

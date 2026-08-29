@@ -392,7 +392,7 @@ func Test_attach2(t *testing.T) {
 	if db2 != nil { db2.Close() }
 	os.Remove("test2.db")
 	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
-	for _, f := range tclSplitList("glob test.db*") {
+	for _, f := range tclSplitList(tclGlob("test.db*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
@@ -411,7 +411,7 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	{ // do_test "attach2-5.3"
-		_ = tclSort("glob test.db*") // lsort result
+		_ = tclSort(tclGlob("test.db*")) // lsort result
 	}
 	{ // do_test "attach2-5.4"
 		_res = db.Exec("\n    BEGIN;\n    DROP TABLE aux.tbl;\n    DROP TABLE tbl;\n    ROLLBACK;\n  ")
@@ -420,7 +420,7 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	{ // do_test "attach2-5.5"
-		_ = tclSort("glob test.db*") // lsort result
+		_ = tclSort(tclGlob("test.db*")) // lsort result
 	}
 	{ // do_test "attach2-6.1"
 		_res = db.Exec("\n    BEGIN;\n  ")

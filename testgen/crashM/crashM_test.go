@@ -69,7 +69,7 @@ func Test_crashM(t *testing.T) {
 	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
-	for _, f := range tclSplitList("glob -nocomplain test1.* test2.*") {
+	for _, f := range tclSplitList(tclGlob("test1.*") + " " + tclGlob("test2.*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}

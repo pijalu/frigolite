@@ -5,8 +5,138 @@
 package journal3
 
 import (
+"fmt"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_journal3(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+func Test_journal3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var permissions string
+	_ = permissions // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var effective string
+	_ = effective // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var umask string
+	_ = umask // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool(tcl_platform_os + " != \"Windows NT\"\n && " + "atomic_batch_write test.db" + "==0") {
+		// db_delete_and_reopen: delete test.db* and reopen
+		db.Close()
+		for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		{ // do_test "journal3-1.1"
+			_res = db.Exec(" CREATE TABLE tx(y, z) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE tx(y, z) ")
+			}
+		}
+		// foreach {tn permissions} "1 00644\n   2 00666\n   3 00600\n   4 00755"
+		_items0 := tclSplitList("1 00644\n   2 00666\n   3 00600\n   4 00755")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			tn := _items0[_idx0+0]
+			_ = tn // suppress unused warning
+			permissions := _items0[_idx0+1]
+			_ = permissions // suppress unused warning
+			_ = _idx0
+				db.Close()
+				vtab.TclVarSet("res", "", ("/" + tclRegsub("^00", permissions, "0.") + "/"))
+				res = ("/" + tclRegsub("^00", permissions, "0.") + "/")
+				_ = res // suppress unused warning
+				if tcl_version >= "8.7" {
+					permissions = tclRegsub("^00", permissions, "0o")
+					_ = permissions // suppress unused warning
+				}
+				vtab.TclVarSet("effective", "", permissions)
+				effective = permissions
+				_ = effective // suppress unused warning
+				{ // do_test "journal3-1.2." + tn + ".1"
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+						os.Remove("test.db-journal")
+					}
+					if perm, _perr := strconv.ParseInt(strings.TrimPrefix(permissions, "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+					if st, _err := os.Stat("test.db"); _err == nil { _perm := fmt.Sprintf("0%04o", st.Mode().Perm()); _r = "/" + strings.Replace(_perm, "00", "0.", 1) + "/" } else { _r = "" }
+					if _r != res {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res, "journal3-1.2." + tn + ".1")
+					}
+				}
+				{ // do_test "journal3-1.2." + tn + ".2"
+					// file exists "test.db-journal"
+				}
+				{ // do_test "journal3-1.2." + tn + ".3"
+					db, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec(" \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
+					}
+					// file exists "test.db-journal"
+				}
+				{ // do_test "journal3-1.2." + tn + ".4"
+					if st, _err := os.Stat("test.db-journal"); _err == nil { _perm := fmt.Sprintf("0%04o", st.Mode().Perm()); _r = "/" + strings.Replace(_perm, "00", "0.", 1) + "/" } else { _r = "" }
+					if _r != res {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res, "journal3-1.2." + tn + ".4")
+					}
+				}
+				{ // "journal3-1.2." + tn + ".5"
+					_res = db.Exec(" ROLLBACK ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+					}
+				}
+			}
+		}
+}

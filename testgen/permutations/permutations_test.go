@@ -337,15 +337,15 @@ func Test_permutations(t *testing.T) {
 	// proc definition (not transpiled)
 	alltests = ""
 	_ = alltests // suppress unused warning
-	for _, f := range tclSplitList("glob $testdir/*.test") {
+	for _, f := range tclSplitList(tclGlob(testdir + "/*.test")) {
 	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, filepath.Base(f))
 	}
-	for _, f := range tclSplitList("glob -nocomplain            \\\n    $testdir/../ext/rtree/*.test       \\\n    $testdir/../ext/fts5/test/*.test   \\\n    $testdir/../ext/expert/*.test      \\\n    $testdir/../ext/lsm1/test/*.test   \\\n    $testdir/../ext/recover/*.test     \\\n    $testdir/../ext/rbu/*.test         \\\n    $testdir/../ext/intck/*.test       \\") {
+	for _, f := range tclSplitList(tclGlob(testdir + "/../ext/rtree/*.test") + " " + tclGlob(testdir + "/../ext/fts5/test/*.test") + " " + tclGlob(testdir + "/../ext/expert/*.test") + " " + tclGlob(testdir + "/../ext/lsm1/test/*.test") + " " + tclGlob(testdir + "/../ext/recover/*.test") + " " + tclGlob(testdir + "/../ext/rbu/*.test") + " " + tclGlob(testdir + "/../ext/intck/*.test") + " " + tclGlob("\\")) {
 	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, f)
 	}
-	for _, f := range tclSplitList("glob -nocomplain $testdir/../ext/session/*.test") {
+	for _, f := range tclSplitList(tclGlob(testdir + "/../ext/session/*.test")) {
 	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, f)
 	}

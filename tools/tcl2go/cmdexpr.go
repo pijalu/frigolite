@@ -57,6 +57,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"lrange":              (*transpiler).cmdExprLRange,
 		"lsort":               (*transpiler).cmdExprLSort,
 		"file":                (*transpiler).cmdExprFile,
+		"glob":               (*transpiler).cmdExprGlob,
 		"pwd":                 (*transpiler).cmdExprPwd,
 		"sqlite3":             (*transpiler).cmdExprSqlite3,
 		"join":                (*transpiler).cmdExprJoin,
@@ -727,6 +728,33 @@ func (tp *transpiler) cmdExprDbOne(cmdName, cmdText string, args []string) strin
 // expression (vtabH 3.x builds absolute glob patterns from it).
 func (tp *transpiler) cmdExprPwd(cmdName, cmdText string, args []string) string {
 	return `func() string { wd, _ := os.Getwd(); return wd }()`
+}
+
+// cmdExprGlob handles `[glob -nocomplain PATTERN]` — return the TCL list of
+// matching file paths (tclGlob). SQLite's glob never raises on no match, so
+// -nocomplain is implicit; other flags (-directory, -join, -tails, -types,
+// --) are skipped. The pattern is rendered as a string expression so variable
+// references work. The caller (e.g. foreach) wraps the result in tclSplitList
+// to iterate the matches.
+func (tp *transpiler) cmdExprGlob(cmdName, cmdText string, args []string) string {
+	var patterns []string
+	for _, a := range args {
+		if a == "-nocomplain" || a == "-join" || a == "-tails" || a == "-types" || a == "--" || strings.HasPrefix(a, "-") {
+			continue
+		}
+		patterns = append(patterns, tp.buildStringExpr(a))
+	}
+	if len(patterns) == 0 {
+		return `""`
+	}
+	parts := make([]string, len(patterns))
+	for i, p := range patterns {
+		parts[i] = fmt.Sprintf("tclGlob(%s)", p)
+	}
+	if len(parts) == 1 {
+		return parts[0]
+	}
+	return strings.Join(parts, " + \" \" + ")
 }
 
 // cmdExprCatch handles `[catch {db eval {SQL}}]` — return "1" when the SQL

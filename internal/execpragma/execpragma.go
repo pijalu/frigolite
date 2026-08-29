@@ -40,6 +40,23 @@ type EngineState interface {
 	SchemaVersion(schema, value string) *Result
 	PageSize(schema, value string) *Result
 
+	// JournalMode implements PRAGMA journal_mode (getter/setter). The setter
+	// enables the WAL write path when value is "wal".
+	JournalMode(schema, value string) *Result
+
+	// JournalSizeLimit implements PRAGMA journal_size_limit (getter/setter),
+	// the per-database cap applied to a PERSIST journal file after commit.
+	JournalSizeLimit(schema, value string) *Result
+
+	// LockingMode implements PRAGMA locking_mode (getter/setter). SQLite
+	// tracks it per database (connection-level with a schema qualifier) and
+	// the setter echoes the new value as a result row.
+	LockingMode(schema, value string) *Result
+
+	// WalCheckpoint implements PRAGMA wal_checkpoint (PASSIVE|FULL|RESTART|
+	// TRUNCATE): it folds the WAL into the main database and resets the WAL.
+	WalCheckpoint(schema, value string) *Result
+
 	// PageCount returns the current number of pages in the named schema's
 	// database (PRAGMA page_count).
 	PageCount(schema string) int64
@@ -384,16 +401,13 @@ var pragmaHandlers = map[string]Handler{
 		return st.Encoding(s.Schema, s.Value)
 	},
 	"JOURNAL_MODE": func(st EngineState, s *sql.PragmaStmt) *Result {
-		if s.Value != "" {
-			mode := strings.ToLower(s.Value)
-			switch mode {
-			case "delete", "truncate", "persist", "memory", "off", "wal", "wal2":
-			default:
-				return &Result{Error: fmt.Errorf("unsupported journal mode: %s", s.Value)}
-			}
-			return &Result{Rows: [][]interface{}{{mode}}}
-		}
-		return &Result{Rows: [][]interface{}{{"memory"}}}
+		return st.JournalMode(s.Schema, s.Value)
+	},
+	"JOURNAL_SIZE_LIMIT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.JournalSizeLimit(s.Schema, s.Value)
+	},
+	"WAL_CHECKPOINT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.WalCheckpoint(s.Schema, s.Value)
 	},
 	"RECURSIVE_CTE_LIMIT": func(st EngineState, s *sql.PragmaStmt) *Result {
 		if s.Value == "" {
@@ -437,9 +451,9 @@ var pragmaHandlers = map[string]Handler{
 	"TEMP_STORE": pragmaGetOnly(func(st EngineState) *Result {
 		return &Result{Rows: [][]interface{}{{int64(0)}}}
 	}),
-	"LOCKING_MODE": pragmaGetOnly(func(st EngineState) *Result {
-		return &Result{Rows: [][]interface{}{{"normal"}}}
-	}),
+	"LOCKING_MODE": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.LockingMode(s.Schema, s.Value)
+	},
 	"READ_UNCOMMITTED": pragmaGetOnly(func(st EngineState) *Result {
 		return &Result{Rows: [][]interface{}{{int64(0)}}}
 	}),

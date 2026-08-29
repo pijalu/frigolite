@@ -9,4 +9,4 @@ import (
 )
 
 func Test_busy2(t *testing.T) {}
-// skipped: multi-connection busy-handler locking DEFERRED
+// skipped: busy-handler (sqlite3_busy_handler C-API; `db busy` transpiler no-op) + WAL multi-connection lock contention not implemented N-A G7 (evidence frigolite_lockc_test.go)

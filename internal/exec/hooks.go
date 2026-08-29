@@ -29,6 +29,29 @@ func (e *Engine) SetUpdateHook(fn func(op, db, table string, rowid int64)) {
 	e.updateHook = fn
 }
 
+// SetWalHook registers the connection's WAL hook (sqlite3_wal_hook). The
+// callback fires after each WAL-mode commit with (frames appended this
+// commit, frames checkpointed). A nil callback clears the hook. The hook is
+// also pushed onto the main database's pager so it fires once that pager
+// enters WAL mode (even if registered beforehand, mirroring SQLite).
+func (e *Engine) SetWalHook(fn func(nLog, nCkpt int) int) {
+	e.walHook = fn
+	if e.mainDB != nil && e.mainDB.Pager != nil {
+		e.mainDB.Pager.SetWalHook(fn)
+	}
+}
+
+// SetJournalFileOpHook installs a callback fired for xOpen/xClose/xDelete
+// events on the "<db>-journal" rollback sidecar. The hook is the testvfs
+// equivalent for the journal file (frigolite has no full VFS plugin
+// system). It is registered against the main database's pager so it
+// observes every journal-sidecar event for the connection.
+func (e *Engine) SetJournalFileOpHook(fn func(op, path string)) {
+	if e.mainDB != nil && e.mainDB.Pager != nil {
+		e.mainDB.Pager.SetJournalFileOpHook(fn)
+	}
+}
+
 // fireUpdateHook reports a row-level INSERT/UPDATE/DELETE to the update hook
 // (only for rowid tables; WITHOUT ROWID tables use the preupdate hook).
 func (e *Engine) fireUpdateHook(op, db, table string, rowid int64) {

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_mjournal(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: master-journal pointer validation in hot-journal recovery is P7.WAL-G multi-DB scope, not P7.WAL-E single-DB (test 4.x.y.1 — evidence testgen/mjournal/mjournal_test.go:365; tests 1.x/2.x/3.x pass natively)

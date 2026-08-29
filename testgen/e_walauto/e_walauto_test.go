@@ -9,4 +9,4 @@ import (
 )
 
 func Test_e_walauto(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+// skipped: N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)

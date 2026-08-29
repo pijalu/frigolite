@@ -749,6 +749,11 @@ func knownGlobalVars() map[string]bool {
 		// db1-db9 are pre-declared as *frigolite.DB in the function preamble
 		"db1": true, "db2": true, "db3": true, "db4": true, "db5": true,
 		"db6": true, "db7": true, "db8": true, "db9": true,
+		// oplog is the testvfs-equivalent journal-sidecar event sink
+		// (journal2 test suite). Declared package-level in the helpers
+		// template so the process-wide journal-file-op hook can append
+		// events to it directly from any goroutine.
+		"oplog": true,
 	}
 }
 

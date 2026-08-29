@@ -5,8 +5,147 @@
 package jrnlmode2
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_jrnlmode2(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+func Test_jrnlmode2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool("atomic_batch_write test.db") {
+		return
+	}
+	{ // do_test "jrnlmode2-1.1"
+		r = db.Query("\n    PRAGMA journal_mode = persist;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = persist;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		}
+	}
+	{ // do_test "jrnlmode2-1.2"
+		// file exists "test.db-journal"
+	}
+	{ // do_test "jrnlmode2-1.3"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" SELECT * FROM t1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		}
+	}
+	{ // do_test "jrnlmode2-1.4"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		}
+		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		}
+		r = db.Query(" PRAGMA lock_status ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
+		}
+	}
+	{ // do_test "jrnlmode2-1.5"
+		// file exists "test.db-journal"
+	}
+	{ // do_test "jrnlmode2-1.6"
+		_res = db2.Exec(" SELECT * FROM t1 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+		}
+	}
+	{ // do_test "jrnlmode2-1.7"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+		_res = db2.Exec(" SELECT * FROM t1 ")
+		_ = _res // catchsql
+	}
+	{ // do_test "jrnlmode2-2.1"
+		if db2 != nil { db2.Close() }
+		r = db.Query(" PRAGMA journal_mode = truncate ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")
+		}
+		_res = db.Exec(" INSERT INTO t1 VALUES(5, 6) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5, 6) ")
+		}
+	}
+	{ // do_test "jrnlmode2-2.2"
+		// file exists "test.db-journal"
+	}
+	{ // do_test "jrnlmode2-2.3" (file size test.db-journal)
+		got := strconv.Itoa(tclFileSize("test.db-journal"))
+		if got != "0" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, "0", "jrnlmode2-2.3")
+		}
+	}
+	{ // do_test "jrnlmode2-2.4"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM t1 ")
+		_ = _res // catchsql
+	}
+	{ // do_test "jrnlmode2-2.5"
+		db.Close()
+		os.Remove("test.db-journal")
+	}
+	{ // do_test "jrnlmode2-2.6"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" SELECT * FROM t1 ")
+		_ = _res // catchsql
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		if db2 != nil { db2.Close() }
+	}
+}

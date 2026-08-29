@@ -16,7 +16,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -59,6 +61,64 @@ type Pager struct {
 	// 0 bytes when opened (pager.c lazy creation): opening it must not
 	// materialize the file.
 	openedEmpty bool
+	// path is the canonical database file path (filepath.Clean'd), used to
+	// derive the "-wal"/"-shm" companion files in WAL mode.
+	path string
+	// journalMode is the active journal mode ("" or "delete" = legacy
+	// rollback-journal path; "wal" = WAL write path). Only "wal" routes
+	// commits through the WAL writer; the default path is untouched.
+	journalMode string
+	// journalSizeLimit is the per-database cap (bytes) applied to a PERSIST
+	// journal file after a successful commit (PRAGMA journal_size_limit). A
+	// negative value means unlimited (the journal keeps its full content); 0
+	// truncates the journal to zero; a positive value truncates it down to that
+	// many bytes. SQLite's default is 32768.
+	journalSizeLimit int64
+	// pendingJournalMode holds a journal-mode change requested while a
+	// transaction was open; pager.c defers the switch until the transaction
+	// ends (sqlite3BtreeSetJournalMode / btreeEndTransaction). Empty means no
+	// pending change.
+	pendingJournalMode string
+	// Rollback-journal file machinery (P7.WAL-E — see journal.go).
+	// journalFile is the open "test.db-journal" sidecar for the current
+	// in-flight non-WAL transaction. Nil when no transaction is open or
+	// when the mode is memory/off/wal.
+	journalFile *os.File
+	// journalSectorSize is the sector size used to size the journal header
+	// (the header always occupies exactly one sector; 512 on most
+	// platforms).
+	journalSectorSize uint32
+	// journalCksum1/2 are the random seeds the running-checksum chain
+	// (over the journal records) starts from; written into the journal
+	// header at open time.
+	journalCksum1 uint32
+	journalCksum2 uint32
+	// journalDBOrigSize is the database's page count at journal-open
+	// time; written into the journal header for recovery to detect a
+	// stale journal (a different dbOrigSize means the journal belongs to
+	// a different database file).
+	journalDBOrigSize uint32
+	// journalRecC1/C2 are the running checksum state of the records
+	// appended so far; initialised from journalCksum1/2 after the
+	// header is written, advanced by journalChecksumUpdate on every
+	// appended record.
+	journalRecC1 uint32
+	journalRecC2 uint32
+	// wal is non-nil while the pager is in WAL mode.
+	wal *walWriter
+	// walHook is the sqlite3_wal_hook callback, fired after each WAL commit.
+	walHook func(nLog, nCkpt int) int
+	// walFault injects I/O faults into WAL writes when non-nil (mirrors
+	// SQLite's test_syscall faultsim). The writer calls it before each write;
+	// a non-nil return aborts the write with that error. Nil in production.
+	walFault func(op string) error
+	// journalFileOpHook fires for xOpen/xClose/xDelete events on the
+	// "test.db-journal" sidecar (testvfs equivalent). Used by the journal2
+	// TCL test suite, which asserts on the OS-level sequence of file
+	// operations on the journal sidecar; frigolite does not have a full
+	// VFS plugin system, so this hook is the narrow path through which
+	// those events are observable. Nil in production (no overhead).
+	journalFileOpHook func(op, path string)
 	// knownFileVers/knownFileSize are the file stamp this connection last
 	// observed (pager.c Pager.dbFileVers plus the file size). Refreshed at
 	// open and after every own flush; CheckExternalFile compares against it
@@ -160,6 +220,11 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 		// stay untouched on disk until the first real write — opening and
 		// closing it never materializes the file.
 		openedEmpty: info.Size() == 0,
+		path:        cleanPath,
+		// SQLite's default PRAGMA journal_size_limit cap is 32768 bytes
+		// (pragma.c journalSizeLimit). A PERSIST journal is truncated to this
+		// many bytes after a commit; negative means unlimited, 0 means zero.
+		journalSizeLimit: 32768,
 	}
 
 	if info.Size() > 0 {
@@ -197,7 +262,54 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	// records Pager.dbFileVers when page 1 is first read).
 	pr.refreshKnownFileStamp()
 
+	// WAL crash recovery / WAL-mode detection: SQLite auto-detects WAL from the
+	// presence of a valid "-wal" file. When one accompanies the main database,
+	// recover its committed frames into the page cache before the first read
+	// (wal.c walIndexRecover on open) and place the connection in WAL mode so
+	// the WAL write path and WAL-aware header validation are active. A WAL
+	// database whose main file is still empty (uncheckpointed) carries its page
+	// size only in the "-wal" header, so prefer that when the main file did not
+	// yield a size.
+	if _, err := os.Stat(cleanPath + "-wal"); err == nil {
+		if pr.pageSize == 0 {
+			if wps, ok := readWalPageSize(cleanPath + "-wal"); ok {
+				pr.pageSize = wps
+			}
+		}
+		if err := recoverWal(pr, cleanPath, pr.pageSize); err != nil {
+			f.Close()
+			return nil, err
+		}
+		if w, werr := openWal(pr, cleanPath, pr.pageSize); werr == nil {
+			pr.wal = w
+			pr.journalMode = "wal"
+		}
+	}
+
 	return pr, nil
+}
+
+// readWalPageSize returns the page size recorded in a "-wal" file's header, if
+// the header is present and valid (used to size a WAL database whose main file
+// is still empty).
+func readWalPageSize(walPath string) (uint32, bool) {
+	f, err := os.Open(walPath)
+	if err != nil {
+		return 0, false
+	}
+	defer f.Close()
+	buf := make([]byte, WalHdrSize)
+	if _, err := f.ReadAt(buf, 0); err != nil {
+		return 0, false
+	}
+	h, err := DecodeWalHeader(buf)
+	if err != nil || !h.HeaderCksumOK {
+		return 0, false
+	}
+	if h.PageSize == 0 {
+		return 0, false
+	}
+	return h.PageSize, true
 }
 
 // OpenInMemory creates an in-memory pager.
@@ -216,11 +328,54 @@ func OpenInMemory(pageSize uint32) *Pager {
 	}
 }
 
+// deriveCksumInit produces a non-zero random-ish uint32 used as the
+// rollback-journal header's cksumInit seed (pager.c uses
+// sqlite3_randomness for this). It is not a security boundary; it only
+// needs to be (a) different across connections to the same file, and
+// (b) non-zero so a torn/zero-padded journal is detectable on recovery.
+//
+// We derive it from the journal file's current time + the file's path
+// (so concurrent pagers with different db files get different seeds).
+// The exact algorithm is not part of the SQLite wire format — the
+// header only carries the seed verbatim; the journal-recovery code
+// re-reads the seed and re-checksums the records.
+func (p *Pager) deriveCksumInit() uint32 {
+	var s uint32
+	// Mix in the path bytes (different per database file).
+	for i := 0; i < len(p.path); i++ {
+		s = s*16777619 + uint32(p.path[i])
+	}
+	// Mix in the current file size (different per write).
+	s ^= uint32(p.fileSize)
+	// Mix in a high-resolution timestamp (different per call).
+	now := time.Now().UnixNano()
+	s ^= uint32(now)
+	s ^= uint32(now >> 32)
+	// Force non-zero: a zero seed is the canonical "no journal" marker.
+	if s == 0 {
+		s = 0xa5a5a5a5
+	}
+	return s
+}
+
 func (p *Pager) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if err := p.flushAll(); err != nil {
 		return err
+	}
+	if p.journalFile != nil {
+		// Close the open rollback-journal sidecar (PERSIST/TRUNCATE
+		// modes keep it open across commits; Close is the only path
+		// that releases the FD). Fire xClose via the hook so the
+		// journal2 test sees a balanced sequence when the connection
+		// ends.
+		jpath := p.journalFile.Name()
+		_ = p.journalFile.Close()
+		p.journalFile = nil
+		if h := p.journalFileOpHookFn(); h != nil {
+			h("xClose", jpath)
+		}
 	}
 	if p.file != nil {
 		return p.file.Close()
@@ -511,12 +666,21 @@ func (p *Pager) FileInfo() (os.FileInfo, bool) {
 
 // InvalidateCache drops the in-memory page cache and page-count so the next
 // read re-reads the file. Used when an external connection may have modified
-// the database file (schema reload after an ATTACHed file changes).
+// the database file (schema reload after an ATTACHed file changes). In WAL
+// mode the cache is then rebuilt from the "-wal" (wal.c reads pages through
+// the WAL index), so a schema reload never loses uncheckpointed commits.
 func (p *Pager) InvalidateCache() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.pages = make(map[uint32]*Page)
 	p.header = nil
+	if p.wal != nil {
+		// Rebuild the cache from the WAL's committed frames; this restores
+		// numPages/header that the stale main file no longer reflects. The
+		// caller holds p.mu, so use the lock-free variant.
+		_ = recoverWalLocked(p, p.path, p.pageSize)
+		return
+	}
 	if p.file != nil {
 		if info, err := p.file.Stat(); err == nil {
 			p.fileSize = info.Size()
@@ -528,7 +692,14 @@ func (p *Pager) InvalidateCache() {
 	}
 }
 
-// WritePage marks a page as dirty.
+// WritePage marks a page as dirty. The first write under a non-memory/non-off
+// transaction also opens the rollback journal sidecar (test.db-journal) so
+// the BEFORE image of every subsequently-dirtied page is recorded; a ROLLBACK
+// (or a fault during COMMIT) replays the journal to restore the original
+// pages (pager.c sqlite3PagerWrite — the journal is opened on the first
+// write of a transaction, not deferred to COMMIT). For autocommit writes the
+// journal is opened and finalised in the same flush cycle (pager.c
+// pager_end_transaction).
 func (p *Pager) WritePage(pg *Page) error {
 	if p.readOnly {
 		return fmt.Errorf("pager: read-only")
@@ -541,6 +712,26 @@ func (p *Pager) WritePage(pg *Page) error {
 	defer p.mu.Unlock()
 	p.pages[pg.PageNum] = pg
 	p.dirty[pg.PageNum] = true
+	// Open the rollback journal eagerly on the first write so a ROLLBACK
+	// before COMMIT can replay the BEFORE images. openRollbackJournalLocked
+	// is a no-op for memory/off/wal modes and for pagers without a file.
+	if err := p.openRollbackJournalLocked(); err != nil {
+		return err
+	}
+	// Record the BEFORE image of this page (on disk) into the open journal
+	// (only for the FIRST write — subsequent writes during the same
+	// transaction overwrite the BEFORE image; SQLite's journal only stores
+	// the most-recent before-image per page, and the journal's cksum
+	// chain covers the latest write).
+	if p.journalFile != nil {
+		off := int64(pg.PageNum-1) * int64(p.pageSize)
+		before := make([]byte, p.pageSize)
+		if _, err := p.file.ReadAt(before, off); err == nil {
+			if err := p.appendRollbackRecordLocked(pg.PageNum, before); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -570,19 +761,280 @@ func (p *Pager) Truncate(n uint32) error {
 	return nil
 }
 
+// Flush is the public flush entry point. See flushAll for the actual work.
 func (p *Pager) Flush() error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	return p.flushAll()
+	return p.FlushWithContext(false)
 }
 
-// flushAll is called under p.mu.
+// FlushWithContext flushes the pager. multiDB is true when this flush is
+// part of a multi-database COMMIT (one or more ATTACH'd databases are
+// committing together); it controls PERSIST-mode finalization (the
+// super-journal path in pager.c forces the per-database journal file to
+// 0 bytes when the commit is multi-DB).
+func (p *Pager) FlushWithContext(multiDB bool) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.flushAllCtx(multiDB)
+}
+
+// SetJournalMode switches the pager's journal mode. "wal" enables the WAL
+// write path: it creates the "-wal"/"-shm" companions, writes a WAL header,
+// and routes future commits through the WAL writer (the main file is then
+// only updated by an explicit Checkpoint). Any other mode (the default)
+// keeps the legacy direct-flush path unchanged.
+func (p *Pager) SetJournalMode(mode string) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	m := strings.ToLower(strings.TrimSpace(mode))
+	switch m {
+	case "wal":
+		if p.wal != nil {
+			return nil // already in WAL mode
+		}
+		if p.file == nil {
+			return fmt.Errorf("pager: cannot enable WAL on in-memory pager")
+		}
+		// Switching from PERSIST/TRUNCATE to WAL: close and unlink the
+		// existing rollback-journal file (it is no longer the active
+		// sidecar). Fire xClose + xDelete via the testvfs hook.
+		prev := p.journalMode
+		if p.journalFile != nil && (prev == "persist" || prev == "truncate") {
+			jpath := p.journalFile.Name()
+			_ = p.journalFile.Close()
+			p.journalFile = nil
+			if h := p.journalFileOpHookFn(); h != nil {
+				h("xClose", jpath)
+			}
+			if h := p.journalFileOpHookFn(); h != nil {
+				h("xDelete", jpath)
+			}
+			_ = os.Remove(jpath)
+		}
+		w, err := openWal(p, p.path, p.pageSize)
+		if err != nil {
+			return err
+		}
+		p.wal = w
+		p.journalMode = "wal"
+		return nil
+	case "delete", "truncate", "persist", "memory", "off", "wal2":
+		// Legacy rollback-journal modes. The mode is recorded so that
+		// PRAGMA journal_mode reports it on read-back; the commit path
+		// honours it when materialising / disposing of the rollback
+		// journal (see the transaction commit/rollback handlers). "delete"
+		// is the SQLite default and keeps the legacy direct-flush path.
+		if p.wal != nil {
+			p.wal.Close()
+			p.wal = nil
+		}
+		// Switching journal modes may need to close + unlink an
+		// already-open journal file (the previous mode opened it under
+		// its own policy, but the new mode may want to start fresh or
+		// handle it differently). We close + unlink in every
+		// cross-mode transition (not just PERSIST/TRUNCATE → *) so a
+		// DELETE-mode implicit open (the engine opens one on the first
+		// write of an empty database) does not leak into a subsequent
+		// PERSIST/TRUNCATE session — otherwise the new mode's first
+		// transaction sees the stale DELETE-mode file already open and
+		// skips xOpen (journal2.test 2.2 — PRAGMA persist; CREATE TABLE
+		// → expected xOpen, but the file is already open).
+		prev := p.journalMode
+		if p.journalFile != nil && m != prev {
+			jpath := p.journalFile.Name()
+			_ = p.journalFile.Close()
+			p.journalFile = nil
+			if h := p.journalFileOpHookFn(); h != nil {
+				h("xClose", jpath)
+			}
+			if h := p.journalFileOpHookFn(); h != nil {
+				h("xDelete", jpath)
+			}
+			_ = os.Remove(jpath)
+		}
+		p.journalMode = m
+		return nil
+	default:
+		// SQLite treats an unrecognised journal mode token as a no-op:
+		// the current mode is left unchanged and the statement returns
+		// the current mode without an error (test/journal.c jrnlmode-1.8).
+		return nil
+	}
+}
+
+// JournalMode reports the active journal mode ("wal", "delete", "truncate",
+// "persist", "memory", "off", or "" which the caller maps to "delete").
+func (p *Pager) JournalMode() string {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.journalMode
+}
+
+// SetJournalSizeLimit records the PRAGMA journal_size_limit cap (bytes) for
+// this database. A negative value means unlimited (the journal keeps its full
+// content after a PERSIST commit); 0 truncates the journal to zero; a positive
+// value truncates it down to that many bytes. SQLite's default is 32768
+// (pragma.c journalSizeLimit). The value is stored verbatim so the getter can
+// echo it.
+func (p *Pager) SetJournalSizeLimit(n int64) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.journalSizeLimit = n
+}
+
+// JournalSizeLimit reports the recorded PRAGMA journal_size_limit cap.
+func (p *Pager) JournalSizeLimit() int64 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.journalSizeLimit
+}
+
+// SetPendingJournalMode records a journal-mode change requested while a
+// transaction was open. pager.c defers the actual switch until the transaction
+// ends (sqlite3BtreeSetJournalMode sets pBt->pendingJournalMode and
+// btreeEndTransaction applies it). An unrecognised mode is ignored (no-op),
+// matching the setter's behaviour outside a transaction.
+func (p *Pager) SetPendingJournalMode(mode string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	m := strings.ToLower(strings.TrimSpace(mode))
+	switch m {
+	case "delete", "truncate", "persist", "memory", "off", "wal", "wal2":
+		p.pendingJournalMode = m
+	default:
+		// unrecognised token: leave the pending change unset
+	}
+}
+
+// ApplyPendingJournalMode commits a deferred journal-mode change (recorded by
+// SetPendingJournalMode) at transaction end. It is a no-op when no change is
+// pending. Called from the engine's COMMIT/ROLLBACK path for every database.
+func (p *Pager) ApplyPendingJournalMode() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.pendingJournalMode == "" {
+		return
+	}
+	if p.wal != nil && p.pendingJournalMode != "wal" {
+		p.wal.Close()
+		p.wal = nil
+	}
+	p.journalMode = p.pendingJournalMode
+	p.pendingJournalMode = ""
+}
+
+// SetWalHook registers the sqlite3_wal_hook callback, invoked after each WAL
+// commit with (frames appended, frames checkpointed).
+func (p *Pager) SetWalHook(fn func(nLog, nCkpt int) int) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.walHook = fn
+}
+
+// SetWalFault installs an I/O fault injector for WAL writes (test_syscall
+// equivalent). When fn returns a non-nil error for a given operation, the WAL
+// writer aborts that write with it. Pass nil to clear.
+func (p *Pager) SetWalFault(fn func(op string) error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.walFault = fn
+}
+
+// SetJournalFileOpHook installs a callback that fires for xOpen/xClose/xDelete
+// events on the "test.db-journal" sidecar. The hook is the testvfs equivalent
+// for the journal file: frigolite does not have a full VFS plugin system, but
+// the journal2 TCL test suite needs to observe the OS-level sequence of file
+// operations on the journal sidecar. Pass nil to clear.
+//
+// The hook is called with the operation name ("xOpen", "xClose", "xDelete")
+// and the absolute path of the journal file. It fires synchronously under
+// p.mu, so the hook should be lightweight (e.g. appending to a string).
+func (p *Pager) SetJournalFileOpHook(fn func(op, path string)) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.journalFileOpHook = fn
+}
+
+// Checkpoint folds the WAL into the main database file and resets the WAL
+// (RESTART-style). It is a no-op when not in WAL mode.
+func (p *Pager) Checkpoint() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal == nil {
+		return nil
+	}
+	return p.wal.checkpoint()
+}
+
+// WalFileSize reports the current "-wal" file size in bytes (0 when not in
+// WAL mode). Used by tests to simulate a crash at a frame boundary.
+func (p *Pager) WalFileSize() int64 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if p.wal == nil {
+		return 0
+	}
+	return p.wal.FileSize()
+}
+
+// flushAll is the legacy single-DB flush entry point. New callers should
+// use FlushWithContext to pass the multi-DB flag.
 func (p *Pager) flushAll() error {
+	return p.flushAllCtx(false)
+}
+
+// flushAllCtx is called under p.mu. The multiDB flag is true when this
+// flush is part of a COMMIT that includes one or more ATTACH'd databases
+// (the "super-journal" path in pager.c, which forces PERSIST-mode
+// journals to truncate to 0 instead of honouring journal_size_limit).
+func (p *Pager) flushAllCtx(multiDB bool) error {
+	// WAL mode: route the commit through the WAL writer (frames go to the
+	// "-wal" file; the main database is updated only by Checkpoint). The
+	// legacy direct-flush path below is used for every other journal mode.
+	if p.wal != nil {
+		_, err := p.wal.commit()
+		if err != nil {
+			return err
+		}
+		p.dirty = make(map[uint32]bool)
+		return nil
+	}
 	if p.file != nil {
+		if len(p.dirty) == 0 {
+			// No dirty pages — nothing to write to the main database, and
+			// nothing to record in the journal. The journal file may still
+			// be open from a previous flush cycle (PERSIST/TRUNCATE keep
+			// the file open across COMMITs). Only PERSIST needs
+			// re-finalisation here to honour journal_size_limit; TRUNCATE
+			// and DELETE already finalised at COMMIT (DELETE closed +
+			// unlinked, TRUNCATE left an open zero-length file that does
+			// not need re-truncation).
+			if p.journalFile != nil && p.journalMode == "persist" {
+				if err := p.finalizeRollbackJournalLockedMulti(multiDB); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		// Open the rollback journal (test.db-journal) for this COMMIT. For
+		// modes that don't use a file (memory/off/wal) the helper is a
+		// no-op. The journal captures the BEFORE image of every dirty
+		// page written below, so a ROLLBACK can restore them. (P7.WAL-E
+		// rollback journal machinery — see journal.go.)
+		if err := p.openRollbackJournalLocked(); err != nil {
+			return err
+		}
 		for pageNum := range p.dirty {
 			if err := p.flushPage(pageNum); err != nil {
 				return err
 			}
+		}
+		// Finalise the journal after every dirty page is on disk: DELETE
+		// unlinks, TRUNCATE zeroes, PERSIST truncates to journal_size_limit
+		// (or 0 in the super-journal / multi-DB case), MEMORY/OFF are
+		// no-ops (no file was created). This mirrors pager.c
+		// pager_end_transaction / sqlite3PagerCommitPhaseOne.
+		if err := p.finalizeRollbackJournalLockedMulti(multiDB); err != nil {
+			return err
 		}
 		// Own writes just hit the file: refresh the external-change baseline
 		// (pager.c readDbPage restores Pager.dbFileVers from page 1) so the
@@ -612,6 +1064,24 @@ func (p *Pager) flushPage(pageNum uint32) error {
 			return fmt.Errorf("pager: truncate: %w", err)
 		}
 		p.fileSize = fileEnd
+	}
+	// Record the BEFORE image of this page in the rollback journal. The
+	// pg.Data we have here is the AFTER image (the in-memory dirty copy);
+	// the BEFORE image lives in the on-disk page. We must read it from
+	// the file BEFORE we overwrite it. (pager.c pager_write_pagelist /
+	// sqlite3PagerWrite: the BEFORE image is whatever is on disk; for a
+	// newly-allocated page the BEFORE is zeros, which is also what an
+	// OpenFile of a non-existent page would return.)
+	if p.journalFile != nil {
+		before := make([]byte, p.pageSize)
+		if _, err := p.file.ReadAt(before, off); err == nil {
+			// The on-disk byte may be short (file smaller than the
+			// page offset) — that means the page was never written
+			// before, so the BEFORE is all zeros (already the case).
+			if err := p.appendRollbackRecordLocked(pageNum, before); err != nil {
+				return err
+			}
+		}
 	}
 	if _, err := p.file.WriteAt(pg.Data, off); err != nil {
 		return fmt.Errorf("pager: write page %d: %w", pageNum, err)

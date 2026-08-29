@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -91,25 +92,25 @@ func Test_tkt3457(t *testing.T) {
 	}
 	{ // do_test "tkt3457-1.2"
 		tclFileCopy("bak.db-journal", "test.db-journal")
-		// file attributes test.db-journal -permissions ---------
+		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("---------", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db-journal", os.FileMode(perm)) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3457-1.3"
 		tclFileCopy("bak.db-journal", "test.db-journal")
-		// file attributes test.db-journal -permissions -w--w--w-
+		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("-w--w--w-", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db-journal", os.FileMode(perm)) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3457-1.4"
 		tclFileCopy("bak.db-journal", "test.db-journal")
-		// file attributes test.db-journal -permissions r--r--r--
+		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db-journal", os.FileMode(perm)) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3457-1.5"
 		tclFileCopy("bak.db-journal", "test.db-journal")
-		// file attributes test.db-journal -permissions rw-rw-rw-
+		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-rw-rw-", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db-journal", os.FileMode(perm)) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}

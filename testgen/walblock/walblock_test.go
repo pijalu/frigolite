@@ -79,7 +79,7 @@ func Test_walblock(t *testing.T) {
 		db.Close()
 	}
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
-	for _, f := range tclSplitList("glob test.db*") {
+	for _, f := range tclSplitList(tclGlob("test.db*")) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
@@ -98,18 +98,45 @@ func Test_walblock(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1.1"
-		_ = tclSort("glob test.db*") // lsort result
+		_ = tclSort(tclGlob("test.db*")) // lsort result
 	}
 	{ // do_test "1.1.2"
 		C = "launch_testfixture"
 		_ = C // suppress unused warning
-		// testfixture $C {\n    sqlite3 db test.db\n    db eval { SELECT * F...} (unsupported command, not transpiled)
+		{ // testfixture C
+			if tclFixtureDBs["C"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["C"] = _fxdb
+			}
+			db := tclFixtureDBs["C"]
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tclFixtureDBs["C"] = db
+			_res = db.Exec(" SELECT * FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			}
+			_ = db
+		}
 	}
 	{ // do_test "1.1.3"
 		vtab.TclVarSet("out", "", "")
 		out = "" // TCL namespace variable
 		_ = out // suppress unused warning
-		// testfixture $C {\n    db eval { SELECT * FROM t1 }\n  } [list set ::out] (unsupported command, not transpiled)
+		{ // testfixture C
+			if tclFixtureDBs["C"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["C"] = _fxdb
+			}
+			db := tclFixtureDBs["C"]
+			_res = db.Exec(" SELECT * FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			}
+			_ = db
+		}
 		_ = out // TCL namespace variable (query)
 		got := tclListFlatten(out)
 		want := tclListFlatten("")

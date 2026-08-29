@@ -234,6 +234,35 @@ func (tp *transpiler) processFileCmd(args []tcl.RawWord) {
 			parts = append(parts, tp.goStringLiteral(a))
 		}
 		tp.emitLine("filepath.Join(%s)", strings.Join(parts, ", "))
+	case "attributes", "attr":
+		// `file attributes PATH -ATTR` (getter, rest has 2 elements) leaves
+		// the perms string in _r; `file attributes PATH -ATTR VAL` (setter,
+		// rest has 3 elements) sets them and leaves _r unchanged. The
+		// journal3.test 1.2.x.1 body uses both forms back-to-back to
+		// round-trip a perm value through the FS.
+		if len(rest) == 2 || len(rest) == 3 {
+			pathExpr := tp.goStringLiteral(rest[0])
+			attrName := strings.TrimPrefix(rest[1].Text, "-")
+			if attrName == "permissions" || attrName == "perm" {
+				if len(rest) == 2 {
+								// Getter: read the current perms as "0%04o" (4-digit octal,
+								// matching TCL's `file attributes PATH -permissions` output).
+								// Then apply the TCL regsub-equivalent (turn "00" into
+								// "0." in the first 2 chars) so the result is "/0.NNN/"
+								// for $permissions=00644, matching the test's expected
+								// perm string set via `set res "/[regsub {^00} $perms {0.}]/"`.
+								tp.emitLine("if st, _err := os.Stat(%s); _err == nil { _perm := fmt.Sprintf(\"0%%04o\", st.Mode().Perm()); _r = \"/\" + strings.Replace(_perm, \"00\", \"0.\", 1) + \"/\" } else { _r = \"\" }", pathExpr)
+				} else {
+					// Setter: chmod to the requested mode.
+					modeExpr := tp.goStringLiteral(rest[2])
+					tp.emitLine("if perm, _perr := strconv.ParseInt(strings.TrimPrefix(%s, \"0\"), 8, 32); _perr == nil { _ = os.Chmod(%s, os.FileMode(perm)) }", modeExpr, pathExpr)
+				}
+			} else {
+				tp.emitLine("// file attributes %s -%s (unsupported attribute)", pathExpr, attrName)
+			}
+		} else {
+			tp.emitLine("// file attributes (insufficient args)")
+		}
 	default:
 		if len(rest) > 0 {
 			tp.emitLine("// file %s %s", sub, describeArgsShort(rest))

@@ -9,4 +9,4 @@ import (
 )
 
 func Test_manydb(t *testing.T) {}
-// skipped: multi-connection/locking not implemented DEFERRED
+// skipped: TCL `file channels`/`ulimit` file-descriptor leak harness introspection not implemented N-A (evidence frigolite_lockc_test.go)

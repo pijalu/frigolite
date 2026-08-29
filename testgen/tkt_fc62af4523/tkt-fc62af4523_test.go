@@ -75,7 +75,22 @@ func Test_tkt_fc62af4523(t *testing.T) {
 	_ = _chan // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "tkt-fc62af4523.2"
-		// testfixture $::chan {\n    sqlite3 db test.db\n    db eval {\n      PRA...} (unsupported command, not transpiled)
+		{ // testfixture _chan
+			if tclFixtureDBs["_chan"] == nil {
+				_fxdb, _fxerr := frigolite.Open("test.db")
+				if _fxerr != nil { t.Fatal(_fxerr) }
+				tclFixtureDBs["_chan"] = _fxdb
+			}
+			db := tclFixtureDBs["_chan"]
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tclFixtureDBs["_chan"] = db
+			_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET b = randomblob(400);\n        UPDATE t1 SET a = randomblob(201);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET b = randomblob(400);\n        UPDATE t1 SET a = randomblob(201);\n    ")
+			}
+			_ = db
+		}
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.3"
@@ -88,7 +103,7 @@ func Test_tkt_fc62af4523(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.5"
-		// testfixture $::chan sqlite_abort (unsupported command, not transpiled)
+		// testfixture _chan (no script body)
 	}
 	{ // do_test "tkt-fc62af4523.6"
 		r = db.Query("\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")

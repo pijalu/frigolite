@@ -205,7 +205,7 @@ func Test_shell8(t *testing.T) {
 				// lsort [glob -tails -directory ar2 -nocomplain *]
 			}
 			{ // do_test "3.4.2"
-				_ = tclSort("glob -tails -directory ar3 -nocomplain *") // lsort result
+				_ = tclSort(tclGlob("ar3") + " " + tclGlob("*")) // lsort result
 			}
 			os.Remove("shell8.db")
 			os.Remove("ar2")

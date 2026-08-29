@@ -223,7 +223,18 @@ type ftsSnap struct {
 // VALUES INSERT (no SELECT, no RETURNING, not REPLACE/upsert, no triggers, no
 // FK enforcement) either writes its one row or fails before writing — there is
 // no partial state to restore.
+//
+// The main database being in WAL mode disables the skip: a WAL commit writes
+// to the "-wal" file, which is a SEPARATE I/O that can fail (disk error,
+// fault injection) AFTER the in-memory row write succeeds. The "cannot fail
+// after partially writing" assumption is then false, so the rollback snapshot
+// must be taken so a failed commit can restore the pre-statement pages
+// (otherwise the uncommitted pages stay dirty and the next flush — e.g. at
+// Close — re-attempts and re-reports the error).
 func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
+	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
+		return false
+	}
 	ins, ok := stmt.(*sql.InsertStmt)
 	if !ok {
 		return false // UPDATE/DELETE can fail mid-scan after earlier writes

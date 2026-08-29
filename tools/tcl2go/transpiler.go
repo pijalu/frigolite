@@ -61,6 +61,7 @@ type transpiler struct {
 	testPrefix          string                  // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
 	mainDBAlias         string                  // dbconfig_maindbname_<alias>: the test-hook alias for the main database
 	queryVars           map[string]bool         // TCL vars known to hold query SQL (set/append to SELECT...)
+	regsubSpecs         map[string]regsubSpec    // `set VAR "[regsub ...]"` → captured regsub spec per var; do_test body comparisons against $VAR apply tclRegsub
 	arrayKeys           map[string][]string     // TCL array name → literal keys seen (set arr(K) V)
 	arrayMapVars        map[string]bool         // TCL array names using dynamic keys (set arr($k) V) → Go map var
 	rollbackFlag        string                  // when set, `db eval ROLLBACK` also assigns this Go bool var (db eval {SQL} {body} callback abort)

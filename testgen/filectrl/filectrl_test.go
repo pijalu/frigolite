@@ -110,11 +110,8 @@ func Test_filectrl(t *testing.T) {
 	os.Remove("test.db")
 	if tcl_platform_platform == "windows" {
 		{ // do_test "filectrl-2.1"
-			_dbtmp0, err := frigolite.Open("test2.db")
-			_ = _dbtmp0 // sqlite3 db connection
-			if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-			_ = err
-			db.ResetChangesCounters()
+			db, err = frigolite.Open("test2.db")
+			if err != nil { t.Fatal(err) }
 			size = strconv.Itoa(tclFileSize("test2.db"))
 			_ = size // suppress unused warning
 			handle = "file_control_win32_get_handle db"

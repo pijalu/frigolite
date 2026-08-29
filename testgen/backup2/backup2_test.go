@@ -9,6 +9,8 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
+"strings"
 "testing"
 )
 
@@ -164,12 +166,12 @@ func Test_backup2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			// file attributes bu2.db -permissions r--------
+			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--------", "0"), 8, 32); _perr == nil { _ = os.Chmod("bu2.db", os.FileMode(perm)) }
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			// file attributes bu2.db -readonly 1
+			// file attributes "bu2.db" -readonly (unsupported attribute)
 		}
 	_ = rc // suppress unused warning
 	_ = res // suppress unused warning
@@ -191,12 +193,12 @@ func Test_backup2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			// file attributes bu2.db -readonly 0
+			// file attributes "bu2.db" -readonly (unsupported attribute)
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			// file attributes bu2.db -permissions rw-------
+			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-------", "0"), 8, 32); _perr == nil { _ = os.Chmod("bu2.db", os.FileMode(perm)) }
 		}
 		_ = os.WriteFile("bu2.db", nil, 0644)
 		out = "bu2.db"

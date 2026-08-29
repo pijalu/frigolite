@@ -36,6 +36,25 @@ var tcl_platform_os = "Darwin"
 var tcl_platform_pointerSize = "8"
 var tcl_platform_wordSize = "8"
 
+// tclFixtureDBs emulates SQLite's launch_testfixture / testfixture second
+// process: each fixture name is a separate persistent *frigolite.DB connection
+// opened on the same database file, so cross-connection lock semantics (SHARED
+// / RESERVED / PENDING / EXCLUSIVE) apply between the main test connection and
+// the fixture connection. The lock registry (internal/lockreg) is
+// process-global and keyed by canonical file path, so a fixture connection on
+// "test.db" contends with the main connection exactly as two OS processes
+// would. Used by the multi-process locking tests (lock2/lock4/...).
+var tclFixtureDBs = map[string]*frigolite.DB{}
+
+// launchTestfixture returns a fresh fixture name (mirrors SQLite's
+// launch_testfixture, which spawns a persistent testfixture subprocess).
+var tclFixtureSeq int
+
+func launchTestfixture() string {
+	tclFixtureSeq++
+	return fmt.Sprintf("fx%d", tclFixtureSeq)
+}
+
 // tclTestLocaltime is the Go equivalent of SQLite's test1.c testLocaltime
 // (installed by sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 2):
 // even days (from 1970) are UTC-30min, odd days UTC+30min, and the specific
@@ -253,6 +272,16 @@ var _ = dirname
 
 // tcl_nullvalue controls how SQL NULL renders in query results (TCL "db null").
 var tcl_nullvalue = "{}"
+
+// oplog is the package-level event sink for the journal-sidecar
+// testvfs-equivalent hook (journal2 test suite). The hook appends
+// " OP PATH" pairs to it for every xOpen/xClose/xDelete on the
+// "<db>-journal" sidecar. The generated test resets oplog at the
+// start of each do_test block, so the value is meaningful only
+// between resets. Declared package-level so the helper hook can
+// reach it from any goroutine.
+var oplog string
+var _ = oplog
 
 // tcl_fp_digits models sqlite3_db_config db FP_DIGITS N (0 = SQLite library
 // default = shortest round-trip; N>0 = %.!Ng fixed precision). The harness
@@ -2016,6 +2045,7 @@ func tclEvalFuncs(s string) string {
 			// Find matching close paren.
 			depth := 0
 			k := j
+		findClose:
 			for k < len(s) {
 				switch s[k] {
 				case '(':
@@ -2023,7 +2053,7 @@ func tclEvalFuncs(s string) string {
 				case ')':
 					depth--
 					if depth == 0 {
-						break
+						break findClose
 					}
 				}
 				if depth == 0 {

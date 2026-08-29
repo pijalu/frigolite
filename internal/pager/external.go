@@ -58,7 +58,18 @@ func (p *Pager) HeaderBeyondFile() bool {
 	if len(h) < 96 {
 		return false
 	}
+	// In WAL mode the main database file is updated only by Checkpoint, so
+	// its on-disk size lags the committed page count: every WAL frame is
+	// recovered into the in-memory page cache at Open / InvalidateCache, but
+	// the file is not rewritten until a checkpoint. Comparing the header's
+	// page count against the physical file size would therefore mis-report a
+	// healthy WAL database as truncated/corrupt. lockBtree validates against
+	// the pager's page count (p.numPages), which already includes the
+	// WAL-recovered pages, so use that in WAL mode instead of FilePageCount.
 	filePages := p.FilePageCount()
+	if p.wal != nil {
+		filePages = p.NumPages()
+	}
 	nPage := binary.BigEndian.Uint32(h[28:32])
 	if nPage == 0 || string(h[24:28]) != string(h[92:96]) {
 		nPage = filePages

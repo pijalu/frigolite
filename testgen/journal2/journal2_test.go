@@ -5,8 +5,297 @@
 package journal2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_journal2(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+func Test_journal2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var open_journals_f string
+	_ = open_journals_f // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var tvfs_error_on_write string
+	_ = tvfs_error_on_write // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	open_journalsMap := map[string]string{}
+	_ = open_journalsMap // dynamic-key array from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	db.Close()
+	if "" == "inmemory_journal" {
+		return
+	}
+	vtab.TclVarSet("a_string_counter", "", "1")
+	a_string_counter = "1"
+	_ = a_string_counter // suppress unused warning
+	// proc definition (not transpiled)
+	// testvfs tvfs -default 1 (unsupported command, not transpiled)
+	// tvfs devchar {undeletable_when_open powersafe_overwrite} (unsupported command, not transpiled)
+	// tvfs filter {xOpen xClose xDelete} (unsupported command, not transpiled)
+	// tvfs script journal_op_catcher (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	{ // do_test "journal2-1.1"
+		vtab.TclVarSet("oplog", "", "")
+		oplog = "" // TCL namespace variable
+		_ = oplog // suppress unused warning
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec(" CREATE TABLE t1(a, b) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
+		}
+		_ = oplog // TCL namespace variable (query)
+		got := tclListFlatten(oplog)
+		want := tclListFlatten("xOpen test.db-journal xClose test.db-journal xDelete test.db-journal")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-1.1")
+		}
+	}
+	{ // do_test "journal2-1.2"
+		vtab.TclVarSet("oplog", "", "")
+		oplog = "" // TCL namespace variable
+		_ = oplog // suppress unused warning
+		r = db.Query(" \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		}
+		_ = oplog // TCL namespace variable (query)
+		got := tclListFlatten(oplog)
+		want := tclListFlatten("xOpen test.db-journal")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-1.2")
+		}
+	}
+	{ // do_test "journal2-1.3"
+		vtab.TclVarSet("oplog", "", "")
+		oplog = "" // TCL namespace variable
+		_ = oplog // suppress unused warning
+		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, 4) ")
+		}
+		_ = oplog // TCL namespace variable (query)
+		got := tclListFlatten(oplog)
+		want := tclListFlatten("")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-1.3")
+		}
+	}
+	{ // do_test "journal2-1.4"
+		r = db.Query(" SELECT * FROM t1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		}
+	}
+	{ // do_test "journal2-1.5"
+		vtab.TclVarSet("oplog", "", "")
+		oplog = "" // TCL namespace variable
+		_ = oplog // suppress unused warning
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query(" PRAGMA journal_mode = delete ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
+		}
+		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "journal2-1.6"
+		// file exists "test.db-journal"
+	}
+	{ // do_test "journal2-1.7"
+		r = db.Query(" SELECT * FROM t1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		}
+	}
+	{ // do_test "journal2-1.8"
+		r = db2.Query(" PRAGMA journal_mode = truncate ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")
+		}
+		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5, 6)  ")
+		}
+	}
+	{ // do_test "journal2-1.9"
+		r = db.Query(" SELECT * FROM t1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		}
+	}
+	{ // do_test "journal2-1.10"
+		if db2 != nil { db2.Close() }
+		db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		_res = db.Exec("\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db-journal"))
+		if _r != "0" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "0", "journal2-1.10")
+		}
+	}
+	{ // "journal2-1.11" (prepare-step internals; SQL side effects only)
+		sz = strconv.Itoa(tclFileSize("test.db") / 1024)
+		_ = sz // suppress unused warning
+		// expr $sz>120 && $sz<200 (not evaluated)
+	}
+	{ // do_test "journal2-1.12"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
+		}
+	}
+	{ // do_test "journal2-1.13"
+		// tvfs filter {xOpen xClose xDelete xWrite xTruncate} (unsupported command, not transpiled)
+		vtab.TclVarSet("tvfs_error_on_write", "", "1")
+		tvfs_error_on_write = "1" // TCL namespace variable
+		_ = tvfs_error_on_write // suppress unused warning
+		_res = db2.Exec(" COMMIT ")
+		_ = _res // catchsql
+	}
+	if db2 != nil { db2.Close() }
+	tclFileCopy("test.db", "testX.db")
+	{ // do_test "journal2-1.14"
+		// file exists "test.db-journal"
+	}
+	{ // do_test "journal2-1.15"
+		r = db.Query("\n    SELECT count(*) FROM t2;\n    PRAGMA integrity_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t2;\n    PRAGMA integrity_check;\n  ")
+		}
+	}
+	{ // "journal2-1.16" (prepare-step internals; SQL side effects only)
+		sz = strconv.Itoa(tclFileSize("testX.db") / 1024)
+		_ = sz // suppress unused warning
+		// expr $sz>240 && $sz<400 (not evaluated)
+	}
+	{ // do_test "journal2-1.17"
+		// expr [catchsql { PRAGMA integrity_check } db] == "0 ok" → runtime compare
+		_r = tclBool01(tclCatchsqlStr(db, "{ PRAGMA integrity_check } db")  ==  "0 ok")
+	}
+	{ // do_test "journal2-1.20"
+		db2, err = frigolite.Open("testX.db")
+		if err != nil { t.Fatal(err) }
+		// expr [catchsql { PRAGMA integrity_check } db2] == "0 ok" → runtime compare
+		_r = tclBool01(tclCatchsqlStr(db, "{ PRAGMA integrity_check } db2")  ==  "0 ok")
+	}
+	{ // do_test "journal2-1.21"
+		if db2 != nil { db2.Close() }
+	}
+	db.Close()
+	if tclBool("wal_is_capable") {
+		{ // do_test "journal2-2.1"
+			// db_delete_and_reopen: delete test.db* and reopen
+			db.Close()
+			for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			vtab.TclVarSet("oplog", "", "")
+			oplog = "" // TCL namespace variable
+			_ = oplog // suppress unused warning
+			r = db.Query(" PRAGMA journal_mode = persist ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = persist ")
+			}
+			_ = oplog // TCL namespace variable (query)
+			got := tclListFlatten(oplog)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-2.1")
+			}
+		}
+		{ // do_test "journal2-2.2"
+			_res = db.Exec(" \n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);\n    ")
+			}
+			_ = oplog // TCL namespace variable (query)
+			got := tclListFlatten(oplog)
+			want := tclListFlatten("xOpen test.db-journal")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-2.2")
+			}
+		}
+		{ // do_test "journal2-2.3"
+			// expr [file size test.db-journal] > 512 → runtime compare
+			_r = tclBool01(toInt(strconv.Itoa(tclFileSize("test.db-journal")))  >  512)
+		}
+		{ // do_test "journal2-2.4"
+			vtab.TclVarSet("oplog", "", "")
+			oplog = "" // TCL namespace variable
+			_ = oplog // suppress unused warning
+			r = db.Query(" PRAGMA journal_mode = WAL ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+			}
+			_ = oplog // TCL namespace variable (query)
+			got := tclListFlatten(oplog)
+			want := tclListFlatten("xClose test.db-journal xDelete test.db-journal")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "journal2-2.4")
+			}
+		}
+		db.Close()
+	}
+	// tvfs delete (unsupported command, not transpiled)
+}

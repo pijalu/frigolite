@@ -582,6 +582,18 @@ func counterProcValue(body string) string {
 
 // IncrProcInfo describes a `proc NAME {args} { incr ::VAR [N]; return K }`
 // body (vtabH's like()/glob()/regexp() counter functions).
+// regsubSpec is the captured `set VAR [regsub SPEC]` form: a TCL string like
+// `set res "/[regsub {^00} $permissions {0.}]/"` carries a regsub
+// substitution whose spec (the args between `regsub ` and the closing
+// `]`) plus the literal prefix/suffix around the substitution. do_test
+// body comparisons against $VAR apply tclRegsub to the body result so
+// the comparison matches the real evaluated perm string (journal3 1.2.x.1).
+type regsubSpec struct {
+	Spec   string
+	Prefix string
+	Suffix string
+}
+
 type IncrProcInfo struct {
 	GoVar  string
 	Amount int

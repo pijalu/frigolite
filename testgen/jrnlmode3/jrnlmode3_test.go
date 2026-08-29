@@ -5,8 +5,220 @@
 package jrnlmode3
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_jrnlmode3(t *testing.T) {}
-// skipped: WAL/journal mode not implemented N-A
+func Test_jrnlmode3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var all_journal_modes string
+	_ = all_journal_modes // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var fromjmode string
+	_ = fromjmode // pre-declared from TCL source
+	var tojmode string
+	_ = tojmode // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "jrnlmode3-1.1"
+		r = db.Query("\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "off exclusive 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "jrnlmode3-1.2"
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "jrnlmode3-2.1"
+		r = db.Query("\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive off 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "jrnlmode3-2.2"
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	vtab.TclVarSet("all_journal_modes", "", "delete persist truncate memory off")
+	all_journal_modes = "delete persist truncate memory off"
+	_ = all_journal_modes // suppress unused warning
+	vtab.TclVarSet("cnt", "", "0")
+	cnt = "0"
+	_ = cnt // suppress unused warning
+	for _, fromjmode := range tclSplitList(all_journal_modes) {
+	_ = fromjmode // suppress unused warning
+		for _, tojmode := range tclSplitList(all_journal_modes) {
+		_ = tojmode // suppress unused warning
+			if func() bool { fromjmode_n, _fromjmode_e := strconv.Atoi(fromjmode); if _fromjmode_e != nil { return false }; tojmode_n, _tojmode_e := strconv.Atoi(tojmode); if _tojmode_e != nil { return false }; return fromjmode_n == tojmode_n }() {
+				continue
+			}
+			// incr cnt 1
+			{
+				_n, _err := strconv.Atoi(cnt)
+				if _err == nil {
+					cnt = strconv.Itoa(_n + 1)
+				}
+			}
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // do_test "jrnlmode3-3." + cnt + ".1-(" + fromjmode + "-to-" + tojmode + ")"
+				r = db.Query("PRAGMA journal_mode = " + fromjmode + ";")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = " + fromjmode + ";")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlattenCollapse(fromjmode)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "jrnlmode3-3." + cnt + ".2"
+				r = db.Query("PRAGMA main.journal_mode")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA main.journal_mode")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlattenCollapse(fromjmode)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "jrnlmode3-3." + cnt + ".3"
+				_res = db.Exec("\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(cnt) + ");\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(cnt) + ");\n      ")
+				}
+				_res = db.Exec("PRAGMA journal_mode=" + tojmode)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + tojmode)
+				}
+				r = db.Query("PRAGMA journal_mode=" + sqlLiteral(tojmode))
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode=" + sqlLiteral(tojmode))
+				}
+				if flatten(r) != fromjmode {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), fromjmode, "jrnlmode3-3." + cnt + ".3")
+				}
+			}
+			{ // do_test "jrnlmode3-3." + cnt + ".4"
+				r = db.Query("\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
+				}
+			}
+			{ // do_test "jrnlmode3-3." + cnt + ".5"
+				r = db.Query("PRAGMA journal_mode=" + tojmode)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode=" + tojmode)
+					return
+				}
+				got := flatten(r)
+				want := tclListFlattenCollapse(tojmode)
+				got = tclListFlattenCollapse(got)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "jrnlmode3-3." + cnt + ".6"
+				_res = db.Exec("\n        DROP TABLE IF EXISTS t1;\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(1);\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DROP TABLE IF EXISTS t1;\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(1);\n      ")
+				}
+				_res = db.Exec("ROLLBACK")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+				}
+				_res = db.Exec("\n        SELECT * FROM t1;\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SELECT * FROM t1;\n      ")
+				}
+			}
+		}
+	}
+}

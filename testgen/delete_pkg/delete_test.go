@@ -627,12 +627,12 @@ func Test_delete(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// file attributes test.db -permissions 0444
+		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("0444", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// file attributes test.db -readonly 1
+		// file attributes "test.db" -readonly (unsupported attribute)
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -680,7 +680,7 @@ func Test_delete(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// file attributes test.db -readonly 0
+		// file attributes "test.db" -readonly (unsupported attribute)
 	}
 	db.Close()
 	os.Remove("test.db")

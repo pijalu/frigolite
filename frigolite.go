@@ -368,6 +368,28 @@ func (db *DB) SetCommitHook(fn func() int) {
 	}
 }
 
+// SetWalHook registers the connection's WAL hook (sqlite3_wal_hook). The
+// callback fires after each WAL-mode commit with (frames appended this
+// commit, frames checkpointed). A nil callback clears the hook.
+func (db *DB) SetWalHook(fn func(nLog, nCkpt int) int) {
+	if db != nil && db.engine != nil {
+		db.engine.SetWalHook(fn)
+	}
+}
+
+// SetJournalFileOpHook installs a callback fired for xOpen/xClose/xDelete
+// events on the "<db>-journal" rollback sidecar (testvfs equivalent for
+// the journal file). The hook is the narrow observability path through
+// which the journal2 TCL test suite verifies the OS-level file-ops
+// sequence; frigolite does not have a full VFS plugin system. Pass nil to
+// clear. The hook fires synchronously under the pager lock, so the
+// callback should be lightweight (e.g. appending to a string).
+func (db *DB) SetJournalFileOpHook(fn func(op, path string)) {
+	if db != nil && db.engine != nil {
+		db.engine.SetJournalFileOpHook(fn)
+	}
+}
+
 // SetRollbackHook registers the connection's rollback hook
 // (sqlite3_rollback_hook). A nil callback clears it.
 func (db *DB) SetRollbackHook(fn func()) {

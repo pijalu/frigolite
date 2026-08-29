@@ -9,6 +9,7 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -131,9 +132,9 @@ func Test_extension01(t *testing.T) {
 	}
 	{ // do_test "1.6"
 		if tcl_platform_os != "Windows NT" {
-			// file attributes ./file2.txt -permissions r--r--r--
+			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("./file2.txt", os.FileMode(perm)) }
 		} else {
-			// file attributes ./file2.txt -readonly 1
+			// file attributes "./file2.txt" -readonly (unsupported attribute)
 		}
 		_res = db.Exec("\n    SELECT writefile('./file2.txt', 'Another test');\n  ")
 		if _res.Error != nil {
@@ -142,9 +143,9 @@ func Test_extension01(t *testing.T) {
 	}
 	{ // do_test "1.7"
 		if tcl_platform_os != "Windows NT" {
-			// file attributes ./file2.txt -permissions rw-r--r--
+			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("./file2.txt", os.FileMode(perm)) }
 		} else {
-			// file attributes ./file2.txt -readonly 0
+			// file attributes "./file2.txt" -readonly (unsupported attribute)
 		}
 		_res = db.Exec("\n    SELECT writefile(NULL, 'Another test');\n  ")
 		if _res.Error != nil {

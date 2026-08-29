@@ -463,11 +463,8 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
-				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-				_ = err
-				db.ResetChangesCounters()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
 			_ = _res // catchsql
@@ -557,11 +554,8 @@ func Test_capi3(t *testing.T) {
 		}
 		if "" != "nofaultsim" {
 			{ // do_test "capi3-10-1"
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
-				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
-				_ = err
-				db.ResetChangesCounters()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
 				DB = "db"
 				_ = DB // suppress unused warning
 				// sqlite3_memdebug_fail 1 (unsupported command, not transpiled)

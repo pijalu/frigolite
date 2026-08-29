@@ -685,6 +685,7 @@ func tclEvalFuncs(s string) string {
 			// Find matching close paren.
 			depth := 0
 			k := j
+		findClose:
 			for k < len(s) {
 				switch s[k] {
 				case '(':
@@ -692,7 +693,7 @@ func tclEvalFuncs(s string) string {
 				case ')':
 					depth--
 					if depth == 0 {
-						break
+						break findClose
 					}
 				}
 				if depth == 0 {

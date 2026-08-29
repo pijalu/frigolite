@@ -79,10 +79,27 @@ func (e *Engine) execCommit() *Result {
 	}
 	// Release locks: after COMMIT all databases return to unlocked.
 	// Flush each pager so HasDirtyPages() becomes false (lock_status reads
-	// "unlocked" after the commit). The main pager is in dbList.
+	// "unlocked" after the commit). The main pager is in dbList. When
+	// more than one USER database is being flushed together (an
+	// ATTACH'd database is also part of the commit), pass multiDB=true
+	// so PERSIST-mode journals are truncated to 0 (the super-journal
+	// path in pager.c zeroJournalHdr hasSuper==true branch). The temp
+	// database is in dbList but is an in-memory pager that never
+	// produces a rollback journal file, so it does NOT count toward
+	// the multi-DB total.
+	multiDB := false
+	nonNilPagers := 0
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.IsMemory() == false && dbCtx.Pager.HasDirtyPages() {
+			nonNilPagers++
+		}
+	}
+	if nonNilPagers > 1 {
+		multiDB = true
+	}
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil {
-			if err := dbCtx.Pager.Flush(); err != nil {
+			if err := dbCtx.Pager.FlushWithContext(multiDB); err != nil {
 				return &Result{Error: err}
 			}
 		}
@@ -347,7 +364,7 @@ func (e *Engine) execSavepointRelease(s *sql.SavepointStmt) *Result {
 		e.tx.txSnapshots = nil
 		for _, dbCtx := range e.dbList {
 			if dbCtx != nil && dbCtx.Pager != nil {
-				if err := dbCtx.Pager.Flush(); err != nil {
+				if err := dbCtx.Pager.FlushWithContext(false); err != nil {
 					return &Result{Error: err}
 				}
 			}

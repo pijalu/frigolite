@@ -383,10 +383,13 @@ func isASCIIAlphaNum(c byte) bool {
 }
 
 // exprCmdCompare handles `expr [cmd ...] OP N` where the command resolves to
-// a Go string expression holding a number (e.g.
-// `expr [sqlite3_stmt_status $stmt $id 0]>0`, dbstatus.test 5.5.x). It
-// returns a Go expression producing the TCL truth string "1"/"0" and
-// whether the form was recognized.
+// a Go string expression. If the trailing N is a string literal ("..."), the
+// compare is a Go string == (e.g. `expr {[catchsql {PRAGMA integrity_check}] == "0 ok"}`,
+// journal2.test 1.17/1.20 — the catchsql result is a list string, never a number).
+// If N is numeric or a $var reference, the compare uses toInt(goCmd) vs N
+// (e.g. `expr [sqlite3_stmt_status $stmt $id 0]>0`, dbstatus.test 5.5.x). It
+// returns a Go expression producing the TCL truth string "1"/"0" and whether
+// the form was recognized.
 func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
 	// Find the single [cmd ...] and the trailing OP N (or N OP cmd).
 	open := strings.Index(expr, "[")
@@ -400,7 +403,7 @@ func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
 	if rest == "" {
 		return "", false
 	}
-	// Match OP N (e.g. ">0", "== 1") or N OP (rare).
+	// Match OP N (e.g. ">0", "== 1", `== "0 ok"`).
 	var op, num string
 	for _, cand := range []string{">=", "<=", "==", "!=", ">", "<"} {
 		if strings.HasPrefix(rest, cand) {
@@ -419,6 +422,14 @@ func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
 	if goCmd == "" || goCmd == fmt.Sprintf("%q", cmdText) {
 		return "", false
 	}
+	cmp := map[string]string{">": " > ", "<": " < ", ">=": " >= ", "<=": " <= ", "==": " == ", "!=": " != "}[op]
+	// String-literal RHS: command result is a list/string, compare as strings.
+	// e.g. catchsql returns "0 {rows}" / "1 {msg}" — comparing to "0 ok" or
+	// a literal list must stay a string compare.
+	if len(num) >= 2 && num[0] == '"' && num[len(num)-1] == '"' {
+		return fmt.Sprintf("tclBool01(%s %s %s)", goCmd, cmp, num), true
+	}
+	// Numeric or $var RHS: command holds a numeric string, use toInt semantics.
 	numExpr := num
 	if strings.HasPrefix(num, "$") {
 		gv := tclVarToGo(strings.TrimPrefix(num, "$"))
@@ -426,8 +437,6 @@ func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
 			numExpr = "toInt(" + gv + ")"
 		}
 	}
-	// Compare the command's numeric string value with num (int semantics).
-	cmp := map[string]string{">": " > ", "<": " < ", ">=": " >= ", "<=": " <= ", "==": " == ", "!=": " != "}[op]
 	return fmt.Sprintf("tclBool01(toInt(%s) %s %s)", goCmd, cmp, numExpr), true
 }
 
