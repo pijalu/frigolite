@@ -1098,3 +1098,70 @@ exits 0 (8 packages: corrupt..corrupt8 — 5 pass real tests when
 un-skipped, 3 only pass as stubs). `corrupt9`, `corruptC`, `corruptF`,
 `corruptL`, `corruptN` are tracked as DEFERRED via `skipTestFiles`.
 No regression in earlier goals; build/vet/staticcheck/SOLID green.
+
+
+## P8.CORRUPT — triage round 3 (after un-skip + targeted fixes)
+
+After this round the source-of-truth state is:
+- **6/13 packages un-skipped and passing** in the verify-command scope: corrupt3,
+  corrupt4, corrupt5, corrupt6, corrupt7, corrupt8. corrupt3..8 are stable
+  across test orderings and produce no new regressions.
+- **corrupt**: 1 remaining assertion failure (corrupt-7.3: cell-pointer to
+  garbage on t1's root page that survives btreeInitPage; balance_deeper
+  triggers the corruption error in SQLite. Our balance_deeper equivalent
+  does not yet validate per-cell pointer sanity.)
+- **corrupt2**: 4 remaining assertion failures (corrupt2-3.1 "database disk
+  image is malformed" not detected after corruption; corrupt2-5.1
+  integrity_check output format — missing Tree X page Y cell Z / Page Y:
+  never used; corrupt2-7.2 / 7.3 freelist size accounting).
+- **corrupt9, corruptC, corruptF, corruptL, corruptN**: not in the verify
+  command's scope but tracked as DEFERRED via skipTestFiles. Failure
+  patterns mirror corrupt2 (corruption detection, integrity_check format,
+  freelist size accounting).
+
+### Engine changes landed (round 3)
+
+1. **Transpiler r+ mode bug (tools/tcl2go/processset.go)**:
+   `set fd [open FILE MODE]` previously tracked `activeFileChannels[fd]`
+   only for write modes (mode containing "w"). For `r+` mode (used by every
+   corrupt*.test to open test.db for byte-level corruption), the channel
+   was not registered, so subsequent `puts -nonewline $fd $data` fell
+   through to the wrong emitter. Worse: `activeFileChannels` is a package-
+   level global that persisted across test files — a package processed
+   AFTER avtrans.test / trans.test would inherit `activeFileChannels["fd"] =
+   "test.tcl"` and write corruption bytes to the wrong file. Fix: register
+   the channel for all modes (write modes still truncate-and-create the
+   file via os.WriteFile; r+ modes skip the create since the file is
+   expected to exist).
+
+2. **Parent-split recovery (internal/btree/btree_insert.go)**:
+   `insertInteriorPage` previously routed the child-split separator chain
+   to either pg.PageNum or newInteriorNum using only a splitKey comparison
+   against `childSplits[0].medianKey`. That logic was wrong on two axes:
+   (a) for index btrees `findChildPageForInsert` returns the rightmost
+   unconditionally, so the comparison is meaningless; (b) for table btrees
+   when the split boundary lands exactly on the child's first key, the
+   child may have ended up as the rightmost pointer of the left half
+   (`entries[splitIdx].leftChild`) rather than the right half.
+   Fix: after `splitInteriorPage`, scan both halves and locate the page
+   that actually contains the original child (via the new
+   `findParentOfChild` / `childInPage` helpers), then call `applyChildSplits`
+   against that page.
+
+3. **Cell-too-large retry path (internal/btree/btree_insert.go)**:
+   When `leafHasRoom` returns false on an empty leaf page (corrupt-5.2:
+   page_size=1024 + ~100 cincr columns; the cell's full local form does
+   not fit in the usable local area of page 1 because of the 100-byte
+   database header), the previous code unconditionally errored. Now we
+   reduce `LocalLen` in 4-byte steps and spill the remainder onto
+   overflow pages until `leafHasRoom` returns true — mirroring SQLite's
+   btree.c::insertCell path through overflow slots.
+
+### Verify command
+
+```
+go build ./... && go vet ./... && go test -run TestSOLID_ ./... && go test -tags testgen ./testgen/corrupt/ ./testgen/corrupt2/ ./testgen/corrupt3/ ./testgen/corrupt4/ ./testgen/corrupt5/ ./testgen/corrupt6/ ./testgen/corrupt7/ ./testgen/corrupt8/ -count=1 -timeout 300s
+```
+
+exit code is non-zero (corrupt + corrupt2 still have assertions). The
+in-scope packages corrupt3..corrupt8 pass cleanly.
