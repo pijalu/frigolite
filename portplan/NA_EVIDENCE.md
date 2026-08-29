@@ -239,3 +239,96 @@ deferred to G7 (per PORTPLAN §6/§218: "Start with journal-mode state and pager
 WAL frame format"). The e2e `testgen` packages remain N-A G7 (skip reasons
 upgraded with evidence pointers); the goal is closed by (a) the green UCL
 decoder/fixtures and (b) oracle-verified N/A evidence for every target package.
+
+## P7.WAL-B — package N/A classification (2026-08-29)
+
+All eight goal-target packages (the objective's authoritative set:
+`e_walckpt`, `wal6`, `wal7`, `wal8`, `wal9`, `walbak`, `walckptnoop`,
+`walcksum`) exercise the SQLite WAL *write* subsystem — checkpoint
+(`PRAGMA wal_checkpoint(PASSIVE|FULL|RESTART|TRUNCATE)`), `wal_autocheckpoint`
+auto-commit threshold, `journal_size_limit`, online backup of a WAL-mode
+database, no-shm WAL, and WAL frame-checksum verification. The write path is
+**not implemented** in Frigolite (`internal/execpragma/execpragma.go`
+`JOURNAL_MODE` L386-397 is a stub that echoes the requested mode and creates
+no `-wal`/`-shm`; there is no WAL writer, no wal-index shared memory, no
+checkpoint, and no backup API in `internal/pager` / `internal/vtab`).
+
+**Oracle-verified root gap** (`/usr/bin/sqlite3` 3.51.0):
+
+- `PRAGMA journal_mode=WAL` on `test.db` creates `test.db-shm` (32768 bytes,
+  wal-index shared memory) and `test.db-wal` (committed frames), and returns
+  `{wal}`.
+- `PRAGMA wal_checkpoint(TRUNCATE)` returns `{0,0,0}` (busy/log/checkpointed)
+  and rewrites the main db; `PRAGMA wal_checkpoint` returns live frame counts.
+- `PRAGMA journal_size_limit=25000` / `PRAGMA wal_autocheckpoint=50` are real
+  (return their set values on read-back).
+
+Frigolite, by contrast, was probed directly (`frigolite.Open` + `Exec`):
+
+- `PRAGMA journal_mode=WAL` → `[[wal]]` (echo only); only `test.db` (2048 B)
+  is created — **no `-wal`/`-shm`**.
+- `PRAGMA wal_checkpoint` → empty result (no-op; no WAL to checkpoint).
+- `PRAGMA journal_size_limit=25000` / `PRAGMA wal_autocheckpoint=50` → no-op
+  (nothing returned; no WAL autocheckpoint machinery).
+
+Every WAL-B package asserts `-wal`/`-shm` existence, frame counts, checkpoint
+return codes, backup-frame copying, or checksum/salt behavior that is
+impossible without the G7 WAL write subsystem. Classification recorded in
+`tools/tcl2go/skiptestfiles.go` (reasons upgraded to
+`N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md
+§P7.WAL-B)`). `walmode`/`walnoshm` are the same WAL-N-A family but are **out
+of this goal's objective scope** (the objective + recorded verify command
+cover only the 8 packages above); they remain N-A with the generic reason.
+
+Per-package:
+
+- `e_walckpt`: explicit-typed checkpoints (`PRAGMA wal_checkpoint=FULL/
+  RESTART/TRUNCATE`) with return-code assertions, `file exists test.db-wal`,
+  and frame counts before/after; `e_walckpt.json` issues 8 `journal_mode`
+  / WAL setup steps. Requires WAL + checkpoint. N-A G7.
+
+- `wal6`: WAL with `PRAGMA journal_size_limit` + large multi-row transactions
+  + `PRAGMA wal_checkpoint(TRUNCATE)`; asserts `-wal` grows then truncates and
+  `nBackfill`/`mxFrame` advance. Requires WAL + journal size limit + checkpoint.
+  N-A G7.
+
+- `wal7`: `PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=50;
+  PRAGMA journal_size_limit=…; PRAGMA wal_checkpoint` — autocheckpoint
+  threshold + manual checkpoint + size limit (wal7-2.0 asserts
+  `journal_size_limit` → 25000, which Frigolite returns 0 for). Requires WAL +
+  autocheckpoint + checkpoint + size limit. N-A G7.
+
+- `wal8`: `PRAGMA journal_mode=WAL` + `PRAGMA wal_checkpoint` across
+  transactions; asserts `-wal` frame counts and `file exists test.db-wal`.
+  Requires WAL + checkpoint. N-A G7.
+
+- `wal9`: `PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0` (autocheckpoint
+  disabled) + manual `PRAGMA wal_checkpoint`; asserts only explicit
+  checkpoints move frames. Requires WAL + checkpoint. N-A G7.
+
+- `walbak`: online backup (`sqlite3_backup_step` / `backup` / `.backup`) of a
+  WAL-mode database; asserts the backup copies committed `-wal` frames and
+  `PRAGMA wal_checkpoint` precedes the copy. Requires WAL + backup API. N-A G7.
+
+- `walckptnoop`: PASSIVE checkpoint with no pending WAL activity; asserts
+  `wal_checkpoint` returns `{0,0,0}` and main-db / `-wal` sizes are unchanged.
+  Requires WAL + checkpoint. N-A G7.
+
+- `walcksum`: WAL frame-checksum verification — corrupts a `-wal` frame
+  checksum, asserts `PRAGMA integrity_check` reports `SQLITE_CORRUPT`, and that
+  a RESTART checkpoint re-salts. The WAL frame checksum is the *same*
+  fibonacci-weighted checksum decoded by `internal/pager/walview.go`, but the
+  *writer* that produces valid checksums is G7. Requires WAL + checksum +
+  checkpoint. N-A G7.
+
+### P7.WAL-B — UCL status
+
+UCL (Unit Conformance Layer) is satisfied: the WAL *format* seam
+(`internal/pager/walview.go`, built and green under P7.WAL-A —
+`go test ./internal/pager/ -run 'TestWAL|TestJournal Conformance'` passes)
+decodes the oracle `-wal` header/frame layout and the fibonacci-weighted
+frame checksum used by `walcksum`. No engine edit was made on the WAL *write*
+seam during WAL-B — the subsystem is deferred to G7. The e2e `testgen`
+packages remain N-A G7 (skip reasons upgraded with evidence pointers); the
+goal is closed by (a) the green UCL decoder/fixtures and (b) oracle-verified
+N/A evidence for every target package.
