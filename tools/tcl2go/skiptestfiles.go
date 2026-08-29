@@ -201,11 +201,6 @@ var skipTestFiles = map[string]string{
 	// illegal UTF-8 in generated code). N-A (CLI shell harness).
 	"shellA": "CLI shell subprocess harness N-A",
 
-	// skipscan: skip-scan query planner strategy driven by TCL associative
-	// arrays (vocab(d/c/b/a) in skipscan5) that the transpiler mangles into
-	// undefined identifiers; also sqlite_stat1 manipulation for planner
-	// estimates. Skip-scan optimization not implemented (planner N-A).
-	"skipscan": "skip-scan planner strategy + TCL assoc-array data N-A",
 
 	// tclsqlite: TCL binding tests (sqlite3 TCL command, $v_2_5 mangled
 	// variables). N-A (TCL binding).
@@ -679,11 +674,16 @@ var skipTestFiles = map[string]string{
 	"malloc9":  "sqlite3_memdebug memory-accounting C API N-A",
 
 	"quota-glob":    "quota VFS extension not implemented N-A",
-	"skipscan1":     "skip-scan planner strategy + TCL assoc-array data N-A",
-	"skipscan2":     "skip-scan planner strategy + TCL assoc-array data N-A",
-	"skipscan3":     "skip-scan planner strategy + TCL assoc-array data N-A",
-	"skipscan5":     "skip-scan planner strategy + TCL assoc-array data N-A",
-	"skipscan6":     "skip-scan planner strategy + TCL assoc-array data N-A",
+	// skipscan1: TCL test skipscan1-8.1 (and 8.1eqp) exercises the OR-with-
+	// skip-scan query planner strategy: SELECT * FROM t1 WHERE (y = 'AB' AND
+	// x <= 4) OR (y = 'EF' AND x = 5) on t1 PRIMARY KEY(x, y) WITH stat
+	// '1000000 100 1' produces a plan with `ANY(x) AND y=?` (skip-scan on the
+	// leading PK col). Our OR-index optimization emits one SEARCH plan per
+	// branch using the regular btree index (no skip-scan inside the OR
+	// branches). The remaining ~28 sub-tests pass. The parent `skipscan` TCL
+	// harness (vocab associatve arrays) and the dedicated {2,3,5,6} packages
+	// (no OR context) are fully un-skipped and passing.
+	"skipscan1": "OR-with-skip-scan planner branch N-A (skipscan1-8.1eqp); 28/29 sub-tests pass",
 	"wal2":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal3":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal4":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",

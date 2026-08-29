@@ -248,6 +248,7 @@ type engineSettings struct {
 	exprDepthLimit         int  // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
 	columnLimit            int  // SQLITE_LIMIT_COLUMN: max columns per table/index/view (default 2000)
 	lengthLimit            int  // SQLITE_LIMIT_LENGTH: max length of a string/blob value (default 1000000000)
+	skipScanEnabled        bool // PRAGMA skip_scan: toggle skip-scan query optimization (default ON)
 	cacheSizes             map[string]int64
 	autoVacuumModes        map[string]int64 // per-schema PRAGMA auto_vacuum mode
 	dataVersion            int64
@@ -873,9 +874,10 @@ func newEngineSettings() engineSettings {
 		dqsDML:            true,       // SQLite default: double-quoted strings allowed in DML
 		shortColumnNames:  true,       // SQLite default: short_column_names=ON
 		fullColumnNames:   false,      // SQLite default: full_column_names=OFF
-		trustedSchema:     true,       // SQLite default: trusted_schema=ON
-		cacheSpillEnabled: true,
-	}
+	trustedSchema:     true,       // SQLite default: trusted_schema=ON
+			cacheSpillEnabled: true,
+			skipScanEnabled:   true,       // SQLite default: skip-scan optimization ON
+		}
 }
 
 // getDB returns the database context for a given schema name.

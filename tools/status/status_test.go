@@ -85,10 +85,12 @@ func TestParseSkipMaps(t *testing.T) {
 	// walrestart/walseh1/walsetlk/walsetlk2/walsetlk3/journal1/journal2/
 	// journal3/jrnlmode/jrnlmode2/jrnlmode3 all N-A G7, mjournal RE-SKIPPED
 	// P7.WAL-G; snapshot/snapshot2/snapshot3/snapshot4/snapshot_up N-A G7 P7.SNAPSHOT).
-	// 316 after P7.PLANNER un-skipped analyze..analyze9 (9 entries).
+	// 310 after P7.SKIPSCAN un-skipped skipscan2/3/5/6 (4 entries) and parent
+	// "skipscan" (1 entry) — 5 total removed. skipscan1 N-A via the OR-with-
+	// skip-scan branch limitation (skipscan1-8.1eqp), bringing the count to 311.
 	// Lower the floor only alongside documented un-skip work.
-	if len(skips.skipTestFiles) < 316 {
-		t.Errorf("skipTestFiles has %d entries, want >= 316", len(skips.skipTestFiles))
+	if len(skips.skipTestFiles) < 311 {
+		t.Errorf("skipTestFiles has %d entries, want >= 311", len(skips.skipTestFiles))
 	}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))

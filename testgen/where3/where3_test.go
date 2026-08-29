@@ -363,8 +363,11 @@ func Test_where3(t *testing.T) {
 	}
 	for _, disabled_opt := range tclSplitList("none omit-noop-join all") {
 	_ = disabled_opt // suppress unused warning
-		// optimization_control db all 1 (unsupported command, not transpiled)
-		// optimization_control db $disabled_opt 0 (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA skip_scan = 1")
+		if _res.Error != nil {
+			t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+		}
+		// optimization_control $disabled_opt 0 (no PRAGMA equivalent; ignored)
 		{ // "where3-7." + disabled_opt + ".1"
 			r = db.Query("\n    SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1;\n  ")
 			if r.Error != nil {

@@ -282,11 +282,31 @@ func (tp *transpiler) emitExpectedQueryResult(dbConn, sqlExpr, expectedExpr stri
 }
 
 // emitRegexPatternComparison emits a regexp.MatchString comparison against a
-// TCL regex-pattern expected value.
+// TCL regex-pattern expected value. When the inner pattern starts with *, the
+// TCL do_test framework treats the value as a path-style glob (string match),
+// not a regex; we mirror that here.
 func (tp *transpiler) emitRegexPatternComparison(expectedExpr string) {
+	negated := regexPatternNegated(expectedExpr)
+	inner := regexPatternInner(expectedExpr)
+	if strings.HasPrefix(inner, "*") {
+		// TCL glob: leading * is a wildcard. Emit string-match comparison.
+		globExpr := fmt.Sprintf("%q", inner)
+		if negated {
+			tp.emitLine("wantGlob := %s", globExpr)
+			tp.emitLine("if globMatch(got, wantGlob) {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match glob: [%%s]\", got, wantGlob)")
+			tp.emitLine("}")
+		} else {
+			tp.emitLine("wantGlob := %s", globExpr)
+			tp.emitLine("if !globMatch(got, wantGlob) {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\", got, wantGlob)")
+			tp.emitLine("}")
+		}
+		return
+	}
 	patternExpr := regexPatternExpr(expectedExpr)
 	tp.emitLine("wantPattern := %s", patternExpr)
-	if regexPatternNegated(expectedExpr) {
+	if negated {
 		// "~/.../" — the pattern must NOT match.
 		tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
 		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\", got, wantPattern)")
@@ -296,6 +316,28 @@ func (tp *transpiler) emitRegexPatternComparison(expectedExpr string) {
 		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
 		tp.emitLine("}")
 	}
+}
+
+// regexPatternInner returns the inner pattern text of a TCL regex/glob
+// expected value (the text between /.../ or ~/.../), with any literal-numeric
+// normalization preserved.
+func regexPatternInner(goQuoted string) string {
+	s := goQuoted
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		if unquoted, err := strconv.Unquote(s); err == nil {
+			s = unquoted
+		} else {
+			s = s[1 : len(s)-1]
+		}
+	}
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "~/") && strings.HasSuffix(s, "/") {
+		return s[2 : len(s)-1]
+	}
+	if len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/' {
+		return s[1 : len(s)-1]
+	}
+	return s
 }
 
 // emitRuntimeDBEvalComparison emits a comparison where the expected value is

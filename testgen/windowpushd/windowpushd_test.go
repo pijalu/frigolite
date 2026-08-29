@@ -120,9 +120,12 @@ func Test_windowpushd(t *testing.T) {
 	for _, tn := range tclSplitList("0 1") {
 	_ = tn // suppress unused warning
 		if tclBool(tn) {
-			// optimization_control db all on (unsupported command, not transpiled)
+			_res = db.Exec("PRAGMA skip_scan = 1")
+			if _res.Error != nil {
+				t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+			}
 		} else {
-			// optimization_control db push-down off (unsupported command, not transpiled)
+			// optimization_control push-down off (no PRAGMA equivalent; ignored)
 		}
 		{ // "2." + tn + ".1.1"
 			r = db.Query("\n    SELECT * FROM v1;\n  ")

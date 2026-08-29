@@ -72,11 +72,11 @@ func Test_tkt_18458b1a(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-			// optimization_control db query-flattener 0 (unsupported command, not transpiled)
-			// optimization_control db push-down 0 (unsupported command, not transpiled)
+			// optimization_control query-flattener 0 (no PRAGMA equivalent; ignored)
+			// optimization_control push-down 0 (no PRAGMA equivalent; ignored)
 		} else {
-			// optimization_control db query-flattener 1 (unsupported command, not transpiled)
-			// optimization_control db push-down 1 (unsupported command, not transpiled)
+			// optimization_control query-flattener 1 (no PRAGMA equivalent; ignored)
+			// optimization_control push-down 1 (no PRAGMA equivalent; ignored)
 		}
 		{ // tn + ".1.1"
 			_res = db.Exec("\n    CREATE TABLE t0(c0 COLLATE NOCASE);\n    INSERT INTO t0(c0) VALUES ('B');\n    CREATE VIEW v0(c0, c1) AS SELECT DISTINCT t0.c0, 'a' FROM t0;\n  ")

@@ -624,9 +624,28 @@ func (tp *transpiler) emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr stri
 	tp.emitLine("}")
 	tp.emitLine("got := flatten(r)")
 	if isTCLRegexPattern(expectedExpr) {
+		negated := regexPatternNegated(expectedExpr)
+		inner := regexPatternInner(expectedExpr)
+		if strings.HasPrefix(inner, "*") {
+			// TCL glob (string match) — inner starts with * (mirrors TCL
+			// do_test branch: "if {[string index $re 0]==\"*\"} ...")
+			globExpr := fmt.Sprintf("%q", inner)
+			if negated {
+				tp.emitLine("wantGlob := %s", globExpr)
+				tp.emitLine("if globMatch(got, wantGlob) {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match glob: [%%s]\", got, wantGlob)")
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("wantGlob := %s", globExpr)
+				tp.emitLine("if !globMatch(got, wantGlob) {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\", got, wantGlob)")
+				tp.emitLine("}")
+			}
+			return
+		}
 		patternExpr := regexPatternExpr(expectedExpr)
 		tp.emitLine("wantPattern := %s", patternExpr)
-		if regexPatternNegated(expectedExpr) {
+		if negated {
 			// "~/.../" — the pattern must NOT match.
 			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
 			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\", got, wantPattern)")

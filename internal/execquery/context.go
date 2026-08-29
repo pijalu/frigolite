@@ -41,6 +41,11 @@ type SelectContext interface {
 	FTSTables() map[string]*fts.FTS3Table
 	Expr() *execexpr.Evaluator
 
+	// SkipScanEnabled reports whether the skip-scan query optimization is on.
+	// Mirrors SQLite's SQLITE_SkipScan optimization_control bit. Used by the
+	// query planner's skip-scan detection.
+	SkipScanEnabled() bool
+
 	// Trigger/DML context for SELECT-time trigger validation.
 	TriggerOldRow() Row
 	TriggerNewRow() Row

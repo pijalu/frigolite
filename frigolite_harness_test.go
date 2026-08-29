@@ -725,22 +725,8 @@ func TestSQLiteSuite(t *testing.T) {
 							if step.Expect != "" {
 								got := flattenResultNull(res, td.NullToken)
 								want := cleanExpectedNull(step.Expect, td.NullToken)
-								// Check for regex patterns wrapped in /.../
-								if strings.HasPrefix(want, "/") && strings.HasSuffix(want, "/") && len(want) > 2 {
-									pattern := want[1 : len(want)-1]
-									matched, err := regexp.MatchString(pattern, got)
-									if err != nil || !matched {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", got, pattern, step.SQL)
-									}
-								} else if got != want {
-									// Only normalise when both sides look like SQL/DDL text.
-									if isSQLLike(got) && isSQLLike(want) {
-										if normalizeSQL(got) != normalizeSQL(want) {
-											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-										}
-									} else {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-									}
+								if msg := matchExpectation(got, want); msg != "" {
+									t.Errorf("result mismatch\n  got:  [%s]\n  %s\n  sql: %s", got, msg, step.SQL)
 								}
 							}
 						case "auth":
@@ -1035,4 +1021,108 @@ func isSQLLike(s string) bool {
 	return strings.HasPrefix(su, "CREATE ") || strings.HasPrefix(su, "SELECT ") ||
 		strings.HasPrefix(su, "INSERT ") || strings.HasPrefix(su, "ALTER ") ||
 		strings.HasPrefix(su, "WITH ") || strings.HasPrefix(su, "TRIGGER ")
+}
+
+// matchExpectation reports whether got matches the cleaned expectation want.
+// Returns "" on success, or a human-readable "want: ..." error string. Mirrors
+// TCL's do_test expectation semantics:
+//   - "~/REGEX/"     : regex must NOT match got (RE2 substring match)
+//   - "/REGEX/"      : regex must match got (RE2 substring match)
+//   - "*GLOB*"       : path-style glob (TCL * wildcards); matched as substring.
+//   - "~*GLOB*"      : glob must NOT match got
+//   - exact string   : literal compare; falls back to normalizeSQL when both
+//                      got and want look like SQL/DDL.
+func matchExpectation(got, want string) string {
+	// Negative-glob wrapped form: "~/GLOB/" (TCL: leading /.../ wrapper with ~
+	// means negative; if inner starts with *, treat as glob, not regex).
+	if strings.HasPrefix(want, "~/") && strings.HasSuffix(want, "/") && len(want) > 3 {
+		inner := want[2 : len(want)-1]
+		if strings.HasPrefix(inner, "*") {
+			glob := inner
+			if globMatch(got, glob) {
+				return fmt.Sprintf("want glob NOT to match: [%s]", glob)
+			}
+			return ""
+		}
+		matched, err := regexp.MatchString(inner, got)
+		if err != nil {
+			return fmt.Sprintf("want regex: [%s] (compile error: %v)", inner, err)
+		}
+		if matched {
+			return fmt.Sprintf("want regex NOT to match: [%s]", inner)
+		}
+		return ""
+	}
+	// Positive regex/glob wrapped form: "/REGEX/" or "/*GLOB*/" (TCL: when
+	// inner starts with *, treat as glob even though wrapped in /).
+	if strings.HasPrefix(want, "/") && strings.HasSuffix(want, "/") && len(want) > 2 {
+		inner := want[1 : len(want)-1]
+		if strings.HasPrefix(inner, "*") {
+			glob := inner
+			if !globMatch(got, glob) {
+				return fmt.Sprintf("want glob: [%s]", glob)
+			}
+			return ""
+		}
+		matched, err := regexp.MatchString(inner, got)
+		if err != nil {
+			return fmt.Sprintf("want pattern: [%s] (compile error: %v)", inner, err)
+		}
+		if !matched {
+			return fmt.Sprintf("want pattern: [%s]", inner)
+		}
+		return ""
+	}
+	if strings.HasPrefix(want, "~*") && strings.HasSuffix(want, "*") && len(want) > 2 {
+		glob := want[1:]
+		if globMatch(got, glob) {
+			return fmt.Sprintf("want glob NOT to match: [%s]", glob)
+		}
+		return ""
+	}
+	if strings.HasPrefix(want, "*") && strings.HasSuffix(want, "*") && len(want) > 2 {
+		glob := want
+		if !globMatch(got, glob) {
+			return fmt.Sprintf("want glob: [%s]", glob)
+		}
+		return ""
+	}
+	if got == want {
+		return ""
+	}
+	if isSQLLike(got) && isSQLLike(want) {
+		if normalizeSQL(got) == normalizeSQL(want) {
+			return ""
+		}
+	}
+	return fmt.Sprintf("want: [%s]", want)
+}
+
+// globMatch reports whether the path-style glob matches any substring of s.
+// TCL treats the leading * in *GLOB* as a wildcard but applies the inner
+// pattern as a regexp against got (do_test branch:
+// {regexp {^~?\\*.*\\*$} $expected}). We mirror that by converting the
+// glob to a substring-anchored regex (each * -> .*, other regex metacharacters
+// escaped). Lets `/*PATTERN*` match anywhere inside got (typical EXPLAIN QUERY
+// PLAN case where got = "QUERY PLAN `--SEARCH ..." and want = "/*SEARCH ...*/").
+func globMatch(s, glob string) bool {
+	var sb strings.Builder
+	sb.WriteString(".*")
+	for _, ch := range glob {
+		switch ch {
+		case '*':
+			sb.WriteString(".*")
+		case '.', '+', '?', '(', ')', '[', ']', '{', '}', '|', '^', '$', '\\':
+			sb.WriteByte('\\')
+			sb.WriteRune(ch)
+		default:
+			sb.WriteRune(ch)
+		}
+	}
+	sb.WriteString(".*")
+	matched, err := regexp.MatchString(sb.String(), s)
+	if err != nil {
+		return false
+	}
+	return matched
 }

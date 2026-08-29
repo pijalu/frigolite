@@ -152,11 +152,14 @@ func Test_orderby2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		// optimization_control db cover-idx-scan off (unsupported command, not transpiled)
+		// optimization_control cover-idx-scan off (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT a||','||c||','||e||','||g FROM t31, t32, t33, t34\n     WHERE c=b AND e=d AND g=f\n     ORDER BY a ASC, c ASC, e ASC, g ASC;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a||','||c||','||e||','||g FROM t31, t32, t33, t34\n     WHERE c=b AND e=d AND g=f\n     ORDER BY a ASC, c ASC, e ASC, g ASC;\n  ")
 		}
 	}
-	// optimization_control db all on (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 }

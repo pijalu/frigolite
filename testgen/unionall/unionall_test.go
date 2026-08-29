@@ -110,7 +110,10 @@ func Test_unionall(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// database_never_corrupt (unsupported command, not transpiled)
-	// optimization_control db all 0 (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 0")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // "1.10"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a UNION ALL SELECT c, c FROM t1_b;\n  SELECT * FROM (SELECT t1.a, t1.b AS b, t0.c0 FROM t0, t1);\n")
 		if r.Error != nil {
@@ -454,7 +457,10 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// optimization_control db all 1 (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // "8.2"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {
@@ -485,7 +491,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';\n")
 		}
 	}
-	// optimization_control db query-flattener,push-down 0 (unsupported command, not transpiled)
+	// optimization_control query-flattener,push-down 0 (no PRAGMA equivalent; ignored)
 	{ // "8.5"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {
@@ -516,7 +522,10 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';\n")
 		}
 	}
-	// optimization_control db all 0 (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 0")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // "8.8"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {

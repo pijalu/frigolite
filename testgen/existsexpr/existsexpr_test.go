@@ -485,7 +485,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// optimization_control db exists-to-join 0 (unsupported command, not transpiled)
+		// optimization_control exists-to-join 0 (no PRAGMA equivalent; ignored)
 	}
 	{ // "9.6"
 		_res = db.Exec(Q)
@@ -505,7 +505,10 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// optimization_control db all 1 (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA skip_scan = 1")
+		if _res.Error != nil {
+			t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+		}
 	}
 	{ // "9.7.2"
 		_res = db.Exec(Q)
@@ -516,7 +519,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// optimization_control db exists-to-join 0 (unsupported command, not transpiled)
+		// optimization_control exists-to-join 0 (no PRAGMA equivalent; ignored)
 	}
 	{ // "9.7.3"
 		_res = db.Exec(Q)
@@ -527,7 +530,10 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		// optimization_control db all 1 (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA skip_scan = 1")
+		if _res.Error != nil {
+			t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+		}
 	}
 	db.Close()
 	os.Remove("test.db")

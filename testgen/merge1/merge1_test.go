@@ -62,7 +62,10 @@ func Test_merge1(t *testing.T) {
 	testprefix = "merge1"
 	_ = testprefix // suppress unused warning
 	// load_static_extension db series (unsupported command, not transpiled)
-	// optimization_control db all on (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // "100"
 		_res = db.Exec("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
 		if _res.Error != nil {
@@ -75,7 +78,7 @@ func Test_merge1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
 		}
 	}
-	// optimization_control db balanced-merge off (unsupported command, not transpiled)
+	// optimization_control balanced-merge off (no PRAGMA equivalent; ignored)
 	{ // "110"
 		_res = db.Exec("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
 		if _res.Error != nil {

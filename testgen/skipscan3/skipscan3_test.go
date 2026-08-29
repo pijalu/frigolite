@@ -5,8 +5,162 @@
 package skipscan3
 
 import (
+"github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
-func Test_skipscan3(t *testing.T) {}
-// skipped: skip-scan planner strategy + TCL assoc-array data N-A
+func Test_skipscan3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // "skipscan3-1.1"
+		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c));\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t1(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c));\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t1(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
+		}
+	}
+	{ // "skipscan3-1.2eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN SELECT d FROM t1 WHERE +a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN SELECT d FROM t1 WHERE +a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*ANY(a) AND ANY(b)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan3-1.2"
+		r = db.Query("\n  SELECT d FROM t1 WHERE +a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT d FROM t1 WHERE +a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		want := "x0032"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan3-1.3eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN SELECT d FROM t1 WHERE a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN SELECT d FROM t1 WHERE a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*ANY(a) AND ANY(b)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan3-1.3"
+		r = db.Query("\n  SELECT d FROM t1 WHERE a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT d FROM t1 WHERE a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		want := "x0032"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan3-2.1"
+		_res = db.Exec("\n  CREATE TABLE t2(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t2(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t2(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
+		}
+	}
+	{ // "skipscan3-2.2eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN SELECT d FROM t2 WHERE +a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN SELECT d FROM t2 WHERE +a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*ANY(a) AND ANY(b)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan3-2.2"
+		r = db.Query("\n  SELECT d FROM t2 WHERE +a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT d FROM t2 WHERE +a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		want := "x0032"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan3-2.3eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN SELECT d FROM t2 WHERE a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN SELECT d FROM t2 WHERE a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*ANY(a) AND ANY(b)*"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan3-2.3"
+		r = db.Query("\n  SELECT d FROM t2 WHERE a=1 AND c=32;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT d FROM t2 WHERE a=1 AND c=32;\n")
+			return
+		}
+		got := flatten(r)
+		want := "x0032"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

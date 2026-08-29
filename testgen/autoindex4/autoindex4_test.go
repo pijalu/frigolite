@@ -276,7 +276,10 @@ func Test_autoindex4(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON;")
 				}
-				// optimization_control db all 0 (unsupported command, not transpiled)
+				_res = db.Exec("PRAGMA skip_scan = 0")
+				if _res.Error != nil {
+					t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+				}
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -289,6 +292,9 @@ func Test_autoindex4(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), answer, "autoindex4-4." + id + ".3")
 				}
 			}
-			// optimization_control db all 1 (unsupported command, not transpiled)
+			_res = db.Exec("PRAGMA skip_scan = 1")
+			if _res.Error != nil {
+				t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+			}
 		}
 }

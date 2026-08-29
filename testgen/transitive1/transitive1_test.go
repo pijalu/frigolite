@@ -535,7 +535,7 @@ func Test_transitive1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
 		}
 	}
-	// optimization_control db transitive 1 (unsupported command, not transpiled)
+	// optimization_control transitive 1 (no PRAGMA equivalent; ignored)
 	{ // "1010"
 		r = db.Query("\n  SELECT t1.a, t2.b\n    FROM t1 CROSS JOIN t2\n    WHERE t1.a = t2.b\n    AND t2.b COLLATE NOCASE = 'Hello';\n")
 		if r.Error != nil {
@@ -548,7 +548,7 @@ func Test_transitive1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// optimization_control db transitive 0 (unsupported command, not transpiled)
+	// optimization_control transitive 0 (no PRAGMA equivalent; ignored)
 	{ // "1020"
 		r = db.Query("\n  SELECT t1.a, t2.b\n    FROM t1 CROSS JOIN t2\n    WHERE t1.a = t2.b\n    AND t2.b COLLATE NOCASE = 'Hello';\n")
 		if r.Error != nil {

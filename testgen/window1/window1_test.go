@@ -2467,7 +2467,7 @@ func Test_window1(t *testing.T) {
 						for _, tn := range tclSplitList("1 2") {
 						_ = tn // suppress unused warning
 							if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
-								// optimization_control db query-flattener 0 (unsupported command, not transpiled)
+								// optimization_control query-flattener 0 (no PRAGMA equivalent; ignored)
 							}
 							{ // "61.2." + tn
 								_res = db.Exec("\n    SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )\n\n  ")
@@ -2481,7 +2481,10 @@ func Test_window1(t *testing.T) {
 						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						tcl_nullvalue = "{}" // fresh connection resets nullvalue
-						// optimization_control db all 0 (unsupported command, not transpiled)
+						_res = db.Exec("PRAGMA skip_scan = 0")
+						if _res.Error != nil {
+							t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+						}
 						{ // "61.3.0"
 							_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(y);\n")
 							if _res.Error != nil {

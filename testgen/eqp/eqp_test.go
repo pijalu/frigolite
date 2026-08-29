@@ -449,14 +449,17 @@ func Test_eqp(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);\n")
 		}
 	}
-	// optimization_control db order-by-subquery off (unsupported command, not transpiled)
+	// optimization_control order-by-subquery off (no PRAGMA equivalent; ignored)
 	{ // "9.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  WITH thread(age,duration,cnt,root,last) AS (\n    SELECT\n      julianday('now') - max(fmtime) AS age,\n      max(fmtime) - min(fmtime) AS duration,\n      sum(fprev IS NULL) AS msg_count,\n      froot,\n      (SELECT fpid FROM forumpost\n        WHERE froot=x.froot\n          AND fpid NOT IN private\n        ORDER BY fmtime DESC LIMIT 1)\n    FROM forumpost AS x\n    WHERE fpid NOT IN private  --- Ensure this table mentioned in EQP output!\n    GROUP BY froot\n    ORDER BY 1 LIMIT 26 OFFSET 5\n  )\n  SELECT\n    thread.age,\n    thread.duration,\n    thread.cnt,\n    blob.uuid,\n    substr(event.comment,instr(event.comment,':')+1)\n  FROM thread, blob, event\n  WHERE blob.rid=thread.last\n    AND event.objid=thread.last\n  ORDER BY 1;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  WITH thread(age,duration,cnt,root,last) AS (\n    SELECT\n      julianday('now') - max(fmtime) AS age,\n      max(fmtime) - min(fmtime) AS duration,\n      sum(fprev IS NULL) AS msg_count,\n      froot,\n      (SELECT fpid FROM forumpost\n        WHERE froot=x.froot\n          AND fpid NOT IN private\n        ORDER BY fmtime DESC LIMIT 1)\n    FROM forumpost AS x\n    WHERE fpid NOT IN private  --- Ensure this table mentioned in EQP output!\n    GROUP BY froot\n    ORDER BY 1 LIMIT 26 OFFSET 5\n  )\n  SELECT\n    thread.age,\n    thread.duration,\n    thread.cnt,\n    blob.uuid,\n    substr(event.comment,instr(event.comment,':')+1)\n  FROM thread, blob, event\n  WHERE blob.rid=thread.last\n    AND event.objid=thread.last\n  ORDER BY 1;\n")
 		}
 	}
-	// optimization_control db all on (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // "9.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  WITH thread(age,duration,cnt,root,last) AS (\n    SELECT\n      julianday('now') - max(fmtime) AS age,\n      max(fmtime) - min(fmtime) AS duration,\n      sum(fprev IS NULL) AS msg_count,\n      froot,\n      (SELECT fpid FROM forumpost\n        WHERE froot=x.froot\n          AND fpid NOT IN private\n        ORDER BY fmtime DESC LIMIT 1)\n    FROM forumpost AS x\n    WHERE fpid NOT IN private  --- Ensure this table mentioned in EQP output!\n    GROUP BY froot\n    ORDER BY 1 LIMIT 26 OFFSET 5\n  )\n  SELECT\n    thread.age,\n    thread.duration,\n    thread.cnt,\n    blob.uuid,\n    substr(event.comment,instr(event.comment,':')+1)\n  FROM thread, blob, event\n  WHERE blob.rid=thread.last\n    AND event.objid=thread.last\n  ORDER BY 1;\n")
 		if r.Error != nil {

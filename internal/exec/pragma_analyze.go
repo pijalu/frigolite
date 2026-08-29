@@ -548,6 +548,14 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 	// Parse index columns from SQL
 	colNames := parseIndexColumns(idxEntry.SQL)
 	nCols := len(colNames)
+	if nCols == 0 && idxEntry.SQL == "" && idxEntry.Type == "index" {
+		// Autoindex entry (sqlite_autoindex_*): derive columns from the
+		// table's UNIQUE / PRIMARY KEY constraints via SelectEngine.
+		if autoCols := e.selectEngine.AutoindexColumnsForAnalyze(idxEntry.TblName, idxEntry.Name); len(autoCols) > 0 {
+			colNames = autoCols
+			nCols = len(colNames)
+		}
+	}
 	if nCols == 0 {
 		return fmt.Sprintf("%d", nRow)
 	}

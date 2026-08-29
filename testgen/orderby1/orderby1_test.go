@@ -107,7 +107,7 @@ func Test_orderby1(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "1.3a"
-		// optimization_control db order-by-idx-join 0 (unsupported command, not transpiled)
+		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
@@ -117,7 +117,10 @@ func Test_orderby1(t *testing.T) {
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	// optimization_control db all 1 (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // do_test "1.4a"
 		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		if r.Error != nil {
@@ -257,7 +260,7 @@ func Test_orderby1(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "2.3a"
-		// optimization_control db order-by-idx-join 0 (unsupported command, not transpiled)
+		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
@@ -267,7 +270,10 @@ func Test_orderby1(t *testing.T) {
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	// optimization_control db all 1 (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // do_test "2.4a"
 		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		if r.Error != nil {
@@ -391,7 +397,7 @@ func Test_orderby1(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "3.3a"
-		// optimization_control db order-by-idx-join 0 (unsupported command, not transpiled)
+		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
@@ -401,7 +407,10 @@ func Test_orderby1(t *testing.T) {
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	// optimization_control db all 1 (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA skip_scan = 1")
+	if _res.Error != nil {
+		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
+	}
 	{ // do_test "3.4a"
 		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		if r.Error != nil {

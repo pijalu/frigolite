@@ -549,6 +549,15 @@ func (e *Engine) CaseSensitiveLike() bool { return e.settings.caseSensitiveLike 
 // SetCaseSensitiveLike sets the case_sensitive_like flag.
 func (e *Engine) SetCaseSensitiveLike(b bool) { e.settings.caseSensitiveLike = b }
 
+// SkipScanEnabled reports whether the skip-scan query optimization is on.
+// Mirrors SQLite's SQLITE_SkipScan optimization_control bit. Toggle via
+// PRAGMA skip_scan = 0|1; used by skip-scan tests to verify the alternative
+// plan when the optimization is disabled.
+func (e *Engine) SkipScanEnabled() bool { return e.settings.skipScanEnabled }
+
+// SetSkipScanEnabled enables or disables the skip-scan query optimization.
+func (e *Engine) SetSkipScanEnabled(b bool) { e.settings.skipScanEnabled = b }
+
 // --- Scalar settings ---
 
 // RecursiveCTELimit reports the recursive CTE iteration limit.

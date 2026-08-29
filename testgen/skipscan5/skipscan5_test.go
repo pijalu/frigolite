@@ -5,8 +5,305 @@
 package skipscan5
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_skipscan5(t *testing.T) {}
-// skipped: skip-scan planner strategy + TCL assoc-array data N-A
+func Test_skipscan5(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var dbenc string
+	_ = dbenc // pre-declared from TCL source
+	var coll string
+	_ = coll // pre-declared from TCL source
+	var vocab_d string
+	_ = vocab_d // pre-declared from TCL source
+	var vocab_c string
+	_ = vocab_c // pre-declared from TCL source
+	var vocab_b string
+	_ = vocab_b // pre-declared from TCL source
+	var vocab_a string
+	_ = vocab_a // pre-declared from TCL source
+	var _var string
+	_ = _var // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var values string
+	_ = values // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var vocab_var string
+	_ = vocab_var // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "skipscan5")
+	testprefix = "skipscan5"
+	_ = testprefix // suppress unused warning
+	return
+	{ // "1.1"
+		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
+		}
+	}
+	// expr srand(4) (not evaluated)
+	{ // do_test "1.2"
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			a = "1"
+			_ = a // suppress unused warning
+			b = "1"
+			_ = b // suppress unused warning
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", NULL) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", NULL) ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("ANALYZE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+		}
+	}
+	// foreach {tn q res} "1  \"b = 5\"                   {/*ANY(a) AND b=?*/}\n  2  \"b > 12 AND b < 16\"       {/*ANY(a) AND b>? AND b<?*/}\n  3  \"b > 2 AND b < 16\"        {/*SCAN t1*/}\n  4  \"b > 18 AND b < 25\"       {/*ANY(a) AND b>? AND b<?*/}\n  5  \"b > 16\"                  {/*ANY(a) AND b>?*/}\n  6  \"b > 5\"                   {/*SCAN t1*/}\n  7  \"b < 15\"                  {/*SCAN t1*/}\n  8  \"b < 5\"                   {/*ANY(a) AND b<?*/}\n  9  \"5 > b\"                   {/*ANY(a) AND b<?*/}\n  10 \"b = '5'\"                 {/*ANY(a) AND b=?*/}\n  11 \"b > '12' AND b < '16'\"   {/*ANY(a) AND b>? AND b<?*/}\n  12 \"b > '2' AND b < '16'\"    {/*SCAN t1*/}\n  13 \"b > '18' AND b < '25'\"   {/*ANY(a) AND b>? AND b<?*/}\n  14 \"b > '16'\"                {/*ANY(a) AND b>?*/}\n  15 \"b > '5'\"                 {/*SCAN t1*/}\n  16 \"b < '15'\"                {/*SCAN t1*/}\n  17 \"b < '5'\"                 {/*ANY(a) AND b<?*/}\n  18 \"'5' > b\"                 {/*ANY(a) AND b<?*/}"
+	_items0 := tclSplitList("1  \"b = 5\"                   {/*ANY(a) AND b=?*/}\n  2  \"b > 12 AND b < 16\"       {/*ANY(a) AND b>? AND b<?*/}\n  3  \"b > 2 AND b < 16\"        {/*SCAN t1*/}\n  4  \"b > 18 AND b < 25\"       {/*ANY(a) AND b>? AND b<?*/}\n  5  \"b > 16\"                  {/*ANY(a) AND b>?*/}\n  6  \"b > 5\"                   {/*SCAN t1*/}\n  7  \"b < 15\"                  {/*SCAN t1*/}\n  8  \"b < 5\"                   {/*ANY(a) AND b<?*/}\n  9  \"5 > b\"                   {/*ANY(a) AND b<?*/}\n  10 \"b = '5'\"                 {/*ANY(a) AND b=?*/}\n  11 \"b > '12' AND b < '16'\"   {/*ANY(a) AND b>? AND b<?*/}\n  12 \"b > '2' AND b < '16'\"    {/*SCAN t1*/}\n  13 \"b > '18' AND b < '25'\"   {/*ANY(a) AND b>? AND b<?*/}\n  14 \"b > '16'\"                {/*ANY(a) AND b>?*/}\n  15 \"b > '5'\"                 {/*SCAN t1*/}\n  16 \"b < '15'\"                {/*SCAN t1*/}\n  17 \"b < '5'\"                 {/*ANY(a) AND b<?*/}\n  18 \"'5' > b\"                 {/*ANY(a) AND b<?*/}")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
+		_ = tn // suppress unused warning
+		q := _items0[_idx0+1]
+		_ = q // suppress unused warning
+		res := _items0[_idx0+2]
+		_ = res // suppress unused warning
+		_ = _idx0
+			vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE " + q)
+			sql = "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE " + q
+			_ = sql // suppress unused warning
+			{ // "1.3." + tn
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+			}
+		}
+		// proc test_collate collation (registered via db collate)
+		// foreach {tn dbenc coll} "1 UTF-8   { add_test_collate db 0 0 1 }\n  2 UTF-16  { add_test_collate db 1 0 0 }\n  3 UTF-8   { add_test_collate db 0 1 0 }"
+		_items1 := tclSplitList("1 UTF-8   { add_test_collate db 0 0 1 }\n  2 UTF-16  { add_test_collate db 1 0 0 }\n  3 UTF-8   { add_test_collate db 0 1 0 }")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
+			_ = tn // suppress unused warning
+			dbenc := _items1[_idx1+1]
+			_ = dbenc // suppress unused warning
+			coll := _items1[_idx1+2]
+			_ = coll // suppress unused warning
+			_ = _idx1
+				db.Close()
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
+				// eval $coll (dynamic, not transpiled)
+				{ // "2." + tn + ".1"
+					r = db.Query(" PRAGMA encoding = '" + dbenc + "' ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA encoding = '" + dbenc + "' ")
+					}
+				}
+				{ // "2." + tn + ".2"
+					_res = db.Exec("\n    CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);\n  ")
+					}
+				}
+				vtab.TclVarSet("vocab", "d", " :) ")
+				vocab_d = " :) "
+				_ = vocab_d // suppress unused warning
+				vtab.TclVarSet("vocab", "c", " a b c d e f g h i j k l m n o p q r s t ")
+				vocab_c = " a b c d e f g h i j k l m n o p q r s t "
+				_ = vocab_c // suppress unused warning
+				vtab.TclVarSet("vocab", "b", " one two three ")
+				vocab_b = " one two three "
+				_ = vocab_b // suppress unused warning
+				vtab.TclVarSet("vocab", "a", " sql ")
+				vocab_a = " sql "
+				_ = vocab_a // suppress unused warning
+				{ // do_test "2." + tn + ".3"
+					vtab.TclVarSet("i", "", "0")
+					i = "0"
+					_ = i // suppress unused warning
+					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+						for _, _var := range tclSplitList("a b c d") {
+						_ = _var // suppress unused warning
+							_var = tclLIndex(vocab_var, tclExprWith("$i % [llength $vocab($var)]", map[string]string{"i": i, "vocab($var)": vocab_var}))
+							_ = _var // suppress unused warning
+						}
+						_res = db.Exec(" INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(d) + ") ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(d) + ") ")
+						}
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					_res = db.Exec("ANALYZE")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+					}
+				}
+				// foreach {tn2 q res} "1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}"
+				_items2 := tclSplitList("1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}")
+				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+					tn2 := _items2[_idx2+0]
+					_ = tn2 // suppress unused warning
+					q := _items2[_idx2+1]
+					_ = q // suppress unused warning
+					res := _items2[_idx2+2]
+					_ = res // suppress unused warning
+					_ = _idx2
+						vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q)
+						sql = "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q
+						_ = sql // suppress unused warning
+						{ // "2." + tn + "." + tn2
+							_res = db.Exec(sql)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+							}
+						}
+					}
+				}
+				db.Close()
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
+				{ // "3.1"
+					_res = db.Exec("\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
+					}
+				}
+				vtab.TclVarSet("values", "", "\n    NULL NULL NULL\n    NULL -9567 -9240\n    -8725 -8659 -8248.340244520614\n    -8208 -7939 -7746.985758536954\n    -7057 -6550 -5916\n    -5363 -4935.781822975623 -4935.063633571875\n    -3518.4554911770183 -2537 -2026\n    -1511.2603881914456 -1510.4195994839156 -1435\n    -1127.4210136045804 -1045 99\n    1353 1457 1563.2908193223611\n    2245 2286 2552\n    2745.18831295203 2866.279926554429 3075.0468527316334\n    3447 3867 4237.892420141907\n    4335 5052.9775000424015 5232.178240656935\n    5541.784919585003 5749.725576373621 5758\n    6005 6431 7263.477992854769\n    7441 7541 8667.279760663994\n    8857 9199.638673662972 'dl'\n    'dro' 'h' 'igprfq'\n    'jnbd' 'k' 'kordee'\n    'lhwcv' 'mzlb' 'nbjked'\n    'nufpo' 'nxqkdq' 'shelln'\n    'tvzn' 'wpnt' 'wylf'\n    'ydkgu' 'zdb' X''\n    X'0a' X'203f6429f1f33f' X'23858e324545e0362b'\n    X'3f9f8a' X'516f7ddd4b' X'68f1df0930ac6b'\n    X'9ea60d' X'a06f' X'aefd342a39ce36df'\n    X'afaa020fe2' X'be201c' X'c47d97b209601e45'\n")
+				values = "\n    NULL NULL NULL\n    NULL -9567 -9240\n    -8725 -8659 -8248.340244520614\n    -8208 -7939 -7746.985758536954\n    -7057 -6550 -5916\n    -5363 -4935.781822975623 -4935.063633571875\n    -3518.4554911770183 -2537 -2026\n    -1511.2603881914456 -1510.4195994839156 -1435\n    -1127.4210136045804 -1045 99\n    1353 1457 1563.2908193223611\n    2245 2286 2552\n    2745.18831295203 2866.279926554429 3075.0468527316334\n    3447 3867 4237.892420141907\n    4335 5052.9775000424015 5232.178240656935\n    5541.784919585003 5749.725576373621 5758\n    6005 6431 7263.477992854769\n    7441 7541 8667.279760663994\n    8857 9199.638673662972 'dl'\n    'dro' 'h' 'igprfq'\n    'jnbd' 'k' 'kordee'\n    'lhwcv' 'mzlb' 'nbjked'\n    'nufpo' 'nxqkdq' 'shelln'\n    'tvzn' 'wpnt' 'wylf'\n    'ydkgu' 'zdb' X''\n    X'0a' X'203f6429f1f33f' X'23858e324545e0362b'\n    X'3f9f8a' X'516f7ddd4b' X'68f1df0930ac6b'\n    X'9ea60d' X'a06f' X'aefd342a39ce36df'\n    X'afaa020fe2' X'be201c' X'c47d97b209601e45'\n"
+				_ = values // suppress unused warning
+				{ // do_test "3.2"
+					vtab.TclVarSet("c", "", "0")
+					c = "0"
+					_ = c // suppress unused warning
+					for _, v := range tclSplitList(values) {
+					_ = v // suppress unused warning
+						_res = db.Exec("INSERT INTO t3 VALUES(" + c + " % 2, " + v + ", " + c + ")")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES(" + c + " % 2, " + v + ", " + c + ")")
+						}
+						// incr c 1
+						{
+							_n, _err := strconv.Atoi(c)
+							if _err == nil {
+								c = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					_res = db.Exec("ANALYZE")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+					}
+				}
+				// foreach {tn q res} "1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}"
+				_items3 := tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
+					_ = tn // suppress unused warning
+					q := _items3[_idx3+1]
+					_ = q // suppress unused warning
+					res := _items3[_idx3+2]
+					_ = res // suppress unused warning
+					_ = _idx3
+						vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q)
+						sql = "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q
+						_ = sql // suppress unused warning
+						{ // "3.3." + tn
+							_res = db.Exec(sql)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+							}
+						}
+					}
+}

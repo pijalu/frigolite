@@ -387,6 +387,33 @@ func flatten(res *frigolite.Result) string {
 	return strings.Join(parts, " ")
 }
 
+// globMatch reports whether the path-style glob matches any substring of s.
+// Mirrors TCL do_test's "[string match $re $result]" branch when the inner
+// expected pattern starts with * (TCL treats the leading * as a wildcard for
+// substring matching). Each * in the glob is converted to .* and other regex
+// metacharacters are escaped, so the resulting pattern matches anywhere in s.
+func globMatch(s, glob string) bool {
+	var sb strings.Builder
+	sb.WriteString(".*")
+	for _, ch := range glob {
+		switch ch {
+		case '*':
+			sb.WriteString(".*")
+		case '.', '+', '?', '(', ')', '[', ']', '{', '}', '|', '^', '$', '\\':
+			sb.WriteByte('\\')
+			sb.WriteRune(ch)
+		default:
+			sb.WriteRune(ch)
+		}
+	}
+	sb.WriteString(".*")
+	matched, err := regexp.MatchString(sb.String(), s)
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
 // tclExec implements the TCL test-harness sqlite3_exec db {SQL} command:
 // percent-decode %%XX sequences in the SQL to raw bytes, execute it, and return
 // the result as a TCL list "{code {col1 col2 ... val1 val2 ...}}". code is 0

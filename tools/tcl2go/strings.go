@@ -428,8 +428,19 @@ func regexPatternExpr(goQuoted string) string {
 	// Result patterns are written with alignment spaces; flatten() joins
 	// cells with single spaces, so collapse runs of spaces to one.
 	s = strings.Join(strings.Fields(s), " ")
+	// TCL's tester.tcl at line 745 has special handling for `*` (glob) but no
+	// special handling for `{...}`. However, several skipscan test patterns
+	// (e.g. `/{SCAN t9a}/`) are written assuming `{` and `}` are decorative
+	// EQP-output braces, not regex quantifier delimiters. SQLite's TCL ARE
+	// happens to accept `{SCAN t9a}` as a literal-match pattern (the quantifier
+	// is malformed so it's silently dropped), but Go's RE2 throws. Strip
+	// paired `{`/`}` so the resulting regex is what the test author intended
+	// (substring without braces).
+	if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+		s = s[1 : len(s)-1]
+	}
 	return fmt.Sprintf("%q", s)
-}
+	}
 
 // isSingleBraceGroup reports whether text consists of exactly one top-level
 // {...} group spanning the whole string. TCL renders a one-element list whose

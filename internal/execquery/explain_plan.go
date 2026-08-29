@@ -33,10 +33,20 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 		bestIndex, conditions = e.bestIndexForQuery(tableName, s.Where, &bestEstimate)
 	}
 
+	// Skip-scan: when an index has unconstrained low-cardinality leading
+	// columns and a later column IS constrained, the planner iterates over
+	// each leading prefix and runs an index range scan. This beats a regular
+	// scan or a less-selective index lookup. where.c:3517 (WHERE_SKIPSCAN).
+	if s.Where != nil {
+		if ss := e.trySkipScanPlan(tableName, s.Where, bestEstimate); ss != nil {
+			return e.searchPlan(tableName, ss.indexName, ss.conditions, s)
+		}
+	}
+
 	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
 	threshold := float64(nRow) * 0.10
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || bestEstimate < threshold) {
-		return e.searchPlan(tableName, bestIndex, conditions)
+		return e.searchPlan(tableName, bestIndex, conditions, s)
 	}
 
 	// ORDER BY / GROUP BY / DISTINCT index optimization: when the sort or
@@ -73,8 +83,8 @@ func (e *SelectEngine) indexScanPlan(t queryTable, s *sql.SelectStmt) string {
 
 // searchPlan renders a "SEARCH <table> USING <index> (<conditions>)" node for
 // a selective index on a single-table query.
-func (e *SelectEngine) searchPlan(tableName, idx, conditions string) string {
-	using := e.indexUsingLabel(tableName, idx)
+func (e *SelectEngine) searchPlan(tableName, idx, conditions string, s *sql.SelectStmt) string {
+	using := e.indexUsingLabel(tableName, idx, s)
 	plan := fmt.Sprintf("SEARCH %s USING %s", tableName, using)
 	if conditions != "" {
 		plan += " " + conditions
@@ -503,7 +513,7 @@ func (e *SelectEngine) planSubqueryNodes(s *sql.SelectStmt) []planNode {
 	// The WHERE clause is walked conjunct-by-conjunct (mirroring SQLite's
 	// existsToJoin AND recursion): a qualified EXISTS becomes an EXISTS loop
 	// and its subtree is pruned; everything else is collected as before.
-	e.planWhereSubqueries(s.Where, s, &nodes, addSubquery)
+	e.planWhereSubqueries(s.Where, s, &nodes, addSubquery, s)
 	collect(s.Having)
 	for _, col := range s.Columns {
 		collect(col.Expr)
@@ -515,17 +525,17 @@ func (e *SelectEngine) planSubqueryNodes(s *sql.SelectStmt) []planNode {
 // qualified EXISTS terms as EXISTS join loops (nodes appended directly) and
 // collecting every other subquery through add. Unqualified EXISTS and
 // non-EXISTS conjuncts keep their subquery nodes.
-func (e *SelectEngine) planWhereSubqueries(expr sql.Expr, outer *sql.SelectStmt, nodes *[]planNode, add func(sub *sql.SelectStmt, label string)) {
+func (e *SelectEngine) planWhereSubqueries(expr sql.Expr, outer *sql.SelectStmt, nodes *[]planNode, add func(sub *sql.SelectStmt, label string), sel *sql.SelectStmt) {
 	if expr == nil {
 		return
 	}
 	if bin, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(bin.Operator, "AND") {
-		e.planWhereSubqueries(bin.Left, outer, nodes, add)
-		e.planWhereSubqueries(bin.Right, outer, nodes, add)
+		e.planWhereSubqueries(bin.Left, outer, nodes, add, sel)
+		e.planWhereSubqueries(bin.Right, outer, nodes, add, sel)
 		return
 	}
 	if paren, ok := expr.(*sql.ParenExpr); ok {
-		e.planWhereSubqueries(paren.Expr, outer, nodes, add)
+		e.planWhereSubqueries(paren.Expr, outer, nodes, add, sel)
 		return
 	}
 	if ex, ok := expr.(*sql.ExistsExpr); ok {
@@ -533,7 +543,7 @@ func (e *SelectEngine) planWhereSubqueries(expr sql.Expr, outer *sql.SelectStmt,
 		// "CORRELATED SCALAR SUBQUERY n"); only a non-correlated flat EXISTS
 		// may become an EXISTS join loop.
 		if !e.subqueryReferencesOuter(ex.Select, outer) {
-			if exNodes, ok2 := e.existsJoinNode(ex.Select); ok2 {
+			if exNodes, ok2 := e.existsJoinNode(ex.Select, sel); ok2 {
 				*nodes = append(*nodes, exNodes...)
 				return // pruned: rendered as an EXISTS loop, no SUBQUERY node
 			}
@@ -550,7 +560,7 @@ func (e *SelectEngine) planWhereSubqueries(expr sql.Expr, outer *sql.SelectStmt,
 // (<col>=?)" (or "SCAN <tbl> EXISTS" when no index applies) sibling of the
 // outer scans, with no SUBQUERY label. Returns (nil, false) when the subquery
 // does not qualify (SQLite keeps it as a subquery).
-func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt) ([]planNode, bool) {
+func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt, s *sql.SelectStmt) ([]planNode, bool) {
 	if sub == nil || sub.From.Name == "" || sub.From.Subquery != nil || len(sub.Joins) > 0 {
 		return nil, false
 	}
@@ -569,7 +579,7 @@ func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt) ([]planNode, bool) {
 	if idx == "" {
 		return []planNode{{detail: "SCAN " + tableName + " EXISTS"}}, true
 	}
-	using := e.indexUsingLabel(tableName, idx)
+	using := e.indexUsingLabel(tableName, idx, s)
 	return []planNode{{detail: fmt.Sprintf("SEARCH %s EXISTS USING %s (%s=?)", tableName, using, col)}}, true
 }
 
@@ -705,6 +715,13 @@ func refsOuterTable(e2 sql.Expr, sub *sql.SelectStmt, outerTables map[string]boo
 		return outerTables[strings.ToLower(cr.Table)]
 	}
 	return !e.subqueryHasColumn(sub, cr.Name)
+}
+
+// AutoindexColumnsForAnalyze exposes autoindexColumns for callers in other
+// packages (e.g. internal/exec pragma_analyze). Returns nil when idxName is
+// not a sqlite_autoindex_* entry.
+func (e *SelectEngine) AutoindexColumnsForAnalyze(tableName, idxName string) []string {
+	return e.autoindexColumns(tableName, idxName)
 }
 
 // autoindexColumns resolves the indexed columns of a sqlite_autoindex_* entry

@@ -90,7 +90,7 @@ func Test_coveridxscan(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "2.1"
-		// optimization_control db cover-idx-scan 0 (unsupported command, not transpiled)
+		// optimization_control cover-idx-scan 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("SELECT a FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")

@@ -5,8 +5,320 @@
 package skipscan2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_skipscan2(t *testing.T) {}
-// skipped: skip-scan planner strategy + TCL assoc-array data N-A
+func Test_skipscan2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // "skipscan2-1.1"
+		_res = db.Exec("\n  CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);\n")
+		}
+	}
+	{ // "skipscan2-1.2"
+		_res = db.Exec("\n  INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);\n")
+		}
+	}
+	{ // "skipscan2-1.3"
+		r = db.Query("\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.3eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*INDEX people_idx1 *"
+		if globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan2-1.4"
+		_res = db.Exec("\n  ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;\n")
+		}
+	}
+	{ // "skipscan2-1.5"
+		r = db.Query("\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.5eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*INDEX people_idx1 *"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan2-1.6"
+		r = db.Query("\n  SELECT name FROM people\n   WHERE role IN (SELECT DISTINCT role FROM people)\n     AND height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM people\n   WHERE role IN (SELECT DISTINCT role FROM people)\n     AND height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.7"
+		r = db.Query("\n  SELECT name FROM people WHERE role='teacher' AND height>=180\n  UNION ALL\n  SELECT name FROM people WHERE role='student' AND height>=180\n  ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM people WHERE role='teacher' AND height>=180\n  UNION ALL\n  SELECT name FROM people WHERE role='student' AND height>=180\n  ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.8"
+		r = db.Query("\n  INSERT INTO people VALUES('Angie','student',166);\n  INSERT INTO people VALUES('Brad','student',176);\n  INSERT INTO people VALUES('Claire','student',168);\n  INSERT INTO people VALUES('Donald','student',162);\n  INSERT INTO people VALUES('Elaine','student',177);\n  INSERT INTO people VALUES('Frazier','student',159);\n  INSERT INTO people VALUES('Grace','student',179);\n  INSERT INTO people VALUES('Horace','student',166);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO people VALUES('Angie','student',166);\n  INSERT INTO people VALUES('Brad','student',176);\n  INSERT INTO people VALUES('Claire','student',168);\n  INSERT INTO people VALUES('Donald','student',162);\n  INSERT INTO people VALUES('Elaine','student',177);\n  INSERT INTO people VALUES('Frazier','student',159);\n  INSERT INTO people VALUES('Grace','student',179);\n  INSERT INTO people VALUES('Horace','student',166);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';\n")
+			return
+		}
+		got := flatten(r)
+		want := "34 17 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.9"
+		r = db.Query("\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.9eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*INDEX people_idx1 *"
+		if globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  must not match glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan2-1.10"
+		r = db.Query("\n  INSERT INTO people VALUES('Ingrad','student',155);\n  INSERT INTO people VALUES('Jacob','student',179);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO people VALUES('Ingrad','student',155);\n  INSERT INTO people VALUES('Jacob','student',179);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';\n")
+			return
+		}
+		got := flatten(r)
+		want := "36 18 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.11"
+		r = db.Query("\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-1.11eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*INDEX people_idx1 *"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan2-2.1"
+		r = db.Query("\n  CREATE TABLE peoplew(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  ) WITHOUT ROWID;\n  CREATE INDEX peoplew_idx1 ON peoplew(role, height);\n  INSERT INTO peoplew(name,role,height)\n     SELECT name, role, height FROM  people;\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE peoplew(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  ) WITHOUT ROWID;\n  CREATE INDEX peoplew_idx1 ON peoplew(role, height);\n  INSERT INTO peoplew(name,role,height)\n     SELECT name, role, height FROM  people;\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-2.2"
+		r = db.Query("\n  SELECT name FROM peoplew\n   WHERE role IN (SELECT DISTINCT role FROM peoplew)\n     AND height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM peoplew\n   WHERE role IN (SELECT DISTINCT role FROM peoplew)\n     AND height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-2.2"
+		r = db.Query("\n  SELECT name FROM peoplew WHERE role='teacher' AND height>=180\n  UNION ALL\n  SELECT name FROM peoplew WHERE role='student' AND height>=180\n  ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM peoplew WHERE role='teacher' AND height>=180\n  UNION ALL\n  SELECT name FROM peoplew WHERE role='student' AND height>=180\n  ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-2.4"
+		_res = db.Exec("\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n")
+		}
+	}
+	{ // "skipscan2-2.5"
+		r = db.Query("\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "David Jack Patrick Quiana Xavier"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "skipscan2-2.5eqp"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;\n")
+			return
+		}
+		got := flatten(r)
+		wantGlob := "*INDEX peoplew_idx1 *"
+		if !globMatch(got, wantGlob) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want glob: [%s]", got, wantGlob)
+		}
+	}
+	{ // "skipscan2-3.1"
+		_res = db.Exec("\n  CREATE TABLE t3(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")
+		}
+	}
+	{ // do_test "skipscan2-3.2"
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			_res = db.Exec(" INSERT INTO t3 VALUES(" + sqlLiteral(i) + "%2, " + sqlLiteral(i) + ", 'xyz') ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(" + sqlLiteral(i) + "%2, " + sqlLiteral(i) + ", 'xyz') ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" ANALYZE ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ANALYZE ")
+		}
+	}
+	{ // "skipscan2-3.3eqp"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t3 WHERE b=42;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t3 WHERE b=42;\n")
+		}
+	}
+}

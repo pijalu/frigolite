@@ -128,6 +128,13 @@ type EngineState interface {
 	TrustedSchema() bool
 	SetTrustedSchema(b bool)
 
+	// SkipScanEnabled toggles the skip-scan query optimizer (mirrors SQLite's
+	// SQLITE_SkipScan optimization_control bit). Used by skip-scan tests to
+	// verify the alternative plan (regular scan / index) when the optimization
+	// is disabled (test/skiptest/skipscan1.test 9.3).
+	SkipScanEnabled() bool
+	SetSkipScanEnabled(b bool)
+
 	// Scalar settings.
 	RecursiveCTELimit() int
 	SetRecursiveCTELimit(n int)
@@ -395,10 +402,14 @@ var pragmaHandlers = map[string]Handler{
 		func(st EngineState) bool { return st.TrustedSchema() },
 		func(st EngineState, b bool) { st.SetTrustedSchema(b) },
 	),
+	"SKIP_SCAN": pragmaBoolHandler(
+		func(st EngineState) bool { return st.SkipScanEnabled() },
+		func(st EngineState, b bool) { st.SetSkipScanEnabled(b) },
+	),
 
 	// --- Encoding / journal mode / limits ---
 	"ENCODING": func(st EngineState, s *sql.PragmaStmt) *Result {
-		return st.Encoding(s.Schema, s.Value)
+	return st.Encoding(s.Schema, s.Value)
 	},
 	"JOURNAL_MODE": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.JournalMode(s.Schema, s.Value)

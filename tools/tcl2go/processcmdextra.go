@@ -110,6 +110,56 @@ func (tp *transpiler) processSQLVar(args []tcl.RawWord) {
 	tp.emitLine("// sql %s (unsupported command, not transpiled)", sanitizeTCLComment(describeArgsShort(args)))
 }
 
+// processOptimizationControl handles `optimization_control DB OPT BOOLEAN` —
+// SQLite's test-harness toggle for query-planner optimizations. We map the
+// most common flags (skip-scan, query-flattener) to engine PRAGMAs and emit a
+// no-op comment for the rest. The full optimization_control mask includes
+// ~15 flags; only the ones we implement are honored.
+func (tp *transpiler) processOptimizationControl(args []tcl.RawWord) {
+	if len(args) < 3 {
+		tp.emitLine("// optimization_control (insufficient args)")
+		return
+	}
+	dbVar := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
+	if dbVar == "" {
+		dbVar = tp.dbVar
+	}
+	opt := strings.ToLower(strings.TrimSpace(args[1].Text))
+	onOff := strings.ToLower(strings.TrimSpace(args[2].Text))
+	on := onOff == "on" || onOff == "1" || onOff == "true"
+
+	switch opt {
+	case "skip-scan", "skipscan":
+		val := "0"
+		if on {
+			val = "1"
+		}
+		tp.emitLine("_res = %s.Exec(\"PRAGMA skip_scan = %s\")", dbVar, val)
+		tp.emitLine("if _res.Error != nil {")
+		tp.emitLine("\tt.Errorf(\"optimization_control skip-scan error: %%v\", _res.Error)")
+		tp.emitLine("}")
+	case "all":
+		// Restore every optimization we map. When "all" is OFF we emit a
+		// commented-out marker because we don't have per-flag setters for
+		// query-flattener / push-down / etc., but turning "all" back ON must
+		// re-enable skip-scan so downstream tests (skipscan1-2.2eqp etc.)
+		// see the optimizer in its default state.
+		val := "0"
+		if on {
+			val = "1"
+		}
+		tp.emitLine("_res = %s.Exec(\"PRAGMA skip_scan = %s\")", dbVar, val)
+		tp.emitLine("if _res.Error != nil {")
+		tp.emitLine("\tt.Errorf(\"optimization_control all skip-scan error: %%v\", _res.Error)")
+		tp.emitLine("}")
+	default:
+		// Unimplemented optimization_control flag (query-flattener, distinct-opt,
+		// transitive, push-down, etc.). Emit a no-op so the surrounding tests run.
+		tp.emitLine("// optimization_control %s %s (no PRAGMA equivalent; ignored)",
+			sanitizeTCLComment(opt), sanitizeTCLComment(onOff))
+	}
+	}
+
 // processCapturePragma handles `capture_pragma DB TABNAME {SQL}` — runs the
 // pragma, builds a TEMP table from the result columns, and inserts the rows.
 func (tp *transpiler) processCapturePragma(args []tcl.RawWord) {

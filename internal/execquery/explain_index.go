@@ -51,6 +51,11 @@ func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, 
 			return entry.Name
 		}
 	}
+	// Also check the implicit PRIMARY KEY index of a WITHOUT ROWID table,
+	// which has no separate schema index entry.
+	if pkCols := e.withoutRowidPKCols(tableName); len(pkCols) >= len(cols) && colsPrefixMatch(pkCols, cols) {
+		return "PRIMARY KEY"
+	}
 	return ""
 }
 
@@ -186,6 +191,12 @@ func isIdentChar(c byte) bool {
 // splices those sibling nodes into the join plan.
 func (e *SelectEngine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s *sql.SelectStmt) []planNode {
 	if jr := e.joinSearchRef(joins, planned); jr != nil {
+		// Try skip-scan when the join ref matches a non-leading column of an
+		// index (e.g. WHERE c=y with index (a,b,c) becomes ANY(a) AND
+		// ANY(b) AND c=?).
+		if ss := e.joinSearchSkipScanNode(t, s); ss != nil {
+			return ss
+		}
 		return joinSearchNode(t, jr)
 	}
 	if t.subquery != nil && needsMaterialization(t.subquery) {
@@ -207,6 +218,25 @@ func joinSearchNode(t queryTable, jr *joinRef) []planNode {
 	return []planNode{{detail: fmt.Sprintf("SEARCH %s USING AUTOMATIC COVERING INDEX (%s=?)", t.display, jr.col)}}
 }
 
+// joinSearchSkipScanNode emits a skip-scan SEARCH node when the join column
+// is satisfied by a planned table but the chosen index has unconstrained
+// low-cardinality leading columns (where.c:3517). E.g. t1j JOIN t1 with
+// WHERE c=y on index t1abc(a,b,c) becomes SEARCH t1 USING INDEX t1abc
+// (ANY(a) AND ANY(b) AND c=?).
+func (e *SelectEngine) joinSearchSkipScanNode(t queryTable, s *sql.SelectStmt) []planNode {
+	pred := joinWhereExpr(s)
+	if pred == nil {
+		return nil
+	}
+	const constrainedNoBest = float64(0)
+	ss := e.trySkipScanPlan(t.real, pred, constrainedNoBest)
+	if ss == nil {
+		return nil
+	}
+	using := e.indexUsingLabel(t.real, ss.indexName, s)
+	return []planNode{{detail: fmt.Sprintf("SEARCH %s USING %s %s", t.display, using, ss.conditions)}}
+}
+
 // coroutineNode emits the CO-ROUTINE + SCAN sibling nodes for a FROM-clause
 // subquery that must be materialized (a compound or aggregate).
 func (e *SelectEngine) coroutineNode(t queryTable) []planNode {
@@ -225,13 +255,26 @@ func (e *SelectEngine) coroutineNode(t queryTable) []planNode {
 }
 
 // joinScanNode emits the plan node for a join table with no satisfied join
-// predicate: an index SEARCH on selective constant predicates, else a SCAN.
+// predicate: a skip-scan when an index's unconstrained leading cols have low
+// cardinality, else an index SEARCH on selective constant predicates, else a
+// SCAN.
 func (e *SelectEngine) joinScanNode(t queryTable, s *sql.SelectStmt) []planNode {
 	nRow := e.estimatedRowCount(t.real)
 	est := float64(nRow)
 	idx, conds := e.bestIndexForQuery(t.real, s.Where, &est)
+	// Skip-scan: when an index's leading cols are unconstrained but a later
+	// col is constrained (e.g. WHERE c=y in a join), the planner iterates
+	// each distinct leading prefix. For joins we still consider skip-scan
+	// when its conditions are met (mirrors SQLite where.c:3517).
+	pred := joinWhereExpr(s)
+	if pred != nil {
+		if ss := e.trySkipScanPlan(t.real, pred, est); ss != nil {
+			using := e.indexUsingLabel(t.real, ss.indexName, s)
+			return []planNode{{detail: fmt.Sprintf("SEARCH %s USING %s %s", t.display, using, ss.conditions)}}
+		}
+	}
 	if idx != "" && (idx == "PRIMARY KEY" || est < float64(nRow)*0.10) {
-		using := e.indexUsingLabel(t.real, idx)
+		using := e.indexUsingLabel(t.real, idx, s)
 		if conds != "" {
 			return []planNode{{detail: fmt.Sprintf("SEARCH %s USING %s %s", t.display, using, conds)}}
 		}
@@ -242,14 +285,24 @@ func (e *SelectEngine) joinScanNode(t queryTable, s *sql.SelectStmt) []planNode 
 
 // indexUsingLabel renders the index-usage phrase of a SEARCH/SCAN plan node:
 // "PRIMARY KEY" for the implicit WITHOUT ROWID storage index, "COVERING INDEX
-// <name>" when the index contains every table column (rowvalue 34.5), or
-// "INDEX <name>".
-func (e *SelectEngine) indexUsingLabel(tableName, idx string) string {
+// <name>" when the index covers the SELECT's output columns (rowvalue 34.5;
+// SQLite uses COVERING INDEX when no temp table is needed to resolve the
+// output), or "INDEX <name>". When s is nil, falls back to all-table-cols.
+func (e *SelectEngine) indexUsingLabel(tableName, idx string, s *sql.SelectStmt) string {
 	using := "INDEX " + idx
 	if idx == "PRIMARY KEY" {
 		using = "PRIMARY KEY"
-	} else if e.indexCoversAllTableCols(tableName, e.indexColumns(idx)) {
-		using = "COVERING INDEX " + idx
+	} else {
+		cols := e.indexColumns(idx)
+		covered := e.indexCoversAllTableCols(tableName, cols)
+		if !covered && s != nil {
+			// COVERING when the index covers every column referenced by this
+			// SELECT (so the temp table isn't needed).
+			covered = e.indexCoversCols(idx, tableName, selectOutputCols(s))
+		}
+		if covered {
+			using = "COVERING INDEX " + idx
+		}
 	}
 	return using
 }

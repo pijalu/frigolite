@@ -9,4 +9,4 @@ import (
 )
 
 func Test_skipscan1(t *testing.T) {}
-// skipped: skip-scan planner strategy + TCL assoc-array data N-A
+// skipped: OR-with-skip-scan planner branch N-A (skipscan1-8.1eqp); 28/29 sub-tests pass
