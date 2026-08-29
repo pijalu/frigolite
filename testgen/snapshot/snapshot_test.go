@@ -9,4 +9,4 @@ import (
 )
 
 func Test_snapshot(t *testing.T) {}
-// skipped: multi-connection/locking not implemented DEFERRED
+// skipped: N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)

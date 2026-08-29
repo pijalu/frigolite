@@ -9,4 +9,4 @@ import (
 )
 
 func Test_snapshot_fault(t *testing.T) {}
-// skipped: VFS/fault-injection harness N-A
+// skipped: VFS fault-injection harness N-A (sqlite3_test_control FAULT_INSTALL not in public Go API; supersedes pre-existing skip — no fragment transpilable)

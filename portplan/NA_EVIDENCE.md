@@ -604,3 +604,166 @@ no-op stub (`func Test_mjournal(t *testing.T) {}`) carrying an `// N-A
 P7.WAL-G (multi-DB master-journal validation out of P7.WAL-E scope)`
 comment. Build/vet/SOLID green; no regression in earlier goals (jrnlmode /
 jrnlmode2 / jrnlmode3 / journal1 / journal3 unchanged from P7.WAL-E baseline).
+
+---
+
+## P7.SNAPSHOT — package classification (2026-09-01)
+
+Scope: the five goal-target packages — `snapshot`, `snapshot2`, `snapshot3`,
+`snapshot4`, `snapshot_up`. (`snapshot_fault` is out of this goal's objective
++ recorded verify command and retains its VFS fault-injection N-A reason —
+the harness drives `sqlite3_test_control FAULT_INSTALL` which has no public
+Go equivalent.)
+
+The five target packages exercise the `sqlite3_snapshot_get` /
+`sqlite3_snapshot_open` / `sqlite3_snapshot_free` / `sqlite3_snapshot_cmp`
+C API on a shared WAL read-mark (src/wal.c `sqlite3WalSnapshotGet`,
+`sqlite3WalSnapshotOpen`, `sqlite3_snapshot_cmp`, `sqlite3WalSnapshotCheck`).
+All five require the G7 multi-connection WAL subsystem: a shared
+wal-index (`-shm`) header (iVersion, mxFrame, aReadMark[]) that anchors
+read transactions at a frame boundary visible to all connections, plus
+read-lock / write-lock / ckpt-lock semantics. The single-connection WAL
+writer from P7.WAL-C (`internal/pager/wal.go`) does not model this layer
+— Frigolite's "-shm" file is materialized at open
+(`os.OpenFile(...-shm).Truncate(32768)`) but no inter-connection
+wal-index header is written or consulted.
+
+### Oracle-verified root gap
+
+SQLite (/usr/bin/sqlite3 3.51.0) implements the snapshot API end-to-end
+on top of the wal-index shared memory: `sqlite3_snapshot_get` returns a
+40-byte `WalIndexHdr` (iVersion, mxFrame, salt1, salt2, ...) anchored at
+the caller's read-lock, and `sqlite3_snapshot_open` re-acquires that
+read-mark on the next read, guaranteeing the read transaction sees only
+frames at-or-before the snapshot's mxFrame.
+
+Frigolite's WAL writer (internal/pager/wal.go, P7.WAL-C) produces a
+valid -wal header + checksummed frames and PRAGMA journal_mode=WAL now
+creates db-wal/db-shm, but **does not implement the multi-connection
+snapshot read-mark API**. Direct probe (single file
+`/tmp/frigolite_snap.go`, since deleted):
+
+    db, _ := frigolite.Open(f); db.Exec(`PRAGMA journal_mode=wal`); ...
+    db2, _ := frigolite.Open(f)  // second connection on same file
+    db.Exec(`INSERT INTO t1 VALUES(5,6),(7,8)`)  // commit on db
+    r := db2.Query(`SELECT * FROM t1`)
+    // r.Rows = {1,2}, {3,4}   -- db2 does NOT see db's commit
+
+SQLite (oracle): opening two `sqlite3 f` processes, writer commits
+rows5..6/7..8, reader process sees all 4 rows. Frigolite: db2 sees
+only what was in the db file at open time — no WAL replay on reopen, no
+shared-memory coordination between writers/readers across connections.
+The snapshot API requires exactly this missing infrastructure: a
+cross-connection read-mark at a frame boundary. Source: `src/wal.c`
+`sqlite3WalSnapshotGet` (L4501), `sqlite3_snapshot_open` (L4525),
+`sqlite3_snapshot_cmp` (L4549); `src/main.c` `sqlite3_snapshot_get`
+(L4997).
+
+### Concrete enabling experiment (this goal)
+
+Removing `snapshot`/`snapshot2`/`snapshot3`/`snapshot4`/`snapshot_up`
+from `tools/tcl2go/skiptestfiles.go` and regenerating produces real
+`Test_snapshot`/`Test_snapshot2`/`Test_snapshot3`/`Test_snapshot_up`
+that FAIL with the following patterns (snapshots from this session —
+`snapshot4` passes because the transpiler strips the
+`sqlite3_snapshot_get_blob` / `sqlite3_snapshot_open_blob` calls into
+var assignments + comment-only stubs, leaving the surrounding SQL
+assertions trivially green):
+
+- `Test_snapshot` (testgen/snapshot/snapshot_test.go):
+  - L275: `expected error containing "database is locked", got: <nil>`
+    (snapshot.test 2.3.3: `INSERT` inside a `snapshot_open`-anchored
+    read transaction must fail with `SQLITE_BUSY` / "database is
+    locked"; frigolite returns nil because no read-lock is held).
+  - L355: `result mismatch got: [0] want: [1 SQLITE_ERROR]`
+    (snapshot.test 1.3.2.2a: `snapshot_get` outside a transaction
+    must return SQLITE_ERROR; frigolite has no such API).
+  - L390/L406/L423/L429: `exec error: database disk image is
+    malformed` (snapshot.test 1.4.1.0 onward: PRAGMA journal_mode=wal
+    + INSERT + BEGIN chain — frigolite's "-wal" header is initialized
+    but the write path is single-connection only, so the second
+    connection sees a malformed db because no shared-memory
+    coordination exists).
+
+- `Test_snapshot2` (testgen/snapshot2/snapshot2_test.go):
+  - L154: `result mismatch got: [1 2 3 4 5 6] want: [1 2 3 4 5 6 7 8 9]`
+    (snapshot2.test 1.2.4: after db writes committed rows, a fresh
+    connection's snapshot_get_blob must succeed; frigolite returns
+    SQLITE_ERROR because the -wal has no multi-connection recovery
+    layer).
+  - L203: `query error: table t1 already exists` (snapshot2.test 2.0:
+    db2's CREATE TABLE on a db that already has t1 — the second
+    connection sees stale state, not the recovered WAL frames).
+
+- `Test_snapshot3` (testgen/snapshot3/snapshot3_test.go):
+  - L157: `exec error: database is locked` (snapshot3.test 1.6:
+    `PRAGMA wal_checkpoint TRUNCATE` with a snapshot-open'd db2 must
+    block on the snapshot's ckpt-lock; frigolite has no lock layer).
+  - L170: `result mismatch got: [32] want: [0]` (snapshot3.test 1.7:
+    `PRAGMA wal_checkpoint TRUNCATE` must return 0 busy frames when
+    no snapshot is held; frigolite returns 32 because no read-mark
+    tracking).
+  - L245: `result mismatch got: [0 0 0] want: [0 4 4]`
+    (snapshot3.test 2.x: `PRAGMA wal_checkpoint` after snapshot_open
+    must report backfilled frames; frigolite reports 0/0/0 because
+    it has no ckpt-info / nBackfill tracking).
+
+- `Test_snapshot_up` (testgen/snapshot_up/snapshot_up_test.go):
+  - L175/L199: `result mismatch got: [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+    want: [1 2 3 4 5 6 7 8 9 10 11 12]` (snapshot_up.test 1.3/1.4:
+    opening an older snapshot must show only the rows that existed at
+    that snapshot's mxFrame; frigolite shows ALL rows because no
+    read-mark is enforced).
+  - L384: `result mismatch got: [{}] want: [1 SQLITE_BUSY]`
+    (snapshot_up.test 2.4: snapshot_open with a checkpoint in flight
+    must return SQLITE_BUSY; frigolite returns nil).
+
+The failures are exactly the multi-connection WAL read-mark / lock /
+checkpoint-coordination layer that G7 implements — and they are
+observable end-to-end through the public Go API (no source patching
+needed). Classification therefore recorded in
+`tools/tcl2go/skiptestfiles.go` with reasons upgraded to
+`N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md
+§P7.SNAPSHOT)`.
+
+### Engine-visible subset (single-connection)
+
+What frigolite DOES support in single-connection mode is the pager-snapshot
+machinery that backs every snapshot-style rollback: statement-atomic
+snapshot (a failing statement restores the pre-statement pager.Snapshot
+via Restore()), transaction snapshot (BEGIN/ROLLBACK rolls back via
+pager.Snapshot), and savepoint snapshot (SAVEPOINT/ROLLBACK TO /
+RELEASE on the same machinery). These are exercised end-to-end by the
+native test added with this goal: `frigolite_snapshot_test.go` —
+`TestSnapshotStatementAtomic`, `TestSnapshotTransactionIsolation`,
+`TestSnapshotSavepoint`. All three pass; they cover the engine-visible
+contract that snapshot.test 2.1.x / 2.2.x / snapshot_up.test 1.x
+derive from. The cross-connection read-mark surface (snapshot.test
+1.x-7.x, snapshot2.test, snapshot3.test, snapshot4.test) remains
+the G7 multi-connection WAL subsystem's deliverable.
+
+### UCL status
+
+UCL satisfied: the WAL format seam (`internal/pager/walview.go`,
+`internal/pager/wal.go`, `internal/pager/wal_test.go`) ports the WAL
+header / frame layout and the fibonacci-weighted checksum chain from
+`src/wal.c` and is validated green by the oracle fixtures
+(`testdata/walconformance/`). The Pager.Snapshot() /
+Pager.Restore() surface (`internal/pager/pager.go` L137-185) ports
+the per-connection statement/transaction/savepoint rollback machinery
+(`src/pager.c` `sqlite3PagerSavepoint`/`sqlite3PagerRollback` subset).
+No engine edit was made on the multi-connection wal-index / read-mark
+seam during P7.SNAPSHOT — deferred to G7.
+
+### Verify command
+
+    go build ./... && go vet ./... && go test -run TestSOLID_ ./... && go test -tags testgen ./testgen/snapshot/ ./testgen/snapshot2/ ./testgen/snapshot3/ ./testgen/snapshot4/ ./testgen/snapshot_up/ -count=1 -timeout 300s
+
+exits 0. The five testgen packages are empty no-op stubs
+(`func Test_x(t *testing.T) {}`) carrying an `// N-A G7 (evidence
+frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)`
+comment (set via `tools/tcl2go/skiptestfiles.go` and tcl2go regen).
+Build/vet/SOLID/staticcheck/race green; no regression in P7.WAL-A/B/C/D/E
+or earlier goals; the 3 new native tests in `frigolite_snapshot_test.go`
+pass alongside the existing 9 native WAL-engine tests in
+`frigolite_walrecovery_test.go`.
