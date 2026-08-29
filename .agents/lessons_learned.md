@@ -2493,3 +2493,11 @@ SESSION 7g (RTREE slice8): rtree2/rtreecheck green; three root causes.
   header, lock-bitmap checkpoint/recover protocol) which is not implemented.
   Enabling the real testgen FAILS (e.g. `walprotocol` do_test 2.x `no such table:
   b`). Classify N-A G7 with evidence, matching P7.WAL-A/B precedent.
+- **P8.CORRUPT btree gaps block 8 of 13 packages**: un-skipping reveals
+  multi-level split bug (`parent has no cell for split child`), cell-overflow
+  tracking, writable_schema rootpage-swap corruption-detection, integrity_check
+  message format (Tree X page Y cell Z + Page X: never used), freelist size
+  accounting, schema-load-on-corrupt. Even the simplest (`corrupt` baseline
+  INSERT) fails — btree.c balance_nonroot needs full port. Defer the whole
+  13-package tranche with detailed evidence (portplan/NA_EVIDENCE.md P8.CORRUPT)
+  and route as a dedicated P8.CORRUPT.fix follow-up phase.
