@@ -5,8 +5,345 @@
 package analyze
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strings"
 "testing"
 )
 
-func Test_analyze(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "analyze-1.1"
+		_res = db.Exec("\n    ANALYZE no_such_table\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: no_such_table") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: no_such_table", _res.Error, "\n    ANALYZE no_such_table\n  ")
+		}
+	}
+	{ // do_test "analyze-1.2"
+		r = db.Query("\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+		}
+	}
+	{ // do_test "analyze-1.3"
+		_res = db.Exec("\n    ANALYZE no_such_db.no_such_table\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown database no_such_db") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database no_such_db", _res.Error, "\n    ANALYZE no_such_db.no_such_table\n  ")
+		}
+	}
+	{ // do_test "analyze-1.4"
+		r = db.Query("\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+		}
+	}
+	{ // do_test "analyze-1.5.1"
+		_res = db.Exec("\n    ANALYZE\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ANALYZE\n  ")
+		}
+	}
+	{ // do_test "analyze-1.5.2"
+		_res = db.Exec("\n    PRAGMA empty_result_callbacks=1;\n    ANALYZE\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA empty_result_callbacks=1;\n    ANALYZE\n  ")
+		}
+	}
+	{ // do_test "analyze-1.6"
+		r = db.Query("\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'\n  ")
+		}
+	}
+	{ // do_test "analyze-1.6.2"
+		_res = db.Exec("\n    CREATE INDEX stat1idx ON sqlite_stat1(idx);\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_stat1 may not be indexed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be indexed", _res.Error, "\n    CREATE INDEX stat1idx ON sqlite_stat1(idx);\n  ")
+		}
+	}
+	{ // do_test "analyze-1.6.3"
+		_res = db.Exec("\n    CREATE INDEX main.stat1idx ON SQLite_stat1(idx);\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_stat1 may not be indexed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_stat1 may not be indexed", _res.Error, "\n    CREATE INDEX main.stat1idx ON SQLite_stat1(idx);\n  ")
+		}
+	}
+	{ // do_test "analyze-1.7"
+		r = db.Query("\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
+		}
+	}
+	{ // do_test "analyze-1.8"
+		_res = db.Exec("\n    ANALYZE main\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ANALYZE main\n  ")
+		}
+	}
+	{ // do_test "analyze-1.9"
+		r = db.Query("\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1 WHERE idx NOT NULL\n  ")
+		}
+	}
+	{ // do_test "analyze-1.10"
+		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    ANALYZE main.t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    ANALYZE main.t1;\n  ")
+		}
+	}
+	{ // do_test "analyze-1.11"
+		r = db.Query("\n    SELECT * FROM sqlite_stat1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1\n  ")
+		}
+	}
+	{ // do_test "analyze-1.12"
+		_res = db.Exec("\n    ANALYZE t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ANALYZE t1;\n  ")
+		}
+	}
+	{ // do_test "analyze-1.13"
+		r = db.Query("\n    SELECT * FROM sqlite_stat1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_stat1\n  ")
+		}
+	}
+	{ // do_test "analyze-2.1"
+		r = db.Query("\n    CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-2.2"
+		r = db.Query("\n    CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-2.3"
+		r = db.Query("\n    CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.1"
+		r = db.Query("\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.2"
+		r = db.Query("\n    INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.3"
+		r = db.Query("\n    INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.4"
+		r = db.Query("\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.5"
+		r = db.Query("\n    DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.6"
+		r = db.Query("\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.7"
+		r = db.Query("\n    DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.8"
+		r = db.Query("\n    CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.9"
+		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.10"
+		r = db.Query("\n    CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.11"
+		r = db.Query("\n    DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-3.11"
+		r = db.Query("\n    DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-4.0"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n    CREATE TABLE t4(x,y,z);\n    CREATE INDEX t4i1 ON t4(x);\n    CREATE INDEX t4i2 ON t4(y);\n    INSERT INTO t4 SELECT a,b,c FROM t3;\n  ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		if db2 != nil { db2.Close() }
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
+		}
+	}
+	{ // do_test "analyze-4.1"
+		r = db.Query("\n    PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;\n  ")
+		}
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4 WHERE x=1234;\n  ")
+		}
+	}
+	{ // do_test "analyze-4.2"
+		r = db.Query("\n    PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;\n  ")
+		}
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4 WHERE x=1234;\n  ")
+		}
+	}
+	{ // do_test "analyze-4.3"
+		_res = db.Exec("\n    INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');\n  ")
+		}
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4 WHERE x=1234;\n  ")
+		}
+	}
+	{ // do_test "analyze-5.0"
+		r = db.Query("\n    DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "analyze-5.2"
+		r = db.Query("\n    DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "analyze-5.4"
+		r = db.Query("\n    DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;\n  ")
+		}
+	}
+	{ // "analyze-5.99" (prepare-step internals; SQL side effects only)
+		db.SetDefensive(false)
+		r = db.Query("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';\n  ")
+		}
+		db.Close()
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+		}
+		_res = db.Exec("\n    ANALYZE\n  ")
+		_ = _res // catchsql
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "analyze-6.1"
+		r = db.Query("\n  CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tbl FROM sqlite_stat1 WHERE idx IS NULL ORDER BY tbl;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tbl FROM sqlite_stat1 WHERE idx IS NULL ORDER BY tbl;\n")
+			return
+		}
+		got := flatten(r)
+		want := "SQLiteDemo2 sqliteDemo t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

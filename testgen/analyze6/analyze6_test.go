@@ -5,8 +5,124 @@
 package analyze6
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_analyze6(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze6(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	return
+	vtab.TclVarSet("testprefix", "", "analyze6")
+	testprefix = "analyze6"
+	_ = testprefix // suppress unused warning
+	// proc definition (not transpiled)
+	{ // do_test "analyze6-1.0"
+		r = db.Query("\n    CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16 512"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "analyze6-1.1"
+		_r = tclEQP(db, "SELECT count(*) FROM ev, cat WHERE x=y")
+	}
+	{ // "analyze6-1.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT count(*) FROM cat, ev WHERE x=y\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT count(*) FROM cat, ev WHERE x=y\n")
+		}
+	}
+	{ // do_test "analyze6-2.1"
+		_res = db.Exec("\n    CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;\n  ")
+		}
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE z=5")
+	}
+	{ // do_test "analyze6-2.2"
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE y=5")
+	}
+	{ // do_test "analyze6-2.3"
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE x=5")
+	}
+	{ // do_test "analyze6-2.4"
+		_res = db.Exec("\n    INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;\n  ")
+		}
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE z=5")
+	}
+	{ // do_test "analyze6-2.5"
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE y=5")
+	}
+	{ // do_test "analyze6-2.6"
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE x=5")
+	}
+	{ // do_test "analyze6-2.7"
+		_res = db.Exec("\n    INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;\n  ")
+		}
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE z=5")
+	}
+	{ // do_test "analyze6-2.8"
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE y=5")
+	}
+	{ // do_test "analyze6-2.9"
+		_r = tclEQP(db, "SELECT * FROM t201 WHERE x=5")
+	}
+}

@@ -273,7 +273,9 @@ func (e *DDLExecutor) dropTableFKChecks(entry *schema.Entry, ctx *DatabaseContex
 }
 
 // dropTableCascade drops all triggers and indexes associated with a table
-// (SQLite semantics: DROP TABLE removes all associated indexes).
+// (SQLite semantics: DROP TABLE removes all associated indexes). It also
+// removes the dropped table's rows from sqlite_stat1 (SQLite src/build.c
+// sqlite3ClearStatTables), which the ANALYZE step recorded earlier.
 func (e *DDLExecutor) dropTableCascade(ctx *DatabaseContext, entry *schema.Entry) {
 	triggers, _ := ctx.Schema.FindTriggersForTable(entry.Name)
 	for _, t := range triggers {
@@ -283,6 +285,11 @@ func (e *DDLExecutor) dropTableCascade(ctx *DatabaseContext, entry *schema.Entry
 	for _, idx := range indexes {
 		_ = ctx.Schema.RemoveEntry(idx.Name)
 	}
+	// Remove sqlite_stat1 entries for the dropped table and any of its
+	// indexes. SQLite's source does this in sqlite3ClearStatTables inside
+	// sqlite3DropTable (src/build.c). Without it, SELECT DISTINCT tbl FROM
+	// sqlite_stat1 keeps returning the dropped table's name (analyze-5.4).
+	e.ctx.ClearStatsForTable(entry.Name)
 }
 
 // markDropTableFKDirty marks child tables dirty so DEFERRED foreign keys are

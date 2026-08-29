@@ -104,6 +104,11 @@ func (e *DDLExecutor) execDropIndex(s *sql.DropIndexStmt) *Result {
 	if entry != nil && strings.HasPrefix(entry.Name, "sqlite_autoindex_") {
 		return &Result{Error: fmt.Errorf("index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped")}
 	}
+	// Remove the sqlite_stat1 entry for this index (SQLite src/build.c
+	// sqlite3ClearStatTables: "DELETE FROM sqlite_statN WHERE idx=<name>").
+	if entry != nil {
+		e.ctx.ClearStatsForIndex(entry.TblName, entry.Name)
+	}
 	// Remove from schema — by TYPE so a TRIGGER named the same as the index
 	// survives.
 	if err := ctx.Schema.RemoveEntryOfType(s.Name, schema.TypeIndex); err != nil {

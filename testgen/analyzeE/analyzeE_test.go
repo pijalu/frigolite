@@ -5,8 +5,719 @@
 package analyzeE
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"regexp"
 "testing"
 )
 
-func Test_analyzeE(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyzeE(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "analyzeE")
+	testprefix = "analyzeE" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	return
+	{ // "analyzeE-1.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
+		}
+	}
+	{ // "analyzeE-1.1"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.2"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.3"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.4"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.5"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.6"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.7"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.8"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.9"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.10"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-1.11"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.0"
+		_res = db.Exec("\n  DROP INDEX t1a;\n  CREATE INDEX t1a ON t1(a DESC);\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1a;\n  CREATE INDEX t1a ON t1(a DESC);\n  ANALYZE;\n")
+		}
+	}
+	{ // "analyzeE-2.1"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.2"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.3"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.4"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.5"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.6"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.7"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.8"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.9"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.10"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-2.11"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.0"
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
+		}
+	}
+	{ // "analyzeE-3.1"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500 AND c=123;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500 AND c=123;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.2"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000 AND c=123;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000 AND c=123;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.3"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750 AND c=123;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750 AND c=123;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.4"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.5"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.6"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.7"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.8"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.9"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.10"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-3.11"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.0"
+		_res = db.Exec("\n  DROP INDEX t1ca;\n  CREATE INDEX t1ca ON t1(c ASC,a DESC);\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1ca;\n  CREATE INDEX t1ca ON t1(c ASC,a DESC);\n  ANALYZE;\n")
+		}
+	}
+	{ // "analyzeE-4.1"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500 AND c=123;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500 AND c=123;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.2"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000 AND c=123;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000 AND c=123;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.3"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750 AND c=123;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750 AND c=123;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.4"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.5"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.6"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.7"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.8"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.9"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.10"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "analyzeE-4.11"
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900 AND c=123\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1900 AND c=123\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "analyzeE-5.0"
+		r = db.Query("\n  PRAGMA encoding = 'UTF-16';\n  CREATE TABLE t0 (c1 TEXT);\n  INSERT INTO t0 VALUES ('');\n  CREATE INDEX i0 ON t0(c1);\n  ANALYZE;\n  SELECT * FROM t0 WHERE t0.c1 BETWEEN '' AND (ABS(''));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = 'UTF-16';\n  CREATE TABLE t0 (c1 TEXT);\n  INSERT INTO t0 VALUES ('');\n  CREATE INDEX i0 ON t0(c1);\n  ANALYZE;\n  SELECT * FROM t0 WHERE t0.c1 BETWEEN '' AND (ABS(''));\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("{}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "analyzeE-6.0"
+		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
+		}
+	}
+	{ // "analyzeE-6.1"
+		r = db.Query("\n  SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i2' AND neq='1000 1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i2' AND neq='1000 1';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyzeE-6.2"
+		r = db.Query("\n  SELECT count(*) FROM sqlite_stat4 WHERE idx='i2' AND neq<>'1000 1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM sqlite_stat4 WHERE idx='i2' AND neq<>'1000 1';\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyzeE-6.3"
+		r = db.Query("\n  SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i1' AND neq='1 1 1 1 1 1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i1' AND neq='1 1 1 1 1 1';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyzeE-6.4"
+		r = db.Query("\n  SELECT count(*) FROM sqlite_stat4 WHERE idx='i1' AND neq<>'1 1 1 1 1 1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM sqlite_stat4 WHERE idx='i1' AND neq<>'1 1 1 1 1 1';\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "analyzeE-7.0"
+		r = db.Query("\n  CREATE TABLE t1(a TEXT COLLATE binary);\n  CREATE INDEX t1x ON t1(a);\n  INSERT INTO t1(a) VALUES(0),('apple'),(NULL),(''),('banana');\n  ANALYZE;\n  SELECT format('(%s)',a) FROM t1 WHERE t1.a > CAST(zeroblob(5) AS TEXT);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a TEXT COLLATE binary);\n  CREATE INDEX t1x ON t1(a);\n  INSERT INTO t1(a) VALUES(0),('apple'),(NULL),(''),('banana');\n  ANALYZE;\n  SELECT format('(%s)',a) FROM t1 WHERE t1.a > CAST(zeroblob(5) AS TEXT);\n")
+			return
+		}
+		got := flatten(r)
+		want := "(0) (apple) (banana)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyzeE-7.1"
+		r = db.Query("\n  SELECT format('(%s)',a) FROM t1 WHERE t1.a <= CAST(zeroblob(5) AS TEXT);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT format('(%s)',a) FROM t1 WHERE t1.a <= CAST(zeroblob(5) AS TEXT);\n")
+			return
+		}
+		got := flatten(r)
+		want := "()"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

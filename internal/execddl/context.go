@@ -146,8 +146,17 @@ type DDLContext interface {
 	// (unionvtab.c unionDisconnect on DROP TABLE); a no-op for other tables.
 	DropUnionVtabInstance(tableName string)
 	// CacheUnionVtabInstance registers the unionvtab/swarmvtab instance
-	// created at CREATE VIRTUAL TABLE time so later statements reuse it
-	// (unionvtab.c: the UnionTab, incl. open source handles + LRU state,
-	// lives for the table's whole lifetime); a no-op for other modules.
-	CacheUnionVtabInstance(tableName string, vt vtab.VirtualTable)
-}
+		// created at CREATE VIRTUAL TABLE time so later statements reuse it
+		// (unionvtab.c: the UnionTab, incl. open source handles + LRU state,
+		// lives for the table's whole lifetime); a no-op for other modules.
+		CacheUnionVtabInstance(tableName string, vt vtab.VirtualTable)
+
+		// ClearStatsForTable removes sqlite_stat1 entries for the dropped table
+		// so DROP TABLE cleans up analyzer state (SQLite src/build.c
+		// sqlite3ClearStatTables). Silently no-ops when sqlite_stat1 does not
+		// yet exist.
+		ClearStatsForTable(tableName string)
+		// ClearStatsForIndex removes the sqlite_stat1 entry for the dropped
+		// index (SQLite src/build.c sqlite3ClearStatTables).
+		ClearStatsForIndex(tableName, indexName string)
+	}

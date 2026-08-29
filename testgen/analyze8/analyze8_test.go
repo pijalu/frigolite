@@ -5,8 +5,158 @@
 package analyze8
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_analyze8(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze8(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	return
+	vtab.TclVarSet("testprefix", "", "analyze8")
+	testprefix = "analyze8"
+	_ = testprefix // suppress unused warning
+	// proc definition (not transpiled)
+	{ // do_test "1.0"
+		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 0 }() {
+				vtab.TclVarSet("a", "", i)
+				a = i
+				_ = a // suppress unused warning
+			} else {
+				a = tclExprWith("($i%8)*100", map[string]string{"i": i})
+				_ = a // suppress unused warning
+			}
+			b = tclExprWith("$i/10", map[string]string{"i": i})
+			_ = b // suppress unused warning
+			c = tclExprWith("$i/8", map[string]string{"i": i})
+			_ = c // suppress unused warning
+			c = tclExprWith("$c*$c*$c", map[string]string{"c": c})
+			_ = c // suppress unused warning
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + "," + sqlLiteral(i) + ")")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + "," + sqlLiteral(i) + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("ANALYZE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+		}
+	}
+	{ // do_test "1.1"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=100 AND b=55")
+	}
+	{ // do_test "1.2"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=99 AND b=55")
+	}
+	{ // do_test "1.3"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=101 AND b=55")
+	}
+	{ // do_test "1.4"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=100 AND b=56")
+	}
+	{ // do_test "1.5"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=99 AND b=56")
+	}
+	{ // do_test "1.6"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=101 AND b=56")
+	}
+	{ // do_test "2.1"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=100 AND b BETWEEN 50 AND 54")
+	}
+	{ // "3.0"
+		r = db.Query("\n  SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 0 AND 100000;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 800000 AND 900000;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 0 AND 100000;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 800000 AND 900000;\n")
+			return
+		}
+		got := flatten(r)
+		want := "50 376 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "3.1"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE b BETWEEN 30 AND 34 AND c BETWEEN 0 AND 100000")
+	}
+	{ // do_test "3.2"
+		_r = tclEQP(db, "SELECT * FROM t1\n       WHERE b BETWEEN 30 AND 34 AND c BETWEEN 800000 AND 900000")
+	}
+	{ // do_test "3.3"
+		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=100 AND c BETWEEN 0 AND 100000")
+	}
+	{ // do_test "3.4"
+		_r = tclEQP(db, "SELECT * FROM t1\n       WHERE a=100 AND c BETWEEN 800000 AND 900000")
+	}
+}

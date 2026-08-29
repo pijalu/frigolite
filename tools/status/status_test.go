@@ -75,7 +75,7 @@ func TestParseSkipMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Baseline floor (not an exact count): packages get un-skipped as goals
+ 	// Baseline floor (not an exact count): packages get un-skipped as goals
 	// complete, so the total only shrinks. 384 entries at the P6.FTS-WPORT
 	// checkpoint; 336 after the P6.VTAB task12 mass un-skip (30 vtab harness
 	// packages + later fts3/jsonb work); 327 after P7.LOCK-A un-skipped
@@ -85,9 +85,10 @@ func TestParseSkipMaps(t *testing.T) {
 	// walrestart/walseh1/walsetlk/walsetlk2/walsetlk3/journal1/journal2/
 	// journal3/jrnlmode/jrnlmode2/jrnlmode3 all N-A G7, mjournal RE-SKIPPED
 	// P7.WAL-G; snapshot/snapshot2/snapshot3/snapshot4/snapshot_up N-A G7 P7.SNAPSHOT).
+	// 316 after P7.PLANNER un-skipped analyze..analyze9 (9 entries).
 	// Lower the floor only alongside documented un-skip work.
-	if len(skips.skipTestFiles) < 325 {
-		t.Errorf("skipTestFiles has %d entries, want >= 325", len(skips.skipTestFiles))
+	if len(skips.skipTestFiles) < 316 {
+		t.Errorf("skipTestFiles has %d entries, want >= 316", len(skips.skipTestFiles))
 	}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))

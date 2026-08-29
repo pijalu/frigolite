@@ -5,8 +5,264 @@
 package analyze5
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_analyze5(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze5(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var index string
+	_ = index // pre-declared from TCL source
+	var rows string
+	_ = rows // pre-declared from TCL source
+	var w2 string
+	_ = w2 // pre-declared from TCL source
+	var a1 string
+	_ = a1 // pre-declared from TCL source
+	var a2 string
+	_ = a2 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var nrow string
+	_ = nrow // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	return
+	vtab.TclVarSet("testprefix", "", "analyze5")
+	testprefix = "analyze5"
+	_ = testprefix // suppress unused warning
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	db.RegisterFunction("alpha", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	db.RegisterFunction("lindex", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	{ // do_test "analyze5-1.0"
+		_res = db.Exec("CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			y = tclExprWith("$i>=25 && $i<=50", map[string]string{"i": i})
+			_ = y // suppress unused warning
+			z = tclExprWith("($i>=400) + ($i>=700) + ($i>=875)", map[string]string{"i": i})
+			_ = z // suppress unused warning
+			vtab.TclVarSet("x", "", z)
+			x = z
+			_ = x // suppress unused warning
+			vtab.TclVarSet("w", "", z)
+			w = z
+			_ = w // suppress unused warning
+			_t = tclExprWith("$z+0.5", map[string]string{"z": z})
+			_ = _t // suppress unused warning
+			// switch $z {\n      0 {set u "alpha"; unset x}\n      1 {set u...} (test infra, not transpiled)
+			if tclBool(i + "%2") {
+				vtab.TclVarSet("v", "", u)
+				v = u
+				_ = v // suppress unused warning
+			} else {
+				v = strings.ToUpper(u)
+				_ = v // suppress unused warning
+			}
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(_t) + "," + sqlLiteral(u) + "," + sqlLiteral(v) + "," + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(_t) + "," + sqlLiteral(u) + "," + sqlLiteral(v) + "," + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" \n    CREATE INDEX t1t ON t1(t);  -- 0.5, 1.5, 2.5, and 3.5\n    CREATE INDEX t1u ON t1(u);  -- text\n    CREATE INDEX t1v ON t1(v);  -- mixed case text\n    CREATE INDEX t1w ON t1(w);  -- integers 0, 1, 2 and a few NULLs\n    CREATE INDEX t1x ON t1(x);  -- integers 1, 2, 3 and many NULLs\n    CREATE INDEX t1y ON t1(y);  -- integers 0 and very few 1s\n    CREATE INDEX t1z ON t1(z);  -- integers 0, 1, 2, and 3\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE INDEX t1t ON t1(t);  -- 0.5, 1.5, 2.5, and 3.5\n    CREATE INDEX t1u ON t1(u);  -- text\n    CREATE INDEX t1v ON t1(v);  -- mixed case text\n    CREATE INDEX t1w ON t1(w);  -- integers 0, 1, 2 and a few NULLs\n    CREATE INDEX t1x ON t1(x);  -- integers 1, 2, 3 and many NULLs\n    CREATE INDEX t1y ON t1(y);  -- integers 0 and very few 1s\n    CREATE INDEX t1z ON t1(z);  -- integers 0, 1, 2, and 3\n    ANALYZE;\n  ")
+		}
+		_res = db.Exec("\n    SELECT DISTINCT lindex(test_decode(sample),0) \n      FROM sqlite_stat4 WHERE idx='t1u' ORDER BY nlt;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT lindex(test_decode(sample),0) \n      FROM sqlite_stat4 WHERE idx='t1u' ORDER BY nlt;\n  ")
+		}
+	}
+	{ // do_test "analyze5-1.1"
+		r = db.Query("\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "alpha bravo charlie delta"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "analyze5-1.2"
+		r = db.Query("SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1")
+			return
+		}
+		got := flatten(r)
+		want := "t1t 8 t1u 8 t1v 8 t1w 8 t1x 8 t1y 9 t1z 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// foreach {testid where index rows} "1  {z>=0 AND z<=0}       t1z  400\n    2  {z>=1 AND z<=1}       t1z  300\n    3  {z>=2 AND z<=2}       t1z  175\n    4  {z>=3 AND z<=3}       t1z  125\n    5  {z>=4 AND z<=4}       t1z    1\n    6  {z>=-1 AND z<=-1}     t1z    1\n    7  {z>1 AND z<3}         t1z  175\n    8  {z>0 AND z<100}       t1z  600\n    9  {z>=1 AND z<100}      t1z  600\n   10  {z>1 AND z<100}       t1z  300\n   11  {z>=2 AND z<100}      t1z  300\n   12  {z>2 AND z<100}       t1z  125\n   13  {z>=3 AND z<100}      t1z  125\n   14  {z>3 AND z<100}       t1z    1\n   15  {z>=4 AND z<100}      t1z    1\n   16  {z>=-100 AND z<=-1}   t1z    1\n   17  {z>=-100 AND z<=0}    t1z  400\n   18  {z>=-100 AND z<0}     t1z    1\n   19  {z>=-100 AND z<=1}    t1z  700\n   20  {z>=-100 AND z<2}     t1z  700\n   21  {z>=-100 AND z<=2}    t1z  875\n   22  {z>=-100 AND z<3}     t1z  875\n  \n   31  {z>=0.0 AND z<=0.0}   t1z  400\n   32  {z>=1.0 AND z<=1.0}   t1z  300\n   33  {z>=2.0 AND z<=2.0}   t1z  175\n   34  {z>=3.0 AND z<=3.0}   t1z  125\n   35  {z>=4.0 AND z<=4.0}   t1z    1\n   36  {z>=-1.0 AND z<=-1.0} t1z    1\n   37  {z>1.5 AND z<3.0}     t1z  174\n   38  {z>0.5 AND z<100}     t1z  599\n   39  {z>=1.0 AND z<100}    t1z  600\n   40  {z>1.5 AND z<100}     t1z  299\n   41  {z>=2.0 AND z<100}    t1z  300\n   42  {z>2.1 AND z<100}     t1z  124\n   43  {z>=3.0 AND z<100}    t1z  125\n   44  {z>3.2 AND z<100}     t1z    1\n   45  {z>=4.0 AND z<100}    t1z    1\n   46  {z>=-100 AND z<=-1.0} t1z    1\n   47  {z>=-100 AND z<=0.0}  t1z  400\n   48  {z>=-100 AND z<0.0}   t1z    1\n   49  {z>=-100 AND z<=1.0}  t1z  700\n   50  {z>=-100 AND z<2.0}   t1z  700\n   51  {z>=-100 AND z<=2.0}  t1z  875\n   52  {z>=-100 AND z<3.0}   t1z  875\n  \n  101  {z=-1}                t1z    1\n  102  {z=0}                 t1z  400\n  103  {z=1}                 t1z  300\n  104  {z=2}                 t1z  175\n  105  {z=3}                 t1z  125\n  106  {z=4}                 t1z    1\n  107  {z=-10.0}             t1z    1\n  108  {z=0.0}               t1z  400\n  109  {z=1.0}               t1z  300\n  110  {z=2.0}               t1z  175\n  111  {z=3.0}               t1z  125\n  112  {z=4.0}               t1z    1\n  113  {z=1.5}               t1z    1\n  114  {z=2.5}               t1z    1\n  \n  201  {z IN (-1)}           t1z    1\n  202  {z IN (0)}            t1z  400\n  203  {z IN (1)}            t1z  300\n  204  {z IN (2)}            t1z  175\n  205  {z IN (3)}            t1z  125\n  206  {z IN (4)}            t1z    1\n  207  {z IN (0.5)}          t1z    1\n  208  {z IN (0,1)}          t1z  700\n  209  {z IN (0,1,2)}        t1z  875\n  210  {z IN (0,1,2,3)}      {}   100\n  211  {z IN (0,1,2,3,4,5)}  {}   100\n  212  {z IN (1,2)}          t1z  475\n  213  {z IN (2,3)}          t1z  300\n  214  {z=3 OR z=2}          t1z  300\n  215  {z IN (-1,3)}         t1z  126\n  216  {z=-1 OR z=3}         t1z  126\n\n  300  {y=0}                 t1y  974\n  301  {y=1}                 t1y   26\n  302  {y=0.1}               t1y    1\n\n  400  {x IS NULL}           t1x  400"
+	_items0 := tclSplitList("1  {z>=0 AND z<=0}       t1z  400\n    2  {z>=1 AND z<=1}       t1z  300\n    3  {z>=2 AND z<=2}       t1z  175\n    4  {z>=3 AND z<=3}       t1z  125\n    5  {z>=4 AND z<=4}       t1z    1\n    6  {z>=-1 AND z<=-1}     t1z    1\n    7  {z>1 AND z<3}         t1z  175\n    8  {z>0 AND z<100}       t1z  600\n    9  {z>=1 AND z<100}      t1z  600\n   10  {z>1 AND z<100}       t1z  300\n   11  {z>=2 AND z<100}      t1z  300\n   12  {z>2 AND z<100}       t1z  125\n   13  {z>=3 AND z<100}      t1z  125\n   14  {z>3 AND z<100}       t1z    1\n   15  {z>=4 AND z<100}      t1z    1\n   16  {z>=-100 AND z<=-1}   t1z    1\n   17  {z>=-100 AND z<=0}    t1z  400\n   18  {z>=-100 AND z<0}     t1z    1\n   19  {z>=-100 AND z<=1}    t1z  700\n   20  {z>=-100 AND z<2}     t1z  700\n   21  {z>=-100 AND z<=2}    t1z  875\n   22  {z>=-100 AND z<3}     t1z  875\n  \n   31  {z>=0.0 AND z<=0.0}   t1z  400\n   32  {z>=1.0 AND z<=1.0}   t1z  300\n   33  {z>=2.0 AND z<=2.0}   t1z  175\n   34  {z>=3.0 AND z<=3.0}   t1z  125\n   35  {z>=4.0 AND z<=4.0}   t1z    1\n   36  {z>=-1.0 AND z<=-1.0} t1z    1\n   37  {z>1.5 AND z<3.0}     t1z  174\n   38  {z>0.5 AND z<100}     t1z  599\n   39  {z>=1.0 AND z<100}    t1z  600\n   40  {z>1.5 AND z<100}     t1z  299\n   41  {z>=2.0 AND z<100}    t1z  300\n   42  {z>2.1 AND z<100}     t1z  124\n   43  {z>=3.0 AND z<100}    t1z  125\n   44  {z>3.2 AND z<100}     t1z    1\n   45  {z>=4.0 AND z<100}    t1z    1\n   46  {z>=-100 AND z<=-1.0} t1z    1\n   47  {z>=-100 AND z<=0.0}  t1z  400\n   48  {z>=-100 AND z<0.0}   t1z    1\n   49  {z>=-100 AND z<=1.0}  t1z  700\n   50  {z>=-100 AND z<2.0}   t1z  700\n   51  {z>=-100 AND z<=2.0}  t1z  875\n   52  {z>=-100 AND z<3.0}   t1z  875\n  \n  101  {z=-1}                t1z    1\n  102  {z=0}                 t1z  400\n  103  {z=1}                 t1z  300\n  104  {z=2}                 t1z  175\n  105  {z=3}                 t1z  125\n  106  {z=4}                 t1z    1\n  107  {z=-10.0}             t1z    1\n  108  {z=0.0}               t1z  400\n  109  {z=1.0}               t1z  300\n  110  {z=2.0}               t1z  175\n  111  {z=3.0}               t1z  125\n  112  {z=4.0}               t1z    1\n  113  {z=1.5}               t1z    1\n  114  {z=2.5}               t1z    1\n  \n  201  {z IN (-1)}           t1z    1\n  202  {z IN (0)}            t1z  400\n  203  {z IN (1)}            t1z  300\n  204  {z IN (2)}            t1z  175\n  205  {z IN (3)}            t1z  125\n  206  {z IN (4)}            t1z    1\n  207  {z IN (0.5)}          t1z    1\n  208  {z IN (0,1)}          t1z  700\n  209  {z IN (0,1,2)}        t1z  875\n  210  {z IN (0,1,2,3)}      {}   100\n  211  {z IN (0,1,2,3,4,5)}  {}   100\n  212  {z IN (1,2)}          t1z  475\n  213  {z IN (2,3)}          t1z  300\n  214  {z=3 OR z=2}          t1z  300\n  215  {z IN (-1,3)}         t1z  126\n  216  {z=-1 OR z=3}         t1z  126\n\n  300  {y=0}                 t1y  974\n  301  {y=1}                 t1y   26\n  302  {y=0.1}               t1y    1\n\n  400  {x IS NULL}           t1x  400")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		testid := _items0[_idx0+0]
+		_ = testid // suppress unused warning
+		where := _items0[_idx0+1]
+		_ = where // suppress unused warning
+		index := _items0[_idx0+2]
+		_ = index // suppress unused warning
+		rows := _items0[_idx0+3]
+		_ = rows // suppress unused warning
+		_ = _idx0
+			{ // do_test "analyze5-1." + testid + "b"
+				w2 = strings.ReplaceAll(where, "y", "+y")
+				_ = w2 // suppress unused warning
+				_dbeval1 := tclExecSQL(db, "SELECT rowid FROM t1 NOT INDEXED WHERE " + w2 + "\\\n                     ORDER BY +rowid")
+				a1 = _dbeval1
+				_ = a1 // suppress unused warning
+				_dbeval2 := tclExecSQL(db, "SELECT rowid FROM t1 WHERE " + where + " ORDER BY +rowid")
+				a2 = _dbeval2
+				_ = a2 // suppress unused warning
+				if func() bool { a1_n, _a1_e := strconv.Atoi(a1); if _a1_e != nil { return false }; a2_n, _a2_e := strconv.Atoi(a2); if _a2_e != nil { return false }; return a1_n == a2_n }() {
+					vtab.TclVarSet("res", "", "ok")
+					res = "ok"
+					_ = res // suppress unused warning
+				} else {
+					vtab.TclVarSet("res", "", "a1=[" + a1 + "] a2=[" + a2 + "]")
+					res = "a1=[" + a1 + "] a2=[" + a2 + "]"
+					_ = res // suppress unused warning
+				}
+				got := tclListFlatten(res)
+				want := tclListFlatten("ok")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "analyze5-1." + testid + "b")
+				}
+			}
+		}
+		_res = db.Exec("\n   UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;\n")
+		}
+		// foreach {testid where index rows} "500  {x IS NULL AND u='charlie'}         t1u  17\n  501  {x=1 AND u='charlie'}               t1x   1\n  502  {x IS NULL}                         t1x 995\n  503  {x=1}                               t1x   1\n  504  {x IS NOT NULL}                     t1x   2\n  505  {+x IS NOT NULL}                     {} 500\n  506  {upper(x) IS NOT NULL}               {} 500"
+		_items3 := tclSplitList("500  {x IS NULL AND u='charlie'}         t1u  17\n  501  {x=1 AND u='charlie'}               t1x   1\n  502  {x IS NULL}                         t1x 995\n  503  {x=1}                               t1x   1\n  504  {x IS NOT NULL}                     t1x   2\n  505  {+x IS NOT NULL}                     {} 500\n  506  {upper(x) IS NOT NULL}               {} 500")
+		for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
+			testid := _items3[_idx3+0]
+			_ = testid // suppress unused warning
+			where := _items3[_idx3+1]
+			_ = where // suppress unused warning
+			index := _items3[_idx3+2]
+			_ = index // suppress unused warning
+			rows := _items3[_idx3+3]
+			_ = rows // suppress unused warning
+			_ = _idx3
+				{ // do_test "analyze5-1." + testid + "b"
+					w2 = strings.ReplaceAll(where, "y", "+y")
+					_ = w2 // suppress unused warning
+					_dbeval4 := tclExecSQL(db, "SELECT rowid FROM t1 NOT INDEXED WHERE " + w2 + "\\\n                     ORDER BY +rowid")
+					a1 = _dbeval4
+					_ = a1 // suppress unused warning
+					_dbeval5 := tclExecSQL(db, "SELECT rowid FROM t1 WHERE " + where + " ORDER BY +rowid")
+					a2 = _dbeval5
+					_ = a2 // suppress unused warning
+					if func() bool { a1_n, _a1_e := strconv.Atoi(a1); if _a1_e != nil { return false }; a2_n, _a2_e := strconv.Atoi(a2); if _a2_e != nil { return false }; return a1_n == a2_n }() {
+						vtab.TclVarSet("res", "", "ok")
+						res = "ok"
+						_ = res // suppress unused warning
+					} else {
+						vtab.TclVarSet("res", "", "a1=[" + a1 + "] a2=[" + a2 + "]")
+						res = "a1=[" + a1 + "] a2=[" + a2 + "]"
+						_ = res // suppress unused warning
+					}
+					got := tclListFlatten(res)
+					want := tclListFlatten("ok")
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "analyze5-1." + testid + "b")
+					}
+				}
+			}
+}

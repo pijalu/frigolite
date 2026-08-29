@@ -31,32 +31,40 @@ func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
 }
 
 func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
-	// ANALYZE writes to sqlite_stat1. If the reserved name has been shadowed
-	// by a hostile schema (vtabK: an fts5 virtual table renamed onto
-	// sqlite_stat1 via writable_schema), the table exists but has no root
-	// page; SQLite's openStatTable then opens cursor tnum=0 and the clear/
-	// insert fails with SQLITE_CORRUPT ("database disk image is malformed").
-	if err := e.stat1Writable(); err != nil {
-		return &Result{Error: err}
-	}
-	// Ensure sqlite_stat1 table exists
-	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
-		return &Result{Error: err}
-	}
-	// sqlite_stat4 is also created by ANALYZE (SQLite creates both stat
-	// tables together when statistics are collected).
-	if err := e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample"); err != nil {
-		return &Result{Error: err}
-	}
-
 	name := strings.TrimSpace(s.Name)
 	// ANALYZE sqlite_master (or main.sqlite_master) — just ensures stats table exists.
 	// In SQLite this loads stats into memory for the planner; we read from sqlite_stat1 directly.
 	if isMasterStatName(name) {
+		if err := e.stat1Writable(); err != nil {
+			return &Result{Error: err}
+		}
+		// Ensure sqlite_stat1 table exists
+		if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
+			return &Result{Error: err}
+		}
+		// sqlite_stat4 is also created by ANALYZE (SQLite creates both stat
+		// tables together when statistics are collected).
+		if err := e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample"); err != nil {
+			return &Result{Error: err}
+		}
 		return &Result{}
 	}
 	if name != "" {
 		return e.execAnalyzeNamed(name)
+	}
+	// ANALYZE (no args): validate stat-table writability, then ensure stat
+	// tables exist before analyzing all tables. SQLite's openStatTable is
+	// called inside analyzeTable/analyzeDatabase after the table-existence
+	// check passes; here the no-name form is a fast path that creates
+	// sqlite_stat1/sqlite_stat4 once before the per-table walk.
+	if err := e.stat1Writable(); err != nil {
+		return &Result{Error: err}
+	}
+	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
+		return &Result{Error: err}
+	}
+	if err := e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample"); err != nil {
+		return &Result{Error: err}
 	}
 	// Analyze all tables
 	return e.analyzeAllTables()
@@ -94,6 +102,9 @@ func (e *Engine) execAnalyzeNamed(name string) *Result {
 	// that schema; ANALYZE schema.table analyzes one table.
 	upperName := strings.ToUpper(name)
 	if upperName == "MAIN" || upperName == "TEMP" || upperName == "TEMPORARY" {
+		if err := e.openStatTablesForAnalyze(); err != nil {
+			return &Result{Error: err}
+		}
 		return e.analyzeAllTables()
 	}
 	// Handle schema.table prefix: validate the schema exists (SQLite
@@ -107,16 +118,40 @@ func (e *Engine) execAnalyzeNamed(name string) *Result {
 		}
 		tableName = tableName[dotIdx+1:]
 	}
-	// First try as a table name
+	// First try as a table name. The table-existence check must run BEFORE
+	// openStatTablesForAnalyze so a non-existent target leaves no schema side
+	// effects (analyze-1.4: SELECT count(*) FROM sqlite_master WHERE
+	// name='sqlite_stat1' remains 0 after ANALYZE no_such_table).
 	if _, tableErr := e.schema.FindTable(tableName); tableErr == nil {
+		if err := e.openStatTablesForAnalyze(); err != nil {
+			return &Result{Error: err}
+		}
 		return e.analyzeTable(tableName)
 	}
-	// Then try as an index name — ANALYZE index_name analyzes that index only
+	// Then try as an index name — ANALYZE index_name analyzes that index only.
+	// Same ordering rule: index-existence first, stat tables second.
 	idxEntry, idxErr := e.schema.FindIndex(name)
 	if idxErr == nil {
+		if err := e.openStatTablesForAnalyze(); err != nil {
+			return &Result{Error: err}
+		}
 		return e.analyzeOneIndex(idxEntry)
 	}
 	return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+}
+
+// openStatTablesForAnalyze is the stat-table setup the analyzer must perform
+// before walking tables or indexes (insertStatRow requires sqlite_stat1 to
+// exist, and stat1Writable rejects shadowed virtual tables). On success both
+// sqlite_stat1 and sqlite_stat4 are present in the schema.
+func (e *Engine) openStatTablesForAnalyze() error {
+	if err := e.stat1Writable(); err != nil {
+		return err
+	}
+	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
+		return err
+	}
+	return e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample")
 }
 
 // InitStatTable ensures the sqlite_stat1 and sqlite_stat4 tables exist.
@@ -234,6 +269,19 @@ func (e *Engine) analyzeTable(tableName string) *Result {
 	entry, err := e.schema.FindTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
+	}
+	// ANALYZE table-name must ensure sqlite_stat1/sqlite_stat4 exist before
+	// inserting the per-index stat rows (insertStatRow requires the table to
+	// exist). SQLite's openStatTable is invoked from analyzeTable after the
+	// table-existence check; mirror that ordering here.
+	if werr := e.stat1Writable(); werr != nil {
+		return &Result{Error: werr}
+	}
+	if serr := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); serr != nil {
+		return &Result{Error: serr}
+	}
+	if serr := e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample"); serr != nil {
+		return &Result{Error: serr}
 	}
 	// Clear existing stats for this table then re-stats
 	e.clearStatsForTable(tableName)
@@ -616,6 +664,22 @@ func (e *Engine) clearAllStats() *Result {
 }
 
 // clearStatsForTable deletes rows from sqlite_stat1 for a specific table.
+// ClearStatsForTable is the package-public form of clearStatsForTable: DDL
+// (DROP TABLE) calls it so sqlite_stat1 entries for the dropped table are
+// removed in the same transaction (SQLite src/build.c sqlite3ClearStatTables).
+// Silently no-ops when sqlite_stat1 does not yet exist.
+func (e *Engine) ClearStatsForTable(tblName string) {
+	e.clearStatsForTable(tblName)
+}
+
+// ClearStatsForIndex is the package-public form of clearStatsForIndex: DDL
+// (DROP INDEX) calls it so the sqlite_stat1 entry for the dropped index is
+// removed (SQLite src/build.c sqlite3ClearStatTables). Silently no-ops when
+// sqlite_stat1 does not yet exist.
+func (e *Engine) ClearStatsForIndex(tblName, idxName string) {
+	e.clearStatsForIndex(tblName, idxName)
+}
+
 func (e *Engine) clearStatsForTable(tblName string) *Result {
 	return e.deleteStatRows(func(row RowMap) bool {
 		return stat1RowMatchesTbl(row, tblName)

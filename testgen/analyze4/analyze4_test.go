@@ -5,8 +5,112 @@
 package analyze4
 
 import (
+"github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
-func Test_analyze4(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze4(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "analyze4-1.0"
+		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 SELECT a+1, b FROM t1;\n    INSERT INTO t1 SELECT a+2, b FROM t1;\n    INSERT INTO t1 SELECT a+4, b FROM t1;\n    INSERT INTO t1 SELECT a+8, b FROM t1;\n    INSERT INTO t1 SELECT a+16, b FROM t1;\n    INSERT INTO t1 SELECT a+32, b FROM t1;\n    INSERT INTO t1 SELECT a+64, b FROM t1;\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 SELECT a+1, b FROM t1;\n    INSERT INTO t1 SELECT a+2, b FROM t1;\n    INSERT INTO t1 SELECT a+4, b FROM t1;\n    INSERT INTO t1 SELECT a+8, b FROM t1;\n    INSERT INTO t1 SELECT a+16, b FROM t1;\n    INSERT INTO t1 SELECT a+32, b FROM t1;\n    INSERT INTO t1 SELECT a+64, b FROM t1;\n    ANALYZE;\n  ")
+		}
+		_res = db.Exec("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=5 AND b IS NULL")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=5 AND b IS NULL")
+		}
+	}
+	{ // do_test "analyze4-1.1"
+		r = db.Query("\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a 128 1 t1b 128 128"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "analyze4-1.2"
+		r = db.Query("\n    UPDATE t1 SET b='x' WHERE a%2;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET b='x' WHERE a%2;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a 128 1 t1b 128 64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "analyze4-1.3"
+		r = db.Query("\n    UPDATE t1 SET b=NULL;\n    ALTER TABLE t1 ADD COLUMN c;\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET c=a/4, d=a/2;\n    CREATE INDEX t1bcd ON t1(b,c,d);\n    CREATE INDEX t1cdb ON t1(c,d,b);\n    CREATE INDEX t1cbd ON t1(c,b,d);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET b=NULL;\n    ALTER TABLE t1 ADD COLUMN c;\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET c=a/4, d=a/2;\n    CREATE INDEX t1bcd ON t1(b,c,d);\n    CREATE INDEX t1cdb ON t1(c,d,b);\n    CREATE INDEX t1cbd ON t1(c,b,d);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a 128 1 t1b 128 128 t1bcd 128 128 4 2 t1cbd 128 4 4 2 t1cdb 128 4 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "analyze4-2.0"
+		r = db.Query("\n    CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      a TEXT COLLATE nocase,\n      b TEXT COLLATE rtrim,\n      c TEXT COLLATE binary\n    );\n    CREATE INDEX t2a ON t2(a);\n    CREATE INDEX t2b ON t2(b);\n    CREATE INDEX t2c ON t2(c);\n    CREATE INDEX t2c2 ON t2(c COLLATE nocase);\n    CREATE INDEX t2c3 ON t2(c COLLATE rtrim);\n    INSERT INTO t2 VALUES(1, 'abc', 'abc', 'abc');\n    INSERT INTO t2 VALUES(2, 'abC', 'abC', 'abC');\n    INSERT INTO t2 VALUES(3, 'abc ', 'abc ', 'abc ');\n    INSERT INTO t2 VALUES(4, 'abC ', 'abC ', 'abC ');\n    INSERT INTO t2 VALUES(5, 'aBc', 'aBc', 'aBc');\n    INSERT INTO t2 VALUES(6, 'aBC', 'aBC', 'aBC');\n    INSERT INTO t2 VALUES(7, 'aBc ', 'aBc ', 'aBc ');\n    INSERT INTO t2 VALUES(8, 'aBC ', 'aBC ', 'aBC ');\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t2' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      a TEXT COLLATE nocase,\n      b TEXT COLLATE rtrim,\n      c TEXT COLLATE binary\n    );\n    CREATE INDEX t2a ON t2(a);\n    CREATE INDEX t2b ON t2(b);\n    CREATE INDEX t2c ON t2(c);\n    CREATE INDEX t2c2 ON t2(c COLLATE nocase);\n    CREATE INDEX t2c3 ON t2(c COLLATE rtrim);\n    INSERT INTO t2 VALUES(1, 'abc', 'abc', 'abc');\n    INSERT INTO t2 VALUES(2, 'abC', 'abC', 'abC');\n    INSERT INTO t2 VALUES(3, 'abc ', 'abc ', 'abc ');\n    INSERT INTO t2 VALUES(4, 'abC ', 'abC ', 'abC ');\n    INSERT INTO t2 VALUES(5, 'aBc', 'aBc', 'aBc');\n    INSERT INTO t2 VALUES(6, 'aBC', 'aBC', 'aBC');\n    INSERT INTO t2 VALUES(7, 'aBc ', 'aBc ', 'aBc ');\n    INSERT INTO t2 VALUES(8, 'aBC ', 'aBC ', 'aBC ');\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t2' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2a 8 4 t2b 8 2 t2c 8 1 t2c2 8 4 t2c3 8 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

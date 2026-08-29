@@ -5,8 +5,147 @@
 package analyze7
 
 import (
+"github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
-func Test_analyze7(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze7(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "analyze7-1.0"
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
+		r = db.Query("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, value, value/100, value FROM nums\n                    WHERE value BETWEEN 1 AND 256;\n    EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, value, value/100, value FROM nums\n                    WHERE value BETWEEN 1 AND 256;\n    EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;\n  ")
+		}
+	}
+	{ // do_test "analyze7-1.1"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+		}
+	}
+	{ // do_test "analyze7-1.2"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+		}
+	}
+	{ // do_test "analyze7-2.0"
+		_res = db.Exec("ANALYZE t1a;")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE t1a;")
+		}
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;")
+		}
+	}
+	{ // do_test "analyze7-2.1"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+		}
+	}
+	{ // do_test "analyze7-2.2"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+		}
+	}
+	{ // do_test "analyze7-2.3"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.0"
+		_res = db.Exec("ANALYZE t1cd;")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE t1cd;")
+		}
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;")
+		}
+	}
+	{ // do_test "analyze7-3.1"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
+		}
+	}
+	{ // do_test "analyze7-3.2.1"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
+		}
+	}
+	{ // do_test "analyze7-3.3"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.4"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.5"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
+		}
+	}
+	{ // do_test "analyze7-3.6"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND d=123 AND b=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND d=123 AND b=123")
+		}
+	}
+}

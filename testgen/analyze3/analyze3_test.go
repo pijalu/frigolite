@@ -5,8 +5,879 @@
 package analyze3
 
 import (
+"fmt"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_analyze3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_analyze3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var like string
+	_ = like // pre-declared from TCL source
+	var auth string
+	_ = auth // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var R string
+	_ = R // pre-declared from TCL source
+	var S1 string
+	_ = S1 // pre-declared from TCL source
+	var S2 string
+	_ = S2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "analyze3")
+	testprefix = "analyze3"
+	_ = testprefix // suppress unused warning
+	return
+	if "" == "prepare" {
+		return
+	}
+	// proc definition (not transpiled)
+	db.RegisterFunction("var", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	{ // do_test "analyze3-1.1.1"
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x INTEGER, y);\n    CREATE INDEX i1 ON t1(x);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(x INTEGER, y);\n    CREATE INDEX i1 ON t1(x);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+100, " + sqlLiteral(i) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+100, " + sqlLiteral(i) + ") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("\n    COMMIT;\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    ANALYZE;\n  ")
+		}
+		r = db.Query(" SELECT count(*)>0 FROM sqlite_stat4; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*)>0 FROM sqlite_stat4; ")
+		}
+	}
+	{ // "analyze3-1.1.x"
+		r = db.Query("\n  SELECT count(*) FROM t1 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t1 WHERE x>0 AND x<1100;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t1 WHERE x>0 AND x<1100;\n")
+			return
+		}
+		got := flatten(r)
+		want := "99 1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyze3-1.1.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>200 AND x<300\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>200 AND x<300\n")
+		}
+	}
+	{ // "analyze3-1.1.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 \n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 \n")
+		}
+	}
+	{ // "analyze3-1.1.3.100"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		}
+	}
+	vtab.TclVarSet("l", "", "200")
+	l = "200"
+	_ = l // suppress unused warning
+	vtab.TclVarSet("u", "", "300")
+	u = "300"
+	_ = u // suppress unused warning
+	{ // "analyze3-1.1.3.101"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		}
+	}
+	vtab.TclVarSet("l", "", "0")
+	l = "0"
+	_ = l // suppress unused warning
+	vtab.TclVarSet("u", "", "1100")
+	u = "1100"
+	_ = u // suppress unused warning
+	{ // "analyze3-1.1.3.102"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		}
+	}
+	// sqlite3_db_config ENABLE_QPSG (unhandled flag)
+	{ // "analyze3-1.1.3.103"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		}
+	}
+	// sqlite3_db_config ENABLE_QPSG (unhandled flag)
+	{ // "analyze3-1.1.3.104"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
+		}
+	}
+	{ // do_test "analyze3-1.1.4"
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.1.5"
+		l = tclStringRange("200", "0", "end")
+		_ = l // suppress unused warning
+		u = tclStringRange("300", "0", "end")
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.1.6"
+		l = "200"
+		_ = l // suppress unused warning
+		u = "300"
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.1.7"
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.1.8"
+		l = tclStringRange("0", "0", "end")
+		_ = l // suppress unused warning
+		u = tclStringRange("1100", "0", "end")
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.1.9"
+		l = "0"
+		_ = l // suppress unused warning
+		u = "1100"
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.2.1"
+		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t2(x TEXT, y);\n      INSERT INTO t2 SELECT * FROM t1;\n      CREATE INDEX i2 ON t2(x);\n    COMMIT;\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE TABLE t2(x TEXT, y);\n      INSERT INTO t2 SELECT * FROM t1;\n      CREATE INDEX i2 ON t2(x);\n    COMMIT;\n    ANALYZE;\n  ")
+		}
+	}
+	{ // "analyze3-2.1.x"
+		r = db.Query("\n  SELECT count(*) FROM t2 WHERE x>1 AND x<2;\n  SELECT count(*) FROM t2 WHERE x>0 AND x<99;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t2 WHERE x>1 AND x<2;\n  SELECT count(*) FROM t2 WHERE x>0 AND x<99;\n")
+			return
+		}
+		got := flatten(r)
+		want := "200 990"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyze3-1.2.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t2 WHERE x>1 AND x<2\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t2 WHERE x>1 AND x<2\n")
+		}
+	}
+	{ // "analyze3-1.2.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t2 WHERE x>0 AND x<99\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t2 WHERE x>0 AND x<99\n")
+		}
+	}
+	{ // do_test "analyze3-1.2.4"
+		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>12 AND x<20 } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.2.5"
+		l = tclStringRange("12", "0", "end")
+		_ = l // suppress unused warning
+		u = tclStringRange("20", "0", "end")
+		_ = u // suppress unused warning
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.2.6"
+		l = "12"
+		_ = l // suppress unused warning
+		u = "20"
+		_ = u // suppress unused warning
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.2.7"
+		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>0 AND x<99 } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.2.8"
+		l = tclStringRange("0", "0", "end")
+		_ = l // suppress unused warning
+		u = tclStringRange("99", "0", "end")
+		_ = u // suppress unused warning
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.2.9"
+		l = "0"
+		_ = l // suppress unused warning
+		u = "99"
+		_ = u // suppress unused warning
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.3.1"
+		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t3(y TEXT, x INTEGER);\n      INSERT INTO t3 SELECT y, x FROM t1;\n      CREATE INDEX i3 ON t3(x);\n    COMMIT;\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE TABLE t3(y TEXT, x INTEGER);\n      INSERT INTO t3 SELECT y, x FROM t1;\n      CREATE INDEX i3 ON t3(x);\n    COMMIT;\n    ANALYZE;\n  ")
+		}
+	}
+	{ // "analyze3-1.3.x"
+		r = db.Query("\n  SELECT count(*) FROM t3 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t3 WHERE x>0 AND x<1100\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t3 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t3 WHERE x>0 AND x<1100\n")
+			return
+		}
+		got := flatten(r)
+		want := "99 1000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "analyze3-1.3.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t3 WHERE x>200 AND x<300\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t3 WHERE x>200 AND x<300\n")
+		}
+	}
+	{ // "analyze3-1.3.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t3 WHERE x>0 AND x<1100\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t3 WHERE x>0 AND x<1100\n")
+		}
+	}
+	{ // do_test "analyze3-1.3.4"
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.3.5"
+		l = tclStringRange("200", "0", "end")
+		_ = l // suppress unused warning
+		u = tclStringRange("300", "0", "end")
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.3.6"
+		l = "200"
+		_ = l // suppress unused warning
+		u = "300"
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.3.7"
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.3.8"
+		l = tclStringRange("0", "0", "end")
+		_ = l // suppress unused warning
+		u = tclStringRange("1100", "0", "end")
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-1.3.9"
+		l = "0"
+		_ = l // suppress unused warning
+		u = "1100"
+		_ = u // suppress unused warning
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
+	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
+	for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + tclQuoteIdent(fmt.Sprint(_t[0])))
+	}
+	for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + tclQuoteIdent(fmt.Sprint(_t[0])))
+	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + tclQuoteIdent(fmt.Sprint(_u[0])))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
+	{ // do_test "analyze3-2.1"
+		r = db.Query("\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			vtab.TclVarSet("t", "", "")
+			_t = ""
+			_ = _t // suppress unused warning
+			_t += tclLIndex("a b c d e f g h i j", tclExprWith("$i/100", map[string]string{"i": i}))
+			_t += tclLIndex("a b c d e f g h i j", tclExprWith("($i/10)%10", map[string]string{"i": i}))
+			_t += tclLIndex("a b c d e f g h i j", tclExprWith("($i%10)", map[string]string{"i": i}))
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(_t) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(_t) + ") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+	}
+	{ // "analyze3-2.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT count(a) FROM t1 WHERE b LIKE 'a%'\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT count(a) FROM t1 WHERE b LIKE 'a%'\n")
+		}
+	}
+	{ // "analyze3-2.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT count(a) FROM t1 WHERE b LIKE '%a'\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT count(a) FROM t1 WHERE b LIKE '%a'\n")
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "analyze3-2.4"
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE 'a%' } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.5"
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE '%a' } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.6"
+		vtab.TclVarSet("like", "", "a%")
+		like = "a%"
+		_ = like // suppress unused warning
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.7"
+		vtab.TclVarSet("like", "", "%a")
+		like = "%a"
+		_ = like // suppress unused warning
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.8"
+		vtab.TclVarSet("like", "", "a")
+		like = "a"
+		_ = like // suppress unused warning
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.9"
+		vtab.TclVarSet("like", "", "ab")
+		like = "ab"
+		_ = like // suppress unused warning
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.10"
+		vtab.TclVarSet("like", "", "abc")
+		like = "abc"
+		_ = like // suppress unused warning
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-2.11"
+		vtab.TclVarSet("like", "", "a_c")
+		like = "a_c"
+		_ = like // suppress unused warning
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
+	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
+	for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + tclQuoteIdent(fmt.Sprint(_t[0])))
+	}
+	for _, _t := range db.Query("SELECT name, type FROM temp.sqlite_master WHERE type IN('table','view')").Rows {
+		db.Exec("DROP " + fmt.Sprint(_t[1]) + " temp." + tclQuoteIdent(fmt.Sprint(_t[0])))
+	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name, type FROM " + dbname + ".sqlite_master WHERE type IN('table','view')").Rows {
+					db.Exec("DROP " + fmt.Sprint(_u[1]) + " " + dbname + "." + tclQuoteIdent(fmt.Sprint(_u[0])))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
+	// proc definition (not transpiled)
+	{ // do_test "analyze3-3.1"
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		_res = db.Exec("ANALYZE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+		}
+	}
+	{ // "analyze3-3.2.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE b>? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE b>?", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.2.2"
+		// sqlite3_bind_text $S 1 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.2.4" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-3.2.5" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE b=? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE b=?", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.2.6"
+		// sqlite3_bind_text $S 1 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.2.7" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-3.4.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE a=? AND b>? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a=? AND b>?", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.4.2"
+		// sqlite3_bind_text $S 1 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.4.3"
+		// sqlite3_bind_text $S 2 def → 'def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.4.4"
+		// sqlite3_bind_text $S 2 ghi → 'ghi'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.4.5"
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.4.6" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-3.5.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE a IN ( ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31 ) AND b>?32; (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a IN (\n      ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10,\n      ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20,\n      ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31\n    ) AND b>?32;", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.5.2"
+		// sqlite3_bind_text $S 31 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.5.3"
+		// sqlite3_bind_text $S 32 def → 'def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.5.5" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-3.6.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE a IN ( ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32 ) AND b>?33; (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a IN (\n      ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10,\n      ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20,\n      ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32\n    ) AND b>?33;", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.6.2"
+		// sqlite3_bind_text $S 32 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.6.3"
+		// sqlite3_bind_text $S 33 def → 'def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.6.5" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-3.7.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE a IN ( ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?33, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32 ) AND b>?10; (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a IN (\n      ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?33,\n      ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20,\n      ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32\n    ) AND b>?10;", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.7.2"
+		// sqlite3_bind_text $S 32 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.7.3"
+		// sqlite3_bind_text $S 33 def → 'def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.7.4"
+		// sqlite3_bind_text $S 10 def → 'def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.7.6" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // do_test "analyze3-3.8.1"
+		_res = db.Exec("\n    CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);\n  ")
+		}
+	}
+	{ // "analyze3-3.8.2" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t4 WHERE x != ? AND y LIKE ? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t4 WHERE x != ? AND y LIKE ?", "S")
+		_ = S // prepared statement handle
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.3"
+		// sqlite3_bind_text $S 1 abc → 'abc'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.4"
+		// sqlite3_bind_text $S 2 def → 'def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.7"
+		// sqlite3_bind_text $S 2 ghi% → 'ghi%'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.8"
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.9"
+		// sqlite3_bind_text $S 2 ghi%def → 'ghi%def'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.10"
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.11"
+		// sqlite3_bind_text $S 2 %ab → '%ab'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.12"
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.12"
+		// sqlite3_bind_text $S 2 %de → '%de'
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // do_test "analyze3-3.8.13"
+		// sqlite3_expired $S (unsupported command, not transpiled)
+	}
+	{ // "analyze3-3.8.14" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-4.1.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE a=? AND b>? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a=? AND b>?", "S")
+		_ = S // prepared statement handle
+		_res = db.Exec("SELECT * FROM t1 WHERE a=? AND b>?")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "analyze3-4.1.2" (prepare-step internals; SQL side effects only)
+		tclResetPrepared("S")
+		// sqlite3_reset $S
+		// sqlite3_bind_text $S 2 abc → 'abc'
+		_res = db.Exec(" DROP TABLE t1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+		}
+		_res = db.Exec("SELECT * FROM t1 WHERE a= AND b>")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "analyze3-4.1.3" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-4.2.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		_res = db.Exec("ANALYZE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+		}
+		// prepared S: SELECT * FROM t1 WHERE a=? AND b>? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a=? AND b>?", "S")
+		_ = S // prepared statement handle
+		_res = db.Exec("SELECT * FROM t1 WHERE a=? AND b>?")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	// proc definition (not transpiled)
+	{ // "analyze3-4.2.2" (prepare-step internals; SQL side effects only)
+		tclResetPrepared("S")
+		// sqlite3_reset $S
+		// sqlite3_bind_text $S 2 abc → 'abc'
+		_res = db.Exec("SELECT * FROM t1 WHERE a= AND b>")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "analyze3-4.2.4" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-4.3.1" (prepare-step internals; SQL side effects only)
+		// prepared S: SELECT * FROM t1 WHERE a=? AND b>? (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t1 WHERE a=? AND b>?", "S")
+		_ = S // prepared statement handle
+		_res = db.Exec(" CREATE TABLE t2(d, e, f) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(d, e, f) ")
+		}
+		_res = db.Exec("SELECT * FROM t1 WHERE a=? AND b>?")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "analyze3-4.3.2" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("S")
+		// sqlite3_finalize $S
+	}
+	{ // "analyze3-5.1.1" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	}
+	{ // "analyze3-5.1.2" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	}
+	{ // "analyze3-5.1.3" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	}
+	{ // "analyze3-5.1.1" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	}
+	{ // "analyze3-5.1.2" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	}
+	{ // "analyze3-5.1.3" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable
+	}
+	{ // do_test "analyze3-6.1"
+		_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
+		}
+		_res = db.Exec("BEGIN")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		}
+		_res = db.Exec(" CREATE TABLE t1(a, b, c) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b, c) ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+			_res = db.Exec("INSERT INTO t1 VALUES(" + tclExprWith("$i/100", map[string]string{"i": i}) + ", 'x', " + tclExprWith("$i/10", map[string]string{"i": i}) + ")")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + tclExprWith("$i/100", map[string]string{"i": i}) + ", 'x', " + tclExprWith("$i/10", map[string]string{"i": i}) + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n  ")
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		_res = db.Exec("ANALYZE")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+		}
+	}
+	{ // "analyze3-6-3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a = 5 AND c = 13;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a = 5 AND c = 13;\n")
+		}
+	}
+	{ // "analyze3-6-2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a = 5 AND b > 'w' AND c = 13;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a = 5 AND b > 'w' AND c = 13;\n")
+		}
+	}
+	{ // "analyze-7.1"
+		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1,1,'0000');\n  CREATE INDEX t0b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND hex(1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1,1,'0000');\n  CREATE INDEX t0b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND hex(1);\n")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "7.2"
+		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "8.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "8.1"
+		r = db.Query("\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat4 VALUES\n     ('t1','t1','1','2','2',X'03000103'),\n     ('t1','sqlite_autoindex_t1_1','1','2','2',X'03000103');\n  ANALYZE sqlite_schema;\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat4 VALUES\n     ('t1','t1','1','2','2',X'03000103'),\n     ('t1','sqlite_autoindex_t1_1','1','2','2',X'03000103');\n  ANALYZE sqlite_schema;\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}
