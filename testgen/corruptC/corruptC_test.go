@@ -5,8 +5,483 @@
 package corruptC
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_corruptC(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corruptC(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fsize string
+	_ = fsize // pre-declared from TCL source
+	var qseed string
+	_ = qseed // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var filesize string
+	_ = filesize // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var last string
+	_ = last // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var roffset string
+	_ = roffset // pre-declared from TCL source
+	var rbyte string
+	_ = rbyte // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var ans string
+	_ = ans // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var stats_ref string
+	_ = stats_ref // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _range string
+	_ = _range // pre-declared from TCL source
+	var rline string
+	_ = rline // pre-declared from TCL source
+
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		os.Remove("test.db")
+	}
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	{ // do_test "corruptC-1.1"
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	// proc definition (not transpiled)
+	db.Close()
+	tclFileCopy("test.db", "test.bu")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	fsize = strconv.Itoa(tclFileSize("test.db"))
+	_ = fsize // suppress unused warning
+	if tclBool(tclBool01(vtab.TclVarExists("G(issoak)", ""))) {
+		qseed = "file mtime test.db"
+		_ = qseed // suppress unused warning
+	} else {
+		vtab.TclVarSet("qseed", "", "0")
+		qseed = "0"
+		_ = qseed // suppress unused warning
+	}
+	// expr srand($qseed) (not evaluated)
+	{ // do_test "corruptC-2.1"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(2053), tclFormat("%02x", "0x04"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("PRAGMA integrity_check")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.2"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(27), tclFormat("%02x", "0x08"))
+		tclHexioWrite("test.db", int64(233), tclFormat("%02x", "0x6a"))
+		tclHexioWrite("test.db", int64(328), tclFormat("%02x", "0x67"))
+		tclHexioWrite("test.db", int64(750), tclFormat("%02x", "0x1f"))
+		tclHexioWrite("test.db", int64(1132), tclFormat("%02x", "0x52"))
+		tclHexioWrite("test.db", int64(1133), tclFormat("%02x", "0x84"))
+		tclHexioWrite("test.db", int64(1220), tclFormat("%02x", "0x01"))
+		tclHexioWrite("test.db", int64(3688), tclFormat("%02x", "0xc1"))
+		tclHexioWrite("test.db", int64(3714), tclFormat("%02x", "0x58"))
+		tclHexioWrite("test.db", int64(3746), tclFormat("%02x", "0x9a"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("UPDATE t1 SET y=1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=1")
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA integrity_check")
+		}
+	}
+	{ // do_test "corruptC-2.3"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(1094), tclFormat("%02x", "0x76"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("UPDATE t1 SET y=1")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.4"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(3119), tclFormat("%02x", "0xdf"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("UPDATE t2 SET y='abcdef-uvwxyz'")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.5"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(3119), tclFormat("%02x", "0xdf"))
+		tclHexioWrite("test.db", int64(4073), tclFormat("%02x", "0xbf"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
+		_ = _res // catchsql
+		_res = db.Exec("PRAGMA integrity_check")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.6"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(619), tclFormat("%02x", "0xe2"))
+		tclHexioWrite("test.db", int64(3150), tclFormat("%02x", "0xa8"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.7"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(3074), tclFormat("%02x", "0xa0"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
+		_ = _res // catchsql
+	}
+	if false {
+		{ // do_test "corruptC-2.8"
+			db.Close()
+			tclFileCopy("test.bu", "test.db")
+			tclHexioWrite("test.db", int64(1393), tclFormat("%02x", "0x7d"))
+			tclHexioWrite("test.db", int64(84), tclFormat("%02x", "0x19"))
+			tclHexioWrite("test.db", int64(3287), tclFormat("%02x", "0x3b"))
+			tclHexioWrite("test.db", int64(2564), tclFormat("%02x", "0xed"))
+			tclHexioWrite("test.db", int64(2139), tclFormat("%02x", "0x55"))
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
+			_ = _res // catchsql
+		}
+	}
+	{ // do_test "corruptC-2.9"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(2095), tclFormat("%02x", "0xd6"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.10"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(3130), tclFormat("%02x", "0x02"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.11"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(55), tclFormat("%02x", "0xa7"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.12"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(974), tclFormat("%02x", "0x2e"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("SELECT count(*) FROM sqlite_master;")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.13"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(102), tclFormat("%02x", "0x12"))
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
+		_ = _res // catchsql
+	}
+	{ // "corruptC-2.14" (prepare-step internals; SQL side effects only)
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		blob = tclStringRepeat("abcdefghij", "10000")
+		_ = blob // suppress unused warning
+		_res = db.Exec(" INSERT INTO t1 VALUES (1, " + sqlLiteral(blob) + ") ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES (1, " + sqlLiteral(blob) + ") ")
+		}
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		filesize = strconv.Itoa(tclFileSize("test.db"))
+		_ = filesize // suppress unused warning
+		tclHexioWrite("test.db", int64(toInt(filesize)-2048), "00000001")
+		_res = db.Exec("DELETE FROM t1 WHERE rowid = (SELECT max(rowid) FROM t1)")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptC-2.15"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		tclHexioWrite("test.db", int64(986), "b9")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("SELECT count(*) FROM sqlite_master;")
+		_ = _res // catchsql
+	}
+	vtab.TclVarSet("tn", "", "0")
+	tn = "0"
+	_ = tn // suppress unused warning
+	for func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return tn_n < fsize_n }() {
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("last", "", "0")
+		last = "0"
+		_ = last // suppress unused warning
+		vtab.TclVarSet("i", "", "1")
+		i = "1"
+		_ = i // suppress unused warning
+		for tclBool(i + "<=512 && !" + last) {
+			db.Close()
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 1 }() {
+				vtab.TclVarSet("roffset", "", tn)
+				roffset = tn
+				_ = roffset // suppress unused warning
+			} else {
+				roffset = "random $fsize"
+				_ = roffset // suppress unused warning
+			}
+			rbyte = tclFormat("%02x", "random 255")
+			_ = rbyte // suppress unused warning
+			tclHexioWrite("test.db", int64(toInt(roffset)), rbyte)
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".1"
+				_res = db.Exec("SELECT count(*) FROM sqlite_master")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".1")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".2"
+				_res = db.Exec("SELECT count(*) FROM t1")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".2")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".3"
+				_res = db.Exec("SELECT count(*) FROM t1 WHERE x>13")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".3")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".4"
+				_res = db.Exec("SELECT count(*) FROM t2")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".4")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".5"
+				_res = db.Exec("SELECT count(*) FROM t2 WHERE x<13")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".5")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".6"
+				_res = db.Exec("BEGIN; UPDATE t1 SET y=1; ROLLBACK;")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".6")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".7"
+				_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".7")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".8"
+				_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".8")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".9"
+				_res = db.Exec("BEGIN; DELETE FROM t2 WHERE x<13; ROLLBACK;")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".9")
+				}
+			}
+			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".10"
+				_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
+				_ = _res // catchsql
+				vtab.TclVarSet("x", "", "")
+				x = ""
+				_ = x // suppress unused warning
+				got := tclListFlatten(x)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".10")
+				}
+			}
+			_res = db.Exec("PRAGMA integrity_check")
+			res = tclCatchsqlString(_res)
+			ans = tclLIndex(res, "1")
+			_ = ans // suppress unused warning
+			if func() bool { l_n, l_e := strconv.Atoi("$ans \"ok\""); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n != r_n }() {
+				vtab.TclVarSet("last", "", "-1")
+				last = "-1"
+				_ = last // suppress unused warning
+			}
+			if false {
+				{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".11"
+					bt = "btree_from_db db"
+					_ = bt // suppress unused warning
+					// db_enter db (unsupported command, not transpiled)
+					// db_leave db (unsupported command, not transpiled)
+					stats_ref = vtab.TclVarGet("stats", "ref")
+					got := tclListFlatten(stats_ref)
+					want := tclListFlatten("0")
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corruptC-3." + tn + ".(" + qseed + ")." + i + ".11")
+					}
+				}
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		// incr tn 1
+		{
+			_n, _err := strconv.Atoi(tn)
+			if _err == nil {
+				tn = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+}

@@ -88,10 +88,13 @@ func TestParseSkipMaps(t *testing.T) {
 	// 310 after P7.SKIPSCAN un-skipped skipscan2/3/5/6 (4 entries) and parent
 	// "skipscan" (1 entry) — 5 total removed. skipscan1 N-A via the OR-with-
 	// skip-scan branch limitation (skipscan1-8.1eqp), bringing the count to 311.
+		// P8.CORRUPT un-skips 13 entries (corrupt + corrupt2..9 + corruptC/F/L/N),
+		// dropping the count to 298. Lower the floor only alongside documented
+		// un-skip work.
 	// Lower the floor only alongside documented un-skip work.
-	if len(skips.skipTestFiles) < 311 {
-		t.Errorf("skipTestFiles has %d entries, want >= 311", len(skips.skipTestFiles))
-	}
+	if len(skips.skipTestFiles) < 298 {
+			t.Errorf("skipTestFiles has %d entries, want >= 298", len(skips.skipTestFiles))
+		}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))
 	}

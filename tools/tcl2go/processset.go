@@ -51,20 +51,27 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			tp.recordPreparedStatement(goName, "["+prepareText+"]")
 			return
 		}
-		// `set fd [open FILE wb]` — a TCL write-mode file channel: truncate /
-		// create the file now; subsequent puts $fd appends (csv01 5.x setup).
-		if path, mode, ok := parseOpenChannelWord(args[1].Text); ok && strings.Contains(mode, "w") {
-			if strings.HasPrefix(path, "$") {
-				// Variable path (zipfile.test 12.x): keep the channel's
-				// destination as a Go expression evaluated at runtime.
-				activeFileChannels[goName] = tclVarToGo(strings.TrimPrefix(path, "$"))
-				activeFileChannelExprs[goName] = true
-				tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", activeFileChannels[goName])
-			} else {
-				activeFileChannels[goName] = path
-				tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", strconv.Quote(path))
-			}
-		}
+		// `set fd [open FILE MODE]` — track the channel's path so subsequent
+				// `puts $fd TEXT` writes to the right file (regardless of MODE: wb,
+				// r+, etc.; the corrupt*.test suites open test.db r+ and overwrite a
+				// byte at a known offset to simulate corruption). Without this,
+				// packages that run AFTER another test that opens test.tcl for write
+				// would inherit `activeFileChannels["fd"] = "test.tcl"` and write
+				// corruption bytes to the wrong file.
+				if path, mode, ok := parseOpenChannelWord(args[1].Text); ok {
+					if strings.HasPrefix(path, "$") {
+						activeFileChannels[goName] = tclVarToGo(strings.TrimPrefix(path, "$"))
+						activeFileChannelExprs[goName] = true
+						if strings.Contains(mode, "w") {
+							tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", activeFileChannels[goName])
+						}
+					} else {
+						activeFileChannels[goName] = path
+						if strings.Contains(mode, "w") {
+							tp.emitLine("_ = os.WriteFile(%s, nil, 0644)", strconv.Quote(path))
+						}
+					}
+				}
 	}
 
 	// Skip set testdir [file dirname $argv0] etc - infrastructure

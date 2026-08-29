@@ -5,8 +5,211 @@
 package corrupt4
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_corrupt4(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corrupt4(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var bigstring string
+	_ = bigstring // pre-declared from TCL source
+	var trunkpgno string
+	_ = trunkpgno // pre-declared from TCL source
+	var baseaddr string
+	_ = baseaddr // pre-declared from TCL source
+	var nView string
+	_ = nView // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var bin string
+	_ = bin // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var nChild string
+	_ = nChild // pre-declared from TCL source
+	var offChild string
+	_ = offChild // pre-declared from TCL source
+	var pgnoChild string
+	_ = pgnoChild // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "corrupt4")
+	testprefix = "corrupt4"
+	_ = testprefix // suppress unused warning
+	if tclBool("nonzero_reserved_bytes") {
+		return
+	}
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	{ // do_test "corrupt4-1.1"
+		bigstring = tclStringRepeat("0123456789", "200")
+		_ = bigstring // suppress unused warning
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "4096" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "4096", "corrupt4-1.1")
+		}
+	}
+	{ // do_test "corrupt4-1.2"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
+	_ = trunkpgno // suppress unused warning
+	baseaddr = tclExprWith("($trunkpgno-1)*1024", map[string]string{"trunkpgno": trunkpgno})
+	_ = baseaddr // suppress unused warning
+	{ // do_test "corrupt4-1.3"
+		// hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4] (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt4-1.4"
+		// hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000] (unsupported arguments)
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    DROP TABLE t2\n  ")
+		_ = _res // catchsql
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "2.0"
+		r = db.Query("\n  PRAGMA page_size = 512;\n  CREATE TABLE t1(a, b, c);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  CREATE TABLE t1(a, b, c);\n")
+		}
+	}
+	vtab.TclVarSet("nView", "", "1000")
+	nView = "1000"
+	_ = nView // suppress unused warning
+	{ // do_test "2.1"
+		_res = db.Exec("BEGIN")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		}
+		vtab.TclVarSet("ii", "", "0")
+		ii = "0"
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nView_n, _nView_e := strconv.Atoi(nView); if _nView_e != nil { return false }; return ii_n < nView_n }() {
+			_res = db.Exec(" CREATE VIEW v" + ii + " AS SELECT a, b, c FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW v" + ii + " AS SELECT a, b, c FROM t1 ")
+			}
+			// incr ii 1
+			{
+				_n, _err := strconv.Atoi(ii)
+				if _err == nil {
+					ii = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+	}
+	db.Close()
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	fd = "test.db"
+	_ = fd // suppress unused warning
+	nChild = "get2byte $fd 103"
+	_ = nChild // suppress unused warning
+	offChild = "get2byte $fd [expr 100+12+($nChild-2)*2]"
+	_ = offChild // suppress unused warning
+	pgnoChild = "get4byte $fd $offChild"
+	_ = pgnoChild // suppress unused warning
+	// put4byte $fd $offChild 1 (unsupported command, not transpiled)
+	// close $fd
+	if tclBool("!" + tclBool01(vtab.TclVarExists("G(perm:presql)", ""))) {
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "2.2"
+			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")
+			}
+		}
+		{ // do_test "2.3"
+			_rc := "0"
+			{
+				var _catchErr error
+				vtab.TclVarSet("ii", "", nView)
+				ii = nView
+				_ = ii // suppress unused warning
+				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nView_n, _nView_e := strconv.Atoi(nView); if _nView_e != nil { return false }; return ii_n < nView_n*2 }() {
+					_res = db.Exec("INSERT INTO sqlite_master VALUES(1, 2, 3, 4, 5)")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO sqlite_master VALUES(1, 2, 3, 4, 5)")
+					}
+					// incr ii 1
+					{
+						_n, _err := strconv.Atoi(ii)
+						if _err == nil {
+							ii = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+				if _catchErr != nil { _rc = "1" }
+			}
+			_list := tclList([]string{_rc, msg})
+			_ = _list
+			_r = _list
+		}
+	}
+}

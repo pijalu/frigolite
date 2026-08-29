@@ -5,8 +5,228 @@
 package corruptF
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_corruptF(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corruptF(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "corruptF")
+	testprefix = "corruptF"
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	{ // do_test "1.1"
+		// create_test_db (unsupported command, not transpiled)
+	}
+	{ // do_test "1.2" (file size test.db)
+		got := strconv.Itoa(tclFileSize("test.db"))
+		if got != "6144" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, "6144", "1.2")
+		}
+	}
+	{ // do_test "1.3"
+		// hexio_read test.db 32 4 (unsupported command, not transpiled)
+	}
+	{ // do_test "1.4"
+		// hexio_read test.db [expr 2*1024] 12 (unsupported command, not transpiled)
+	}
+	{ // do_test "1.5"
+		tclHexioWrite("test.db", int64(2*1024 + 8), "00000006")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+	}
+	{ // "1.6"
+		r = db.Query(" \n  CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;\n")
+			return
+		}
+		got := flatten(r)
+		want := "table t1 t1 2 CREATE TABLE t1(x) table t4 t4 6 CREATE TABLE t4(x)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// db_save_and_close: snapshot test.db* under sv_ prefix
+	for _, _sf := range tclSplitList(tclGlob("test.db*")) {
+		tclFileCopy(_sf, "sv_"+_sf)
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	if true {
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 128 }() {
+			// db_restore_and_reopen: restore sv_test.db* snapshot
+			db.Close()
+			for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
+			for _, _sv := range tclSplitList(tclGlob("sv_test.db*")) {
+				tclFileCopy(_sv, strings.TrimPrefix(_sv, "sv_"))
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			{ // do_test "1.7." + i
+				_res = db.Exec(" INSERT INTO t4 SELECT x FROM t1 WHERE rowid>" + i + " ")
+				res = tclCatchsqlString(_res)
+				if tclBool(res + " == \"0 {}\" || " + res + " == \"1 {database disk image is malformed}\"") {
+					vtab.TclVarSet("res", "", "")
+					res = ""
+					_ = res // suppress unused warning
+				}
+				got := tclListFlatten(res)
+				want := tclListFlatten("")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.7." + i)
+				}
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+	}
+	{ // do_test "2.1"
+		// create_test_db (unsupported command, not transpiled)
+	}
+	{ // do_test "2.2" (file size test.db)
+		got := strconv.Itoa(tclFileSize("test.db"))
+		if got != "6144" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, "6144", "2.2")
+		}
+	}
+	{ // do_test "2.3"
+		// hexio_read test.db 32 4 (unsupported command, not transpiled)
+	}
+	{ // do_test "2.4"
+		// hexio_read test.db [expr 2*1024] 12 (unsupported command, not transpiled)
+	}
+	{ // do_test "2.5"
+		tclHexioWrite("test.db", int64(2*1024 + 8), "00000005")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+	}
+	{ // "2.6"
+		r = db.Query(" \n  CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;\n")
+			return
+		}
+		got := flatten(r)
+		want := "table t1 t1 2 CREATE TABLE t1(x) table t4 t4 5 CREATE TABLE t4(x)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// db_save_and_close: snapshot test.db* under sv_ prefix
+	for _, _sf := range tclSplitList(tclGlob("test.db*")) {
+		tclFileCopy(_sf, "sv_"+_sf)
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	vtab.TclVarSet("i", "", "127")
+	i = "127"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
+		// db_restore_and_reopen: restore sv_test.db* snapshot
+		db.Close()
+		for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
+		for _, _sv := range tclSplitList(tclGlob("sv_test.db*")) {
+			tclFileCopy(_sv, strings.TrimPrefix(_sv, "sv_"))
+		}
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		{ // do_test "2.7." + i
+			_res = db.Exec(" \n        INSERT INTO t4 SELECT x FROM t1 WHERE rowid<" + i + " ORDER BY rowid DESC \n      ")
+			res = tclCatchsqlString(_res)
+			if tclBool(res + " == \"0 {}\" || " + res + " == \"1 {database disk image is malformed}\"") {
+				vtab.TclVarSet("res", "", "")
+				res = ""
+				_ = res // suppress unused warning
+			}
+			got := tclListFlatten(res)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "2.7." + i)
+			}
+		}
+		// incr i -1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + -1)
+			}
+		}
+	}
+}

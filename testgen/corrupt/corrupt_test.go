@@ -5,8 +5,480 @@
 package corrupt
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_corrupt(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corrupt(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fsize string
+	_ = fsize // pre-declared from TCL source
+	var junk string
+	_ = junk // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var stats_ref string
+	_ = stats_ref // pre-declared from TCL source
+	var t1_r string
+	_ = t1_r // pre-declared from TCL source
+	var t1i1_r string
+	_ = t1i1_r // pre-declared from TCL source
+	var cookie string
+	_ = cookie // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var iRoot string
+	_ = iRoot // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var ct string
+	_ = ct // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		os.Remove("test.db")
+	}
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	{ // do_test "corrupt-1.1"
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	tclFileCopy("test.db", "test.bu")
+	fsize = strconv.Itoa(tclFileSize("test.db"))
+	_ = fsize // suppress unused warning
+	vtab.TclVarSet("junk", "", "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	junk = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	_ = junk // suppress unused warning
+	for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(len(junk))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("256"); if r_e != nil { return false }; return l_n < r_n }() {
+		junk += junk
+	}
+	junk = tclStringRange(junk, "0", "255")
+	_ = junk // suppress unused warning
+	i = "256"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return i_n < fsize_n-256 }() {
+		tn = tclExprWith("$i/256", map[string]string{"i": i})
+		_ = tn // suppress unused warning
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		fd = "test.db"
+		_ = fd // suppress unused warning
+		// seek $fd $i
+		tclChannelAppend("test.db", junk)
+		// close $fd
+		{ // do_test "corrupt-2." + tn + ".1"
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("SELECT count(*) FROM sqlite_master")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".1")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".2"
+			_res = db.Exec("SELECT count(*) FROM t1")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".2")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".3"
+			_res = db.Exec("SELECT count(*) FROM t1 WHERE x>'abcdef'")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".3")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".4"
+			_res = db.Exec("SELECT count(*) FROM t2")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".4")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".5"
+			_res = db.Exec("CREATE TABLE t3 AS SELECT * FROM t1")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".5")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".6"
+			_res = db.Exec("DROP TABLE t1")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".6")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".7"
+			_res = db.Exec("PRAGMA integrity_check")
+			_ = _res // catchsql
+			vtab.TclVarSet("x", "", "")
+			x = ""
+			_ = x // suppress unused warning
+			got := tclListFlatten(x)
+			want := tclListFlatten("")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".7")
+			}
+		}
+		{ // do_test "corrupt-2." + tn + ".8"
+			bt = "btree_from_db db"
+			_ = bt // suppress unused warning
+			// db_enter db (unsupported command, not transpiled)
+			// db_leave db (unsupported command, not transpiled)
+			stats_ref = vtab.TclVarGet("stats", "ref")
+			got := tclListFlatten(stats_ref)
+			want := tclListFlatten("0")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "corrupt-2." + tn + ".8")
+			}
+		}
+		// incr i 256
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 256)
+			}
+		}
+	}
+	{ // do_test "corrupt-3.1"
+		db.Close()
+		tclFileCopy("test.bu", "test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+	}
+	{ // do_test "corrupt-3.2"
+		t1_r = tclExecSQL(db, "SELECT rootpage FROM sqlite_master WHERE name = 't1i1'")
+		_ = t1_r // suppress unused warning
+		t1i1_r = tclExecSQL(db, "SELECT rootpage FROM sqlite_master WHERE name = 't1'")
+		_ = t1i1_r // suppress unused warning
+		cookie = tclExpr("[execsql {PRAGMA schema_version}] + 1")
+		_ = cookie // suppress unused warning
+		db.SetDefensive(false)
+		r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
+		}
+	}
+	{ // do_test "corrupt-3.3"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    INSERT INTO t1 VALUES('abc');\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt-3.4"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt-3.5"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT * FROM t1 WHERE oid = 10;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt-3.6"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT * FROM t1 WHERE x = 'abcde';\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt-4.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+			text = tclStringRepeat(i, "220")
+			_ = text // suppress unused warning
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(text) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(text) + ") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" CREATE INDEX i1 ON t1(b) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(b) ")
+		}
+	}
+	{ // do_test "corrupt-4.2"
+		_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 'i1'}")
+		iRoot = _dbone0
+		_ = iRoot // suppress unused warning
+		iOffset = "hexio_get_int [hexio_read test.db [expr 12+($iRoot-1)*1024] 2]"
+		_ = iOffset // suppress unused warning
+		data = "hexio_render_int32 [expr $iRoot - 1]"
+		_ = data // suppress unused warning
+		tclHexioWrite("test.db", int64((toInt(iRoot)-1)*1024 + toInt(iOffset)), data)
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 3 ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt-5.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query(" PRAGMA page_size = 1024 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 1024 ")
+		}
+		vtab.TclVarSet("ct", "", "CREATE TABLE t1(c0 ")
+		ct = "CREATE TABLE t1(c0 "
+		_ = ct // suppress unused warning
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(len(ct))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("950"); if r_e != nil { return false }; return l_n < r_n }() {
+			ct += ", c" + "incr i"
+		}
+		ct += ")"
+		_res = db.Exec(ct)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, ct)
+		}
+	}
+	{ // do_test "corrupt-5.2"
+		db.Close()
+		tclHexioWrite("test.db", int64(108), "00000000")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec(" SELECT * FROM sqlite_master ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt-6.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 63 }() {
+			_res = db.Exec(" INSERT INTO t1 VALUES( randomblob(10) ) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES( randomblob(10) ) ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" DELETE FROM t1 WHERE rowid=1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid=1 ")
+		}
+		_dbone1 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 't1'}")
+		rootpage = _dbone1
+		_ = rootpage // suppress unused warning
+		db.Close()
+		offset = tclExprWith("($rootpage * 1024)-14+2", map[string]string{"rootpage": rootpage})
+		_ = offset // suppress unused warning
+		tclHexioWrite("test.db", int64(toInt(offset)), "00FF")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec(" INSERT INTO t1 VALUES( randomblob(10) ) ")
+		_ = _res // catchsql
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+	}
+	{ // do_test "corrupt-7.1"
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 39 }() {
+			_res = db.Exec("\n        INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n      ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n      ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+	}
+	db.Close()
+	fd = "test.db"
+	_ = fd // suppress unused warning
+	// seek $fd [expr 1024+8]
+	tclChannelAppend("test.db", "\x03\x14")
+	// close $fd
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "corrupt-7.2"
+		_res = db.Exec(" \n      UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;\n    ")
+		}
+	}
+	{ // do_test "corrupt-7.3"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	{ // do_test "corrupt-8.1"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
+		}
+		tclHexioWrite("test.db", int64(2044), "hexio_render_int32 2")
+		tclHexioWrite("test.db", int64(24), "hexio_render_int32 45")
+		_res = db.Exec(" INSERT OR REPLACE INTO t1 VALUES(5, randomblob(1900)) ")
+		_ = _res // catchsql
+	}
+	db.Close()
+	os.Remove("test.db")
+	{ // do_test "corrupt-8.2"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
+		}
+		tclHexioWrite("test.db", int64(2047), "FF")
+		tclHexioWrite("test.db", int64(24), "hexio_render_int32 45")
+		_res = db.Exec(" INSERT INTO t1 VALUES(4, randomblob(1900)) ")
+		_ = _res // catchsql
+	}
+}

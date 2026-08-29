@@ -5,8 +5,137 @@
 package corrupt9
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_corrupt9(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corrupt9(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var pgno string
+	_ = pgno // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	{ // do_test "corrupt9-1.1"
+		r = db.Query("\n    PRAGMA auto_vacuum=NONE;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n    CREATE INDEX i1 ON t1(x);\n    CREATE INDEX i2 ON t2(b,a);\n    DROP INDEX i2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=NONE;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n    CREATE INDEX i1 ON t1(x);\n    CREATE INDEX i2 ON t2(b,a);\n    DROP INDEX i2;\n  ")
+		}
+		// expr [file size test.db]>1024*24 → runtime compare
+		_r = tclBool01(toInt(strconv.Itoa(tclFileSize("test.db")))  >  1024*24)
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	db.Close()
+	tclFileCopy("test.db", "test.db-template")
+	// corrupt_freelist test.db 1 (unsupported command, not transpiled)
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "corrupt9-2.1"
+		_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
+		x = _dbeval0
+		_ = x // suppress unused warning
+		// expr $x!="ok" (not evaluated)
+	}
+	{ // do_test "corrupt9-2.2"
+		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+		}
+	}
+	db.Close()
+	tclFileCopy("test.db-template", "test.db")
+	// corrupt_freelist test.db 2 (unsupported command, not transpiled)
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "corrupt9-3.1"
+		_dbeval1 := tclExecSQL(db, "PRAGMA integrity_check")
+		x = _dbeval1
+		_ = x // suppress unused warning
+		// expr $x!="ok" (not evaluated)
+	}
+	{ // do_test "corrupt9-3.2"
+		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+		}
+	}
+	db.Close()
+	tclFileCopy("test.db-template", "test.db")
+	// corrupt_freelist test.db 3 (unsupported command, not transpiled)
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "corrupt9-4.1"
+		_dbeval2 := tclExecSQL(db, "PRAGMA integrity_check")
+		x = _dbeval2
+		_ = x // suppress unused warning
+		// expr $x!="ok" (not evaluated)
+	}
+	{ // do_test "corrupt9-4.2"
+		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
+		}
+	}
+}

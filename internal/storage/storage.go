@@ -354,12 +354,12 @@ func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	local := LocalPayloadSize(c.PayloadLen, pageSize, CellTableLeaf)
 	c.LocalLen = local
 	if pos+local > len(data) {
-		// The cell's payload does not fit the page: a corrupt cell offset
-		// (SQLite rejects "cell offset out of range" when pc+sz exceeds the
-		// usable size; fts3corrupt4 21.1: t1_content cell 23 has an
-		// out-of-range offset).
-		return nil, fmt.Errorf("database disk image is malformed")
-	}
+			// The cell's payload does not fit the page: a corrupt cell offset
+			// (SQLite rejects "cell offset out of range" when pc+sz exceeds the
+			// usable size; fts3corrupt4 21.1: t1_content cell 23 has an
+			// out-of-range offset).
+			return nil, fmt.Errorf("database disk image is malformed")
+		}
 	c.Payload = data[pos : pos+local]
 	pos += local
 	if c.LocalLen < c.PayloadLen {

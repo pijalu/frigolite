@@ -324,10 +324,10 @@ func Test_permutations(t *testing.T) {
 	_ = env_SQLITE_TEST_PATTERN_LIST // pre-declared from TCL source
 	var testspec_suite string
 	_ = testspec_suite // pre-declared from TCL source
-	_tMap := map[string]string{}
-	_ = _tMap // dynamic-key array from TCL source
 	testspecMap := map[string]string{}
 	_ = testspecMap // dynamic-key array from TCL source
+	_tMap := map[string]string{}
+	_ = _tMap // dynamic-key array from TCL source
 
 	if tclBool("info vars ::trd::tcltest" + "==\"\"") {
 		// set testdir: test directory (not used in Go test context)

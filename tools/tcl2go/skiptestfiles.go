@@ -336,19 +336,6 @@ var skipTestFiles = map[string]string{
 	"btree01": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"btree02": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-	"corrupt":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt2":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt3":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt4":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt5":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt6":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt7":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt8":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corrupt9":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corruptC":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corruptF":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corruptL":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"corruptN":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 		// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 		// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.

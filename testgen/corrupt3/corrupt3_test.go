@@ -5,8 +5,131 @@
 package corrupt3
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_corrupt3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corrupt3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bigstring string
+	_ = bigstring // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool("nonzero_reserved_bytes") {
+		return
+	}
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	{ // do_test "corrupt3-1.1"
+		bigstring = tclStringRepeat("0123456789", "200")
+		_ = bigstring // suppress unused warning
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(" + sqlLiteral(bigstring) + ");\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "3072" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "3072", "corrupt3-1.1")
+		}
+	}
+	{ // do_test "corrupt3-1.2"
+		// hexio_get_int [hexio_read test.db 16 2] (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt3-1.3"
+		// hexio_get_int [hexio_read test.db 20 1] (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt3-1.4"
+		// hexio_get_int [hexio_read test.db 2044 4] (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt3-1.5"
+		// hexio_get_int [hexio_read test.db 2048 4] (unsupported command, not transpiled)
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "corrupt3-1.7"
+		db.Close()
+		tclHexioWrite("test.db", int64(2048), "hexio_render_int32 3")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT x FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt3-1.8"
+		_res = db.Exec("\n    PRAGMA integrity_check\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check\n  ")
+		}
+	}
+	{ // do_test "corrupt3-1.9"
+		db.Close()
+		tclHexioWrite("test.db", int64(2044), "hexio_render_int32 4")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,10) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt3-1.10"
+		_res = db.Exec("\n    PRAGMA integrity_check\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check\n  ")
+		}
+	}
+	{ // do_test "corrupt3-1.11"
+		db.Close()
+		tclHexioWrite("test.db", int64(2044), "hexio_render_int32 0")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,10) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt3-1.12"
+		_res = db.Exec("\n    PRAGMA integrity_check\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check\n  ")
+		}
+	}
+}

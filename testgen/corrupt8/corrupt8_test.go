@@ -5,8 +5,167 @@
 package corrupt8
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_corrupt8(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corrupt8(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var oldval string
+	_ = oldval // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	{ // do_test "corrupt8-1.1"
+		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=1;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n  ")
+		}
+		// expr [file size test.db]>1024*12 → runtime compare
+		_r = tclBool01(toInt(strconv.Itoa(tclFileSize("test.db")))  >  1024*12)
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	vtab.TclVarSet("i", "", "1024")
+	i = "1024"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2048 }() {
+		oldval = "hexio_read test.db $i 1"
+		_ = oldval // suppress unused warning
+		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n == 0 }() {
+			break
+		}
+		tclHexioWrite("test.db", int64(toInt(i)), "00")
+		{ // do_test "corrupt8-2." + i + ".0"
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
+			x = _dbeval0
+			_ = x // suppress unused warning
+			// expr $x!="ok" (not evaluated)
+		}
+		vtab.TclVarSet("k", "", "1")
+		k = "1"
+		_ = k // suppress unused warning
+		for func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; return k_n <= 5 }() {
+			if func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return k_n == oldval_n }() {
+				// incr k 1
+				{
+					_n, _err := strconv.Atoi(k)
+					if _err == nil {
+						k = strconv.Itoa(_n + 1)
+					}
+				}
+				continue
+			}
+			tclHexioWrite("test.db", int64(toInt(i)), "0" + k)
+			{ // do_test "corrupt8-2." + i + "." + k
+				db.Close()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				_dbeval1 := tclExecSQL(db, "PRAGMA integrity_check")
+				x = _dbeval1
+				_ = x // suppress unused warning
+				// expr $x!="ok" (not evaluated)
+			}
+			// incr k 1
+			{
+				_n, _err := strconv.Atoi(k)
+				if _err == nil {
+					k = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		tclHexioWrite("test.db", int64(toInt(i)), "06")
+		{ // do_test "corrupt8-2." + i + ".6"
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			_dbeval2 := tclExecSQL(db, "PRAGMA integrity_check")
+			x = _dbeval2
+			_ = x // suppress unused warning
+			// expr $x!="ok" (not evaluated)
+		}
+		tclHexioWrite("test.db", int64(toInt(i)), oldval)
+		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n > 2 }() {
+			i2 = tclExprWith("$i+1+$i%4", map[string]string{"i": i})
+			_ = i2 // suppress unused warning
+			oldval = "hexio_read test.db $i2 1"
+			_ = oldval // suppress unused warning
+			tclHexioWrite("test.db", int64(toInt(i2)), tclFormat("%02x", tclExprWith("($oldval+1)&0xff", map[string]string{"oldval": oldval})))
+			{ // do_test "corrupt8-2." + i + ".7"
+				db.Close()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
+				x = _dbeval0
+				_ = x // suppress unused warning
+				// expr $x!="ok" (not evaluated)
+			}
+			tclHexioWrite("test.db", int64(toInt(i2)), oldval)
+		}
+		// incr i 5
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 5)
+			}
+		}
+	}
+}

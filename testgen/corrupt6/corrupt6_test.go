@@ -5,8 +5,218 @@
 package corrupt6
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_corrupt6(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_corrupt6(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool("nonzero_reserved_bytes") {
+		return
+	}
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	{ // do_test "corrupt6-1.1"
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "2048" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "2048", "corrupt6-1.1")
+		}
+	}
+	{ // do_test "corrupt6-1.2"
+		// hexio_get_int [hexio_read test.db 16 2] (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt6-1.3"
+		// hexio_get_int [hexio_read test.db 20 1] (unsupported command, not transpiled)
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "corrupt6-1.5.1"
+		// hexio_read test.db 1923 2 (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt6-1.5.2"
+		// hexio_read test.db 1987 2 (unsupported command, not transpiled)
+	}
+	{ // do_test "corrupt6-1.6"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "corrupt6-1.8.1"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "8105")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.8.2"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "8101")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.8.3"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "8103")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "corrupt6-1.9.1"
+		db.Close()
+		tclHexioWrite("test.db", int64(1987), "8105")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.9.2"
+		db.Close()
+		tclHexioWrite("test.db", int64(1987), "8101")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.9.3"
+		db.Close()
+		tclHexioWrite("test.db", int64(1987), "8103")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "corrupt6-1.10.1"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.2"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.3"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.4"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.5"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.6"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.7"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.8"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corrupt6-1.10.9"
+		db.Close()
+		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFFFFFFFF7F")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
+		_ = _res // catchsql
+	}
+}
