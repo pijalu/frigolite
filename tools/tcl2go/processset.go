@@ -857,7 +857,11 @@ func isRegexpCmd(cmdParts []string) bool {
 
 // isDBEvalCmd reports whether cmdParts is `db eval ...`.
 func isDBEvalCmd(cmdParts []string) bool {
-	return len(cmdParts) > 0 && cmdParts[0] == "db" && len(cmdParts) >= 2 && cmdParts[1] == "eval"
+	if len(cmdParts) < 2 || cmdParts[1] != "eval" {
+		return false
+	}
+	conn := cmdParts[0]
+	return conn == "db" || isPreDeclaredDB(conn) || strings.HasPrefix(conn, "db")
 }
 
 // isDBOneCmd reports whether cmdParts is `db one ...` or `db onecolumn ...`.

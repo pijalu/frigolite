@@ -1309,8 +1309,37 @@ func tclFileCopy(src, dst string) {
 // and write the bytes to file at byte offset (the file is patched in place;
 // corruption tests rely on the engine re-reading the patched header).
 func tclHexioWrite(file string, offset int64, hexStr string) {
-	data, err := hex.DecodeString(hexStr)
-	if err != nil { return }
+	var data []byte
+	// The hexio_render_int{8,16,32} N form (a helper in sqlite/test/hexio.test)
+	// formats an integer as big-endian bytes. Without parsing this form, the
+	// corrupt* tests that do "tclHexioWrite $db $off hexio_render_int32 2"
+	// silently no-op (hex.DecodeString rejects the literal and returns),
+	// leaving the DB unpatched.
+	if strings.HasPrefix(hexStr, "hexio_render_int") {
+		parts := strings.Fields(hexStr)
+		if len(parts) == 2 {
+			n, _ := strconv.ParseInt(parts[1], 0, 64)
+			switch parts[0] {
+			case "hexio_render_int8":
+				data = []byte{byte(n)}
+			case "hexio_render_int16":
+				data = []byte{byte(n >> 8), byte(n)}
+			case "hexio_render_int32":
+				data = []byte{byte(n >> 24), byte(n >> 16), byte(n >> 8), byte(n)}
+			default:
+				return
+			}
+		}
+	} else {
+		var err error
+		data, err = hex.DecodeString(hexStr)
+		if err != nil {
+			return
+		}
+	}
+	if len(data) == 0 {
+		return
+	}
 	f, err := os.OpenFile(file, os.O_RDWR, 0644)
 	if err != nil { return }
 	defer f.Close()

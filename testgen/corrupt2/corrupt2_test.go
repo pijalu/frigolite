@@ -287,7 +287,8 @@ func Test_corrupt2(t *testing.T) {
 				switch _dbevalRows0.Columns[_ci] {
 				}
 			}
-			result = "db2 eval {pragma integrity_check}"
+			_dbeval4 := tclExecSQL(db2, "pragma integrity_check")
+			result = _dbeval4
 			_ = result // suppress unused warning
 			break
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }

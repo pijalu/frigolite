@@ -582,8 +582,13 @@ func (tp *transpiler) setRegexpValue(goName string, cmdParts []string) bool {
 // expression fragment (rowvalue4: WHERE $where) embeds verbatim. Braced db
 // eval binds $var as VALUES (buildSQLStringExpr handles that path elsewhere).
 func (tp *transpiler) setDBEvalValue(goName, cmdText string, cmdParts []string) bool {
-	sqlText := strings.TrimSpace(strings.TrimPrefix(cmdText, "db eval"))
+	sqlText := strings.TrimSpace(strings.TrimPrefix(cmdText, cmdParts[0]+" eval"))
 	sqlText = strings.TrimSpace(sqlText)
+	connName := cmdParts[0]
+	connGo := connName
+	if connName == "db" {
+		connGo = "db"
+	}
 	braced := len(sqlText) >= 2 && sqlText[0] == '{' && sqlText[len(sqlText)-1] == '}'
 	if braced {
 		sqlText = strings.TrimSpace(sqlText[1 : len(sqlText)-1])
@@ -600,7 +605,7 @@ func (tp *transpiler) setDBEvalValue(goName, cmdText string, cmdParts []string) 
 	}
 	dbEvalVar := fmt.Sprintf("_dbeval%d", tp.varCount)
 	tp.varCount++
-	tp.emitLine("%s := tclExecSQL(db, %s)", dbEvalVar, sqlExpr)
+	tp.emitLine("%s := tclExecSQL(%s, %s)", dbEvalVar, connGo, sqlExpr)
 	if tp.isVarDeclared(goName) {
 		tp.emitLine("%s = %s", goName, dbEvalVar)
 	} else {
