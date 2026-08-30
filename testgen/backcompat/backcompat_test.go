@@ -159,7 +159,7 @@ func Test_backcompat(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// do_allbackcompat_test {\n\n  # Test that database files are backwards com...} (unsupported command, not transpiled)
-	for _, k := range tclSplitList(tclListElem(tclSort("array names ::incompatible"))) {
+	for _, k := range tclSplitList(tclSort("array names ::incompatible")) {
 	_ = k // suppress unused warning
 		_putsMsg := "ERROR: Detected journal incompatibility with version " + k
 		_ = _putsMsg

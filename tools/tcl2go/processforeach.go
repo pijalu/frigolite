@@ -214,7 +214,6 @@ func (tp *transpiler) resolveForeachListExpr(rawList string, isBraced bool) stri
 		}
 		return listExpr
 	}
-	listExpr := tp.buildListStringExpr(rawList)
 	trimmed := strings.TrimSpace(rawList)
 	// Single bare $var: use the variable directly.
 	if strings.HasPrefix(trimmed, "$") && !strings.ContainsAny(trimmed, " \t\n") {
@@ -229,6 +228,30 @@ func (tp *transpiler) resolveForeachListExpr(rawList string, isBraced bool) stri
 			return tp.cmdExpr(inner)
 		}
 	}
+	// List-producing commands even with nested brackets: their result is
+	// already a flat space-separated list, so use the raw command
+	// expression (autovacuum.test 1.x's
+	// `foreach i [lsort -integer [eval concat $delete_order]]`).
+	// The current cmdExprLSort / cmdExprEval / cmdExprConcat paths
+	// produce a flat list string; wrapping in tclListElem would
+	// produce {"a b c"} which tclSplitList yields as ONE element.
+	if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
+		inner := trimmed[1 : len(trimmed)-1]
+		// Peel the leading command word and any flags; for the
+		// list-producing procs (lsort/list/concat), the result is a
+		// flat list. We also accept eval (which forwards to a
+		// list-producing proc) and the proc's $var substitution.
+		firstWord := inner
+		sp := strings.IndexAny(firstWord, " \t")
+		if sp > 0 {
+			firstWord = firstWord[:sp]
+		}
+		switch firstWord {
+		case "lsort", "list", "concat", "eval":
+			return tp.cmdExpr(inner)
+		}
+	}
+	listExpr := tp.buildListStringExpr(rawList)
 	return listExpr
 }
 

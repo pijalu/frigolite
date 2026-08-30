@@ -1193,7 +1193,7 @@ func Test_where(t *testing.T) {
 			_ = rev // suppress unused warning
 			for _, _r := range tclSplitList(res) {
 			_ = _r // suppress unused warning
-				rev = "concat $r $rev"
+				rev = tclConcat(_r, rev)
 				_ = rev // suppress unused warning
 			}
 			{ // "where-24." + tn + ".1"

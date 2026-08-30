@@ -136,7 +136,7 @@ func Test_autovacuum(t *testing.T) {
 		vtab.TclVarSet("tbl_data", "", "")
 		tbl_data = "" // TCL namespace variable
 		_ = tbl_data // suppress unused warning
-		for _, i := range tclSplitList(tclListElem(tclSortInt("eval concat $delete_order"))) {
+		for _, i := range tclSplitList(tclSortInt(tclConcat(delete_order))) {
 		_ = i // suppress unused warning
 			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + tclMakeStr(i, tclToInt(ENTRY_LEN)) + "')")
 			if _res.Error != nil {

@@ -45,6 +45,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"format":              (*transpiler).cmdExprFormat,
 		"subst":               (*transpiler).cmdExprSubst,
 		"set":                 (*transpiler).cmdExprSet,
+		"concat":              (*transpiler).cmdExprConcat,
 		"string":              (*transpiler).cmdExprString,
 		"binary":              (*transpiler).cmdExprBinary,
 		"db":                  (*transpiler).cmdExprDbOne,
@@ -1132,6 +1133,26 @@ func (tp *transpiler) cmdExprJoin(cmdName, cmdText string, args []string) string
 	return fmt.Sprintf("strings.Join(tclSplitList(%s), %s)", listExpr, sep)
 }
 
+// cmdExprConcat handles `[concat $a $b ...]` — TCL list concatenation. Each
+// arg is rendered as a Go string expression (so $var and [cmd] refs are
+// resolved), split via tclSplitList, and the elements are joined with a
+// single space. Used by autovacuum.test 1.x's
+//
+//	[eval concat $delete_order]
+//
+// to flatten a list-of-lists into a single space-separated list before
+// [lsort -integer] ingests it.
+func (tp *transpiler) cmdExprConcat(cmdName, cmdText string, args []string) string {
+	if len(args) == 0 {
+		return `""`
+	}
+	exprs := make([]string, len(args))
+	for i, a := range args {
+		exprs[i] = tp.buildStringExpr(a)
+	}
+	return fmt.Sprintf("tclConcat(%s)", strings.Join(exprs, ", "))
+}
+
 // cmdExprExecSQL handles `[execsql {SQL}]` / `[execsql2 {SQL}]` — execute SQL
 // and return the joined result values as a space-separated string (for
 // string-equal comparisons in tests). The argument may be a double-quoted word
@@ -1154,6 +1175,24 @@ func (tp *transpiler) cmdExprExecSQL(cmdName, cmdText string, args []string) str
 // procs (scramble/random_uuid/hash1/hash2) with runtime Go equivalents, and
 // otherwise the raw command text as a literal.
 func (tp *transpiler) cmdExprDefault(cmdName, cmdText string, args []string) string {
+	// [eval SCRIPT] — TCL's eval runs the script as a command. The common
+	// testgen pattern is `[eval concat $list]` which flattens a list of
+	// lists into a single space-separated list. Re-tokenize the script and
+	// recursively call cmdExpr on the first word: when that word is a
+	// list-producing command (concat / list / lsort), the result IS the
+	// list value. Other `eval` forms (procedures, math) are N-A for the
+	// testgen — emit an empty string so the caller doesn't crash.
+	if cmdName == "eval" {
+		rest := strings.TrimSpace(strings.TrimPrefix(cmdText, "eval"))
+		words := tclCmdWords(rest)
+		if len(words) == 0 {
+			return `""`
+		}
+		// Re-emit the script and recurse into cmdExpr so the inner
+		// command (concat/list/lsort) is evaluated through its handler.
+		inner := strings.Join(words, " ")
+		return tp.cmdExpr(inner)
+	}
 	// [catchsql DB SQL] inside an expression (zipfile2: [lindex [catchsql
 	// db {SQL}] 0]) evaluates to the TCL list text {code rows-or-message}.
 	if cmdName == "catchsql" && len(cmdText) > len("catchsql") {

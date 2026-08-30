@@ -90,7 +90,7 @@ func Test_vtab2(t *testing.T) {
 	vtab.TclVarSet("result", "", "")
 	result = ""
 	_ = result // suppress unused warning
-	for _, _var := range tclSplitList(tclListElem(tclSort("info vars tcl_*"))) {
+	for _, _var := range tclSplitList(tclSort("info vars tcl_*")) {
 	_ = _var // suppress unused warning
 		{
 			var _catchErr error

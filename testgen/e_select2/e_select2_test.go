@@ -308,7 +308,7 @@ func Test_e_select2(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TEMP TABLE '%ss%' AS " + subselect)
 				}
-				te = "eval te_tbljoin db $spec"
+				te = "te_tbljoin db $spec"
 				_ = te // suppress unused warning
 				_res = db.Exec("DROP TABLE '%ss%'")
 				if _res.Error != nil {

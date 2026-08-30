@@ -96,7 +96,7 @@ func Test_mallocAll(t *testing.T) {
 	vtab.TclVarSet("INCLUDE", "", "\n")
 	INCLUDE = "\n"
 	_ = INCLUDE // suppress unused warning
-	for _, testfile := range tclSplitList(tclListElem(tclSort("-dictionary"))) {
+	for _, testfile := range tclSplitList(tclSort("-dictionary")) {
 	_ = testfile // suppress unused warning
 		tail = filepath.Base(testfile)
 		_ = tail // suppress unused warning

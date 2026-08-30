@@ -146,7 +146,7 @@ func Test_loadext(t *testing.T) {
 		vtab.TclVarSet("testextsrc", "", srcdir_test_loadext_c)
 		testextsrc = srcdir_test_loadext_c
 		_ = testextsrc // suppress unused warning
-		cmdline = "concat exec gcc $gcc_shared"
+		cmdline = tclConcat("exec", "gcc", gcc_shared)
 		_ = cmdline // suppress unused warning
 		cmdline = tclListAppend(cmdline, "-Wall", "-I" + srcdir, "-I.", "-I..", "-g", testextsrc, "-o", testextension)
 		if false {

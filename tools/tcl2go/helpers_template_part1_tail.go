@@ -133,10 +133,27 @@ func tclLReplace(list string, first, count interface{}, args ...string) string {
 	items := tclSplitList(list)
 	f := toInt(first)
 	c := toInt(count)
-	if f < 0 { f = 0 }
-	if f > len(items) { f = len(items) }
+	// TCL lreplace: a negative first means "from end" (e.g. -1 == end).
+	if f < 0 {
+		f = len(items) + f
+	}
+	if f < 0 {
+		f = 0
+	}
+	if f > len(items) {
+		f = len(items)
+	}
+	// TCL lreplace: a negative count means "all remaining elements".
+	if c < 0 {
+		c = len(items) - f
+	}
 	end := f + c
-	if end > len(items) { end = len(items) }
+	if end < f {
+		end = f
+	}
+	if end > len(items) {
+		end = len(items)
+	}
 	repl := args
 	items = append(items[:f], append(repl, items[end:]...)...)
 	return tclList(items)
@@ -188,6 +205,21 @@ func tclFilePages(name string) int {
 	// they get their own tclFilePages4096 path via a different template.
 	ps := 1024
 	return size / ps
+}
+
+// tclConcat implements TCL's 'concat' command on N string arguments. Each
+// argument is a TCL list; the result is the space-joined concatenation of
+// every element of every list. Used by autovacuum.test 1.x's
+// '[eval concat $delete_order]' to flatten a list-of-lists into a single
+// space-separated list before [lsort -integer] sorts it. Returns a flat
+// list string (no brace-wrapping) so tclSplitList on the result yields the
+// expected per-element tokens.
+func tclConcat(args ...string) string {
+	var out []string
+	for _, a := range args {
+		out = append(out, tclSplitList(a)...)
+	}
+	return strings.Join(out, " ")
 }
 
 func toInt(v interface{}) int {

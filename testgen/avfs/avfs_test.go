@@ -335,7 +335,7 @@ func Test_avfs(t *testing.T) {
 		_ = adaSz // suppress unused warning
 		adba = tclExprWith("($adbSz + 0.1)/$adaSz", map[string]string{"adbSz": adbSz, "adaSz": adaSz})
 		_ = adba // suppress unused warning
-		results = "concat $results [lrange $qr 0 2]"
+		results = tclConcat(results, tclLRange(qr, "0", "2"))
 		_ = results // suppress unused warning
 		results = tclListAppend(results, tclExprWith("$adba > 10.0", map[string]string{"adba": adba}))
 		vtab.TclVarSet("result", "", strings.Join(tclSplitList(results), " | "))
