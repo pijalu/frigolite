@@ -1309,12 +1309,63 @@ func tclFileCopy(src, dst string) {
 // and write the bytes to file at byte offset (the file is patched in place;
 // corruption tests rely on the engine re-reading the patched header).
 func tclHexioWrite(file string, offset int64, hexStr string) {
+	// hexStr may be a literal hex string ("ab12cd") OR a TCL command
+	// (hexio_render_int32 N) that the transpiler did not resolve. The
+	// common case used by corrupt2.test 14.2/14.5 is the integer form
+	// "hexio_render_int32 2" — interpret trailing decimal N as big-endian
+	// uint32 and write 4 bytes. The test framework's actual implementation
+	// (tcllib/hexio) does the same via a regex on the command name.
 	data, err := hex.DecodeString(hexStr)
-	if err != nil { return }
-	f, err := os.OpenFile(file, os.O_RDWR, 0644)
-	if err != nil { return }
-	defer f.Close()
-	f.WriteAt(data, offset)
+	if err == nil {
+		f, err := os.OpenFile(file, os.O_RDWR, 0644)
+		if err != nil {
+			return
+		}
+		defer f.Close()
+		f.WriteAt(data, offset)
+		return
+	}
+	// Fallback: parse "hexio_render_int32 N" / "hexio_render_int16 N" and
+	// write a big-endian int.
+	if val, n, ok := parseHexioRenderInt(hexStr); ok {
+		f, err := os.OpenFile(file, os.O_RDWR, 0644)
+		if err != nil {
+			return
+		}
+		defer f.Close()
+		var buf [8]byte
+		for i := 0; i < n; i++ {
+			buf[i] = byte(val >> ((n - 1 - i) * 8))
+		}
+		f.WriteAt(buf[:n], offset)
+	}
+}
+
+// parseHexioRenderInt parses a hexio_render_int{N} command, returning the
+// integer value and its byte width (4 for int32, 8 for int64) on success.
+func parseHexioRenderInt(s string) (val uint64, width int, ok bool) {
+	if !strings.HasPrefix(s, "hexio_render_int") {
+		return 0, 0, false
+	}
+	rest := strings.TrimPrefix(s, "hexio_render_int")
+	bits := 0
+	for i := 0; i < len(rest) && rest[i] >= '0' && rest[i] <= '9'; i++ {
+		bits = bits*10 + int(rest[i]-'0')
+	}
+	width = bits / 8 // hexio_render_int32 -> 4 bytes; int64 -> 8 bytes
+	if width != 4 && width != 8 {
+		return 0, 0, false
+	}
+	ws := fmt.Sprintf("%d", bits)
+	rest = strings.TrimSpace(rest[len(ws):])
+	if rest == "" {
+		return 0, 0, false
+	}
+	v, err := strconv.ParseUint(rest, 0, 64)
+	if err != nil {
+		return 0, 0, false
+	}
+	return v, width, true
 }
 
 func tclGlob(pattern string) string {
