@@ -2791,3 +2791,57 @@ then, the FreePage call is staged but not active.
 **Lesson**: Always test the btree's full read path (cursor, scan,
 seek) after modifying the btree structure. A change that "looks
 correct" in isolation can break traversals in subtle ways.
+
+## P8.INCRVACUUM.phase4 outcome (2026-09) — autoVacuumCommit + callback
+
+The phase 4 milestone (Gap E: `autoVacuumCommit` + Gap F:
+`sqlite3_autovacuum_pages` callback) is GREEN. testgen autovacuum2
+(1.3, 1.4, 1.5, 1.10, 1.20) and incrvacuum3 pass. New UT
+`TestAutoVacuumCommitCallbackFires` / `TestRegisterCallback` cover
+the new wiring. Three pager-freelist invariants that took
+substantial debugging:
+
+- **On-disk chain.** `FreePage(n)` must set the freed page's first
+  4 bytes to the previous `header.trunk` (BE uint32) BEFORE
+  advancing `header.trunk` to `n`. Without this, the integrity-
+  check walker `checkFreelistCount` / `isFreelistPage` only sees
+  the header pointer but the chain it tries to follow is empty
+  (no next-pointer) → "database disk image is malformed". The
+  chain must be monotonic so a subsequent `Truncate` can chop
+  the high end by simply rewriting the new trunk's first 4 bytes
+  to point to the next free page below the new EOF (or 0 if the
+  lowest survivor).
+
+- **In-header db size.** `pager.Truncate(n)` must update header
+  offset 28 (in-header db size) to `n`. Without this, the next
+  `Pager.NumPages()` read still returns the pre-truncate size
+  (HeaderBeyondFile sees header > EOF) and the integrity check
+  bails with "malformed" or "file size N but should be M".
+
+- **Header / cached-page split.** `p.header` and the cached page
+  1's `pg.Data[0:HeaderSize]` are SEPARATE byte slices. Every
+  modification to `p.header` must be mirrored via
+  `copy(pg.Data[:HeaderSize], p.header)` and `p.dirty[1] = true`,
+  otherwise the on-disk file written at the next flush carries
+  the stale header.
+
+**Lesson**: pager freelist is a small, intricate state machine —
+three things (chain, in-header db size, header/pg.Data mirror)
+must move in lockstep or integrity_check fails immediately. When
+debugging, dump all three after each FreePage/Truncate call to
+see which one diverged.
+
+**Lesson (callback design)**: the testgen's `autovac_page_callback`
+procs feed a global `autovac_callback_data` list — the transpiler
+must emit a Go closure variable (not a method) so the
+`db.SetAutovacuumPagesCallback(fn)` call can reference the same
+instance across multiple testgen `do_test` blocks. The
+`*_off` variant must `return 0` (do all the work) — counter-
+intuitive, but matches the TCL testgen convention.
+
+**Lesson (commit hook)**: `autoVacuumCommit` must run AFTER
+`updateFileChangeCounter` and BEFORE the final flush, so the
+shrinkage is visible in the committed file. The pager
+`AutoVacuum()` getter is the source of truth (the PRAGMA value
+alone is insufficient: the pager only adopts the mode on an
+empty DB).
