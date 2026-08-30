@@ -110,6 +110,9 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	if !e.btreeStructureOK() {
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
+	if msg := e.checkFreelistCount(emit); msg != "" {
+		return &Result{Error: fmt.Errorf("%s", msg)}
+	}
 	e.quickCheckTables(arg, emit)
 
 	if len(rows) == 0 {
@@ -584,4 +587,70 @@ func (e *Engine) hasTempTables() bool {
 		}
 	}
 	return false
+}
+
+// checkFreelistCount validates the on-disk freelist: counts pages reachable
+// from the header-declared trunk chain and compares against the header-
+// declared count. A mismatch is reported as "Freelist: size is N but
+// should be M" (mirrors btree.c checkerWalkFreelist / btreeIntegrityCheckpoint).
+// corrupt2.test 14.2/14.3/14.5: write "size=2" to header byte 36 while the
+// chain still carries 3 free pages; the integrity_check must surface the
+// mismatch.
+func (e *Engine) checkFreelistCount(emit func(string)) string {
+	if len(e.dbList) == 0 {
+		return ""
+	}
+	ctx := e.dbList[0]
+	if ctx == nil || ctx.Pager == nil {
+		return ""
+	}
+	hdr := ctx.Pager.Header()
+	if len(hdr) < 40 {
+		return ""
+	}
+	trunk := binary.BigEndian.Uint32(hdr[32:36])
+	headerCount := int(binary.BigEndian.Uint32(hdr[36:40]))
+	if trunk == 0 || headerCount == 0 {
+		return ""
+	}
+	actual := 0
+	const maxIter = 100000
+	seen := make(map[uint32]bool)
+	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
+		if seen[trunk] {
+			return "database disk image is malformed"
+		}
+		seen[trunk] = true
+		actual++
+		pg, err := ctx.Pager.ReadPage(trunk)
+		if err != nil {
+			return "database disk image is malformed"
+		}
+		coff := 0
+		if trunk == 1 {
+			coff = 100
+		}
+		data := pg.Data
+		if coff+4 > len(data) {
+			return "database disk image is malformed"
+		}
+		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
+		pageSize := ctx.Pager.PageSize()
+		for off := coff + 4; off+4 <= int(pageSize); off += 4 {
+			leaf := binary.BigEndian.Uint32(data[off : off+4])
+			if leaf == 0 {
+				break
+			}
+			if seen[leaf] {
+				return "database disk image is malformed"
+			}
+			seen[leaf] = true
+			actual++
+		}
+		trunk = nextTrunk
+	}
+	if actual != headerCount {
+		return fmt.Sprintf("*** in database main ***\nFreelist: size is %d but should be %d", headerCount, actual)
+	}
+	return ""
 }
