@@ -2530,3 +2530,45 @@ SESSION 7g (RTREE slice8): rtree2/rtreecheck green; three root causes.
   INSERT) fails — btree.c balance_nonroot needs full port. Defer the whole
   13-package tranche with detailed evidence (portplan/NA_EVIDENCE.md P8.CORRUPT)
   and route as a dedicated P8.CORRUPT.fix follow-up phase.
+
+## P8.INCRVACUUM blocked (recorded 2026-09)
+
+- **Pristine auto-vacuum DB integrity_check**: a fresh `PRAGMA auto_vacuum=2;
+  CREATE TABLE` reports "Page 2: never used" because the reserved ptrmap page
+  is invisible to checkTreePage's orphan walk. Fix: export `pager.IsPtrmapPageNo`
+  and skip ptrmap pages in findOrphans when `ctx.Pager.AutoVacuum()` is on.
+  This unblocks incrvacuum3 (the only INCRVACUUM package that did not hinge on
+  actual file shrinkage).
+- **Engine gap: actual file shrinkage**: frigolite's pager keeps the on-disk
+  freelist empty — `FreePage` is only called for orphaned overflow pages
+  (btree_tail.go `deleteAllMatchingFromLeaf`), never for the emptied leaf
+  itself. Even if the freelist were populated, no code consumes it back into
+  the file (no `incrVacuumStep` / `relocatePage` / `autoVacuumCommit`).
+  SQLite's btree.c sqlite3BtreeIncrVacuum (~120 lines) + autoVacuumCommit
+  (~80 lines) + relocatePage (~100 lines) + ptrmap management would port to
+  ~500-1000 lines of focused pager+btree Go. Beyond single-goal scope.
+- **Test loop without incremental_vacuum rows**: incrvacuum-7's `while 1 {
+  ... if {$nRow == $iWrite} break }` never terminates because the test's
+  `db eval {PRAGMA incremental_vacuum}` body increments nRow, and frigolite's
+  IncrementalVacuum pragma returns no rows when nFree==0. Even after
+  freeing empty leaves (engine work), the test requires actual page
+  relocation for file-shrinkage assertions.
+- **autovacuum2 sqlite3_autovacuum_pages callback**: the test hinges on a C-API
+  extension (`sqlite3_autovacuum_pages`) that frigolite does not surface. Pure
+  C-extension gap.
+- **Transpiler gaps in autovacuum/incrvacuum family**: `[make_str $i $len]`
+  user-proc calls (defined at file top: `proc make_str {char len} { set str
+  [string repeat $char. $len]; return [string range $str 0 [expr $len-1]] }`)
+  are emitted as literal strings instead of evaluating the proc body.
+  `[join $delete " OR oid = "]` drops the separator argument. `[eval concat
+  $delete_order]` and `[lsort -integer [eval ...]]` chains are not
+  recognized. `[file_pages]` TCL proc returns `[expr [file size test.db] /
+  1024]` — transpiler emits "// file_pages (unsupported command, not
+  transpiled)" which silently drops the assertion.
+- **tclExecSQL row-separator decision**: the P8.CORRUPT-era lesson to join
+  rows with `\n` conflicts with TCL's actual `[db eval {SELECT * FROM t}]`
+  semantics (space-joined flat list). For tests like autovacuum-2.2.9 where
+  `av1_data` is set via `[db eval {SELECT * FROM av1}]` then compared in a
+  later do_test body (flatten: space-joined), both sides should match the
+  TCL flat list. The current `\n` join in tclExecSQL causes 2.2.9 to fail
+  even when the engine is correct.
