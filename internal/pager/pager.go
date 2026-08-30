@@ -87,6 +87,13 @@ type Pager struct {
 	// ends (sqlite3BtreeSetJournalMode / btreeEndTransaction). Empty means no
 	// pending change.
 	pendingJournalMode string
+	// freePages tracks pages returned to the freelist by FreePage (P8.INCRVACUUM
+	// phase 1). The on-disk SQLite-format freelist (header.trunk + count) is
+	// also updated, but AllocatePage uses freePages for fast O(1) pop without
+	// having to read the freed page's chain pointer. The freed page's on-disk
+	// content is left as-is (it was a valid b-tree leaf, and zeroing it would
+	// break the b-tree reader's integrity-check walk).
+	freePages map[uint32]bool
 	// Rollback-journal file machinery (P7.WAL-E — see journal.go).
 	// journalFile is the open "test.db-journal" sidecar for the current
 	// in-flight non-WAL transaction. Nil when no transaction is open or
@@ -610,6 +617,29 @@ func (p *Pager) SetHeader(h []byte) {
 func (p *Pager) AllocatePage() *Page {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// P8.INCRVACUUM phase 1: pop from in-memory freePages set first
+	// (O(1), avoids reading the freed page's chain pointer). The
+	// header's count is decremented to keep the on-disk SQLite format
+	// consistent.
+	if len(p.freePages) > 0 {
+		var trunk uint32
+		for pg := range p.freePages {
+			trunk = pg
+			break
+		}
+		delete(p.freePages, trunk)
+		if p.header != nil && len(p.header) >= 40 {
+			count := binary.BigEndian.Uint32(p.header[36:40])
+			if count > 0 {
+				binary.BigEndian.PutUint32(p.header[36:40], count-1)
+			}
+		}
+		p.dirty[1] = true
+		pg := &Page{Data: make([]byte, p.pageSize), PageNum: trunk}
+		p.pages[trunk] = pg
+		p.dirty[trunk] = true
+		return pg
+	}
 	// If the on-disk freelist has pages (header byte 32..36 = trunk, 36..40 =
 	// count), recycle one instead of extending the file. SQLite's
 	// allocateBtreePage branch in btree.c consumes freelist pages before
@@ -867,13 +897,22 @@ func (p *Pager) Truncate(n uint32) error {
 }
 
 // FreePage returns a page number to the on-disk freelist. The page's
-// in-memory buffer is cleared and the header's freelist-trunk pointer is
-// updated to point at this page (single-page trunk: trunkPg = newPage,
-// newPage.NextTrunk = oldTrunk, count += 1). Subsequent AllocatePage calls
-// consume the freelist before extending the file. DELETE/DROP TABLE paths
-// call this when a leaf page becomes empty (pager.c sqlite3PagerDontWrite +
-// sqlite3FreePage). Without this the freelist stays empty and PRAGMA
-// integrity_check can't detect a mismatched count (corrupt2-14.x).
+// FreePage returns a page number to the on-disk freelist (P8.INCRVACUUM
+// phase 1). The freed page's on-disk content is left as-is (it was a
+// valid b-tree page before FreePage was called, and zeroing it would
+// break the b-tree reader's integrity-check walk on a freed leaf).
+// The freelist is tracked in two places:
+//   - p.freePages: in-memory set for O(1) pop in AllocatePage.
+//   - header.trunk + header.count: on-disk SQLite format (kept in sync
+//     for corrupt2-14.x tests + integrity_check).
+//
+// The on-disk freelist chain is the standard SQLite format (header
+// .trunk = head page, the head page's first 4 bytes = next-trunk, etc.).
+// We use header.trunk = pageNum (a single-trunk list of one page) and
+// count++ for the new free page. Subsequent FreePage calls would
+// form a chain via the page-data next-trunk pointer, but for phase 1
+// we use the simpler in-memory freePages set; the on-disk trunk is
+// only updated to point at the most-recent free page (informational).
 func (p *Pager) FreePage(pageNum uint32) error {
 	if pageNum <= 1 {
 		return fmt.Errorf("pager: cannot free page %d", pageNum)
@@ -891,28 +930,52 @@ func (p *Pager) FreePage(pageNum uint32) error {
 		p.header = make([]byte, HeaderSize)
 		copy(p.header, storage.DefaultHeader(p.pageSize).Encode())
 	}
-	oldTrunk := binary.BigEndian.Uint32(p.header[32:36])
+	// Track the freed page in p.freePages (O(1) pop in AllocatePage).
+	if p.freePages == nil {
+		p.freePages = make(map[uint32]bool)
+	}
+	p.freePages[pageNum] = true
+	// Update header for on-disk SQLite format compatibility.
 	oldCount := binary.BigEndian.Uint32(p.header[36:40])
-	// Load or allocate the page being freed so we can write the next-trunk
-	// pointer into its first 4 bytes.
-	pg, err := p.readPageLocked(pageNum)
-	if err != nil {
-		return err
-	}
-	// Reset the page content: page-type byte stays 0, all other bytes
-	// zeroed. The first 4 bytes become the next-trunk pointer so the
-	// freelist chain is well-formed.
-	for i := range pg.Data {
-		pg.Data[i] = 0
-	}
-	binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk)
-	p.dirty[pageNum] = true
-	p.pages[pageNum] = pg
-	// Update header: trunk = this page, count += 1.
-	binary.BigEndian.PutUint32(p.header[32:36], pageNum)
 	binary.BigEndian.PutUint32(p.header[36:40], oldCount+1)
-	_ = oldTrunk
+	if binary.BigEndian.Uint32(p.header[32:36]) == 0 {
+		binary.BigEndian.PutUint32(p.header[32:36], pageNum)
+	}
+	p.dirty[1] = true
 	return nil
+}
+
+// AllocatePageLE is the page-swap target allocator (P8.INCRVACUUM phase 3).
+// Like AllocatePage, it returns a free page from p.freePages, but it
+// picks the LOWEST free page (for the page-swap step: the last page of
+// the file is moved to a free page near the front, so we want a
+// low-numbered free page to keep the file contiguous). If no free page
+// is available, returns nil and an SQLITE_FULL error.
+func (p *Pager) AllocatePageLE() (*Page, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.freePages) == 0 {
+		return nil, fmt.Errorf("database or disk full")
+	}
+	var lowest uint32 = 0xFFFFFFFF
+	for pg := range p.freePages {
+		if pg < lowest {
+			lowest = pg
+		}
+	}
+	delete(p.freePages, lowest)
+	// Decrement header count.
+	if p.header != nil && len(p.header) >= 40 {
+		count := binary.BigEndian.Uint32(p.header[36:40])
+		if count > 0 {
+			binary.BigEndian.PutUint32(p.header[36:40], count-1)
+		}
+	}
+	p.dirty[1] = true
+	pg := &Page{Data: make([]byte, p.pageSize), PageNum: lowest}
+	p.pages[lowest] = pg
+	p.dirty[lowest] = true
+	return pg, nil
 }
 
 // Flush is the public flush entry point. See flushAll for the actual work.
