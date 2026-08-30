@@ -530,7 +530,9 @@ func Test_savepoint(t *testing.T) {
 		} else {
 			_r = "incrblob_1"
 		}
-		tclChannelAppend("test.db", "hello")
+		var incrblob_1_pos = 0
+		_ = incrblob_1_pos // suppress unused warning
+		incrblob_1_pos = blobPuts(incrblob_1, incrblob_1_pos, []byte("hello"), false)
 		_res = db.Exec("SAVEPOINT abc")
 		_ = _res // catchsql
 	}
@@ -572,7 +574,7 @@ func Test_savepoint(t *testing.T) {
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			fileChannelSeek["fd"] = 0
+			fileChannelSeek["fd"] = int64(tclAtoi("0"))
 			// read $fd
 			if _catchErr != nil {
 				rc = "1"
@@ -595,7 +597,7 @@ func Test_savepoint(t *testing.T) {
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			fileChannelSeek["fd"] = 0
+			fileChannelSeek["fd"] = int64(tclAtoi("0"))
 			// read $fd
 			if _catchErr != nil {
 				rc = "1"

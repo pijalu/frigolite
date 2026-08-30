@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -110,53 +109,62 @@ func isSQLIdentChar(c byte) bool {
 }
 
 // processPuts handles: puts message
+// processPuts handles: puts message, puts $fd TEXT (with newline),
+// puts -nonewline $fd TEXT (without newline). For write-mode file
+// channels, the current seek is honored (corrupt*.test writes hex bytes
+// at a known offset via seek+puts).
 func (tp *transpiler) processPuts(args []tcl.RawWord) {
 	if len(args) == 0 {
 		tp.emitLine("t.Log(\"\")")
 		return
 	}
-	// puts $fd TEXT on a write-mode file channel appends TEXT plus newline.
-			if len(args) >= 2 && strings.HasPrefix(args[0].Text, "$") {
-				chName := strings.TrimPrefix(strings.TrimPrefix(args[0].Text, "$"), "::")
-				fmt.Fprintf(os.Stderr, "DEBUG puts[%v] chName=%q inMap=%v\n", args, chName, func() bool { _, ok := activeFileChannels[chName]; return ok }())
-				if path, ok := activeFileChannels[chName]; ok {
-					msgExpr := tp.varValueExpr(args[1:])
-					dest := channelDestExpr(chName, path)
-					if offset, ok := fileChannelSeek[chName]; ok {
-						tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", %d)", dest, msgExpr, offset)
-						delete(fileChannelSeek, chName)
-					} else {
-						tp.emitLine("tclChannelAppend(%s, %s+\"\\n\")", dest, msgExpr)
-					}
-					return
-				}
-			}
-			// puts -nonewline $fd TEXT appends TEXT without a trailing newline.
-						if len(args) >= 3 && args[0].Text == "-nonewline" && strings.HasPrefix(args[1].Text, "$") {
-							chName := strings.TrimPrefix(strings.TrimPrefix(args[1].Text, "$"), "::")
-							fmt.Fprintf(os.Stderr, "DEBUG puts-2[%v] chName=%q inMap=%v seek=%v\n", args, chName, func() bool { _, ok := activeFileChannels[chName]; return ok }(), fileChannelSeek[chName])
-							if path, ok := activeFileChannels[chName]; ok {
-					msgExpr := tp.varValueExpr(args[2:])
-					dest := channelDestExpr(chName, path)
-					if offset, ok := fileChannelSeek[chName]; ok {
-						tp.emitLine("tclChannelAppendAt(%s, %s, %d)", dest, msgExpr, offset)
-						delete(fileChannelSeek, chName)
-					} else {
-						tp.emitLine("tclChannelAppend(%s, %s)", dest, msgExpr)
-					}
-					return
-				}
-			}
-	// puts -nonewline $blob STR on an incremental-blob channel writes at
-	// the channel cursor.
+	// puts -nonewline $blob STR — incremental-blob channel.
 	if len(args) >= 2 && args[0].Text == "-nonewline" {
 		if goName := tp.resolveBlobChannel(args[1]); goName != "" {
 			tp.processBlobPuts(args[1:])
 			return
 		}
 	}
+	// puts $fd TEXT (with newline) or puts -nonewline $fd TEXT (no
+	// newline). Both are routed to a file channel when the first
+	// non-flag arg is a $-prefixed channel name.
+	fdIdx := 0
+	nonewline := false
+	if len(args) >= 1 && args[0].Text == "-nonewline" {
+		nonewline = true
+		fdIdx = 1
+	}
+	if fdIdx >= len(args) || !strings.HasPrefix(args[fdIdx].Text, "$") {
+		// puts to stdout / no channel: fall through to the log path.
+		msgExpr := tp.varValueExpr(args)
+		if tp.isVarDeclared("_putsMsg") {
+			tp.emitLine("_putsMsg = %s", msgExpr)
+		} else {
+			tp.emitLine("_putsMsg := %s", msgExpr)
+			tp.vars = append(tp.vars, "_putsMsg")
+		}
+		tp.emitLine("_ = _putsMsg")
+		return
+	}
+	chName := strings.TrimPrefix(strings.TrimPrefix(args[fdIdx].Text, "$"), "::")
+	if path, ok := activeFileChannels[chName]; ok {
+		msgExpr := tp.varValueExpr(args[fdIdx+1:])
+		dest := channelDestExpr(chName, path)
+		// Always honor the runtime fileChannelSeek value: when the test
+		// did a `seek $fd [expr X+Y]` with a non-foldable expression,
+		// the transpile-time map is empty but the runtime map (populated
+		// by the emitted `fileChannelSeek["fd"] = int64(tclAtoi(...))`)
+		// carries the correct offset. Default offset 0 matches TCL's
+		// "no seek => write at start" semantics.
+		if nonewline {
+			tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%q])", dest, msgExpr, chName)
+		} else {
+			tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%q])", dest, msgExpr, chName)
+		}
+		return
+	}
+	// Channel not registered — fall through to log.
 	msgExpr := tp.varValueExpr(args)
-	// Use _putsMsg to avoid go vet printf warnings on t.Log
 	if tp.isVarDeclared("_putsMsg") {
 		tp.emitLine("_putsMsg = %s", msgExpr)
 	} else {

@@ -240,7 +240,7 @@ func Test_main(t *testing.T) {
 			_ = os.WriteFile("test.db", nil, 0644)
 			fd = "test.db"
 			_ = fd // suppress unused warning
-			tclChannelAppend("test.db", "hi!"+"\n")
+			tclChannelAppendAt("test.db", "hi!"+"\n", fileChannelSeek["fd"])
 			// close $fd
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning

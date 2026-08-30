@@ -75,7 +75,7 @@ func Test_extension01(t *testing.T) {
 		_ = os.WriteFile("./file1.txt", nil, 0644)
 		out = "./file1.txt"
 		_ = out // suppress unused warning
-		tclChannelAppend("./file1.txt", "This is a text file without a line ending")
+		tclChannelAppendAt("./file1.txt", "This is a text file without a line ending", fileChannelSeek["out"])
 		// close $out
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

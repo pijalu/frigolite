@@ -83,7 +83,7 @@ func Test_shell9(t *testing.T) {
 	_ = os.WriteFile("testdump.txt", nil, 0644)
 	out = "testdump.txt"
 	_ = out // suppress unused warning
-	tclChannelAppend("testdump.txt", tclLIndex("catchcmd test.db .dump", "1")+"\n")
+	tclChannelAppendAt("testdump.txt", tclLIndex("catchcmd test.db .dump", "1")+"\n", fileChannelSeek["out"])
 	// close $out
 	{ // "1.1.1" (CLI shell subprocess harness, not transpiled)
 		// forcedelete test.db
@@ -181,7 +181,7 @@ func Test_shell9(t *testing.T) {
 	_ = os.WriteFile("testdump.txt", nil, 0644)
 	out = "testdump.txt"
 	_ = out // suppress unused warning
-	tclChannelAppend("testdump.txt", tclLIndex("catchcmd test.db .dump", "1")+"\n")
+	tclChannelAppendAt("testdump.txt", tclLIndex("catchcmd test.db .dump", "1")+"\n", fileChannelSeek["out"])
 	// close $out
 	{ // "3.1.1" (CLI shell subprocess harness, not transpiled)
 		// forcedelete test.db

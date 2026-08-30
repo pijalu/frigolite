@@ -14,6 +14,15 @@ import (
 	"strings"
 )
 
+// firstRef records the b-tree / page / cell location of the FIRST
+// reference to a page across all b-trees in a database. checkTreePage
+// uses this to emit "2nd reference to page N" diagnostics that name
+// the original reference (matching SQLite's checkTree semantics).
+type firstRef struct {
+	tree, page uint32
+	cell       int
+}
+
 func (e *Engine) execPragmaForeignKeyList(tableName string) *Result {
 	cols := []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}
 	entry, _, err := e.findTable(tableName)
@@ -110,6 +119,11 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 		if !e.btreeStructureOK() {
 			return &Result{Error: fmt.Errorf("database disk image is malformed")}
 		}
+		// Multi-line per-page diagnostics (Tree N page M cell K: 2nd reference
+		// to page X / Page Y: never used). Mirrors btree.c::checkTree /
+		// checkTreePage. corrupt2-5.1 asserts the "Tree 2 page 2 cell 0:
+		// 2nd reference to page 10 / Page 4: never used" diagnostic format.
+		e.checkTreePage(emit)
 		if msg := e.checkFreelistCount(emit); msg != "" {
 			emit(msg)
 		}
@@ -198,6 +212,301 @@ func walkBTreePages(pg *pager.Pager, root uint32, seen map[uint32]bool) bool {
 		}
 	}
 	return walkBTreePages(pg, bp.RightmostPtr, seen)
+}
+
+// checkTreePage runs the per-page b-tree integrity check that mirrors
+// btree.c::checkTree. For each b-tree (table or index) it walks every
+// reachable page, tracks which pages are referenced, and emits one
+// diagnostic per finding:
+//
+//	"Tree <rootPgno> page <pgno> cell <iCell>: 2nd reference to page <child>"
+//	"Page <pgno>: never used"
+//
+// The duplicate-reference detection is ACROSS all b-trees: the first
+// reference of each page is recorded globally (in `referenced`), and
+// the second reference (in any tree) is reported naming the FIRST
+// reference location. SQLite's checkTree / checkTreePage uses the same
+// first-reference semantics: the diagnostic names the original
+// pointer, not the duplicate (corrupt2-5.1 reports "Tree 2 page 2
+// cell 0" — the t1 reference, not the corrupted t2 reference).
+func (e *Engine) checkTreePage(emit func(string)) {
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil {
+			continue
+		}
+		entries, _ := ctx.Schema.GetEntries(schema.TypeTable)
+		idxEntries, _ := ctx.Schema.GetEntries(schema.TypeIndex)
+		all := append(append([]*schema.Entry{}, entries...), idxEntries...)
+		headerEmitted := false
+		ensureHeader := func() {
+			if !headerEmitted {
+				emit("*** in database main ***")
+				headerEmitted = true
+			}
+		}
+		referenced := make(map[uint32]firstRef)
+		for _, te := range all {
+			if te == nil || te.RootPage <= 1 {
+				continue
+			}
+			for _, m := range e.checkOneTree(te.RootPage, ctx.Pager, referenced) {
+				ensureHeader()
+				emit(m)
+			}
+		}
+		// Orphan detection: pages 2..nPages never referenced by any tree.
+		// (Page 1 is the schema root, owned by the implicit schema b-tree
+		// walked at open.)
+		nPages := ctx.Pager.FilePageCount()
+		if nPages == 0 {
+			nPages = ctx.Pager.HeaderPageCount()
+		}
+		for p := uint32(2); p <= nPages; p++ {
+			if _, ok := referenced[p]; !ok {
+				// Freelist pages are not "referenced" by any b-tree but
+				// are also not orphaned — they are owned by the freelist
+				// (header bytes 32..40 declare the trunk + count, and
+				// checkFreelistCount validates the chain). Mirror
+				// btree.c::checkTree: skip freelist pages here.
+				if isFreelistPage(ctx.Pager, p) {
+					continue
+				}
+				ensureHeader()
+				emit(fmt.Sprintf("Page %d: never used", p))
+			}
+		}
+	}
+}
+
+// checkOneTree walks a single b-tree depth-first, populating the
+// cross-tree `referenced` map with the first reference site of each
+// child page. Two duplicate-detection paths:
+//
+//   - Within-tree duplicate (cell points to a page already in the
+//     per-tree `seen` set): reported with the CURRENT tree's
+//     (rootPgno, pgno, cell) location, matching SQLite's
+//     checkTreePage behaviour for self-references.
+//   - Cross-tree duplicate (cell points to a page already referenced
+//     in `referenced` by an earlier b-tree): reported with the
+//     FIRST-reference location (the earlier tree's pointer), matching
+//     SQLite's corrupt2-5.1 output format ("Tree 2 page 2 cell 0" names
+//     the t1 reference, not the t2 reference that was overwritten).
+func (e *Engine) checkOneTree(rootPgno uint32, pg *pager.Pager, referenced map[uint32]firstRef) []string {
+	seen := map[uint32]bool{rootPgno: true}
+	referenced[rootPgno] = firstRef{tree: rootPgno, page: rootPgno, cell: -1}
+	var finds []string
+	pages := []uint32{rootPgno}
+	pageSize := int(pg.PageSize())
+	for len(pages) > 0 {
+		pgno := pages[0]
+		pages = pages[1:]
+		page, err := pg.ReadPage(pgno)
+		if err != nil {
+			continue
+		}
+		coff := 0
+		if pgno == 1 {
+			coff = 100
+		}
+		if coff+8 > len(page.Data) {
+			continue
+		}
+		ptype := page.Data[coff]
+		if ptype != storage.PageTypeInteriorTable && ptype != storage.PageTypeInteriorIndex {
+			continue
+		}
+		bp, err := storage.ParsePage(page.Data, pageSize, coff)
+		if err != nil {
+			continue
+		}
+		cellType := storage.CellTableInterior
+		if ptype == storage.PageTypeInteriorIndex {
+			cellType = storage.CellIndexInterior
+		}
+		for i := 0; i < int(bp.CellCount); i++ {
+			ptrOff := coff + 12 + i*2
+			if ptrOff+2 > len(page.Data) {
+				break
+			}
+			off := int(binary.BigEndian.Uint16(page.Data[ptrOff : ptrOff+2]))
+			cell, derr := storage.DecodeCell(page.Data, off, cellType, pageSize)
+			if derr != nil || cell == nil {
+				continue
+			}
+			if cell.LeftPtr == 0 {
+				continue // zero is a sentinel; do not recurse or report
+			}
+			if first, dup := referenced[cell.LeftPtr]; dup && first.tree != rootPgno {
+				// Cross-tree duplicate: report the FIRST-reference
+				// location (matches SQLite's "Tree T page P cell C:
+				// 2nd reference to page N" where T/P/C is the
+				// original reference).
+				finds = append(finds, fmt.Sprintf("Tree %d page %d cell %d: 2nd reference to page %d",
+					first.tree, first.page, first.cell, cell.LeftPtr))
+			}
+			if seen[cell.LeftPtr] {
+				// Within-tree duplicate (e.g. corrupted cell pointers
+				// within a single page): the cell points back to a
+				// sibling already in the seen set. SQLite reports
+				// this as a within-tree "2nd reference" too.
+				finds = append(finds, fmt.Sprintf("Tree %d page %d cell %d: 2nd reference to page %d",
+					rootPgno, pgno, i, cell.LeftPtr))
+			} else {
+				seen[cell.LeftPtr] = true
+				referenced[cell.LeftPtr] = firstRef{tree: rootPgno, page: pgno, cell: i}
+				pages = append(pages, cell.LeftPtr)
+			}
+		}
+		if bp.RightmostPtr == 0 {
+			continue
+		}
+		if first, dup := referenced[bp.RightmostPtr]; dup && first.tree != rootPgno {
+			// Cross-tree duplicate via the rightmost pointer.
+			finds = append(finds, fmt.Sprintf("Tree %d page %d cell %d: 2nd reference to page %d",
+				first.tree, first.page, first.cell, bp.RightmostPtr))
+		}
+		if seen[bp.RightmostPtr] {
+			finds = append(finds, fmt.Sprintf("Tree %d page %d cell %d: 2nd reference to page %d",
+				rootPgno, pgno, int(bp.CellCount), bp.RightmostPtr))
+		} else {
+			seen[bp.RightmostPtr] = true
+			referenced[bp.RightmostPtr] = firstRef{tree: rootPgno, page: pgno, cell: int(bp.CellCount)}
+			pages = append(pages, bp.RightmostPtr)
+		}
+	}
+	// Second pass: for every page in this tree, walk all of its cells
+	// (including leaves) marking each cell's overflow chain. The first
+	// pass only marked overflow chains of interior cells; leaf cells
+	// may also spill large payloads to overflow pages. Mirrors
+	// btree.c::checkTreePage / btreeIntegrityCheckpoint. Overflow
+	// pages are recorded with the containing page as the first-ref
+	// location (a precise cell-level reference is not strictly needed
+	// for orphan detection).
+	for pgno := range seen {
+		page, err := pg.ReadPage(pgno)
+		if err != nil {
+			continue
+		}
+		coff := 0
+		if pgno == 1 {
+			coff = 100
+		}
+		if coff+8 > len(page.Data) {
+			continue
+		}
+		ptype := page.Data[coff]
+		var cellType storage.CellType
+		switch ptype {
+		case storage.PageTypeLeafTable, storage.PageTypeInteriorTable:
+			cellType = storage.CellTableLeaf
+		case storage.PageTypeLeafIndex, storage.PageTypeInteriorIndex:
+			cellType = storage.CellIndexLeaf
+		default:
+			continue
+		}
+		bp, err := storage.ParsePage(page.Data, pageSize, coff)
+		if err != nil {
+			continue
+		}
+		for i := 0; i < int(bp.CellCount); i++ {
+			ptrOff := coff + 8 + i*2
+			if ptrOff+2 > len(page.Data) {
+				break
+			}
+			off := int(binary.BigEndian.Uint16(page.Data[ptrOff : ptrOff+2]))
+			cell, derr := storage.DecodeCell(page.Data, off, cellType, pageSize)
+			if derr != nil || cell == nil {
+				continue
+			}
+			if cell.Overflow != 0 {
+				markOverflowChain(cell.Overflow, pg, referenced, rootPgno, pgno)
+			}
+		}
+	}
+	return finds
+}
+
+// markOverflowChain follows an overflow chain starting at `head`,
+// marking each page in `out` as referenced. Each overflow page stores
+// the next-overflow page number in its first 4 bytes (big-endian), or
+// 0 if it is the last. Cycles are guarded by `out` membership; a cycle
+// returns silently.
+func markOverflowChain(head uint32, pg *pager.Pager, out map[uint32]firstRef, rootPgno, srcPage uint32) {
+	const maxIter = 100000
+	for cur := head; cur != 0; {
+		if _, ok := out[cur]; ok {
+			return
+		}
+		out[cur] = firstRef{tree: rootPgno, page: srcPage, cell: -1}
+		page, err := pg.ReadPage(cur)
+		if err != nil {
+			return
+		}
+		if len(page.Data) < 4 {
+			return
+		}
+		next := binary.BigEndian.Uint32(page.Data[:4])
+		if next == cur {
+			return
+		}
+		cur = next
+		_ = maxIter
+	}
+}
+
+// isFreelistPage reports whether pgno is part of the on-disk freelist
+// chain (header-declared trunk + leaf pages). Mirrors
+// btree.c::checkTree freelist walk: pages reachable from hdr[32..36]
+// are owned by the freelist, not the b-trees, and are not orphans.
+func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
+	hdr := pg.Header()
+	if len(hdr) < 40 {
+		return false
+	}
+	trunk := binary.BigEndian.Uint32(hdr[32:36])
+	if trunk == 0 {
+		return false
+	}
+	seen := map[uint32]bool{}
+	const maxIter = 100000
+	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
+		if seen[trunk] {
+			return false
+		}
+		seen[trunk] = true
+		if trunk == pgno {
+			return true
+		}
+		page, err := pg.ReadPage(trunk)
+		if err != nil {
+			return false
+		}
+		coff := 0
+		if trunk == 1 {
+			coff = 100
+		}
+		data := page.Data
+		if coff+4 > len(data) {
+			return false
+		}
+		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
+		pageSize := int(pg.PageSize())
+		for off := coff + 4; off+4 <= len(data) && off+4 <= pageSize; off += 4 {
+			leaf := binary.BigEndian.Uint32(data[off : off+4])
+			if leaf == 0 {
+				break
+			}
+			if seen[leaf] {
+				return false
+			}
+			seen[leaf] = true
+			if leaf == pgno {
+				return true
+			}
+		}
+		trunk = nextTrunk
+	}
+	return false
 }
 
 // isReservedStatName reports whether name is one of SQLite's reserved

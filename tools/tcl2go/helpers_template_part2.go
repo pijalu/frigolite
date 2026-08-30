@@ -146,8 +146,13 @@ func tclExpr(expr string) string {
 	return expr
 }
 
-// tclExecSQL executes a SQL statement and returns the joined result values as a
-// space-separated string (used by [execsql ...] in string comparisons).
+// tclExecSQL executes a SQL statement and returns the joined result values in
+// the TCL [db eval $sql] (no body) flat form: rows are joined with a newline
+// and cells within a row are joined with a single space. This matches the
+// TCL flat representation used by do_test fixtures, which for a multi-row
+// pragma like integrity_check returns a single multi-line string (the
+// multi-line braced literal in the expected value), and for a single-row
+// SELECT returns space-joined cells (the flat list form).
 func tclExecSQL(db *frigolite.DB, sql string) string {
 	// Some call sites pass the TCL braced word verbatim ("{SELECT ...}");
 	// strip one level of surrounding braces so the SQL parses.
@@ -159,13 +164,15 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 	if r.Error != nil {
 		return r.Error.Error()
 	}
-	var parts []string
+	rowStrs := make([]string, 0, len(r.Rows))
 	for _, row := range r.Rows {
-		for _, v := range row {
-			parts = append(parts, tclRenderCell(v))
+		parts := make([]string, len(row))
+		for i, v := range row {
+			parts[i] = tclRenderCell(v)
 		}
+		rowStrs = append(rowStrs, strings.Join(parts, " "))
 	}
-	return strings.Join(parts, " ")
+	return strings.Join(rowStrs, "\n")
 }
 
 // tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
@@ -1321,5 +1328,62 @@ func tclIntarrayBind(args []string) error {
 	}
 	frigolite.TclIntarrayBind(args[0], vals)
 	return nil
+}
+
+// tclAtoi parses a decimal int string and returns int64. Used by tcl2go
+// to resolve seek $fd N style runtime expressions at runtime. Returns
+// 0 on parse error.
+func tclAtoi(s string) int64 {
+	n, err := strconv.ParseInt(strings.TrimSpace(s), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
+// tclReadFileWithLen returns the first n bytes from the seek position
+// of the file channel held in path. When no seek has been recorded, or
+// the seek is at or past EOF, the bytes from offset 0 are returned.
+// n <= 0 returns the empty string. Used by the transpiler for the
+// byte-count form of TCL read used by corrupt tests.
+func tclReadFileWithLen(path string, n int) string {
+	if path == "" || n <= 0 {
+		return ""
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	off := 0
+	if v, ok := fileChannelSeek[fdVarForReadFile(path)]; ok && v >= 0 && int(v) < len(data) {
+		off = int(v)
+	}
+	end := off + n
+	if end > len(data) {
+		end = len(data)
+	}
+	return string(data[off:end])
+}
+
+// tclBinaryScanBigUint16 decodes the first 2 bytes of b as a big-endian
+// uint16 and returns the value as a decimal string (matching TCL binary
+// scan S semantics). Used by corrupt tests to compute cell-pointer
+// offsets from on-disk bytes. Returns "0" if b has fewer than 2 bytes.
+func tclBinaryScanBigUint16(b string) string {
+	if len(b) < 2 {
+		return "0"
+	}
+	return strconv.FormatUint(uint64(binary.BigEndian.Uint16([]byte(b[:2]))), 10)
+}
+
+// tclBinaryScanBigUint32 decodes the first 4 bytes of b as a big-endian
+// uint32 and returns the value as a decimal string. Used by corrupt
+// tests to read child-page numbers from on-disk bytes. Returns "0" if
+// b has fewer than 4 bytes.
+func tclBinaryScanBigUint32(b string) string {
+	if len(b) < 4 {
+		return "0"
+	}
+	return strconv.FormatUint(uint64(binary.BigEndian.Uint32([]byte(b[:4]))), 10)
 }
 ` + helpersTemplatePart2Tail

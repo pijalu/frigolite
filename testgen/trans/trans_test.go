@@ -1085,7 +1085,7 @@ func Test_trans(t *testing.T) {
 	_ = os.WriteFile("test.tcl", nil, 0644)
 	fd = "test.tcl"
 	_ = fd // suppress unused warning
-	tclChannelAppend("test.tcl", "\n  sqlite3_test_control_pending_byte 0x0010000\n  sqlite3 db test.db\n  db eval {\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n")
+	tclChannelAppendAt("test.tcl", "\n  sqlite3_test_control_pending_byte 0x0010000\n  sqlite3 db test.db\n  db eval {\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n", fileChannelSeek["fd"])
 	// close $fd
 	{ // do_test "trans-8.1"
 		{
@@ -1115,7 +1115,7 @@ func Test_trans(t *testing.T) {
 	_ = os.WriteFile("test.tcl", nil, 0644)
 	fd = "test.tcl"
 	_ = fd // suppress unused warning
-	tclChannelAppend("test.tcl", "\n  sqlite3_test_control_pending_byte 0x0010000\n  sqlite3 db test.db\n  db eval {\n    PRAGMA journal_mode=persist;\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n")
+	tclChannelAppendAt("test.tcl", "\n  sqlite3_test_control_pending_byte 0x0010000\n  sqlite3 db test.db\n  db eval {\n    PRAGMA journal_mode=persist;\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n", fileChannelSeek["fd"])
 	// close $fd
 	{ // do_test "trans-8.4"
 		{

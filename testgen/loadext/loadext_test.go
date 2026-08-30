@@ -212,12 +212,12 @@ func Test_loadext(t *testing.T) {
 		_ = os.WriteFile("./notasharedlib.so", nil, 0644)
 		fd = "\"./notasharedlib.so\""
 		_ = fd // suppress unused warning
-		tclChannelAppend("./notasharedlib.so", "blah"+"\n")
+		tclChannelAppendAt("./notasharedlib.so", "blah"+"\n", fileChannelSeek["fd"])
 		// close $fd
 		_ = os.WriteFile("./notasharedlib.dll", nil, 0644)
 		fd = "\"./notasharedlib.dll\""
 		_ = fd // suppress unused warning
-		tclChannelAppend("./notasharedlib.dll", "blah"+"\n")
+		tclChannelAppendAt("./notasharedlib.dll", "blah"+"\n", fileChannelSeek["fd"])
 		// close $fd
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning

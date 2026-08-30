@@ -203,7 +203,7 @@ func Test_backup2(t *testing.T) {
 		_ = os.WriteFile("bu2.db", nil, 0644)
 		out = "bu2.db"
 		_ = out // suppress unused warning
-		tclChannelAppend("bu2.db", "This is not a valid database file"+"\n")
+		tclChannelAppendAt("bu2.db", "This is not a valid database file"+"\n", fileChannelSeek["out"])
 		// close $out
 	_ = rc // suppress unused warning
 	_ = res // suppress unused warning

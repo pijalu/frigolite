@@ -421,7 +421,7 @@ func Test_zipfile2(t *testing.T) {
 			_ = os.WriteFile("test.zip", nil, 0644)
 			fd = "test.zip"
 			_ = fd // suppress unused warning
-			tclChannelAppend("test.zip", tclDbOne(db, "SELECT X'504b0506000000000100010030000000160000000000504b01021400140000000000000000000000000000000000000000000100010000000000000000000000000000006100'"))
+			tclChannelAppendAt("test.zip", tclDbOne(db, "SELECT X'504b0506000000000100010030000000160000000000504b01021400140000000000000000000000000000000000000000000100010000000000000000000000000000006100'"), fileChannelSeek["fd"])
 			// close $fd
 			{ // "8.0"
 				_res = db.Exec("\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")

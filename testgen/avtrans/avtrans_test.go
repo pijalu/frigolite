@@ -1059,7 +1059,7 @@ func Test_avtrans(t *testing.T) {
 	_ = os.WriteFile("test.tcl", nil, 0644)
 	fd = "test.tcl"
 	_ = fd // suppress unused warning
-	tclChannelAppend("test.tcl", "\n  sqlite3 db test.db\n  db eval {\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n")
+	tclChannelAppendAt("test.tcl", "\n  sqlite3 db test.db\n  db eval {\n    PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;\n  }\n  sqlite_abort\n"+"\n", fileChannelSeek["fd"])
 	// close $fd
 	{ // do_test "avtrans-8.1"
 		{

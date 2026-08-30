@@ -207,7 +207,7 @@ func Test_avfs(t *testing.T) {
 		vtab.TclVarSet("tlo", "", " \"Just some text,\" \"and more text,\" \"ending at 3 lines.\" ")
 		tlo = " \"Just some text,\" \"and more text,\" \"ending at 3 lines.\" " // TCL namespace variable
 		_ = tlo // suppress unused warning
-		tclChannelAppend(fa, strings.Join(tclSplitList(tlo), "\n")+"\n")
+		tclChannelAppendAt(fa, strings.Join(tclSplitList(tlo), "\n")+"\n", fileChannelSeek["out"])
 		// close $out
 		adbSz = strconv.Itoa(tclFileSize(fa))
 		_ = adbSz // suppress unused warning
@@ -473,10 +473,10 @@ func Test_avfs(t *testing.T) {
 		_ = os.WriteFile(fake, nil, 0644)
 		ofd = fake
 		_ = ofd // suppress unused warning
-		tclChannelAppend(fake, "SQLite format 3")
-		tclChannelAppend(fake, "")
-		tclChannelAppend(fake, "Start-Of-SQLite3-")
-		tclChannelAppend(fake, "")
+		tclChannelAppendAt(fake, "SQLite format 3", fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "Start-Of-SQLite3-", fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
 		// close $ofd
 		if false {
 			vtab.TclVarSet("res", "", "Open failed.")
@@ -504,11 +504,11 @@ func Test_avfs(t *testing.T) {
 		vtab.TclVarSet("fakeAppendee", "", "Dog ate my homework.\n")
 		fakeAppendee = "Dog ate my homework.\n"
 		_ = fakeAppendee // suppress unused warning
-		tclChannelAppend(fake, fakeAppendee)
-		tclChannelAppend(fake, "SQLite format 3")
-		tclChannelAppend(fake, "")
-		tclChannelAppend(fake, "Start-Of-SQLite3-")
-		tclChannelAppend(fake, "")
+		tclChannelAppendAt(fake, fakeAppendee, fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "SQLite format 3", fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "Start-Of-SQLite3-", fileChannelSeek["ofd"])
+		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
 		// close $ofd
 		if false {
 			vtab.TclVarSet("res", "", "Open failed.")

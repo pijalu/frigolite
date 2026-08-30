@@ -96,6 +96,6 @@ func Test_lock6(t *testing.T) {
 	_ = os.WriteFile("tf_main2.tcl", nil, 0644)
 	f = "tf_main2.tcl"
 	_ = f // suppress unused warning
-	tclChannelAppend("tf_main2.tcl", "\n  set l [open log w]\n  set script \"\"\n  while {![eof stdin]} {\n    flush stdout\n    set line [gets stdin]\n    puts $l \"READ $line\"\n    if { $line == \"OVER\" } {\n      catch {eval $script} result\n      puts $result\n      puts $l \"WRITE $result\"\n      puts OVER\n      puts $l \"WRITE OVER\"\n      flush stdout\n      set script \"\"\n    } else {\n      append script $line\n      append script \" ; \"\n    }\n  }\n  close $l\n"+"\n")
+	tclChannelAppendAt("tf_main2.tcl", "\n  set l [open log w]\n  set script \"\"\n  while {![eof stdin]} {\n    flush stdout\n    set line [gets stdin]\n    puts $l \"READ $line\"\n    if { $line == \"OVER\" } {\n      catch {eval $script} result\n      puts $result\n      puts $l \"WRITE $result\"\n      puts OVER\n      puts $l \"WRITE OVER\"\n      flush stdout\n      set script \"\"\n    } else {\n      append script $line\n      append script \" ; \"\n    }\n  }\n  close $l\n"+"\n", fileChannelSeek["f"])
 	// close $f
 }

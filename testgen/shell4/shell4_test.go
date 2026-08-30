@@ -138,7 +138,7 @@ func Test_shell4(t *testing.T) {
 		_ = os.WriteFile("t1.txt", nil, 0644)
 		fd = "t1.txt"
 		_ = fd // suppress unused warning
-		tclChannelAppend("t1.txt", ".mode list\nSELECT 'squirrel';"+"\n")
+		tclChannelAppendAt("t1.txt", ".mode list\nSELECT 'squirrel';"+"\n", fileChannelSeek["fd"])
 		// close $fd
 		// exec $::CLI_ONLY --noinit :memory: --interactive .read t1.txt (unsupported command, not transpiled)
 	}

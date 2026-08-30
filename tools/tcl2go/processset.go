@@ -695,10 +695,21 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 	}
 	// set ::data [read $fd2] — read a file channel (fd2 holds a path).
 	if len(args) >= 2 && strings.HasPrefix(strings.TrimSpace(args[1].Text), "[read $") {
-		chanVar := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "[read $"), "]"))
+		inner := strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "[read $"), "]")
+		// `read $fd N` includes a byte count after the channel var; we want
+		// only the channel name. `read $fd` (whole file) has no N.
+		parts := strings.Fields(inner)
+		if len(parts) == 0 {
+			return false
+		}
+		chanVar := parts[0]
 		goChan := tclVarToGo(chanVar)
 		if isValidGoIdent(goChan) && tp.isVarDeclared(goChan) {
-			tp.assignSetValue(goName, "tclReadFile("+goChan+")")
+			if len(parts) >= 2 {
+				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", goChan, parts[1]))
+			} else {
+				tp.assignSetValue(goName, "tclReadFile("+goChan+")")
+			}
 			return true
 		}
 	}

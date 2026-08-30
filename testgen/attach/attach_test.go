@@ -736,7 +736,7 @@ func Test_attach(t *testing.T) {
 		_ = os.WriteFile("test2.db", nil, 0644)
 		fd = "test2.db"
 		_ = fd // suppress unused warning
-		tclChannelAppend("test2.db", "This file is not a valid SQLite database"+"\n")
+		tclChannelAppendAt("test2.db", "This file is not a valid SQLite database"+"\n", fileChannelSeek["fd"])
 		// close $fd
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql

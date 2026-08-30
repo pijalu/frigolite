@@ -316,7 +316,7 @@ func Test_csv01(t *testing.T) {
 	_ = os.WriteFile("csv01.csv", nil, 0644)
 	fd = "csv01.csv"
 	_ = fd // suppress unused warning
-	tclChannelAppend("csv01.csv", "a,b,c,d\r\n1,2,3,4\r\none,two,three,four\r\n5,6,7,8"+"\n")
+	tclChannelAppendAt("csv01.csv", "a,b,c,d\r\n1,2,3,4\r\none,two,three,four\r\n5,6,7,8"+"\n", fileChannelSeek["fd"])
 	// close $fd
 	{ // "5.1"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t5_1 USING csv(filename='csv01.csv');\n  SELECT name FROM temp.pragma_table_info('t5_1');\n")
@@ -380,8 +380,8 @@ func Test_csv01(t *testing.T) {
 		_ = os.WriteFile("csv.data", nil, 0644)
 		fd = "csv.data"
 		_ = fd // suppress unused warning
-		tclChannelAppend("csv.data", "a,b"+"\n")
-		tclChannelAppend("csv.data", "randomtext $ii" + ",abcd"+"\n")
+		tclChannelAppendAt("csv.data", "a,b"+"\n", fileChannelSeek["fd"])
+		tclChannelAppendAt("csv.data", "randomtext $ii" + ",abcd"+"\n", fileChannelSeek["fd"])
 		// close $fd
 		{ // "6." + ii + ".1"
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")
@@ -424,8 +424,8 @@ func Test_csv01(t *testing.T) {
 		_ = os.WriteFile("csv.data", nil, 0644)
 		fd = "csv.data"
 		_ = fd // suppress unused warning
-		tclChannelAppend("csv.data", "a,b"+"\n")
-		tclChannelAppend("csv.data", "abcd," + T)
+		tclChannelAppendAt("csv.data", "a,b"+"\n", fileChannelSeek["fd"])
+		tclChannelAppendAt("csv.data", "abcd," + T, fileChannelSeek["fd"])
 		// close $fd
 		{ // "7." + ii + ".1"
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);\n  ")

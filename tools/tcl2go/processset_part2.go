@@ -185,7 +185,14 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 	if cmdParts[0] == "read" && len(cmdParts) >= 2 && strings.HasPrefix(cmdParts[1], "$") {
 		chanGo := tclVarToGo(strings.TrimPrefix(cmdParts[1], "$"))
 		if isValidGoIdent(chanGo) && tp.isVarDeclared(chanGo) {
-			tp.assignSetValue(goName, "tclReadFile("+chanGo+")")
+			if len(cmdParts) >= 3 {
+				// `read $CHAN N` — read N bytes from the channel's current
+				// seek position. Used by corrupt* tests to capture cell
+				// pointers / child-page bytes.
+				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", chanGo, cmdParts[2]))
+			} else {
+				tp.assignSetValue(goName, "tclReadFile("+chanGo+")")
+			}
 			return true
 		}
 	}

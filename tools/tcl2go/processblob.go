@@ -9,7 +9,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -540,33 +539,34 @@ func (tp *transpiler) processSeek(args []tcl.RawWord) {
 	}
 	if whence == "start" {
 			var off int64
-			cleaned := strings.Trim(offset, `"`)
-			// Try literal int; if not, evaluate simple "A+B" expressions to a
-			// single offset (corrupt*.test sources frequently write
-			// "seek $fd [expr 1024+8]" for t1's cell-pointer area at offset
-			// 1032; without evaluating, tclChannelAppendAt is called with offset
-			// 0 and the corruption lands on the magic string).
-			if _, err := fmt.Sscanf(cleaned, "%d", &off); err != nil {
-				var a, b int64
-				if _, err2 := fmt.Sscanf(cleaned, "%d+%d", &a, &b); err2 == nil {
-					off = a + b
-				} else {
-					off = 0
-				}
+			startIsLiteral := false
+			if isGoIntLiteral(offset) {
+				off, _ = strconv.ParseInt(offset, 10, 64)
+				startIsLiteral = true
+			} else if a, b, ok := splitLiteralAdd(offset); ok {
+				off = a + b
+				startIsLiteral = true
+			} else {
+				// `seek $fd [expr X+Y]` where X+Y is not a literal-constant
+				// expression. Emit the offset as a Go expression so it is
+				// evaluated at runtime (corrupt2.test 5.1: `seek $fd
+				// [expr 1024 + $iCelloffset]`).
+				tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
+				return
 			}
 			fileChannelSeek[chName] = off
-			fmt.Fprintf(os.Stderr, "DEBUG seek-setter chName=%q offset=%q off=%d inMap=%v\n", chName, offset, off, func() bool { _, ok := activeFileChannels[chName]; return ok }())
+			_ = startIsLiteral
 		}
 	switch whence {
 			case "start":
 				tp.emitLine("fileChannelSeek[%q] = %d", chName, fileChannelSeek[chName])
 			case "current":
-				tp.emitLine("fileChannelSeek[%q] += int64(%s)", chName, offset)
+				tp.emitLine("fileChannelSeek[%q] += int64(tclAtoi(%s))", chName, offset)
 			case "end":
-				tp.emitLine("fileChannelSeek[%q] = tclFileLen(%s) + int64(%s)", chName, channelDestExpr(chName, activeFileChannels[chName]), offset)
+				tp.emitLine("fileChannelSeek[%q] = tclFileLen(%s) + int64(tclAtoi(%s))", chName, channelDestExpr(chName, activeFileChannels[chName]), offset)
 			default:
 				tp.emitLine("// seek %s (whence=%s unsupported, defaulting to start)", describeArgsShort(args), whence)
-				tp.emitLine("fileChannelSeek[%q] = int64(%s)", chName, offset)
+				tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
 			}
 		}
 
@@ -1036,4 +1036,35 @@ func (tp *transpiler) intValueExpr(w tcl.RawWord) string {
 		return "tclBlobInt(tclExprWith(" + fmt.Sprintf("%q", exprGo) + ", map[string]string{" + strings.Join(parts, ", ") + "}))"
 	}
 	return "tclBlobInt(" + fmt.Sprintf("%q", text) + ")"
+}
+
+// isGoIntLiteral reports whether s is a parseable base-10 int string
+// (e.g. "1024" or "-5"). The transpiler uses this to decide whether a
+// `seek $fd N` argument can be folded at transpile time or must be
+// emitted as a runtime expression.
+func isGoIntLiteral(s string) bool {
+	if s == "" {
+		return false
+	}
+	_, err := strconv.ParseInt(s, 10, 64)
+	return err == nil
+}
+
+// splitLiteralAdd parses a "A+B" int expression where A and B are both
+// decimal int literals. Returns the values and ok=true on success; ok=false
+// otherwise (e.g. "1024 + $iCelloffset").
+func splitLiteralAdd(s string) (int64, int64, bool) {
+	s = strings.TrimSpace(s)
+	for _, sep := range []string{"+"} {
+		idx := strings.Index(s, sep)
+		if idx <= 0 || idx >= len(s)-1 {
+			continue
+		}
+		a, e1 := strconv.ParseInt(strings.TrimSpace(s[:idx]), 10, 64)
+		b, e2 := strconv.ParseInt(strings.TrimSpace(s[idx+len(sep):]), 10, 64)
+		if e1 == nil && e2 == nil {
+			return a, b, true
+		}
+	}
+	return 0, 0, false
 }

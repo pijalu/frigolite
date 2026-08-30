@@ -332,7 +332,7 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"do_select_test":    func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("do_select_test", args) },
 		"record":            func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("record", args) },
 		"tcl_platform":      func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("tcl_platform", args) },
-		"binary":            func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("binary", args) },
+		"binary":            (*transpiler).processBinaryCommand,
 		"read":              (*transpiler).processRead,
 		"seek":              (*transpiler).processSeek,
 		"open":              (*transpiler).processOpen,
@@ -683,4 +683,51 @@ func describeArgsShort(args []tcl.RawWord) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// processBinaryCommand dispatches `binary scan` / `binary encode hex` /
+// `binary decode hex` etc. as top-level commands (i.e. not in a `set`
+// RHS, which is handled separately in processset_part2.go).
+// Currently only `binary scan $b S name` and `binary scan $b I name`
+// are supported (corrupt*.test reads big-endian cell-pointer and
+// child-page bytes from disk and decodes them into integer strings).
+// Other forms fall through to processInfraComment.
+func (tp *transpiler) processBinaryCommand(args []tcl.RawWord) {
+	if len(args) < 3 {
+		tp.processInfraComment("binary", args)
+		return
+	}
+	sub := args[0].Text
+	// binary scan $b FORMAT name — convert bytes to int-string.
+	if sub == "scan" {
+		if len(args) != 4 {
+			// multi-result or other exotic form: fall through
+			tp.processInfraComment("binary", args)
+			return
+		}
+		bsrc := args[1].Text
+		format := args[2].Text
+		varName := args[3].Text
+		goSrc := tclVarToGo(bsrc)
+		if !isValidGoIdent(goSrc) {
+			tp.processInfraComment("binary", args)
+			return
+		}
+		goName := tclVarToGo(varName)
+		if !isValidGoIdent(goName) {
+			tp.processInfraComment("binary", args)
+			return
+		}
+		switch format {
+		case "S":
+			tp.assignSetValue(goName, "tclBinaryScanBigUint16("+goSrc+")")
+		case "I":
+			tp.assignSetValue(goName, "tclBinaryScanBigUint32("+goSrc+")")
+		default:
+			tp.processInfraComment("binary", args)
+		}
+		return
+	}
+	// Fall through for any other binary form.
+	tp.processInfraComment("binary", args)
 }

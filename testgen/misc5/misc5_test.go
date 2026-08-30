@@ -149,7 +149,7 @@ func Test_misc5(t *testing.T) {
 			_ = os.WriteFile("test.db", nil, 0644)
 			fd = "test.db"
 			_ = fd // suppress unused warning
-			tclChannelAppend("test.db", "This is not really a database"+"\n")
+			tclChannelAppendAt("test.db", "This is not really a database"+"\n", fileChannelSeek["fd"])
 			// close $fd
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
