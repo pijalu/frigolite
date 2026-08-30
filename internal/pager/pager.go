@@ -423,11 +423,11 @@ func (p *Pager) ValidateHeader() error {
 	// If Open observed a header that did not parse (bad magic / short header),
 	// mirror SQLite's deferral: surface "file is not a database" on the first
 	// statement that actually reads the schema btree. corrupt2.test 1.2/1.3/1.5
-	// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
-	// returns the error).
-	if p.headerCorrupt {
-		return fmt.Errorf("file is not a database")
-	}
+		// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
+		// returns the error).
+		if p.headerCorrupt {
+			return fmt.Errorf("database disk image is malformed")
+		}
 	freelistTrunk := binary.BigEndian.Uint32(p.header[32:36])
 	freelistCount := binary.BigEndian.Uint32(p.header[36:40])
 	largestRoot := binary.BigEndian.Uint32(p.header[52:56])
