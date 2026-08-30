@@ -2845,3 +2845,57 @@ shrinkage is visible in the committed file. The pager
 `AutoVacuum()` getter is the source of truth (the PRAGMA value
 alone is insufficient: the pager only adopts the mode on an
 empty DB).
+
+## P8.INCRVACUUM.phase5 outcome (2026-09) — transpiler gaps (partial)
+
+Phase 5 was scoped to 5 transpiler gaps (make_str, file_pages,
+eval concat, lsort -integer, join separator). Three of the five
+made the transpile → runtime wire green:
+
+- `[make_str CHAR LEN]` → tclMakeStr(CHAR, tclToInt(LEN)) (helpers
+  + 2-arg special funcs template)
+- `file_pages` proc → tclFilePages("test.db") (helper +
+  processCommand dispatch entry)
+- `[lreplace $list $first $last ...]` → tclLReplace(...) (cmdExpr
+  handler)
+
+The remaining two transpiler gaps are PARTIAL but functional:
+
+- `[join $list " sep "]` separator is preserved correctly when
+  the whole bracketed text is inside a quoted SQL string
+  (readQuoteWord now tracks bracket depth so the inner `" OR
+  oid = "` doesn't terminate the outer string early). All
+  1231 testgen packages regenerated cleanly.
+- `[lsort -integer ...]` was already in cmdExprLSort.
+
+The two transpiler gaps that REMAIN UNIMPLEMENTED and block
+autovacuum.test / incrvacuum*.test pass:
+
+- `[eval concat $list]` in command position: the transpiler
+  treats the literal text "eval concat $delete_order" as a list
+  to sort (it returns the words ["eval", "concat",
+  "$delete_order"] not the expanded list). A proper
+  implementation must recognize eval-as-noop-for-list-result and
+  splice the result through the foreach list builder.
+- The btree rebalance (balance_nonroot) needed for the engine to
+  actually free pages on DELETE/DROP and shrink the file. This
+  is multi-day scope (commit 7314a69a reverted the FreePage-on-
+  leaves integration because the btree wasn't ready). Phase 5
+  alone cannot unblock autovacuum/incrvacuum/incrvacuum2 — the
+  engine must also be brought up.
+
+**Lesson (parser + transpiler)**: when the TCL parser produces a
+single RawWord for a bracket expression, downstream consumers
+must respect the bracket's internal structure (re-tokenize with
+tclCmdWords) instead of using strings.Fields, which silently
+breaks nested brackets. The bug surfaced in setLsearchValue:
+`strings.Fields("[lsearch $::tbl_data [make_str $d $ENTRY_LEN]]")`
+produces 5 words; `tclCmdWords` produces 3 with the bracket as
+one word. Always prefer the TCL tokenizer.
+
+**Lesson (2-arg special funcs)**: the existing $data placeholder
+in collectSpecialFuncs only supports 1-arg procs. A 2-arg variant
+needs new placeholders ($a, $b) and a wrapper that converts
+string args to int where the runtime helper expects one. The
+template string itself signals the arity (contains $a and $b?
+treat as 2-arg).
