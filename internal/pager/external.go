@@ -234,3 +234,29 @@ func (p *Pager) WritePtrmap(pgno uint32, parentType byte, parentPgno uint32) err
 	p.mu.Unlock()
 	return nil
 }
+
+// IsPageOnFreelist reports whether pgno is currently on the in-memory
+// freelist (P8.INCRVACUUM phase 3). Used by IncrVacuumStep to decide
+// whether the last page of the file can be truncated directly (it's on
+// the freelist) or needs a page-swap (it's in use).
+func IsPageOnFreelist(p *Pager, pgno uint32) bool {
+	if p == nil {
+		return false
+	}
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.freePages[pgno]
+}
+
+// MarkPageDirtyForVacuum marks pgno as dirty so its in-memory content
+// gets written back on the next flush (P8.INCRVACUUM phase 3). Used by
+// RelocatePage (which copies page content directly into pg.Data and
+// needs the page to be flushed).
+func MarkPageDirtyForVacuum(p *Pager, pgno uint32) {
+	if p == nil {
+		return
+	}
+	p.mu.Lock()
+	p.dirty[pgno] = true
+	p.mu.Unlock()
+}
