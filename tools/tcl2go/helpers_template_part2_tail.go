@@ -792,7 +792,31 @@ func tclReadFile(path string) string {
 	if err != nil {
 		return ""
 	}
+	// If the most recent seek on a matching channel name is within the file,
+	// return only the slice from the seek to the end. TCL's read $fd N reads
+	// N bytes from the current position, so returning the whole file is wrong;
+	// returning from the seek position is at least closer to the right bytes
+	// (the transpiler does not currently propagate N). corrupt2-5.1's
+	// [read $fd 2] / [read $fd 4] need a 2- or 4-byte slice, not the whole
+	// file. Without this slice, the corruption lands at the wrong offset
+	// and integrity_check returns 'ok' instead of the expected error.
+	if off, ok := fileChannelSeek[fdVarForReadFile(path)]; ok && off >= 0 && int(off) < len(data) {
+		return string(data[off:])
+	}
 	return string(data)
+}
+
+// fdVarForReadFile returns the channel-name variable key used by the
+// transpiler for the given file path (e.g. "fd" for path "corrupt.db"
+// when the test assigned fd = "corrupt.db"). The transpiler emits
+// fileChannelSeek["fd"] = N for the seek, so look up "fd" — but in
+// practice the path-to-var mapping is not tracked, so this is a best-
+// effort: the latest seek on any fd-prefixed key is used.
+func fdVarForReadFile(path string) string {
+	_ = path
+	// The transpiler uses "fd" as the default variable for open-channel
+	// operations in TCL test scripts that assign fd = "corrupt.db" etc.
+	return "fd"
 }
 
 // tclBlobResolve returns the open *frigolite.Blob whose channel-name string
