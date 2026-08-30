@@ -43,15 +43,42 @@ On **any** testgen failure:
 3. **Verify against oracle**: use `/usr/bin/sqlite3` to confirm expected output.
 4. **Never weaken a test** to make it green.
 
-### 1d. All failures must be fixed
+### 1d. All failures must be fixed — no exceptions, no "pre-existing" excuses
 
-Every failing test is a defect to fix — **regardless of its source**. Do not
-classify a failure as "pre-existing", "out of scope", "test bug", or "phase
-gated" and move on. The failure set at goal start is the baseline to close;
-a red test that is not part of the current goal's package still indicates an
-engine gap and must be fixed (or explicitly blocked with evidence) before the
-goal completes. Do not waste time investigating whether a failure predates
-your changes — spend that time fixing the underlying issue.
+Every failing test is a defect to fix — **regardless of its source, age, or
+responsibility**. Do NOT classify a failure as "pre-existing", "out of scope",
+"test bug", "phase gated", "not my code", "not my package", or "transpiler
+quirk" and move on. That is blame-shifting, not engineering. The fix is the
+fix; the goal does not get to call itself done with red tests left over from
+any source.
+
+**Process on every failure:**
+
+1. Fix it, regardless of who caused it. "It was already broken when I arrived"
+   is not a defense; it is a defect in the repo and the goal owns all defects
+   in the repo until verified-done.
+2. Never waste cycles git-stashing to prove the failure predates your work —
+   that diagnostic time is better spent writing a triage test (§1c) and
+   fixing the root cause.
+3. If the fix is genuinely out of scope for the current goal (e.g. the
+   failure is in a completely different feature area with no shared code
+   path), the only acceptable actions are:
+   - fix it anyway (preferred — defects in the repo are everyone's defect),
+   - or open an explicit follow-up goal with the failing test name and root
+     cause documented, and only then continue. "Move on" alone is never
+     acceptable.
+4. A red test that is not part of the current goal's package still indicates
+   a defect and must be fixed (or explicitly blocked with evidence) before
+   the goal completes.
+
+### 1d-bis. No "pre-existing" excuses
+
+When a test fails, fix the underlying defect — do not look for the culprit.
+Investigating "did my change cause this?" is wasted effort; the only relevant
+question is "what is the right behavior?". The pre-existing failures block
+the verify command from exiting 0, so they block the goal. Apply the same
+triage (pure-Go discriminator, then engine or transpiler fix) as for any
+other failure, irrespective of blame.
 
 ## 2. CI Quality Gates (from .github/workflows/ci.yml)
 
