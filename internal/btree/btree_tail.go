@@ -66,6 +66,7 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 	// Decode every cell once.
 	encoded := make([][]byte, 0, int(page.CellCount))
 	ptrs := make([]uint16, int(page.CellCount))
+	decoded := make([]storage.Cell, int(page.CellCount))
 	for i := 0; i < int(page.CellCount); i++ {
 		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
 		ptrs[i] = p
@@ -73,20 +74,44 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 		if derr != nil {
 			return 0, derr
 		}
+		decoded[i] = *c
 		encoded = append(encoded, storage.EncodeCell(c))
 	}
-	// Keep the survivors, preserving order.
+	// Keep the survivors, preserving order. Also collect the deleted cell
+	// indices so we can free their overflow-page chains.
 	var keep []int
 	deleted := int64(0)
+	var deletedIdx []int
 	for i := 0; i < len(encoded); i++ {
 		if t.cellMatches(pg, page, i, fn) {
 			deleted++
+			deletedIdx = append(deletedIdx, i)
 			continue
 		}
 		keep = append(keep, i)
 	}
 	if deleted == 0 {
 		return 0, nil
+	}
+	// Free the overflow pages of the cells that were deleted. Each
+	// table-leaf cell may carry a chain of overflow pages (4KB blobs
+	// need several pages); when the cell is deleted the chain becomes
+	// orphaned and must be returned to the freelist so the header count
+	// tracks the freed space (corrupt2-14.2/14.3/14.5 depend on this).
+	for _, di := range deletedIdx {
+		dcell := &decoded[di]
+		if dcell.Overflow != 0 {
+			pn := dcell.Overflow
+			for pn != 0 {
+				np, _ := t.pager.ReadPage(pn)
+				if np == nil {
+					break
+				}
+				next := binary.BigEndian.Uint32(np.Data[0:4])
+				_ = t.pager.FreePage(pn)
+				pn = next
+			}
+		}
 	}
 	// Rewrite the surviving cells contiguously from the end of the usable
 	// area (cells grow downward; the first cell occupies the highest

@@ -650,7 +650,7 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 		trunk = nextTrunk
 	}
 	if actual != headerCount {
-		return fmt.Sprintf("*** in database main ***\nFreelist: size is %d but should be %d", headerCount, actual)
+		return fmt.Sprintf("*** in database main ***\nFreelist: size is %d but should be %d", actual, headerCount)
 	}
 	return ""
 }
