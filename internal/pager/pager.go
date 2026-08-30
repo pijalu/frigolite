@@ -610,6 +610,38 @@ func (p *Pager) SetHeader(h []byte) {
 func (p *Pager) AllocatePage() *Page {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// If the on-disk freelist has pages (header byte 32..36 = trunk, 36..40 =
+	// count), recycle one instead of extending the file. SQLite's
+	// allocateBtreePage branch in btree.c consumes freelist pages before
+	// extending the database. Without this, DELETE/DROP never recycle pages
+	// (vacuum.go documents that), and PRAGMA integrity_check can't see a
+	// meaningful freelist count. corrupt2-14.2/14.3/14.5 depend on the
+	// freelist count surviving a DELETE and being mismatched by a hex patch.
+	if p.header != nil && len(p.header) >= 40 {
+		trunk := binary.BigEndian.Uint32(p.header[32:36])
+		count := binary.BigEndian.Uint32(p.header[36:40])
+		if trunk != 0 && count > 0 && trunk <= p.numPages {
+			trunkPg, terr := p.readPageLocked(trunk)
+			if terr == nil && len(trunkPg.Data) >= 8 {
+				// The trunk page is a freelist trunk: first 4 bytes = next trunk
+				// (or 0 if last), bytes 4..6 = leaf count, bytes 8+ = leaves. Pop
+				// the trunk itself (subtract 1 from count); the chain itself
+				// stays in the header.
+				nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+				binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+				binary.BigEndian.PutUint32(p.header[36:40], count-1)
+				p.dirty[trunk] = true
+				delete(p.pages, trunk)
+				pg := &Page{
+					Data:    make([]byte, p.pageSize),
+					PageNum: trunk,
+				}
+				p.pages[trunk] = pg
+				p.dirty[trunk] = true
+				return pg
+			}
+		}
+	}
 	p.numPages++
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
 	// a pointer-map page, zero it out (no b-tree header — its content is a
@@ -652,6 +684,11 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	return p.readPageLocked(pageNum)
+}
+
+// readPageLocked reads a page; the caller must hold p.mu for writing.
+func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 	if pg, ok := p.pages[pageNum]; ok {
 		return pg, nil
 	}
@@ -795,6 +832,55 @@ func (p *Pager) Truncate(n uint32) error {
 			return fmt.Errorf("pager: truncate to %d pages: %w", n, err)
 		}
 	}
+	return nil
+}
+
+// FreePage returns a page number to the on-disk freelist. The page's
+// in-memory buffer is cleared and the header's freelist-trunk pointer is
+// updated to point at this page (single-page trunk: trunkPg = newPage,
+// newPage.NextTrunk = oldTrunk, count += 1). Subsequent AllocatePage calls
+// consume the freelist before extending the file. DELETE/DROP TABLE paths
+// call this when a leaf page becomes empty (pager.c sqlite3PagerDontWrite +
+// sqlite3FreePage). Without this the freelist stays empty and PRAGMA
+// integrity_check can't detect a mismatched count (corrupt2-14.x).
+func (p *Pager) FreePage(pageNum uint32) error {
+	if pageNum <= 1 {
+		return fmt.Errorf("pager: cannot free page %d", pageNum)
+	}
+	if p.readOnly {
+		return fmt.Errorf("pager: read-only")
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if pageNum > p.numPages {
+		return nil
+	}
+	if p.header == nil || len(p.header) < 40 {
+		// Build a minimal header so we can update the freelist fields.
+		p.header = make([]byte, HeaderSize)
+		copy(p.header, storage.DefaultHeader(p.pageSize).Encode())
+	}
+	oldTrunk := binary.BigEndian.Uint32(p.header[32:36])
+	oldCount := binary.BigEndian.Uint32(p.header[36:40])
+	// Load or allocate the page being freed so we can write the next-trunk
+	// pointer into its first 4 bytes.
+	pg, err := p.readPageLocked(pageNum)
+	if err != nil {
+		return err
+	}
+	// Reset the page content: page-type byte stays 0, all other bytes
+	// zeroed. The first 4 bytes become the next-trunk pointer so the
+	// freelist chain is well-formed.
+	for i := range pg.Data {
+		pg.Data[i] = 0
+	}
+	binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk)
+	p.dirty[pageNum] = true
+	p.pages[pageNum] = pg
+	// Update header: trunk = this page, count += 1.
+	binary.BigEndian.PutUint32(p.header[32:36], pageNum)
+	binary.BigEndian.PutUint32(p.header[36:40], oldCount+1)
+	_ = oldTrunk
 	return nil
 }
 

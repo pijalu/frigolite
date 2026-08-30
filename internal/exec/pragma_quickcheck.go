@@ -106,14 +106,14 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 		}
 	}
 	// Structural pass first: SQLite aborts the integrity check with
-	// SQLITE_CORRUPT when any reachable b-tree page is malformed.
-	if !e.btreeStructureOK() {
-		return &Result{Error: fmt.Errorf("database disk image is malformed")}
-	}
-	if msg := e.checkFreelistCount(emit); msg != "" {
-		return &Result{Error: fmt.Errorf("%s", msg)}
-	}
-	e.quickCheckTables(arg, emit)
+		// SQLITE_CORRUPT when any reachable b-tree page is malformed.
+		if !e.btreeStructureOK() {
+			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+		}
+		if msg := e.checkFreelistCount(emit); msg != "" {
+			emit(msg)
+		}
+		e.quickCheckTables(arg, emit)
 
 	if len(rows) == 0 {
 		rows = append(rows, []interface{}{"ok"})
