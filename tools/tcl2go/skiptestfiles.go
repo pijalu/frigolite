@@ -308,8 +308,6 @@ var skipTestFiles = map[string]string{
 	"ioerr6": "VFS I/O error simulation N-A",
 
 	"autoanalyze1":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"autovacuum":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"autovacuum2":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"backup_ioerr":  "VFS/fault-injection harness N-A",
 	"backup_malloc": "VFS/fault-injection harness N-A",
 
@@ -415,9 +413,6 @@ var skipTestFiles = map[string]string{
 	"fuzzer1":     "VFS/fault-injection harness N-A",
 	"fuzzer2":     "VFS/fault-injection harness N-A",
 	"fuzzerfault": "VFS/fault-injection harness N-A",
-	"incrvacuum":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"incrvacuum2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"incrvacuum3": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	"join9": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"joinB": "deep-engine applicable gap DEFERRED (tracked for later phase)",

@@ -80,12 +80,24 @@ func (e *Engine) findOrphans(ctx *DatabaseContext, referenced map[uint32]firstRe
 	if nPages == 0 {
 		nPages = ctx.Pager.HeaderPageCount()
 	}
+	pageSize := ctx.Pager.PageSize()
+	autoVacuum := ctx.Pager.AutoVacuum()
 	var out []string
 	for p := uint32(2); p <= nPages; p++ {
 		if _, ok := referenced[p]; ok {
 			continue
 		}
 		if isFreelistPage(ctx.Pager, p) {
+			continue
+		}
+		// Auto-vacuum databases reserve pointer-map pages at fixed
+		// intervals (page 2 and every usableSize/5+1 pages thereafter,
+		// pending-byte skip); they are owned by the pointer-map machinery,
+		// not by any b-tree, so they are not orphans. Without this skip a
+		// pristine auto-vacuum database (one table, no deletes) reports
+		// "Page 2: never used" for its reserved ptrmap page (autovacuum2-1.5,
+		// incrvacuum3-1.x integrity_check).
+		if autoVacuum && pager.IsPtrmapPageNo(p, pageSize) {
 			continue
 		}
 		out = append(out, fmt.Sprintf("Page %d: never used", p))

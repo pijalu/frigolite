@@ -591,8 +591,8 @@ func pendingBytePage(pageSize uint32) uint32 {
 	return 1073741824/pageSize + 1
 }
 
-// isPtrmapPageNo reports whether pgno itself is a pointer-map page.
-func isPtrmapPageNo(pgno, pageSize uint32) bool {
+// IsPtrmapPageNo reports whether pgno itself is a pointer-map page.
+func IsPtrmapPageNo(pgno, pageSize uint32) bool {
 	return pgno >= 2 && PtrmapPageNo(pgno, pageSize) == pgno
 }
 
@@ -679,7 +679,7 @@ func (p *Pager) AllocatePage() *Page {
 	// flat array of 5-byte entries maintained by ptrmapPut, unused until
 	// pages are relocated by vacuuming) and extend the file once more so the
 	// caller gets a normal page.
-	if p.autoVacuum && isPtrmapPageNo(p.numPages, p.pageSize) {
+	if p.autoVacuum && IsPtrmapPageNo(p.numPages, p.pageSize) {
 		ptr := &Page{
 			Data:    make([]byte, p.pageSize),
 			PageNum: p.numPages,
