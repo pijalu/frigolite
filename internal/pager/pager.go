@@ -625,9 +625,28 @@ func (p *Pager) AllocatePage() *Page {
 			if terr == nil && len(trunkPg.Data) >= 8 {
 				// The trunk page is a freelist trunk: first 4 bytes = next trunk
 				// (or 0 if last), bytes 4..6 = leaf count, bytes 8+ = leaves. Pop
-				// the trunk itself (subtract 1 from count); the chain itself
-				// stays in the header.
+				// the trunk itself (subtract 1 from count) and clear the leaf
+				// pages too so checkFreelistCount doesn't count them as still
+				// reachable. (The leaf pages were the original overflow pages of
+				// deleted cells — they are no longer valid freelist entries once
+				// the trunk itself is consumed.)
 				nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+				leafCount := binary.BigEndian.Uint16(trunkPg.Data[4:6])
+				for i := 0; i < int(leafCount); i++ {
+					off := 8 + i*4
+					if off+4 > len(trunkPg.Data) {
+						break
+					}
+					leafPg := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+					if leafPg != 0 && leafPg <= p.numPages {
+						if lp, lerr := p.readPageLocked(leafPg); lerr == nil {
+							for j := range lp.Data {
+								lp.Data[j] = 0
+							}
+							p.dirty[leafPg] = true
+						}
+					}
+				}
 				binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
 				binary.BigEndian.PutUint32(p.header[36:40], count-1)
 				p.dirty[trunk] = true
