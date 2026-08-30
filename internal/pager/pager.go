@@ -632,6 +632,7 @@ func (p *Pager) AllocatePage() *Page {
 				// the trunk itself is consumed.)
 				nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
 				leafCount := binary.BigEndian.Uint16(trunkPg.Data[4:6])
+				clearedLeaves := uint32(0)
 				for i := 0; i < int(leafCount); i++ {
 					off := 8 + i*4
 					if off+4 > len(trunkPg.Data) {
@@ -644,11 +645,22 @@ func (p *Pager) AllocatePage() *Page {
 								lp.Data[j] = 0
 							}
 							p.dirty[leafPg] = true
+							clearedLeaves++
 						}
 					}
 				}
 				binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
-				binary.BigEndian.PutUint32(p.header[36:40], count-1)
+				// Decrement count by 1 (for the trunk) plus the number of leaves
+				// we cleared (each leaf was a free page in the chain). Without
+				// this, after AllocatePage consumes a trunk with leaves, the
+				// header's count stays high while checkFreelistCount no longer
+				// sees those pages (we zeroed them), so integrity_check reports
+				// a "size is N but should be M" mismatch (corrupt2-14.5).
+				totalFreed := uint32(1) + clearedLeaves
+				if totalFreed > count {
+					totalFreed = count
+				}
+				binary.BigEndian.PutUint32(p.header[36:40], count-totalFreed)
 				p.dirty[trunk] = true
 				delete(p.pages, trunk)
 				pg := &Page{

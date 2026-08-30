@@ -610,7 +610,7 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 	}
 	trunk := binary.BigEndian.Uint32(hdr[32:36])
 	headerCount := int(binary.BigEndian.Uint32(hdr[36:40]))
-	if trunk == 0 || headerCount == 0 {
+	if trunk == 0 && headerCount == 0 {
 		return ""
 	}
 	actual := 0

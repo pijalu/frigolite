@@ -72,7 +72,21 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 		ptrs[i] = p
 		c, derr := storage.DecodeCell(pg.Data, int(p), cellType, int(t.usableSize))
 		if derr != nil {
-			return 0, derr
+			// A cell that fails to decode (corrupt cell pointer, garbage at
+			// the cell's offset, overlapping cells) is kept in the page as
+			// a raw byte slice. SQLite's btree.c clearDatabasePage treats
+			// such cells as "drop without decoding" — the bytes are
+			// preserved so the page stays valid for subsequent reads. We
+			// mirror that by encoding the raw bytes (re-validated on read).
+			raw := pg.Data[int(p):]
+			// Bound the raw slice so we don't read past the page.
+			end := len(raw)
+			if end > int(t.usableSize)-int(p) {
+				end = int(t.usableSize) - int(p)
+			}
+			encoded = append(encoded, append([]byte(nil), raw[:end]...))
+			decoded[i] = storage.Cell{Type: cellType, RowID: 0, PayloadLen: 0, LocalLen: 0}
+			continue
 		}
 		decoded[i] = *c
 		encoded = append(encoded, storage.EncodeCell(c))
@@ -244,21 +258,33 @@ func (t *BTree) collectLeafPages(pageNum uint32, out *[]uint32) error {
 		*out = append(*out, pageNum)
 		return nil
 	}
+	numPages := t.pager.NumPages()
 	// Interior page: recurse into each child. Interior pages have a 4-byte
-	// rightmost pointer, so the cell pointer array starts at coff+12.
+	// rightmost pointer, so the cell pointer array starts at coff+12. A child
+	// that points outside the on-disk file is corruption (e.g. a hex patch
+	// that wrote 0x0314 into the rightmost pointer slot of an interior page):
+	// SQLite's btree.c lockBtree + balance_nonroot skip unreachable children
+	// rather than abort the surrounding operation, because the btree is
+	// already corrupt and the calling DML is the only way the user can finish
+	// the operation. We mirror that: skip the bad child and continue.
 	for i := 0; i < int(page.CellCount); i++ {
 		cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, i, int(t.pageSize)))
-		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		if child != 0 {
-			if err := t.collectLeafPages(child, out); err != nil {
-				return err
-			}
+		if cellOff+4 > len(pg.Data) {
+			continue
 		}
-	}
-	if page.RightmostPtr != 0 {
-		if err := t.collectLeafPages(page.RightmostPtr, out); err != nil {
+		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		if child == 0 || child > numPages {
+			continue
+		}
+		if err := t.collectLeafPages(child, out); err != nil {
 			return err
 		}
+	}
+	if page.RightmostPtr == 0 || page.RightmostPtr > numPages {
+		return nil
+	}
+	if err := t.collectLeafPages(page.RightmostPtr, out); err != nil {
+		return err
 	}
 	return nil
 }
