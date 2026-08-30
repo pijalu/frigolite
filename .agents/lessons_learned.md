@@ -22,6 +22,35 @@
   machinery, `vdbe.c` for OP_JournalMode semantics, etc.) and port the
   behaviour faithfully. Do NOT simplify the fix. NO TRY/FAIL loops.
 
+- **No "pre-existing" excuses for failures.** Any failing test in the repo is
+  a defect that blocks the goal. The user clarified during P8.CORRUPT.C5:
+  "on failure you should fix the issue - not find the culprit" — do not
+  waste cycles git-stashing to prove the failure predates the current work;
+  spend that time writing a §1c pure-Go discriminator and fixing the
+  underlying defect. Strengthened in plan/GUIDELINES.md §1d (2026-09).
+
+- **tcl2go file-channel seek: transpile-time vs runtime maps.** The
+  `activeFileChannels` and `fileChannelSeek` maps in tools/tcl2go are
+  package-level globals used to transpile `seek $fd N` and `puts $fd T`.
+  `processSeek` stores the offset in the transpile-time map ONLY when
+  the offset is foldable (literal int or `A+B`); for dynamic expressions
+  like `seek $fd [expr 1024 + $iCelloffset]`, it emits a runtime
+  `fileChannelSeek[%q] = int64(tclAtoi(%s))` line but leaves the
+  transpile-time map empty. So `processPuts` MUST consult the runtime
+  map (always emit `tclChannelAppendAt(dest, msg, fileChannelSeek[%q])`
+  when the channel is in `activeFileChannels`) rather than gating on the
+  transpile-time map. (Recorded 2026-09 during P8.CORRUPT.C5 corrupt2-5.1.)
+
+- **tclExecSQL row-vs-cell separator: rows with `\n`, cells with ` `.**
+  TCL's `db eval SQL` (no body) returns rows as a flat list; when
+  stringified the outer-list elements (rows) are space-joined BUT a
+  multi-row result with single-cell rows must match the test's expected
+  braced multi-line string, which uses newlines between rows. The
+  `tclExecSQL` helper in tools/tcl2go must therefore join ROWS with
+  `\n` and CELLS within a row with a single space — not all with space.
+  `tclExecSQL2` (column-name + value pairs) needs a separate variant.
+  (Recorded 2026-09 during P8.CORRUPT.C5 corrupt2-5.1.)
+
 - **SQLite incremental merge nLeafData charges each appended term's nSpace; new leaf includes height byte. Continuation loads cumulative value; first flush rewrites loaded leaf, then starts fresh leaf. WorkDone counts rewrite, LeavesFlushed counts only newly materialized leaves.**
 
 Guideline: record general methodology and validated approaches here —
