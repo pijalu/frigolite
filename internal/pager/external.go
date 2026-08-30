@@ -8,7 +8,10 @@ package pager
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
+
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // fileVersLen is the size of the change-detection window pager.c compares on
@@ -182,4 +185,52 @@ func (p *Pager) refreshKnownFileStamp() {
 		p.knownFileVers = vers
 		p.knownFileSize = size
 	}
+}
+
+// ReadPtrmap reads the pointer-map entry for pgno (P8.INCRVACUUM
+// phase 2). Returns (parentType, parentPgno, err). The pointer-map
+// page is located via storage.PtrmapPageNo; if it's in the cache
+// we use the cached copy, otherwise we read it from the file. An
+// uninitialized entry (type=0) returns (0, 0, nil) per SQLite
+// semantics. If pgno is itself a pointer-map page, the call errors
+// (ptrmap pages have no entry).
+func (p *Pager) ReadPtrmap(pgno uint32) (parentType byte, parentPgno uint32, err error) {
+	if pgno < 2 {
+		return 0, 0, fmt.Errorf("pager: ReadPtrmap: pgno %d < 2", pgno)
+	}
+	ptrmapPg := storage.PtrmapPageNo(pgno, p.pageSize)
+	if ptrmapPg == pgno {
+		return 0, 0, fmt.Errorf("pager: ReadPtrmap: pgno %d is a pointer-map page", pgno)
+	}
+	pg, err := p.ReadPage(ptrmapPg)
+	if err != nil {
+		return 0, 0, err
+	}
+	return storage.PtrmapEntry(pg.Data, pgno, p.pageSize)
+}
+
+// WritePtrmap writes a pointer-map entry for pgno (P8.INCRVACUUM
+// phase 2). The entry is (parentType, parentPgno). The pointer-map
+// page is read into the cache, the entry is written at the correct
+// offset, and the page is marked dirty. Returns an error if pgno
+// is invalid for a pointer-map entry.
+func (p *Pager) WritePtrmap(pgno uint32, parentType byte, parentPgno uint32) error {
+	if pgno < 2 {
+		return fmt.Errorf("pager: WritePtrmap: pgno %d < 2", pgno)
+	}
+	ptrmapPg := storage.PtrmapPageNo(pgno, p.pageSize)
+	if ptrmapPg == pgno {
+		return fmt.Errorf("pager: WritePtrmap: pgno %d is a pointer-map page", pgno)
+	}
+	pg, err := p.ReadPage(ptrmapPg)
+	if err != nil {
+		return err
+	}
+	if _, err := storage.WritePtrmapEntry(pg.Data, pgno, p.pageSize, parentType, parentPgno); err != nil {
+		return err
+	}
+	p.mu.Lock()
+	p.dirty[ptrmapPg] = true
+	p.mu.Unlock()
+	return nil
 }
