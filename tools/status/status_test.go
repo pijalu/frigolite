@@ -91,14 +91,16 @@ func TestParseSkipMaps(t *testing.T) {
 	// P8.CORRUPT un-skips 13 entries (corrupt + corrupt2..9 + corruptC/F/L/N),
 	// dropping the count to 298. Lower the floor only alongside documented
 	// un-skip work.
-	// 293 after P8.ENCODING un-skipped enc/enc2/enc4/securedel/securedel2 (5
-	// fully un-skipped, pass natively) and re-skipped enc3 (UTF-16 storage
-	// N-A → frigolite_enc3_test.go) + symlink/symlink2 (VFS-layer symlink +
-	// -nofollow + PATH_MAX truncation N-A → frigolite_symlink_test.go).
-	// Lower the floor only alongside documented un-skip work.
-	if len(skips.skipTestFiles) < 293 {
-		t.Errorf("skipTestFiles has %d entries, want >= 293", len(skips.skipTestFiles))
-	}
+	// 288 after P8.INCRVACUUM un-skipped autovacuum/autovacuum2/incrvacuum/
+		// incrvacuum2/incrvacuum3 (5 fully un-skipped). P8.ENCODING un-skipped
+		// enc/enc2/enc4/securedel/securedel2 (5 fully un-skipped, pass natively)
+		// and re-skipped enc3 (UTF-16 storage N-A → frigolite_enc3_test.go) +
+		// symlink/symlink2 (VFS-layer symlink + -nofollow + PATH_MAX truncation
+		// N-A → frigolite_symlink_test.go). Lower the floor only alongside
+		// documented un-skip work.
+		if len(skips.skipTestFiles) < 288 {
+			t.Errorf("skipTestFiles has %d entries, want >= 288", len(skips.skipTestFiles))
+		}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))
 	}

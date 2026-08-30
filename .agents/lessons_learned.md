@@ -2572,3 +2572,48 @@ SESSION 7g (RTREE slice8): rtree2/rtreecheck green; three root causes.
   later do_test body (flatten: space-joined), both sides should match the
   TCL flat list. The current `\n` join in tclExecSQL causes 2.2.9 to fail
   even when the engine is correct.
+
+## P8.INCRVACUUM unblocking investigation (2026-09)
+
+**Verdict**: Original blocker stands. Investigation confirms the 4 packages
+(autovacuum, incrvacuum, incrvacuum2, autovacuum2) need multi-day engine work
+that cannot complete within a single goal budget. Key findings from the
+investigation:
+
+- **`sqlite_options_default_autovacuum` is a TCL array reference**
+  (`$sqlite_options(default_autovacuum)`) that the transpiler maps to Go
+  variable `sqlite_options_default_autovacuum`. The helper template
+  (`tools/tcl2go/helpers_template_part1.go`) declares `sqlite_options = "0"`
+  but NOT the per-key `sqlite_options_default_autovacuum`. Test 1.1 in
+  incrvacuum.test expects this to be "0" but the testgen uses it as empty
+  string (var declaration but never assigned). Small fixable gap: add the
+  per-key vars in helpers_template_part1.go.
+
+- **`PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)` skip pattern**
+  affects tests in incrvacuum-5.2.3 (which has `PRAGMA incremental_vacuum`
+  followed by `CREATE TABLE tbl2` then `INSERT`). The skip message is
+  misleading: it actually skips when the SQL string contains
+  `PRAGMA FREELIST_COUNT`, not `PRAGMA incremental_vacuum`. The actual SQL
+  in 5.2.3 has only `PRAGMA incremental_vacuum` and `CREATE TABLE` /
+  `INSERT`, so the skip should not fire. Looking again — the transpiler
+  marks 5.2.3 as skipped via a different mechanism (the testgen emits
+  `// execsql skipped: VACUUM not implemented (P8.VACUUM)`). Root cause:
+  the comment-based skip logic in flow.go / processdb.go treats the entire
+  execsql block as skipped if any statement is unsupported. Fix: skip
+  per-statement, not per-block.
+
+- **Infinite loop in incrvacuum-7**: the loop break condition
+  `if {$::nRow == $::iWrite} break` requires `db eval {PRAGMA
+  incremental_vacuum}` to yield at least 1 row. frigolite's
+  `IncrementalVacuum` returns no rows when nFree==0. Even after freeing
+  empty leaves (engine work), the test requires actual page relocation for
+  the file-shrinkage assertions (`file_pages` after vacuum).
+
+- **Test 5.2.4 fails with "no such table: tbl2"**: 5.2.3 was skipped (transpiler
+  emitted no-op), so tbl2 was never created, so 5.2.4's SELECT fails.
+  Fixing the per-statement skip would cascade 5.2.3 → 5.2.4/5.2.5 forward.
+
+- **`PRAGMA auto_vacuum = 'invalid'` and `PRAGMA auto_vacuum = 5`**:
+  frigolite returns "malformed database schema" error. SQLite returns the
+  current value (no error). Fix: tighten the validator to accept any int
+  0-2 silently, only erroring when truly malformed (e.g. non-integer, negative).

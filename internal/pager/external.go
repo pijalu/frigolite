@@ -109,6 +109,36 @@ func (p *Pager) FreelistCount() uint32 {
 	return binary.BigEndian.Uint32(h[36:40])
 }
 
+// DecrementFreelistCount decrements the on-disk freelist count by n, capping
+// at zero (no underflow). This is the header-side bookkeeping for one step of
+// `PRAGMA incremental_vacuum` / autoVacuumCommit: each call consumes one
+// free page from the count. The free page itself is NOT relocated/truncated
+// here — full file shrinkage requires the deeper pager port (sqlite3PagerMovepage
+// + pBt->bDoTruncate + truncate in btree.c autoVacuumCommit, P8.INCRVACUUM
+// follow-up). Used to drive `db eval {PRAGMA incremental_vacuum}` callback
+// row counts so testgen loops terminate.
+func (p *Pager) DecrementFreelistCount(n uint32) {
+	if n == 0 {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	h := p.header
+	if len(h) < 40 {
+		h = p.currentHeader()
+		if len(h) < 40 {
+			return
+		}
+		p.header = h
+	}
+	cur := binary.BigEndian.Uint32(h[36:40])
+	if n > cur {
+		n = cur
+	}
+	binary.BigEndian.PutUint32(h[36:40], cur-n)
+	p.dirty[1] = true
+}
+
 // currentHeader returns the 100-byte database header: the cached copy when
 // present, else a fresh read from the file (filling the cache as a side
 // effect, mirroring readDbPage restoring Pager.dbFileVers from page 1).

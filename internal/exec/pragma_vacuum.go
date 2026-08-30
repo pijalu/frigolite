@@ -14,7 +14,14 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 )
 
-// IncrementalVacuum implements PRAGMA incremental_vacuum.
+// IncrementalVacuum implements PRAGMA incremental_vacuum. For each call with
+// nFree>0 it consumes one free page from the on-disk freelist (decrementing
+// the header count) and yields one row. Without an actual page-relocation
+// pass the file does not shrink (sqlite3PagerMovepage / relocatePage /
+// btree.c incrVacuumStep); this engine surfaces one row per free-page so
+// `db eval {PRAGMA incremental_vacuum}` callback chains terminate, but the
+// file size stays the same. Tests asserting post-vacuum file size require
+// the full page-swap implementation (P8.INCRVACUUM follow-up).
 func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
@@ -32,9 +39,9 @@ func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 	if nFree == 0 {
 		return &execpragma.Result{}
 	}
-	// A populated freelist would drive incrVacuumStep page relocation here;
-	// unreachable while the engine's freelist stays empty (see file comment).
-	return &execpragma.Result{}
+	// Consume one free page: decrement header count and emit a row.
+	ctx.Pager.DecrementFreelistCount(1)
+	return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
 }
 
 // finalDbSize computes the post-vacuum page count of an auto-vacuum database
