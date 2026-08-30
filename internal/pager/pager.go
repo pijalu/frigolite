@@ -879,6 +879,17 @@ func (p *Pager) Truncate(n uint32) error {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// Update the on-disk freelist count: pages being truncated that
+	// are on the freelist (in p.freePages) reduce the header's freelist
+	// count by one each. The pager is the only writer of header.count;
+	// the integrity check (checkFreelistCount) compares this count
+	// against the actual chain length.
+	truncatedFree := uint32(0)
+	for pgno := p.numPages; pgno > n; pgno-- {
+		if p.freePages[pgno] {
+			truncatedFree++
+		}
+	}
 	for pgno := range p.pages {
 		if pgno > n {
 			delete(p.pages, pgno)
@@ -889,8 +900,77 @@ func (p *Pager) Truncate(n uint32) error {
 		p.numPages = n
 	}
 	if p.file != nil {
-		if err := p.file.Truncate(int64(n) * int64(p.pageSize)); err != nil {
+		newSize := int64(n) * int64(p.pageSize)
+		if err := p.file.Truncate(newSize); err != nil {
 			return fmt.Errorf("pager: truncate to %d pages: %w", n, err)
+		}
+		// Mirror the file size in the cache so FilePageCount() reflects
+		// the post-truncate size (P8.INCRVACUUM phase 4: integrity_check
+		// otherwise sees the pre-truncate size and reports "Page N: never
+		// used" for pages that no longer exist on disk).
+		p.fileSize = newSize
+	}
+	// Adjust the on-disk freelist count for the truncated free pages.
+	if truncatedFree > 0 && p.header != nil && len(p.header) >= 40 {
+		oldCount := binary.BigEndian.Uint32(p.header[36:40])
+		if oldCount >= truncatedFree {
+			binary.BigEndian.PutUint32(p.header[36:40], oldCount-truncatedFree)
+			p.dirty[1] = true
+		}
+		// If the trunk was one of the truncated pages, advance the trunk
+		// to the next free page still in the file. Without this, the
+		// isFreelistPage walker (src/btree.c checkTree) starts at a
+		// page that no longer exists and reports every remaining free
+		// page as "Page N: never used" → integrity_check fails.
+		trunk := binary.BigEndian.Uint32(p.header[32:36])
+		if trunk > n {
+			// Find the highest free page that survived the truncate.
+			var newTrunk uint32
+			for pgno := n; pgno >= 2; pgno-- {
+				if p.freePages[pgno] {
+					newTrunk = pgno
+					break
+				}
+			}
+			binary.BigEndian.PutUint32(p.header[32:36], newTrunk)
+			p.dirty[1] = true
+			// Break the chain at the new trunk: set its first 4 bytes
+			// to the next free page below it (or 0 if newTrunk is the
+			// lowest free page). The original FreePage chain was a
+			// monotonic sequence (e.g. 8→7→6→5→4) so the next page
+			// below newTrunk is the one that was originally chained to
+			// newTrunk.
+			if newTrunk > 0 {
+				if pg, ok := p.pages[newTrunk]; ok && pg != nil {
+					var nextFree uint32
+					for pgno := newTrunk - 1; pgno >= 2; pgno-- {
+						if p.freePages[pgno] {
+							nextFree = pgno
+							break
+						}
+					}
+					binary.BigEndian.PutUint32(pg.Data[0:4], nextFree)
+					p.dirty[newTrunk] = true
+				}
+			}
+		}
+	}
+	// Update the in-header database size (offset 28) so the next
+	// HeaderBeyondFile check (src/btree.c lockBtree) reports the new
+	// file page count instead of the pre-truncate size. SQLite sets
+	// this every time the file shrinks, otherwise the in-header count
+	// would exceed the file's actual page count and every subsequent
+	// statement would fail with "database disk image is malformed".
+	if p.header != nil && len(p.header) >= 32 {
+		binary.BigEndian.PutUint32(p.header[28:32], n)
+		p.dirty[1] = true
+	}
+	// Mirror the updated header into the cached page 1 so the next
+	// flush writes the new header bytes (FreePage/Truncate only update
+	// p.header; the page cache holds a separate copy of pg.Data).
+	if p.header != nil {
+		if pg, ok := p.pages[1]; ok && pg != nil {
+			copy(pg.Data[:HeaderSize], p.header)
 		}
 	}
 	return nil
@@ -938,10 +1018,39 @@ func (p *Pager) FreePage(pageNum uint32) error {
 	// Update header for on-disk SQLite format compatibility.
 	oldCount := binary.BigEndian.Uint32(p.header[36:40])
 	binary.BigEndian.PutUint32(p.header[36:40], oldCount+1)
-	if binary.BigEndian.Uint32(p.header[32:36]) == 0 {
+	oldTrunk := binary.BigEndian.Uint32(p.header[32:36])
+	if oldTrunk == 0 {
+		// First free page: this becomes the trunk; its first 4 bytes
+		// point to 0 (chain end). The integrity-check walker starts
+		// here and stops immediately, so the count check
+		// (size == count) passes.
 		binary.BigEndian.PutUint32(p.header[32:36], pageNum)
+		// Patch the page's first 4 bytes to 0 to break the chain. The
+		// page might still be in the cache (read by the btree walker
+		// just before this FreePage), so we update both the cache
+		// and the on-disk image at flush time.
+		if pg, ok := p.pages[pageNum]; ok && pg != nil {
+			binary.BigEndian.PutUint32(pg.Data[0:4], 0)
+			p.dirty[pageNum] = true
+		}
+	} else if oldTrunk != pageNum {
+		// Subsequent free page: link it BEFORE the old trunk so the
+		// chain is monotonic in the newTrunk-set (highest-page-first).
+		// This way truncating the highest pages leaves a valid
+		// sub-chain starting at the highest survivor.
+		binary.BigEndian.PutUint32(p.header[32:36], pageNum)
+		if pg, ok := p.pages[pageNum]; ok && pg != nil {
+			binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk)
+			p.dirty[pageNum] = true
+		}
 	}
 	p.dirty[1] = true
+	// Mirror the header bytes into the cached page 1 data so the next
+	// flush writes the updated header (otherwise flushPage writes
+	// pg.Data which is a separate copy from p.header).
+	if pg, ok := p.pages[1]; ok && pg != nil {
+		copy(pg.Data[:HeaderSize], p.header)
+	}
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "testing"
 )
 
@@ -70,8 +71,16 @@ func Test_autovacuum2(t *testing.T) {
 		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(x);\n  VACUUM;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  PRAGMA page_count;\n")
 		_ = _res
 	}
-	// proc definition (not transpiled)
-	// sqlite3_autovacuum_pages db autovac_page_callback (unsupported command, not transpiled)
+	// proc autovac_page_callback {schema filesize freesize pagesize}: appends callback args to
+	// autovac_callback_data and returns freesize/2 (per-batch vacuum limit).
+	var autovac_page_callback = func(schema string, fileSize, nFree, pageSize uint32) uint32 {
+		autovac_callback_data = tclListAppend(autovac_callback_data, schema,
+			strconv.FormatUint(uint64(fileSize), 10),
+			strconv.FormatUint(uint64(nFree), 10),
+			strconv.FormatUint(uint64(pageSize), 10))
+		return nFree / 2
+	}
+	db.SetAutovacuumPagesCallback(autovac_page_callback)
 	vtab.TclVarSet("autovac_callback_data", "", "")
 	autovac_callback_data = ""
 	_ = autovac_callback_data // suppress unused warning
@@ -108,13 +117,16 @@ func Test_autovacuum2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_autovacuum_pages db (unsupported command, not transpiled)
+	db.SetAutovacuumPagesCallback(nil)
 	{ // "autovacuum2-1.10" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
 		_res = db.Exec("\n  CREATE TABLE t2(x);\n  PRAGMA freelist_count;\n")
 		_ = _res
 	}
-	// proc autovac_page_callback_off returns constant 0 (registered via db func)
-	// sqlite3_autovacuum_pages db autovac_page_callback_off (unsupported command, not transpiled)
+	// proc autovac_page_callback_off {schema filesize freesize pagesize}: returns 0 (no vacuum).
+	var autovac_page_callback_off = func(schema string, fileSize, nFree, pageSize uint32) uint32 {
+		return 0
+	}
+	db.SetAutovacuumPagesCallback(autovac_page_callback_off)
 	{ // "autovacuum2-1.20" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
 		_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  COMMIT;\n  PRAGMA freelist_count;\n")
 		_ = _res

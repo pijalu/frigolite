@@ -38,6 +38,7 @@ func (tp *transpiler) runSubBody(args []tcl.RawWord, idx int) bool {
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,
 		specialFuncs:  tp.specialFuncs, procStringMaps: tp.procStringMaps,
+		autovacCallbacks: tp.autovacCallbacks,
 		rangeListFuncs:      tp.rangeListFuncs,
 		collateDtorVars:     tp.collateDtorVars,
 		collateGoFuncs:      tp.collateGoFuncs,
@@ -670,6 +671,15 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 		return
 	}
 
+	// `proc autovac_page_callback {schema filesize freesize pagesize} { ... }`
+	// (autovacuum2.test) — the sqlite3_autovacuum_pages callback. Emits a Go
+	// closure that the testgen passes to db.SetAutovacuumPagesCallback so
+	// the COMMIT-time autovacuum hook fires the callback and appends its
+	// args to ::autovac_callback_data.
+	if tp.registerAutovacPageCallbackProc(name, body) {
+		return
+	}
+
 	// `proc blob {a} { binary decode hex $a }` (fts3corrupt4) — the
 	// corruption tests build modified root blobs through this hex decoder.
 	if tp.registerBlobProc(name, body) {
@@ -976,6 +986,55 @@ func (tp *transpiler) registerZipUnzipProcs(name, body string) bool {
 		tp.specialFuncs[name] = "tclZipFn"
 	} else {
 		tp.specialFuncs[name] = "tclUnzipFn"
+	}
+	return true
+}
+
+// registerAutovacPageCallbackProc recognizes the autovacuum2.test
+// `autovac_page_callback` and `autovac_page_callback_off` procs
+// (sqlite3_autovacuum_pages). The transpiler emits a Go closure that
+// the testgen can pass to db.SetAutovacuumPagesCallback, mirroring the
+// TCL semantics:
+//   - autovac_page_callback: appends (schema, filesize, freesize, pagesize)
+//     to ::autovac_callback_data and returns freesize/2 (per-batch limit).
+//   - autovac_page_callback_off: returns 0 (no vacuum this batch).
+//
+// The Go function name follows the proc name verbatim (camelCase). Stored
+// on the transpiler's autovacCallbacks map so the sqlite3_autovacuum_pages
+// dispatcher can emit the SetAutovacuumPagesCallback call.
+func (tp *transpiler) registerAutovacPageCallbackProc(name, body string) bool {
+	if name != "autovac_page_callback" && name != "autovac_page_callback_off" {
+		return false
+	}
+	if tp.autovacCallbacks == nil {
+		tp.autovacCallbacks = make(map[string]string)
+	}
+	if _, exists := tp.autovacCallbacks[name]; exists {
+		// Already emitted for this proc (redefinition is a no-op).
+		return true
+	}
+	tp.autovacCallbacks[name] = body
+	// Emit a Go variable with the proc name in camelCase, holding a
+	// closure that matches the TCL semantics.
+	goName := tclVarToGo(name) // autovac_page_callback -> autovacPageCallback
+	if name == "autovac_page_callback" {
+		// TCL body: global autovac_callback_data; lappend it
+		// $schema $filesize $freesize $pagesize; return [expr {$freesize/2}]
+		tp.emitLine("// proc %s {schema filesize freesize pagesize}: appends callback args to", name)
+		tp.emitLine("// autovac_callback_data and returns freesize/2 (per-batch vacuum limit).")
+		tp.emitLine("var %s = func(schema string, fileSize, nFree, pageSize uint32) uint32 {", goName)
+		tp.emitLine("\tautovac_callback_data = tclListAppend(autovac_callback_data, schema,")
+		tp.emitLine("\t\tstrconv.FormatUint(uint64(fileSize), 10),")
+		tp.emitLine("\t\tstrconv.FormatUint(uint64(nFree), 10),")
+		tp.emitLine("\t\tstrconv.FormatUint(uint64(pageSize), 10))")
+		tp.emitLine("\treturn nFree / 2")
+		tp.emitLine("}")
+	} else {
+		// autovac_page_callback_off: returns 0 (no vacuum).
+		tp.emitLine("// proc %s {schema filesize freesize pagesize}: returns 0 (no vacuum).", name)
+		tp.emitLine("var %s = func(schema string, fileSize, nFree, pageSize uint32) uint32 {", goName)
+		tp.emitLine("\treturn 0")
+		tp.emitLine("}")
 	}
 	return true
 }

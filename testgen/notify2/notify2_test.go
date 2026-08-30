@@ -129,10 +129,10 @@ func Test_notify2(t *testing.T) {
 	_ = anSuccess_sqlite3_step // pre-declared from TCL source
 	var anAttempt_sqlite3_step string
 	_ = anAttempt_sqlite3_step // pre-declared from TCL source
-	SQLMap := map[string]string{}
-	_ = SQLMap // dynamic-key array from TCL source
 	anWriteMap := map[string]string{}
 	_ = anWriteMap // dynamic-key array from TCL source
+	SQLMap := map[string]string{}
+	_ = SQLMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {

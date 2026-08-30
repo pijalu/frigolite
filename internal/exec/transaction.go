@@ -77,6 +77,45 @@ func (e *Engine) execCommit() *Result {
 			e.updateFileChangeCounter(dbCtx)
 		}
 	}
+	// Auto-vacuum commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
+	// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE writing
+	// the commit marker, honoring the optional per-batch callback
+	// registered via SetAutovacuumPagesCallback. The callback fires once
+	// with (schema, nFilePages, nFreePages, pageSize) and returns the
+	// pages-to-vacuum this batch (clamped to nFreePages). The vacuum
+	// steps shrink the file (truncate or relocate+truncate) so the commit
+	// itself writes the already-shrunken file. INCREMENTAL mode skips this
+	// (incremental_vacuum is the user-driven path).
+	//
+	// The temp database also has a pager but its auto_vacuum mode is
+	// always NONE (no PRAGMA path mutates it), so the mode lookup misses
+	// and we skip it. This block thus fires only for the main database
+	// (and any ATTACH'd databases that have been switched to FULL mode).
+	for _, dbCtx := range e.dbList {
+		if dbCtx == nil || dbCtx.Pager == nil {
+			continue
+		}
+		// Only FULL mode: incremental is opt-in via PRAGMA incremental_vacuum.
+		mode := int64(0)
+		if e.settings.autoVacuumModes != nil {
+			if m, ok := e.settings.autoVacuumModes[dbCtx.Name]; ok {
+				mode = m
+			}
+		}
+		if mode != 1 /* FULL */ {
+			continue
+		}
+		// Skip if the pager isn't actually in autovacuum mode (the mode
+		// is only set on the pager when the DB is empty; for a non-empty
+		// DB the change is deferred to the next VACUUM, so the pager
+		// still has AutoVacuum()=false here).
+		if !dbCtx.Pager.AutoVacuum() {
+			continue
+		}
+		if _, err := e.AutoVacuumCommit(dbCtx.Name); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	// Release locks: after COMMIT all databases return to unlocked.
 	// Flush each pager so HasDirtyPages() becomes false (lock_status reads
 	// "unlocked" after the commit). The main pager is in dbList. When

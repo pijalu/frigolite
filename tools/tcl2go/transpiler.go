@@ -41,6 +41,7 @@ type transpiler struct {
 	errorFuncs          map[string]string       // `proc NAME {} { error "MSG" }`: NAME raises MSG
 	queryFuncs          map[string]string       // `proc NAME {} { return [db eval {SQL}] }`: NAME returns a query result
 	specialFuncs        map[string]string       // test-infra procs (scramble/random_uuid/hash1/hash2) mapped to Go helper calls
+	autovacCallbacks    map[string]string       // autovac_page_callback* procs (autovacuum2.test) → body for Go closure
 	procStringMaps      map[string][]string     // single-arg procs of the form `proc N x {return [string map [list K V ...] $x]}` (flat old/new pairs)
 	colmetaCmds         map[string]string       // colmeta.test: TCL var holding "sqlite3_table_column_metadata <args>"
 	collateGoFuncs      map[string]string       // `proc NAME {a b} {BODY}`: NAME is a collation proc → Go closure expr

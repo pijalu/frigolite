@@ -136,6 +136,7 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"sqlite3_interrupt":           (*transpiler).processSqlite3Interrupt,
 		"sqlite3_is_interrupted":      (*transpiler).processSqlite3IsInterrupted,
 		"sqlite3_stmt_status":         (*transpiler).processSqlite3StmtStatus,
+		"sqlite3_autovacuum_pages":    (*transpiler).processSqlite3AutovacuumPages,
 		"dbcksum":                     (*transpiler).processDBCksum,
 		"file_control_data_version":   (*transpiler).processFileControlDataVersion,
 		"sqlite3_prepare": func(tp *transpiler, args []tcl.RawWord) {

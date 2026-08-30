@@ -84,6 +84,15 @@ type Engine struct {
 	// not stored here.
 	collations map[string]func(a, b string) int
 
+	// autovacPagesCallback is the optional user callback fired by
+	// AutoVacuumCommit before each batch (P8.INCRVACUUM phase 4,
+	// sqlite3_autovacuum_pages). Signature:
+	//   cb(schema, fileSize, nFree, pageSize) -> nVac
+	// nil = drain all (default). Stored on the engine so the testgen
+	// binding (which calls a Go function from transpiled test code)
+	// can register it via SetAutovacuumPagesCallback.
+	autovacPagesCallback func(schema string, fileSize, nFree, pageSize uint32) uint32
+
 	// Multi-database support
 	databases map[string]*DatabaseContext // schema_name -> context (upper-cased key)
 	dbList    []*DatabaseContext          // attached databases in ATTACH order (main first)

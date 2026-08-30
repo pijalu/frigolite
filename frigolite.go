@@ -368,6 +368,17 @@ func (db *DB) SetCommitHook(fn func() int) {
 	}
 }
 
+// SetAutovacuumPagesCallback registers the per-batch autovacuum-pages callback
+// (sqlite3_autovacuum_pages). It fires once before each auto-vacuum commit
+// (FULL mode) with (schema, fileSize, nFree, pageSize); the callback returns
+// the number of pages to vacuum this batch (clamped to nFree). A nil callback
+// clears the registration (default = drain all). P8.INCRVACUUM phase 4.
+func (db *DB) SetAutovacuumPagesCallback(fn func(schema string, fileSize, nFree, pageSize uint32) uint32) {
+	if db != nil && db.engine != nil {
+		db.engine.SetAutovacuumPagesCallback(fn)
+	}
+}
+
 // SetWalHook registers the connection's WAL hook (sqlite3_wal_hook). The
 // callback fires after each WAL-mode commit with (frames appended this
 // commit, frames checkpointed). A nil callback clears the hook.
