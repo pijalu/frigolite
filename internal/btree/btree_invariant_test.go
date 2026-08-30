@@ -85,7 +85,7 @@ func (h *btreeHarness) deleteRange() {
 func (h *btreeHarness) verify(context string) {
 	// Full walk: reachable leaves must yield exactly the live keys in order.
 	var leaves []uint32
-	if err := h.tr.collectLeafPages(h.tr.RootPage(), &leaves); err != nil {
+	if err := h.tr.collectLeafPages(h.tr.RootPage(), &leaves, nil); err != nil {
 		h.t.Fatalf("%s: collectLeafPages: %v", context, err)
 	}
 	seen := make(map[int64]bool)
@@ -166,7 +166,7 @@ func (h *btreeHarness) rawScan(id int64) string {
 				tag := fmt.Sprintf("page%d ", pn)
 				reach := false
 				var leaves []uint32
-				_ = h.tr.collectLeafPages(h.tr.RootPage(), &leaves)
+				_ = h.tr.collectLeafPages(h.tr.RootPage(), &leaves, nil)
 				for _, l := range leaves {
 					if l == pn {
 						reach = true
@@ -414,7 +414,7 @@ func TestBtreeDuplicateTrace(t *testing.T) {
 	locate := func() [][2]int64 {
 		var out [][2]int64 // [page, index]
 		var leaves []uint32
-		_ = h.tr.collectLeafPages(h.tr.RootPage(), &leaves)
+		_ = h.tr.collectLeafPages(h.tr.RootPage(), &leaves, nil)
 		for _, ln := range leaves {
 			pg, _ := h.tr.pager.ReadPage(ln)
 			coff := contentOffset(pg.PageNum)

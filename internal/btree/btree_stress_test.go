@@ -27,7 +27,7 @@ func seekHas(tr *BTree, id int64) bool {
 // walkHas reports whether rowid id is reachable from the root.
 func walkHas(tr *BTree, id int64) (bool, bool) {
 	var leaves []uint32
-	if err := tr.collectLeafPages(tr.RootPage(), &leaves); err != nil {
+	if err := tr.collectLeafPages(tr.RootPage(), &leaves, nil); err != nil {
 		return false, false
 	}
 	for _, ln := range leaves {
@@ -188,7 +188,7 @@ func TestBTreeStressCellLoss(t *testing.T) {
 			if serr != nil || !found {
 				// classify: present in a leaf walk?
 				var leaves []uint32
-				_ = tr.collectLeafPages(tr.RootPage(), &leaves)
+				_ = tr.collectLeafPages(tr.RootPage(), &leaves, nil)
 				inWalk, inScan := false, ""
 				for _, ln := range leaves {
 					pg2, _ := tr.pager.ReadPage(ln)
