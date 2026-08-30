@@ -379,6 +379,23 @@ func collectSpecialFuncs(cmds [][]tcl.RawWord) map[string]string {
 				// blob.test decodes each SQL blob result through binary scan
 				// and formats bytes as uppercase hexadecimal.
 				result["bin_to_hex"] = "tclBinToHex($data)"
+			case "make_str":
+				// autovacuum.test / incrvacuum*.test `make_str char len` proc
+				// builds a string of $len characters by repeating $char
+				// (with a trailing "." unit); tclMakeStr implements this
+				// at runtime. The template uses $a/$b (2-arg path) so the
+				// generated call site wraps the length in tclToInt.
+				result["make_str"] = "tclMakeStr($a, $b)"
+			case "file_pages":
+				// autovacuum.test / incrvacuum*.test `file_pages` proc
+				// returns `[expr [file size test.db] / 1024]` (the page
+				// count of test.db at the current page_size). Hard-coded
+				// to 1024 in the proc body. The transpiler emits
+				// `tclFilePages("test.db")` for value context and a
+				// statement-level `strconv.Itoa(tclFilePages("test.db"))`
+				// when `file_pages` appears in a `do_test` body. We use
+				// the same template for both.
+				result["file_pages"] = `strconv.Itoa(tclFilePages("test.db"))`
 			}
 		}
 	})

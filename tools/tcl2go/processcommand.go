@@ -99,6 +99,16 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"proc":     (*transpiler).processProc,
 		"unset":    (*transpiler).processUnset,
 
+		// autovacuum.test / incrvacuum*.test file_pages proc — returns
+		// the page count of test.db (1024-byte page size; the engine's
+		// pager reports NumPages in pages, so divide file size by the
+		// page size). The generated code assigns the result to _r so
+		// do_test compares the value to the expected page count.
+		"file_pages": func(tp *transpiler, args []tcl.RawWord) {
+			_rExpr := `strconv.Itoa(tclFilePages("test.db"))`
+			tp.emitLine("_r = %s // file_pages result", _rExpr)
+		},
+
 		// String / list operations
 		"append":   (*transpiler).processStringAppend,
 		"lappend":  (*transpiler).processListAppend,

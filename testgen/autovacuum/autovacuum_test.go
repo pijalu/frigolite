@@ -138,11 +138,11 @@ func Test_autovacuum(t *testing.T) {
 		_ = tbl_data // suppress unused warning
 		for _, i := range tclSplitList(tclListElem(tclSortInt("eval concat $delete_order"))) {
 		_ = i // suppress unused warning
-			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
+			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + tclMakeStr(i, tclToInt(ENTRY_LEN)) + "')")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + tclMakeStr(i, tclToInt(ENTRY_LEN)) + "')")
 			}
-			tbl_data = tclListAppend(tbl_data, "make_str $i $ENTRY_LEN")
+			tbl_data = tclListAppend(tbl_data, tclMakeStr(i, tclToInt(ENTRY_LEN)))
 		}
 		{ // do_test "autovacuum-1." + tn + ".1"
 			r = db.Query("\n        pragma integrity_check\n      ")
@@ -166,10 +166,10 @@ func Test_autovacuum(t *testing.T) {
 			}
 			for _, d := range tclSplitList(delete) {
 			_ = d // suppress unused warning
-				idx = strconv.Itoa(strings.Index(tbl_data, "[make_str"))
+				idx = strconv.Itoa(tclLsearch(tbl_data, tclMakeStr(d, tclToInt(ENTRY_LEN))))
 				_ = idx // suppress unused warning
-				vtab.TclVarSet("tbl_data", "", "lreplace $::tbl_data $idx $idx")
-				tbl_data = "lreplace $::tbl_data $idx $idx" // TCL namespace variable
+				vtab.TclVarSet("tbl_data", "", tclLReplace(tbl_data, idx, idx))
+				tbl_data = tclLReplace(tbl_data, idx, idx) // TCL namespace variable
 				_ = tbl_data // suppress unused warning
 			}
 			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").3"
@@ -183,7 +183,7 @@ func Test_autovacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "autovacuum-1." + tn + ".3"
-			// file_pages (unsupported command, not transpiled)
+			_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 		}
 	}
 	{ // do_test "autovacuum-2.1.1"
@@ -193,7 +193,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.1.2"
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.2.1"
 		r = db.Query("\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -202,14 +202,14 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.2"
-		_res = db.Exec("\n    INSERT INTO av1 VALUES('" + "make_str abc 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str def 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str ghi 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str jkl 3000" + "');\n  ")
+		_res = db.Exec("\n    INSERT INTO av1 VALUES('" + tclMakeStr("abc", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("def", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("ghi", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("jkl", tclToInt("3000")) + "');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av1 VALUES('" + "make_str abc 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str def 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str ghi 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str jkl 3000" + "');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av1 VALUES('" + tclMakeStr("abc", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("def", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("ghi", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("jkl", tclToInt("3000")) + "');\n  ")
 		}
 		vtab.TclVarSet("av1_data", "", tclDbOne(db, "db eval {select * from av1}"))
 		av1_data = tclDbOne(db, "db eval {select * from av1}") // TCL namespace variable
 		_ = av1_data // suppress unused warning
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.2.3"
 		r = db.Query("\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -218,7 +218,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.4"
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.2.5"
 		r = db.Query("\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -227,7 +227,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.6"
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.2.7"
 		r = db.Query("\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -236,7 +236,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.8"
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.2.9"
 		r = db.Query("\n    select * from av1\n  ")
@@ -261,7 +261,7 @@ func Test_autovacuum(t *testing.T) {
 		vtab.TclVarSet("av4_data", "", tclExecSQL(db, "select x from av4"))
 		av4_data = tclExecSQL(db, "select x from av4") // TCL namespace variable
 		_ = av4_data // suppress unused warning
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.3.2"
 		r = db.Query("\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -270,7 +270,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.3.3"
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.3.4"
 		r = db.Query("\n    SELECT x FROM av3;\n  ")
@@ -295,7 +295,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;\n  ")
 		}
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.4.2"
 		vtab.TclVarSet("i", "", "3")
@@ -314,7 +314,7 @@ func Test_autovacuum(t *testing.T) {
 				}
 			}
 		}
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.4.3"
 		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
@@ -323,9 +323,9 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.4.4"
-		_res = db.Exec("\n    INSERT INTO av3 VALUES ('" + "make_str abcde [expr 1020*520 + 500]" + "');\n    DELETE FROM av3;\n  ")
+		_res = db.Exec("\n    INSERT INTO av3 VALUES ('" + tclMakeStr("abcde", tclToInt("530900")) + "');\n    DELETE FROM av3;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av3 VALUES ('" + "make_str abcde [expr 1020*520 + 500]" + "');\n    DELETE FROM av3;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av3 VALUES ('" + tclMakeStr("abcde", tclToInt("530900")) + "');\n    DELETE FROM av3;\n  ")
 		}
 	}
 	root_page_list = ""
@@ -384,7 +384,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -413,7 +413,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-2.5.1"
 		_res = db.Exec("\n    CREATE TABLE av1(a PRIMARY KEY, b, c);\n    INSERT INTO av1 VALUES('av1 a', 'av1 b', 'av1 c');\n\n    CREATE TABLE av2(a PRIMARY KEY, b, c);\n    CREATE INDEX av2_i1 ON av2(b);\n    CREATE INDEX av2_i2 ON av2(c);\n    INSERT INTO av2 VALUES('av2 a', 'av2 b', 'av2 c');\n\n    CREATE TABLE av3(a PRIMARY KEY, b, c);\n    CREATE INDEX av3_i1 ON av3(b);\n    INSERT INTO av3 VALUES('av3 a', 'av3 b', 'av3 c');\n\n    CREATE TABLE av4(a, b, c);\n    CREATE INDEX av4_i1 ON av4(a);\n    CREATE INDEX av4_i2 ON av4(b);\n    CREATE INDEX av4_i3 ON av4(c);\n    CREATE INDEX av4_i4 ON av4(a, b, c);\n    INSERT INTO av4 VALUES('av4 a', 'av4 b', 'av4 c');\n  ")
@@ -559,7 +559,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n  ")
 		}
-		// file_pages (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
 	{ // do_test "autovacuum-4.0"
 		db.Close()

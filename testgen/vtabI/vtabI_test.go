@@ -108,7 +108,7 @@ func Test_vtabI(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 				}
-				idx = strconv.Itoa(strings.Index(echo_module, "xFilter"))
+				idx = strconv.Itoa(tclLsearch(echo_module, "xFilter"))
 				_ = idx // suppress unused warning
 				_r = tclLIndex(echo_module, tclExprWith("$idx+1", map[string]string{"idx": idx})) // lindex result
 			}
@@ -145,7 +145,7 @@ func Test_vtabI(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 					}
-					idx = strconv.Itoa(strings.Index(echo_module, "xFilter"))
+					idx = strconv.Itoa(tclLsearch(echo_module, "xFilter"))
 					_ = idx // suppress unused warning
 					_r = tclLIndex(echo_module, tclExprWith("$idx+1", map[string]string{"idx": idx})) // lindex result
 				}

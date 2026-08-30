@@ -82,10 +82,10 @@ func Test_in7(t *testing.T) {
 	_ = root_to_tbl_root // pre-declared from TCL source
 	var tbl string
 	_ = tbl // pre-declared from TCL source
-	root_to_tblMap := map[string]string{}
-	_ = root_to_tblMap // dynamic-key array from TCL source
 	csr_to_rootMap := map[string]string{}
 	_ = csr_to_rootMap // dynamic-key array from TCL source
+	root_to_tblMap := map[string]string{}
+	_ = root_to_tblMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "in7")

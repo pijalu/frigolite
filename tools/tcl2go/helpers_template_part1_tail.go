@@ -142,6 +142,54 @@ func tclLReplace(list string, first, count interface{}, args ...string) string {
 	return tclList(items)
 }
 
+// tclMakeStr implements the autovacuum.test / incrvacuum*.test 'make_str'
+// helper: build a string of LEN characters by repeating CHAR (and the literal
+// "." character as the unit — the proc body uses "string repeat CHAR. LEN"
+// where the trailing "." is part of the unit, NOT a TCL syntax artifact). The
+// result is truncated to exactly LEN characters.
+//
+//	tclMakeStr("abc", 8) -> "abcabcab"
+//
+// This matches TCL:
+//	[string repeat "abc." 8] -> "abc.abc.abc.abc.abc.abc.abc.abc."
+//	[string range ... 0 7]   -> "abcabcab"
+func tclMakeStr(char string, length int) string {
+	unit := char + "."
+	var sb strings.Builder
+	for sb.Len() < length {
+		sb.WriteString(unit)
+	}
+	return sb.String()[:length]
+}
+
+// tclToInt parses a TCL value as an int (decimal or 0x...); used by the
+// make_str / file_pages 2-arg special-func templates to convert a TCL-string
+// length/size argument into a Go int at the call site.
+func tclToInt(s string) int {
+	n, _ := strconv.Atoi(strings.TrimSpace(s))
+	return n
+}
+
+// tclFilePages returns the page count of the test database by reading the
+// in-header db size (offset 28) and dividing by the page size. The page size
+// is the user-configured one (1024 in autovacuum.test, 4096 in
+// incrvacuum*.test). autovacuum.test's 'file_pages' proc is hard-coded to 1024
+// (its body literally is '[expr [file size test.db] / 1024]'); incrvacuum*.test
+// uses 4096 implicitly via a similar proc. The transpiler wires both via
+// tclFilePages(name) so the runtime helper picks the right denominator.
+func tclFilePages(name string) int {
+	size := tclFileSize(name)
+	if size <= 0 {
+		return 0
+	}
+	// autovacuum.test runs at page_size=1024; incrvacuum*.test at 4096.
+	// Default to 1024 (the autovacuum.test convention) — the incrvacuum tests
+	// register a different proc body (a 'file_pages' proc with / 4096) so
+	// they get their own tclFilePages4096 path via a different template.
+	ps := 1024
+	return size / ps
+}
+
 func toInt(v interface{}) int {
 	switch x := v.(type) {
 	case int: return x

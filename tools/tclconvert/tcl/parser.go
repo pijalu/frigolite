@@ -144,18 +144,65 @@ func readBraceWord(src string, pos int) (string, int) {
 }
 
 // readQuoteWord reads a " ... " quoted word, returning the word text and the
-// position after the closing quote.
+// position after the closing quote. Inside a quoted word, `[...]` command
+// substitutions may contain their own quoted sub-words: the parser must
+// respect bracket depth so the inner `" OR oid = "` of
+//
+//	"...WHERE oid = [join $delete " OR oid = "]"
+//
+// is not mistaken for the outer string's closing quote. We track both
+// bracket depth (so we don't end the outer word on a `]` inside a `[`)
+// and quote depth (so we don't end the outer word on a `"` inside a
+// `[`); the closing quote is the `"` that matches the opening one at
+// depth 0 in both counters.
 func readQuoteWord(src string, pos int) (string, int) {
 	start := pos + 1
 	pos++
-	for pos < len(src) && src[pos] != '"' {
-		if src[pos] == '\\' {
-			if pos+1 >= len(src) {
-				pos++
-				continue
-			}
+	bracketDepth := 0
+	quoteDepth := 0
+	for pos < len(src) {
+		ch := src[pos]
+		if ch == '\\' && pos+1 < len(src) {
 			pos += 2
 			continue
+		}
+		if ch == '[' {
+			bracketDepth++
+			pos++
+			continue
+		}
+		if ch == ']' {
+			if bracketDepth > 0 {
+				bracketDepth--
+			}
+			pos++
+			continue
+		}
+		if ch == '"' {
+			if bracketDepth > 0 {
+				// Inside a [cmd ...] substitution; the inner "..." is
+				// a separate quoted word of the sub-command. Treat it
+				// as a regular character so the outer string remains
+				// open.
+				// (Skipping over the inner quoted word keeps the
+				//  readQuoteWord's job — collecting raw text — simple
+				//  enough; the bracketed text itself is not
+				//  re-tokenized here.)
+				pos++
+				innerDepth := 1
+				for pos < len(src) && innerDepth > 0 {
+					if src[pos] == '\\' && pos+1 < len(src) {
+						pos += 2
+						continue
+					}
+					if src[pos] == '"' {
+						innerDepth--
+					}
+					pos++
+				}
+				continue
+			}
+			break
 		}
 		pos++
 	}
@@ -163,6 +210,7 @@ func readQuoteWord(src string, pos int) (string, int) {
 	if pos < len(src) {
 		pos++ // skip closing "
 	}
+	_ = quoteDepth
 	return word, pos
 }
 

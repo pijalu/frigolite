@@ -55,6 +55,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"split":               (*transpiler).cmdExprSplit,
 		"lsearch":             (*transpiler).cmdExprLSearch,
 		"lrange":              (*transpiler).cmdExprLRange,
+		"lreplace":            (*transpiler).cmdExprLReplace,
 		"lsort":               (*transpiler).cmdExprLSort,
 		"file":                (*transpiler).cmdExprFile,
 		"glob":               (*transpiler).cmdExprGlob,
@@ -975,6 +976,31 @@ func (tp *transpiler) cmdExprLRange(cmdName, cmdText string, args []string) stri
 	return fmt.Sprintf("tclLRange(%s, %s, %s)", listExpr, startExpr, endExpr)
 }
 
+// cmdExprLReplace handles `[lreplace $list $first $last $repl...]` — returns
+// the modified list as a TCL list string. TCL's lreplace replaces the range
+// [first..last] (or just the single element at `first` when `last` is omitted
+// but our callers always pass both) with the new elements. Used in test
+// expressions like `set ::tbl_data [lreplace $::tbl_data $idx $idx]` to drop
+// the deleted row's generated string from the reference list.
+func (tp *transpiler) cmdExprLReplace(cmdName, cmdText string, args []string) string {
+	if len(args) < 3 {
+		return `""`
+	}
+	listExpr := tp.buildStringExpr(args[0])
+	firstExpr := tp.buildStringExpr(args[1])
+	// In TCL, a 2-arg form `lreplace $list $first` is "remove the element at
+	// $first"; tests always pass 3+ args, so treat the third as `last`.
+	lastExpr := tp.buildStringExpr(args[2])
+	var replExprs []string
+	for _, a := range args[3:] {
+		replExprs = append(replExprs, tp.buildStringExpr(a))
+	}
+	if len(replExprs) == 0 {
+		return fmt.Sprintf("tclLReplace(%s, %s, %s)", listExpr, firstExpr, lastExpr)
+	}
+	return fmt.Sprintf("tclLReplace(%s, %s, %s, %s)", listExpr, firstExpr, lastExpr, strings.Join(replExprs, ", "))
+}
+
 // cmdExprLSort handles `[lsort $list]` — sorted list (default ascending).
 func (tp *transpiler) cmdExprLSort(cmdName, cmdText string, args []string) string {
 	if len(args) < 1 {
@@ -1192,6 +1218,27 @@ func (tp *transpiler) cmdExprDefault(cmdName, cmdText string, args []string) str
 					argExpr = tp.buildStringExpr(w[0])
 				}
 				return fmt.Sprintf("string(tclHexDecode(%s))", argExpr)
+			}
+			// 2-arg template (e.g. `tclMakeStr($a, $b)` for autovacuum.test's
+			// `make_str char len` proc): substitute $a with args[0] and $b
+			// with args[1] (both rendered as Go string expressions). When
+			// fewer args are supplied, fall back to zero values to keep the
+			// generated code compiling.
+			if strings.Contains(tmpl, "$a") && strings.Contains(tmpl, "$b") {
+				aExpr := `""`
+				bExpr := "0"
+				if len(args) >= 1 {
+					aExpr = tp.buildStringExpr(args[0])
+				}
+				if len(args) >= 2 {
+					// `len` is a TCL integer; buildStringExpr returns a
+					// string literal — wrap with strconv.Atoi when the
+					// runtime helper wants an int.
+					bExpr = "tclToInt(" + tp.buildStringExpr(args[1]) + ")"
+				}
+				out := strings.Replace(tmpl, "$a", aExpr, 1)
+				out = strings.Replace(out, "$b", bExpr, 1)
+				return out
 			}
 			return tmpl
 		}

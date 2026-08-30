@@ -518,20 +518,34 @@ func (tp *transpiler) hexCodecArgExpr(cmdParts []string, idx int) string {
 // setLsearchValue handles `set VAR [lsearch ...]` — assigns the lsearch
 // result to VAR.
 func (tp *transpiler) setLsearchValue(goName, cmdText string, cmdParts []string) bool {
-	rest := cmdParts[1:]
+	// Re-parse cmdText with the TCL tokenizer (not strings.Fields) so bracketed
+	// command substitutions like `[make_str $d $ENTRY_LEN]` survive intact
+	// (autovacuum.test 1.x: `set idx [lsearch $::tbl_data [make_str ...]]`).
+	parts := tclCmdWords(cmdText)
+	if len(parts) < 3 {
+		return false
+	}
+	rest := parts[1:]
 	for len(rest) > 0 && strings.HasPrefix(rest[0], "-") {
 		rest = rest[1:]
 	}
 	if len(rest) < 2 {
 		return false
 	}
+	// The first arg (list) is a TCL variable reference; resolve to its Go
+	// identifier so the emitted tclLsearch sees the live list value.
 	listExpr := strings.TrimPrefix(rest[0], "$")
 	goList := tclVarToGo(listExpr)
 	if !isValidGoIdent(goList) {
 		return false
 	}
-	opcode := strings.Trim(rest[1], `"`)
-	tp.emitLine("%s = strconv.Itoa(strings.Index(%s, %q))", goName, goList, opcode)
+	// The value arg may itself contain a [cmd] substitution (autovacuum.test:
+	// `set idx [lsearch $::tbl_data [make_str $d $ENTRY_LEN]]`). Re-join the
+	// remaining words into a single string and pass through buildStringExpr
+	// so nested brackets are evaluated at runtime.
+	valueArg := strings.Join(rest[1:], " ")
+	valueExpr := tp.buildStringExpr(valueArg)
+	tp.emitLine("%s = strconv.Itoa(tclLsearch(%s, %s))", goName, goList, valueExpr)
 	tp.emitLine("_ = %s // suppress unused warning", goName)
 	return true
 }

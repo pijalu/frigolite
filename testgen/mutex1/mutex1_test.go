@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -153,10 +152,10 @@ func Test_mutex1(t *testing.T) {
 				continue
 			}
 			if "" == "inmemory_journal" {
-				idx = strconv.Itoa(strings.Index(mutexes, "static_prng"))
+				idx = strconv.Itoa(tclLsearch(mutexes, "static_prng"))
 				_ = idx // suppress unused warning
 				if func() bool { idx_n, _idx_e := strconv.Atoi(idx); if _idx_e != nil { return false }; return idx_n >= 0 }() {
-					mutexes = "lreplace $mutexes $idx $idx"
+					mutexes = tclLReplace(mutexes, idx, idx)
 					_ = mutexes // suppress unused warning
 				}
 			}
