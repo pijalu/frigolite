@@ -5,8 +5,233 @@
 package incrvacuum2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_incrvacuum2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_incrvacuum2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var maxsz string
+	_ = maxsz // pre-declared from TCL source
+	var newsz string
+	_ = newsz // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "incrvacuum2")
+	testprefix = "incrvacuum2"
+	_ = testprefix // suppress unused warning
+	{ // do_test "incrvacuum2-1.1"
+		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "32768" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "32768", "incrvacuum2-1.1")
+		}
+	}
+	{ // do_test "incrvacuum2-1.2"
+		r = db.Query("\n    PRAGMA incremental_vacuum(1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA incremental_vacuum(1);\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "31744" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "31744", "incrvacuum2-1.2")
+		}
+	}
+	{ // do_test "incrvacuum2-1.3"
+		r = db.Query("\n    PRAGMA incremental_vacuum(5);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA incremental_vacuum(5);\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "26624" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "26624", "incrvacuum2-1.3")
+		}
+	}
+	{ // do_test "incrvacuum2-1.4"
+		r = db.Query("\n    PRAGMA incremental_vacuum(1000);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA incremental_vacuum(1000);\n  ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != "3072" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "3072", "incrvacuum2-1.4")
+		}
+	}
+	{ // do_test "incrvacuum2-2.1"
+		os.Remove("test2.db")
+		r = db.Query("\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
+		}
+		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "incrvacuum2-2.2"
+		r = db.Query("\n      PRAGMA aux.incremental_vacuum(1)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.incremental_vacuum(1)\n    ")
+		}
+		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "incrvacuum2-2.3"
+		r = db.Query("\n      PRAGMA aux.incremental_vacuum(5)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.incremental_vacuum(5)\n    ")
+		}
+		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "incrvacuum2-2.4"
+		r = db.Query("\n      PRAGMA main.incremental_vacuum(5)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.incremental_vacuum(5)\n    ")
+		}
+		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "incrvacuum2-2.5"
+		r = db.Query("\n      PRAGMA aux.incremental_vacuum\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.incremental_vacuum\n    ")
+		}
+		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "incrvacuum2-2.6"
+		r = db.Query("\n      PRAGMA incremental_vacuum(1)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA incremental_vacuum(1)\n    ")
+		}
+		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "incrvacuum2-3.1"
+		r = db.Query("\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")
+		}
+	}
+	{ // do_test "incrvacuum2-3.2"
+		r = db.Query("\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	if tclBool("wal_is_capable") {
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "4.1"
+			r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 SELECT * FROM t1;            --    2\n    INSERT INTO t1 SELECT * FROM t1;            --    4\n    INSERT INTO t1 SELECT * FROM t1;            --    8\n    INSERT INTO t1 SELECT * FROM t1;            --   16\n    INSERT INTO t1 SELECT * FROM t1;            --   32\n    INSERT INTO t1 SELECT * FROM t1;            --  128\n    INSERT INTO t1 SELECT * FROM t1;            --  256\n    INSERT INTO t1 SELECT * FROM t1;            --  512\n    INSERT INTO t1 SELECT * FROM t1;            -- 1024\n    INSERT INTO t1 SELECT * FROM t1;            -- 2048\n    INSERT INTO t1 SELECT * FROM t1;            -- 4096\n    INSERT INTO t1 SELECT * FROM t1;            -- 8192\n    DELETE FROM t1 WHERE oid>512;\n    DELETE FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 SELECT * FROM t1;            --    2\n    INSERT INTO t1 SELECT * FROM t1;            --    4\n    INSERT INTO t1 SELECT * FROM t1;            --    8\n    INSERT INTO t1 SELECT * FROM t1;            --   16\n    INSERT INTO t1 SELECT * FROM t1;            --   32\n    INSERT INTO t1 SELECT * FROM t1;            --  128\n    INSERT INTO t1 SELECT * FROM t1;            --  256\n    INSERT INTO t1 SELECT * FROM t1;            --  512\n    INSERT INTO t1 SELECT * FROM t1;            -- 1024\n    INSERT INTO t1 SELECT * FROM t1;            -- 2048\n    INSERT INTO t1 SELECT * FROM t1;            -- 4096\n    INSERT INTO t1 SELECT * FROM t1;            -- 8192\n    DELETE FROM t1 WHERE oid>512;\n    DELETE FROM t1;\n  ")
+			}
+		}
+		{ // do_test "4.2"
+			r = db.Query(" \n      PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);\n    ")
+			}
+		}
+		{ // do_test "4.2.1"
+			r = db.Query(" PRAGMA wal_checkpoint ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			}
+			_r = strconv.Itoa(tclFileSize("test.db-wal"))
+			if _r != "1104" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "1104", "4.2.1")
+			}
+		}
+		{ // "4.3" (prepare-step internals; SQL side effects only)
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			vtab.TclVarSet("maxsz", "", "0")
+			maxsz = "0"
+			_ = maxsz // suppress unused warning
+			for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclFileSize("test.db"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("1536"); if r_e != nil { return false }; return l_n > r_n }() {
+				r = db.Query(" PRAGMA journal_mode = WAL ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+				}
+				r = db.Query(" PRAGMA wal_checkpoint ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+				}
+				r = db.Query(" PRAGMA incremental_vacuum(1) ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA incremental_vacuum(1) ")
+				}
+				newsz = strconv.Itoa(tclFileSize("test.db-wal"))
+				_ = newsz // suppress unused warning
+				if func() bool { newsz_n, _newsz_e := strconv.Atoi(newsz); if _newsz_e != nil { return false }; maxsz_n, _maxsz_e := strconv.Atoi(maxsz); if _maxsz_e != nil { return false }; return newsz_n > maxsz_n }() {
+					vtab.TclVarSet("maxsz", "", newsz)
+					maxsz = newsz
+					_ = maxsz // suppress unused warning
+				}
+			}
+		}
+	}
+}

@@ -5,8 +5,118 @@
 package autovacuum2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_autovacuum2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_autovacuum2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var autovac_callback_data string
+	_ = autovac_callback_data // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var filesize string
+	_ = filesize // pre-declared from TCL source
+	var freesize string
+	_ = freesize // pre-declared from TCL source
+	var pagesize string
+	_ = pagesize // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // "autovacuum2-1.0" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(x);\n  VACUUM;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  PRAGMA page_count;\n")
+		_ = _res
+	}
+	// proc definition (not transpiled)
+	// sqlite3_autovacuum_pages db autovac_page_callback (unsupported command, not transpiled)
+	vtab.TclVarSet("autovac_callback_data", "", "")
+	autovac_callback_data = ""
+	_ = autovac_callback_data // suppress unused warning
+	{ // "autovacuum2-1.1" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  PRAGMA page_count;\n")
+		_ = _res
+	}
+	{ // "autovacuum2-1.2"
+		_res = db.Exec("\n  COMMIT;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+		}
+	}
+	{ // do_test "autovacuum2-1.3"
+		got := tclListFlatten(autovac_callback_data)
+		want := tclListFlatten("main 12 9 1024")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autovacuum2-1.3")
+		}
+	}
+	{ // "autovacuum2-1.4" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		_res = db.Exec("\n  PRAGMA freelist_count;\n  PRAGMA page_count;\n")
+		_ = _res
+	}
+	{ // "autovacuum2-1.5"
+		r = db.Query("\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// sqlite3_autovacuum_pages db (unsupported command, not transpiled)
+	{ // "autovacuum2-1.10" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		_res = db.Exec("\n  CREATE TABLE t2(x);\n  PRAGMA freelist_count;\n")
+		_ = _res
+	}
+	// proc autovac_page_callback_off returns constant 0 (registered via db func)
+	// sqlite3_autovacuum_pages db autovac_page_callback_off (unsupported command, not transpiled)
+	{ // "autovacuum2-1.20" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  COMMIT;\n  PRAGMA freelist_count;\n")
+		_ = _res
+	}
+}

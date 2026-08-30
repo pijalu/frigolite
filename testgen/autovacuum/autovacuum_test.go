@@ -5,8 +5,763 @@
 package autovacuum
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_autovacuum(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_autovacuum(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var delete_orders string
+	_ = delete_orders // pre-declared from TCL source
+	var ENTRY_LEN string
+	_ = ENTRY_LEN // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var delete_order string
+	_ = delete_order // pre-declared from TCL source
+	var tbl_data string
+	_ = tbl_data // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var delete string
+	_ = delete // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var av1_data string
+	_ = av1_data // pre-declared from TCL source
+	var av2_data string
+	_ = av2_data // pre-declared from TCL source
+	var av3_data string
+	_ = av3_data // pre-declared from TCL source
+	var av4_data string
+	_ = av4_data // pre-declared from TCL source
+	var root_page_list string
+	_ = root_page_list // pre-declared from TCL source
+	var pending_byte_page string
+	_ = pending_byte_page // pre-declared from TCL source
+	var unusable_page_pending_byte_page string
+	_ = unusable_page_pending_byte_page // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+	unusable_pageMap := map[string]string{}
+	_ = unusable_pageMap // dynamic-key array from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	delete_orders = ""
+	_ = delete_orders // suppress unused warning
+	delete_orders = tclListAppend(delete_orders, "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20")
+	delete_orders = tclListAppend(delete_orders, "20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1")
+	delete_orders = tclListAppend(delete_orders, "8 18 2 4 14 11 13 3 10 7 9 5 12 17 19 15 20 6 16 1")
+	delete_orders = tclListAppend(delete_orders, "10 3 11 17 19 20 7 4 13 6 1 14 16 12 9 18 8 15 5 2")
+	delete_orders = tclListAppend(delete_orders, "{1 2 3 4 5 6 7 8 9 10} {11 12 13 14 15 16 17 18 19 20}")
+	delete_orders = tclListAppend(delete_orders, "{19 8 17 15} {16 11 9 14} {18 5 3 1} {13 20 7 2} {6 12}")
+	vtab.TclVarSet("ENTRY_LEN", "", "3500")
+	ENTRY_LEN = "3500"
+	_ = ENTRY_LEN // suppress unused warning
+	{ // do_test "autovacuum-1.1"
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
+		}
+	}
+	vtab.TclVarSet("tn", "", "0")
+	tn = "0"
+	_ = tn // suppress unused warning
+	for _, delete_order := range tclSplitList(delete_orders) {
+	_ = delete_order // suppress unused warning
+		// incr tn 1
+		{
+			_n, _err := strconv.Atoi(tn)
+			if _err == nil {
+				tn = strconv.Itoa(_n + 1)
+			}
+		}
+		vtab.TclVarSet("tbl_data", "", "")
+		tbl_data = "" // TCL namespace variable
+		_ = tbl_data // suppress unused warning
+		for _, i := range tclSplitList(tclListElem(tclSortInt("eval concat $delete_order"))) {
+		_ = i // suppress unused warning
+			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
+			}
+			tbl_data = tclListAppend(tbl_data, "make_str $i $ENTRY_LEN")
+		}
+		{ // do_test "autovacuum-1." + tn + ".1"
+			r = db.Query("\n        pragma integrity_check\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        pragma integrity_check\n      ")
+			}
+		}
+		for _, delete := range tclSplitList(delete_order) {
+		_ = delete // suppress unused warning
+			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").1"
+				_res = db.Exec("\n        DELETE FROM av1 WHERE oid = " + strings.Join(tclSplitList(delete), " "))
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DELETE FROM av1 WHERE oid = " + strings.Join(tclSplitList(delete), " "))
+				}
+			}
+			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").2"
+				r = db.Query("\n          pragma integrity_check\n        ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          pragma integrity_check\n        ")
+				}
+			}
+			for _, d := range tclSplitList(delete) {
+			_ = d // suppress unused warning
+				idx = strconv.Itoa(strings.Index(tbl_data, "[make_str"))
+				_ = idx // suppress unused warning
+				vtab.TclVarSet("tbl_data", "", "lreplace $::tbl_data $idx $idx")
+				tbl_data = "lreplace $::tbl_data $idx $idx" // TCL namespace variable
+				_ = tbl_data // suppress unused warning
+			}
+			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").3"
+				r = db.Query("\n        select a from av1 order by rowid\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        select a from av1 order by rowid\n      ")
+				}
+				if flatten(r) != tbl_data {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tbl_data, "autovacuum-1." + tn + ".(" + delete + ").3")
+				}
+			}
+		}
+		{ // do_test "autovacuum-1." + tn + ".3"
+			// file_pages (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "autovacuum-2.1.1"
+		_res = db.Exec("\n    DROP TABLE av1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.1.2"
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.2.1"
+		r = db.Query("\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.2.2"
+		_res = db.Exec("\n    INSERT INTO av1 VALUES('" + "make_str abc 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str def 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str ghi 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str jkl 3000" + "');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av1 VALUES('" + "make_str abc 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str def 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str ghi 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str jkl 3000" + "');\n  ")
+		}
+		vtab.TclVarSet("av1_data", "", tclDbOne(db, "db eval {select * from av1}"))
+		av1_data = tclDbOne(db, "db eval {select * from av1}") // TCL namespace variable
+		_ = av1_data // suppress unused warning
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.2.3"
+		r = db.Query("\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.2.4"
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.2.5"
+		r = db.Query("\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.2.6"
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.2.7"
+		r = db.Query("\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.2.8"
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.2.9"
+		r = db.Query("\n    select * from av1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from av1\n  ")
+		}
+		if flatten(r) != av1_data {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av1_data, "autovacuum-2.2.9")
+		}
+	}
+	{ // do_test "autovacuum-2.3.1"
+		_res = db.Exec("\n    INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;\n  ")
+		}
+		vtab.TclVarSet("av2_data", "", tclExecSQL(db, "select x from av2"))
+		av2_data = tclExecSQL(db, "select x from av2") // TCL namespace variable
+		_ = av2_data // suppress unused warning
+		vtab.TclVarSet("av3_data", "", tclExecSQL(db, "select x from av3"))
+		av3_data = tclExecSQL(db, "select x from av3") // TCL namespace variable
+		_ = av3_data // suppress unused warning
+		vtab.TclVarSet("av4_data", "", tclExecSQL(db, "select x from av4"))
+		av4_data = tclExecSQL(db, "select x from av4") // TCL namespace variable
+		_ = av4_data // suppress unused warning
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.3.2"
+		r = db.Query("\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.3.3"
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.3.4"
+		r = db.Query("\n    SELECT x FROM av3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av3;\n  ")
+		}
+		if flatten(r) != av3_data {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av3_data, "autovacuum-2.3.4")
+		}
+	}
+	{ // do_test "autovacuum-2.3.5"
+		r = db.Query("\n    SELECT x FROM av4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av4;\n  ")
+		}
+		if flatten(r) != av4_data {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av4_data, "autovacuum-2.3.5")
+		}
+	}
+	{ // do_test "autovacuum-2.4.1"
+		_res = db.Exec("\n    DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;\n  ")
+		}
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.4.2"
+		vtab.TclVarSet("i", "", "3")
+		i = "3"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 10 }() {
+			_res = db.Exec("CREATE TABLE av" + i + " (x)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE av" + i + " (x)")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.4.3"
+		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.4.4"
+		_res = db.Exec("\n    INSERT INTO av3 VALUES ('" + "make_str abcde [expr 1020*520 + 500]" + "');\n    DELETE FROM av3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av3 VALUES ('" + "make_str abcde [expr 1020*520 + 500]" + "');\n    DELETE FROM av3;\n  ")
+		}
+	}
+	root_page_list = ""
+	_ = root_page_list // suppress unused warning
+	pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
+	_ = pending_byte_page // suppress unused warning
+	if tclBool("") {
+	} else {
+	}
+	unusable_pageMap[pending_byte_page] = "1"
+	vtab.TclVarSet("i", "", "3")
+	i = "3"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 532 }() {
+		if tclBool("!" + tclBool01(vtab.TclVarExists("unusable_page($i)", ""))) {
+			root_page_list = tclListAppend(root_page_list, i)
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; pending_byte_page_n, _pending_byte_page_e := strconv.Atoi(pending_byte_page); if _pending_byte_page_e != nil { return false }; return i_n >= pending_byte_page_n }() {
+		root_page_list = tclListAppend(root_page_list, i)
+	}
+	{ // do_test "autovacuum-2.4.5"
+		vtab.TclVarSet("i", "", "11")
+		i = "11"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 530 }() {
+			_res = db.Exec("CREATE TABLE av" + i + " (x)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE av" + i + " (x)")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
+		}
+		if flatten(r) != root_page_list {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), root_page_list, "autovacuum-2.4.5")
+		}
+	}
+	{ // do_test "autovacuum-2.4.6"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		// file_pages (unsupported command, not transpiled)
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "autovacuum-2.4.7"
+		_res = db.Exec("BEGIN")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		}
+		vtab.TclVarSet("i", "", "3")
+		i = "3"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 530 }() {
+			_res = db.Exec("DROP TABLE av" + i)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE av" + i)
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-2.5.1"
+		_res = db.Exec("\n    CREATE TABLE av1(a PRIMARY KEY, b, c);\n    INSERT INTO av1 VALUES('av1 a', 'av1 b', 'av1 c');\n\n    CREATE TABLE av2(a PRIMARY KEY, b, c);\n    CREATE INDEX av2_i1 ON av2(b);\n    CREATE INDEX av2_i2 ON av2(c);\n    INSERT INTO av2 VALUES('av2 a', 'av2 b', 'av2 c');\n\n    CREATE TABLE av3(a PRIMARY KEY, b, c);\n    CREATE INDEX av3_i1 ON av3(b);\n    INSERT INTO av3 VALUES('av3 a', 'av3 b', 'av3 c');\n\n    CREATE TABLE av4(a, b, c);\n    CREATE INDEX av4_i1 ON av4(a);\n    CREATE INDEX av4_i2 ON av4(b);\n    CREATE INDEX av4_i3 ON av4(c);\n    CREATE INDEX av4_i4 ON av4(a, b, c);\n    INSERT INTO av4 VALUES('av4 a', 'av4 b', 'av4 c');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE av1(a PRIMARY KEY, b, c);\n    INSERT INTO av1 VALUES('av1 a', 'av1 b', 'av1 c');\n\n    CREATE TABLE av2(a PRIMARY KEY, b, c);\n    CREATE INDEX av2_i1 ON av2(b);\n    CREATE INDEX av2_i2 ON av2(c);\n    INSERT INTO av2 VALUES('av2 a', 'av2 b', 'av2 c');\n\n    CREATE TABLE av3(a PRIMARY KEY, b, c);\n    CREATE INDEX av3_i1 ON av3(b);\n    INSERT INTO av3 VALUES('av3 a', 'av3 b', 'av3 c');\n\n    CREATE TABLE av4(a, b, c);\n    CREATE INDEX av4_i1 ON av4(a);\n    CREATE INDEX av4_i2 ON av4(b);\n    CREATE INDEX av4_i3 ON av4(c);\n    CREATE INDEX av4_i4 ON av4(a, b, c);\n    INSERT INTO av4 VALUES('av4 a', 'av4 b', 'av4 c');\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.2"
+		r = db.Query("\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.2.1"
+		r = db.Query("\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.2.2"
+		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.2.3"
+		r = db.Query("\n    SELECT * FROM av3 WHERE a = 'av3 a' AND b = 'av3 b';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av3 WHERE a = 'av3 a' AND b = 'av3 b';\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.2.4"
+		r = db.Query("\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.3"
+		r = db.Query("\n    DROP TABLE av3;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av3;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.3.1"
+		r = db.Query("\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av1 WHERE a = 'av1 a';\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.3.2"
+		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.3.3"
+		r = db.Query("\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.4"
+		r = db.Query("\n    DROP TABLE av1;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av1;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.4.2"
+		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.4.4"
+		r = db.Query("\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.5"
+		r = db.Query("\n    DROP TABLE av4;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE av4;\n    SELECT name, rootpage FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-2.5.5.2"
+		r = db.Query("\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'\n  ")
+		}
+	}
+	{ // do_test "autovacuum-3.1"
+		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-3.2"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-3.3"
+		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA auto_vacuum;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-3.4"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+		}
+		if flatten(r) != AUTOVACUUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "autovacuum-3.4")
+		}
+	}
+	{ // do_test "autovacuum-3.5"
+		r = db.Query("\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
+		}
+		if flatten(r) != AUTOVACUUM {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "autovacuum-3.5")
+		}
+	}
+	{ // do_test "autovacuum-3.6"
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-3.7"
+		_res = db.Exec("\n    DROP TABLE av1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n  ")
+		}
+		// file_pages (unsupported command, not transpiled)
+	}
+	{ // do_test "autovacuum-4.0"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-4.1"
+		_res = db.Exec("\n    CREATE TABLE av1(a, b);\n    BEGIN;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE av1(a, b);\n    BEGIN;\n  ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+			_res = db.Exec("INSERT INTO av1 VALUES(" + i + ", '" + tclStringRepeat("X", "200") + "');")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 VALUES(" + i + ", '" + tclStringRepeat("X", "200") + "');")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("INSERT INTO av1 VALUES(99, '" + tclStringRepeat("X", "200") + "');")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 VALUES(99, '" + tclStringRepeat("X", "200") + "');")
+		}
+		r = db.Query("\n    SELECT sum(a) FROM av1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a) FROM av1;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-4.2"
+		_res = db.Exec("\n    CREATE UNIQUE INDEX av1_i ON av1(a);\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: av1.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: av1.a", _res.Error, "\n    CREATE UNIQUE INDEX av1_i ON av1(a);\n  ")
+		}
+	}
+	{ // do_test "autovacuum-4.3"
+		r = db.Query("\n    SELECT sum(a) FROM av1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a) FROM av1;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-4.4"
+		_res = db.Exec("\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-5.1"
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-6.1"
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-7.1"
+		db.Close()
+		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
+		}
+		// expr [file size test.db] / 1024 (not evaluated)
+	}
+	{ // do_test "autovacuum-7.2"
+		_res = db.Exec("\n    CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n  ")
+		}
+		// expr [file size test.db] / 1024 (not evaluated)
+	}
+	{ // do_test "autovacuum-7.3"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
+		}
+		// expr [file size test.db] / 1024 (not evaluated)
+	}
+	{ // do_test "autovacuum-8.1"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("PRAGMA auto_vacuum")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA auto_vacuum")
+		}
+	}
+	if "" == "" {
+		{ // do_test "autovacuum-8.2"
+			_res = db.Exec("BEGIN EXCLUSIVE")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
+			}
+			_res = db2.Exec("PRAGMA auto_vacuum")
+			_ = _res // catchsql
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			if db2 != nil { db2.Close() }
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil { _catchErr = _res.Error }
+		}
+	}
+	{ // do_test "autovacuum-9.1"
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    DROP TABLE t4;\n    DROP TABLE t5;\n    PRAGMA page_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    DROP TABLE t4;\n    DROP TABLE t5;\n    PRAGMA page_count;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-9.2" (file size test.db)
+		got := strconv.Itoa(tclFileSize("test.db"))
+		if got != "1024" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, "1024", "autovacuum-9.2")
+		}
+	}
+	{ // do_test "autovacuum-9.3"
+		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(NULL, randstr(50,50));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(NULL, randstr(50,50));\n  ")
+		}
+		vtab.TclVarSet("ii", "", "0")
+		ii = "0"
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
+			_res = db.Exec(" INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
+			}
+			// incr ii 1
+			{
+				_n, _err := strconv.Atoi(ii)
+				if _err == nil {
+					ii = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != sqlite_pending_byte {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sqlite_pending_byte, "autovacuum-9.3")
+		}
+	}
+	{ // do_test "autovacuum-9.4"
+		_res = db.Exec(" INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
+		}
+	}
+	{ // do_test "autovacuum-9.5"
+		_res = db.Exec(" DELETE FROM t1 WHERE rowid > (SELECT max(a)/2 FROM t1) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid > (SELECT max(a)/2 FROM t1) ")
+		}
+		_r = strconv.Itoa(tclFileSize("test.db"))
+		if _r != sqlite_pending_byte {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sqlite_pending_byte, "autovacuum-9.5")
+		}
+	}
+	{ // "autovacuum-10.1"
+		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(25, randomblob(104));\n  REPLACE INTO t1 VALUES(25, randomblob(1117));\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(25, randomblob(104));\n  REPLACE INTO t1 VALUES(25, randomblob(1117));\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

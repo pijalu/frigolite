@@ -5,8 +5,152 @@
 package incrvacuum3
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_incrvacuum3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_incrvacuum3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var dbcheck *frigolite.DB
+	_ = dbcheck
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var fd2 string
+	_ = fd2 // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var T string
+	_ = T // pre-declared from TCL source
+	var jrnl_mode string
+	_ = jrnl_mode // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "incrvacuum3")
+	testprefix = "incrvacuum3"
+	_ = testprefix // suppress unused warning
+	// proc definition (not transpiled)
+	// foreach {T jrnl_mode} "1 delete\n  2 wal"
+	_items0 := tclSplitList("1 delete\n  2 wal")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		T := _items0[_idx0+0]
+		_ = T // suppress unused warning
+		jrnl_mode := _items0[_idx0+1]
+		_ = jrnl_mode // suppress unused warning
+		_ = _idx0
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+				db.Close()
+			}
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    PRAGMA cache_size = 5;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 5;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n  ")
+			}
+			_res = db.Exec("PRAGMA journal_mode = " + jrnl_mode)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode = " + jrnl_mode)
+			}
+			// foreach {tn sql} "1 {\n      CREATE TABLE t1(x UNIQUE);\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   4\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   8\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  16\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  32\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    2 {\n      DELETE FROM t1 WHERE rowid%8;\n    }\n  \n    3 { \n      BEGIN;\n        PRAGMA incremental_vacuum = 100;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    4 { \n      BEGIN;\n        SAVEPOINT one;\n          PRAGMA incremental_vacuum = 100;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    5 {   ROLLBACK to two }\n  \n    6 { ROLLBACK to one }\n  \n    7 { \n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    8 { \n      BEGIN;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  128\n      COMMIT;\n    }"
+			_items1 := tclSplitList("1 {\n      CREATE TABLE t1(x UNIQUE);\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   4\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   8\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  16\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  32\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    2 {\n      DELETE FROM t1 WHERE rowid%8;\n    }\n  \n    3 { \n      BEGIN;\n        PRAGMA incremental_vacuum = 100;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    4 { \n      BEGIN;\n        SAVEPOINT one;\n          PRAGMA incremental_vacuum = 100;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    5 {   ROLLBACK to two }\n  \n    6 { ROLLBACK to one }\n  \n    7 { \n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    8 { \n      BEGIN;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  128\n      COMMIT;\n    }")
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				tn := _items1[_idx1+0]
+				_ = tn // suppress unused warning
+				sql := _items1[_idx1+1]
+				_ = sql // suppress unused warning
+				_ = _idx1
+					{ // T + ".1." + tn + ".1"
+						_res = db.Exec(sql)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						}
+					}
+					{ // T + ".1." + tn + ".2"
+						r = db.Query("PRAGMA integrity_check")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+							return
+						}
+						got := flatten(r)
+						want := "ok"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // do_test T + ".1." + tn + ".3"
+						// check_on_disk (unsupported command, not transpiled)
+					}
+				}
+				{ // T + ".1.x.1" — skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+					_res = db.Exec(" PRAGMA freelist_count   ")
+					_ = _res
+				}
+				{ // T + ".1.x.2"
+					r = db.Query(" SELECT count(*) FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
+						return
+					}
+					got := flatten(r)
+					want := "128"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+}
