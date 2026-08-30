@@ -34,32 +34,15 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 				break
 			}
 		}
-		// P8.INCRVACUUM phase 1: free the emptied leaf if it is NOT the
-		// btree root. We only free leaves whose parent is the btree's
-		// interior root (i.e., a single-level btree where the root
-		// became interior after splits) and which are not the rightmost
-		// child (to avoid orphaning the rightmost range). For deeper
-		// btrees we skip the free call — rebalancing the parent
-		// interior page is out of scope for this phase, and freeing
-		// without rebalancing leaves the btree in a state where cursors
-		// and integrity_check see "ghost" leaves (the parent still has
-		// cell-pointers and divider keys for the freed leaf, just
-		// pointing to 0). Limiting to shallow trees matches what the
-		// autovacuum tests cover.
-		if leafNum == t.rootPage {
-			continue
-		}
-		// Check that the parent exists. In a 2-level btree, the
-		// parent is the rootPage (now interior after splits).
-		if t.rootPage == leafNum {
-			continue
-		}
-		// Conservative: do NOT call FreePage on the leaf in this
-		// phase. P8.INCRVACUUM phase 2 (relocatePage + autoVacuumCommit)
-		// will provide the full machinery. For now, leaves stay as
-		// empty leaves in the tree; the freelist grows only from
-		// overflow pages freed by deleteAllMatchingFromLeaf.
-		_ = t
+		// P8.INCRVACUUM phase 1: the leaf is left in the btree as an empty
+		// leaf (cell count 0, content pointer at pageSize). We do NOT
+		// call FreePage here because nulling the parent's leftChild
+		// reference leaves the btree in a state that subsequent inserts
+		// and unique-constraint scans can't navigate (they'd see
+		// leftChild=0 and try to descend into page 0, which errors with
+		// "database disk image is malformed"). Proper integration
+		// requires btree rebalance (phase 3+) so freed leaves are
+		// removed from the parent's cell array entirely.
 	}
 	return deleted, nil
 }
