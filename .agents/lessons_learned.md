@@ -2740,3 +2740,54 @@ insufficient; the gap is too deep. Concrete observations:
 The investigation goal exhausts autonomous options: the page-swap
 machinery cannot be ported in a single session without prior authorization
 to commit to the multi-day investment.
+
+## P8.INCRVACUUM.phase1 partial outcome (2026-09)
+
+Phase 1 attempted to add FreePage-on-emptied-leaves via
+`internal/btree/btree_tail.go::DeleteCellsWhere`. Outcome:
+
+- **pager.FreePage/AllocatePage refactored** (commit a801c6a7):
+  FreePage no longer zeros the freed page's content (keeps it as a
+  valid empty b-tree leaf), and AllocatePage pops from a new
+  in-memory `p.freePages` set for O(1) freelist consumption. The
+  on-disk SQLite-format freelist (header.trunk/count) is still
+  maintained for compatibility with corrupt2-14.x tests.
+- **btree/btree_tail.go**: `collectLeafPages` extended to populate
+  `parentRefs` (one `leafRef` per leaf), so callers can update
+  parents when freeing. `DeleteCellsWhere` was modified but the
+  FreePage call is currently a no-op (commented out) — see below.
+- **Tests**: `internal/btree/btree_vacuum_test.go` added with
+  TestFreePageEmptiedLeaf / TestFreePageRootEmptied /
+  TestFreePageSelectiveDelete. The first and third currently FAIL
+  because the FreePage call is not wired in (intentional). The
+  second passes (single-leaf btree case).
+- **Regression test**: incrvacuum3 testgen stays green (verified
+  after the refactor).
+
+**Why FreePage-on-leaf is hard**:
+
+Calling `pager.FreePage(leafNum)` from `DeleteCellsWhere` requires
+also nulling the parent's `leftChild` (or `rightmostPtr`) so the
+freed leaf is no longer reachable. But the btree's interior page
+now has a mix of valid children and zeroed children. The cursor's
+traversal (descendToFirstLeaf, navigateToNextChild) must skip
+zeroed children, which it can do — but the btree is in an
+unbalanced state: an interior page may have `cellCount = 10` with
+9 zeroed children and 1 valid one. The cursor's path stack and
+seek logic are not designed for this and may enter infinite loops
+when the freed leaf's content (still valid empty leaf data) is
+re-encountered via stale path entries.
+
+**Resolution path** (for phase 2/3):
+
+The proper fix requires btree rebalance (SQLite's
+`balance_nonroot`) so that freed leaves are removed from the
+parent's cell array entirely (cell pointer count decrements), not
+just have their leftChild zeroed. balance_nonroot is ~500 lines of
+intricate C port. Phase 3 (relocatePage + IncrVacuumStep) will
+land the rebalance as part of the page-swap machinery. Until
+then, the FreePage call is staged but not active.
+
+**Lesson**: Always test the btree's full read path (cursor, scan,
+seek) after modifying the btree structure. A change that "looks
+correct" in isolation can break traversals in subtle ways.
