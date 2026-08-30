@@ -9,4 +9,4 @@ import (
 )
 
 func Test_symlink(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: VFS-layer symlink + -nofollow + PATH_MAX truncation N-A (evidence frigolite_symlink_test.go)

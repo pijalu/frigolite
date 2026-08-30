@@ -9,4 +9,4 @@ import (
 )
 
 func Test_symlink2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: VFS-layer symlink resolution N-A (evidence frigolite_symlink_test.go)

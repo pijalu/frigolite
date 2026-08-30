@@ -135,6 +135,13 @@ type EngineState interface {
 	SkipScanEnabled() bool
 	SetSkipScanEnabled(b bool)
 
+	// SecureDelete implements PRAGMA [schema.]secure_delete (getter and
+	// setter). The schema-qualified setter updates one schema's value; the
+	// unqualified setter updates every attached schema AND MAIN. The
+	// unqualified getter returns MAIN's value. Mirrors src/pragma.c
+	// PragTyp_SECURE_DELETE.
+	SecureDelete(schema, value string) *Result
+
 	// Scalar settings.
 	RecursiveCTELimit() int
 	SetRecursiveCTELimit(n int)
@@ -406,10 +413,13 @@ var pragmaHandlers = map[string]Handler{
 		func(st EngineState) bool { return st.SkipScanEnabled() },
 		func(st EngineState, b bool) { st.SetSkipScanEnabled(b) },
 	),
+	"SECURE_DELETE": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.SecureDelete(s.Schema, s.Value)
+	},
 
 	// --- Encoding / journal mode / limits ---
 	"ENCODING": func(st EngineState, s *sql.PragmaStmt) *Result {
-	return st.Encoding(s.Schema, s.Value)
+		return st.Encoding(s.Schema, s.Value)
 	},
 	"JOURNAL_MODE": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.JournalMode(s.Schema, s.Value)

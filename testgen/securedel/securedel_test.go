@@ -5,8 +5,197 @@
 package securedel
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_securedel(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_securedel(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DEFAULT_SECDEL string
+	_ = DEFAULT_SECDEL // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("DEFAULT_SECDEL", "", "0")
+	DEFAULT_SECDEL = "0"
+	_ = DEFAULT_SECDEL // suppress unused warning
+	vtab.TclVarSet("DEFAULT_SECDEL", "", "2")
+	DEFAULT_SECDEL = "2"
+	_ = DEFAULT_SECDEL // suppress unused warning
+	{ // do_test "securedel-1.0"
+		r = db.Query("PRAGMA secure_delete;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA secure_delete;")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse(DEFAULT_SECDEL)
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	os.Remove("test2.db")
+	{ // do_test "securedel-1.1"
+		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"+" "+DEFAULT_SECDEL
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.2"
+		r = db.Query("\n    PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"+" "+DEFAULT_SECDEL
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.3"
+		r = db.Query("\n    PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.4"
+		r = db.Query("\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.5"
+		r = db.Query("\n    PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.6"
+		r = db.Query("\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.7"
+		r = db.Query("\n    PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-1.8"
+		r = db.Query("\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-2.1"
+		r = db.Query("\n    DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "securedel-2.2"
+		r = db.Query("\n    DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

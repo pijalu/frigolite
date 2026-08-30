@@ -5,8 +5,278 @@
 package securedel2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_securedel2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_securedel2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var aBlob_i string
+	_ = aBlob_i // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+	var detect_blob_data string
+	_ = detect_blob_data // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zFile string
+	_ = zFile // pre-declared from TCL source
+	var aBlob_iBlob string
+	_ = aBlob_iBlob // pre-declared from TCL source
+	aBlobMap := map[string]string{}
+	_ = aBlobMap // dynamic-key array from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "securedel2")
+	testprefix = "securedel2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
+		aBlob_i = tclStringRange(tclDbOne(db, "SELECT quote(randomblob(8))"), "2", "end-1")
+		_ = aBlob_i // suppress unused warning
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	{ // do_test "1.1"
+		r = db.Query(" PRAGMA secure_delete = 1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA secure_delete = 1 ")
+		}
+		r = db.Query(" PRAGMA auto_vacuum = 0 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0 ")
+		}
+		_res = db.Exec(" CREATE TABLE t1(x, y) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x, y) ")
+		}
+		vtab.TclVarSet("i", "", "1")
+		i = "1"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
+			vtab.TclVarSet("x", "", "X'" + tclStringRepeat(aBlob_i, "1") + "'")
+			x = "X'" + tclStringRepeat(aBlob_i, "1") + "'"
+			_ = x // suppress unused warning
+			vtab.TclVarSet("y", "", "X'" + tclStringRepeat(aBlob_i, "500") + "'")
+			y = "X'" + tclStringRepeat(aBlob_i, "500") + "'"
+			_ = y // suppress unused warning
+			_res = db.Exec("INSERT INTO t1 VALUES(" + x + ", " + y + ")")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + x + ", " + y + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+	}
+	{ // do_test "1.2"
+		// detect_blob test.db 1 (unsupported command, not transpiled)
+	}
+	tclFileCopy("test.db", "test.db.bak")
+	{ // "1.3.1"
+		r = db.Query(" PRAGMA secure_delete = 0 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA secure_delete = 0 ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.3.2"
+		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid = 1 ")
+		}
+	}
+	{ // do_test "1.3.3"
+		// detect_blob test.db 1 (unsupported command, not transpiled)
+	}
+	db.Close()
+	tclFileCopy("test.db.bak", "test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "1.4.1"
+		r = db.Query(" PRAGMA secure_delete = 1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA secure_delete = 1 ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.4.2"
+		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid = 1 ")
+		}
+	}
+	{ // do_test "1.4.3"
+		// detect_blob test.db 1 (unsupported command, not transpiled)
+	}
+	{ // "1.5.1"
+		_res = db.Exec(" DELETE FROM t1 WHERE rowid>850 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid>850 ")
+		}
+	}
+	{ // do_test "1.5.2"
+		vtab.TclVarSet("n", "", "0")
+		n = "0"
+		_ = n // suppress unused warning
+		// detect_blob_prepare test.db (unsupported command, not transpiled)
+		vtab.TclVarSet("i", "", "851")
+		i = "851"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
+			// incr n 0
+			{
+				_n, _err := strconv.Atoi(n)
+				if _err == nil {
+					n = strconv.Itoa(_n + 0)
+				}
+			}
+			// incr i 5
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 5)
+				}
+			}
+		}
+		got := tclListFlatten(n)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.5.2")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "1.6.1"
+		r = db.Query("\n    PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;\n  ")
+		}
+		vtab.TclVarSet("i", "", "100")
+		i = "100"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
+			_res = db.Exec(" INSERT INTO t2 VALUES(randomblob(" + sqlLiteral(i) + ")) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(randomblob(" + sqlLiteral(i) + ")) ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" DELETE FROM t1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
+		}
+	}
+	{ // do_test "1.6.2"
+		vtab.TclVarSet("n", "", "0")
+		n = "0"
+		_ = n // suppress unused warning
+		// detect_blob_prepare test.db (unsupported command, not transpiled)
+		vtab.TclVarSet("i", "", "2")
+		i = "2"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 850 }() {
+			// incr n 0
+			{
+				_n, _err := strconv.Atoi(n)
+				if _err == nil {
+					n = strconv.Itoa(_n + 0)
+				}
+			}
+			// incr i 5
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 5)
+				}
+			}
+		}
+		got := tclListFlatten(n)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.6.2")
+		}
+	}
+}

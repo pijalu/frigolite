@@ -9,4 +9,4 @@ import (
 )
 
 func Test_enc3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+// skipped: UTF-16 storage not implemented N-A (evidence frigolite_enc3_test.go)

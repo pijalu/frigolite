@@ -226,29 +226,32 @@ type Engine struct {
 // engineSettings groups the PRAGMA/config flags and limits that previously
 // lived as individual fields on the Engine (SQLite groups these in db->flags).
 type engineSettings struct {
-	legacyAlterTable       bool // PRAGMA legacy_alter_table setting
-	recursiveTriggers      bool // PRAGMA recursive_triggers setting (allows trigger re-entry)
-	foreignKeys            bool // PRAGMA foreign_keys setting (enables FK constraint enforcement)
-	deferForeignKeys       bool // PRAGMA defer_foreign_keys: defer all FK checks to COMMIT (reset at COMMIT/ROLLBACK)
-	ignoreCheckConstraints bool // PRAGMA ignore_check_constraints: skip CHECK enforcement (integrity_check still reports)
-	writableSchema         bool // PRAGMA writable_schema setting (permits sqlite_schema edits)
-	queryOnly              bool // PRAGMA query_only: DML statements are rejected
-	dqsDDL                 bool // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
-	dqsDML                 bool // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
-	reverseUnordered       bool // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
-	caseSensitiveLike      bool // PRAGMA case_sensitive_like: LIKE comparisons are case-sensitive
-	trustedSchema          bool // PRAGMA trusted_schema: schema objects may reference user functions (default ON)
-	shortColumnNames       bool // PRAGMA short_column_names (default ON: unqualified result column names)
-	fullColumnNames        bool // PRAGMA full_column_names (default OFF: qualify result columns as TABLE.COL)
-	countChanges           bool // PRAGMA count_changes: DML statements return a row with the changed-row count
-	cacheSpillEnabled      bool // PRAGMA cache_spill on/off flag
-	defensive              bool // SQLITE_DBCONFIG_DEFENSIVE: ignore certain writes (e.g. schema_version)
-	recursiveCTELimit      int  // PRAGMA recursive_cte_limit setting (default 1000000)
-	cacheSpillSize         int  // PRAGMA cache_spill threshold in pages (negative = KiB until read)
-	exprDepthLimit         int  // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
-	columnLimit            int  // SQLITE_LIMIT_COLUMN: max columns per table/index/view (default 2000)
-	lengthLimit            int  // SQLITE_LIMIT_LENGTH: max length of a string/blob value (default 1000000000)
-	skipScanEnabled        bool // PRAGMA skip_scan: toggle skip-scan query optimization (default ON)
+	legacyAlterTable       bool             // PRAGMA legacy_alter_table setting
+	recursiveTriggers      bool             // PRAGMA recursive_triggers setting (allows trigger re-entry)
+	foreignKeys            bool             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
+	deferForeignKeys       bool             // PRAGMA defer_foreign_keys: defer all FK checks to COMMIT (reset at COMMIT/ROLLBACK)
+	ignoreCheckConstraints bool             // PRAGMA ignore_check_constraints: skip CHECK enforcement (integrity_check still reports)
+	writableSchema         bool             // PRAGMA writable_schema setting (permits sqlite_schema edits)
+	queryOnly              bool             // PRAGMA query_only: DML statements are rejected
+	dqsDDL                 bool             // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
+	dqsDML                 bool             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
+	reverseUnordered       bool             // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
+	caseSensitiveLike      bool             // PRAGMA case_sensitive_like: LIKE comparisons are case-sensitive
+	trustedSchema          bool             // PRAGMA trusted_schema: schema objects may reference user functions (default ON)
+	shortColumnNames       bool             // PRAGMA short_column_names (default ON: unqualified result column names)
+	fullColumnNames        bool             // PRAGMA full_column_names (default OFF: qualify result columns as TABLE.COL)
+	countChanges           bool             // PRAGMA count_changes: DML statements return a row with the changed-row count
+	cacheSpillEnabled      bool             // PRAGMA cache_spill on/off flag
+	defensive              bool             // SQLITE_DBCONFIG_DEFENSIVE: ignore certain writes (e.g. schema_version)
+	recursiveCTELimit      int              // PRAGMA recursive_cte_limit setting (default 1000000)
+	cacheSpillSize         int              // PRAGMA cache_spill threshold in pages (negative = KiB until read)
+	exprDepthLimit         int              // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
+	columnLimit            int              // SQLITE_LIMIT_COLUMN: max columns per table/index/view (default 2000)
+	lengthLimit            int              // SQLITE_LIMIT_LENGTH: max length of a string/blob value (default 1000000000)
+	skipScanEnabled        bool             // PRAGMA skip_scan: toggle skip-scan query optimization (default ON)
+	secureDeletes          map[string]int64 // per-schema PRAGMA secure_delete value (inherits MAIN's value on ATTACH)
+	mainSecureDelete       int64            // MAIN's per-schema PRAGMA secure_delete value (seeded from defaultSecureDelete on Open)
+	defaultSecureDelete    int64            // connection-wide default (the SQLITE_FAST_SECURE_DELETE build option equivalent)
 	cacheSizes             map[string]int64
 	autoVacuumModes        map[string]int64 // per-schema PRAGMA auto_vacuum mode
 	dataVersion            int64
@@ -866,18 +869,21 @@ func NewEngine(pg *pager.Pager) *Engine {
 // DQS on, short_column_names on, trusted_schema on, cache_spill on).
 func newEngineSettings() engineSettings {
 	return engineSettings{
-		recursiveCTELimit: 1000000,
-		exprDepthLimit:    1000,       // SQLite default SQLITE_LIMIT_EXPR_DEPTH
-		columnLimit:       2000,       // SQLite default SQLITE_MAX_COLUMN
-		lengthLimit:       1000000000, // SQLite default SQLITE_MAX_LENGTH
-		dqsDDL:            true,       // SQLite default: double-quoted strings allowed in DDL
-		dqsDML:            true,       // SQLite default: double-quoted strings allowed in DML
-		shortColumnNames:  true,       // SQLite default: short_column_names=ON
-		fullColumnNames:   false,      // SQLite default: full_column_names=OFF
-	trustedSchema:     true,       // SQLite default: trusted_schema=ON
-			cacheSpillEnabled: true,
-			skipScanEnabled:   true,       // SQLite default: skip-scan optimization ON
-		}
+		recursiveCTELimit:   1000000,
+		exprDepthLimit:      1000,       // SQLite default SQLITE_LIMIT_EXPR_DEPTH
+		columnLimit:         2000,       // SQLite default SQLITE_MAX_COLUMN
+		lengthLimit:         1000000000, // SQLite default SQLITE_MAX_LENGTH
+		dqsDDL:              true,       // SQLite default: double-quoted strings allowed in DDL
+		dqsDML:              true,       // SQLite default: double-quoted strings allowed in DML
+		shortColumnNames:    true,       // SQLite default: short_column_names=ON
+		fullColumnNames:     false,      // SQLite default: full_column_names=OFF
+		trustedSchema:       true,       // SQLite default: trusted_schema=ON
+		cacheSpillEnabled:   true,
+		skipScanEnabled:     true, // SQLite default: skip-scan optimization ON
+		secureDeletes:       make(map[string]int64),
+		mainSecureDelete:    2, // SQLITE_FAST_SECURE_DELETE equivalent (test/securedel.test DEFAULT_SECDEL=2)
+		defaultSecureDelete: 2, // Mirrors SQLite's SQLITE_FAST_SECURE_DELETE build option
+	}
 }
 
 // getDB returns the database context for a given schema name.

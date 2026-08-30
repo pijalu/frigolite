@@ -201,7 +201,6 @@ var skipTestFiles = map[string]string{
 	// illegal UTF-8 in generated code). N-A (CLI shell harness).
 	"shellA": "CLI shell subprocess harness N-A",
 
-
 	// tclsqlite: TCL binding tests (sqlite3 TCL command, $v_2_5 mangled
 	// variables). N-A (TCL binding).
 	"tclsqlite": "TCL binding tests N-A (TCL API)",
@@ -336,33 +335,32 @@ var skipTestFiles = map[string]string{
 	"btree01": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"btree02": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
+	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
+	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
+	// The TCL tests use a side-effecting `db func f` callback to observe
+	// which columns the engine decodes at the index seek. Frigolite's
+	// btree-based executor (a) has no CursorHint opcode (VDBE-only) and
+	// (b) does not implement MySQL-style index push-down (every WHERE
+	// term is evaluated against the full row payload). The transpiler
+	// emits the SQL behavior tests verbatim (pushdown 3.x / 4.x / 5.x /
+	// 7.x, cursorhint 1.0/5.x/6.x/7.x, cursorhint2 1.0/2.0/3.0 — all
+	// green via the existing harness path) but the 6 do_test blocks that
+	// drive `f()` UDF side effects to verify push-down ordering fail.
+	// Native oracle-verified contract coverage lives in
+	// frigolite_pushdown_test.go (TestNativePushdownIndexScanFilterOrdering
+	// / TestNativePushdownSubqueryFilterOrdering pin the current
+	// "all WHERE terms evaluated for every row" behavior; the SQL-level
+	// tests TestNativePushdownCompoundSubquery / CountOfView /
+	// RightJoinNullToken / RightJoinFiveTableMixed / NestedRightJoin /
+	// CastAffinity verify the engine-visible compound-query contract
+	// the transpiler covers). The push-down optimization is VDBE
+	// codeCursorHint() (src/where.c) territory and is N-A for the
+	// pure-Go btree-based executor (see portplan/NA_EVIDENCE.md §P7.PUSHDOWN).
+	"cursorhint":  "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
+	"cursorhint2": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
-		// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
-		// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
-		// The TCL tests use a side-effecting `db func f` callback to observe
-		// which columns the engine decodes at the index seek. Frigolite's
-		// btree-based executor (a) has no CursorHint opcode (VDBE-only) and
-		// (b) does not implement MySQL-style index push-down (every WHERE
-		// term is evaluated against the full row payload). The transpiler
-		// emits the SQL behavior tests verbatim (pushdown 3.x / 4.x / 5.x /
-		// 7.x, cursorhint 1.0/5.x/6.x/7.x, cursorhint2 1.0/2.0/3.0 — all
-		// green via the existing harness path) but the 6 do_test blocks that
-		// drive `f()` UDF side effects to verify push-down ordering fail.
-		// Native oracle-verified contract coverage lives in
-		// frigolite_pushdown_test.go (TestNativePushdownIndexScanFilterOrdering
-		// / TestNativePushdownSubqueryFilterOrdering pin the current
-		// "all WHERE terms evaluated for every row" behavior; the SQL-level
-		// tests TestNativePushdownCompoundSubquery / CountOfView /
-		// RightJoinNullToken / RightJoinFiveTableMixed / NestedRightJoin /
-		// CastAffinity verify the engine-visible compound-query contract
-		// the transpiler covers). The push-down optimization is VDBE
-		// codeCursorHint() (src/where.c) territory and is N-A for the
-		// pure-Go btree-based executor (see portplan/NA_EVIDENCE.md §P7.PUSHDOWN).
-		"cursorhint":  "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
-		"cursorhint2": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
-
-		"dbfuzz001":   "VFS/fault-injection harness N-A",
-	"e_expr":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"dbfuzz001": "VFS/fault-injection harness N-A",
+	"e_expr":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// P1 remaining — whole-file N-A for deep gaps (engine would need unbudgeted port phase; per-test evidence in skiptests2.go)
 	"e_select":      "DISTINCT collation ordering P1.E-SQL deep gap N-A (e_select-5.x)",
 	"e_delete":      "multi-db trigger cascade P1.E-SQL deep gap N-A (e_delete-2.x)",
@@ -382,13 +380,22 @@ var skipTestFiles = map[string]string{
 	"e_walauto":     "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"e_walckpt":     "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-B)",
 	"e_walhook":     "WAL/journal mode not implemented N-A",
-	"enc":           "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"enc2":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"enc3":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"enc4":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"eval":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"exclusive":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"exclusive2":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	// enc: passes natively (test/enc.test UTF-8 storage tests, no UTF-16 dependency).
+	// enc2: passes natively (test/enc2.test UTF-8 collations/storage).
+	// enc3: superseded via Pure-Go supersession — test/enc3.test requires UTF-16
+	// storage (test 1.1 sets PRAGMA encoding=utf16le behind `ifcapable utf16`
+	// which the transpiler drops because Frigolite has no UTF-16 capability).
+	// enc3-3.2's "attached databases must use the same text encoding as main
+	// database" expectation therefore cannot trigger against the testgen
+	// (test.db stays UTF-8). Native oracle-verified contract coverage:
+	// frigolite_enc3_test.go (TestNativeEncodingMismatchContract) writes the
+	// UTF-16le magic to the header directly and validates the engine's
+	// checkAttachEncoding returns the canonical error.
+	"enc3": "UTF-16 storage not implemented N-A (evidence frigolite_enc3_test.go)",
+	// enc4: passes natively.
+	"eval":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"exclusive":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"exclusive2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// (extension01 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 	"fallocate": "VFS/fault-injection harness N-A",
 	"filefmt":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -491,23 +498,23 @@ var skipTestFiles = map[string]string{
 	"pagerfault3": "VFS/fault-injection harness N-A",
 	"pagesize":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-	"pendingrace":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma2":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma3":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma4":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma5":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma6":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pendingrace": "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pragma":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pragma2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pragma3":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pragma4":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pragma5":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"pragma6":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-		// P7.PUSHDOWN: pushdown — see the cursorhint / cursorhint2 entries
-		// above for the VDBE codeCursorHint() / MySQL push-down N-A rationale
-		// and the native-test evidence pointer. The 6 do_test blocks (1.1,
-		// 1.2, 1.4, 1.5, 2.1, 2.2) that drive `db func f` UDF side effects
-		// to verify push-down ordering fail; the SQL behavior tests
-		// (3.x/4.x/5.x/7.x) the transpiler emits pass natively.
-		"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
+	// P7.PUSHDOWN: pushdown — see the cursorhint / cursorhint2 entries
+	// above for the VDBE codeCursorHint() / MySQL push-down N-A rationale
+	// and the native-test evidence pointer. The 6 do_test blocks (1.1,
+	// 1.2, 1.4, 1.5, 2.1, 2.2) that drive `db func f` UDF side effects
+	// to verify push-down ordering fail; the SQL behavior tests
+	// (3.x/4.x/5.x/7.x) the transpiler emits pass natively.
+	"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
-		"quickcheck":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"quickcheck":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"quota":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"quota2":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"readonly":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -523,8 +530,6 @@ var skipTestFiles = map[string]string{
 	// own" class). Evidence: frigolite_lockc_test.go (TestScanStatusContract).
 	"scanstatus":  "sqlite3_stmt_scanstatus/sqlite3_db_scanstatus C-API introspection not implemented N-A (evidence frigolite_lockc_test.go)",
 	"scanstatus2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"securedel":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"securedel2":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	// P7.LOCK-B re-skips (evidence-based, per plan/goals DoD #6 + 2026-05
 	// Pure-Go supersession policy). Shared-cache is a G7 milestone
@@ -549,22 +554,30 @@ var skipTestFiles = map[string]string{
 	"shared_err": "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
 	"sharedlock": "shared-cache (sqlite3_enable_shared_cache/table-level locking/shared pager cache) not implemented N-A G7 (evidence frigolite_shared_test.go)",
 
-	"snapshot":        "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
-	"snapshot2":       "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
-	"snapshot3":       "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
-	"snapshot4":       "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
-	"snapshot_fault":  "VFS fault-injection harness N-A (sqlite3_test_control FAULT_INSTALL not in public Go API; supersedes pre-existing skip — no fragment transpilable)",
-	"snapshot_up":     "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
-	"speed1":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"speed1p":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"speed2":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"speed3":          "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"sqldiff1":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"sqllimits1":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"starschema1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"stmtrand":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"symlink":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"symlink2":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"snapshot":       "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
+	"snapshot2":      "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
+	"snapshot3":      "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
+	"snapshot4":      "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
+	"snapshot_fault": "VFS fault-injection harness N-A (sqlite3_test_control FAULT_INSTALL not in public Go API; supersedes pre-existing skip — no fragment transpilable)",
+	"snapshot_up":    "N-A G7 (evidence frigolite_snapshot_test.go + portplan/NA_EVIDENCE.md §P7.SNAPSHOT)",
+	"speed1":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"speed1p":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"speed2":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"speed3":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"sqldiff1":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"sqllimits1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"starschema1":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"stmtrand":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	// symlink: superseded via Pure-Go supersession — test/symlink.test exercises
+	// unix-none VFS path truncation (1.4/1.5: PATH_MAX overflow), the
+	// sqlite3_open_v2 -nofollow flag (1.1.4 ATTACH of a symlink with no-follow),
+	// and filesystem-level symbolic-link resolution. Frigolite has no VFS
+	// layer (no sqlite3_io_methods + no xOpen flag), so the testgen transpilation
+	// loses the symlink + flag semantics and the test fails on a VFS-only
+	// contract. Native ATTACH-semantics coverage:
+	// frigolite_symlink_test.go (TestNativeSymlinkContract).
+	"symlink":         "VFS-layer symlink + -nofollow + PATH_MAX truncation N-A (evidence frigolite_symlink_test.go)",
+	"symlink2":        "VFS-layer symlink resolution N-A (evidence frigolite_symlink_test.go)",
 	"sysfault":        "VFS/fault-injection harness N-A",
 	"tkt-7a31705a7e6": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"tkt-7bbfb7d442":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
@@ -660,7 +673,7 @@ var skipTestFiles = map[string]string{
 	"malloc8":  "sqlite3_memdebug memory-accounting C API N-A",
 	"malloc9":  "sqlite3_memdebug memory-accounting C API N-A",
 
-	"quota-glob":    "quota VFS extension not implemented N-A",
+	"quota-glob": "quota VFS extension not implemented N-A",
 	// skipscan1: TCL test skipscan1-8.1 (and 8.1eqp) exercises the OR-with-
 	// skip-scan query planner strategy: SELECT * FROM t1 WHERE (y = 'AB' AND
 	// x <= 4) OR (y = 'EF' AND x = 5) on t1 PRIMARY KEY(x, y) WITH stat
@@ -670,7 +683,7 @@ var skipTestFiles = map[string]string{
 	// branches). The remaining ~28 sub-tests pass. The parent `skipscan` TCL
 	// harness (vocab associatve arrays) and the dedicated {2,3,5,6} packages
 	// (no OR context) are fully un-skipped and passing.
-	"skipscan1": "OR-with-skip-scan planner branch N-A (skipscan1-8.1eqp); 28/29 sub-tests pass",
+	"skipscan1":     "OR-with-skip-scan planner branch N-A (skipscan1-8.1eqp); 28/29 sub-tests pass",
 	"wal2":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal3":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal4":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",

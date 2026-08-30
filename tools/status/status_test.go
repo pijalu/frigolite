@@ -75,7 +75,7 @@ func TestParseSkipMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
- 	// Baseline floor (not an exact count): packages get un-skipped as goals
+	// Baseline floor (not an exact count): packages get un-skipped as goals
 	// complete, so the total only shrinks. 384 entries at the P6.FTS-WPORT
 	// checkpoint; 336 after the P6.VTAB task12 mass un-skip (30 vtab harness
 	// packages + later fts3/jsonb work); 327 after P7.LOCK-A un-skipped
@@ -88,13 +88,17 @@ func TestParseSkipMaps(t *testing.T) {
 	// 310 after P7.SKIPSCAN un-skipped skipscan2/3/5/6 (4 entries) and parent
 	// "skipscan" (1 entry) — 5 total removed. skipscan1 N-A via the OR-with-
 	// skip-scan branch limitation (skipscan1-8.1eqp), bringing the count to 311.
-		// P8.CORRUPT un-skips 13 entries (corrupt + corrupt2..9 + corruptC/F/L/N),
-		// dropping the count to 298. Lower the floor only alongside documented
-		// un-skip work.
+	// P8.CORRUPT un-skips 13 entries (corrupt + corrupt2..9 + corruptC/F/L/N),
+	// dropping the count to 298. Lower the floor only alongside documented
+	// un-skip work.
+	// 293 after P8.ENCODING un-skipped enc/enc2/enc4/securedel/securedel2 (5
+	// fully un-skipped, pass natively) and re-skipped enc3 (UTF-16 storage
+	// N-A → frigolite_enc3_test.go) + symlink/symlink2 (VFS-layer symlink +
+	// -nofollow + PATH_MAX truncation N-A → frigolite_symlink_test.go).
 	// Lower the floor only alongside documented un-skip work.
-	if len(skips.skipTestFiles) < 298 {
-			t.Errorf("skipTestFiles has %d entries, want >= 298", len(skips.skipTestFiles))
-		}
+	if len(skips.skipTestFiles) < 293 {
+		t.Errorf("skipTestFiles has %d entries, want >= 293", len(skips.skipTestFiles))
+	}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))
 	}

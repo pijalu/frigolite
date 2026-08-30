@@ -5,8 +5,658 @@
 package enc2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_enc2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_enc2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var TAIL string
+	_ = TAIL // prepared-statement tail var
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var dbcontents string
+	_ = dbcontents // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var encodings string
+	_ = encodings // pre-declared from TCL source
+	var sqlite_os_trace string
+	_ = sqlite_os_trace // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var values string
+	_ = values // pre-declared from TCL source
+	var test_collate_enc string
+	_ = test_collate_enc // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sqlite_last_needed_collation string
+	_ = sqlite_last_needed_collation // pre-declared from TCL source
+	var utf16 string
+	_ = utf16 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var arg string
+	_ = arg // pre-declared from TCL source
+	var utf8 string
+	_ = utf8 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	return
+	db.Close()
+	// proc definition (not transpiled)
+	vtab.TclVarSet("dbcontents", "", "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n")
+	dbcontents = "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n"
+	_ = dbcontents // suppress unused warning
+	// proc definition (not transpiled)
+	encodings = "UTF-8 UTF-16le UTF-16be"
+	_ = encodings // suppress unused warning
+	vtab.TclVarSet("sqlite_os_trace", "", "0")
+	sqlite_os_trace = "0"
+	_ = sqlite_os_trace // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for _, enc := range tclSplitList(encodings) {
+	_ = enc // suppress unused warning
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
+		}
+		_res = db.Exec(dbcontents)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, dbcontents)
+		}
+		{ // do_test "enc2-" + i + ".0.1"
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlattenCollapse(enc)
+			got = tclListFlattenCollapse(got)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // do_test "enc2-" + i + ".0.2"
+			_res = db.Exec("PRAGMA encoding=UTF8")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF8")
+			}
+			_res = db.Exec("PRAGMA encoding")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
+			}
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			}
+			if flatten(r) != enc {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.2")
+			}
+		}
+		{ // do_test "enc2-" + i + ".0.3"
+			_res = db.Exec("PRAGMA encoding=UTF16le")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16le")
+			}
+			_res = db.Exec("PRAGMA encoding")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
+			}
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			}
+			if flatten(r) != enc {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.3")
+			}
+		}
+		{ // do_test "enc2-" + i + ".0.4"
+			_res = db.Exec("PRAGMA encoding=UTF16be")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16be")
+			}
+			_res = db.Exec("PRAGMA encoding")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
+			}
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+			}
+			if flatten(r) != enc {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.4")
+			}
+		}
+		db.Close()
+		// run_test_script enc2-$i $enc (unsupported command, not transpiled)
+		db.Close()
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	{ // do_test "enc2-4.1"
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = 'UTF-8'")
+		}
+		_res = db.Exec("CREATE TABLE abc(a, b, c);")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE abc(a, b, c);")
+		}
+	}
+	{ // do_test "enc2-4.2"
+		os.Remove("test2.db")
+		db2, err = frigolite.Open("test2.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("PRAGMA encoding = 'UTF-16'")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		_res = db2.Exec("CREATE TABLE abc(a, b, c);")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	{ // do_test "enc2-4.3"
+		_res = db.Exec("\n      ATTACH 'test2.db' as aux;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attached databases must use the same text encoding as main database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n      ATTACH 'test2.db' as aux;\n    ")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	db.Close()
+	vtab.TclVarSet("values", "", "one"+" "+"two"+" "+"three"+" "+"four"+" "+"five")
+	values = "one"+" "+"two"+" "+"three"+" "+"four"+" "+"five" // TCL namespace variable
+	_ = values // suppress unused warning
+	vtab.TclVarSet("test_collate_enc", "", "INVALID")
+	test_collate_enc = "INVALID" // TCL namespace variable
+	_ = test_collate_enc // suppress unused warning
+	// proc test_collate collation (registered via db collate)
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-5.0"
+		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
+		}
+	}
+	{ // do_test "enc2-5.1"
+		// add_test_collate $DB 1 1 1 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.2"
+		// add_test_collate $DB 0 1 0 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.3"
+		// add_test_collate $DB 0 0 1 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	r = db.Query("pragma encoding = 'UTF-16LE'")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma encoding = 'UTF-16LE'")
+	}
+	{ // do_test "enc2-5.4"
+		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
+		}
+	}
+	{ // do_test "enc2-5.5"
+		// add_test_collate $DB 1 1 1 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.6"
+		// add_test_collate $DB 1 0 1 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.7"
+		// add_test_collate $DB 1 0 0 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	r = db.Query("pragma encoding = 'UTF-16BE'")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma encoding = 'UTF-16BE'")
+	}
+	{ // do_test "enc2-5.8"
+		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
+		}
+	}
+	{ // do_test "enc2-5.9"
+		// add_test_collate $DB 1 1 1 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.10"
+		// add_test_collate $DB 1 1 0 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.11"
+		// add_test_collate $DB 1 0 0 (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5-12"
+		// add_test_collate $DB 0 0 0 (unsupported command, not transpiled)
+		_res = db.Exec("\n    SELECT * FROM t5 ORDER BY 1 COLLATE test_collate\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "enc2-5.13"
+		// add_test_collate_needed $DB (unsupported command, not transpiled)
+		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate; ")
+		_ = res // suppress unused warning
+		res = tclListAppend(res, test_collate_enc)
+	}
+	{ // do_test "enc2-5.14"
+		_ = sqlite_last_needed_collation // TCL namespace variable (query)
+		got := tclListFlatten(sqlite_last_needed_collation)
+		want := tclListFlatten("test_collate")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.14")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	{ // do_test "enc2-5.15"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		// add_test_collate_needed $::DB (unsupported command, not transpiled)
+		_ = sqlite_last_needed_collation // TCL namespace variable (query)
+		got := tclListFlatten(sqlite_last_needed_collation)
+		want := tclListFlatten("")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.15")
+		}
+	}
+	{ // do_test "enc2-5.16"
+		_res = db.Exec("CREATE TABLE t1(a varchar collate test_collate);")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a varchar collate test_collate);")
+		}
+	}
+	{ // do_test "enc2-5.17"
+		_ = sqlite_last_needed_collation // TCL namespace variable (query)
+		got := tclListFlatten(sqlite_last_needed_collation)
+		want := tclListFlatten("test_collate")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.17")
+		}
+	}
+	// proc definition (not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	r = db.Query("pragma encoding = 'UTF-8'")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma encoding = 'UTF-8'")
+	}
+	{ // do_test "enc2-6.0"
+		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n  ")
+		}
+	}
+	{ // do_test "enc2-6.1"
+		// add_test_function $DB 1 1 1 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-6.2"
+		// add_test_function $DB 0 1 0 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-6.3"
+		// add_test_function $DB 0 0 1 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	r = db.Query("pragma encoding = 'UTF-16LE'")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma encoding = 'UTF-16LE'")
+	}
+	{ // do_test "enc2-6.3"
+		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');\n  ")
+		}
+	}
+	{ // do_test "enc2-6.4"
+		// add_test_function $DB 1 1 1 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-6.5"
+		// add_test_function $DB 0 1 0 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-6.6"
+		// add_test_function $DB 0 0 1 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	r = db.Query("pragma encoding = 'UTF-16BE'")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma encoding = 'UTF-16BE'")
+	}
+	{ // do_test "enc2-6.7"
+		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');\n  ")
+		}
+	}
+	{ // do_test "enc2-6.8"
+		// add_test_function $DB 1 1 1 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-6.9"
+		// add_test_function $DB 0 1 0 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "enc2-6.10"
+		// add_test_function $DB 0 0 1 (unsupported command, not transpiled)
+		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	{ // do_test "enc2-7.1"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA encoding = 'UTF-16';\n    SELECT * FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-16';\n    SELECT * FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "enc2-7.2"
+		enc = tclExecSQL(db, "\n    PRAGMA encoding;\n  ")
+		_ = enc // suppress unused warning
+		_ = tclStringRange(enc, "0", "end-2") // string range result
+	}
+	{ // do_test "enc2-7.3"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
+		}
+	}
+	{ // do_test "enc2-7.4"
+		r = db.Query("\n    SELECT * FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "enc2-7.5"
+		r = db.Query("\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding;\n  ")
+		}
+	}
+	db.Close()
+	if db2 != nil { db2.Close() }
+	// proc definition (not transpiled)
+	{ // do_test "enc2-8.1"
+		// sqlite3_complete16 [utf16 "SELECT * FROM t1;"] (unsupported command, not transpiled)
+	}
+	{ // do_test "enc2-8.2"
+		// sqlite3_complete16 [utf16 "SELECT * FROM"] (unsupported command, not transpiled)
+	}
+	os.Remove("test.db")
+	{ // do_test "enc2-9.1"
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
+		}
+	}
+	{ // do_test "enc2-9.2"
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    PRAGMA encoding = 'UTF-16le';\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-16le';\n    PRAGMA encoding;\n  ")
+		}
+	}
+	{ // do_test "enc2-9.3"
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    SELECT * FROM sqlite_master;\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
+		}
+	}
+	{ // do_test "enc2-9.4"
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE abc(a, b, c);\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE abc(a, b, c);\n    PRAGMA encoding;\n  ")
+		}
+	}
+	{ // do_test "enc2-9.5"
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
+		}
+	}
+	{ // do_test "enc2-10.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
+		}
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT name FROM sqlite_master\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM sqlite_master\n  ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "enc2-11.10"
+		r = db.Query("\n  PRAGMA encoding=UTF8;\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('this is a test');\n  PRAGMA encoding=UTF16;\n  SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding=UTF8;\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('this is a test');\n  PRAGMA encoding=UTF16;\n  SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "this is a test"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

@@ -558,6 +558,96 @@ func (e *Engine) SkipScanEnabled() bool { return e.settings.skipScanEnabled }
 // SetSkipScanEnabled enables or disables the skip-scan query optimization.
 func (e *Engine) SetSkipScanEnabled(b bool) { e.settings.skipScanEnabled = b }
 
+// DefaultSecureDelete reports the connection-wide PRAGMA secure_delete
+// default. New attached DBs inherit MAIN's current value at ATTACH time
+// (execddl.execAttach) — this is the build-option equivalent of
+// SQLITE_FAST_SECURE_DELETE (test/securedel.test DEFAULT_SECDEL=2).
+func (e *Engine) DefaultSecureDelete() int64 { return e.settings.defaultSecureDelete }
+
+// MainSecureDelete returns MAIN's current per-schema secure_delete value.
+// Used by ATTACH to seed the new DB's value from MAIN's current state
+// (mirrors src/attach.c:207-208 sqlite3BtreeSecureDelete inheritance from
+// db->aDb[0].pBt).
+func (e *Engine) MainSecureDelete() int64 {
+	return e.settings.mainSecureDelete
+}
+
+// SetPerSchemaSecureDelete sets the per-schema secure_delete value used by
+// PRAGMA [schema].secure_delete. execddl.execAttach calls this to record
+// the inherited value for a newly attached DB.
+func (e *Engine) SetPerSchemaSecureDelete(schemaUpper string, v int64) {
+	e.settings.secureDeletes[strings.ToUpper(schemaUpper)] = v
+}
+
+// SecureDelete implements PRAGMA secure_delete (getter and setter). Mirrors
+// src/pragma.c PragTyp_SECURE_DELETE and src/attach.c sqlite3BtreeSecureDelete
+// inheritance from main (Btree-level tracking, per-DB).
+//
+// - Setter with no schema: sets every attached DB to the value (pragma.c
+//   pId2->n==0 && b>=0 branch), including MAIN.
+// - Setter with a schema: updates only that schema.
+// - Getter with no schema: returns MAIN's value (pragma.c returnSingleInt
+//   reads pDb->pBt where pDb defaults to main when pId2 is empty).
+// - Getter with a schema: returns that schema's value, or MAIN's value when
+//   the schema has no explicit entry (mirrors the Btree's per-DB tracking —
+//   the new Btree inherits MAIN's value at attach time, so newly attached DBs
+//   always have a value).
+func (e *Engine) SecureDelete(schema, value string) *execpragma.Result {
+	if value != "" {
+		v, err := parseSecureDeleteValue(value)
+		if err != nil {
+			return &execpragma.Result{Error: err}
+		}
+		upper := strings.ToUpper(schema)
+		if schema == "" {
+			// No schema → set MAIN and every attached DB (pragma.c
+			// pId2->n==0 branch).
+			e.settings.mainSecureDelete = v
+			for k := range e.settings.secureDeletes {
+				e.settings.secureDeletes[k] = v
+			}
+		} else if upper == "MAIN" {
+			e.settings.mainSecureDelete = v
+		} else {
+			e.settings.secureDeletes[upper] = v
+		}
+	}
+	if schema == "" {
+		// Getter with no schema: return MAIN's value (pragma.c returns the
+		// pDb->pBt result; pDb is main when pId2 is empty).
+		return &execpragma.Result{Rows: [][]interface{}{{e.settings.mainSecureDelete}}}
+	}
+	upper := strings.ToUpper(schema)
+	if upper == "MAIN" {
+		return &execpragma.Result{Rows: [][]interface{}{{e.settings.mainSecureDelete}}}
+	}
+	v, ok := e.settings.secureDeletes[upper]
+	if !ok {
+		// Schema was never explicitly set: inherit MAIN's value (mirrors the
+		// Btree's per-DB tracking — the Btree was seeded with MAIN's setting
+		// at attach time).
+		v = e.settings.mainSecureDelete
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{v}}}
+}
+
+// parseSecureDeleteValue converts a PRAGMA value string to the secure_delete
+// int encoding: 0=OFF, 1=ON, 2=FAST. SQLite's "DEFAULT" maps to the current
+// connection default; we collapse it to 0 (OFF).
+func parseSecureDeleteValue(value string) (int64, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "off", "no", "false", "0":
+		return 0, nil
+	case "on", "yes", "true", "1":
+		return 1, nil
+	case "fast", "2":
+		return 2, nil
+	case "default":
+		return 0, nil
+	}
+	return 0, fmt.Errorf("unsupported secure_delete value: %q", value)
+}
+
 // --- Scalar settings ---
 
 // RecursiveCTELimit reports the recursive CTE iteration limit.

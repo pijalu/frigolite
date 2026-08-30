@@ -98,7 +98,20 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 
 	e.ctx.Databases()[schemaUpper] = ctx
 	e.ctx.AppendDBList(ctx)
+	// Inherit MAIN's current secure_delete value for the new Btree
+	// (mirrors src/attach.c:207-208 sqlite3BtreeSecureDelete inheritance
+	// from db->aDb[0].pBt).
+	e.inheritSecureDeleteOnAttach(schemaUpper)
 	return &Result{}
+}
+
+// inheritSecureDeleteOnAttach records the secure_delete value inherited from
+// MAIN for a newly attached DB. Mirrors src/attach.c:207-208 where the new
+// Btree inherits the secure_delete setting of db->aDb[0].pBt. Called from
+// execAttach after the DBContext is registered.
+func (e *DDLExecutor) inheritSecureDeleteOnAttach(schemaUpper string) {
+	v := e.ctx.MainSecureDelete()
+	e.ctx.SetPerSchemaSecureDelete(schemaUpper, v)
 }
 
 // attachedDBCount counts attached databases (excluding main/temp/temporary).
