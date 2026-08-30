@@ -297,3 +297,33 @@ learned, compare against the C implementation's algorithm and data
 structures (`/Users/muaddib/dev/sqlite/src`), and fix the root cause
 (allocation churn, unbounded caches, O(n²) scans) rather than raising
 limits or tolerating the regression.
+
+## 1i. Add / port when missing (mandatory for engine gaps)
+
+When a test (oracle-driven, native Go, or testgen) reveals an engine
+behaviour that frigolite lacks, the correct response is to **port the
+missing piece from SQLite's source** — not to mark the test N-A, supersede
+it with a thinner native test, or park it in a backlog. The full
+discriminator is:
+
+- A pure-Go repro (drives `frigolite.Open` / `Exec` / `Query` directly) is
+  the baseline; it must exist before any fix attempt (§1a).
+- If the repro fails: the engine is wrong. Implement the missing behaviour
+  in `internal/`, mirroring SQLite's approach faithfully (no simplification,
+  no N-A shortcut, no transpiler-only workaround that hides the gap).
+- Reference points for the port: `ori/sqlite/src/btree.c`
+  (`incrVacuumStep`, `relocatePage`, `autoVacuumCommit`, `setChildPtrmaps`),
+  `pager.c` (`sqlite3PagerDontWrite`, `sqlite3PagerMovepage`,
+  `sqlite3FreePage`).
+- Each ported piece must ship with a focused unit test that exercises the
+  new path in isolation (table-level autovacuum commit, ptrmap read/write,
+  page-swap step, etc.) plus a regression test that exercises the original
+  failing scenario end-to-end.
+- A failing testgen test is a valid gap-discovery surface; treat it as
+  such. "N-A G7" / supersede-with-native are only acceptable when the gap
+  is genuinely outside this project's scope (e.g. G7 WAL shared-memory
+  protocol) — never as a way to avoid an implementable engine port.
+- When the port spans multiple goals, decompose into ordered sub-goals
+  (FreePage-on-emptied-leaves → ptrmap R/W → incrVacuumStep →
+  autoVacuumCommit → callback) and track each as its own goal with its
+  own pre-goal + todo + UT coverage.
