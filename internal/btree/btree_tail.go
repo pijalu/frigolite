@@ -80,13 +80,47 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	if err != nil {
 		return err
 	}
+	// Determine iParentIdx: the index of the leaf in the parent's
+	// cell pointer array, or -1 if it's the rightmost-child.
+	iParentIdx, err := t.findLeafIndexInParent(parentPg, leafNum)
+	if err != nil {
+		return err
+	}
 	ctx := &balanceNonrootContext{
 		parent:     parentPg,
-		iParentIdx: -1, // rightmost-child
+		iParentIdx: iParentIdx,
 		page:       leafPg,
 	}
 	_, err = t.balanceNonroot(ctx)
 	return err
+}
+
+// findLeafIndexInParent returns the cell-pointer index of leaf in
+// parentPg's cell array, or -1 if leaf is the rightmost-child.
+// Returns 0 for the leftmost cell-child.
+func (t *BTree) findLeafIndexInParent(parentPg *pager.Page, leafNum uint32) (int, error) {
+	coff := contentOffset(parentPg.PageNum)
+	page, err := storage.ParsePage(parentPg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return 0, err
+	}
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		cp := storage.CellPointer(parentPg.Data, ptrBase, i, int(t.pageSize))
+		if int(cp)+4 > len(parentPg.Data) {
+			continue
+		}
+		child := binary.BigEndian.Uint32(parentPg.Data[cp : cp+4])
+		if child == leafNum {
+			return i, nil
+		}
+	}
+	// Not a cell-child; check the rightmost-child.
+	rmp := binary.BigEndian.Uint32(parentPg.Data[coff+8 : coff+12])
+	if rmp == leafNum {
+		return -1, nil
+	}
+	return 0, fmt.Errorf("leaf %d not found in parent %d", leafNum, parentPg.PageNum)
 }
 
 // deleteAllMatchingFromLeaf removes every matching cell on the leaf page at
