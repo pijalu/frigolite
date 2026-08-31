@@ -63,36 +63,62 @@ func (t *BTree) copyNodeContent(pFrom, pTo *pager.Page) error {
 	}
 
 	// Cell content area: copy the bytes from cell-content pointer to
-	// the end of usable size. The cell-content pointer stored in the
-	// btree header is a direct offset into the page buffer (relative
-	// to aData[0], not aData[hdrOffset]); this matches btree.c which
-	// reads it via `get2byte(&aFrom[iFromHdr+5])` and uses it
-	// directly as `&aTo[iData]`.
+	// the end of usable size. SQLite reads the cell-content pointer
+	// as a 2-byte big-endian value at fromHdr+5; that value is a
+	// PAGE-BUFFER absolute offset (NOT a btree-content-relative
+	// offset). The cell content area extends from iData to
+	// usableSize (which is `pageSize - reserved` and is a page-buffer
+	// offset too).
+	//
+	// For page 1, the btree content lives in [fromHdr..pageSize]; the
+	// cell-content pointer is some iData >= fromHdr, and the cell
+	// content area is [iData..usableSize]. For non-page-1, the btree
+	// content lives in [0..usableSize].
+	usableSize := int(t.usableSize)
 	iData := int(fromPage.CellContent)
-	usableEnd := int(t.usableSize)
-	if iData > usableEnd {
+	if iData < 0 {
+		return errBtreeCorrupt("copyNodeContent: cell-content %d < 0", iData)
+	}
+	if iData > usableSize {
 		// A cell-content pointer past the usable end is corrupt;
 		// bail rather than scribble.
-		return errBtreeCorrupt("copyNodeContent: cell-content %d > usable %d", iData, usableEnd)
+		return errBtreeCorrupt("copyNodeContent: cell-content %d > usable %d", iData, usableSize)
 	}
-	copy(pTo.Data[iData:], pFrom.Data[iData:usableEnd])
+	length := usableSize - iData
+	if length < 0 {
+		length = 0
+	}
+	// iData is page-buffer absolute; no fromHdr/toHdr offset.
+	if iData+length > len(pFrom.Data) {
+		length = len(pFrom.Data) - iData
+		if length < 0 {
+			length = 0
+		}
+	}
+	if iData+length > len(pTo.Data) {
+		length = len(pTo.Data) - iData
+		if length < 0 {
+			length = 0
+		}
+	}
+	copy(pTo.Data[iData:iData+length], pFrom.Data[iData:iData+length])
 
-	// Cell pointer array + header: copy the btree header + the
-	// cell-pointer array from pFrom to pTo. btree.c uses
-	// `memcpy(&aTo[iToHdr], &aFrom[iFromHdr], pFrom->cellOffset + 2*pFrom->nCell)`
-	// where iToHdr is 100 for page 1 and 0 otherwise (the btree
-	// content starts there), iFromHdr is the source's btree content
-	// offset (same convention), and the length is the btree-header
-	// + cell-pointer-array bytes.
+	// Cell pointer array + header: copy from pFrom's hdrOffset to
+	// cellOffset + 2*nCell. SQLite's "cellOffset" is the byte offset
+	// of the first cell pointer; for interior pages this is
+	// hdrOffset+12 (after page-type, first-free, cell-count,
+	// cell-content, frag-free, right-child). We compute it as
+	// fromHdr + cellPtrOffset(pFrom->aData[0]) (CellPointer in our
+	// Go storage package adds 8 to its offset argument, so the raw
+	// array starts at fromHdr + 12 for interior pages).
 	//
-	// In our Go package, cellPtrOffset(pageType) returns 12 for
-	// interior pages, 8 for leaf pages. The cell-pointer array
-	// starts at hdrOffset + cellPtrOffset. The length of the
-	// header-to-end-of-cell-pointer-array region is
-	// cellPtrOffset + 2*nCell.
+	// In btree.c the memcpy length is `pFrom->cellOffset + 2*pFrom->nCell`.
+	// For interior pages, cellOffset = hdrOffset + 12 (rightmost-child is
+	// at hdrOffset+8, then the cell-pointer array starts at hdrOffset+12).
+	// For leaf pages, cellOffset = hdrOffset + 8.
 	cellPtrArrayStart := fromHdr + cellPtrOffset(fromPage.PageType)
 	arrayLen := int(fromPage.CellCount) * 2
-	headerCopyLen := cellPtrArrayStart - fromHdr // 12 for interior, 8 for leaf
+	headerCopyLen := cellPtrArrayStart - fromHdr
 	totalCopyLen := headerCopyLen + arrayLen
 	if totalCopyLen <= 0 || fromHdr+totalCopyLen > len(pFrom.Data) {
 		return errBtreeCorrupt("copyNodeContent: header+cellArray length %d out of bounds", totalCopyLen)
