@@ -192,3 +192,151 @@ func decodeVarint(data []byte) (uint64, int) {
 	}
 	return v, n
 }
+
+// TestBalanceQuick_AllocateSibling: build a leaf page with 1 in-page
+// cell and 1 overflow cell (the rightmost, simulating the
+// post-split state from balance_quick's caller). Call balanceQuick
+// and verify:
+//  1. A new sibling page exists with the overflow cell.
+//  2. The parent has a new divider cell pointing to the new sibling
+//     as its rightmost-child.
+//  3. The original leaf's rightmost-child pointer in the parent is
+//     still the original leaf (not changed).
+func TestBalanceQuick_AllocateSibling(t *testing.T) {
+	pg := pager.OpenInMemory(1024)
+	// Page 1: parent (interior table).
+	pg.AllocatePage()
+	// Page 2: the leaf that needs balance.
+	pg.AllocatePage()
+	// We will need page 3 too — the new sibling. But balanceQuick
+	// allocates it itself, so we just set up pages 1 and 2.
+	bt := NewBTree(pg, 1, true)
+
+	// Build parent: page 1 with one cell pointing to page 2, then
+	// page 2 as the rightmost-child.
+	parentPg, _ := pg.ReadPage(1)
+	coff := contentOffset(1)
+	parentPg.Data[coff+0] = storage.PageTypeInteriorTable
+	binary.BigEndian.PutUint16(parentPg.Data[coff+3:coff+5], 1) // 1 cell
+	binary.BigEndian.PutUint32(parentPg.Data[coff+8:coff+12], 2) // rightmost = page 2
+	// Place a divider cell: 4-byte child=2 + varint rowid=100.
+	// Cell goes at end of usable area.
+	dividerStart := 1024 - 5 // 4 (child) + 1 (varint 100)
+	binary.BigEndian.PutUint32(parentPg.Data[dividerStart:dividerStart+4], 2)
+	parentPg.Data[dividerStart+4] = 100 // varint 100
+	binary.BigEndian.PutUint16(parentPg.Data[coff+12:coff+14], uint16(dividerStart))
+	binary.BigEndian.PutUint16(parentPg.Data[coff+5:coff+7], uint16(dividerStart))
+	pg.WritePage(parentPg)
+
+	// Build leaf: page 2 with 1 in-page cell (rowid=99) and 1
+	// overflow cell (rowid=100, payload=4000 bytes so it overflows).
+	leafPg, _ := pg.ReadPage(2)
+	lcoff := contentOffset(2)
+	leafPg.Data[lcoff+0] = storage.PageTypeLeafTable
+	// Allocate an overflow page (page 3) and write the first 4KB
+	// of payload there.
+	pg.AllocatePage()
+	ovflPg, _ := pg.ReadPage(3)
+	for i := 0; i < 1024; i++ {
+		ovflPg.Data[i] = byte(i & 0xff)
+	}
+	ovflPg.Data[0] = 0 // next = 0 (only 1 overflow page)
+	ovflPg.Data[1] = 0
+	ovflPg.Data[2] = 0
+	ovflPg.Data[3] = 0
+	pg.WritePage(ovflPg)
+
+	// Build the in-page cell: rowid=99, payload=10 bytes.
+	inPageCell := buildTableLeafCell(t, 99, make([]byte, 10), 0)
+	pos := 1024 - 4 - len(inPageCell)
+	copy(leafPg.Data[pos:pos+len(inPageCell)], inPageCell)
+	binary.BigEndian.PutUint16(leafPg.Data[lcoff+8:lcoff+10], uint16(pos))
+
+	// Build the overflow cell: rowid=100, payload=4000 bytes (local
+	// portion + 4-byte overflow pointer). LocalPayloadSize for
+	// payload 4000, page 1024: maxLocal = 1024-35 = 989, so 4000
+	// spills, local = minLocal + (4000-minLocal) % 1020 =
+	// ((1024-12)*32/255) - 23 + (4000 - that) % 1020. Use a simple
+	// approach: just put a 1-byte varint local payload, then the
+	// overflow pointer.
+	overflowCell := buildTableLeafCell(t, 100, []byte{0xff}, 3) // overflow → page 3
+	pos2 := pos - len(overflowCell)
+	copy(leafPg.Data[pos2:pos2+len(overflowCell)], overflowCell)
+	binary.BigEndian.PutUint16(leafPg.Data[lcoff+10:lcoff+12], uint16(pos2))
+	// Header: 2 cells, cell content = pos2, frag=0.
+	binary.BigEndian.PutUint16(leafPg.Data[lcoff+3:lcoff+5], 2)
+	binary.BigEndian.PutUint16(leafPg.Data[lcoff+5:lcoff+7], uint16(pos2))
+	leafPg.Data[lcoff+7] = 0
+	pg.WritePage(leafPg)
+
+	// Re-read parent (since WritePage may invalidate).
+	parentPg2, _ := pg.ReadPage(1)
+	leafPg2, _ := pg.ReadPage(2)
+	pSpace := make([]byte, 32)
+	res, err := bt.balanceQuick(leafPg2, parentPg2, pSpace)
+	if err != nil {
+		t.Fatalf("balanceQuick: %v", err)
+	}
+	if res.newPgno == 0 {
+		t.Fatalf("balanceQuick: newPgno is 0")
+	}
+	// The new sibling should have one cell.
+	sibPg, _ := pg.ReadPage(res.newPgno)
+	scoff := contentOffset(res.newPgno)
+	sibPage, err := storage.ParsePage(sibPg.Data, 1024, scoff)
+	if err != nil {
+		t.Fatalf("ParsePage(sibling): %v", err)
+	}
+	if sibPage.CellCount != 1 {
+		t.Errorf("sibling cell count: got %d, want 1", sibPage.CellCount)
+	}
+	// The parent should now have 2 cells and rightmost = the new sibling.
+	parentAfter, _ := pg.ReadPage(1)
+	pcoff := contentOffset(1)
+	pp, _ := storage.ParsePage(parentAfter.Data, 1024, pcoff)
+	if pp.CellCount != 2 {
+		t.Errorf("parent cell count: got %d, want 2", pp.CellCount)
+	}
+	if pp.RightmostPtr != res.newPgno {
+		t.Errorf("parent rightmost: got %d, want %d", pp.RightmostPtr, res.newPgno)
+	}
+}
+
+// buildTableLeafCell constructs a table-leaf cell's encoded bytes:
+// varint(plen) + varint(rowid) + localPayload + 4-byte overflowPtr.
+// The overflowPtr is 0 if the cell fits in the page; the caller
+// supplies the actual page number when spilling.
+func buildTableLeafCell(t *testing.T, rowid int64, localPayload []byte, overflow uint32) []byte {
+	t.Helper()
+	plen := len(localPayload)
+	if overflow != 0 {
+		plen = 4000 // simulate a payload that needs overflow
+	}
+	out := make([]byte, 0, 32)
+	// varint(plen) — for 4000 this is 2 bytes (0xfa 0x28).
+	if plen < 128 {
+		out = append(out, byte(plen))
+	} else {
+		out = append(out, byte((plen&0x7f)|0x80))
+		out = append(out, byte(plen>>7))
+	}
+	// varint(rowid).
+	if rowid < 0 {
+		t.Fatalf("rowid out of range: %d", rowid)
+	}
+	if rowid < 128 {
+		out = append(out, byte(rowid))
+	} else {
+		out = append(out, byte((rowid&0x7f)|0x80))
+		out = append(out, byte(rowid>>7))
+	}
+	// local payload.
+	out = append(out, localPayload...)
+	// overflow pointer (4 bytes, big-endian).
+	if overflow != 0 {
+		out = append(out, byte(overflow>>24), byte(overflow>>16), byte(overflow>>8), byte(overflow))
+	} else {
+		out = append(out, 0, 0, 0, 0)
+	}
+	return out
+}
