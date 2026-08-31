@@ -287,6 +287,7 @@ func (e *Engine) execRollback() *Result {
 	for name, ctx := range e.databases {
 		if snap, ok := e.tx.txSnapshots[name]; ok {
 			ctx.Pager.Restore(snap)
+		} else {
 		}
 	}
 	e.tx.txSnapshots = nil

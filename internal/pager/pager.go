@@ -150,17 +150,37 @@ type Page struct {
 // PagerState is a deep snapshot of a pager's in-memory state, used for
 // statement-level rollback (e.g. a failed REPLACE that fired triggers).
 type PagerState struct {
-	pages    map[uint32]*Page
-	dirty    map[uint32]bool
-	numPages uint32
-	header   []byte
+	pages     map[uint32]*Page
+	dirty     map[uint32]bool
+	numPages  uint32
+	header    []byte
+	freePages map[uint32]bool
+	fileSize  int64
 }
 
 // Snapshot captures the pager's current in-memory pages and header so they
 // can be restored later with Restore.
 func (p *Pager) Snapshot() *PagerState {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	// Load every on-disk page into the cache before snapshotting. Without
+	// this, pages that are not in the cache at BEGIN are missing from the
+	// snapshot. After Restore, those pages are still missing from p.pages,
+	// so the next read fetches them from disk — which holds the
+	// transaction's modified state (rebalance, vacuum, etc.), not the
+	// BEGIN state. PRAGMA integrity_check after ROLLBACK then walks a
+	// half-restored btree and reports "database disk image is malformed".
+	// The cost is O(numPages) per BEGIN, which is acceptable for the
+	// small databases used in the testgen suites and matches SQLite's
+	// pager semantics where the cache is warmed by the first read of
+	// every page during the transaction.
+	if p.file != nil {
+		for n := uint32(2); n <= p.numPages; n++ {
+			if _, ok := p.pages[n]; !ok {
+				_, _ = p.readPageLocked(n)
+			}
+		}
+	}
 	s := &PagerState{
 		pages:    make(map[uint32]*Page, len(p.pages)),
 		dirty:    make(map[uint32]bool, len(p.dirty)),
@@ -176,6 +196,13 @@ func (p *Pager) Snapshot() *PagerState {
 			s.dirty[n] = true
 		}
 	}
+	if len(p.freePages) > 0 {
+		s.freePages = make(map[uint32]bool, len(p.freePages))
+		for n := range p.freePages {
+			s.freePages[n] = true
+		}
+	}
+	s.fileSize = p.fileSize
 	return s
 }
 
@@ -198,6 +225,39 @@ func (p *Pager) Restore(s *PagerState) {
 	p.numPages = s.numPages
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
+	}
+	// Restore the freelist so pages freed during the transaction are
+	// re-marked as free, and pages allocated from the freelist during the
+	// transaction are removed from the free set. Without this, a ROLLBACK
+	// after a DELETE+rebalance (which calls pager.FreePage) leaves the
+	// freed pages on the in-memory freelist while the btree still
+	// references them via the parent cell, and PRAGMA integrity_check
+	// reports "database disk image is malformed".
+	if s.freePages != nil {
+		p.freePages = make(map[uint32]bool, len(s.freePages))
+		for n := range s.freePages {
+			p.freePages[n] = true
+		}
+	} else {
+		p.freePages = nil
+	}
+	// Restore the file size so pages that were appended during the
+	// transaction (AllocatePage grew the file) are removed from the
+	// integrity-check scan. Without this, the file still has the
+	// post-transaction size while the in-memory pages map holds the
+	// BEGIN state, and PRAGMA integrity_check sees the appended pages
+	// as "never used" (neither on the freelist nor referenced by the
+	// btree). Truncate the file to the BEGIN size to match.
+	if s.fileSize > 0 && p.file != nil && p.fileSize > s.fileSize {
+		if err := p.file.Truncate(s.fileSize); err != nil {
+			// Best-effort: if truncate fails, continue and let the
+			// integrity check report the mismatch.
+			_ = err
+		} else {
+			p.fileSize = s.fileSize
+		}
+	} else {
+		_ = s.fileSize
 	}
 }
 
@@ -767,6 +827,8 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		if err != nil {
 			return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
 		}
+		if pg.Data[0] == 0 && pg.Data[1] == 0 && pg.Data[2] == 0 && pg.Data[3] == 0 {
+		}
 		// For page 1, extract the header from the full page data
 		if pageNum == 1 && p.header == nil {
 			p.header = make([]byte, HeaderSize)
@@ -1010,6 +1072,29 @@ func (p *Pager) FreePage(pageNum uint32) error {
 		p.header = make([]byte, HeaderSize)
 		copy(p.header, storage.DefaultHeader(p.pageSize).Encode())
 	}
+	// SQLite's btree.c::freePage calls sqlite3PagerWrite on page 1 and on
+	// the freed page BEFORE modifying them, so the rollback journal
+	// captures the BEFORE images. ROLLBACK then restores both the header
+	// (freelist trunk/count) and the freed page's bytes. Without this,
+	// ROLLBACK leaves the freed page on the freelist while the btree still
+	// references it, and PRAGMA integrity_check fails. Mirror that
+	// behavior here.
+	if err := p.openRollbackJournalLocked(); err != nil {
+		return err
+	}
+	// Journal the freed page's BEFORE image (its current first 4 bytes
+	// may be the previous chain pointer; restore them on rollback).
+	if pg, ok := p.pages[pageNum]; ok && pg != nil {
+		if p.journalFile != nil {
+			off := int64(pageNum-1) * int64(p.pageSize)
+			before := make([]byte, p.pageSize)
+			if _, err := p.file.ReadAt(before, off); err == nil {
+				if err := p.appendRollbackRecordLocked(pageNum, before); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	// Track the freed page in p.freePages (O(1) pop in AllocatePage).
 	if p.freePages == nil {
 		p.freePages = make(map[uint32]bool)
@@ -1042,6 +1127,23 @@ func (p *Pager) FreePage(pageNum uint32) error {
 		if pg, ok := p.pages[pageNum]; ok && pg != nil {
 			binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk)
 			p.dirty[pageNum] = true
+		}
+	}
+	// Journal page 1's BEFORE image so ROLLBACK restores the header's
+	// freelist trunk/count. The freed-page BEFORE image was already
+	// journaled above. Without this, ROLLBACK leaves the header with
+	// the new trunk/count but the freed page is still on the freelist
+	// in the file — actually no, the freed page's BEFORE image restore
+	// already handles that. The header restore is the missing piece:
+	// ROLLBACK must also clear the freelist header fields, otherwise
+	// the freelist count is inflated.
+	if p.journalFile != nil {
+		off := int64(0)
+		before := make([]byte, p.pageSize)
+		if _, err := p.file.ReadAt(before, off); err == nil {
+			if err := p.appendRollbackRecordLocked(1, before); err != nil {
+				return err
+			}
 		}
 	}
 	p.dirty[1] = true

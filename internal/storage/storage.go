@@ -194,6 +194,8 @@ func ParsePage(pageData []byte, pageSize int, contentOffset int) (*BTreePage, er
 	default:
 		// Leaf pages don't have rightmost pointer
 	}
+	if p.PageType == 0 {
+	}
 	if err := validatePageHeader(p, pageData, pageSize, contentOffset); err != nil {
 		return nil, err
 	}

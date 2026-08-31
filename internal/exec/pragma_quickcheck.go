@@ -115,10 +115,11 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 		}
 	}
 	// Structural pass first: SQLite aborts the integrity check with
-		// SQLITE_CORRUPT when any reachable b-tree page is malformed.
-		if !e.btreeStructureOK() {
-			return &Result{Error: fmt.Errorf("database disk image is malformed")}
-		}
+	// SQLITE_CORRUPT when any reachable b-tree page is malformed.
+	ok := e.btreeStructureOK()
+	if !ok {
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
 		// Multi-line per-page diagnostics (Tree N page M cell K: 2nd reference
 		// to page X / Page Y: never used). Mirrors btree.c::checkTree /
 		// checkTreePage. corrupt2-5.1 asserts the "Tree 2 page 2 cell 0:
@@ -181,6 +182,9 @@ func walkBTreePages(pg *pager.Pager, root uint32, seen map[uint32]bool) bool {
 	coff := 0
 	if root == 1 {
 		coff = 100 // database file header occupies the first 100 bytes
+	}
+	if p.Data[coff] == 0 {
+		return false
 	}
 	switch p.Data[coff] {
 	case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
