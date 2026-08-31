@@ -130,7 +130,7 @@ func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, pare
 	// adds 8 internally).
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(binary.BigEndian.Uint16(parentPg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+		cellOff := int(storage.CellPointer(parentPg.Data, ptrBase, i, int(t.pageSize)))
 		if cellOff+4 > len(parentPg.Data) {
 			continue
 		}
@@ -294,7 +294,7 @@ func (t *BTree) walkChildren(parentPgno uint32, out *[]struct {
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	numPages := t.pager.NumPages()
 	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
 		if cellOff+4 > len(pg.Data) {
 			continue
 		}
@@ -339,7 +339,7 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
 		ptrBase := coff + cellPtrOffset(page.PageType) - 8
 		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+			cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
 			if cellOff+4 > len(pg.Data) {
 				continue
 			}
@@ -368,7 +368,8 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 		return nil
 	}
 	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(binary.BigEndian.Uint16(pg.Data[coff+i*2 : coff+i*2+2]))
+		ptrBase := coff + cellPtrOffset(page.PageType) - 8
+		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.usableSize)))
 		if cellOff+4 > len(pg.Data) {
 			continue
 		}
