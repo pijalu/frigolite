@@ -3008,3 +3008,45 @@ treat as 2-arg).
   This is the same convention used elsewhere (btrees' "interior
   has 12-byte header, CellPointer adds 8 internally" trick).
 
+
+## btree.c::balance_quick: last in-page cell is page.CellCount - 1 - nOverflow, not page.CellCount - 1
+
+- SQLite's apOvfl[] is a separate array of overflow cells; pPage->nCell
+  is the count of IN-PAGE cells. `findCell(pPage, pPage->nCell-1)` is
+  therefore the last in-page cell.
+- In our simplified model, overflow cells still appear in the cell
+  pointer array (we don't track them separately). The "last in-page
+  cell" is therefore at index `page.CellCount - 1 - nOverflow` where
+  nOverflow is the number of cells whose `Overflow` field is non-zero.
+- For balance_quick, the divider-cell's key is the rowid of the last
+  in-page cell. Walk backwards from `page.CellCount-1` until you find
+  a cell with `c.Overflow == 0`; that's the last in-page cell.
+
+## btree.c::rebuildPage: cell pointers + cell data share the cell pointer array's "ptrBase" as their base
+
+- The cell pointer array starts at `coff + cellPtrOffset(pageType)` —
+  12 for interior, 8 for leaf. The header bytes (page-type through
+  frag-free) are at [coff, coff+12); the rightmost-child pointer is
+  at [coff+8, coff+12) for interior pages.
+- `storage.CellPointer(data, ptrBase, i, pageSize)` reads the 2-byte
+  pointer at offset `ptrBase + 8 + i*2`. The "+8" is internal to
+  CellPointer (mirrors SQLite's `&aData[cellOffset + 2*i]` where
+  cellOffset = hdrOffset + 12 for interior pages — but the storage
+  helper treats its `offset` parameter as the cellOffset).
+- rebuildPage: the cell pointer array occupies ptrBase+8 .. ptrBase+8+2*nCell.
+  The cell content area (where cells grow downward) is below that.
+  Ensure ptrBase+8+2*nCell < usableStart before writing.
+
+## btree.c cell collection for rebalance: the last cell's end is usableSize, not cellContent
+
+- A leaf page's cell content area is `[cellContent..usableSize)`.
+  Cells grow downward from usableSize, so cell 0 starts at the
+  highest address and each subsequent cell starts at a lower address.
+  The last cell (cell nCell-1) ends at usableSize.
+- For the cell-collection loop, cell[i] is `[cellPtr[i]..cellPtr[i+1])`
+  for i < nCell-1, and `[cellPtr[nCell-1]..usableSize)` for the last
+  cell. Using `spPage.CellContent` for the last cell's end gives the
+  WRONG result (a value below the last cell's start).
+- BUG: `if i+1 < nCell { cellEnd = next cell pointer } else { cellEnd = page.CellContent }`
+  is wrong; the last cell's end is `usableSize`, not `page.CellContent`.
+
