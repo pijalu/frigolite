@@ -259,6 +259,17 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	if err := ctx.Schema.RemoveEntryOfType(s.Name, schema.TypeTable); err != nil {
 		return &Result{Error: err}
 	}
+	// P8.INCRVACUUM: free the table's btree pages so the next
+	// AutoVacuumCommit (FULL mode) or PRAGMA incremental_vacuum
+	// can truncate the file. Without this, DROP TABLE leaks all
+	// the table's pages — autovacuum-9.2 (file size after
+	// DROP TABLE x5) needs this to shrink to 1024.
+	if entry.RootPage != 0 && ctx.Pager != nil {
+		bt := e.ctx.TableBTreePg(ctx.Pager, entry.Name, entry.RootPage, true)
+		if err := bt.FreeTable(entry.RootPage); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	if res := e.dropTableCleanup(entry, ctx); res != nil {
 		return res
 	}
