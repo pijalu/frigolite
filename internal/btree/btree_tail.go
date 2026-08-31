@@ -43,6 +43,11 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 		// "database disk image is malformed"). Proper integration
 		// requires btree rebalance (phase 3+) so freed leaves are
 		// removed from the parent's cell array entirely.
+		//
+		// (Phase 3 rebalance is WIP in btree_rebalance.go; the divider-
+		// key update needed to make parent references correct is the
+		// blocker, not the page-freeing itself. Without correct
+		// divider keys, range queries return wrong results.)
 	}
 	return deleted, nil
 }
