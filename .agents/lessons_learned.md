@@ -2972,3 +2972,39 @@ treat as 2-arg).
   for LeftPtr and `util.GetVarint(data[off+4:])` for the rowid. So
   `data[off]` is the first byte of the left-child field, not the rowid.
 
+
+## btree.c::balance_quick port: overflow cell still in cell pointer array
+
+- In SQLite, overflow cells are kept in `pPage->apOvfl[]` (indexed
+  by `pPage->aiOvfl[]`) — separate from the in-page cell pointer
+  array. `pPage->nCell` is the count of in-page cells, so
+  `findCell(pPage, pPage->nCell-1)` returns the last in-page cell.
+- In our simplified model, overflow cells are kept in the cell
+  pointer array (no separate apOvfl). To find the last in-page
+  cell, walk backwards from `page.CellCount - 1` and check whether
+  the cell has a non-zero overflow pointer.
+- A cell with `cell.Overflow != 0` is an overflow cell; without
+  re-parsing to check, we'd accidentally use the overflow cell's
+  rowid as the divider's "largest key", which is wrong (the
+  overflow cell's rowid IS the largest, but the C code uses the
+  largest in-page cell's rowid for the divider — because the
+  divider separates this leaf from the new sibling, and the new
+  sibling contains the overflow cell which has the largest rowid).
+
+## balance_quick: pSpace is a 13-byte scratch from the caller
+
+- btree.c::balance expects `aBalanceQuickSpace[13]` to be a
+  caller-allocated buffer (it's a stack array in balance()).
+  balance_quick writes the divider cell into this scratch and
+  passes it to insertCell as the "pTemp" argument. Our port takes
+  a `[]byte` of at least 13 bytes and writes the divider there.
+
+## balance_quick: parent cell pointer array re-uses cellPtrOffset formula
+
+- For an interior-table parent, the cell pointer array starts at
+  `coff + cellPtrOffset(PageTypeInteriorTable) - 8 = coff + 4`.
+  CellPointer(pageData, coff+4, i, pageSize) reads uint16 at
+  `coff+4+8+i*2 = coff+12+i*2`, which is the i-th cell pointer.
+  This is the same convention used elsewhere (btrees' "interior
+  has 12-byte header, CellPointer adds 8 internally" trick).
+
