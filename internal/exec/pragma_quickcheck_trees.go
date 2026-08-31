@@ -390,8 +390,14 @@ func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
 			return false
 		}
 		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
-		pageSize := int(pg.PageSize())
-		for off := coff + 4; off+4 <= len(data) && off+4 <= pageSize; off += 4 {
+		// SQLite freelist trunk format: offset 4-7 = leaf count (4 bytes),
+		// offset 8+ = leaf page numbers (4 bytes each)
+		leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
+		for i := uint32(0); i < leafCount; i++ {
+			off := coff + 8 + int(i)*4
+			if off+4 > len(data) {
+				break
+			}
 			leaf := binary.BigEndian.Uint32(data[off : off+4])
 			if leaf == 0 {
 				break

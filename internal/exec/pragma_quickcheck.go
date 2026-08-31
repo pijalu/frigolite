@@ -653,14 +653,19 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 			return "database disk image is malformed"
 		}
 		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
-		pageSize := ctx.Pager.PageSize()
-		for off := coff + 4; off+4 <= int(pageSize); off += 4 {
+		// SQLite freelist trunk format (btree.c:10701):
+		//   offset 0-3: next trunk page number
+		//   offset 4-7: leaf count (4 bytes, not 2!)
+		//   offset 8+: leaf page numbers (4 bytes each)
+		leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
+		for i := uint32(0); i < leafCount; i++ {
+			off := coff + 8 + int(i)*4
 			leaf := binary.BigEndian.Uint32(data[off : off+4])
 			if leaf == 0 {
 				break
 			}
 			if seen[leaf] {
-				return "database disk image is malformed"
+				return fmt.Sprintf("database disk image is malformed (cycle at leaf=%d trunk=%d)", leaf, trunk)
 			}
 			seen[leaf] = true
 			actual++
