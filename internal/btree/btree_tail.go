@@ -34,22 +34,59 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 				break
 			}
 		}
-		// P8.INCRVACUUM phase 1: the leaf is left in the btree as an empty
-		// leaf (cell count 0, content pointer at pageSize). We do NOT
-		// call FreePage here because nulling the parent's leftChild
-		// reference leaves the btree in a state that subsequent inserts
-		// and unique-constraint scans can't navigate (they'd see
-		// leftChild=0 and try to descend into page 0, which errors with
-		// "database disk image is malformed"). Proper integration
-		// requires btree rebalance (phase 3+) so freed leaves are
-		// removed from the parent's cell array entirely.
-		//
-		// (Phase 3 rebalance is WIP in btree_rebalance.go; the divider-
-		// key update needed to make parent references correct is the
-		// blocker, not the page-freeing itself. Without correct
-		// divider keys, range queries return wrong results.)
+		// P8.INCRVACUUM phase 5.5: after a leaf becomes empty,
+		// rebalance it. The leaf is the rightmost child of its
+		// parent (typical case for DELETE which leaves the
+		// rightmost leaf empty). We invoke balanceNonroot with
+		// iParentIdx = -1 (rightmost-child) and the empty leaf as
+		// the "page being balanced". balanceNonroot's Phase 3
+		// filter drops the empty leaf, Phase 5 frees it, and the
+		// parent is rewritten to point to the next non-empty
+		// sibling.
+		if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
+			return deleted, err
+		}
 	}
 	return deleted, nil
+}
+
+// maybeRebalanceAfterDelete runs balanceNonroot on a leaf that may
+// have become empty after a delete. The leaf must be a child of
+// an interior page (i.e. not the root of the btree); the root
+// being a leaf is handled by the caller (Clear/Clear-like paths).
+func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
+	// Only rebalance if the leaf became empty.
+	leafPg, err := t.pager.ReadPage(leafNum)
+	if err != nil {
+		return err
+	}
+	leafCo := contentOffset(leafNum)
+	leafPage, err := storage.ParsePage(leafPg.Data, int(t.pageSize), leafCo)
+	if err != nil {
+		return err
+	}
+	if leafPage.CellCount != 0 {
+		return nil
+	}
+	// The leaf is a child of some parent. We need to find it.
+	// The btree.c approach uses the pointer map; we use the
+	// tree walk (findParentByWalk) for now.
+	parentPgno, _, err := t.findParentByWalk(leafNum)
+	if err != nil {
+		// No parent (this leaf is the root) or already free.
+		return nil
+	}
+	parentPg, err := t.pager.ReadPage(parentPgno)
+	if err != nil {
+		return err
+	}
+	ctx := &balanceNonrootContext{
+		parent:     parentPg,
+		iParentIdx: -1, // rightmost-child
+		page:       leafPg,
+	}
+	_, err = t.balanceNonroot(ctx)
+	return err
 }
 
 // deleteAllMatchingFromLeaf removes every matching cell on the leaf page at

@@ -156,9 +156,12 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 		}
 		for i := 0; i < int(spPage.CellCount); i++ {
 			cp := storage.CellPointer(sp.Data, spCo, i, int(t.usableSize))
-			// Cell bytes: from cp to the next cell pointer or the
-			// end of the cell content area.
-			cellEnd := int(spPage.CellContent)
+			// Cell bytes: from cp to the next cell pointer or
+			// the end of the cell content area. For the last
+			// cell in a leaf, the cell content area extends
+			// from cellContent to usableSize; the last cell
+			// ends at the highest address in that region.
+			cellEnd := int(t.usableSize)
 			if i+1 < int(spPage.CellCount) {
 				cellEnd = int(storage.CellPointer(sp.Data, spCo, i+1, int(t.usableSize)))
 			}
@@ -179,14 +182,57 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 	// simple "first cell goes to page 0, then keep adding while
 	// the running total is < average" — not as good as the C
 	// algorithm but sufficient to coalesce empty leaves.
+	//
+	// First, filter out empty siblings — they have nothing to
+	// distribute and will be freed by Phase 5. This is the
+	// common case after a delete leaves an empty leaf: the
+	// empty sibling is dropped, the remaining pages keep their
+	// cells.
+	nonEmpty := make([]*pager.Page, 0, len(siblings))
+	for _, sp := range siblings {
+		spCo := contentOffset(sp.PageNum)
+		spPage, err := storage.ParsePage(sp.Data, int(t.pageSize), spCo)
+		if err != nil {
+			return nil, fmt.Errorf("balanceNonroot: parse sibling %d: %w", sp.PageNum, err)
+		}
+		if spPage.CellCount == 0 {
+			continue
+		}
+		nonEmpty = append(nonEmpty, sp)
+	}
+	// Free the empty siblings. They were the in-memory buffers
+	// from Phase 1; we drop them by not including them in
+	// nonEmpty. Phase 5 will free their page numbers via
+	// pager.FreePage.
+	emptyPages := make([]uint32, 0, len(siblings)-len(nonEmpty))
+	for _, sp := range siblings {
+		found := false
+		for _, ne := range nonEmpty {
+			if ne.PageNum == sp.PageNum {
+				found = true
+				break
+			}
+		}
+		if !found {
+			emptyPages = append(emptyPages, sp.PageNum)
+		}
+	}
+	siblings = nonEmpty
 	nOld := len(siblings)
 	nNew := nOld
 	if bca.nCell() == 0 {
-		// All cells vanished (e.g. all siblings were empty). The
-		// simplest correct action: free all but one page and let
-		// the parent deal with the empty child.
-		// For now, bail with a clear error.
+		// All cells vanished (e.g. all siblings were empty).
 		return nil, fmt.Errorf("balanceNonroot: no cells across %d siblings", nOld)
+	}
+	if nNew == 0 {
+		// All siblings were empty. Free them and let the caller
+		// deal with an empty subtree.
+		for _, p := range emptyPages {
+			if err := t.pager.FreePage(p); err != nil {
+				return nil, err
+			}
+		}
+		return ctx.parent, nil
 	}
 	cntNew := make([]int, nNew+1)
 	szNew := make([]int, nNew+1)
