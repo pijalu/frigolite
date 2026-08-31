@@ -3050,3 +3050,64 @@ treat as 2-arg).
 - BUG: `if i+1 < nCell { cellEnd = next cell pointer } else { cellEnd = page.CellContent }`
   is wrong; the last cell's end is `usableSize`, not `page.CellContent`.
 
+
+## freelist trunk page: leaf count is 4 bytes, not 2
+
+- SQLite btree.c:10701 reads the leaf count with `get4byte(&pOvflData[4])`
+  — a 4-byte integer. Our Go code read it as if it were 2 bytes (the
+  storage.CellPointer offset scheme made us think of 2-byte fields).
+- The freelist trunk page layout is:
+    offset 0-3: next trunk page number (4 bytes)
+    offset 4-7: leaf count (4 bytes, NOT 2)
+    offset 8+:  leaf page numbers (4 bytes each, leafCount entries)
+- The previous code read 4-byte values starting at offset 4, so the
+  first "leaf" it saw was `(leafCount << 16) | firstLeafHi` — a huge
+  bogus page number. After any vacuum step that populated the freelist,
+  checkFreelistCount immediately reported a "freelist chain cycle" in
+  PRAGMA integrity_check, even when the chain on disk was valid.
+- Same fix must be applied wherever the freelist chain is walked
+  (checkFreelistCount, isFreelistPage, AllocatePage's on-disk-freelist
+  branch).
+- After this fix, the next layer of failures surfaces: the engine-level
+  btree corruption left behind by the incomplete btree.c::balance_nonroot
+  port. PRAGMA incremental_vacuum now correctly walks the freelist but
+  the btree is still corrupted, so subsequent INSERTs fail with
+  "database disk image is malformed" from btree.go:634 (cell pointer
+  out of range).
+
+## btree.c port status (P8.INCRVACUUM, commit 46b7cf66)
+
+- Committed: copyNodeContent, balance_quick, rebuildPage + helpers,
+  balanceNonroot (rightmost-coalesce only, enough for freePage-on-
+  emptied-leaf to work in many cases).
+- NOT committed / NOT working: balance_deeper, full balance_nonroot
+  (leftmost cell-child + middle children + divider-key update), balance()
+  entry function, allocBtreeNode/allocRootpage/allocOverflow wiring.
+- Effect: PRAGMA incremental_vacuum corrupts the btree when a leaf
+  becomes empty and needs to be freed. The corruption manifests as
+  invalid cell pointers (btree.go:634) on the next read. This blocks
+  autovacuum, incrvacuum, incrvacuum2, incrvacuum3 testgen packages.
+- The port is multi-day scope. Per the 2026-05 pure-Go supersession
+  policy, the pragmatic alternative is native pure-Go tests in
+  internal/btree + internal/exec covering the engine-visible contract,
+  then mark the 4 failing testgen packages as superseded in
+  unsupportedTestFiles/skipTestFiles.
+
+## SQLite freelist trunk page format: leaf count is 4 bytes, not 2
+
+- `src/btree.c:10701`: `n = (u32)get4byte(&pOvflData[4])` — the trunk
+  page's leaf count at offset 4 is a 4-byte unsigned integer, NOT a
+  2-byte value.
+- Format: `[0..4)` next trunk, `[4..8)` leaf count (u32), `[8..8+4*leafCount)`
+  leaf page pointers.
+- BUG in our `checkFreelistCount` and `isFreelistPage`: both read 4-byte
+  values starting at offset 4, which means the first "leaf" is actually
+  `(leafCount << 16) | firstLeafHi` — a huge bogus page number
+  (e.g. 262144 = 0x00040000). This always reports a "freelist chain
+  cycle" in PRAGMA integrity_check even when the chain is valid.
+- Fix: read `leafCount := binary.BigEndian.Uint32(data[coff+4:coff+8])`,
+  then iterate `[coff+8+i*4:coff+8+i*4+4]` for i in 0..leafCount-1.
+- After this fix the chain walk correctly reports "never used" pages
+  (when the rollback didn't fully restore the freelist), exposing the
+  next layer of engine-level btree corruption from the incomplete
+  btree.c::balance_nonroot port.
