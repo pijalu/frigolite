@@ -197,8 +197,6 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			}
 			steps++
 			continue
-			steps++
-			continue
 		}
 		// The last page is in use. Try to allocate a free page.
 		freePg, err := t.pager.AllocatePageLE()
