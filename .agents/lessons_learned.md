@@ -2933,3 +2933,42 @@ treat as 2-arg).
   transpiler, the cleanest port is to strip the `eval` prefix and
   re-run cmdExpr on the remaining script. The variable/command
   resolution of buildStringExpr then handles `$list` correctly.
+
+## btree.c::copyNodeContent port: cell-content offset is page-buffer absolute, not btree-content relative
+
+- The 2-byte value at `aData[hdrOffset+5..hdrOffset+7]` is a **page-buffer
+  offset**, not a btree-content offset. For page 1, the btree content
+  starts at byte 100; a cell-content pointer of 800 means "byte 800 from
+  start of page buffer" = "byte 700 from start of btree content". The
+  cell content area extends from this absolute offset to `usableSize`
+  (which is `pageSize - reserved`).
+- The C `memcpy(&aTo[iData], &aFrom[iData], pBt->usableSize-iData)` uses
+  the same value as both source offset and destination offset, with
+  length `pBt->usableSize - iData`. The Go equivalent is
+  `copy(pTo.Data[iData:iData+length], pFrom.Data[iData:iData+length])`
+  with `length = usableSize - iData`. The hdrOffset does NOT factor in
+  here because `iData` already accounts for the offset from page start.
+- For test fixtures that build an interior page by hand, the cell
+  POINTERS are at btree-content offsets (relative to hdrOffset+12) but
+  the cell CONTENT bytes (the actual cell data) live in
+  `[cellContentStart..usableSize]` (a page-buffer range). Putting the
+  cells at btree-content offsets like 785..900 while the cell-content
+  pointer says 900 places the cells OUTSIDE the cell content area and
+  the page is "valid" but empty.
+
+## copyNodeContent: caller writes pTo, not the function
+
+- btree.c's `copyNodeContent` does NOT call `sqlite3PagerWrite` on
+  pTo — the caller (balance_shallower / balance_deeper) is responsible
+  for persisting the new content. The Go port mirrors that: the
+  function mutates pTo.Data in-place; the caller calls WritePage.
+
+## Test fixture trap: cell layout in interior-table cells
+
+- An interior-table cell is `4-byte left child FIRST, then varint rowid`.
+- The cell pointer at `coff+12+2*i` points at the start of the cell,
+  i.e. at the start of the 4-byte left-child field.
+- `DecodeCell` (CellTableInterior) reads `binary.BigEndian.Uint32(data[off:off+4])`
+  for LeftPtr and `util.GetVarint(data[off+4:])` for the rowid. So
+  `data[off]` is the first byte of the left-child field, not the rowid.
+
