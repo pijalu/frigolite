@@ -82,6 +82,17 @@ func (t *BTree) RelocatePage(to, from uint32) error {
 	if err := t.pager.WritePtrmap(to, parentType, parentPgno); err != nil {
 		return fmt.Errorf("btree: RelocatePage: write ptrmap for %d: %w", to, err)
 	}
+	// P8.INCRVACUUM phase 5: update the ptrmap entries for every
+	// child of the moved page. The children's "parent" is now `to`,
+	// not `from`. Without this, the next vacuum step that tries to
+	// move a child of `to` will look up `to` in the ptrmap, fail
+	// (entry says parent=from), and the engine falls back to a
+	// tree-walk that may pick the wrong ancestor if the parent's
+	// own child pointer was already updated. (Port of
+	// btree.c::setChildPtrmaps, ~line 6490.)
+	if err := t.setChildPtrmaps(toPg, to); err != nil {
+		return fmt.Errorf("btree: RelocatePage: setChildPtrmaps for %d: %w", to, err)
+	}
 	// Free `from`. The freed page is now the trunk of the freelist
 	// (or one of the leaves; SQLite's btree.c freePage2 handles the
 	// chain details). For phase 3 we just FreePage.
@@ -114,7 +125,10 @@ func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, pare
 	}
 	// Walk the cell-pointer array; for each cell, check if its
 	// left-child (first 4 bytes of the cell data) matches `oldChild`.
-	ptrBase := coff + storage.CellPointerOffset
+	// Interior pages have the cell pointer array at coff+12, which
+	// translates to a CellPointer offset of coff+4 (CellPointer
+	// adds 8 internally).
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	for i := 0; i < int(page.CellCount); i++ {
 		cellOff := int(binary.BigEndian.Uint16(parentPg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
 		if cellOff+4 > len(parentPg.Data) {
@@ -296,6 +310,72 @@ func (t *BTree) walkChildren(parentPgno uint32, out *[]struct {
 			parent uint32
 			child  uint32
 		}{parent: parentPgno, child: rmp})
+	}
+	return nil
+}
+
+// setChildPtrmaps rewrites the pointer-map entries for every child
+// and every overflow page of `pgNo`, setting parent=pgNo. Called by
+// RelocatePage after a page has been moved to a new slot so that
+// future vacuum steps can find the moved page as their parent.
+//
+// For interior pages: the first 4 bytes of each cell is the
+// left-child page number; the rightmost-child is the 4-byte value
+// at pc+8. For leaf pages: each cell's overflow page (if any) is a
+// chain — write ptrmap for the first overflow page in the chain.
+// Interior pages don't have overflow chains (the divider key is
+// inlined).
+//
+// Reference: src/btree.c::setChildPtrmaps (~line 6490).
+func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return err
+	}
+	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
+		ptrBase := coff + cellPtrOffset(page.PageType) - 8
+		for i := 0; i < int(page.CellCount); i++ {
+			cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+			if cellOff+4 > len(pg.Data) {
+				continue
+			}
+			child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+			if child != 0 {
+				if err := t.pager.WritePtrmap(child, storage.PtrmapBtreeNode, pgNo); err != nil {
+					return err
+				}
+			}
+		}
+		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
+		if rmp != 0 {
+			if err := t.pager.WritePtrmap(rmp, storage.PtrmapBtreeNode, pgNo); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	// Leaf page: walk each cell's overflow chain.
+	var cellType storage.CellType
+	if page.PageType == storage.PageTypeLeafTable {
+		cellType = storage.CellTableLeaf
+	} else if page.PageType == storage.PageTypeLeafIndex {
+		cellType = storage.CellIndexLeaf
+	} else {
+		return nil
+	}
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(binary.BigEndian.Uint16(pg.Data[coff+i*2 : coff+i*2+2]))
+		if cellOff+4 > len(pg.Data) {
+			continue
+		}
+		c, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
+		if err != nil || c.Overflow == 0 {
+			continue
+		}
+		if err := t.pager.WritePtrmap(c.Overflow, storage.PtrmapOverflow, pgNo); err != nil {
+			return err
+		}
 	}
 	return nil
 }
