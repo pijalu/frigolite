@@ -2899,3 +2899,37 @@ needs new placeholders ($a, $b) and a wrapper that converts
 string args to int where the runtime helper expects one. The
 template string itself signals the arity (contains $a and $b?
 treat as 2-arg).
+
+## TCL helper helpers must preserve list semantics, not brace-wrap
+
+- tclConcat: TCL's `concat` returns a flat list of elements, not a
+  single braced element. Returning `tclList(out)` from a concat helper
+  is a category error: tclSplitList on a braced string returns one
+  element (the whole thing), so downstream lsort / foreach see one
+  token. Use `strings.Join(out, " ")` for flat list helpers; reserve
+  tclList() for the few cases where TCL actually requires braces
+  (e.g. preserving embedded whitespace in a single element).
+- tclLReplace: negative first means "from end" (-1 == last), negative
+  count means "all remaining". A naive "clamp to >=0" port panics on
+  `items[-1:]` when lsearch returns -1. Use TCL semantics: `f = n+f`
+  when f<0, `c = n-f` when c<0, then clamp. Also defend `end < f`.
+
+## processforeach must not brace-wrap list-producing commands
+
+- renderListStringPart wraps `[cmd ...]` results in tclListElem, which
+  is correct for commands that return a single string scalar. But
+  list-producing commands (lsort, list, concat, eval) must not be
+  wrapped — the foreach body expects one iteration per element.
+  resolveForeachListExpr detects the leading command name and bypasses
+  tclListElem for that set.
+- The rule: if the command's documented contract is "returns a list",
+  treat the result as a list. Brace-wrapping it makes the list a
+  single element of itself.
+
+## tcl2go: eval splices into cmdExpr
+
+- TCL's `eval` is a list-splice: `[eval concat $list]` is sugar for
+  `concat $list` with one level of evaluation already done. In the
+  transpiler, the cleanest port is to strip the `eval` prefix and
+  re-run cmdExpr on the remaining script. The variable/command
+  resolution of buildStringExpr then handles `$list` correctly.
