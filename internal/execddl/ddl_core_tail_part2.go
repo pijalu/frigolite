@@ -294,6 +294,15 @@ func (e *DDLExecutor) dropTableCascade(ctx *DatabaseContext, entry *schema.Entry
 	}
 	indexes, _ := ctx.Schema.FindIndexesForTable(entry.Name)
 	for _, idx := range indexes {
+		// Free the index's btree pages so AutoVacuumCommit (FULL
+		// mode) can truncate them. Without this, autovacuum-9.2
+		// (file size after DROP TABLE x5) leaves the file at
+		// hundreds of pages because the indexes' pages are still
+		// "live" even though their schema entries are gone.
+		if idx.RootPage != 0 && ctx.Pager != nil {
+			ibt := e.ctx.TableBTreePg(ctx.Pager, idx.Name, idx.RootPage, false)
+			_ = ibt.FreeTable(idx.RootPage)
+		}
 		_ = ctx.Schema.RemoveEntry(idx.Name)
 	}
 	// Remove sqlite_stat1 entries for the dropped table and any of its

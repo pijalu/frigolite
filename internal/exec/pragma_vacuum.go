@@ -10,6 +10,7 @@ package exec
 import (
 	"fmt"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execpragma"
 	"github.com/pijalu/frigolite/internal/pager"
 )
@@ -59,35 +60,9 @@ func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 // Reference: btree.c sqlite3BtreeIncrVacuum / incrVacuumStep
 // (~line 6780 / 6700).
 func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext) error {
-	// Acquire the schema's root-page btree (if any) so we can run the
-	// step. btree.c opens the schema's main btree; the testgen
-	// tests for incremental_vacuum target the schema's btree (the
-	// user-created tables). For a freshly-opened database, the only
-	// btree is the schema btree (root=page 1).
-	rootPg, err := ctx.Pager.ReadPage(1)
-	if err != nil {
-		return err
-	}
-	// The pager.Truncate path: take the last page; if it's on the
-	// freelist (pager.IsPageOnFreelist), just decrement numPages.
-	lastPg := ctx.Pager.NumPages()
-	if lastPg <= 1 {
-		return nil
-	}
-	if pager.IsPageOnFreelist(ctx.Pager, lastPg) {
-		return ctx.Pager.Truncate(lastPg - 1)
-	}
-	// Otherwise, try to allocate a free page and relocate the last
-	// page to it. This is the page-swap path. For the schema btree
-	// the relocation would update the cell pointers in rootPg
-	// (page 1) — but we don't have a full btree.c RelocatePage here.
-	// Return an error so the caller (IncrementalVacuum) can fall back
-	// to the count-decrement path.
-	if _, err := ctx.Pager.AllocatePageLE(); err != nil {
-		return err
-	}
-	_ = rootPg
-	return fmt.Errorf("btree: schema-btree relocate not yet implemented (P8.INCRVACUUM phase 4 follow-up)")
+	bt := btree.NewBTree(ctx.Pager, 1, true)
+	_, err := bt.IncrVacuumStep(1)
+	return err
 }
 
 // AutoVacuumCommit drains the on-disk freelist via repeated
@@ -127,7 +102,12 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	}
 	totalSteps := uint32(0)
 	for i := uint32(0); i < nVac; i++ {
+		npBefore := ctx.Pager.NumPages()
 		if err := e.runIncrVacuumStep(ctx); err != nil {
+			break
+		}
+		npAfter := ctx.Pager.NumPages()
+		if npAfter >= npBefore {
 			break
 		}
 		totalSteps++

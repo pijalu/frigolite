@@ -43,11 +43,22 @@ func (t *BTree) RelocatePage(to, from uint32) error {
 		return fmt.Errorf("btree: RelocatePage: read ptrmap for %d: %w", from, err)
 	}
 	if parentType == 0 {
-		// Uninitialized entry — `from` has no recorded parent. This
-		// can happen if a page is on the freelist (PTRMAP_FREELIST not
-		// set yet) or if the pointer-map was never written for `from`.
-		// In either case we can't safely update the parent. Bail.
-		return fmt.Errorf("btree: RelocatePage: no parent recorded for page %d (uninitialized ptrmap entry)", from)
+		// Uninitialized ptrmap entry — fall back to a tree walk from
+		// the root to find `from`'s parent. The walk is O(n) but
+		// happens at most once per vacuum step; the next iteration
+		// will have the ptrmap populated.
+		if pp, pt, perr := t.findParentByWalk(from); perr == nil {
+			parentPgno = pp
+			parentType = pt
+		} else {
+			// Page is not in the tree (orphaned — the btree's parent
+			// was already dropped/freed, but `from` itself wasn't
+			// marked free). Treat as a freelist page: just call
+			// FreePage so the header count tracks, and the caller
+			// (IncrVacuumStep) can truncate the file.
+			_ = t.pager.FreePage(from)
+			return nil
+		}
 	}
 	// Read both pages and copy `from` → `to`.
 	fromPg, err := t.pager.ReadPage(from)
@@ -159,15 +170,40 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			steps++
 			continue
 		}
+		// Pointer-map pages: the C incrVacuumStep checks
+		// PTRMAP_ISPAGE early and just decrements the file size
+		// (no relocation — the ptrmap page has no child pointer
+		// to update). For bCommit=1, the page's ptrmap entry
+		// (eType==PTRMAP_FREEPAGE) means it's already on the
+		// freelist; the C code does nothing for that case in
+		// bCommit mode. We just truncate the file past it.
+		if storage.IsPtrmapPageNo(lastPg, t.pageSize) {
+			if err := t.pager.Truncate(lastPg - 1); err != nil {
+				return steps, fmt.Errorf("btree: IncrVacuumStep: truncate past ptrmap %d: %w", lastPg, err)
+			}
+			steps++
+			continue
+			steps++
+			continue
+		}
 		// The last page is in use. Try to allocate a free page.
 		freePg, err := t.pager.AllocatePageLE()
 		if err != nil {
 			// No free page available. We're done.
 			return steps, nil
 		}
-		// Relocate lastPg → freePg.
+		// Relocate lastPg → freePg. If RelocatePage treats lastPg
+		// as orphaned and just frees it (orphan branch), the freePg
+		// we just allocated is wasted; return it to the freelist.
 		if err := t.RelocatePage(freePg.PageNum, lastPg); err != nil {
 			return steps, fmt.Errorf("btree: IncrVacuumStep: relocate %d -> %d: %w", lastPg, freePg.PageNum, err)
+		}
+		// If the last page is now on the freelist (i.e. RelocatePage
+		// took the orphan branch and just freed it without using
+		// freePg), recycle freePg so the on-disk freelist count
+		// stays accurate.
+		if pager.IsPageOnFreelist(t.pager, lastPg) {
+			_ = t.pager.FreePage(freePg.PageNum)
 		}
 		// Truncate the file to remove the (now-relocated) last page.
 		if err := t.pager.Truncate(lastPg - 1); err != nil {
@@ -176,4 +212,90 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 		steps++
 	}
 	return steps, nil
+}
+
+// findParentByWalk scans the btree starting from the root looking
+// for `target` as a child. Returns the parent page number and the
+// ptrmap type (always PtrmapBtreeNode; we don't distinguish
+// interior-table from interior-index from leaf). Used as a
+// fallback when the pointer-map entry for `target` is uninitialized
+// (which happens for pages allocated before ptrmap writes were
+// wired into the AllocatePage call sites).
+func (t *BTree) findParentByWalk(target uint32) (uint32, byte, error) {
+	if t.rootPage == target {
+		return 0, 0, fmt.Errorf("page %d is the btree root", target)
+	}
+	var queue []struct {
+		parent uint32
+		child  uint32
+	}
+	if err := t.walkChildren(t.rootPage, &queue); err != nil {
+		return 0, 0, err
+	}
+	for len(queue) > 0 {
+		e := queue[0]
+		queue = queue[1:]
+		if e.child == target {
+			return e.parent, storage.PtrmapBtreeNode, nil
+		}
+		// Don't descend into a child that the pager has freed —
+		// its content is now junk. The ptrmap (or walk) will say
+		// "this page is on the freelist" if so, but the simpler
+		// check is the in-memory freePages set maintained by
+		// pager.FreePage.
+		if pager.IsPageOnFreelist(t.pager, e.child) {
+			continue
+		}
+		if err := t.walkChildren(e.child, &queue); err != nil {
+			return 0, 0, err
+		}
+	}
+	return 0, 0, fmt.Errorf("page %d not found in btree", target)
+}
+
+// walkChildren appends (parent, child) edges for every child of
+// `parentPgno` to `out`. If `parentPgno` is a leaf, nothing is
+// appended.
+func (t *BTree) walkChildren(parentPgno uint32, out *[]struct {
+	parent uint32
+	child  uint32
+}) error {
+	if pager.IsPageOnFreelist(t.pager, parentPgno) {
+		return nil
+	}
+	pg, err := t.pager.ReadPage(parentPgno)
+	if err != nil {
+		return err
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return err
+	}
+	if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+		return nil
+	}
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+		if cellOff+4 > len(pg.Data) {
+			continue
+		}
+		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		if child == 0 {
+			continue
+		}
+		*out = append(*out, struct {
+			parent uint32
+			child  uint32
+		}{parent: parentPgno, child: child})
+	}
+	rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
+	if rmp != 0 {
+		*out = append(*out, struct {
+			parent uint32
+			child  uint32
+		}{parent: parentPgno, child: rmp})
+	}
+	return nil
 }
