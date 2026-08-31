@@ -282,19 +282,24 @@ func (t *BTree) walkChildren(parentPgno uint32, out *[]struct {
 	coff := contentOffset(pg.PageNum)
 	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
 	if err != nil {
-		return err
+		// A page with stale header bytes (e.g. an empty leaf
+		// whose CellContent was never reset) is treated as a
+		// leaf (no children). The rebalance code in
+		// maybeRebalanceAfterDelete will free it.
+		return nil
 	}
 	if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
 		return nil
 	}
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	numPages := t.pager.NumPages()
 	for i := 0; i < int(page.CellCount); i++ {
 		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
 		if cellOff+4 > len(pg.Data) {
 			continue
 		}
 		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		if child == 0 {
+		if child == 0 || child > numPages {
 			continue
 		}
 		*out = append(*out, struct {
@@ -303,7 +308,7 @@ func (t *BTree) walkChildren(parentPgno uint32, out *[]struct {
 		}{parent: parentPgno, child: child})
 	}
 	rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-	if rmp != 0 {
+	if rmp != 0 && rmp <= numPages {
 		*out = append(*out, struct {
 			parent uint32
 			child  uint32

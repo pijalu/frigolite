@@ -92,6 +92,8 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 		page:       leafPg,
 	}
 	_, err = t.balanceNonroot(ctx)
+	if err != nil {
+	}
 	return err
 }
 

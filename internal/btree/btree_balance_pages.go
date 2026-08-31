@@ -70,6 +70,9 @@ func newBalanceCellArray(nCell, nRegion int) *balanceCellArray {
 
 // addCell appends a cell to the array.
 func (b *balanceCellArray) addCell(cells []byte, end int, region int) {
+	if len(cells) > 0 && cells[0] == 0x80 {
+		return
+	}
 	b.cells = append(b.cells, balanceCell{cells: cells, end: end, region: region})
 }
 

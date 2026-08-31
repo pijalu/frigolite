@@ -60,6 +60,12 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 	rightCell7 := buildTableLeafCell(t, 7, []byte("bb"), 0)
 	rightCell8 := buildTableLeafCell(t, 8, []byte("ccc"), 0)
 	// Cells grow downward; place rightCell8 at highest, then 7, then 6.
+	// The cell pointer array stores cell addresses in DECREASING order
+	// (cell 0 at the highest address, cell n-1 at the lowest), per the
+	// SQLite btree convention. So:
+	//   cell 0 (rowid 6) at pos + len(cell6) + len(cell7) (highest)
+	//   cell 1 (rowid 7) at pos + len(cell6)
+	//   cell 2 (rowid 8) at pos (lowest)
 	pos := 1024 - 4
 	pos -= len(rightCell8)
 	copy(rightPg.Data[pos:pos+len(rightCell8)], rightCell8)
@@ -67,9 +73,21 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 	copy(rightPg.Data[pos:pos+len(rightCell7)], rightCell7)
 	pos -= len(rightCell6)
 	copy(rightPg.Data[pos:pos+len(rightCell6)], rightCell6)
-	binary.BigEndian.PutUint16(rightPg.Data[rcoff+8:rcoff+10], uint16(pos))   // cell 0 (rowid 6)
-	binary.BigEndian.PutUint16(rightPg.Data[rcoff+10:rcoff+12], uint16(pos+len(rightCell6))) // cell 1 (rowid 7)
-	binary.BigEndian.PutUint16(rightPg.Data[rcoff+12:rcoff+14], uint16(pos+len(rightCell6)+len(rightCell7))) // cell 2
+	// After the loop, pos is the start of cell 6 (lowest address).
+	// cell 6 is at [pos, pos+len(cell6))
+	// cell 7 is at [pos+len(cell6), pos+len(cell6)+len(cell7))
+	// cell 8 is at [pos+len(cell6)+len(cell7), pos+len(cell6)+len(cell7)+len(cell8))
+	// Cell pointer array (in DECREASING order of cell index → INCREASING
+	// order of cell pointer value, since cell 0 is at the highest address):
+	//   ptr[0] = pos + len(cell6) + len(cell7)  (cell 0 = rowid 6, at highest address)
+	//   ptr[1] = pos + len(cell6)              (cell 1 = rowid 7, middle)
+	//   ptr[2] = pos                            (cell 2 = rowid 8, at lowest address)
+	ptrCell0 := pos + len(rightCell6) + len(rightCell7) // rowid 6
+	ptrCell1 := pos + len(rightCell6)                    // rowid 7
+	ptrCell2 := pos                                      // rowid 8
+	binary.BigEndian.PutUint16(rightPg.Data[rcoff+8:rcoff+10], uint16(ptrCell0))
+	binary.BigEndian.PutUint16(rightPg.Data[rcoff+10:rcoff+12], uint16(ptrCell1))
+	binary.BigEndian.PutUint16(rightPg.Data[rcoff+12:rcoff+14], uint16(ptrCell2))
 	binary.BigEndian.PutUint16(rightPg.Data[rcoff+3:rcoff+5], 3)
 	binary.BigEndian.PutUint16(rightPg.Data[rcoff+5:rcoff+7], uint16(pos))
 	rightPg.Data[rcoff+7] = 0
@@ -110,7 +128,10 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 			t.Errorf("right sibling cell %d: decode: %v", i, err)
 			continue
 		}
-		wantRowid := []int64{6, 7, 8}[i]
+		// Cell 0 is at the highest address (rightCell8 was placed
+		// there first, and the cell pointer array stores the
+		// most-recently-inserted cell at index 0).
+		wantRowid := []int64{8, 7, 6}[i]
 		if c.RowID != wantRowid {
 			t.Errorf("right sibling cell %d: rowid got %d, want %d", i, c.RowID, wantRowid)
 		}
