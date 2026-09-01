@@ -47,7 +47,66 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 			return deleted, err
 		}
 	}
+	// P8.INCRVACUUM phase 5.5 fix: after deleting all rows, the root
+	// (if interior) may have 0 cells but still carry a stale
+	// rightmost-child pointer to a freed leaf. balanceNonroot's
+	// "all cells vanished" branch frees the empty leaves but does NOT
+	// clear the root's rightmost-child (the root collapse /
+	// balance_shallower path is not implemented in this port). Without
+	// this fix, a subsequent SELECT walks the stale rightmost-child,
+	// hits a freed page whose first 4 bytes are a freelist chain
+	// pointer (interpreted as a cell pointer), and fails with
+	// "database disk image is malformed". Clear the rightmost-child
+	// when the root has 0 cells; the btree is then an empty subtree
+	// the cursor handles correctly (collectLeafPages returns []uint32
+	// for a 0-cell interior root with rmp=0).
+	if err := t.clearEmptyRootRightmost(); err != nil {
+		return deleted, err
+	}
 	return deleted, nil
+}
+
+// clearEmptyRootRightmost clears the btree root's rightmost-child
+// pointer when the root is an interior page with 0 cells. SQLite's
+// btree.c::balance_shallower collapses the root into its only child
+// (or converts it to a leaf when the last child is freed). Our
+// simplified port does not implement balance_shallower, so the root
+// remains an interior page with a stale rightmost-child. Clearing
+// the pointer is a minimal fix that makes the btree navigable: an
+// empty interior root with rmp=0 is treated as an empty subtree by
+// collectLeafPages (the cell loop runs 0 times, the rightmost-child
+// check at rmp==0 returns immediately).
+func (t *BTree) clearEmptyRootRightmost() error {
+	rootPg, err := t.pager.ReadPage(t.rootPage)
+	if err != nil {
+		return err
+	}
+	coff := contentOffset(rootPg.PageNum)
+	page, err := storage.ParsePage(rootPg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return err
+	}
+	if page.CellCount != 0 {
+		return nil
+	}
+	if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+		return nil
+	}
+	// Root is an interior page with 0 cells. Clear the rightmost-child
+	// pointer so the btree reader does not follow a stale reference
+	// to a freed leaf.
+	rmp := binary.BigEndian.Uint32(rootPg.Data[coff+8 : coff+12])
+	if rmp == 0 {
+		return nil
+	}
+	// Only clear if the rightmost-child is on the freelist (freed by
+	// the DELETE). If it's a valid in-use page, leave it alone.
+	if !pager.IsPageOnFreelist(t.pager, rmp) {
+		return nil
+	}
+	binary.BigEndian.PutUint32(rootPg.Data[coff+8:coff+12], 0)
+	pager.MarkPageDirtyForVacuum(t.pager, t.rootPage)
+	return nil
 }
 
 // maybeRebalanceAfterDelete runs balanceNonroot on a leaf that may

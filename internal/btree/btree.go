@@ -130,8 +130,20 @@ func (c *Cursor) descendToFirstLeaf() error {
 			// (cellPtrOffset=12), pass coff+4 to get coff+12.
 			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0, int(c.tx.pageSize)))
 			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		} else {
+		} else if page.RightmostPtr != 0 {
+			// Empty interior page with a rightmost-child: descend to it.
+			// An empty interior page with RightmostPtr == 0 is a fully
+			// empty btree (root collapse after DELETE all freed every
+			// leaf); the cursor should report EOF rather than try to
+			// read page 0, which pager.ReadPage rejects with
+			// "database disk image is malformed" (see
+			// clearEmptyRootRightmost + DELETE-all reproducer in
+			// internal/exec/btree_vacuum_corruption_test.go).
 			c.pageNum = page.RightmostPtr
+		} else {
+			// Empty interior page with no children: EOF.
+			c.endOfBTree = true
+			return nil
 		}
 	}
 }
@@ -204,8 +216,12 @@ func (c *Cursor) descendToFirstLeafFromCurrent() {
 		if page.CellCount > 0 {
 			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0, int(c.tx.pageSize)))
 			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		} else {
+		} else if page.RightmostPtr != 0 {
 			c.pageNum = page.RightmostPtr
+		} else {
+			// Empty interior page with no children: EOF.
+			c.endOfBTree = true
+			return
 		}
 	}
 }

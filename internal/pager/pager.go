@@ -1035,6 +1035,38 @@ func (p *Pager) Truncate(n uint32) error {
 			copy(pg.Data[:HeaderSize], p.header)
 		}
 	}
+	// P8.INCRVACUUM phase 5 fix: the file was just truncated but the
+	// on-disk header still has the pre-truncate size at offset 28. The
+	// next statement's execDBFileChecks calls HeaderBeyondFile, which
+	// reads the on-disk header and compares its nPage against the file's
+	// page count. Without this write, the file is now N pages but the
+	// header says N+1 (or more), and every subsequent statement fails
+	// with "database disk image is malformed". Write the updated header
+	// directly to offset 0 so the on-disk header matches the truncated
+	// file size before the next read. The trunk page's chain pointer
+	// (if updated above) is also flushed so the freelist walker
+	// (checkFreelistCount / isFreelistPage) sees a consistent chain.
+	if p.file != nil && p.header != nil && len(p.header) >= HeaderSize {
+		if _, err := p.file.WriteAt(p.header[:HeaderSize], 0); err != nil {
+			return fmt.Errorf("pager: truncate: write header: %w", err)
+		}
+		// Flush the trunk page's updated chain pointer (if any) so the
+		// freelist chain is consistent on disk.
+		trunk := binary.BigEndian.Uint32(p.header[32:36])
+		if trunk > 0 {
+			if pg, ok := p.pages[trunk]; ok && pg != nil {
+				off := int64(trunk-1) * int64(p.pageSize)
+				if _, err := p.file.WriteAt(pg.Data, off); err != nil {
+					return fmt.Errorf("pager: truncate: write trunk page %d: %w", trunk, err)
+				}
+			}
+		}
+		// Refresh the known file stamp so CheckExternalFile doesn't
+		// think the file changed externally and invalidate our cache.
+		vers, size, _ := p.readFileStamp()
+		p.knownFileVers = vers
+		p.knownFileSize = size
+	}
 	return nil
 }
 
