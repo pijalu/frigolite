@@ -3223,3 +3223,93 @@ ptrmap R/W, relocatePage, incrVacuumStep, autoVacuumCommit,
 sqlite3_autovacuum_pages callback) remains pending. See that
 plan file for the structured phase goals. The P8.INCRVACUUM
 .complete goal cannot finish until those phases land.
+
+## P8.INCRVACUUM phase unblocking: per-package failure analysis
+
+Investigation of the 4 failing testgen packages (autovacuum,
+incrvacuum, incrvacuum2, incrvacuum3) — exact engine gaps and the
+smallest Phase1-4 sub-goal that addresses each:
+
+### autovacuum (FULL autovacuum mode)
+- autovacuum-1.1.x.3: `select a from av1 order by rowid` returns
+  wrong rows after DELETE; expectation that pages were freed and
+  btree rebalanced without disturbing surviving rows.
+- autovacuum-9.2/9.3/9.5: `PRAGMA freelist_count` returns 176128
+  (176 pages) instead of small post-VACUUM count.
+- autovacuum-9.7: `PRAGMA integrity_check` returns 'database disk
+  image is malformed (cycle at leaf=... trunk=...)'.
+- Gap covered by Phase 1 (FreePage on emptied non-root leaves) +
+  Phase 4 (autoVacuumCommit at COMMIT time when pager.AutoVacuum()
+  && !incrementalMode). Without autoVacuumCommit the freelist
+  count never drains on COMMIT and pages never get relocated, hence
+  the 176-page count.
+
+### incrvacuum (INCREMENTAL mode + PRAGMA incremental_vacuum)
+- incrvacuum-1.1: `PRAGMA auto_vacuum` returns [0] vs wanted
+  empty/0 default. The transpiler declares
+  `sqlite_options_default_autovacuum` but never sets it. **Small fix
+  candidate**: initialize it to "0" in the testgen preamble (or in
+  processPreamble) — this is a 1-line transpiler fix that would
+  flip test 1.1 from FAIL to PASS. Verify other tests don't break.
+- incrvacuum-2.x: `DROP TABLE tbl2; PRAGMA incremental_vacuum;
+  COMMIT` returns 'database disk image is malformed'. The
+  incremental_vacuum step cannot move the table's pages because
+  pointer-map entries don't exist for pages allocated before
+  ptrmap writes were wired into AllocatePage call sites.
+- Gap covered by Phase 3 (relocatePage) + Phase 4 (commit hook).
+  After pager fix 100c916f, the basic freelist format is correct;
+  the remaining failures need ptrmap-aware page relocation.
+
+### incrvacuum2 (incremental_vacuum with WAL/journal_mode tests)
+- incrvacuum2-4.3: `PRAGMA journal_mode = WAL` returns
+  'pager: cannot enable WAL on in-memory pager'. The harness uses
+  in-memory mode (`db, _ := frigolite.Open(":memory:")`) but the
+  test uses `db` which opens test.db. This is a pre-existing
+  limitation — autovacuum + WAL requires WAL mode plumbing that
+  Phase 7 of PORTPLAN (WAL) covers.
+- Other tests timeout (30s) likely because IncrVacuumStep's
+  relocation loop hangs when no free page is available for the
+  last-page-in-use swap. Phase 3 (relocatePage) + Phase 4
+  (autovacuumCommit with sqlite3_autovacuum_pages callback) needed.
+
+### incrvacuum3 (incremental_vacuum with ROLLBACK)
+- incrvacuum3-1.1: `BEGIN; PRAGMA incremental_vacuum = 100;
+  INSERT...; ROLLBACK` returns 'database disk image is malformed'.
+  The ROLLBACK restores the freed pages but the on-disk freelist
+  count and pointer-map entries are not rolled back, leaving the
+  freed pages still on the freelist.
+- incrvacuum3-1.2: same root cause.
+- TestSimpleRollback (simple_test.go): INSERT after
+  PRAGMA incremental_vacuum = 100 returns 'database is locked'.
+  The vacuum step left a stale read-lock state.
+- Gap covered by Phase 3 (relocatePage must update ptrmap on
+  rollback) + Phase 4 (rollback journaling of ptrmap entries).
+
+## Per-phase smallest sub-goal scope (for future phase goals)
+
+- **P8.INCRVACUUM.phase1** (~200 lines btree + 80 lines test):
+  FreePage on emptied non-root leaves. New: empty non-root leaf →
+  pager.FreePage + null parent cell pointer. Test: 2-leaf btree;
+  DELETE all from one leaf; assert freelist_count=1.
+
+- **P8.INCRVACUUM.phase2** (~200 lines storage + 60 lines test):
+  ptrmap R/W. internal/storage/ptrmap.go::PtrmapEntry,
+  WritePtrmapEntry; pager.Pager.ReadPtrmap, WritePtrmap. Wire
+  WritePtrmap into AllocatePage call sites (currently only the
+  schema page path).
+
+- **P8.INCRVACUUM.phase3** (~300 lines btree_vacuum + 150 lines
+  test): relocatePage + IncrVacuumStep. relocatePage must skip
+  pgno=2 (a pointer-map page) when picking a free page target.
+  IncrVacuumStep must skip ptrmap pages when truncating. Add
+  TruncateFile method to pager. Test:
+  TestRelocatePageBasic must choose a non-ptrmap target.
+
+- **P8.INCRVACUUM.phase4** (~200 lines exec + 150 lines test):
+  autoVacuumCommit at COMMIT time when FULL mode + !incr. Callback
+  fires with (schema, fileSize, nFree, pageSize) → nVac. Plumb
+  SetAutovacuumPagesCallback through engine. Test:
+  TestAutoVacuumCommitCallback (returns 0 / N/2 / N).
+
+- **P8.INCRVACUUM.complete** (this goal): re-run full verify
+  command. All 5 packages green.
