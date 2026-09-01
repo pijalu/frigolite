@@ -3111,3 +3111,82 @@ treat as 2-arg).
   (when the rollback didn't fully restore the freelist), exposing the
   next layer of engine-level btree corruption from the incomplete
   btree.c::balance_nonroot port.
+
+## Gap G transpiler coverage now pinned by transpiler_test.go
+
+- Gap G (the make_str/file_pages/eval concat/lsort -integer/join
+  separator patterns that autovacuum.test + incrvacuum*.test rely on)
+  was already implemented across collectfuncs.go, dotest.go,
+  collect.go, and cmdexpr.go. What was missing was focused unit tests
+  pinning the contract — without those, future refactors of the
+  transpiler could silently regress autovacuum/incrvacuum support.
+- tools/tcl2go/transpiler_test.go now exercises:
+  - TestTranspileMakeStr       → collectSpecialFuncs["make_str"]
+  - TestTranspileFilePages     → collectSpecialFuncs["file_pages"]
+  - TestTranspileEvalConcat    → cmdExprConcat + [eval concat ...]
+  - TestTranspileLsortInteger  → cmdExprLSort with -integer flag
+  - TestTranspileJoinSeparator → joinProcValue across dash/comma/under/pipe
+- The tests are package-internal (package main) and can call every
+  unexported function directly — no full transpiler bootstrap needed.
+
+## 2026-05 pure-Go supersession policy applied to autovacuum/incrvacuum*
+
+- The testgen packages autovacuum, incrvacuum, incrvacuum2, incrvacuum3
+  fail at engine level (pager freelist layout for autovacuum-mode
+  pages) — NOT at transpiler level. Gap G transpiler recognition is in
+  place; the engine cannot produce autovacuum-compatible page layouts.
+- Per AGENTS.md policy, do NOT iterate on tcl2go for an engine-level
+  failure. Instead:
+  - tools/tcl2go/skiptestfiles.go: list the test file in skipTestFiles.
+    tcl2go emits a no-op stub via buildSkippedTestFile, so the
+    generated testgen/<pkg>/<pkg>_test.go compiles, runs, and passes
+    trivially (`func Test_<pkg>(t *testing.T) {}`).
+  - frigolite_harness_test.go: list the JSON file in
+    unsupportedTestFiles with a clear reason referencing P8.INCRVACUUM
+    phase5 + 2026-05 supersession.
+  - Status test floor stays above 288 (4 new entries still under the
+    336 ceiling from P6.VTAB mass-unskip).
+- Re-run `go run ./tools/tcl2go/` after editing skipTestFiles to
+  regenerate the stubs — without that, the existing generated files
+  keep failing.
+
+## edit tool fuzzy-whitespace gotcha when inserting inside existing content
+
+- The edit tool's `replace` operation reports "fuzzy whitespace
+  match (indentation auto-adjusted)" when the `old_string` anchors a
+  block whose leading indentation differs from the leading indentation
+  of `new_string`. The auto-adjust preserves the *anchor's* existing
+  leading whitespace and concatenates it to whatever you provided.
+- Symptom: every line in the inserted block ends up with two leading
+  tabs (`^I^I`) instead of one. The file still compiles (Go is
+  whitespace-tolerant) but the indentation is visibly wrong.
+- Workaround for surgical fixes: write a tiny Python one-liner that
+  reads the affected line range, strips one leading tab per line if it
+  starts with `\t\t`, and writes it back. Keep the range tight (a
+  dozen lines) so you do not collide with other indented blocks.
+- The `insert_after` / `insert_before` operations do NOT have this
+  issue because they anchor on a single line and prepend a fresh block
+  with whatever indentation you supply.
+
+
+## P8.INCRVACUUM phase5 transpiler tests + 2026-05 supersession
+
+- Added tools/tcl2go/transpiler_test.go pinning Gap G transpiler
+  recognition: TestTranspileMakeStr / TestTranspileFilePages
+  (collectSpecialFuncs), TestTranspileEvalConcat / TestTranspileLsortInteger
+  (cmdExprConcat / cmdExprLSort), TestTranspileJoinSeparator (joinProcValue).
+- Per AGENTS.md "Pure-Go supersession" policy (2026-05), failing testgen
+  packages without a native pure-Go port are documented and stubbed rather
+  than iterated on. Added autovacuum / incrvacuum / incrvacuum2 / incrvacuum3
+  to tools/tcl2go/skiptestfiles.go with reason "testgen fails on pager
+  freelist-layout gap; stubbed per 2026-05 Pure-Go supersession (Gap G
+  transpiler covered by transpiler_test.go)", and added matching JSON
+  harness entries in frigolite_harness_test.go unsupportedTestFiles.
+- skipTestFiles count goes from 288 → 292 (>= 288 floor in tools/status/
+  status_test.go). Regenerate with `go run ./tools/tcl2go/` after editing
+  skipTestFiles — tcl2go emits a stub via buildSkippedTestFile.
+- edit tool note: when inserting a comment block in a Go map literal whose
+  indentation is single-tab-then-content, the edit tool's fuzzy whitespace
+  match can double-tab the inserted block. Workaround: use a Python script
+  to collapse leading "\t\t" → "\t" on the inserted range before
+  committing.
