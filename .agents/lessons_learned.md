@@ -3918,3 +3918,59 @@ The remaining errors are unrelated to chain integrity — they
 stem from the btree rebalance bug (cell left-child=0 after
 many DELETEs) and missing ptrmap writes at btree allocation
 sites. Those are separate bugs.
+
+## P8.INCRVACUUM.phase8.d: chain fix complete; btree rebalance bug remains (2026 session)
+
+**Chain integrity: FIXED.** No more "Freelist: size is N but should
+be M" errors from the testgen. The chain's count always matches
+its walkable length. The btree layer's `RelocatePage` no longer
+corrupts the chain.
+
+**Remaining testgen errors (95/181, 13 unique test bodies):**
+- 135 "Page N: never used" — the btree rebalance's
+  `removeLeafFromParent` leaves the parent with a stale
+  left-child=to reference to a freed page. The btree's walk
+  descends into the freed page (which now has chain data, not
+  btree content), and `walkBTreePages` reports "never used"
+  because the page type byte is wrong.
+- 1 "cycle at leaf=N trunk=M" — the wasted-to FreePage re-uses
+  the freed page as a new chain trunk, and the btree's stale
+  parent reference walks to the chain trunk, which the chain
+  walker then follows to its leaves. The cycle appears when the
+  leaves include pages the btree is still using (the pre-existing
+  rebalance bug).
+- 174 "database disk image is malformed" — secondary errors from
+  the btree walk failing on the bad pages.
+
+**Root cause (out of scope for chain fix):** The btree
+rebalance's `removeLeafFromParent` does not always update the
+parent's cell pointer to a freed leaf. This is a pre-existing
+bug exposed (and made worse) by autovacuum's normal operation
+(which shrinks pages by relocation+truncate). The proper fix is
+in `internal/btree/btree_rebalance.go` and the ptrmap wiring in
+`internal/btree/btree_insert.go`.
+
+**What was achieved (chain fix scope):**
+- RelocatePage no longer calls FreePage(from) (cascade fix)
+- IncrVacuumStep's orphan branch returns the wasted `to` to the
+  freelist (count consistency fix)
+- AllocatePageLE uses the chain-aware pop (extracted to
+  popFromFreePagesChainLocked; shared with AllocatePage)
+- popFromFreePagesChainLocked promotes the first leaf to a new
+  trunk when popping a trunk with k>0 leaves (the btree.c
+  allocateBTreePage lines 6610-6645 algorithm)
+- Autocommit autovacuum is wired in via runAutoVacuumCommitAll
+- IncrementalVacuum only decrements count when runIncrVacuumStep
+  actually did work
+
+**Remaining work (separate goal):** fix the btree rebalance
+bug. Specifically:
+1. Audit `removeLeafFromParent` for the cases where it should
+   update the rightmost-pointer but doesn't.
+2. Wire `WritePtrmap` into every `t.pager.AllocatePage()` call
+   site in `btree_insert.go` and `writeOverflowPages`. This
+   lets the autovacuum find parents of pages and properly
+   relocate them (eliminating the wasted-to branch entirely).
+3. Audit the btree's rebalance free-leaf paths
+   (`mergeIntoLeft`, `mergeIntoRight`, the no-sibling branch)
+   for any remaining stale parent references.
