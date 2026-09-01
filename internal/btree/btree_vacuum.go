@@ -353,38 +353,12 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// which integrity_check reports as "Page N: never used"
 			// or "database disk image is malformed".
 			//
-			// P8.INCRVACUUM.phase8 fix: put the wasted `to` page
-			// back on the freelist. The relocator's AllocatePageLE
-			// already removed `to` from the on-disk chain (chain
-			// count decremented); without this FreePage the
-			// popped page is leaked and the next call's
-			// AllocatePageLE pops a different page, eating through
-			// the chain until integrity_check's
-			// `Freelist: size is 0 but should be N` fires. Returning
-			// `to` to the freelist restores the chain count and
-			// (because the chain's head is the lowest free page)
-			// the SAME page is re-popped next iteration, so the
-			// autovacuum loop converges: same page, same orphan,
-			// same early-return. The AutoVacuumCommit caller
-			// notices no progress (NumPages unchanged) and breaks
-			// out of its loop after one attempt.
-			//
-			// P8.INCRVACUUM.phase8.d NOTE: This FreePage does
-			// cause the "cycle at leaf=N trunk=M" testgen error
-			// when the btree's parent has a stale left-child=to
-			// reference (the pre-existing btree rebalance bug).
-			// The cycle appears because the wasted-to page is
-			// re-used as a new chain trunk, and the btree's
-			// stale reference reads the chain data, the chain
-			// walker then follows the page-as-trunk to its
-			// leaves, which can include pages the btree is still
-			// using. The proper fix is the btree rebalance; this
-			// FreePage is still correct semantically (the page
-			// was allocated by autovacuum and the chain should
-			// contain it). With the pre-existing btree bug, the
-			// FreePage exposes the deeper corruption; without it,
-			// the testgen still fails (with a different error
-			// pattern). Both are symptoms of the same root cause.
+			// P8.INCRVACUUM.phase8: DIAGNOSTIC. With wasted-FreePage
+			// the test fails on delete 2 with cycle error; without,
+			// it fails on delete 1 with 'never used'. Both are
+			// caused by the same pre-existing btree rebalance bug.
+			// Keep the FreePage for now (the chain count is
+			// consistent and the wasted page is recycled).
 			if err := t.pager.FreePage(freePg.PageNum); err != nil {
 				return steps, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
 			}
