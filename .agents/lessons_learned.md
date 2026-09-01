@@ -3878,3 +3878,43 @@ operation. The current design creates a BTree rooted at page 1
 roots (read from sqlite_schema) or rely entirely on the ptrmap
 (which requires populating it at every allocation site).
 
+
+## P8.INCRVACUUM.phase8.b: chain-aware pop + wasted-to rollback (2026 session)
+
+Three coordinated fixes complete the autovacuum chain integrity:
+
+1. **popFromFreePagesChainLocked** (new, extracted from AllocatePage)
+   - Trunk pop with k>0 leaves: promotes the FIRST leaf to be the
+     new trunk (mirrors btree.c allocateBTreePage lines 6610-6645).
+     Without this, the leaves are silently dropped and
+     checkFreelistCount reports "Freelist: size is N but should
+     be M" (chain-walked count is short by k-1).
+   - Trunk pop with k==0 leaves: just advance header.trunk.
+   - Leaf pop: find slot, shift last leaf into it, decrement
+     leafCount.
+
+2. **AllocatePageLE chain-aware pop** — the page-swap target
+   allocator was a stripped-down version of AllocatePage that
+   skipped the on-disk chain manipulation. The on-disk chain's
+   leaves list still pointed at the now-allocated page, so
+   checkFreelistCount counted a non-free page. Fixed by
+   delegating to popFromFreePagesChainLocked.
+
+3. **IncrVacuumStep wasted-to FreePage** — when RelocatePage
+   returns relocated=false (orphan branch), AllocatePageLE has
+   already decremented header.count, but the page was never
+   adopted by any btree. Without the FreePage rollback, the
+   next call pops a DIFFERENT free page, eating through the
+   chain until integrity_check's "Freelist: size is 0 but
+   should be N" fires. Putting the wasted page back on the
+   freelist keeps count consistent.
+
+**Pure-Go test**: TestP8AutovacuumInsertOnlyIntegrity (insert 20
+rows of 7000-byte strings, delete 1, integrity_check) was
+failing with chain/header mismatch. Now passes.
+
+**Testgen impact**: still 95 mismatches in testgen/autovacuum.
+The remaining errors are unrelated to chain integrity — they
+stem from the btree rebalance bug (cell left-child=0 after
+many DELETEs) and missing ptrmap writes at btree allocation
+sites. Those are separate bugs.
