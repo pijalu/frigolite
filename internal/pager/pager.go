@@ -1526,6 +1526,32 @@ func (p *Pager) FreePage(pageNum uint32) error {
 			p.trunkPages = make(map[uint32]bool)
 		}
 		p.trunkPages[pageNum] = true
+		// Also populate leafToTrunk for the OLD trunk's existing
+		// leaves. When a new trunk is created, the old trunk's
+		// existing leaves remain leaves of the old trunk. Without
+		// this, popping those leaves via AllocatePage's in-memory
+		// branch has no way to find the old trunk (it would only
+		// know about leaves added directly via FreePage's leaf-add
+		// branch, missing the leaves that were added to oldTrunk
+		// before this new-trunk transition).
+		if oldTrunk != 0 {
+			if oldTrunkPg, oerr := p.readPageLocked(oldTrunk); oerr == nil && len(oldTrunkPg.Data) >= 8 {
+				oldLc := binary.BigEndian.Uint32(oldTrunkPg.Data[4:8])
+				if p.leafToTrunk == nil {
+					p.leafToTrunk = make(map[uint32]uint32)
+				}
+				for i := uint32(0); i < oldLc; i++ {
+					off := 8 + i*4
+					if int(off)+4 > len(oldTrunkPg.Data) {
+						break
+					}
+					leafPg := binary.BigEndian.Uint32(oldTrunkPg.Data[off : off+4])
+					if leafPg != 0 {
+						p.leafToTrunk[leafPg] = oldTrunk
+					}
+				}
+			}
+		}
 	}
 	// Journal page 1's BEFORE image so ROLLBACK restores the header's
 	// freelist trunk/count. The freed-page BEFORE image was already
