@@ -367,9 +367,18 @@ func (t *BTree) removeLeafFromParent(parent, child uint32, childCellIdx int) err
 		return err
 	}
 	// cellPtrOffset: 12 for interior, 8 for leaf. The cell pointer
-	// array starts at pc + cellPtrOffset (we strip 8 because
-	// CellPointer adds 8 internally).
-	ptrBase := pc + cellPtrOffset(page.PageType) - 8
+	// array starts at pc + cellPtrOffset. We use storage.CellPointer
+	// (which adds 8 to the base) to read cell pointers correctly, and
+	// use the absolute offset (pc + cellPtrOffset + i*2) for direct
+	// writes to zero out the removed cell pointer. The previous code
+	// used `ptrBase := pc + cellPtrOffset - 8` and indexed at
+	// `ptrBase + i*2`, which was 8 bytes BEFORE the actual cell pointer
+	// array — a 4-byte error for interior pages (the actual array
+	// starts at pc + 12, but the code wrote to pc + 4 + i*2). The
+	// removed cell pointer was NOT zeroed, leaving the freed leaf
+	// still referenced from the parent. The walkBTreePages checker
+	// then descended to the freed page and reported "Page N: never
+	// used" or "cycle at leaf=N trunk=M".
 	if childCellIdx == -1 {
 		// Rightmost-child pointer is at pc+8. Set it to the last
 		// cell's child pointer (if any), then drop the last cell.
@@ -377,24 +386,32 @@ func (t *BTree) removeLeafFromParent(parent, child uint32, childCellIdx int) err
 			binary.BigEndian.PutUint32(ppg.Data[pc+8:pc+12], 0)
 		} else {
 			last := int(page.CellCount) - 1
+			// storage.CellPointer(data, base, i) reads at base+8+i*2.
+			// For the cell pointer array at pc+cellPtrOffset we need
+			// base = pc+cellPtrOffset-8 (so that base+8+i*2 = pc+cellPtrOffset+i*2).
+			ptrBase := pc + cellPtrOffset(page.PageType) - 8
 			lastCp := storage.CellPointer(ppg.Data, ptrBase, last, int(t.pageSize))
 			rightmost := binary.BigEndian.Uint32(ppg.Data[lastCp : lastCp+4])
 			binary.BigEndian.PutUint32(ppg.Data[pc+8:pc+12], rightmost)
 			page.CellCount--
 			binary.BigEndian.PutUint16(ppg.Data[pc+3:pc+5], page.CellCount)
-			zp := ptrBase + int(page.CellCount)*2
+			// Zero the cell pointer at the new last position. The cell
+			// pointer for cell i is at pc + cellPtrOffset + i*2.
+			zp := pc + cellPtrOffset(page.PageType) + int(page.CellCount)*2
 			ppg.Data[zp] = 0
 			ppg.Data[zp+1] = 0
 		}
 	} else {
-		// Drop cell childCellIdx and shift the rest down.
+		// Drop cell childCellIdx and shift the rest down. The cell
+		// pointer for cell i is at pc + cellPtrOffset + i*2.
+		cellPtrArrBase := pc + cellPtrOffset(page.PageType)
 		for i := childCellIdx; i < int(page.CellCount)-1; i++ {
-			src := ptrBase + (i+1)*2
-			dst := ptrBase + i*2
+			src := cellPtrArrBase + (i+1)*2
+			dst := cellPtrArrBase + i*2
 			ppg.Data[dst] = ppg.Data[src]
 			ppg.Data[dst+1] = ppg.Data[src+1]
 		}
-		zp := ptrBase + (int(page.CellCount)-1)*2
+		zp := cellPtrArrBase + (int(page.CellCount)-1)*2
 		ppg.Data[zp] = 0
 		ppg.Data[zp+1] = 0
 		page.CellCount--
