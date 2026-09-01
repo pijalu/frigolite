@@ -129,10 +129,21 @@ func tclLRange(list string, start, end interface{}) string {
 	return tclList(items[s : e+1])
 }
 
-func tclLReplace(list string, first, count interface{}, args ...string) string {
+// tclLReplace mirrors TCL lreplace(list, first, last) followed by
+// optional replacement elements. The inclusive index range [first, last]
+// is replaced by the args parameter. The transpiler emits calls of the
+// form tclLReplace(list, idx, idx) (remove one element at index idx),
+// tclLReplace(list, idx, idx+count-1) (remove count elements starting
+// at idx), or tclLReplace(list, idx, end) (remove up to a fixed last
+// index). The earlier implementation treated the second arg as a
+// count (SQLite btree free-list truncate-len semantics), which
+// under-counts every single-element removal: lreplace(list, idx, idx)
+// should drop element idx but count=0 dropped nothing. The
+// transpiler passes TCL last index, not a count.
+func tclLReplace(list string, first, last interface{}, args ...string) string {
 	items := tclSplitList(list)
 	f := toInt(first)
-	c := toInt(count)
+	l := toInt(last)
 	// TCL lreplace: a negative first means "from end" (e.g. -1 == end).
 	if f < 0 {
 		f = len(items) + f
@@ -143,19 +154,19 @@ func tclLReplace(list string, first, count interface{}, args ...string) string {
 	if f > len(items) {
 		f = len(items)
 	}
-	// TCL lreplace: a negative count means "all remaining elements".
-	if c < 0 {
-		c = len(items) - f
+	// TCL lreplace: a negative last means "all remaining elements".
+	if l < 0 {
+		l = len(items) - 1
 	}
-	end := f + c
-	if end < f {
-		end = f
+	if l < f {
+		l = f
 	}
-	if end > len(items) {
-		end = len(items)
+	if l >= len(items) {
+		l = len(items) - 1
 	}
 	repl := args
-	items = append(items[:f], append(repl, items[end:]...)...)
+	// Convert TCL's inclusive [first, last] to Go's exclusive [f, l+1).
+	items = append(items[:f], append(repl, items[l+1:]...)...)
 	return tclList(items)
 }
 

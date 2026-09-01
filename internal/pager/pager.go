@@ -836,16 +836,28 @@ func (p *Pager) popFromFreePagesChainLocked(pgno uint32) {
 				}
 				leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
 				if leaf == pgno {
-					// Found it: shift the last
-					// slot into this one
-					// (btree.c lines 6697-6700)
-					// and decrement leafCount.
+					// Found it: copy the LAST leaf into the freed
+					// slot (SQLite btree.c lines 6697-6700:
+					//   if( closest<k-1 ){
+					//     memcpy(&aData[8+closest*4], &aData[4+k*4], 4);
+					//   }
+					// 4+k*4 = 8+(k-1)*4, i.e. the last leaf's slot).
+					// The frigolite port previously copied
+					// slot[i+1] into the freed slot, which leaves
+					// the original last leaf in place when the
+					// freed slot was not the last one — the chain
+					// then contains the same page twice (e.g.
+					// popping the first leaf of [A,B,C] yields
+					// [B,B,C] instead of [B,C,0]; subsequent
+					// alloc/free cycles amplify the duplicate and
+					// integrity_check reports "Page X: never used"
+					// and "cycle at leaf=N trunk=M").
 					if i < lc-1 {
-						copy(trunkPg.Data[off:off+4], trunkPg.Data[off+4:off+8])
-					}
-					lastOff := 8 + (lc-1)*4
-					if int(lastOff)+4 <= len(trunkPg.Data) {
-						binary.BigEndian.PutUint32(trunkPg.Data[lastOff:lastOff+4], 0)
+						lastOff := 8 + (lc-1)*4
+						copy(trunkPg.Data[off:off+4], trunkPg.Data[lastOff:lastOff+4])
+						if int(lastOff)+4 <= len(trunkPg.Data) {
+							binary.BigEndian.PutUint32(trunkPg.Data[lastOff:lastOff+4], 0)
+						}
 					}
 					binary.BigEndian.PutUint32(trunkPg.Data[4:8], lc-1)
 					p.dirty[trunkT] = true
