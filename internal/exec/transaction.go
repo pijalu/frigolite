@@ -91,30 +91,8 @@ func (e *Engine) execCommit() *Result {
 	// always NONE (no PRAGMA path mutates it), so the mode lookup misses
 	// and we skip it. This block thus fires only for the main database
 	// (and any ATTACH'd databases that have been switched to FULL mode).
-	for _, dbCtx := range e.dbList {
-		if dbCtx == nil || dbCtx.Pager == nil {
-			continue
-		}
-		// Only FULL mode: incremental is opt-in via PRAGMA incremental_vacuum.
-		mode := int64(0)
-		if e.settings.autoVacuumModes != nil {
-			if m, ok := e.settings.autoVacuumModes[dbCtx.Name]; ok {
-				mode = m
-			}
-		}
-		if mode != 1 /* FULL */ {
-			continue
-		}
-		// Skip if the pager isn't actually in autovacuum mode (the mode
-		// is only set on the pager when the DB is empty; for a non-empty
-		// DB the change is deferred to the next VACUUM, so the pager
-		// still has AutoVacuum()=false here).
-		if !dbCtx.Pager.AutoVacuum() {
-			continue
-		}
-		if _, err := e.AutoVacuumCommit(dbCtx.Name); err != nil {
-			return &Result{Error: err}
-		}
+	if err := e.runAutoVacuumCommitAll(); err != nil {
+		return &Result{Error: err}
 	}
 	// Release locks: after COMMIT all databases return to unlocked.
 	// Flush each pager so HasDirtyPages() becomes false (lock_status reads
@@ -170,6 +148,43 @@ func (e *Engine) commitLockGate() *Result {
 	if err := e.commitLockError(); err != nil {
 		e.setPendingAll()
 		return &Result{Error: err}
+	}
+	return nil
+}
+
+// runAutoVacuumCommitAll runs AutoVacuumCommit for every attached database
+// that is in FULL auto-vacuum mode (PRAGMA auto_vacuum=1) and whose pager
+// is actually in autovacuum mode. Shared between execCommit (explicit
+// COMMIT) and execFlushAutocommit (autocommit statements). Without this
+// helper, autocommit statements never trigger auto-vacuum and the file
+// grows without bound when many DELETEs run without a wrapping BEGIN/
+// COMMIT (P8.INCRVACUUM.phase8 follow-up; btree.c autoVacuumCommit fires
+// from sqlite3BtreeCommitPhaseOne on every commit, autocommit included).
+func (e *Engine) runAutoVacuumCommitAll() error {
+	for _, dbCtx := range e.dbList {
+		if dbCtx == nil || dbCtx.Pager == nil {
+			continue
+		}
+		// Only FULL mode: incremental is opt-in via PRAGMA incremental_vacuum.
+		mode := int64(0)
+		if e.settings.autoVacuumModes != nil {
+			if m, ok := e.settings.autoVacuumModes[dbCtx.Name]; ok {
+				mode = m
+			}
+		}
+		if mode != 1 /* FULL */ {
+			continue
+		}
+		// Skip if the pager isn't actually in autovacuum mode (the mode
+		// is only set on the pager when the DB is empty; for a non-empty
+		// DB the change is deferred to the next VACUUM, so the pager
+		// still has AutoVacuum()=false here).
+		if !dbCtx.Pager.AutoVacuum() {
+			continue
+		}
+		if _, err := e.AutoVacuumCommit(dbCtx.Name); err != nil {
+			return err
+		}
 	}
 	return nil
 }

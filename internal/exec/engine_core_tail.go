@@ -432,6 +432,17 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// Autocommit statement: bump the change counter of every database that
 	// was written so other connections observe the change.
 	e.bumpChangeCounters()
+	// Auto-vacuum on commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
+	// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE flushing
+	// the pager, so the pager flush writes the already-shrunken file. Without
+	// this, autocommit statements (which don't go through execCommit) leave
+	// the freelist to grow without ever shrinking the file. This block is
+	// only enabled for FULL mode (mode==1) and the pager's AutoVacuum()
+	// flag; INCREMENTAL mode is opt-in via PRAGMA incremental_vacuum and
+	// skips this path.
+	if autovacErr := e.runAutoVacuumCommitAll(); autovacErr != nil {
+		return &Result{Error: autovacErr}
+	}
 	// Flush attached database pagers so a later connection on the attached
 	// file sees the writes immediately. The MAIN pager is flushed only for
 	// DDL (a schema change another connection may observe); per-DML main

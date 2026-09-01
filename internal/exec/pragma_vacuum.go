@@ -57,13 +57,24 @@ func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 		return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
 	}
 	// Run one IncrVacuumStep via the btree (P8.INCRVACUUM phase 3).
-	if err := e.runIncrVacuumStep(ctx); err != nil {
+	steps, err := e.runIncrVacuumStep(ctx)
+	if err != nil {
 		// If the step fails (e.g. no free page available for a
 		// non-freelist last page), we still surface a row so the
 		// `db eval {PRAGMA incremental_vacuum}` callback chain
 		// terminates. The DecrementFreelistCount below is the
 		// existing row-yield mechanism.
 		_ = err
+	}
+	// Only consume one free page if the step actually did work.
+	// P8.INCRVACUUM: when the orphan branch is taken (parent not
+	// found in the btree), the step returns steps=0 and the file
+	// is not shrunk. Decrementing the count in that case would
+	// create a header.count / chain-walked-count mismatch
+	// (checkFreelistCount reports it as "Freelist: size is N but
+	// should be M").
+	if steps == 0 {
+		return &execpragma.Result{}
 	}
 	// Consume one free page: decrement header count and emit a row.
 	ctx.Pager.DecrementFreelistCount(1)
@@ -77,10 +88,10 @@ func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 //
 // Reference: btree.c sqlite3BtreeIncrVacuum / incrVacuumStep
 // (~line 6780 / 6700).
-func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext) error {
+func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext) (int, error) {
 	bt := btree.NewBTree(ctx.Pager, 1, true)
-	_, err := bt.IncrVacuumStep(1)
-	return err
+	steps, err := bt.IncrVacuumStep(1)
+	return steps, err
 }
 
 // AutoVacuumCommit drains the on-disk freelist via repeated
@@ -121,7 +132,8 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	totalSteps := uint32(0)
 	for i := uint32(0); i < nVac; i++ {
 		npBefore := ctx.Pager.NumPages()
-		if err := e.runIncrVacuumStep(ctx); err != nil {
+		_, err := e.runIncrVacuumStep(ctx)
+		if err != nil {
 			break
 		}
 		npAfter := ctx.Pager.NumPages()

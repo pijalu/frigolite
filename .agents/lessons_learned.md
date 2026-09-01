@@ -3702,3 +3702,179 @@ toward unblocking autovacuum; the btree path needs phase3 work.
 **Takeaway:** the Pager chain-pop fix is verified by 6 tests but the
 testgen reduction target requires the btree/auto-vacuum-commit work.
 This is a P8.INCRVACUUM.phase3 follow-up.
+
+## P8.INCRVACUUM.phase3 follow-up: relocatePage / AutoVacuumCommit / IncrVacuumStep
+
+**Status: investigated but not fully resolved in this session.**
+The autovacuum testgen still has 95 mismatches. The root cause is
+NOT the chain-pop (which the pager now handles correctly), but a
+deeper architectural mismatch: frigolite's autovacuum operates on
+a single BTree (root=1, the schema btree) while pages from user
+tables and indexes live in other btrees that the autovacuum never
+walks. This causes:
+
+1. The tree-walk fallback (`findParentByWalk`) only descends from
+   the schema root, so any user-table or user-index page returns
+   "page N not found in btree" and RelocatePage hits its orphan
+   branch.
+2. The orphan branch then leaks a target page allocation
+   (AllocatePageLE popped the page but the branch can't recycle
+   it without re-introducing the cascade). The previous-phase
+   "return FreePage(to) to chain" was the original cascade; the
+   "don't FreePage(to), don't truncate" conservative fix prevents
+   the cascade but leaves the btree pointer-map uninitialized for
+   nearly every page.
+3. With most pages' ptrmap entries uninitialized, the orphan
+   branch is hit on every vac step; IncrVacuumStep returns steps=0
+   so the autovacuum loop in AutoVacuumCommit breaks out early
+   (no file shrinkage) and `PRAGMA incremental_vacuum` no longer
+   decrements the freelist count (incremental_vacuum.go:71-76
+   skips the DecrementFreelistCount when steps=0, preventing
+   "Freelist: size is N but should be M" from checkFreelistCount).
+4. btree.Insert() / btree.split() / btree.writeOverflowPages() all
+   call `t.pager.AllocatePage()` directly, bypassing
+   `allocBtreeNode` / `allocOverflow` (btree_alloc.go:23-54) which
+   are the only sites that call `WritePtrmap`. So ptrmap entries
+   are only written for btree pages allocated by `alloc*` helpers;
+   pages allocated by raw `AllocatePage()` are "owned" by the btree
+   but unknown to the autovacuum.
+
+**Verified via TestP8AutovacuumNoDataCorruption (pure-Go)**:
+- 5 inserts of 7000-byte rows: file 74 pages, freelist 0
+- DELETE 1: 7 free pages (overflows + empty leaves); the
+  conservative-fix autovacuum hits the orphan branch on all 7
+  vac steps, no relocation, no truncation
+- DELETE 2..4: integrity_check "ok"
+- DELETE 5: btreeStructureOK returns false — the walkBTreePages
+  finds a child pointer to page 0 (an invalid page number). This
+  comes from the btree rebalance + autovacuum interaction leaving
+  a stale `0` in a cell's left-child slot. The corruption is in
+  the btree layer (not the pager chain) and pre-dates the
+  conservative fix.
+
+**Proper fix path** (not done in this session — would require its
+own phase):
+- Wire `WritePtrmap(child, type, parent)` into every
+  `t.pager.AllocatePage()` call site in the btree:
+  - `btree_insert.go:66` (relocateRootSplit tail)
+  - `btree_insert.go:195` (writeOverflowPages — first overflow: parent=leaf; subsequent: parent=prev overflow)
+  - `btree_insert.go:724` (rebalance new pages)
+  - `btree_insert.go:890` (rootPg — PtrmapRootpage)
+  - `btree_insert.go:944` (newLeft for root split)
+  - `btree_insert.go:1045` (split parent)
+- After ptrmap is correctly populated, the orphan branch in
+  RelocatePage is never taken and the autovacuum can shrink the
+  file normally. Also need overflow handling in RelocatePage
+  (the C `relocatePage` handles eType==PTRMAP_OVERFLOW1/2 by
+  updating the leaf cell's overflow pointer; frigolite's only
+  handles BTREE_NODE).
+- Consider splitting the autovacuum out of `runIncrVacuumStep`
+  into a file-level walk that uses the schema to enumerate all
+  btree roots, so the parent-lookup walk can reach any btree's
+  pages. Currently `runIncrVacuumStep` constructs
+  `btree.NewBTree(ctx.Pager, 1, true)` (root=1 = schema btree)
+  and never visits the user btrees' parents.
+
+**Tests added**:
+- `frigolite_p8_btree_vacuum_relocate_test.go::TestP8AutovacuumNoDataCorruption`
+  — pure-Go regression: 5 inserts + 5 deletes with `PRAGMA integrity_check`
+  after each delete. Passes 4/5 deletes with the conservative fix;
+  the 5th delete corrupts the btree (parent-ptr=0 in walkBTreePages).
+
+**Native-port supersession candidate**: the autovacuum testgen
+exercises a feature that is fundamentally not implemented
+(autovacuum requires complete ptrmap tracking, which is incomplete).
+Per the goal's pure-Go supersession policy, once a native
+`autovacuum` test that validates the engine's observable behavior
+under autovacuum passes, the testgen can be marked superseded. The
+current native test fails on the 5th delete so supersession is
+premature. Supersession should follow the phase3 ptrmap-wiring
+work.
+
+**Takeaway for the next attempt**: read `src/btree.c::relocatePage`
+*and* `src/btree.c::allocateBtreePage` (which is what calls
+`setChildPtrmaps`/`ptrmapPutOvflPtr` for every newly allocated
+page). frigolite's `btree_alloc.go` has the right helper functions
+but they are bypassed by the direct `t.pager.AllocatePage()` calls
+in `btree_insert.go` and `writeOverflowPages`. Fixing the
+allocation paths to go through the helpers (and updating
+writeOverflowPages to thread the leaf page number as the
+overflow's parent) is the foundation the rest of autovacuum needs.
+
+## P8.INCRVACUUM.phase3 follow-up: relocatePage / AutoVacuumCommit root cause
+
+**Goal:** fix btree layer's relocatePage / AutoVacuumCommit path that
+corrupts the freelist chain (autovacuum testgen still 95/96 mismatches
+after the pager chain-pop fix). The actual root cause is in the btree
+layer, not the pager.
+
+**Investigation (this session):**
+
+1. **Cascade root cause (FIXED):** `RelocatePage` was calling
+   `t.pager.FreePage(from)` after copying `from` content to `to`.
+   The `FreePage` added `from` to `p.freePages`, then `Truncate`
+   removed it. But `IncrVacuumStep`'s `!relocated` branch ALSO called
+   `FreePage(to)` to recycle the wasted target allocation. The
+   combined effect: `to` (e.g. page 5) was always re-added to
+   `p.freePages` after being popped, so `AllocatePageLE` returned
+   the same page on every subsequent vac step, creating a cascade
+   of overwrites at the same target that lost btree content.
+   **Fix (committed in this session):** `RelocatePage` no longer
+   calls `FreePage(from)`. The file truncation reclaims the source
+   slot directly (mirroring SQLite's `PagerMovepage` + file
+   truncation). The orphan branch also no longer calls `FreePage`.
+
+2. **IncrVacuumStep.DecrementFreelistCount mismatch (FIXED):**
+   `PRAGMA incremental_vacuum` calls `runIncrVacuumStep` then
+   unconditionally calls `DecrementFreelistCount(1)`. With the
+   conservative fix above, the step often returns `steps=0` (no
+   progress) because the orphan branch is taken. Decrementing
+   the count anyway caused a header.count / chain-walked-count
+   mismatch that `checkFreelistCount` reports as
+   "Freelist: size is N but should be M".
+   **Fix (committed in this session):** `runIncrVacuumStep` now
+   returns the step count; `IncrementalVacuum` only decrements the
+   count when steps > 0.
+
+3. **Underlying btree-pmap gap (NOT FIXED, requires follow-up):**
+   The orphan branch is taken when the source page's ptrmap is
+   uninitialized AND `findParentByWalk` fails. The walk only
+   traverses the schema btree (root=1); pages belonging to user
+   btrees (av1, av1_idx) are not found. The btree's allocation
+   sites in `btree_insert.go` (lines 66, 195, 724, 890, 944, 1045)
+   and `writeOverflowPages` use `t.pager.AllocatePage()` directly,
+   bypassing the `allocBtreeNode`/`allocOverflow` wrappers that
+   write the ptrmap. So most pages have uninitialized ptrmap
+   entries. The proper fix is to wire `WritePtrmap` into all
+   `t.pager.AllocatePage()` call sites in the btree, or to
+   refactor the autovacuum to walk ALL btrees in the file
+   (currently the autovacuum BTree is hardcoded to root=1).
+
+4. **btreeStructureOK reports "Page 0" in walk (NEW finding):**
+   After many DELETE + autovacuum cycles, `walkBTreePages`
+   encounters a btree cell whose left-child pointer is 0 (the
+   "no page" sentinel). This is invalid for an interior btree
+   cell. The corruption originates in the btree's rebalance/free
+   path (likely `maybeRebalanceAfterDelete` or
+   `clearEmptyRootRightmost`) when the empty-leaf freeing logic
+   sets a cell's left-child to 0 instead of removing the cell or
+   properly updating the parent. The conservative fix preserves
+   the btree's stale parents, which keeps the btree navigable
+   for the first few deletes (4/5 pass in pure-Go test) but
+   eventually fails when the chain of stale parents compounds.
+
+**Final state of this session (verify command: still 95 mismatches):**
+- `RelocatePage` no longer cascades the target page.
+- `IncrementalVacuum` no longer corrupts the count.
+- The btree layer's underlying ptrmap + btree-structure issues
+  remain and require a follow-up session to fix.
+
+**Architecture lesson:** the autovacuum is fundamentally a
+file-level operation (operate on the last page of the file,
+relocate it to a free page, truncate), not a btree-level
+operation. The current design creates a BTree rooted at page 1
+(the schema) and walks it, but the file has multiple btrees
+(tables + indexes). The proper design should walk ALL btree
+roots (read from sqlite_schema) or rely entirely on the ptrmap
+(which requires populating it at every allocation site).
+

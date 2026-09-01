@@ -95,7 +95,7 @@ func TestRelocatePageBasic(t *testing.T) {
 	// a different page to it. This bypasses AllocatePageLE.
 	// RelocatePage(0, 5) → move page 5's content to page 0... no, we
 	// need a real destination. Use lastPg-1.
-	if err := tr.RelocatePage(target, leaves[0]); err != nil {
+	if _, err := tr.RelocatePage(target, leaves[0]); err != nil {
 		t.Fatalf("RelocatePage(%d, %d): %v", target, leaves[0], err)
 	}
 	// The freed leaf should now be on the freelist.
