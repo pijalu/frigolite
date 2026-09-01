@@ -404,8 +404,8 @@ func Test_alter3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE name = 't4';\n  ")
 		}
-		if flatten(r) != sql {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sql, "alter3-8.2")
+		if flatten(r) != tclListFlatten(sql) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(sql), "alter3-8.2")
 		}
 	}
 	db.Close()

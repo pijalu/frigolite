@@ -224,8 +224,8 @@ func Test_tkt2332(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")
 			}
-			if flatten(r) != Len {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), Len, "tkt2332." + Len + ".2")
+			if flatten(r) != tclListFlatten(Len) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(Len), "tkt2332." + Len + ".2")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".3"
@@ -247,8 +247,8 @@ func Test_tkt2332(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + "; ")
 			}
-			if flatten(r) != Len {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), Len, "tkt2332." + Len + ".4")
+			if flatten(r) != tclListFlatten(Len) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(Len), "tkt2332." + Len + ".4")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"

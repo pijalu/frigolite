@@ -227,7 +227,7 @@ func Test_savepoint7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "RELEASE x1")
 		}
-		_list := tclList([]string{rc, msg, tclDbOne(db, "db eval {SELECT * FROM t2}")})
+		_list := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
 		_ = _list
 		_r = _list
 	}
@@ -275,7 +275,7 @@ func Test_savepoint7(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg, tclDbOne(db, "db eval {SELECT * FROM t2}")})
+		_list := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
 		_ = _list
 		_r = _list
 	}

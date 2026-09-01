@@ -106,8 +106,8 @@ func Test_trigger8(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(5);\n    SELECT count(*) FROM t2;\n  ")
 		}
-		if flatten(r) != nStatement {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), nStatement, "trigger8-1.1")
+		if flatten(r) != tclListFlatten(nStatement) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(nStatement), "trigger8-1.1")
 		}
 	}
 }

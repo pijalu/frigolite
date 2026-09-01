@@ -291,7 +291,7 @@ func Test_colname(t *testing.T) {
 		}
 	}
 	{ // do_test "colname-5.1"
-		_ = tclLReplace(tclDbOne(db, "db eval {\n    SELECT x.* FROM sqlite_master X LIMIT 1;\n  }"), "3", "3", "x") // lreplace result
+		_ = tclLReplace(tclExecSQL(db, "\n    SELECT x.* FROM sqlite_master X LIMIT 1;\n  "), "3", "3", "x") // lreplace result
 	}
 	{ // do_test "colname-6.1"
 		db.Close()

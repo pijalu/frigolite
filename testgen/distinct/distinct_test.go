@@ -188,7 +188,7 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			{ // do_test "3.1"
-				tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;\n  }"))
+				tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;\n  "))
 			}
 			{ // "4.1"
 				r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(x);\n  INSERT INTO t2\n    SELECT DISTINCT\n      CASE a WHEN 1 THEN x'0000000000'\n             WHEN 2 THEN zeroblob(5)\n             ELSE 'xyzzy' END\n      FROM t1;\n  SELECT quote(x) FROM t2 ORDER BY 1;\n")

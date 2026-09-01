@@ -70,7 +70,7 @@ func Test_init(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(tclDbOne(db, "db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}")) {
+	if tclBool(tclExecSQL(db, "SELECT sqlite_compileoption_used('THREADSAFE=0')")) {
 		return
 	}
 	db.Close()

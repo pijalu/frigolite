@@ -91,8 +91,6 @@ func Test_fts3sort(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 	var X_docid string
 	_ = X_docid // pre-declared from TCL source
-	BMap := map[string]string{}
-	_ = BMap // dynamic-key array from TCL source
 	CMap := map[string]string{}
 	_ = CMap // dynamic-key array from TCL source
 	DMap := map[string]string{}
@@ -103,6 +101,8 @@ func Test_fts3sort(t *testing.T) {
 	_ = CONTROLMap // dynamic-key array from TCL source
 	AMap := map[string]string{}
 	_ = AMap // dynamic-key array from TCL source
+	BMap := map[string]string{}
+	_ = BMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -129,8 +129,8 @@ func Test_fts3sort(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 				}
-				if flatten(r) != nRow {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), nRow, "1.0")
+				if flatten(r) != tclListFlatten(nRow) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(nRow), "1.0")
 				}
 			}
 			// foreach {tn query} "1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\""

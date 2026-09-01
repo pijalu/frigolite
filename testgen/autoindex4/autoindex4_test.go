@@ -250,8 +250,8 @@ func Test_autoindex4(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 				}
-				if flatten(r) != answer {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), answer, "autoindex4-4." + id + ".1")
+				if flatten(r) != tclListFlatten(answer) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(answer), "autoindex4-4." + id + ".1")
 				}
 			}
 			{ // do_test "autoindex4-4." + id + ".2"
@@ -267,8 +267,8 @@ func Test_autoindex4(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 				}
-				if flatten(r) != answer {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), answer, "autoindex4-4." + id + ".2")
+				if flatten(r) != tclListFlatten(answer) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(answer), "autoindex4-4." + id + ".2")
 				}
 			}
 			{ // do_test "autoindex4-4." + id + ".3"
@@ -288,8 +288,8 @@ func Test_autoindex4(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 				}
-				if flatten(r) != answer {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), answer, "autoindex4-4." + id + ".3")
+				if flatten(r) != tclListFlatten(answer) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(answer), "autoindex4-4." + id + ".3")
 				}
 			}
 			_res = db.Exec("PRAGMA skip_scan = 1")

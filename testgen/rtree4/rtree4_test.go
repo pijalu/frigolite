@@ -213,7 +213,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(where), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".2"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -241,7 +241,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(where), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".3"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -282,7 +282,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(where), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".3"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -323,7 +323,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(where), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".4"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -363,7 +363,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(where), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".5"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -403,7 +403,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(where), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".6"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -435,7 +435,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(tclScramble(where)), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".7"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}
@@ -467,7 +467,7 @@ func Test_rtree4(t *testing.T) {
 			where = "WHERE " + strings.Join(tclSplitList(tclScramble(where)), " AND ")
 			_ = where // suppress unused warning
 			{ // do_test "rtree4-" + nDim + ".2." + i + ".8"
-				_list := tclList([]string{where, tclDbOne(db, "db eval \"SELECT id FROM rx $where ORDER BY id\"")})
+				_list := tclList([]string{where, tclExecSQL(db, "\"SELECT id FROM rx $where ORDER BY id\"")})
 				_ = _list
 				_r = _list
 			}

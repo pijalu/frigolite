@@ -558,8 +558,8 @@ func Test_func(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ");")
 			}
-			if flatten(r) != x2 {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), x2, "func-4.17." + i)
+			if flatten(r) != tclListFlatten(x2) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(x2), "func-4.17." + i)
 			}
 		}
 		// incr i 1
@@ -583,8 +583,8 @@ func Test_func(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ",1);")
 			}
-			if flatten(r) != x2 {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), x2, "func-4.18." + i)
+			if flatten(r) != tclListFlatten(x2) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(x2), "func-4.18." + i)
 			}
 		}
 		// incr i 1
@@ -734,7 +734,7 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // do_test "func-4.39"
-		strings.ToLower(tclDbOne(db, "db eval {SELECT round(1e500), round(-1e500);}"))
+		strings.ToLower(tclExecSQL(db, "SELECT round(1e500), round(-1e500);"))
 	}
 	{ // "func-4.40"
 		r = db.Query("\n    SELECT round(123.456 , 4294967297);\n  ")
@@ -966,7 +966,7 @@ func Test_func(t *testing.T) {
 	}
 	{ // "func-11.1" — skipped: C test-harness functions (sqlite_version(*)) not registered N-A
 	}
-	if tclDbOne(db, "db eval {PRAGMA encoding}") == "UTF-8" {
+	if tclExecSQL(db, "PRAGMA encoding") == "UTF-8" {
 		{ // "func-12.1-utf8" — skipped: C test-harness functions (test_destructor*) not registered N-A
 		}
 	} else {
@@ -1270,8 +1270,8 @@ func Test_func(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + sqlLiteral(name) + ")")
 					}
-					if flatten(r) != sdx {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sdx, "func-20." + i)
+					if flatten(r) != tclListFlatten(sdx) {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(sdx), "func-20." + i)
 					}
 				}
 			}

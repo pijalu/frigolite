@@ -455,8 +455,8 @@ func Test_fts3expr(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
 				}
-				if flatten(r) != res {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "fts3expr-6.1." + id)
+				if flatten(r) != tclListFlatten(res) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3expr-6.1." + id)
 				}
 			}
 		}
@@ -478,8 +478,8 @@ func Test_fts3expr(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
 					}
-					if flatten(r) != res {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "fts3expr-6.2." + id)
+					if flatten(r) != tclListFlatten(res) {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3expr-6.2." + id)
 					}
 				}
 			}

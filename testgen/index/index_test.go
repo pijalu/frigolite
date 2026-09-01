@@ -221,8 +221,8 @@ func Test_index(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name")
 		}
-		if flatten(r) != _r {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), _r, "index-3.1")
+		if flatten(r) != tclListFlatten(_r) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(_r), "index-3.1")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

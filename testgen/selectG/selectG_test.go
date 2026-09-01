@@ -123,7 +123,7 @@ func Test_selectG(t *testing.T) {
 		}
 	}
 	{ // do_test "120"
-		n = strconv.Itoa(tclLLength(tclSplitString(tclDbOne(db, "db eval \"explain $sql\""), "\\n")))
+		n = strconv.Itoa(tclLLength(tclSplitString(tclExecSQL(db, "\"explain $sql\""), "\\n")))
 		_ = n // suppress unused warning
 		// expr $n<10 (not evaluated)
 	}

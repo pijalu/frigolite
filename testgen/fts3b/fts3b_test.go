@@ -130,8 +130,8 @@ func Test_fts3b(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		}
-		if flatten(r) != res {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "fts3b-2.1")
+		if flatten(r) != tclListFlatten(res) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3b-2.1")
 		}
 	}
 	// db eval skipped: VACUUM not implemented (P8.VACUUM)
@@ -140,8 +140,8 @@ func Test_fts3b(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		}
-		if flatten(r) != res {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "fts3b-2.2")
+		if flatten(r) != tclListFlatten(res) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "fts3b-2.2")
 		}
 	}
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n  INSERT INTO t3 (c) VALUES('this is a test');\n  INSERT INTO t3 (c) VALUES('that was a test');\n  INSERT INTO t3 (c) VALUES('this is fun');\n  DELETE FROM t3 WHERE c = 'that was a test';\n")

@@ -526,7 +526,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)")
 		}
 	}
-	if tclDbOne(db, "db eval {PRAGMA encoding}") == "UTF-8" {
+	if tclExecSQL(db, "PRAGMA encoding") == "UTF-8" {
 		{ // do_test "cast-3.21"
 			r = db.Query("SELECT CAST(x'39323233333732303336383534373734383030' AS integer)")
 			if r.Error != nil {

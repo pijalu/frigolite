@@ -110,8 +110,8 @@ func Test_join3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 			}
-			if flatten(r) != result {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), result, "join3-1." + N)
+			if flatten(r) != tclListFlatten(result) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(result), "join3-1." + N)
 			}
 		}
 		// incr N 1
@@ -170,8 +170,8 @@ func Test_join3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
 			}
-			if flatten(r) != result {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), result, "join3-2." + N)
+			if flatten(r) != tclListFlatten(result) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(result), "join3-2." + N)
 			}
 		}
 		// incr N 1

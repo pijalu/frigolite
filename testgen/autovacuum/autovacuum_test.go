@@ -177,8 +177,8 @@ func Test_autovacuum(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        select a from av1 order by rowid\n      ")
 				}
-				if flatten(r) != tbl_data {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tbl_data, "autovacuum-1." + tn + ".(" + delete + ").3")
+				if flatten(r) != tclListFlatten(tbl_data) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(tbl_data), "autovacuum-1." + tn + ".(" + delete + ").3")
 				}
 			}
 		}
@@ -206,8 +206,8 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av1 VALUES('" + tclMakeStr("abc", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("def", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("ghi", tclToInt("3000")) + "');\n    INSERT INTO av1 VALUES('" + tclMakeStr("jkl", tclToInt("3000")) + "');\n  ")
 		}
-		vtab.TclVarSet("av1_data", "", tclDbOne(db, "db eval {select * from av1}"))
-		av1_data = tclDbOne(db, "db eval {select * from av1}") // TCL namespace variable
+		vtab.TclVarSet("av1_data", "", tclExecSQL(db, "select * from av1"))
+		av1_data = tclExecSQL(db, "select * from av1") // TCL namespace variable
 		_ = av1_data // suppress unused warning
 		_r = strconv.Itoa(tclFilePages("test.db")) // file_pages result
 	}
@@ -243,8 +243,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from av1\n  ")
 		}
-		if flatten(r) != av1_data {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av1_data, "autovacuum-2.2.9")
+		if flatten(r) != tclListFlatten(av1_data) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(av1_data), "autovacuum-2.2.9")
 		}
 	}
 	{ // do_test "autovacuum-2.3.1"
@@ -277,8 +277,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av3;\n  ")
 		}
-		if flatten(r) != av3_data {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av3_data, "autovacuum-2.3.4")
+		if flatten(r) != tclListFlatten(av3_data) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(av3_data), "autovacuum-2.3.4")
 		}
 	}
 	{ // do_test "autovacuum-2.3.5"
@@ -286,8 +286,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av4;\n  ")
 		}
-		if flatten(r) != av4_data {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), av4_data, "autovacuum-2.3.5")
+		if flatten(r) != tclListFlatten(av4_data) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(av4_data), "autovacuum-2.3.5")
 		}
 	}
 	{ // do_test "autovacuum-2.4.1"
@@ -375,8 +375,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
 		}
-		if flatten(r) != root_page_list {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), root_page_list, "autovacuum-2.4.5")
+		if flatten(r) != tclListFlatten(root_page_list) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(root_page_list), "autovacuum-2.4.5")
 		}
 	}
 	{ // do_test "autovacuum-2.4.6"
@@ -535,8 +535,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
 		}
-		if flatten(r) != AUTOVACUUM {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "autovacuum-3.4")
+		if flatten(r) != tclListFlatten(AUTOVACUUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(AUTOVACUUM), "autovacuum-3.4")
 		}
 	}
 	{ // do_test "autovacuum-3.5"
@@ -544,8 +544,8 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
 		}
-		if flatten(r) != AUTOVACUUM {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "autovacuum-3.5")
+		if flatten(r) != tclListFlatten(AUTOVACUUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(AUTOVACUUM), "autovacuum-3.5")
 		}
 	}
 	{ // do_test "autovacuum-3.6"

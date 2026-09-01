@@ -124,8 +124,8 @@ func Test_bigrow(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
 		}
-		if flatten(r) != big1 {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), big1, "bigrow-1.3")
+		if flatten(r) != tclListFlatten(big1) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(big1), "bigrow-1.3")
 		}
 	}
 	{ // do_test "bigrow-1.4"
@@ -223,8 +223,8 @@ func Test_bigrow(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='abc'")
 		}
-		if flatten(r) != big1 {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), big1, "bigrow-2.2")
+		if flatten(r) != tclListFlatten(big1) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(big1), "bigrow-2.2")
 		}
 	}
 	{ // do_test "bigrow-2.3"

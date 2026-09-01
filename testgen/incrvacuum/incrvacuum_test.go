@@ -115,8 +115,8 @@ func Test_incrvacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum;\n  ")
 		}
-		if flatten(r) != sqlite_options_default_autovacuum {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), sqlite_options_default_autovacuum, "incrvacuum-1.1")
+		if flatten(r) != tclListFlatten(sqlite_options_default_autovacuum) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(sqlite_options_default_autovacuum), "incrvacuum-1.1")
 		}
 	}
 	{ // do_test "incrvacuum-1.2.0"
@@ -630,8 +630,8 @@ func Test_incrvacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum;\n    ")
 		}
-		if flatten(r) != AUTOVACUUM {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), AUTOVACUUM, "incrvacuum-11.1-av-dflt-on")
+		if flatten(r) != tclListFlatten(AUTOVACUUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(AUTOVACUUM), "incrvacuum-11.1-av-dflt-on")
 		}
 	}
 	{ // do_test "incrvacuum-11.2"

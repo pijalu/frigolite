@@ -407,8 +407,8 @@ func Test_trigger2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
 		}
-		if flatten(r) != t232 {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), t232, "trigger2-3.2")
+		if flatten(r) != tclListFlatten(t232) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(t232), "trigger2-3.2")
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n  DROP TABLE log;\n")

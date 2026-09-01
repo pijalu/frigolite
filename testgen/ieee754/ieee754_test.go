@@ -125,10 +125,10 @@ func Test_ieee754(t *testing.T) {
 			}
 		}
 		{ // do_test "ieee754-110"
-			strings.ToLower(tclDbOne(db, "db eval {SELECT ieee754(1,1024), ieee754(4503599627370495,972);}"))
+			strings.ToLower(tclExecSQL(db, "SELECT ieee754(1,1024), ieee754(4503599627370495,972);"))
 		}
 		{ // do_test "ieee754-111"
-			strings.ToLower(tclDbOne(db, "db eval {SELECT ieee754(-1,1024), ieee754(-4503599627370495,972);}"))
+			strings.ToLower(tclExecSQL(db, "SELECT ieee754(-1,1024), ieee754(-4503599627370495,972);"))
 		}
 		{ // "ieee754-112"
 			r = db.Query("\n  SELECT ieee754(4503599627370495,973) is null;\n")

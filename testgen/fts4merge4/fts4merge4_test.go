@@ -265,8 +265,8 @@ func Test_fts4merge4(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
 						}
-						if flatten(r) != expected {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), expected, "2.2." + tn + "." + tn2)
+						if flatten(r) != tclListFlatten(expected) {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(expected), "2.2." + tn + "." + tn2)
 						}
 					}
 				}

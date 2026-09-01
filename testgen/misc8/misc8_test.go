@@ -197,6 +197,6 @@ func Test_misc8(t *testing.T) {
 		}
 	}
 	{ // do_test "misc8-4.3"
-		tclRegexp("0 icecube .* 2 aux2", tclDbOne(db, "db eval {PRAGMA database_list}"))
+		tclRegexp("0 icecube .* 2 aux2", tclExecSQL(db, "PRAGMA database_list"))
 	}
 }

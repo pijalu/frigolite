@@ -204,8 +204,8 @@ func Test_trans2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if flatten(r) != origres {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".1")
+			if flatten(r) != tclListFlatten(origres) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(origres), "trans2-" + i + ".1")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -285,8 +285,8 @@ func Test_trans2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if flatten(r) != newres {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), newres, "trans2-" + i + ".3")
+			if flatten(r) != tclListFlatten(newres) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(newres), "trans2-" + i + ".3")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -327,8 +327,8 @@ func Test_trans2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if flatten(r) != origres {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".20")
+			if flatten(r) != tclListFlatten(origres) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(origres), "trans2-" + i + ".20")
 			}
 		}
 		{ // do_test "trans2-" + i + ".30"
@@ -364,8 +364,8 @@ func Test_trans2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if flatten(r) != newres {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), newres, "trans2-" + i + ".40")
+			if flatten(r) != tclListFlatten(newres) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(newres), "trans2-" + i + ".40")
 			}
 		}
 		{ // do_test "trans2-" + i + ".90"
@@ -381,8 +381,8 @@ func Test_trans2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if flatten(r) != origres {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), origres, "trans2-" + i + ".90")
+			if flatten(r) != tclListFlatten(origres) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(origres), "trans2-" + i + ".90")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -412,8 +412,8 @@ func Test_trans2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
-			if flatten(r) != newres {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), newres, "trans2-" + i + ".92")
+			if flatten(r) != tclListFlatten(newres) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(newres), "trans2-" + i + ".92")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")

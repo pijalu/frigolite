@@ -154,8 +154,8 @@ func Test_enc2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
 			}
-			if flatten(r) != enc {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.2")
+			if flatten(r) != tclListFlatten(enc) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(enc), "enc2-" + i + ".0.2")
 			}
 		}
 		{ // do_test "enc2-" + i + ".0.3"
@@ -171,8 +171,8 @@ func Test_enc2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
 			}
-			if flatten(r) != enc {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.3")
+			if flatten(r) != tclListFlatten(enc) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(enc), "enc2-" + i + ".0.3")
 			}
 		}
 		{ // do_test "enc2-" + i + ".0.4"
@@ -188,8 +188,8 @@ func Test_enc2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
 			}
-			if flatten(r) != enc {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), enc, "enc2-" + i + ".0.4")
+			if flatten(r) != tclListFlatten(enc) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(enc), "enc2-" + i + ".0.4")
 			}
 		}
 		db.Close()

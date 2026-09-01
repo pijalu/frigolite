@@ -182,8 +182,8 @@ func Test_jrnlmode3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode=" + sqlLiteral(tojmode))
 				}
-				if flatten(r) != fromjmode {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), fromjmode, "jrnlmode3-3." + cnt + ".3")
+				if flatten(r) != tclListFlatten(fromjmode) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(fromjmode), "jrnlmode3-3." + cnt + ".3")
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".4"

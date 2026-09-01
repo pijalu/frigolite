@@ -115,8 +115,8 @@ func Test_vtabC(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
 			}
-			if flatten(r) != tablist {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tablist, "vtabC-1." + N + ".2")
+			if flatten(r) != tclListFlatten(tablist) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(tablist), "vtabC-1." + N + ".2")
 			}
 		}
 		{ // do_test "vtabC-1." + N + ".3"
@@ -240,8 +240,8 @@ func Test_vtabC(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + j)
 				}
-				if flatten(r) != res {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "vtabC-1." + N + ".9." + j)
+				if flatten(r) != tclListFlatten(res) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "vtabC-1." + N + ".9." + j)
 				}
 			}
 			{ // do_test "vtabC-1." + N + ".10." + j
@@ -249,8 +249,8 @@ func Test_vtabC(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + j)
 				}
-				if flatten(r) != res {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), res, "vtabC-1." + N + ".10." + j)
+				if flatten(r) != tclListFlatten(res) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(res), "vtabC-1." + N + ".10." + j)
 				}
 			}
 			// incr j 1

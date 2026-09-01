@@ -92,7 +92,7 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	{ // do_test "in5-2.3"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  "))
 	}
 	{ // do_test "in5-2.4"
 		r = db.Query("\n    SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;\n  ")
@@ -101,13 +101,13 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	{ // do_test "in5-2.5.1"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t3x AND b IN t1y AND c IN t1z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t3x AND b IN t1y AND c IN t1z\n  "))
 	}
 	{ // do_test "in5-2.5.2"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t3y AND c IN t1z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t3y AND c IN t1z\n  "))
 	}
 	{ // do_test "in5-2.5.3"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t3z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t3z\n  "))
 	}
 	{ // do_test "in5-3.1"
 		r = db.Query("\n    DROP INDEX t2abc;\n    CREATE INDEX t2ab ON t2(a,b);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
@@ -122,7 +122,7 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	{ // do_test "in5-3.3"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  "))
 	}
 	{ // do_test "in5-4.1"
 		r = db.Query("\n    DROP INDEX t2ab;\n    CREATE INDEX t2abcd ON t2(a,b,c,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
@@ -137,7 +137,7 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	{ // do_test "in5-4.3"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  "))
 	}
 	{ // do_test "in5-5.1"
 		r = db.Query("\n    DROP INDEX t2abcd;\n    CREATE INDEX t2cbad ON t2(c,b,a,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;\n  ")
@@ -152,7 +152,7 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	{ // do_test "in5-5.3"
-		tclRegexp("OpenEphemeral", tclDbOne(db, "db eval {\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  }"))
+		tclRegexp("OpenEphemeral", tclExecSQL(db, "\n    EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z\n  "))
 	}
 	{ // "6.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a COLLATE nocase);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('ONE');\n")

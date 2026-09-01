@@ -124,8 +124,8 @@ func Test_interrupt(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(a || b) FROM t1;\n  ")
 		}
-		if flatten(r) != cksum {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), cksum, "interrupt-2.3")
+		if flatten(r) != tclListFlatten(cksum) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(cksum), "interrupt-2.3")
 		}
 	}
 	{ // do_test "interrupt-2.4"
