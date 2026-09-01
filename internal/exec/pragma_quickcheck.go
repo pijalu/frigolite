@@ -658,6 +658,15 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 		//   offset 4-7: leaf count (4 bytes, not 2!)
 		//   offset 8+: leaf page numbers (4 bytes each)
 		leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
+		// Defensive guard: SQLite's back-compat margin caps a trunk at
+		// (usableSize/4) - 8 leaves. If we read a leafCount larger than
+		// that, the chain was written by an older or buggy version, or
+		// the on-disk bytes are corrupt. Bail out cleanly instead of
+		// panicking on `data[off:off+4]` below.
+		maxLeaves := uint32(ctx.Pager.PageSize()/4) - 8
+		if leafCount > maxLeaves {
+			return fmt.Sprintf("database disk image is malformed (trunk %d leafCount=%d exceeds maxLeaves=%d)", trunk, leafCount, maxLeaves)
+		}
 		for i := uint32(0); i < leafCount; i++ {
 			off := coff + 8 + int(i)*4
 			leaf := binary.BigEndian.Uint32(data[off : off+4])

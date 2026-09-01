@@ -114,10 +114,31 @@ func (t *BTree) walkAllPages(pn uint32, visited map[uint32]bool, out *[]uint32) 
 			continue
 		}
 		if c.Overflow != 0 {
-			if err := t.walkAllPages(c.Overflow, visited, out); err != nil {
+			if err := t.walkOverflowChain(c.Overflow, visited, out); err != nil {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+// walkOverflowChain follows the linked list of overflow pages starting
+// at pn. Each overflow page has its first 4 bytes = next overflow page
+// (or 0 if last). Pages on the chain have no btree header (ParsePage
+// would error) — we still add them to the to-free list, then read the
+// next-overflow pointer from the first 4 bytes of the page data.
+func (t *BTree) walkOverflowChain(pn uint32, visited map[uint32]bool, out *[]uint32) error {
+	for pn != 0 && !visited[pn] {
+		visited[pn] = true
+		*out = append(*out, pn)
+		pg, err := t.pager.ReadPage(pn)
+		if err != nil {
+			return nil // unreachable page: skip the rest of the chain
+		}
+		if len(pg.Data) < 4 {
+			return nil
+		}
+		pn = binary.BigEndian.Uint32(pg.Data[0:4])
 	}
 	return nil
 }

@@ -3453,3 +3453,112 @@ page numbers into the leaf array of the new trunk. SQLite's
 btree.c::freePage does this via `if( nEntry==pTrunk->nFree ){...}`
 that allocates a new trunk on overflow.
 
+
+## 2026-09 — P8.INCRVACUUM.freelist-multitrunk (multi-trunk FreePage + Truncate chain prune)
+
+### Multi-trunk freelist chain format fix (SQLite btree.c::freePage2)
+
+The single-trunk FreePage (new page → trunk with 0 leaves, chained
+via `pg.Data[0:4] = oldTrunk`) worked only up to ~254 free pages
+per session. After that, the integrity-check walker sees a chain
+of empty trunks and reports "Page X: never used" for every actual
+data page that was freed.
+
+The SQLite-faithful fix (btree.c::freePage2 lines 6797-6930):
+
+1. Header count always increments (every FreePage adds 1).
+2. If the current trunk has room (`nLeaf < (pageSize-8)/4 - 8`),
+   add the freed page as a leaf in the current trunk. Increment
+   nLeaf, write `pageNum` at offset `8 + nLeaf*4`.
+3. Otherwise, make the freed page a new trunk: write old-trunk's
+   pgno to its first 4 bytes, set its leaf count to 0, and update
+   `header.trunk` to the new page.
+
+The back-compat margin `(pageSize-8)/4 - 8` (= 246 for 1024-byte
+pages) keeps the last 6 leaf slots free so newer files can be
+read by older SQLite versions. Always use this cap.
+
+Pure-Go test: `frigolite_p8_freelist_multitrunk_test.go` —
+creates a 100-row table with 4000-byte blobs (~400 freed pages
+after DROP), asserts integrity_check returns "ok" and walks the
+chain to confirm trunk+leaf count == header.count. Pre-fix:
+FAIL ("Page X: never used"). Post-fix: PASS.
+
+### btree_drop FreeTable only walked first overflow page
+
+`walkAllPages` recursed into `c.Overflow` (the FIRST overflow
+page) but didn't follow the chain. For 4000-byte payloads, each
+row has 1 leaf + 3 overflow pages, and only the leaf + first
+overflow ended up on the freelist — the other two overflow pages
+became orphan "Page X: never used" entries.
+
+Fix: new `walkOverflowChain` helper that follows the
+first-4-bytes next-pointer at the start of each overflow page.
+Loop until next==0 or visited. Returns the full chain.
+
+This bug is independent of the FreePage fix — the chain
+overflow is the same but the orphan count differs (was 4-5
+overflow pages per row, now properly all 3).
+
+### Truncate must prune the chain, not just decrement the count
+
+The pre-fix Truncate decremented `header.count` for each
+truncated free page but didn't update the chain's next-trunk
+pointers or remove out-of-range leaves. After auto-vacuum
+truncated 4 pages from a 12-page file, the chain still pointed
+at pages 9-12 (now non-existent) as leaves. Result: chain walks
+counted 9 pages but `header.count` said 5.
+
+Fix: new `pruneFreelistChain(n)` called from Truncate. Walks the
+chain, drops trunks > n, drops leaves > n, rewrites next-trunk
+pointers to skip removed trunks, and recomputes header.count
+from surviving entries. If no survivors, sets header.trunk=0
+and header.count=0.
+
+This bug is independent of the FreePage fix — even with the
+old single-trunk FreePage, the chain would have a leaf at
+position > n after a truncate. The fix is general.
+
+### checkFreelistCount panic-guard for corrupt chain
+
+After the FreePage fix, a chain with `leafCount > maxLeaves` (e.g.,
+written by an older buggy version, or by an external tool)
+panics on `data[off:off+4]`. Add a defensive guard:
+
+```go
+maxLeaves := uint32(ctx.Pager.PageSize()/4) - 8
+if leafCount > maxLeaves {
+    return fmt.Sprintf("database disk image is malformed (trunk %d leafCount=%d exceeds maxLeaves=%d)", trunk, leafCount, maxLeaves)
+}
+```
+
+Mirrors SQLite's `btree.c` line 6868 (`if(nLeaf > pBt->usableSize/4 - 2) return SQLITE_CORRUPT_BKPT`).
+The lower `- 8` margin (vs SQLite's `- 2`) is for back-compat
+with files written before 3.6.0.
+
+### Known remaining engine gaps (out of scope for this fix)
+
+After the multi-trunk FreePage + Truncate prune + btree_drop
+chain walk, the autovacuum testgen still fails on:
+
+- autovacuum-1.x.(N).3 (result mismatch on SELECT after DELETE):
+  data-page content is corrupted when rows are deleted out of
+  order. Root cause is `relocatePage` (Gap C from P8.INCRVACUUM
+  plan) not yet implemented — auto-vacuum's page-swap step
+  relocates data incorrectly.
+
+- autovacuum-2.3.5 / 2.4.5: table content wrong after DROP +
+  reuse. Same root cause (root pages relocated incorrectly).
+
+- autovacuum-9.2 / 9.3 / 9.5 / 10.1: file size stays at 176128
+  bytes. Same root cause.
+
+- incrvacuum2: hangs (WAL + incremental_vacuum interaction
+  gap, pre-existing).
+
+The remaining autovacuum failures are not the freelist chain
+format — they require implementing btree.c::relocatePage (Gap
+C in the engine port plan) and a full IncrVacuumStep that
+relocates pages correctly. These belong in subsequent
+P8.INCRVACUUM.phase* goals per `plan/goals/P8_INCRVACUUM_ENGINE_PORT.md`.
+
