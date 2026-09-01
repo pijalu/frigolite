@@ -3637,3 +3637,35 @@ when a later FreePage added leaves to a now-allocated trunk.
 Reverting that part (keeping only the `inTransaction` guard
 which is a no-op when `inTransaction == false`) brought
 autovacuum back to its baseline 99/95/86.
+
+## P8.INCRVACUUM unblocking investigation (2026-09)
+
+**Cache-coherence "bug" was a test artifact, not an engine defect.**
+Reproduction: 3 long-payload INSERTs after `PRAGMA auto_vacuum=1; CREATE TABLE av1(a,b)`,
+then `PRAGMA integrity_check` returns "database disk image is malformed".
+Trace shows `walkBTreePages` failing on page 3, `pager.ReadPage(3)` returns
+`pager: read page 3: EOF`, numPages=14 but pages 2/3 missing from `p.pages`.
+
+Root cause: leftover `-wal` / `-shm` files from a previous test run. The
+test driver only removed `test.db`, not `test.db-wal` / `test.db-shm`. On
+the next Open, `Open` sees `-wal` exists, sets `p.wal != nil` and
+`p.journalMode = "wal"`, so `flushAllCtx` writes dirty pages to the WAL
+file (not the main `.db`). `readPageLocked` then reads from the main
+file (still 0 bytes) and gets EOF for every page that hasn't been
+written through the legacy direct-flush path.
+
+Fix: clear `test.db`, `test.db-wal`, `test.db-shm` (and `test.db-journal`)
+before each test run. After that, autovacuum-1.1.20.3-style reproductions
+pass with `integrity_check = ok` and no engine change required.
+
+Takeaway: when an `autovacuum` testgen run shows "WALK FAIL page=N EOF"
+with `len(p.pages) < numPages-1`, check for stale WAL/SHM sidecar files
+before assuming a cache-coherence engine bug.
+
+The remaining autovacuum testgen failures (99/95/86 unchanged after the
+63e96f8a auto_vacuum setter fix) are the REAL P8.INCRVACUUM.phase8
+engine gap: chain cycle / duplicate leaves. The fix is the multi-trunk
+FreePage chain with `trunkPages` / `trunkNextTrunk` tracking in Pager
+(matching btree.c::relocatePage lines 6800-6930) — this is the
+previously-lost phase8 working-tree work that must be redone from
+scratch and committed.
