@@ -266,11 +266,18 @@ func (e *Engine) AutoVacuum(schema, value string) *execpragma.Result {
 			name = ctx.Name
 		}
 		e.settings.autoVacuumModes[name] = int64(n)
-		// Apply the mode to the pager immediately while the database is still
-		// empty (btree.c sqlite3BtreeSetAutoVacuum; a non-empty database only
-		// takes the new mode at the next VACUUM). Pointer-map pages are
-		// reserved from the next allocated page on.
-		if ctx != nil && ctx.Pager != nil && ctx.Pager.NumPages() <= 1 {
+		// Apply the mode to the pager immediately. The pager uses
+		// the flag at every subsequent AllocatePage to decide
+		// whether to reserve a pointer-map page (the page number
+		// at PTRMAP_PAGENO positions). Setting it later in the
+		// database lifecycle is still meaningful for future page
+		// allocations: any table btree page that comes after the
+		// next ptrmap-page-number gets a reserved ptrmap page
+		// ahead of it, even if the existing pages weren't
+		// allocated that way. (SQLite's PRAGMA auto_vacuum on a
+		// non-empty database has the same caveat — the change
+		// applies at the next VACUUM.)
+		if ctx != nil && ctx.Pager != nil {
 			ctx.Pager.SetAutoVacuum(n > 0)
 		}
 		return &execpragma.Result{}
