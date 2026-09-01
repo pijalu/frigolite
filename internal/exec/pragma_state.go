@@ -187,6 +187,23 @@ func (e *Engine) PageCount(schema string) int64 {
 	return int64(ctx.Pager.NumPages())
 }
 
+// FreelistCount implements PRAGMA freelist_count: the number of free pages
+// recorded in the on-disk database header (bytes 36-39), regardless of the
+// in-memory p.freePages set. Mirrors btree.c sqlite3BtreeFreePageCount.
+//
+// P8.INCRVACUUM.phase7: prior to this, PRAGMA freelist_count returned a
+// hard-coded 0, masking the gap between the chain's actual reach
+// (chain-walked count) and the header's declared count. The hard-coded 0
+// also hid ROLLBACK-fidelity gaps where the header was decremented but the
+// chain still held stale references (and vice versa).
+func (e *Engine) FreelistCount(schema string) int64 {
+	ctx := e.pragmaDBCtx(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return 0
+	}
+	return int64(ctx.Pager.FreelistCount())
+}
+
 // --- Cache pragmas ---
 
 // CacheSize implements PRAGMA cache_size (getter and setter).

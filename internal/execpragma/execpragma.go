@@ -61,6 +61,11 @@ type EngineState interface {
 	// database (PRAGMA page_count).
 	PageCount(schema string) int64
 
+	// FreelistCount returns the current on-disk freelist count (PRAGMA
+	// freelist_count: bytes 36-39 of the database header, the number of
+	// free pages reachable from the trunk chain).
+	FreelistCount(schema string) int64
+
 	// Cache pragmas.
 	CacheSize(schema, value string) *Result
 	CacheSpill(schema, value string) *Result
@@ -458,7 +463,13 @@ var pragmaHandlers = map[string]Handler{
 		return &Result{Columns: []string{"page_count"}, Rows: [][]interface{}{{st.PageCount(s.Schema)}}}
 	},
 	"FREELIST_COUNT": pragmaGetOnly(func(st EngineState) *Result {
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
+		// P8.INCRVACUUM.phase7: read the actual on-disk freelist count
+		// from the header instead of returning a hard-coded 0. The
+		// previous hard-coded 0 hid the mismatch between the in-memory
+		// freelist state and the on-disk chain — the integrity check
+		// would report "Freelist: size is N but should be M" while
+		// PRAGMA freelist_count itself showed 0, masking the bug.
+		return &Result{Rows: [][]interface{}{{st.FreelistCount("")}}}
 	}),
 	"AUTO_VACUUM": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.AutoVacuum(s.Schema, s.Value)

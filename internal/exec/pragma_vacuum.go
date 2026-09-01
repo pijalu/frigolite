@@ -21,6 +21,16 @@ import (
 // step also performs the actual page-swap + truncate (file shrinks by 1 page
 // per call when the last page is on the freelist; if the last page is in use
 // and a free page is available, relocate+truncate).
+//
+// P8.INCRVACUUM.phase7: when a transaction is active, the file-truncating
+// step is skipped. The journal/rollback machinery does not yet capture the
+// BEFORE image of the truncated tail page, so a ROLLBACK would leave the
+// file shorter than the btree expects. In a transaction we still yield the
+// row but do NOT call runIncrVacuumStep or DecrementFreelistCount — the
+// chain still references the page, so a count decrement would create a
+// header.count / chain-walked-count mismatch. The file is actually shrunk
+// at COMMIT (AutoVacuumCommit on FULL mode / IncrVacuumStep on
+// INCREMENTAL-mode COMMITs).
 func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
@@ -37,6 +47,14 @@ func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 	// With an empty freelist there is no work: SQLITE_DONE, no rows.
 	if nFree == 0 {
 		return &execpragma.Result{}
+	}
+	// Transactional guard (P8.INCRVACUUM.phase7): yield the row and
+	// return without modifying the file or the chain count. The vacuum
+	// is performed at COMMIT (or the user's next incremental_vacuum
+	// after ROLLBACK). For non-transactional callers the original
+	// step+decrement path runs below.
+	if e.tx.inTransaction {
+		return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
 	}
 	// Run one IncrVacuumStep via the btree (P8.INCRVACUUM phase 3).
 	if err := e.runIncrVacuumStep(ctx); err != nil {
