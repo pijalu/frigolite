@@ -94,6 +94,17 @@ type Pager struct {
 	// content is left as-is (it was a valid b-tree leaf, and zeroing it would
 	// break the b-tree reader's integrity-check walk).
 	freePages map[uint32]bool
+	// P8.INCRVACUUM.phase8: trunkPages / leafToTrunk are the in-memory
+	// mirror of the on-disk freelist chain topology. They let AllocatePage
+	// (in-memory branch) advance header.trunk when popping a trunk page and
+	// zero a leaf slot when popping a leaf, so the on-disk chain stays in
+	// sync with the in-memory freePages set. Without these, popping a leaf
+	// leaves the trunk's leaves list referencing the popped page; the next
+	// FreePage of the same page (after re-alloc + re-free) creates a
+	// duplicate, which checkFreelistCount reports as "Page X: never used"
+	// and btreeStructureOK as a cycle.
+	trunkPages  map[uint32]bool
+	leafToTrunk map[uint32]uint32
 	// P8.INCRVACUUM.phase7: set by the exec engine at BEGIN, cleared at
 	// COMMIT/ROLLBACK. While true, AllocatePage skips chain consumption
 	// (the chain pages are not popped; the file is extended instead) so a
@@ -718,10 +729,10 @@ func (p *Pager) AllocatePage() *Page {
 		// P8.INCRVACUUM phase 1: pop from in-memory freePages set first
 		// (O(1), avoids reading the freed page's chain pointer). The
 		// header's count is decremented to keep the on-disk SQLite format
-		// consistent. (This branch does not walk the on-disk chain to
-		// remove the popped page from the leaves list; the
-		// "cycle at leaf=N trunk=M" failure mode in autovacuum is a
-		// known remaining engine gap, deferred to a later phase.)
+		// consistent. The on-disk chain is also updated so the popped
+		// page is no longer referenced by any trunk's leaves list (which
+		// is what the P8.INCRVACUUM.phase8 trunkPages / leafToTrunk
+		// maps track).
 		if len(p.freePages) > 0 {
 			var trunk uint32
 			for pg := range p.freePages {
@@ -729,7 +740,90 @@ func (p *Pager) AllocatePage() *Page {
 				break
 			}
 			delete(p.freePages, trunk)
+			// P8.INCRVACUUM.phase8: maintain the on-disk chain.
+			// If `trunk` is itself a freelist trunk (it was the
+			// page holding Data[0:4] = nextTrunk, Data[4:8] =
+			// leafCount), advance header.trunk to its nextTrunk.
+			// If it's a leaf of some trunk, zero the slot in
+			// that trunk's leaves list and decrement the trunk's
+			// leafCount. If it's neither (orphan), just
+			// decrement header.count.
 			if p.header != nil && len(p.header) >= 40 {
+				if p.trunkPages[trunk] {
+					// Trunk pop: read nextTrunk from the
+					// cached page data BEFORE we overwrite it.
+					// The page is in p.pages because FreePage
+					// read it (line 1409) before adding to
+					// p.trunkPages. If it's not in p.pages
+					// (was evicted), re-read it.
+					trunkPg, terr := p.readPageLocked(trunk)
+					if terr == nil && len(trunkPg.Data) >= 4 {
+						nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+						binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+						p.dirty[1] = true
+					}
+					delete(p.trunkPages, trunk)
+				} else if trunkT, ok := p.leafToTrunk[trunk]; ok {
+					// Leaf pop: find the leaf slot in the
+					// trunk's data and zero it. The trunk is
+					// still in p.pages from the FreePage that
+					// added this leaf; if it was evicted,
+					// re-read it.
+					trunkPg, terr := p.readPageLocked(trunkT)
+					if terr == nil && len(trunkPg.Data) >= 8 {
+						lc := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+						// Walk the leaves list to find
+						// the slot for `trunk`. O(lc) per
+						// pop; matches btree.c
+						// allocateBtreePage's slot scan
+						// (lines 6680-6700).
+						for i := uint32(0); i < lc; i++ {
+							off := 8 + i*4
+							if int(off)+4 > len(trunkPg.Data) {
+								break
+							}
+							leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+							if leaf == trunk {
+								// Found it:
+								// shift the last
+								// slot into this
+								// one (btree.c
+								// lines 6697-6700)
+								// and decrement
+								// leafCount.
+								if i < lc-1 {
+									copy(trunkPg.Data[off:off+4], trunkPg.Data[off+4:off+8])
+								}
+								// Zero the
+								// now-unused
+								// last slot.
+								lastOff := 8 + (lc-1)*4
+								if int(lastOff)+4 <= len(trunkPg.Data) {
+									binary.BigEndian.PutUint32(trunkPg.Data[lastOff:lastOff+4], 0)
+								}
+								binary.BigEndian.PutUint32(trunkPg.Data[4:8], lc-1)
+								p.dirty[trunkT] = true
+								// ROLLBACK fidelity: journal
+								// the trunk's BEFORE
+								// image so ROLLBACK
+								// can restore the
+								// leaf slot and count.
+								if p.journalFile != nil {
+									trunkOff := int64(trunkT-1) * int64(p.pageSize)
+									trunkBefore := make([]byte, p.pageSize)
+									if _, err := p.file.ReadAt(trunkBefore, trunkOff); err == nil {
+										if err := p.appendRollbackRecordLocked(trunkT, trunkBefore); err != nil {
+											return nil
+										}
+									}
+								}
+								break
+							}
+						}
+					}
+					delete(p.leafToTrunk, trunk)
+				}
+				// Decrement header count.
 				count := binary.BigEndian.Uint32(p.header[36:40])
 				if count > 0 {
 					binary.BigEndian.PutUint32(p.header[36:40], count-1)
@@ -783,10 +877,29 @@ func (p *Pager) AllocatePage() *Page {
 								}
 								p.dirty[leafPg] = true
 								clearedLeaves++
+								// P8.INCRVACUUM.phase8: the leaf
+								// is being consumed by the on-disk
+								// branch. Remove from leafToTrunk
+								// (the entry pointing to this
+								// trunk).
+								if p.leafToTrunk != nil {
+									if existingT, ok := p.leafToTrunk[leafPg]; ok && existingT == trunk {
+										delete(p.leafToTrunk, leafPg)
+									}
+								}
 							}
 						}
 					}
 					binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+					// P8.INCRVACUUM.phase8: the trunk itself is
+					// being consumed; remove from trunkPages.
+					// The chain's new head is nextTrunk; if it's
+					// non-zero, it must also be in trunkPages
+					// (it was already there from the FreePage
+					// that chained it).
+					if p.trunkPages != nil {
+						delete(p.trunkPages, trunk)
+					}
 					// Decrement count by 1 (for the trunk) plus the number of leaves
 					// we cleared (each leaf was a free page in the chain). Without
 					// this, after AllocatePage consumes a trunk with leaves, the
@@ -1349,6 +1462,19 @@ func (p *Pager) FreePage(pageNum uint32) error {
 					binary.BigEndian.PutUint32(trunkPg.Data[off:off+4], pageNum)
 					binary.BigEndian.PutUint32(trunkPg.Data[4:8], lc+1)
 					p.dirty[oldTrunk] = true
+					// P8.INCRVACUUM.phase8: track the leaf→trunk
+					// mapping so AllocatePage's in-memory branch can
+					// zero this leaf slot when the leaf is later
+					// popped. Without this, popping a leaf leaves the
+					// trunk's leaves list referencing the popped page,
+					// and a subsequent FreePage of the same page (after
+					// re-alloc + re-free) creates a duplicate, which
+					// checkFreelistCount reports as "Page X: never
+					// used".
+					if p.leafToTrunk == nil {
+						p.leafToTrunk = make(map[uint32]uint32)
+					}
+					p.leafToTrunk[pageNum] = oldTrunk
 					// ROLLBACK fidelity: the trunk's BEFORE image is
 					// needed too. Without it, ROLLBACK restores the
 					// trunk to its prior leafCount but the freed page
@@ -1388,6 +1514,18 @@ func (p *Pager) FreePage(pageNum uint32) error {
 				p.dirty[pageNum] = true
 			}
 		}
+		// P8.INCRVACUUM.phase8: mark the page as a trunk so
+		// AllocatePage's in-memory branch can advance header.trunk
+		// when this page is later popped. The previous trunk
+		// (oldTrunk, if non-zero) is already in trunkPages from a
+		// prior FreePage call; we leave it there because it remains
+		// reachable via the chain's next_trunk pointer (AllocatePage
+		// may still consume it on a future pop if the chain's
+		// current trunk is consumed first).
+		if p.trunkPages == nil {
+			p.trunkPages = make(map[uint32]bool)
+		}
+		p.trunkPages[pageNum] = true
 	}
 	// Journal page 1's BEFORE image so ROLLBACK restores the header's
 	// freelist trunk/count. The freed-page BEFORE image was already
