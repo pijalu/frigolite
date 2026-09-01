@@ -736,9 +736,10 @@ func (p *stringPartsParser) handleBracket() {
 	start := p.pos + 1
 	p.pos++
 	for p.pos < len(p.s) && depth > 0 {
-		if p.s[p.pos] == '[' {
+		ch := p.s[p.pos]
+		if ch == '[' {
 			depth++
-		} else if p.s[p.pos] == ']' {
+		} else if ch == ']' {
 			depth--
 		}
 		if depth > 0 {

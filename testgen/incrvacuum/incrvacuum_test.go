@@ -33,6 +33,7 @@ func Test_incrvacuum(t *testing.T) {
 	_ = r    // suppress unused warning
 	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
+	var sqlite_options_default_autovacuum = "0" // SQLITE_DEFAULT_AUTOVACUUM=0 (NONE)
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -99,8 +100,6 @@ func Test_incrvacuum(t *testing.T) {
 	_ = Id_ // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
-	var sqlite_options_default_autovacuum string
-	_ = sqlite_options_default_autovacuum // pre-declared from TCL source
 	var A string
 	_ = A // pre-declared from TCL source
 	var B string

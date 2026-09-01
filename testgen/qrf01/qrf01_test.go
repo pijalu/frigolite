@@ -495,10 +495,14 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.72"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style html {\n     SELECT 'ab<cd' AS a, 'ab&cd' as b,\n            'ab>cd' AS c, 'ab"))
-		result = "\n" + tclDbOne(db, "db format -style html {\n     SELECT 'ab<cd' AS a, 'ab&cd' as b,\n            'ab>cd' AS c, 'ab")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style html {\n     SELECT 'ab<cd' AS a, 'ab&cd' as b,\n            'ab>cd' AS c, 'ab\"cd' AS d,\n            'xy''z' AS e}") + "\"\n")
+		result = "\n" + tclDbOne(db, "db format -style html {\n     SELECT 'ab<cd' AS a, 'ab&cd' as b,\n            'ab>cd' AS c, 'ab\"cd' AS d,\n            'xy''z' AS e}") + "\"\n"
 		_ = result // suppress unused warning
-		// 'xy''z' AS e}]" (unsupported command, not transpiled)
+		got := tclListFlatten(result)
+		want := tclListFlatten("<tr> <td>ab&lt;cd <td>ab&amp;cd <td>ab&gt;cd <td>ab&quot;cd <td>xy&#39;z </tr>")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.72")
+		}
 	}
 	{ // do_test "1.73"
 		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style html -rowcount on {SELECT * FROM t1 WHERE a=1}"))
@@ -571,8 +575,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.83.0"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       {SELECT a AS"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       {SELECT a AS")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(1,2.5,'three');\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(x'424c4f42',NULL,'Ἀμήν');\n")
@@ -581,8 +585,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.83.1"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always       {SELECT a AS"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always       {SELECT a AS")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title always       {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(1,2.5,'three');\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(x'424c4f42',NULL,'Ἀμήν');\n")
@@ -611,8 +615,8 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.86"
-		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS"))
-		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS")
+		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}"))
+		result = "\n" + tclDbOne(db, "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS \"a-b\", b, c AS \"123\" FROM t1}")
 		_ = result // suppress unused warning
 		got := tclListFlatten(result)
 		want := tclListFlatten("\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(1,2.5,'three');\nINSERT INTO \"drop\"(\"a-b\",b,\"123\") VALUES(x'424c4f42',NULL,'Ἀμήν');\n/* 2 rows inserted */\n")

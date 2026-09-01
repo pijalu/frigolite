@@ -147,12 +147,12 @@ func Test_analyze9(t *testing.T) {
 	_ = seen // pre-declared from TCL source
 	var op string
 	_ = op // pre-declared from TCL source
+	expectMap := map[string]string{}
+	_ = expectMap // dynamic-key array from TCL source
 	possibleMap := map[string]string{}
 	_ = possibleMap // dynamic-key array from TCL source
 	AMap := map[string]string{}
 	_ = AMap // dynamic-key array from TCL source
-	expectMap := map[string]string{}
-	_ = expectMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "analyze9")

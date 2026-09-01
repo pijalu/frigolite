@@ -121,14 +121,58 @@ func (l *tclLexer) readBraceWord() (int, interface{}) {
 	return tokBRACE_WORD, RawWord{Text: word, Braced: true}
 }
 
-// readQuoteWord reads a " ... " quoted word.
+// readQuoteWord reads a " ... " quoted word. Inside a quoted word, `[...]`
+// command substitutions may contain their own quoted sub-words: the lexer
+// must respect bracket depth so the inner `" OR oid = "` of
+//
+//	"...WHERE oid = [join $delete " OR oid = "]"
+//
+// is not mistaken for the outer string's closing quote. We track bracket
+// depth so we don't end the outer word on a `"` inside a `[`; the closing
+// quote is the `"` that matches the opening one at bracket depth 0.
 func (l *tclLexer) readQuoteWord() (int, interface{}) {
 	start := l.pos + 1
 	l.pos++
-	for l.pos < len(l.src) && l.src[l.pos] != '"' {
-		if l.src[l.pos] == '\\' {
+	bracketDepth := 0
+	for l.pos < len(l.src) {
+		ch := l.src[l.pos]
+		if ch == '\\' && l.pos+1 < len(l.src) {
 			l.pos += 2
 			continue
+		}
+		if ch == '[' {
+			bracketDepth++
+			l.pos++
+			continue
+		}
+		if ch == ']' {
+			if bracketDepth > 0 {
+				bracketDepth--
+			}
+			l.pos++
+			continue
+		}
+		if ch == '"' {
+			if bracketDepth > 0 {
+				// Inside a [cmd ...] substitution; the inner "..." is
+				// a separate quoted word of the sub-command. Treat it
+				// as a regular character so the outer string remains
+				// open.
+				l.pos++
+				innerDepth := 1
+				for l.pos < len(l.src) && innerDepth > 0 {
+					if l.src[l.pos] == '\\' && l.pos+1 < len(l.src) {
+						l.pos += 2
+						continue
+					}
+					if l.src[l.pos] == '"' {
+						innerDepth--
+					}
+					l.pos++
+				}
+				continue
+			}
+			break
 		}
 		l.pos++
 	}

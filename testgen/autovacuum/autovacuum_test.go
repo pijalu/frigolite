@@ -153,9 +153,9 @@ func Test_autovacuum(t *testing.T) {
 		for _, delete := range tclSplitList(delete_order) {
 		_ = delete // suppress unused warning
 			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").1"
-				_res = db.Exec("\n        DELETE FROM av1 WHERE oid = " + strings.Join(tclSplitList(delete), " "))
+				_res = db.Exec("\n        DELETE FROM av1 WHERE oid = " + strings.Join(tclSplitList(delete), " OR oid = ") + "\n      ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DELETE FROM av1 WHERE oid = " + strings.Join(tclSplitList(delete), " "))
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DELETE FROM av1 WHERE oid = " + strings.Join(tclSplitList(delete), " OR oid = ") + "\n      ")
 				}
 			}
 			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").2"
