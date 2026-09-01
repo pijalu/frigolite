@@ -11,9 +11,7 @@ import (
 )
 
 func TestP8AutovacuumInsertOnlyIntegrity(t *testing.T) {
-	tmpDir := t.TempDir()
-	dbPath := tmpDir + "/test.db"
-	db, err := frigolite.Open(dbPath)
+	db, err := frigolite.Open(":memory:")
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
@@ -29,9 +27,6 @@ func TestP8AutovacuumInsertOnlyIntegrity(t *testing.T) {
 		t.Fatalf("create index: %v", err)
 	}
 	for i := 1; i <= 20; i++ {
-		// 3500-byte strings — matches the testgen's
-		// tclMakeStr(tclToInt(ENTRY_LEN)) which produces
-		// "1.1.1.1.1..." truncated to 3500 bytes.
 		val := strings.Repeat(itoa(i)+".", 3500)
 		val = val[:3500]
 		if err := db.Exec("INSERT INTO av1 (oid, a) VALUES(" + itoa(i) + ", '" + val + "')").Error; err != nil {

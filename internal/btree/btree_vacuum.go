@@ -368,6 +368,23 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// same early-return. The AutoVacuumCommit caller
 			// notices no progress (NumPages unchanged) and breaks
 			// out of its loop after one attempt.
+			//
+			// P8.INCRVACUUM.phase8.d NOTE: This FreePage does
+			// cause the "cycle at leaf=N trunk=M" testgen error
+			// when the btree's parent has a stale left-child=to
+			// reference (the pre-existing btree rebalance bug).
+			// The cycle appears because the wasted-to page is
+			// re-used as a new chain trunk, and the btree's
+			// stale reference reads the chain data, the chain
+			// walker then follows the page-as-trunk to its
+			// leaves, which can include pages the btree is still
+			// using. The proper fix is the btree rebalance; this
+			// FreePage is still correct semantically (the page
+			// was allocated by autovacuum and the chain should
+			// contain it). With the pre-existing btree bug, the
+			// FreePage exposes the deeper corruption; without it,
+			// the testgen still fails (with a different error
+			// pattern). Both are symptoms of the same root cause.
 			if err := t.pager.FreePage(freePg.PageNum); err != nil {
 				return steps, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
 			}
