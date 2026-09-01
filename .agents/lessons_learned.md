@@ -3190,3 +3190,36 @@ treat as 2-arg).
   match can double-tab the inserted block. Workaround: use a Python script
   to collapse leading "\t\t" → "\t" on the inserted range before
   committing.
+
+## P8.INCRVACUUM engine port: pager freelist trunk format fixes
+
+Two real bugs in internal/pager/pager.go that produced the
+'database disk image is malformed (cycle at leaf=... trunk=...)'
+errors in autovacuum / incrvacuum / incrvacuum2 / incrvacuum3
+testgen packages:
+
+1. `AllocatePage` read the trunk leaf count as 2 bytes (Uint16)
+   but SQLite's btree.c:6865 reads it as 4 bytes (`nLeaf =
+   get4byte(&pTrunk->aData[4])`). The 2-byte read pulled bytes
+   6..7 (high 2 bytes of the first leaf pointer), yielding a
+   garbage count. pragma_quickcheck.go's walker already used
+   4 bytes, so `actual != headerCount` triggered the
+   'Freelist: size is N but should be M' error.
+
+2. `FreePage` created new trunks by setting the first 4 bytes
+   (next trunk) but leaving bytes 4..8 (leaf count) as stale
+   page-content bytes. The walker read those stale bytes as
+   the leaf count, traced garbage 'leaf pointers' through the
+   chain, and reported a cycle.
+
+Reference: btree.c::freePage2 line ~6891-6921 (sets both
+put4byte nextTrunk AND put4byte leafCount = 0 when creating a
+new trunk). Now matched.
+
+After these fixes the engine still does not pass the 4 target
+testgen packages — the larger engine port (Phases 1-4 in
+plan/goals/P8_INCRVACUUM_ENGINE_PORT.md, ~800+ lines covering
+ptrmap R/W, relocatePage, incrVacuumStep, autoVacuumCommit,
+sqlite3_autovacuum_pages callback) remains pending. See that
+plan file for the structured phase goals. The P8.INCRVACUUM
+.complete goal cannot finish until those phases land.
