@@ -3669,3 +3669,36 @@ FreePage chain with `trunkPages` / `trunkNextTrunk` tracking in Pager
 (matching btree.c::relocatePage lines 6800-6930) — this is the
 previously-lost phase8 working-tree work that must be redone from
 scratch and committed.
+
+## P8.INCRVACUUM.phase8 chain-pop fix (2026-09)
+
+**Implemented and committed** (4 commits: f6e1bc3e, 2bfd2dab,
+a5e3fd44, 8a9b4617). The pager fix is correct for the direct
+chain-pop case:
+
+1. `trunkPages` / `leafToTrunk` maps track the on-disk chain
+   topology in memory. FreePage updates them on each free.
+2. AllocatePage in-memory branch: trunk pop reads Data[0:4] for
+   nextTrunk and advances header.trunk; leaf pop walks the trunk's
+   leaves list, finds the slot, zeroes it, decrements leafCount.
+3. AllocatePage on-disk branch: same maintenance on the maps when
+   consuming a chain trunk with leaves.
+4. FreePage idempotence: if a page is already on the chain (in
+   trunkPages or leafToTrunk), don't re-add it. This handles the
+   relocatePage path where a source page may already be a leaf.
+
+**4 unit tests pass** (TestPhase8TrunkPop*, TestPhase8FreePageThenRealloc,
+TestPhase8MultiTrunkFreeList) and **2 native regression tests pass**
+(TestP8AutovacuumChainPop, TestP8AutovacuumChainPopFreeListCount).
+
+**autovacuum testgen reduction: 0%** (still 99/95/86 errors).
+The remaining failures are NOT a chain-pop bug — they're caused by
+the btree/relocatePage path (P8.INCRVACUUM.phase3 follow-up) which
+corrupts the chain in a different way (e.g. "leafCount=33607168
+exceeds maxLeaves=248" = bytes read from wrong offset after a
+relocatePage). The pager fix is a necessary but not sufficient step
+toward unblocking autovacuum; the btree path needs phase3 work.
+
+**Takeaway:** the Pager chain-pop fix is verified by 6 tests but the
+testgen reduction target requires the btree/auto-vacuum-commit work.
+This is a P8.INCRVACUUM.phase3 follow-up.
