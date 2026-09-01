@@ -48,7 +48,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"concat":              (*transpiler).cmdExprConcat,
 		"string":              (*transpiler).cmdExprString,
 		"binary":              (*transpiler).cmdExprBinary,
-		"db":                  (*transpiler).cmdExprDbOne,
+		"db":                  (*transpiler).cmdExprDb,
 		"catch":               (*transpiler).cmdExprCatch,
 		"list":                (*transpiler).cmdExprList,
 		"lindex":              (*transpiler).cmdExprLIndex,
@@ -713,10 +713,25 @@ func (tp *transpiler) cmdExprBinary(cmdName, cmdText string, args []string) stri
 	return `""`
 }
 
-// cmdExprDbOne handles [db one {SQL}] value substitution: run the query at
-// runtime and return the first column of the first row.
-func (tp *transpiler) cmdExprDbOne(cmdName, cmdText string, args []string) string {
-	rest := strings.TrimSpace(strings.TrimPrefix(cmdText, "db one"))
+// cmdExprDb handles [db one {SQL}] / [db eval {SQL}] value substitution: run
+// the query at runtime. `db one` returns the first column of the first row;
+// `db eval` returns the flattened query result list. Other `db` subcommands
+// fall through to the empty string (autovacuum-2.x's `set av1_data [db eval
+// {...}]` path is the common case where the namespace-set codepath also
+// handles set, but cmdExpr fallback (e.g. inside a concat/lappend) needs
+// both forms).
+func (tp *transpiler) cmdExprDb(cmdName, cmdText string, args []string) string {
+	rest := strings.TrimSpace(cmdText)
+	// [db eval {SQL}] — flattened query result via tclExecSQL.
+	if strings.HasPrefix(rest, "db eval") {
+		sql := strings.TrimSpace(rest[len("db eval"):])
+		if len(sql) >= 2 && sql[0] == '{' && sql[len(sql)-1] == '}' {
+			sql = sql[1 : len(sql)-1]
+		}
+		return fmt.Sprintf("tclExecSQL(%s, %q)", tp.dbVar, sql)
+	}
+	// [db one {SQL}] — first column of first row.
+	rest = strings.TrimSpace(strings.TrimPrefix(rest, "db one"))
 	if rest == "" {
 		return `""`
 	}

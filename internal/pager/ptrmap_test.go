@@ -24,10 +24,10 @@ func TestPtrmapReadWrite(t *testing.T) {
 		parentType byte
 		parentPgno uint32
 	}{
-		{3, storage.PtrmapBtreeNode, 2},
-		{5, storage.PtrmapHasRowid, 2},
-		{20, storage.PtrmapOverflow, 7},
-		{50, storage.PtrmapBtreeNode, 2}, // also in first chunk
+		{3, storage.PtrmapBtree, 2},
+		{5, storage.PtrmapBtree, 2},
+		{20, storage.PtrmapOverflow1, 7},
+		{50, storage.PtrmapBtree, 2}, // also in first chunk
 	}
 	for _, tc := range tests {
 		if err := pg.WritePtrmap(tc.pgno, tc.parentType, tc.parentPgno); err != nil {

@@ -12,6 +12,7 @@ package btree
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	"github.com/pijalu/frigolite/internal/pager"
@@ -217,6 +218,9 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 // rightmost-pointer. We scan the parent for the matching pointer and
 // replace it.
 func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, parentType byte) error {
+	if parentType == storage.PtrmapOverflow1 || parentType == storage.PtrmapOverflow2 {
+		return fmt.Errorf("btree: updateParentChildPtr: overflow parent not supported (parent=%d oldChild=%d)", parentPgno, oldChild)
+	}
 	parentPg, err := t.pager.ReadPage(parentPgno)
 	if err != nil {
 		return err
@@ -381,43 +385,89 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 	return steps, nil
 }
 
-// findParentByWalk scans the btree starting from the root looking
-// for `target` as a child. Returns the parent page number and the
-// ptrmap type (always PtrmapBtreeNode; we don't distinguish
-// interior-table from interior-index from leaf). Used as a
-// fallback when the pointer-map entry for `target` is uninitialized
-// (which happens for pages allocated before ptrmap writes were
-// wired into the AllocatePage call sites).
+// findParentByWalk scans the database looking for `target` as a
+// child of some btree node. Returns the parent page number and
+// the ptrmap type. The walk must descend into every user-table
+// btree (not just `t.rootPage`) because:
+//
+//  1. The pointer-map is uninitialized for pages allocated by
+//     btree_insert.go (which bypasses the allocBtreeNode /
+//     allocOverflow helpers in btree_alloc.go and uses
+//     t.pager.AllocatePage() directly — leaving the ptrmap with
+//     type=0 for those pages).
+//  2. runIncrVacuumStep invokes this with t.rootPage=1, which
+//     is the schema (sqlite_schema) btree. The schema btree
+//     only references rootpages of user tables/indexes, never
+//     the btree pages of those tables. The target is almost
+//     always a user-table btree page, so walking only the schema
+//     finds nothing.
+//
+// The walk reads sqlite_schema (the schema btree at page 1) to
+// enumerate every (rootpage, type) for tables and indexes, then
+// walks each btree. This is O(N) where N is the btree size, the
+// same cost as the ptrmap would have been.
+//
+// Reference: src/btree.c::relocatePage (the C code uses ptrmap
+// for the same lookup; the ptrmap is populated at every
+// allocateBTreePage call site. Until those call sites are
+// uniformly wired in Go, this walk is the only way to find the
+// parent.)
 func (t *BTree) findParentByWalk(target uint32) (uint32, byte, error) {
 	if t.rootPage == target {
 		return 0, 0, fmt.Errorf("page %d is the btree root", target)
 	}
+	// 1. Walk the schema btree to enumerate every user-table / index root.
+	if pp, err := t.findParentInBtree(1, target); err == nil {
+		return pp.parent, storage.PtrmapBtree, nil
+	} else if !errors.Is(err, errNotInBtree) {
+		// Schema btree walk itself failed; report the underlying error.
+		return 0, 0, err
+	}
+	return 0, 0, fmt.Errorf("page %d not found in btree", target)
+}
+
+// errNotInBtree is returned by findParentInBtree when `target` is
+// not a child of any node in the btree rooted at `rootPgno`.
+var errNotInBtree = fmt.Errorf("not in btree")
+
+// findParentInBtree walks the btree rooted at `rootPgno` and
+// returns the (parent, target) edge if `target` is found as a
+// child. Returns errNotInBtree if `target` is not in the btree
+// (caller should try another root or fail).
+func (t *BTree) findParentInBtree(rootPgno, target uint32) (struct {
+	parent uint32
+	child  uint32
+}, error) {
 	var queue []struct {
 		parent uint32
 		child  uint32
 	}
-	if err := t.walkChildren(t.rootPage, &queue); err != nil {
-		return 0, 0, err
+	if err := t.walkChildren(rootPgno, &queue); err != nil {
+		return struct {
+			parent uint32
+			child  uint32
+		}{}, err
 	}
 	for len(queue) > 0 {
 		e := queue[0]
 		queue = queue[1:]
 		if e.child == target {
-			return e.parent, storage.PtrmapBtreeNode, nil
+			return e, nil
 		}
-		// Don't descend into a child that the pager has freed —
-		// its content is now junk. The ptrmap (or walk) will say
-		// "this page is on the freelist" if so, but the simpler
-		// check is the in-memory freePages set maintained by
-		// pager.FreePage.
 		if pager.IsPageOnFreelist(t.pager, e.child) {
 			continue
 		}
 		if err := t.walkChildren(e.child, &queue); err != nil {
-			return 0, 0, err
+			return struct {
+				parent uint32
+				child  uint32
+			}{}, err
 		}
 	}
-	return 0, 0, fmt.Errorf("page %d not found in btree", target)
+	return struct {
+		parent uint32
+		child  uint32
+	}{0, 0}, errNotInBtree
 }
 
 // walkChildren appends (parent, child) edges for every child of
@@ -500,14 +550,14 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 			}
 			child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 			if child != 0 {
-				if err := t.pager.WritePtrmap(child, storage.PtrmapBtreeNode, pgNo); err != nil {
+				if err := t.pager.WritePtrmap(child, storage.PtrmapBtree, pgNo); err != nil {
 					return err
 				}
 			}
 		}
 		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
 		if rmp != 0 {
-			if err := t.pager.WritePtrmap(rmp, storage.PtrmapBtreeNode, pgNo); err != nil {
+			if err := t.pager.WritePtrmap(rmp, storage.PtrmapBtree, pgNo); err != nil {
 				return err
 			}
 		}
@@ -532,9 +582,206 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 		if err != nil || c.Overflow == 0 {
 			continue
 		}
-		if err := t.pager.WritePtrmap(c.Overflow, storage.PtrmapOverflow, pgNo); err != nil {
+		if err := t.pager.WritePtrmap(c.Overflow, storage.PtrmapOverflow1, pgNo); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// findParentInOverflowChain walks the btree rooted at `rootPgno`
+// looking for `target` as the overflow next-pointer of any leaf
+// cell. Overflow pages are not btree children — they hang off
+// leaf cells — so a separate scan is needed. Returns the owning
+// cell's page number on success, errNotInBtree if `target` is not
+// in the chain.
+func (t *BTree) findParentInOverflowChain(rootPgno, target uint32) (uint32, error) {
+	if rootPgno == 0 {
+		return 0, errNotInBtree
+	}
+	if pager.IsPageOnFreelist(t.pager, rootPgno) {
+		return 0, errNotInBtree
+	}
+	pg, err := t.pager.ReadPage(rootPgno)
+	if err != nil {
+		return 0, err
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return 0, err
+	}
+	var cellType storage.CellType
+	var ptrBase int
+	switch page.PageType {
+	case storage.PageTypeLeafTable:
+		cellType = storage.CellTableLeaf
+		ptrBase = coff
+	case storage.PageTypeLeafIndex:
+		cellType = storage.CellIndexLeaf
+		ptrBase = coff
+	case storage.PageTypeInteriorTable:
+		cellType = storage.CellTableInterior
+		ptrBase = coff + cellPtrOffset(page.PageType) - 8
+	case storage.PageTypeInteriorIndex:
+		cellType = storage.CellIndexInterior
+		ptrBase = coff + cellPtrOffset(page.PageType) - 8
+	default:
+		return 0, errNotInBtree
+	}
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
+		if cellOff+4 > len(pg.Data) {
+			continue
+		}
+		c, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
+		if err != nil {
+			continue
+		}
+		if c.Overflow == target {
+			return pg.PageNum, nil
+		}
+		if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
+			if c.LeftPtr != 0 {
+				if p, err := t.findParentInOverflowChain(c.LeftPtr, target); err == nil {
+					return p, nil
+				} else if !errors.Is(err, errNotInBtree) {
+					return 0, err
+				}
+			}
+		}
+	}
+	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
+		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
+		if rmp != 0 {
+			if p, err := t.findParentInOverflowChain(rmp, target); err == nil {
+				return p, nil
+			} else if !errors.Is(err, errNotInBtree) {
+				return 0, err
+			}
+		}
+	}
+	return 0, errNotInBtree
+}
+
+// collectSchemaRoots reads every (rootpage) value from
+// sqlite_schema. The schema btree's cells are (type, name, tblname,
+// rootpage, sql) records. We open a cursor on the schema btree
+// (rooted at page 1) and walk every cell, decoding just enough of
+// the record header to extract the rootpage int64.
+func (t *BTree) collectSchemaRoots() ([]uint32, error) {
+	if t.rootPage != 1 {
+		return nil, nil
+	}
+	cur, err := t.OpenCursor()
+	if err != nil {
+		return nil, err
+	}
+	var roots []uint32
+	for {
+		payload, _, err := cur.ReadCellData()
+		if err != nil {
+			break
+		}
+		root, ok := decodeSchemaRootpage(payload)
+		if ok && root > 1 {
+			roots = append(roots, root)
+		}
+		ok2, err := cur.Next()
+		if err != nil || !ok2 {
+			break
+		}
+	}
+	return roots, nil
+}
+
+// decodeSchemaRootpage extracts the 4th field of a sqlite_schema
+// record (the rootpage int64). The header is: 1+ varint headerSize
+// followed by hdrSize-1 varint serial types; the data follows at
+// byte hdrSize.
+func decodeSchemaRootpage(payload []byte) (uint32, bool) {
+	if len(payload) < 2 {
+		return 0, false
+	}
+	hdrSize, n := binary.Uvarint(payload)
+	if n <= 0 || hdrSize == 0 || int(hdrSize) > len(payload) {
+		return 0, false
+	}
+	headerEnd := int(hdrSize)
+	dataPos := headerEnd
+	// Field 1: type (string).
+	typeCode, n := binary.Uvarint(payload[n:headerEnd])
+	if n <= 0 {
+		return 0, false
+	}
+	typeBytes, err := storage.SerialTypeLength(typeCode)
+	if err != nil {
+		return 0, false
+	}
+	dataPos += int(typeBytes)
+	// Field 2: name.
+	nameCode, n := binary.Uvarint(payload[n+1 : headerEnd])
+	if n <= 0 {
+		return 0, false
+	}
+	nameBytes, err := storage.SerialTypeLength(nameCode)
+	if err != nil {
+		return 0, false
+	}
+	dataPos += int(nameBytes)
+	// Field 3: tblname.
+	tblCode, n := binary.Uvarint(payload[n+2 : headerEnd])
+	if n <= 0 {
+		return 0, false
+	}
+	tblBytes, err := storage.SerialTypeLength(tblCode)
+	if err != nil {
+		return 0, false
+	}
+	dataPos += int(tblBytes)
+	// Field 4: rootpage (int).
+	rootCode, n := binary.Uvarint(payload[n+3 : headerEnd])
+	if n <= 0 {
+		return 0, false
+	}
+	rootLen, err := storage.SerialTypeLength(rootCode)
+	if err != nil {
+		return 0, false
+	}
+	if rootLen == 0 {
+		return 0, false
+	}
+	if dataPos+int(rootLen) > len(payload) {
+		return 0, false
+	}
+	var root int64
+	switch rootLen {
+	case 1:
+		root = int64(int8(payload[dataPos]))
+	case 2:
+		root = int64(int16(binary.BigEndian.Uint16(payload[dataPos:])))
+	case 3:
+		v := uint32(payload[dataPos])<<16 | uint32(payload[dataPos+1])<<8 | uint32(payload[dataPos+2])
+		if v&0x800000 != 0 {
+			v |= 0xFF000000
+		}
+		root = int64(int32(v))
+	case 4:
+		root = int64(int32(binary.BigEndian.Uint32(payload[dataPos:])))
+	case 6:
+		v := uint64(payload[dataPos])<<40 | uint64(payload[dataPos+1])<<32 | uint64(payload[dataPos+2])<<24 |
+			uint64(payload[dataPos+3])<<16 | uint64(payload[dataPos+4])<<8 | uint64(payload[dataPos+5])
+		if v&0x800000000000 != 0 {
+			v |= 0xFF00000000000000
+		}
+		root = int64(v)
+	case 8:
+		root = int64(binary.BigEndian.Uint64(payload[dataPos:]))
+	default:
+		return 0, false
+	}
+	if root < 0 || root > 0xFFFFFFFF {
+		return 0, false
+	}
+	return uint32(root), true
 }

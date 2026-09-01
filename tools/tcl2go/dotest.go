@@ -1011,8 +1011,11 @@ func (tp *transpiler) emitSqlite3ExecResultCheck(nameExpr, expectedExpr string) 
 
 // emitExecsqlQueryResultCheck emits a comparison of an execsql-query body.
 func (tp *transpiler) emitExecsqlQueryResultCheck(nameExpr, expectedExpr string) {
-	tp.emitLine("if flatten(r) != %s {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
+	// Normalize the expected value through tclListFlatten so empty TCL
+	// lists (raw "" after an lreplace that removed the last element)
+	// match flatten()'s "{}" rendering of an empty SELECT result.
+	tp.emitLine("if flatten(r) != tclListFlatten(%s) {", expectedExpr)
+	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), tclListFlatten(%s), %s)", expectedExpr, nameExpr)
 	tp.emitLine("}")
 }
 

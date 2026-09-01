@@ -23,11 +23,11 @@ import (
 // PTRMAP_* constants; the on-disk format is 1 byte for the type
 // followed by a 4-byte parent page number (5 bytes per entry).
 const (
-	PtrmapRootpage      byte = 1 // root page of a b-tree (no parent in the b-tree)
-	PtrmapFreelist      byte = 2 // page is on the freelist (trunk or leaf)
-	PtrmapOverflow      byte = 3 // overflow page (first or subsequent) of a cell payload
-	PtrmapBtreeNode     byte = 4 // interior or leaf b-tree page
-	PtrmapHasRowid      byte = 5 // interior table b-tree page (with rowid cells)
+	PtrmapRootpage  byte = 1 // root page of a b-tree (no parent in the b-tree)
+	PtrmapFreelist  byte = 2 // page is on the freelist (trunk or leaf)
+	PtrmapOverflow1 byte = 3 // first overflow page of a cell payload (parent is the btree page)
+	PtrmapOverflow2 byte = 4 // subsequent overflow page (parent is the previous overflow page)
+	PtrmapBtree     byte = 5 // interior or leaf b-tree page (parent is the btree interior page)
 )
 
 // ptrmapEntrySize is the on-disk size of a single pointer-map entry.

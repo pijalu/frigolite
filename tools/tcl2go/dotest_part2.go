@@ -23,8 +23,13 @@ func (tp *transpiler) emitDBEvalQueryResultCheck(nameExpr, expectedExpr string, 
 	tp.emitLine("if r.Error != nil {")
 	tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", queryExpr)
 	tp.emitLine("}")
-	tp.emitLine("if flatten(r) != %s {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), %s, %s)", expectedExpr, nameExpr)
+	// Normalize the expected value through tclListFlatten so empty TCL
+	// lists (raw "" after an lreplace that removed the last element)
+	// match flatten()'s "{}" rendering of an empty SELECT result. This
+	// mirrors TCL do_test's string compare semantics: both sides are
+	// compared as strings, and [list ""] in TCL is the empty string "".
+	tp.emitLine("if flatten(r) != tclListFlatten(%s) {", expectedExpr)
+	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), tclListFlatten(%s), %s)", expectedExpr, nameExpr)
 	tp.emitLine("}")
 }
 

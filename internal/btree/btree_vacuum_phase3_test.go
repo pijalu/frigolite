@@ -63,7 +63,7 @@ func TestRelocatePageBasic(t *testing.T) {
 			continue // skip ptrmap pages — pager.WritePtrmap rejects them
 		}
 		var parent uint32
-		var parentType byte = storage.PtrmapBtreeNode
+		var parentType byte = storage.PtrmapBtree
 		if i < len(refs) && refs[i].parent != 0 {
 			parent = refs[i].parent
 		} else {

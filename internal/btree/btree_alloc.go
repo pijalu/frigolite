@@ -16,14 +16,14 @@ import (
 )
 
 // allocBtreeNode allocates a btree-node page and writes a ptrmap
-// entry (PtrmapBtreeNode, parent=parentPgno). The returned page's
+// entry (PtrmapBtree, parent=parentPgno). The returned page's
 // caller is responsible for initializing its content (page type,
 // cell count, etc.). Pass parentPgno=0 to skip the ptrmap write
 // (used for the schema root page, which is its own root).
 func (t *BTree) allocBtreeNode(parentPgno uint32) (*pager.Page, error) {
 	pg := t.pager.AllocatePage()
 	if parentPgno != 0 {
-		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapBtreeNode, parentPgno); err != nil {
+		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapBtree, parentPgno); err != nil {
 			return nil, err
 		}
 	}
@@ -43,11 +43,14 @@ func (t *BTree) allocRootpage() (*pager.Page, error) {
 }
 
 // allocOverflow allocates an overflow page and writes a ptrmap
-// entry (PtrmapOverflow, parent=parentPgno). Used by the btree
-// when a cell payload doesn't fit on the btree page.
+// entry (PtrmapOverflow1, parent=parentPgno). Used by the btree
+// when a cell payload doesn't fit on the btree page. The first
+// overflow's parent is the btree page; subsequent overflows in the
+// same chain should set their parent to the previous overflow (use
+// allocOverflowNext for that case).
 func (t *BTree) allocOverflow(parentPgno uint32) (*pager.Page, error) {
 	pg := t.pager.AllocatePage()
-	if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapOverflow, parentPgno); err != nil {
+	if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapOverflow1, parentPgno); err != nil {
 		return nil, err
 	}
 	return pg, nil
