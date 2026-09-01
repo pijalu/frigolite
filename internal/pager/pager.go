@@ -1435,6 +1435,20 @@ func (p *Pager) FreePage(pageNum uint32) error {
 		p.freePages = make(map[uint32]bool)
 	}
 	p.freePages[pageNum] = true
+	// P8.INCRVACUUM.phase8: idempotence. If the page is already on
+	// the chain (because it was a leaf of some trunk, or a trunk
+	// itself), don't re-add it. Just bump header.count and return.
+	// Without this, a relocatePage'd source page (which was already
+	// a leaf) gets re-added as a new leaf of the current trunk,
+	// creating a duplicate (which checkTreePage reports as "Page X:
+	// never used" because the duplicate leaf is still in the trunk
+	// the btree doesn't reference).
+	if p.trunkPages[pageNum] || (p.leafToTrunk != nil && p.leafToTrunk[pageNum] != 0) {
+		count := binary.BigEndian.Uint32(p.header[36:40])
+		binary.BigEndian.PutUint32(p.header[36:40], count+1)
+		p.dirty[1] = true
+		return nil
+	}
 	// Update header for on-disk SQLite format compatibility.
 	oldCount := binary.BigEndian.Uint32(p.header[36:40])
 	binary.BigEndian.PutUint32(p.header[36:40], oldCount+1)
