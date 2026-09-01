@@ -3562,3 +3562,78 @@ C in the engine port plan) and a full IncrVacuumStep that
 relocates pages correctly. These belong in subsequent
 P8.INCRVACUUM.phase* goals per `plan/goals/P8_INCRVACUUM_ENGINE_PORT.md`.
 
+
+## 2026-09 — P8.INCRVACUUM.phase7 (transactional vacuum guard + freelist_count)
+
+### Transactional guard for incremental_vacuum (sqlite issue)
+
+`PRAGMA incremental_vacuum = N` inside a `BEGIN ... ROLLBACK`
+block must not actually shrink the file. SQLite's
+`sqlite3BtreeIncrVacuum` calls `sqlite3PagerMovepage` /
+`sqlite3PagerTruncate` which journal the truncated pages via the
+rollback journal, so a ROLLBACK restores them. Frigolite's
+journal machinery does not yet capture the BEFORE image of the
+truncated tail page, so the file would end up shorter than the
+btree expects on ROLLBACK.
+
+The pragmatic fix (P8.INCRVACUUM.phase7): when `e.tx.inTransaction`
+is true, yield the row but skip `runIncrVacuumStep` AND
+`DecrementFreelistCount(1)`. The chain stays consistent
+(`header.count` == chain-walked count). The file is actually
+shrunk at COMMIT (engine.go's `commit()` calls `AutoVacuumCommit`
+on FULL mode or `IncrVacuumStep` on INCREMENTAL-mode COMMITs).
+
+Companion fix in `AllocatePage`: a new `Pager.inTransaction` flag
+skips chain consumption inside an active transaction
+(extends the file instead). Without this, chain pages popped
+during the txn become "Page N: never used" orphans on ROLLBACK
+(the btree state is rolled back so it no longer references the
+popped page, but the chain no longer lists it either).
+
+The exec engine wires `SetInTransaction(true)` at BEGIN
+(execBegin) and `SetInTransaction(false)` at COMMIT
+(execCommit), ROLLBACK (execRollback), and SAVEPOINT RELEASE
+that implicitly starts a transaction (e_fkey-37.x).
+
+### freelist_count getter was a hard-coded 0
+
+`execpragma.FREELIST_COUNT` returned `int64(0)` unconditionally.
+This masked the gap between the in-memory freelist state and
+the on-disk chain: the integrity check would report "Freelist:
+size is N but should be M" while `PRAGMA freelist_count` itself
+showed 0. The fix: add `Engine.FreelistCount` that reads
+`Pager.FreelistCount()` (bytes 36-39 of the database header).
+The hard-coded 0 was almost certainly a forgotten TODO from
+when the pager's FreelistCount was added.
+
+### Outcome at HEAD 826debf1
+
+- testgen/autovacuum2    PASS
+- testgen/incrvacuum3    4 result mismatches (was 1 exec error +
+                          1 query error pre-fix). The two hard
+                          errors (INSERT1: database is locked,
+                          empty integrity_check) are gone; the
+                          remaining 4 result mismatches trace
+                          to a corrupt freelist trunk (trunk 5
+                          with garbage leafCount) — likely a
+                          downstream effect of the multi-trunk
+                          FreePage fix when the chain reaches
+                          across multiple test invocations.
+- testgen/autovacuum     99/95/86 (unchanged from 163504fc; no
+                          regression from the transactional
+                          guard)
+- testgen/incrvacuum2    HANG (pre-existing WAL+vacuum gap)
+- testgen/incrvacuum     FAIL (stack overflow in btree insert,
+                          many "database disk image is
+                          malformed" — pre-existing deep
+                          engine gaps)
+
+The autovacuum-1.1.20.3 failure (627 exec errors at one
+intermediate commit) was traced to my initial in-memory
+AllocatePage rewrite that deleted pages from `p.freePages` and
+rewired the chain's next_trunk pointer inside the pop. The
+chain rewiring corrupted pages already in use by the btree
+when a later FreePage added leaves to a now-allocated trunk.
+Reverting that part (keeping only the `inTransaction` guard
+which is a no-op when `inTransaction == false`) brought
+autovacuum back to its baseline 99/95/86.
