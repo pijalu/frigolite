@@ -620,6 +620,7 @@ func (p *Pager) MarkClean() {
 func (p *Pager) OpenedEmpty() bool { return p.openedEmpty }
 
 func (p *Pager) NumPages() uint32 { p.mu.RLock(); defer p.mu.RUnlock(); return p.numPages }
+func (p *Pager) Pages() map[uint32]*Page { p.mu.RLock(); defer p.mu.RUnlock(); return p.pages }
 func (p *Pager) Header() []byte   { p.mu.RLock(); defer p.mu.RUnlock(); return p.header }
 
 // IsHeaderCorrupt reports whether Open observed a 100-byte header that did
