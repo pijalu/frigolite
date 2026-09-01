@@ -721,7 +721,13 @@ func (p *Pager) AllocatePage() *Page {
 				// deleted cells — they are no longer valid freelist entries once
 				// the trunk itself is consumed.)
 				nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
-				leafCount := binary.BigEndian.Uint16(trunkPg.Data[4:6])
+				// SQLite freelist trunk format (btree.c:10701): leaf count is
+				// a 4-byte big-endian integer at offset 4, NOT 2 bytes. Reading
+				// only 2 bytes also pulls bytes 6..7 which are the high two bytes
+				// of the first leaf page number, yielding a garbage count that
+				// confuses the integrity_check walker. pragma_quickcheck.go reads
+				// 4 bytes for the same reason.
+				leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
 				clearedLeaves := uint32(0)
 				for i := 0; i < int(leafCount); i++ {
 					off := 8 + i*4
@@ -1136,31 +1142,38 @@ func (p *Pager) FreePage(pageNum uint32) error {
 	oldCount := binary.BigEndian.Uint32(p.header[36:40])
 	binary.BigEndian.PutUint32(p.header[36:40], oldCount+1)
 	oldTrunk := binary.BigEndian.Uint32(p.header[32:36])
-	if oldTrunk == 0 {
-		// First free page: this becomes the trunk; its first 4 bytes
-		// point to 0 (chain end). The integrity-check walker starts
-		// here and stops immediately, so the count check
-		// (size == count) passes.
-		binary.BigEndian.PutUint32(p.header[32:36], pageNum)
-		// Patch the page's first 4 bytes to 0 to break the chain. The
-		// page might still be in the cache (read by the btree walker
-		// just before this FreePage), so we update both the cache
-		// and the on-disk image at flush time.
-		if pg, ok := p.pages[pageNum]; ok && pg != nil {
-			binary.BigEndian.PutUint32(pg.Data[0:4], 0)
-			p.dirty[pageNum] = true
+		if oldTrunk == 0 {
+			// First free page: this becomes the trunk; its first 4 bytes
+			// point to 0 (chain end). The integrity-check walker starts
+			// here and stops immediately, so the count check
+			// (size == count) passes.
+			binary.BigEndian.PutUint32(p.header[32:36], pageNum)
+			// Patch the page's first 4 bytes to 0 to break the chain. The
+			// page might still be in the cache (read by the btree walker
+			// just before this FreePage), so we update both the cache
+			// and the on-disk image at flush time.
+			if pg, ok := p.pages[pageNum]; ok && pg != nil {
+				binary.BigEndian.PutUint32(pg.Data[0:4], 0)
+				// SQLite freelist trunk format (btree.c:10701): bytes 4..8
+				// are the 4-byte leaf count; initialize to 0 to prevent
+				// stale page-content bytes from being read as the count by
+				// the integrity-check walker (cycles / corrupted leaf
+				// pointers were the visible symptom).
+				binary.BigEndian.PutUint32(pg.Data[4:8], 0)
+				p.dirty[pageNum] = true
+			}
+		} else if oldTrunk != pageNum {
+			// Subsequent free page: link it BEFORE the old trunk so the
+			// chain is monotonic in the newTrunk-set (highest-page-first).
+			// This way truncating the highest pages leaves a valid
+			// sub-chain starting at the highest survivor.
+			binary.BigEndian.PutUint32(p.header[32:36], pageNum)
+			if pg, ok := p.pages[pageNum]; ok && pg != nil {
+		binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk)
+		binary.BigEndian.PutUint32(pg.Data[4:8], 0)
+		p.dirty[pageNum] = true
+			}
 		}
-	} else if oldTrunk != pageNum {
-		// Subsequent free page: link it BEFORE the old trunk so the
-		// chain is monotonic in the newTrunk-set (highest-page-first).
-		// This way truncating the highest pages leaves a valid
-		// sub-chain starting at the highest survivor.
-		binary.BigEndian.PutUint32(p.header[32:36], pageNum)
-		if pg, ok := p.pages[pageNum]; ok && pg != nil {
-			binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk)
-			p.dirty[pageNum] = true
-		}
-	}
 	// Journal page 1's BEFORE image so ROLLBACK restores the header's
 	// freelist trunk/count. The freed-page BEFORE image was already
 	// journaled above. Without this, ROLLBACK leaves the header with
