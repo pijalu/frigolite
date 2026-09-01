@@ -3313,3 +3313,74 @@ smallest Phase1-4 sub-goal that addresses each:
 
 - **P8.INCRVACUUM.complete** (this goal): re-run full verify
   command. All 5 packages green.
+
+## P8.INCRVACUUM incremental fix loop summary (during .complete goal)
+
+After investigation found the 4-of-5 fail root causes, this session
+applied several small SQLite-parity fixes:
+
+1. **tcl2go preamble**: initialize
+   `sqlite_options_default_autovacuum = "0"` when the TCL source
+   references it (commit 22e1d31d). SQLITE_DEFAULT_AUTOVACUUM
+   compile-flag default. Flips incrvacuum-1.1 from FAIL to PASS.
+
+2. **pager Open**: defer "file is not a database" error to the first
+   statement (commit f69dd9b4). SQLite's sqlite3PagerOpen does NOT
+   fail on bad header; the schema-init / btree-open path reports
+   the error. Frigolite's pager now mirrors this for short reads
+   (file smaller than the 100-byte header). Unblocks incrvacuum-14.1
+   path (open invalid.db then PRAGMA incremental_vacuum).
+
+3. **PRAGMA auto_vacuum**: silently ignore invalid string and
+   out-of-range values (commit f69dd9b4). SQLite's pragma.c raises
+   sqlite3_log warning, not an error return. Unblocks
+   incrvacuum-1.4 / 1.7 / 2.1.x.
+
+These together flip ~5 individual do_test bodies from FAIL to
+PASS in incrvacuum.test. Remaining failures span the engine port
+Phases 1-4 in plan/goals/P8_INCRVACUUM_ENGINE_PORT.md.
+
+### incrvacuum-5.1.x transpiler ordering bug
+
+The TCL test does:
+```
+set TestScriptList [list {
+    INSERT INTO t1 VALUES($::str1, $::str2);
+    ...
+}]
+set ::str1 [string repeat abcdefghij 130]
+```
+The `[list {...}]` preserves $::str1 verbatim (no eager
+interpolation); db eval later evaluates with current $::str1.
+
+The transpiler eagerly concatenates: `TestScriptList = "..." + str1 +
+...` where str1 is empty at that point. The str1/str2 assignments
+appear AFTER TestScriptList in the testgen file. Result:
+`INSERT INTO t1 VALUES(, )` triggers 'near ",": syntax error'.
+
+Fix would require either: (a) deferring TestScriptList assignment
+until all `set ::str` are processed, OR (b) emitting TestScriptList
+as a function call that builds the string with current Go var
+values. Both are non-trivial transpiler features beyond the scope
+of this unblocking investigation.
+
+### Where to resume for the engine port work
+
+The smallest sub-goal that addresses the most failures:
+
+- **P8.INCRVACUUM.phase1** (Gap A: FreePage on emptied non-root
+  leaves) — flips incrvacuum-1.1.x.3 to PASS for many rows where
+  DELETE should free pages.
+- **P8.INCRVACUUM.phase3** (Gap C+D: relocatePage + IncrVacuumStep
+  with ptrmap-skip) — unblocks incrvacuum-2.2 (DROP TABLE +
+  incremental_vacuum + COMMIT) and incrvacuum2 (30s timeout).
+- **P8.INCRVACUUM.phase4** (Gap E+F: autoVacuumCommit +
+  sqlite3_autovacuum_pages callback) — unblocks autovacuum
+  (freelist_count stays at 176 after VACUUM; needs COMMIT-time
+  drain).
+- **P8.INCRVACUUM.transpiler-ordering** — separate goal for the
+  TestScriptList [list {...}] defer-interpolation bug.
+
+Phase5 is fully done; pager freelist trunk-format fixes in 100c916f
+are in place; transpiler UTs in 22e1d31d are in place; pragma
+parity fixes in f69dd9b4 are in place.
