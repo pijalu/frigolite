@@ -361,9 +361,21 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	// Files that switch FP_DIGITS (sqlite3_db_config) start from the library
 	// default 0 (shortest round-trip); the harness default for other files is
 	// 15 significant digits (matching the pre-shortest-fpconv test corpus).
-	if strings.Contains(strings.ToUpper(src), "FP_DIGITS") {
-		body.WriteString("\ttcl_fp_digits = 0 // sqlite3_db_config FP_DIGITS file: library default\n")
-	}
+		if strings.Contains(strings.ToUpper(src), "FP_DIGITS") {
+	body.WriteString("\ttcl_fp_digits = 0 // sqlite3_db_config FP_DIGITS file: library default\n")
+		}
+	// sqlite_options(default_autovacuum) is a TCL test-harness global set by
+	// the C test fixture based on the SQLITE_DEFAULT_AUTOVACUUM compile flag
+	// (default = "0" = NONE). The transpiler pre-declares the corresponding
+	// Go var `sqlite_options_default_autovacuum` as an empty string; tests
+	// that compare `pragma auto_vacuum` against this var (incrvacuum-1.1)
+	// then fail with [0] (frigolite's pragma getter returns the mode) vs []
+	// (empty Go var). Initialize it to "0" when referenced — matches SQLite's
+	// autoconf default (BTREE_AUTOVACUUM_NONE). Emit the declaration here so
+	// the var exists before the pre-declared-var loop emits `var ... string`.
+	if strings.Contains(src, "sqlite_options_default_autovacuum") || strings.Contains(src, "sqlite_options(default_autovacuum)") {
+		body.WriteString("\tvar sqlite_options_default_autovacuum = \"0\" // SQLITE_DEFAULT_AUTOVACUUM=0 (NONE)\n")
+		}
 	body.WriteString("\n")
 	// Pre-declare secondary DB connection variables (TCL scope is function-wide)
 	for i := 1; i <= 9; i++ {
@@ -592,6 +604,14 @@ func preambleDeclaredNames(src string, preDeclared []string) map[string]bool {
 	}
 	// Common vars declared unconditionally at the top of every test function.
 	declared := map[string]bool{"msg": true, "_res": true, "r": true, "_r": true}
+		// sqlite_options_default_autovacuum is declared (with initial value) by
+		// emitTestPreamble when the TCL source references it. Without this entry,
+		// the preDeclared loop would emit a second `var ... string` declaration
+		// and the build would fail with "sqlite_options_default_autovacuum
+		// redeclared in this block".
+	if strings.Contains(src, "sqlite_options_default_autovacuum") || strings.Contains(src, "sqlite_options(default_autovacuum)") {
+		declared["sqlite_options_default_autovacuum"] = true
+		}
 	for _, bn := range collectBackupNames(src) {
 		declared[bn] = true
 	}
