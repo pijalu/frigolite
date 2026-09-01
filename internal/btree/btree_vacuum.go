@@ -83,24 +83,85 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 			return false, nil
 		}
 	}
-	// Read both pages and copy `from` → `to`.
+	// 1. Read `from`'s data into a temporary buffer.
+	// 2. Read `to`'s page (loads it into cache; its current content
+	//    is the free-page content the pager saved when the page
+	//    was added to the freelist).
+	// 3. Update the parent's child pointer from `from` → `to` in
+	//    memory (journaled via MarkPageDirtyForVacuum).
+	// 4. If the parent update fails (parent not an interior btree
+	//    page, child pointer not found, etc.), return error
+	//    WITHOUT touching `toPg.Data` or `fromPg.Data`. The
+	//    caller's `IncrVacuumStep` will see `relocated=false` and
+	//    skip the file truncation, leaving the btree and file
+	//    consistent: parent still points to `from`, `to` still
+	//    holds its free-page content (recyclable by the next
+	//    AllocatePageLE call), `from` still holds its btree
+	//    content.
+	// 5. If the parent update succeeds, copy `from` → `to` in
+	//    `toPg.Data`, mark `to` dirty (journaled), write the
+	//    ptrmap entry for `to` (same parent as `from` had), and
+	//    update the child ptrmaps so future vacuum steps can find
+	//    the moved page as their parent.
+	//
+	// Why parent-first, not copy-first: a failed parent update
+	// after a copy corrupts `to` with `from`'s content while the
+	// btree still references `from` and the caller will truncate
+	// past `from`. The result: `to` becomes a phantom copy of a
+	// truncated page, and the btree has a stale reference to a
+	// non-existent page. integrity_check reports this as
+	// "Page N: never used" or "database disk image is
+	// malformed" (the freelist chain then references pages with
+	// stale btree content). The earlier "copy first, parent
+	// second" order (commits up to 2ad222cc) hit this every time
+	// the ptrmap was uninitialized for `from` (the btree's
+	// allocation sites bypass WritePtrmap, so most pages have
+	// ptrmap type 0; findParentByWalk only traverses the schema
+	// btree and can't reach user-btree pages; the orphan branch
+	// returns relocated=false, BUT the copy has already
+	// destroyed `to`'s free-page content). The fix: do the
+	// parent update first. If it fails, the buffer is untouched
+	// and the caller can safely decide not to truncate.
 	fromPg, err := t.pager.ReadPage(from)
 	if err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: read page %d: %w", from, err)
 	}
-	toPg, err := t.pager.ReadPage(to)
-	if err != nil {
+	if _, err := t.pager.ReadPage(to); err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: read page %d: %w", to, err)
 	}
-	// Copy the content (whole page is pageSize bytes; the cell-content
-	// pointer, cell-count, etc. are all in the first ~12 bytes).
-	copy(toPg.Data, fromPg.Data)
-	// Mark `to` as dirty so it gets written back.
-	pager.MarkPageDirtyForVacuum(t.pager, to)
-	// Update the parent's reference from `from` to `to`.
+	// Update the parent's reference from `from` to `to`. Done
+	// BEFORE the copy so a failure leaves both pages' content
+	// intact.
 	if err := t.updateParentChildPtr(parentPgno, from, to, parentType); err != nil {
+		// Parent update failed. The parent does not reference
+		// `from` (e.g. the btree's parent is wrong, or the page
+		// is genuinely an orphan). The caller (IncrVacuumStep)
+		// will see `relocated=false` and skip the truncation;
+		// the btree remains consistent. We must NOT corrupt
+		// `to` (it's still a free page in cache; the journal
+		// BEFORE image has its original free-page content), and
+		// we must NOT corrupt `from` (it's still a live btree
+		// page). Both buffers are unchanged: the copy hasn't
+		// happened yet, no MarkPageDirtyForVacuum was called
+		// for either page in this function.
 		return false, fmt.Errorf("btree: RelocatePage: update parent %d: %w", parentPgno, err)
 	}
+	// Copy `from` → `to`. After the parent update succeeded, the
+	// btree now references `to` (not `from`); the copy makes
+	// `to`'s content match what the btree expects. The caller's
+	// Truncate will then remove `from` from the file. On
+	// ROLLBACK, the parent's journal BEFORE image restores the
+	// `from` reference, and `to`'s journal BEFORE image (saved
+	// by FreePage when the page was added to the freelist)
+	// restores the free-page content.
+	toPg, err := t.pager.ReadPage(to)
+	if err != nil {
+		return false, fmt.Errorf("btree: RelocatePage: re-read page %d: %w", to, err)
+	}
+	copy(toPg.Data, fromPg.Data)
+	// Mark `to` as dirty so the copy is written back on commit
+	// (and journaled for ROLLBACK).
+	pager.MarkPageDirtyForVacuum(t.pager, to)
 	// Write the pointer-map entry for `to` (same parent as `from` had).
 	if err := t.pager.WritePtrmap(to, parentType, parentPgno); err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: write ptrmap for %d: %w", to, err)
@@ -262,6 +323,22 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 		// chain entry.
 		relocated, err := t.RelocatePage(freePg.PageNum, lastPg)
 		if err != nil {
+			// P8.INCRVACUUM.phase8: even on a relocation ERROR (not
+			// just the orphan branch), put the wasted `to` page
+			// back on the freelist. The relocator's parent-update
+			// may have succeeded for `to` (in which case `to` is
+			// now a real btree page) — but in that case `to` was
+			// copied from `from` and the btree parent now points
+			// at `to`, so we must NOT free `to` (the parent would
+			// dangle). The error path here is reserved for genuine
+			// failures where `to` was not adopted by any btree
+			// (e.g. RelocatePage read `from` then `to` then failed
+			// the parent update before copying, so `toPg.Data` is
+			// unchanged but already loaded in cache). The relocator
+			// returns (false, nil) for the orphan branch, so the
+			// `err != nil` case is the failure branch where the
+			// relocator decided it cannot proceed safely.
+			_ = t.pager.FreePage(freePg.PageNum)
 			return steps, fmt.Errorf("btree: IncrVacuumStep: relocate %d -> %d: %w", lastPg, freePg.PageNum, err)
 		}
 		if !relocated {
@@ -274,10 +351,26 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// relocator was supposed to update. Truncating would
 			// leave the btree referencing a non-existent page,
 			// which integrity_check reports as "Page N: never used"
-			// or "database disk image is malformed". The wasted
-			// `to` allocation also leaks (stays allocated but
-			// never reused); the cost is bounded by nVac per
-			// autovacuum pass.
+			// or "database disk image is malformed".
+			//
+			// P8.INCRVACUUM.phase8 fix: put the wasted `to` page
+			// back on the freelist. The relocator's AllocatePageLE
+			// already removed `to` from the on-disk chain (chain
+			// count decremented); without this FreePage the
+			// popped page is leaked and the next call's
+			// AllocatePageLE pops a different page, eating through
+			// the chain until integrity_check's
+			// `Freelist: size is 0 but should be N` fires. Returning
+			// `to` to the freelist restores the chain count and
+			// (because the chain's head is the lowest free page)
+			// the SAME page is re-popped next iteration, so the
+			// autovacuum loop converges: same page, same orphan,
+			// same early-return. The AutoVacuumCommit caller
+			// notices no progress (NumPages unchanged) and breaks
+			// out of its loop after one attempt.
+			if err := t.pager.FreePage(freePg.PageNum); err != nil {
+				return steps, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
+			}
 			//
 			// P8.INCRVACUUM note: the SQLite C version never hits
 			// this branch because it always writes the ptrmap at
@@ -285,9 +378,7 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// WritePtrmap into every t.pager.AllocatePage() call
 			// site in the btree. Until that's done, this
 			// conservative branch keeps the btree intact at the
-			// cost of leaving some pages un-relocated. The
-			// AutoVacuumCommit caller will notice no progress
-			// (NumPages unchanged) and break out of its loop.
+			// cost of leaving some pages un-relocated.
 			return steps, nil
 		}
 		// Truncate the file to remove the (now-relocated) last page.

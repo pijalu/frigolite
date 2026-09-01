@@ -706,7 +706,175 @@ func (p *Pager) SetHeader(h []byte) {
 	p.header = append([]byte(nil), h...)
 }
 
-// AllocatePage creates a new page. Data is always pageSize bytes.
+// popFromFreePagesChainLocked removes `pgno` from the on-disk freelist
+// chain. `pgno` must be in p.freePages (or otherwise known to the chain).
+// The on-disk chain is updated so a subsequent checkFreelistCount walk
+// does not count `pgno` as a free page, and p.trunkPages / p.leafToTrunk
+// are kept in sync. header.count is decremented by 1. Caller must hold
+// p.mu.
+//
+// This is the chain-aware pop that AllocatePage and AllocatePageLE both
+// need. Without it, popping a free page leaves the on-disk chain
+// pointing at the now-allocated page; integrity_check's chain walker
+// (checkFreelistCount) sees a page that is no longer in p.freePages
+// but is still listed in some trunk's leaves, and reports it as
+// "Freelist: size is N but should be M" (the chain walk returns N
+// reachable pages, but p.header.count says M).
+//
+// P8.INCRVACUUM.phase8: extracted from AllocatePage so AllocatePageLE
+// (the page-swap target allocator) can use the same chain-aware pop.
+// The on-disk chain has three cases for `pgno`:
+//   1. pgno is a trunk: advance header.trunk to the trunk's nextTrunk
+//      and remove from p.trunkPages.
+//   2. pgno is a leaf of some trunk: find the leaf slot, shift the
+//      last leaf into it (or zero the slot if it's the last leaf),
+//      decrement the trunk's leafCount, mark the trunk dirty, remove
+//      from p.leafToTrunk.
+//   3. pgno is an orphan (not in chain, not in p.freePages): nothing
+//      to do beyond decrementing header.count.
+func (p *Pager) popFromFreePagesChainLocked(pgno uint32) {
+	if p.header == nil || len(p.header) < 40 {
+		return
+	}
+	if p.trunkPages[pgno] {
+		// Trunk pop: the popped page is itself a freelist trunk.
+		// SQLite's btree.c allocateBtreePage handles two sub-cases:
+		//   (a) The trunk has 0 leaves: just advance header.trunk to
+		//       the trunk's next_trunk pointer and free the trunk.
+		//   (b) The trunk has k>0 leaves: the FIRST leaf becomes the
+		//       new trunk (with the remaining k-1 leaves and the
+		//       same next_trunk pointer), and the popped trunk
+		//       becomes the allocated page.
+		// Without (b), the leaves are silently dropped (their page
+		// numbers are gone) and checkFreelistCount reports the
+		// chain-walked count as too small.
+		trunkPg, terr := p.readPageLocked(pgno)
+		if terr == nil && len(trunkPg.Data) >= 8 {
+			nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+			leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+			if leafCount > 0 {
+				// Sub-case (b): promote the first leaf to trunk.
+				if len(trunkPg.Data) < 8+4 {
+					// Trunk too small to hold a leaf slot.
+					// Fall back to (a): just advance.
+					binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+					p.dirty[1] = true
+				} else {
+					newTrunk := binary.BigEndian.Uint32(trunkPg.Data[8:12])
+					if newTrunk == 0 {
+						// Defensive: malformed trunk.
+						binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+						p.dirty[1] = true
+					} else {
+						// Read the new trunk's page and rewrite it
+						// with the remaining leaves.
+						newTrunkPg, nterr := p.readPageLocked(newTrunk)
+						if nterr != nil || len(newTrunkPg.Data) < 8 {
+							// Defensive: can't read.
+							binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+							p.dirty[1] = true
+						} else {
+							// Copy next_trunk pointer from the old
+							// trunk to the new trunk (it inherits
+							// the chain position).
+							binary.BigEndian.PutUint32(newTrunkPg.Data[0:4], nextTrunk)
+							// leafCount-1 remaining leaves.
+							binary.BigEndian.PutUint32(newTrunkPg.Data[4:8], leafCount-1)
+							// Copy the rest of the leaves (skip the
+							// first which is now the trunk itself).
+							if leafCount-1 > 0 {
+								if len(newTrunkPg.Data) >= 8+int(leafCount-1)*4 {
+									copy(newTrunkPg.Data[8:8+int(leafCount-1)*4], trunkPg.Data[12:12+int(leafCount-1)*4])
+								}
+							}
+							// Zero the now-unused last slot in the
+							// new trunk's leaf array.
+							lastOff := 8 + int(leafCount-1)*4
+							if lastOff+4 <= len(newTrunkPg.Data) {
+								binary.BigEndian.PutUint32(newTrunkPg.Data[lastOff:lastOff+4], 0)
+							}
+							p.dirty[newTrunk] = true
+							// Update leafToTrunk: all leaves of the
+							// old trunk that are NOT the new trunk
+							// now point to the new trunk.
+							if p.leafToTrunk != nil {
+								for leaf, lt := range p.leafToTrunk {
+									if lt == pgno && leaf != newTrunk {
+										p.leafToTrunk[leaf] = newTrunk
+									}
+								}
+								// newTrunk is no longer a leaf of
+								// pgno (it's now a trunk itself).
+								delete(p.leafToTrunk, newTrunk)
+							}
+							// Advance header.trunk to newTrunk.
+							binary.BigEndian.PutUint32(p.header[32:36], newTrunk)
+							p.trunkPages[newTrunk] = true
+							p.dirty[1] = true
+						}
+					}
+				}
+			} else {
+				// Sub-case (a): no leaves, just advance header.trunk.
+				binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+				p.dirty[1] = true
+			}
+		}
+		delete(p.trunkPages, pgno)
+	} else if trunkT, ok := p.leafToTrunk[pgno]; ok {
+		// Leaf pop: find the leaf slot in the trunk's data
+		// and zero it. The trunk is still in p.pages from
+		// the FreePage that added this leaf; if evicted,
+		// re-read.
+		trunkPg, terr := p.readPageLocked(trunkT)
+		if terr == nil && len(trunkPg.Data) >= 8 {
+			lc := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+			for i := uint32(0); i < lc; i++ {
+				off := 8 + i*4
+				if int(off)+4 > len(trunkPg.Data) {
+					break
+				}
+				leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+				if leaf == pgno {
+					// Found it: shift the last
+					// slot into this one
+					// (btree.c lines 6697-6700)
+					// and decrement leafCount.
+					if i < lc-1 {
+						copy(trunkPg.Data[off:off+4], trunkPg.Data[off+4:off+8])
+					}
+					lastOff := 8 + (lc-1)*4
+					if int(lastOff)+4 <= len(trunkPg.Data) {
+						binary.BigEndian.PutUint32(trunkPg.Data[lastOff:lastOff+4], 0)
+					}
+					binary.BigEndian.PutUint32(trunkPg.Data[4:8], lc-1)
+					p.dirty[trunkT] = true
+					// ROLLBACK fidelity: journal
+					// the trunk's BEFORE image so
+					// ROLLBACK can restore the
+					// leaf slot and count.
+					if p.journalFile != nil {
+						trunkOff := int64(trunkT-1) * int64(p.pageSize)
+						trunkBefore := make([]byte, p.pageSize)
+						if _, err := p.file.ReadAt(trunkBefore, trunkOff); err == nil {
+							if err := p.appendRollbackRecordLocked(trunkT, trunkBefore); err == nil {
+								// fall through
+							}
+						}
+					}
+					break
+				}
+			}
+		}
+		delete(p.leafToTrunk, pgno)
+		}
+		count := binary.BigEndian.Uint32(p.header[36:40])
+		if count > 0 {
+			binary.BigEndian.PutUint32(p.header[36:40], count-1)
+		}
+		p.dirty[1] = true
+	}
+
 // For page 1, the first HeaderSize bytes are reserved for the database header.
 // With auto-vacuum enabled, page numbers at pointer-map positions are
 // reserved as zeroed pointer-map pages and the caller receives the following
@@ -740,96 +908,10 @@ func (p *Pager) AllocatePage() *Page {
 				break
 			}
 			delete(p.freePages, trunk)
-			// P8.INCRVACUUM.phase8: maintain the on-disk chain.
-			// If `trunk` is itself a freelist trunk (it was the
-			// page holding Data[0:4] = nextTrunk, Data[4:8] =
-			// leafCount), advance header.trunk to its nextTrunk.
-			// If it's a leaf of some trunk, zero the slot in
-			// that trunk's leaves list and decrement the trunk's
-			// leafCount. If it's neither (orphan), just
-			// decrement header.count.
-			if p.header != nil && len(p.header) >= 40 {
-				if p.trunkPages[trunk] {
-					// Trunk pop: read nextTrunk from the
-					// cached page data BEFORE we overwrite it.
-					// The page is in p.pages because FreePage
-					// read it (line 1409) before adding to
-					// p.trunkPages. If it's not in p.pages
-					// (was evicted), re-read it.
-					trunkPg, terr := p.readPageLocked(trunk)
-					if terr == nil && len(trunkPg.Data) >= 4 {
-						nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
-						binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
-						p.dirty[1] = true
-					}
-					delete(p.trunkPages, trunk)
-				} else if trunkT, ok := p.leafToTrunk[trunk]; ok {
-					// Leaf pop: find the leaf slot in the
-					// trunk's data and zero it. The trunk is
-					// still in p.pages from the FreePage that
-					// added this leaf; if it was evicted,
-					// re-read it.
-					trunkPg, terr := p.readPageLocked(trunkT)
-					if terr == nil && len(trunkPg.Data) >= 8 {
-						lc := binary.BigEndian.Uint32(trunkPg.Data[4:8])
-						// Walk the leaves list to find
-						// the slot for `trunk`. O(lc) per
-						// pop; matches btree.c
-						// allocateBtreePage's slot scan
-						// (lines 6680-6700).
-						for i := uint32(0); i < lc; i++ {
-							off := 8 + i*4
-							if int(off)+4 > len(trunkPg.Data) {
-								break
-							}
-							leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
-							if leaf == trunk {
-								// Found it:
-								// shift the last
-								// slot into this
-								// one (btree.c
-								// lines 6697-6700)
-								// and decrement
-								// leafCount.
-								if i < lc-1 {
-									copy(trunkPg.Data[off:off+4], trunkPg.Data[off+4:off+8])
-								}
-								// Zero the
-								// now-unused
-								// last slot.
-								lastOff := 8 + (lc-1)*4
-								if int(lastOff)+4 <= len(trunkPg.Data) {
-									binary.BigEndian.PutUint32(trunkPg.Data[lastOff:lastOff+4], 0)
-								}
-								binary.BigEndian.PutUint32(trunkPg.Data[4:8], lc-1)
-								p.dirty[trunkT] = true
-								// ROLLBACK fidelity: journal
-								// the trunk's BEFORE
-								// image so ROLLBACK
-								// can restore the
-								// leaf slot and count.
-								if p.journalFile != nil {
-									trunkOff := int64(trunkT-1) * int64(p.pageSize)
-									trunkBefore := make([]byte, p.pageSize)
-									if _, err := p.file.ReadAt(trunkBefore, trunkOff); err == nil {
-										if err := p.appendRollbackRecordLocked(trunkT, trunkBefore); err != nil {
-											return nil
-										}
-									}
-								}
-								break
-							}
-						}
-					}
-					delete(p.leafToTrunk, trunk)
-				}
-				// Decrement header count.
-				count := binary.BigEndian.Uint32(p.header[36:40])
-				if count > 0 {
-					binary.BigEndian.PutUint32(p.header[36:40], count-1)
-				}
-			}
-			p.dirty[1] = true
+			// P8.INCRVACUUM.phase8: maintain the on-disk chain
+			// (extracted to popFromFreePagesChainLocked so
+			// AllocatePageLE can share the same logic).
+			p.popFromFreePagesChainLocked(trunk)
 			pg := &Page{Data: make([]byte, p.pageSize), PageNum: trunk}
 			p.pages[trunk] = pg
 			p.dirty[trunk] = true
@@ -1600,6 +1682,17 @@ func (p *Pager) FreePage(pageNum uint32) error {
 // the file is moved to a free page near the front, so we want a
 // low-numbered free page to keep the file contiguous). If no free page
 // is available, returns nil and an SQLITE_FULL error.
+//
+// P8.INCRVACUUM.phase8: the pop must update the on-disk freelist chain
+// (remove the popped page from its trunk's leaves list, or advance
+// header.trunk if the popped page is a trunk itself). Without this,
+// the on-disk chain still references the now-overwritten page; a
+// subsequent integrity_check reports "Freelist: size is N but should
+// be M" (the chain walker counts M reachable pages including the
+// allocated one, but the chain header was decremented in
+// popFromFreePagesChainLocked; or vice versa). AllocatePageLE shares
+// popFromFreePagesChainLocked with AllocatePage so both paths are
+// chain-aware.
 func (p *Pager) AllocatePageLE() (*Page, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -1613,14 +1706,12 @@ func (p *Pager) AllocatePageLE() (*Page, error) {
 		}
 	}
 	delete(p.freePages, lowest)
-	// Decrement header count.
-	if p.header != nil && len(p.header) >= 40 {
-		count := binary.BigEndian.Uint32(p.header[36:40])
-		if count > 0 {
-			binary.BigEndian.PutUint32(p.header[36:40], count-1)
-		}
-	}
-	p.dirty[1] = true
+	// P8.INCRVACUUM.phase8: maintain the on-disk chain. The popped
+	// page may be a trunk or a leaf of some trunk; without this
+	// update, the chain's leaves list still points at the
+	// now-allocated page, and checkFreelistCount's walk sees a
+	// mismatch between chain length and header.count.
+	p.popFromFreePagesChainLocked(lowest)
 	pg := &Page{Data: make([]byte, p.pageSize), PageNum: lowest}
 	p.pages[lowest] = pg
 	p.dirty[lowest] = true

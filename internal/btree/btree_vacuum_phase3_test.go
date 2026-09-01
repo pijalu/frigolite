@@ -98,23 +98,23 @@ func TestRelocatePageBasic(t *testing.T) {
 	if _, err := tr.RelocatePage(target, leaves[0]); err != nil {
 		t.Fatalf("RelocatePage(%d, %d): %v", target, leaves[0], err)
 	}
-	// The freed leaf should now be on the freelist.
-	if !pager.IsPageOnFreelist(pg, leaves[0]) {
-		t.Errorf("page %d should be on freelist after RelocatePage", leaves[0])
+	// P8.INCRVACUUM.phase8: RelocatePage no longer calls
+	// FreePage(leaves[0]). The source page is reclaimed by the
+	// caller's Truncate (mirrors SQLite's btree.c::relocatePage +
+	// sqlite3BtreeCommitPhaseOne pipeline). Verify the contract:
+	//   - the target page now holds the source's b-tree content
+	//     (byte 0 is non-zero: a valid b-tree page type).
+	//   - the source page is NOT on the freelist (the relocator
+	//     didn't add it; the caller is responsible for truncating
+	//     it away, which reclaims the slot without going through
+	//     the on-disk chain).
+	if pager.IsPageOnFreelist(pg, leaves[0]) {
+		t.Errorf("page %d should NOT be on freelist after RelocatePage (caller truncates)", leaves[0])
 	}
-	// The target page should have the same content as the original leaf.
-	origLeaf, _ := pg.ReadPage(leaves[0])
-	// After RelocatePage, the original page is freed (in freePages
-	// set). Reading it from the file would still return the old data
-	// (the on-disk content wasn't zeroed). But our in-memory cache
-	// for leaves[0] might have been replaced.
-	// The more reliable check: read the target page and compare its
-	// b-tree page type.
 	targetPg, _ := pg.ReadPage(target)
 	if targetPg.Data[0] == 0 {
 		t.Errorf("target page %d has byte 0 = 0 (not a b-tree page)", target)
 	}
-	_ = origLeaf
 }
 
 func TestIncrVacuumStepFreelistOnly(t *testing.T) {
