@@ -305,31 +305,40 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	if info.Size() > 0 {
 			// Read the 100-byte header first: it contains the real page size.
 			headerBuf := make([]byte, HeaderSize)
-			if _, err := f.ReadAt(headerBuf, 0); err != nil {
-				f.Close()
-				return nil, fmt.Errorf("pager: read header: %w", err)
-			}
-			hdr, err := storage.ParseHeader(headerBuf)
-			if err != nil {
-				// SQLite's sqlite3PagerOpen does NOT fail on bad header parse: the
-				// error is surfaced by the first statement that touches the page
-				// (sqlite_master scan reports "file is not a database" via
-				// btreeOpenTableCursor's locked-table flag and schema init's
-				// SQLITE_NOTADB error path). Mirroring that: keep the Pager
-				// open, default pageSize to DefaultPageSize, and let subsequent
-				// reads detect the corruption. corrupt2.test 1.2/1.3/1.5
-				// (corrupt2-1.2 expects `file is not a database` on the FIRST
-				// statement, not on Open) and many other crash-recovery tests
-				// require this deferral.
-				pr.pageSize = DefaultPageSize
-				pr.headerCorrupt = true
+			n, err := f.ReadAt(headerBuf, 0)
+			if err != nil && n < HeaderSize {
+			// Short read (file smaller than the 100-byte header) — SQLite
+			// does not fail on Open; it defers to the first statement that
+			// touches the page (which then reports "file is not a database"
+			// via btreeOpenTableCursor). Mirror that: keep the Pager open,
+			// default pageSize to DefaultPageSize, and let the schema-init
+			// path report the error. (corrupt2.test 1.2/1.3/1.5 and
+			// incrvacuum.test-14.1 depend on this deferral.)
+			pr.pageSize = DefaultPageSize
+			pr.headerCorrupt = true
+			} else if err != nil {
+			f.Close()
+			return nil, fmt.Errorf("pager: read header: %w", err)
+			} else if hdr, perr := storage.ParseHeader(headerBuf); perr != nil {
+			// SQLite's sqlite3PagerOpen does NOT fail on bad header parse: the
+			// error is surfaced by the first statement that touches the page
+			// (sqlite_master scan reports "file is not a database" via
+			// btreeOpenTableCursor's locked-table flag and schema init's
+			// SQLITE_NOTADB error path). Mirroring that: keep the Pager
+			// open, default pageSize to DefaultPageSize, and let subsequent
+			// reads detect the corruption. corrupt2.test 1.2/1.3/1.5
+			// (corrupt2-1.2 expects `file is not a database` on the FIRST
+			// statement, not on Open) and many other crash-recovery tests
+			// require this deferral.
+			pr.pageSize = DefaultPageSize
+			pr.headerCorrupt = true
 			} else {
-				pr.pageSize = hdr.PageSize
-				// Header byte 20: bytes reserved at the end of every page (used by
-				// e.g. codec/checksum extensions). Payload distribution math must use
-				// the USABLE size (pageSize - reserved), not the raw page size —
-				// SQLite files written with reserved > 0 are otherwise unreadable.
-				pr.reserved = uint32(hdr.ReservedSpace)
+			pr.pageSize = hdr.PageSize
+			// Header byte 20: bytes reserved at the end of every page (used by
+			// e.g. codec/checksum extensions). Payload distribution math must use
+			// the USABLE size (pageSize - reserved), not the raw page size —
+			// SQLite files written with reserved > 0 are otherwise unreadable.
+			pr.reserved = uint32(hdr.ReservedSpace)
 			}
 		// Read full page 1 into a temporary buffer
 		fullPage := make([]byte, pr.pageSize)

@@ -229,11 +229,17 @@ func (e *Engine) AutoVacuum(schema, value string) *execpragma.Result {
 			case "incremental":
 				n = 2
 			default:
-				return &execpragma.Result{Error: fmt.Errorf("malformed database schema")}
+				// Invalid value: SQLite silently ignores it (logs a
+				// warning via sqlite3_log, but does NOT return an error to
+				// the caller). incrvacuum-1.4 / 1.7 / 2.1.x depend on
+				// this — they set invalid values and expect the next
+				// `pragma auto_vacuum` to return the previous mode.
+				return &execpragma.Result{}
 			}
 		}
 		if n < 0 || n > 2 {
-			return &execpragma.Result{Error: fmt.Errorf("malformed database schema")}
+			// Out-of-range number: same as above (silently ignored).
+			return &execpragma.Result{}
 		}
 		if e.settings.autoVacuumModes == nil {
 			e.settings.autoVacuumModes = make(map[string]int64)
