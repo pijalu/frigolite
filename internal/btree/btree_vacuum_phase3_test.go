@@ -59,6 +59,9 @@ func TestRelocatePageBasic(t *testing.T) {
 	}
 	// Write ptrmap entries: each leaf is a btree node with its parent.
 	for i, leaf := range leaves {
+		if storage.IsPtrmapPageNo(leaf, tr.pageSize) {
+			continue // skip ptrmap pages — pager.WritePtrmap rejects them
+		}
 		var parent uint32
 		var parentType byte = storage.PtrmapBtreeNode
 		if i < len(refs) && refs[i].parent != 0 {
@@ -67,7 +70,7 @@ func TestRelocatePageBasic(t *testing.T) {
 			parent = tr.RootPage()
 		}
 		writePtrmapForParent(t, tr, leaf, parent, parentType)
-	}
+		}
 	// Pick a non-root leaf, free a slot manually (mimic the
 	// post-DELETE state), then relocate the last page to it.
 	lastPg := pg.NumPages()
@@ -75,6 +78,16 @@ func TestRelocatePageBasic(t *testing.T) {
 	if target == 1 {
 		target = 2
 	}
+	// Skip pointer-map pages (P8.INCRVACUUM autovacuum-mode pages) — the
+	// pager.WritePtrmap call rejects them with "pgno N is a pointer-map page".
+	// pageSize=1024 means every (1024/5)+1 = 205 pages is a ptrmap page;
+	// pageSize=4096 means every 818. Walk backward to find a non-ptrmap slot.
+		for storage.IsPtrmapPageNo(target, tr.pageSize) && target > 1 {
+		target--
+		}
+		if target <= 1 {
+		t.Skipf("could not find a non-ptrmap target near lastPg=%d", lastPg)
+		}
 	// We need a "free" page to be allocated. AllocatePageLE returns
 	// one from the in-memory freelist, which is empty, so this would
 	// fail. Instead, use the last page of the file as the "to"
