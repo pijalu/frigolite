@@ -3384,3 +3384,72 @@ The smallest sub-goal that addresses the most failures:
 Phase5 is fully done; pager freelist trunk-format fixes in 100c916f
 are in place; transpiler UTs in 22e1d31d are in place; pragma
 parity fixes in f69dd9b4 are in place.
+
+## 2026-09 — P8.INCRVACUUM.phase7 (transpiler LALR lexer + DB-on-disk freelist)
+
+### LALR(1) lexer `readQuoteWord` did not track `[...]` depth
+
+The go-lemon-generated LALR parser in
+`tools/tclconvert/tcl/tclparser/lexer.go` had a `readQuoteWord`
+that scanned for the next `"` without checking whether it was
+inside a `[cmd ...]` substitution. For an execsql block like:
+
+  `execsql "DELETE FROM t1 WHERE oid = [join $delete \" OR oid = \"]"`
+
+the lexer returned the RawWord as the text up to the FIRST inner
+`"`, so the transpiler received a 51-char string instead of the
+full 73-char one. The hand-written `tcl.ParseCommands` in
+`tools/tclconvert/tcl/parser.go::readQuoteWord` already tracks
+`bracketDepth` and the inner-quoted-word loop correctly. Mirror
+that logic in the LALR version (commit 959e85e9).
+
+Visible symptom: testgen autovacuum-1.1.x.3 had 19+ result
+mismatches per delete-order iteration because
+`strings.Join(tclSplitList(delete), " ")` produced a SQL
+`DELETE FROM t1 WHERE oid = 1 2 3` (no OR clauses), which failed
+silently. The TCL-tracked `tbl_data` continued to shrink while
+the actual table did not.
+
+Diagnostic recipe when a testgen output looks wrong: print
+`len(args[0].Text)` BEFORE `sanitizeSQL`/`goStringLiteral`/
+`buildStringExpr` are called. If the input text is shorter than
+the source, the lexer/parser is the suspect, not the cmd handler.
+
+### Engine port: AutoVacuumCommit must honor the callback's nVac cap
+
+When `sqlite3_autovacuum_pages` is registered (engine accessor
+`SetAutovacuumPagesCallback`), the callback returns the
+per-batch `nVac` and `AutoVacuumCommit` must NOT exceed it.
+Replacing the `i < nVac` loop bound with a `hardCap := NumPages()+1`
+breaks autovacuum2 (the test asserts the callback was called
+exactly once with the pre-vacuum `(12, 9, 1024)` shape; draining
+all 12 pages instead of the callback's 4 leaves the on-disk
+freelist chain referencing pages that no longer exist, and
+`PRAGMA integrity_check` reports "Page X: never used").
+
+The "extend past nVac to drop trailing ptrmap pages" trick is
+real (SQLite's `autoVacuumCommit` does it), but it must be
+guarded by the callback: the callback gets a chance to re-arm
+on the next iteration, so the proper fix is to leave the
+trailing-ptrmap cleanup to the NEXT batch via the callback, not
+sneak it past the per-batch budget.
+
+### FreePage on-disk chain format overflow
+
+`pager.FreePage` builds a single-trunk freelist chain: the new
+page becomes the trunk, its first 4 bytes point to the old
+trunk, and the old trunk's leaf count is set to 0. After 286
+FreePage calls, the on-disk `header.count` reads 286 but the
+trunk has 0 leaves — the chain is purely trunks all the way
+down, with no leaves recorded anywhere. The integrity-check
+walker (`pragma_quickcheck.go::checkFreelistCount`) reads
+`leafCount * 4 + 8` bytes per trunk and panics on overflow when
+`leafCount > (pageSize - 8) / 4` (= 254 for 1024-byte pages).
+
+Proper fix (out of scope for this session) needs a multi-trunk
+chain: when the current trunk would overflow, allocate a fresh
+trunk page and link the previous one as a "leaf" by writing its
+page numbers into the leaf array of the new trunk. SQLite's
+btree.c::freePage does this via `if( nEntry==pTrunk->nFree ){...}`
+that allocates a new trunk on overflow.
+
