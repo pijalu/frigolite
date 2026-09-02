@@ -4030,3 +4030,55 @@ chain count). The dbsize fix means the file is now
 consistently 172 pages after the full test sequence, with the
 last ~166 pages being wasted reserved space that the chain
 fix can now drain on the next autovacuum pass.
+
+## P8.INCRVACUUM.phase9.c: ptrmap-aware allocation + header[52:56] tracking
+
+- **PTRMAP pages must be skipped by AllocatePage and AllocatePageLE**
+  in autovacuum mode. btree.c::allocateBTreePage's BTALLOC_EXACT
+  branch (used by btreeCreateTable) explicitly avoids ptrmap
+  slots because using one as a btree page would corrupt the
+  ptrmap layout (the ptrmap entry for that slot is the page's own
+  "I am a ptrmap page" entry, not a btree parent pointer).
+  Testgen autovacuum-2.4.5 explicitly verifies this: 528 unique
+  rootpages in 3..532 minus {207, 412} (the 1024-byte-page ptrmap
+  positions).
+
+- **`array set` and `[info exists NAME($key)]` are paired tcl
+  primitives.** `array set FOO LIST` declares FOO as a TCL
+  array; the only way to check whether `FOO($i)` is set inside a
+  loop is `[info exists FOO($i)]`. The transpiler must register
+  the array name in `arrayMapVars` (set by `array set`) and
+  handle the dynamic-key form of `info exists` (the 2-arg path
+  where `args[1]` is `"FOO($key)"` as a single arg, not the
+  3-arg `info exists FOO $key` form). Without both, the loop
+  checks the literal name `"FOO($i)"` in the registry and never
+  sees the populated entries.
+
+- **Header[52:56] is the autovacuum "largest root btree page
+  number" (meta[3])**, not "default page cache size" (no such
+  field). The prior `DefaultCacheSize` field in storage.go
+  shifted everything by 4 bytes, misreading meta[3] and
+  ApplicationID. NewEngine reads meta[3] on Open to restore the
+  auto_vacuum mode across connection restarts; without this, a
+  re-opened database silently runs in NONE mode and the file
+  grows without bound on subsequent DELETEs/DROPs.
+  AllocatePage in autovacuum mode must bump meta[3] so this
+  round-trip works.
+
+- **In-memory `IsPageOnFreelist` is the source of truth for
+  `IncrVacuumStep`'s truncate decision.** AutoVacuumCommit
+  fires from `execFlushAutocommit` (autocommit statements) and
+  `execCommit` (explicit COMMITs). It MUST read the in-memory
+  freelist count and walk the chain at that point — the on-disk
+  freelist count can lag by one during a transaction (chain
+  writes are deferred to flush). When the in-memory count is 0
+  but the on-disk count is nonzero, AutoVacuumCommit must skip
+  the vacuum step, not crash.
+
+- **2.5.1+ "Page N: never used" is the btree-rebalance bug, not
+  the chain bug.** Phase 9's chain fix unmasks it because the
+  test now gets past 2.4.x and reaches 2.5.1. The btree
+  rebalance after `RemoveEntryOfType` in the schema btree
+  doesn't always free empty interior pages, leaving the schema
+  btree pointing at ghost pages that the autovacuum then
+  truncates. Phase 10 work (writePtrmap + btree rebalance).
