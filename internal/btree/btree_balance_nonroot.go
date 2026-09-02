@@ -163,21 +163,29 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 		}
 		for i := 0; i < int(spPage.CellCount); i++ {
 			cp := storage.CellPointer(sp.Data, spCo, i, int(t.usableSize))
-			// Cell bytes: from cp to the cell ABOVE it
-			// (cp[i-1] for i>0, or usableSize for i=0). The
-			// cell pointer array stores cell addresses in
-			// DECREASING order (cell 0 at the highest address,
-			// cell n-1 at the lowest), so cell i's end is
-			// cell (i-1)'s start. For the last cell at index
-			// n-1, the end is usableSize.
-			cellEnd := int(t.usableSize)
-			if i > 0 {
-				cellEnd = int(storage.CellPointer(sp.Data, spCo, i-1, int(t.usableSize)))
-			}
-			if cp >= uint16(cellEnd) {
+			// Cell bytes: cell i starts at cp[i] and is sz bytes long,
+			// where sz is decoded from the cell's header (varint
+			// payload length + varint rowid + local payload + optional
+			// 4-byte overflow pointer) — matching SQLite's
+			// btree.c::computeCellSize / cachedCellSize. The cell
+			// pointer array is sorted by KEY (rowid), but the cell
+			// addresses on the page grow downward and may live in
+			// freeblock regions after a defragment, so the cp[] values
+			// are NOT in monotonic address order. The previous code
+			// read [cp[i], cp[i-1]) assuming the cp[] array was in
+			// decreasing-address order; that mis-read cells whenever
+			// the page was defragmented.
+			cellSize, err := storage.TableLeafCellSizeAt(sp.Data, int(cp), int(t.usableSize))
+			if err != nil || cellSize <= 0 {
+				// Corrupt cell: skip it. Matches SQLite's
+				// "best effort" behavior on corrupt pages.
 				continue
 			}
-			cellBytes := make([]byte, cellEnd-int(cp))
+			cellEnd := int(cp) + cellSize
+			if cellEnd > int(t.usableSize) {
+				continue
+			}
+			cellBytes := make([]byte, cellSize)
 			copy(cellBytes, sp.Data[cp:cellEnd])
 			bca.addCell(cellBytes, int(t.usableSize), 0)
 		}

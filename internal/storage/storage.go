@@ -336,6 +336,33 @@ func DecodeCell(pageData []byte, offset int, cellType CellType, pageSize int) (*
 	}
 }
 
+// TableLeafCellSizeAt returns the on-page size in bytes of a table-leaf cell
+// at the given offset, without copying the payload. The size is computed
+// from the cell's header (varint payload length + varint rowid + local
+// payload + optional 4-byte overflow pointer) — matching SQLite's
+// btree.c::computeCellSize which uses pRef->xCellSize to read the size from
+// the cell bytes directly. This is the correct way to determine how many
+// bytes a cell occupies on a page; using the next cell pointer's address
+// is wrong because the cell pointer array is sorted by key, not by address.
+func TableLeafCellSizeAt(pageData []byte, offset int, pageSize int) (int, error) {
+	if offset < 0 || offset >= len(pageData) {
+		return 0, fmt.Errorf("storage: cell offset %d outside page of %d bytes", offset, len(pageData))
+	}
+	c, err := decodeTableLeafCell(pageData, offset, pageSize)
+	if err != nil {
+		return 0, err
+	}
+	// Cell bytes: payload-length varint + rowid varint + local payload +
+	// optional 4-byte overflow pointer.
+	_, n1 := util.GetVarint(pageData[offset:])
+	_, n2 := util.GetVarint(pageData[offset+n1:])
+	sz := n1 + n2 + c.LocalLen
+	if c.LocalLen < c.PayloadLen {
+		sz += 4
+	}
+	return sz, nil
+}
+
 func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	c := &Cell{Type: CellTableLeaf}
 	pos := off

@@ -212,18 +212,30 @@ consolidate stale points.
 6. **tclBool("incr i % N") always true** — transpiler now emits
    tclIncrMod(&i, N) (helpers_template_part2.go); template content goes
    through fmt-verb processing: escape literal % as %%.
-7. **OPEN BUG — btree cell loss under overflow churn** (blocks fts4opt 2.3/
-   2.4/2.7 ic + 2.8, likely fts4growth residuals): inserts with payloads
-   >~500B (overflow) churned with range deletes lose keys and create DUPLICATE
-   interior separators (same child+key in adjacent cells, e.g. p2181 c119/c120
-   child=2282 key=2630). Repro: internal/btree/btree_stress_test.go (skipped,
-   visible). applyChildSplits (btree_insert.go) rewrote insertInteriorPage to
-   SQLite balance_nonroot semantics (re-key parent cell + insert sibling cell
-   carrying old upper bound; rightmost-child case appends dividers + moves
-   rightmost) — one class fixed, dup persists via an unknown path. Next step:
-   instrument splitInteriorPage + root-split path (InsertCell lines ~20-46)
-   for double-append of identical separators; verify with
-   TestBtreeDuplicateTrace diagnostics (dupChildRefsVerbose).
+7. **FIXED — btree cell loss under overflow churn** (was blocking
+   fts4opt 2.3/2.4/2.7 ic + 2.8, autovacuum 2.4-2.5, incrvacuum 11+).
+   Two distinct bugs in `internal/btree/btree_balance_nonroot.go`:
+   (a) `bca.addCell` had a misguided filter `if cells[0] == 0x80
+       { return }` — that dropped cells whose payload-size varint
+       starts with 0x80, i.e. payload sizes 128/256/384/512/640/
+       768/896 on a 1024-byte page (2-byte varints where the
+       low-7-bits are 0). Visible: leaves 470-477 lost key 474 in
+       the stress test (TestBTreeStressCellLoss).
+   (b) Phase 2 cell extraction read `[cp[i], cp[i-1])` assuming
+       the cell pointer array was in decreasing-address order. The
+       array is sorted by KEY (rowid), not by address — cells can
+       live in freeblock regions after partial defragments, so cp[]
+       is NOT monotonic. Fixed by reading the cell size from the
+       cell header (storage.TableLeafCellSizeAt), matching SQLite's
+       btree.c::computeCellSize. Without this, the cell bytes for
+       a key-position mid-page cell were truncated/corrupted on
+       read.
+   Both fixes together: TestBTreeStressCellLoss (3 seeds × 3000
+   steps) now passes; keys 474, 1545, 4758 are no longer lost.
+   Regression tests in `btree_rebalance_overflow_test.go`:
+   `TestRebalancePreservesOverflowBoundaryCell` (0x80 first byte),
+   `TestRebalancePreservesFreeblockOrderCells` (cp[] out of order),
+   `TestRebalancePreservesMixedPayloadSizes` (overflow + non-overflow mix).
 8. Oracle harnesses live in /tmp/oracle_opt (h.c full 2.x replay w/ SYNC-PRE
    instrumentation, p1.c phase-1, full.c exact test sequence); genesis SQL at
    /tmp/genesis.sql; engine mirrors in /tmp/engopt. Amalgamation has INCRMERGE/
