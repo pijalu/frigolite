@@ -75,6 +75,7 @@ type BTree struct {
 	pageSize   uint32
 	usableSize uint32 // pageSize - reserved bytes (payload math, SQLite usable-size formulas)
 	isTable    bool   // true for table b-trees, false for index b-trees
+	isSchema   bool   // true for the sqlite_schema btree (sqlite_schema's allocations bypass the freelist so the schema btree's pages don't take slots from the user-rootpage range; SQLite btree.c::btreeCreateTable uses meta[3] to track the highest rootpage and allocates rootpages at meta[3]+1)
 }
 
 // NewBTree creates a new BTree instance.
@@ -86,6 +87,35 @@ func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
 		usableSize: pg.UsableSize(),
 		isTable:    isTable,
 	}
+}
+
+// NewSchemaBTree creates a BTree for the sqlite_schema btree. Schema
+// btree allocations bypass the freelist so the schema btree's pages
+// don't take slots from the user-rootpage range (P8.INCRVACUUM.phase9).
+func NewSchemaBTree(pg *pager.Pager) *BTree {
+	return &BTree{
+		pager:      pg,
+		rootPage:   1,
+		pageSize:   pg.PageSize(),
+		usableSize: pg.UsableSize(),
+		isTable:    true,
+		isSchema:   true,
+	}
+}
+
+// allocPage allocates a page for the btree, bypassing the freelist if
+// the btree is the schema btree (sqlite_schema's pages must not take
+// slots from the user-rootpage range; P8.INCRVACUUM.phase9).
+func (t *BTree) allocPage() *pager.Page {
+	// P8.INCRVACUUM.phase9: the schema btree's allocations extend the
+	// file (no freelist pop), so the schema btree's pages live
+	// beyond the user rootpage range. User btree allocations go
+	// through the normal AllocatePage path which pops from the
+	// freelist in chain order.
+	if t.isSchema {
+		return t.pager.AllocatePageSkipFreelist()
+	}
+	return t.pager.AllocatePage()
 }
 
 // OpenCursor creates a new cursor positioned at the beginning.

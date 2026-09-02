@@ -105,7 +105,7 @@ func Test_thread004(t *testing.T) {
 		// thread_spawn finished(2) $thread_procs $ThreadTwo (unsupported command, not transpiled)
 		for _, _t := range tclSplitList("1 2") {
 		_ = _t // suppress unused warning
-			if tclBool("!" + tclBool01(vtab.TclVarExists("finished($t)", ""))) {
+			if tclBool("!" + tclBool01(finishedMap[t] != "")) {
 			}
 		}
 		finished_2 = vtab.TclVarGet("finished", "2")

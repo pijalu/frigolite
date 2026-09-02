@@ -101,7 +101,7 @@ func Test_rtree4(t *testing.T) {
 	vtab.TclVarSet("NROW", "", "2500")
 	NROW = "2500" // TCL namespace variable
 	_ = NROW // suppress unused warning
-	if tclBool(tclBool01(vtab.TclVarExists("G(isquick)", "")) + " && " + G_isquick) {
+	if tclBool(tclBool01(GMap[isquick] != "") + " && " + G_isquick) {
 		vtab.TclVarSet("NROW", "", "250")
 		NROW = "250" // TCL namespace variable
 		_ = NROW // suppress unused warning

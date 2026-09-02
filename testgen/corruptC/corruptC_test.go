@@ -114,7 +114,7 @@ func Test_corruptC(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	fsize = strconv.Itoa(tclFileSize("test.db"))
 	_ = fsize // suppress unused warning
-	if tclBool(tclBool01(vtab.TclVarExists("G(issoak)", ""))) {
+	if tclBool(tclBool01(GMap[issoak] != "")) {
 		qseed = "file mtime test.db"
 		_ = qseed // suppress unused warning
 	} else {

@@ -348,7 +348,7 @@ func Test_autovacuum(t *testing.T) {
 	i = "3"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 532 }() {
-		if tclBool("!" + tclBool01(vtab.TclVarExists("unusable_page($i)", ""))) {
+		if tclBool("!" + tclBool01(unusable_pageMap[i] != "")) {
 			root_page_list = tclListAppend(root_page_list, i)
 		}
 		// incr i 1

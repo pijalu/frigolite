@@ -20,7 +20,7 @@ func (m *Manager) UpdateEntryFull(oldName, newName, newSQL string) error {
 		searchName = oldName[dotIdx+1:]
 	}
 
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 
 	// Locate the matching cell, capture its rowid, type, name, tbl_name and
 	// rootpage so the replacement can reuse them (the b-tree orders by rowid,
@@ -83,7 +83,7 @@ func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 		searchName = name[dotIdx+1:]
 	}
 
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 	_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
@@ -104,7 +104,7 @@ func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 // It scans the schema page (page 1) to find the maximum existing rowid
 // and returns the next available value.
 func (m *Manager) nextRowID() int64 {
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 1

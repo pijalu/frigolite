@@ -116,9 +116,9 @@ func Test_thread005(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 500 }() {
 		// thread_spawn finished(0) {sqlite3_open test.db} (unsupported command, not transpiled)
 		// thread_spawn finished(1) {sqlite3_open test.db} (unsupported command, not transpiled)
-		if tclBool("!" + tclBool01(vtab.TclVarExists("finished(0)", ""))) {
+		if tclBool("!" + tclBool01(finishedMap[0] != "")) {
 		}
-		if tclBool("!" + tclBool01(vtab.TclVarExists("finished(1)", ""))) {
+		if tclBool("!" + tclBool01(finishedMap[1] != "")) {
 		}
 		{ // do_test "thread005-1." + ii
 			// runsql { BEGIN } $finished(0) (unsupported command, not transpiled)
@@ -160,9 +160,9 @@ func Test_thread005(t *testing.T) {
 	_ = _putsMsg
 	// thread_spawn finished(0) {set isWriter 0} $ThreadProgram (unsupported command, not transpiled)
 	// thread_spawn finished(1) {set isWriter 1} $ThreadProgram (unsupported command, not transpiled)
-	if tclBool("!" + tclBool01(vtab.TclVarExists("finished(0)", ""))) {
+	if tclBool("!" + tclBool01(finishedMap[0] != "")) {
 	}
-	if tclBool("!" + tclBool01(vtab.TclVarExists("finished(1)", ""))) {
+	if tclBool("!" + tclBool01(finishedMap[1] != "")) {
 	}
 	{
 		var _catchErr error

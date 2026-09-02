@@ -200,7 +200,7 @@ func Test_notify2(t *testing.T) {
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nThread_n, _nThread_e := strconv.Atoi(nThread); if _nThread_e != nil { return false }; return ii_n < nThread_n }() {
 				{ // do_test "notify2-" + iTest + ".2." + ii
-					if tclBool("!" + tclBool01(vtab.TclVarExists("finished($ii)", ""))) {
+					if tclBool("!" + tclBool01(finishedMap[ii] != "")) {
 					}
 					// incr anSuccess_xStep tclLIndex(finished_ii, "0")
 					{

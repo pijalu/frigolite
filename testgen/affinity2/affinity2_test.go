@@ -319,7 +319,7 @@ func Test_affinity2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	if tclBool("!" + tclBool01(vtab.TclVarExists("G(valgrind)", ""))) {
+	if tclBool("!" + tclBool01(GMap[valgrind] != "")) {
 		{ // "600"
 			r = db.Query("\n    DROP TABLE IF EXISTS t0;\n    CREATE TABLE t0(c0 REAL UNIQUE);\n    INSERT INTO t0(c0) VALUES (3175546974276630385);\n    SELECT 3175546974276630385 < c0 FROM t0;\n  ")
 			if r.Error != nil {

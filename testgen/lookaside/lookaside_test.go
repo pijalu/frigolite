@@ -6,7 +6,6 @@ package lookaside
 
 import (
 "github.com/pijalu/frigolite"
-"github.com/pijalu/frigolite/internal/vtab"
 "os"
 "testing"
 )
@@ -70,7 +69,7 @@ func Test_lookaside(t *testing.T) {
 	_ = G_perm_dbconfig // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(tclBool01(vtab.TclVarExists("G(perm:dbconfig)", "")) + " && " + G_perm_dbconfig + "!=\"\"") {
+	if tclBool(tclBool01(GMap[perm:dbconfig] != "") + " && " + G_perm_dbconfig + "!=\"\"") {
 		return
 	}
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)

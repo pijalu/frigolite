@@ -357,12 +357,8 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// which integrity_check reports as "Page N: never used"
 			// or "database disk image is malformed".
 			//
-			// P8.INCRVACUUM.phase8: DIAGNOSTIC. With wasted-FreePage
-			// the test fails on delete 2 with cycle error; without,
-			// it fails on delete 1 with 'never used'. Both are
-			// caused by the same pre-existing btree rebalance bug.
-			// Keep the FreePage for now (the chain count is
-			// consistent and the wasted page is recycled).
+			// P8.INCRVACUUM.phase8: keep the FreePage so the chain
+			// count stays accurate.
 			if err := t.pager.FreePage(freePg.PageNum); err != nil {
 				return steps, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
 			}

@@ -63,7 +63,7 @@ func (t *BTree) relocateRootSplit(splits []leafSplitResult) error {
 
 	// Final child slot: allocated last so it carries the highest page
 	// number, matching btree.c's up-front child allocation order.
-	tail := t.pager.AllocatePage()
+	tail := t.allocPage()
 
 	prev := left
 	for _, s := range splits {
@@ -192,7 +192,7 @@ func (t *BTree) writeOverflowPages(payload []byte) (uint32, error) {
 	var prev *pager.Page
 	pos := 0
 	for pos < len(payload) {
-		pg := t.pager.AllocatePage()
+		pg := t.allocPage()
 		end := pos + chunk
 		if end > len(payload) {
 			end = len(payload)
@@ -721,7 +721,7 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, newCell 
 	nNew := len(partitions) - 1
 	newPages := make([]*pager.Page, 0, nNew)
 	for i := 0; i < nNew; i++ {
-		newPages = append(newPages, t.pager.AllocatePage())
+		newPages = append(newPages, t.allocPage())
 	}
 	// The original leaf's right-sibling chain must point to the first new
 	// page (a full scan follows the chain from the leftmost leaf).
@@ -887,7 +887,7 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 	if t.rootPage == 1 {
 		return t.createInteriorRootAtPage1(medianKey, rightChild)
 	}
-	rootPg := t.pager.AllocatePage()
+	rootPg := t.allocPage()
 	rootCoff := contentOffset(rootPg.PageNum)
 
 	if t.isTable {
@@ -941,7 +941,7 @@ func (t *BTree) createInteriorRootAtPage1(medianKey uint64, rightChild uint32) (
 	if interior {
 		hdrLen = 12 // interior pages carry the rightmost pointer at 8..12
 	}
-	newLeft := t.pager.AllocatePage()
+	newLeft := t.allocPage()
 
 	copy(newLeft.Data, pg1.Data)
 	copy(newLeft.Data[0:hdrLen], pg1.Data[100:100+hdrLen])
@@ -1042,7 +1042,7 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage) (uint
 	// Right page keeps entries[splitIdx+1..) and the original rightmostChild
 
 	// Allocate new interior page
-	newPg := t.pager.AllocatePage()
+	newPg := t.allocPage()
 	newCoff := contentOffset(newPg.PageNum)
 	newPg.Data[newCoff] = page.PageType // same interior type
 

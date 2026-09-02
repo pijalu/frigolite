@@ -187,7 +187,7 @@ func (m *Manager) AddEntry(entry *Entry) error {
 		Payload: record,
 	}
 
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 	err = tree.InsertCell(cell)
 
 	return err
@@ -217,7 +217,7 @@ func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
 		Payload: record,
 	}
 
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 	err = tree.InsertCell(cell)
 
 	return err
@@ -336,7 +336,7 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 	// "table X already exists" / "no such table" errors in the FK torture
 	// tests. The btree is small, so a fresh read per call is cheap.
 	var entries []*Entry
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
@@ -754,7 +754,7 @@ func (m *Manager) UpdateEntryRoot(name string, newRoot uint32) error {
 		searchName = name[dotIdx+1:]
 	}
 
-	tree := btree.NewBTree(m.pager, 1, true)
+	tree := btree.NewSchemaBTree(m.pager)
 
 	var foundRowID int64 = -1
 	var foundType, foundTbl, foundSQL interface{}

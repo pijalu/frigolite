@@ -672,6 +672,39 @@ func (p *Pager) AutoVacuum() bool {
 	return p.autoVacuum
 }
 
+// ReadAutoVacuumFromHeader reports the auto-vacuum mode stored in the
+// on-disk database header. SQLite encodes the largest root btree page
+// number at header[52:56] in autovacuum mode; the mode is FULL when
+// the field is non-zero. Returns 0 (NONE) when the header is missing
+// or corrupted. Used by the engine on Open to restore the auto_vacuum
+// mode across connection restarts.
+func (p *Pager) ReadAutoVacuumFromHeader() int {
+	p.mu.RLock()
+	h := p.header
+	p.mu.RUnlock()
+	if len(h) < 56 {
+		return 0
+	}
+	// meta[3] = header[52:56]. In FULL autovacuum mode, btreeCreateTable
+	// writes the page number of each new table root here; a non-zero value
+	// means autovacuum is on. INCREMENTAL mode is opt-in via
+	// header[64:68] (meta[6]); the value 1..N maps to a free page count
+	// threshold, but for "is autovacuum on?" we only need != 0.
+	largest := binary.BigEndian.Uint32(h[52:56])
+	if largest != 0 {
+		return 1 // FULL
+	}
+	// meta[6] = header[64:68] is the incremental vacuum mode. If set,
+	// return 2 (INCREMENTAL).
+	if len(h) >= 68 {
+		incr := binary.BigEndian.Uint32(h[64:68])
+		if incr != 0 {
+			return 2
+		}
+	}
+	return 0
+}
+
 // PtrmapPageNo returns the pointer-map page number covering pgno (btree.c
 // ptrmapPageno): usableSize/5+1 pages are mapped per pointer-map page, the
 // first being page 2. Returns 0 for pgno < 2.
@@ -727,12 +760,29 @@ func (p *Pager) SetHeader(h []byte) {
 // the chain-corruption-detection path still fires and surfaces the
 // problem to integrity_check.
 func (p *Pager) pickNextFreePageLocked() uint32 {
+	// P8.INCRVACUUM.phase9 follow-up: in autovacuum mode, the
+	// returned page must NOT be a pointer-map page. btree.c::
+	// allocateBTreePage explicitly avoids ptrmap pages
+	// (ptrmapPageno(pgno)==pgno → SQLITE_CORRUPT_BKPT in
+	// BTALLOC_EXACT; BTALLOC_ANY walks past ptrmap pages
+	// implicitly because the freelist is populated by FreePage
+	// which writes ptrmap pages with eType=PTRMAP_FREEPAGE
+	// only after the user btree is destroyed). Our engine
+	// doesn't maintain that distinction yet, so we filter
+	// ptrmap pages here. The chain pop still removes the page
+	// from the freelist (AllocatePageMode's pop logic), so
+	// the on-disk chain stays consistent.
+	skipPtrmap := func(pg uint32) bool {
+		return p.autoVacuum && IsPtrmapPageNo(pg, p.pageSize)
+	}
 	if p.header == nil || len(p.header) < 40 {
 		// Defensive: no chain header — fall back to any in-memory
 		// free page (the chain-correction machinery downstream
 		// will re-derive the on-disk state on the next FreePage).
 		for pg := range p.freePages {
-			return pg
+			if !skipPtrmap(pg) {
+				return pg
+			}
 		}
 		return 0
 	}
@@ -740,42 +790,38 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 	if trunk == 0 || trunk > p.numPages {
 		// Empty or invalid chain — fall back.
 		for pg := range p.freePages {
-			return pg
+			if !skipPtrmap(pg) {
+				return pg
+			}
 		}
 		return 0
 	}
 	trunkPg, terr := p.readPageLocked(trunk)
 	if terr != nil || len(trunkPg.Data) < 8 {
 		for pg := range p.freePages {
-			return pg
+			if !skipPtrmap(pg) {
+				return pg
+			}
 		}
 		return 0
 	}
 	leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
 	if leafCount > 0 {
 		// Pop the first leaf of the head trunk (closest=0, the
-		// leftmost slot in the leaves array).
-		firstLeaf := binary.BigEndian.Uint32(trunkPg.Data[8:12])
-		if firstLeaf != 0 && p.freePages[firstLeaf] {
-			return firstLeaf
-		}
-		// The first leaf is missing from the in-memory set
-		// (e.g. p.freePages was rebuilt from a chain whose
-		// leaves were already consumed). Walk leaves in order
-		// until we find one that's still in p.freePages.
+		// leftmost slot in the leaves array). Skip ptrmap pages.
 		for i := uint32(0); i < leafCount; i++ {
 			off := 8 + i*4
 			if int(off)+4 > len(trunkPg.Data) {
 				break
 			}
 			leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
-			if leaf != 0 && p.freePages[leaf] {
+			if leaf != 0 && p.freePages[leaf] && !skipPtrmap(leaf) {
 				return leaf
 			}
 		}
 	}
 	// No leaves available: the head trunk itself is the next-to-pop.
-	if p.freePages[trunk] {
+	if p.freePages[trunk] && !skipPtrmap(trunk) {
 		return trunk
 	}
 	// Walk the chain looking for any in-memory free page (a leaf
@@ -795,7 +841,7 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 				break
 			}
 			leaf := binary.BigEndian.Uint32(tpg.Data[off : off+4])
-			if leaf != 0 && p.freePages[leaf] {
+			if leaf != 0 && p.freePages[leaf] && !skipPtrmap(leaf) {
 				return leaf
 			}
 		}
@@ -804,9 +850,11 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 		}
 		t = next
 	}
-	// Last resort: any in-memory free page.
+	// Last resort: any in-memory free page (skipping ptrmap pages).
 	for pg := range p.freePages {
-		return pg
+		if !skipPtrmap(pg) {
+			return pg
+		}
 	}
 	return 0
 }
@@ -997,17 +1045,34 @@ func (p *Pager) popFromFreePagesChainLocked(pgno uint32) {
 // reserved as zeroed pointer-map pages and the caller receives the following
 // page (btree.c allocateBtreePage reserves PTRMAP pages as they are crossed).
 func (p *Pager) AllocatePage() *Page {
+	return p.AllocatePageMode(false)
+}
+
+// AllocatePageSkipFreelist allocates a page by extending the file, never
+// using a page from the freelist. Used by the schema btree so its
+// pages don't take slots from the user-rootpage range
+// (P8.INCRVACUUM.phase9).
+func (p *Pager) AllocatePageSkipFreelist() *Page {
+	return p.AllocatePageMode(true)
+}
+
+// AllocatePageMode allocates a page, optionally bypassing the freelist
+// (always extending the file). P8.INCRVACUUM.phase9: the schema btree
+// uses skipFreelist=true so the schema btree's pages don't take slots
+// from the user-rootpage range.
+func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// P8.INCRVACUUM.phase9: pop from the in-memory freePages set in
-	// chain order (the previous random Go-map-iteration scrambled the
-	// rootpage list in autovacuum-2.4.5; the test expects pages
-	// 3..532 in order, and the chain's order matches). The chain
-	// update is applied to the in-memory trunk page and p.header;
-	// the next flush writes them to disk. ROLLBACK restores the
-	// snapshot's pages, so a chain pop inside a transaction is
-	// safely undone.
-	if len(p.freePages) > 0 {
+	if !skipFreelist {
+		// P8.INCRVACUUM.phase9: pop from the in-memory freePages set in
+		// chain order (the previous random Go-map-iteration scrambled the
+		// rootpage list in autovacuum-2.4.5; the test expects pages
+		// 3..532 in order, and the chain's order matches). The chain
+		// update is applied to the in-memory trunk page and p.header;
+		// the next flush writes them to disk. ROLLBACK restores the
+		// snapshot's pages, so a chain pop inside a transaction is
+		// safely undone.
+		if len(p.freePages) > 0 {
 		next := p.pickNextFreePageLocked()
 		if next != 0 {
 			delete(p.freePages, next)
@@ -1109,7 +1174,8 @@ func (p *Pager) AllocatePage() *Page {
 			}
 		}
 	}
-	p.numPages++
+}
+p.numPages++
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
 	// a pointer-map page, zero it out (no b-tree header — its content is a
 	// flat array of 5-byte entries maintained by ptrmapPut, unused until
@@ -1134,6 +1200,47 @@ func (p *Pager) AllocatePage() *Page {
 	}
 	p.pages[pg.PageNum] = pg
 	p.dirty[pg.PageNum] = true
+	// P8.INCRVACUUM.phase9 follow-up: in autovacuum mode, track the
+	// largest root btree page number (meta[3] = header[52:56]) so
+	// re-opened databases can detect the mode from the on-disk header.
+	// btree.c::sqlite3BtreeSetAutoVacuum's corollary in
+	// btreeCreateTable: every new table root bumps this counter, and a
+	// non-zero value at Open time is the canonical signal that
+	// autovacuum is on. Without this, ReadAutoVacuumFromHeader
+	// returns 0 and the engine forgets the mode on restart.
+	if p.autoVacuum && p.header != nil && len(p.header) >= 56 {
+		largest := binary.BigEndian.Uint32(p.header[52:56])
+		if pg.PageNum > largest {
+			binary.BigEndian.PutUint32(p.header[52:56], pg.PageNum)
+			p.dirty[1] = true
+		}
+	}
+	return pg
+}
+
+// AllocateRootpage is AllocatePage + a header[52:56] update with the new
+// page number. In autovacuum mode, SQLite tracks the largest b-tree
+// rootpage in header[52:56] (meta[3]) so a reopened connection can
+// detect the mode without re-running PRAGMA auto_vacuum. The engine's
+// ReadAutoVacuumFromHeader uses this to restore the mode at Open.
+//
+// Callers (CREATE TABLE / CREATE INDEX) must invoke this on the page
+// they intend to use as a btree root, so the header reflects the actual
+// rootpage list across restarts.
+func (p *Pager) AllocateRootpage() *Page {
+	pg := p.AllocatePage()
+	if pg == nil {
+		return nil
+	}
+	p.mu.Lock()
+	if p.header != nil && len(p.header) >= 56 && p.autoVacuum {
+		current := binary.BigEndian.Uint32(p.header[52:56])
+		if pg.PageNum > current {
+			binary.BigEndian.PutUint32(p.header[52:56], pg.PageNum)
+			p.dirty[1] = true
+		}
+	}
+	p.mu.Unlock()
 	return pg
 }
 
@@ -1802,11 +1909,22 @@ func (p *Pager) AllocatePageLE() (*Page, error) {
 	if len(p.freePages) == 0 {
 		return nil, fmt.Errorf("database or disk full")
 	}
+	// P8.INCRVACUUM.phase9 follow-up: skip pointer-map pages in
+	// autovacuum mode. allocateBTreePage never returns a ptrmap page
+	// (the page is reserved as part of the btree's metadata
+	// infrastructure; using it as a btree page would corrupt the
+	// ptrmap layout).
 	var lowest uint32 = 0xFFFFFFFF
 	for pg := range p.freePages {
+		if p.autoVacuum && IsPtrmapPageNo(pg, p.pageSize) {
+			continue
+		}
 		if pg < lowest {
 			lowest = pg
 		}
+	}
+	if lowest == 0xFFFFFFFF {
+		return nil, fmt.Errorf("database or disk full")
 	}
 	delete(p.freePages, lowest)
 	// P8.INCRVACUUM.phase8: maintain the on-disk chain. The popped

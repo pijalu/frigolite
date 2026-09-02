@@ -94,7 +94,7 @@ func ParseHeader(data []byte) (*DatabaseHeader, error) {
 		TextEncoding:     binary.BigEndian.Uint32(data[56:60]),
 		UserVersion:      binary.BigEndian.Uint32(data[60:64]),
 		IncrementalVac:   binary.BigEndian.Uint32(data[64:68]),
-		ApplicationID:    binary.BigEndian.Uint32(data[72:76]),
+		ApplicationID:    binary.BigEndian.Uint32(data[68:72]),
 		VersionValidFor:  binary.BigEndian.Uint32(data[92:96]),
 		SQLiteVersionNum: binary.BigEndian.Uint32(data[96:100]),
 	}
@@ -138,7 +138,7 @@ func (h *DatabaseHeader) Encode() []byte {
 	binary.BigEndian.PutUint32(buf[56:60], h.TextEncoding)
 	binary.BigEndian.PutUint32(buf[60:64], h.UserVersion)
 	binary.BigEndian.PutUint32(buf[64:68], h.IncrementalVac)
-	binary.BigEndian.PutUint32(buf[72:76], h.ApplicationID)
+	binary.BigEndian.PutUint32(buf[68:72], h.ApplicationID)
 	binary.BigEndian.PutUint32(buf[92:96], h.VersionValidFor)
 	binary.BigEndian.PutUint32(buf[96:100], h.SQLiteVersionNum)
 	return buf

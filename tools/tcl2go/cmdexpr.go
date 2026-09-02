@@ -180,6 +180,22 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 			// {[info exists ::UNZIP]} reflect whether an earlier branch ran.
 			if len(args) == 2 && args[0] == "exists" {
 				nm := strings.TrimPrefix(strings.TrimPrefix(args[1], "$"), "::")
+				// Dynamic-key form: `info exists NAME($key)` (parsed
+				// as a single arg with `(` because the TCL parser
+				// does not split it). Translate to a Go map lookup
+				// when the array is registered in arrayMapVars
+				// (set by `array set`).
+				if idx := strings.Index(nm, "("); idx > 0 {
+					base := tclVarToGo(nm[:idx] + "Map")
+					key := nm[idx+1 : len(nm)-1] // strip "($key)" → "key"
+					key = strings.TrimPrefix(key, "$") // strip leading "$" (TCL var sigil)
+					if isValidGoIdent(base[:len(base)-len("Map")]) {
+						// `key` is the variable name (e.g. "i"). The
+						// Go-side var of that name holds the runtime
+						// value; emit `baseMap[keyVarName] != ""`.
+						return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
+					}
+				}
 				if isValidGoIdent(tclVarToGo(nm)) {
 					return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, \"\"))", nm)
 				}

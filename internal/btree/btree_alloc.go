@@ -21,7 +21,7 @@ import (
 // cell count, etc.). Pass parentPgno=0 to skip the ptrmap write
 // (used for the schema root page, which is its own root).
 func (t *BTree) allocBtreeNode(parentPgno uint32) (*pager.Page, error) {
-	pg := t.pager.AllocatePage()
+	pg := t.allocPage()
 	if parentPgno != 0 {
 		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapBtree, parentPgno); err != nil {
 			return nil, err
@@ -35,7 +35,7 @@ func (t *BTree) allocBtreeNode(parentPgno uint32) (*pager.Page, error) {
 // the btree; the ptrmap entry exists so relocatePage can identify
 // them as roots (and refuse to relocate them).
 func (t *BTree) allocRootpage() (*pager.Page, error) {
-	pg := t.pager.AllocatePage()
+	pg := t.allocPage()
 	if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapRootpage, 0); err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (t *BTree) allocRootpage() (*pager.Page, error) {
 // same chain should set their parent to the previous overflow (use
 // allocOverflowNext for that case).
 func (t *BTree) allocOverflow(parentPgno uint32) (*pager.Page, error) {
-	pg := t.pager.AllocatePage()
+	pg := t.allocPage()
 	if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapOverflow1, parentPgno); err != nil {
 		return nil, err
 	}

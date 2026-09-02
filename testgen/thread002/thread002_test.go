@@ -150,7 +150,7 @@ func Test_thread002(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return i_n < NTHREAD_n }() {
-		if tclBool("!" + tclBool01(vtab.TclVarExists("finished($i)", ""))) {
+		if tclBool("!" + tclBool01(finishedMap[i] != "")) {
 		}
 		{ // do_test "thread002.2." + i
 			_ = finished_i // TCL namespace variable (query)

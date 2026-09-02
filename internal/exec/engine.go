@@ -870,6 +870,19 @@ func NewEngine(pg *pager.Pager) *Engine {
 	}
 	e.registerVTabModules()
 	e.registerEngineFuncs()
+	// P8.INCRVACUUM.phase9 follow-up: restore the auto_vacuum mode from
+	// the on-disk header so re-opened databases behave like the SQLite
+	// engine (which bakes the mode into header[52:56]/[64:68]). Without
+	// this, a re-opened database silently runs in NONE mode even though
+	// the file was created with PRAGMA auto_vacuum=1, and pages freed
+	// by subsequent DELETEs/DROPs stay on the freelist forever.
+	if mode := pg.ReadAutoVacuumFromHeader(); mode != 0 {
+		if e.settings.autoVacuumModes == nil {
+			e.settings.autoVacuumModes = make(map[string]int64)
+		}
+		e.settings.autoVacuumModes["main"] = int64(mode)
+		pg.SetAutoVacuum(mode > 0)
+	}
 	return e
 }
 

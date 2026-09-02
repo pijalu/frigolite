@@ -175,7 +175,7 @@ func Test_corrupt4(t *testing.T) {
 	_ = pgnoChild // suppress unused warning
 	// put4byte $fd $offChild 1 (unsupported command, not transpiled)
 	// close $fd
-	if tclBool("!" + tclBool01(vtab.TclVarExists("G(perm:presql)", ""))) {
+	if tclBool("!" + tclBool01(GMap[perm:presql] != "")) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.2"

@@ -499,6 +499,16 @@ func (tp *transpiler) processArray(args []tcl.RawWord) {
 			tp.emitLine("// array set %s (non-identifier name, not transpiled)", name)
 			return
 		}
+		// Register the array name in arrayMapVars so the
+		// [info exists NAME($key)] dynamic-key handler in
+		// processloop.go can emit a Go-side map lookup
+		// (the registry path via TclVarExists only fires when
+		// the literal-name form is used; the dynamic-key form
+		// needs the Map to look up by runtime key).
+		if tp.arrayMapVars == nil {
+			tp.arrayMapVars = make(map[string]bool)
+		}
+		tp.arrayMapVars[name] = true
 		// The list arg may be a braced body (e.g. `{207 1 412 1}`)
 		// or a non-braced single token (e.g. `$var`). Only the
 		// braced-literal form is transpilable; runtime values need
