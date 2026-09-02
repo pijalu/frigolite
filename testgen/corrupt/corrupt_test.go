@@ -224,6 +224,7 @@ func Test_corrupt(t *testing.T) {
 			bt = "btree_from_db db"
 			_ = bt // suppress unused warning
 			// db_enter db (unsupported command, not transpiled)
+			// array set stats (dynamic list, not transpiled)
 			// db_leave db (unsupported command, not transpiled)
 			stats_ref = vtab.TclVarGet("stats", "ref")
 			got := tclListFlatten(stats_ref)

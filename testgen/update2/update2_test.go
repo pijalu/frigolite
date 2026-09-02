@@ -281,6 +281,7 @@ func Test_update2(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				// array unset (not transpiled)
 			}
 			_dbevalRows3 := db.Query(" EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
 			var _dbevalRb4 bool

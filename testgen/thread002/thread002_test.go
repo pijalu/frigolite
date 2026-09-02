@@ -130,6 +130,7 @@ func Test_thread002(t *testing.T) {
 	defer thread_program.Close()
 	order_list = "{0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0}"
 	_ = order_list // suppress unused warning
+	// array unset (not transpiled)
 	vtab.TclVarSet("ii", "", "0")
 	ii = "0"
 	_ = ii // suppress unused warning

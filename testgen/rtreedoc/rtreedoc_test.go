@@ -1377,6 +1377,7 @@ func Test_rtreedoc(t *testing.T) {
 													{
 														var _catchErr error
 														_ = _catchErr // suppress unused warning
+														// array unset (not transpiled)
 													}
 													var _R_arr string
 													_ = _R_arr // suppress unused warning
@@ -1399,6 +1400,7 @@ func Test_rtreedoc(t *testing.T) {
 													{
 														var _catchErr error
 														_ = _catchErr // suppress unused warning
+														// array unset (not transpiled)
 													}
 													_dbevalRows37 := db.Query("SELECT * FROM demo_index NATURAL JOIN demo_data ")
 													if _dbevalRows37.Error == nil {

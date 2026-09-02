@@ -471,6 +471,65 @@ func (tp *transpiler) processNamespace(args []tcl.RawWord) {
 	}
 }
 
+// processArray handles `array set NAME LIST` (P8.INCRVACUUM.phase9
+// transpiler support). LIST is a TCL-format key-value list
+// (e.g. `{207 1 412 1}` for `array set unusable_page {207 1 412 1}`).
+// The transpiler emits `nameMap[k] = v` for each pair, matching
+// the runtime's `unusable_pageMap` (a `map[string]string`
+// declared at the top of the generated test).
+//
+// `array get` / `array unset` / `array exists` / `array names` /
+// `array size` / `array startsearch` / `array nextelement` /
+// `array anymore` / `array donesearch` are emitted as comments
+// (the autovacuum/incrvacuum/... tests only use `array set`).
+func (tp *transpiler) processArray(args []tcl.RawWord) {
+	if len(args) < 2 {
+		tp.emitLine("// array (too few args)")
+		return
+	}
+	subCmd := args[0].Text
+	switch subCmd {
+	case "set":
+		if len(args) < 3 {
+			tp.emitLine("// array set (too few args)")
+			return
+		}
+		name := args[1].Text
+		if !isValidGoIdent(name) {
+			tp.emitLine("// array set %s (non-identifier name, not transpiled)", name)
+			return
+		}
+		// The list arg may be a braced body (e.g. `{207 1 412 1}`)
+		// or a non-braced single token (e.g. `$var`). Only the
+		// braced-literal form is transpilable; runtime values need
+		// a map literal that the runtime helper can populate.
+		list := args[2]
+		if !list.Braced {
+			tp.emitLine("// array set %s (dynamic list, not transpiled)", name)
+			return
+		}
+		items := tclSplitList(list.Text)
+		if len(items)%2 != 0 {
+			tp.emitLine("// array set %s (odd list length, not transpiled)", name)
+			return
+		}
+		for i := 0; i < len(items); i += 2 {
+			k := items[i]
+			v := items[i+1]
+			tp.emitLine("%sMap[%q] = %q", name, k, v)
+			// Also populate the tclvar registry so the
+			// `info exists unusable_page($i)` runtime check
+			// (generated as `tclBool01(vtab.TclVarExists(...))`)
+			// returns true for these keys. The map literal
+			// is for the Go-side iteration; the registry is
+			// for the TCL-style existence check.
+			tp.emitLine("vtab.TclVarSet(%q, %q, %q)", name, k, v)
+		}
+	default:
+		tp.emitLine("// array %s (not transpiled)", subCmd)
+	}
+}
+
 // processIfcapable handles `ifcapable NAME { BODY }` / `ifcapable !NAME {...}`.
 // The body runs at TCL time only when the target build LACKS the named
 // capability for `!NAME` (or HAS it for `NAME`). The transpiler mirrors the

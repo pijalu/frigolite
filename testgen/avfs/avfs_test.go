@@ -275,6 +275,7 @@ func Test_avfs(t *testing.T) {
 	nrint = "50000" // TCL namespace variable
 	_ = nrint // suppress unused warning
 	// proc definition (not transpiled)
+	// array set ::randints (non-identifier name, not transpiled)
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
 	_ = i // suppress unused warning

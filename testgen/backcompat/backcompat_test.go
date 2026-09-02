@@ -153,6 +153,7 @@ func Test_backcompat(t *testing.T) {
 		return
 	}
 	// proc definition (not transpiled)
+	// array set ::incompatible (non-identifier name, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

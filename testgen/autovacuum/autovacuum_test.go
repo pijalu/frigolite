@@ -333,7 +333,15 @@ func Test_autovacuum(t *testing.T) {
 	pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
 	_ = pending_byte_page // suppress unused warning
 	if tclBool("") {
+		unusable_pageMap["205"] = "1"
+		vtab.TclVarSet("unusable_page", "205", "1")
+		unusable_pageMap["408"] = "1"
+		vtab.TclVarSet("unusable_page", "408", "1")
 	} else {
+		unusable_pageMap["207"] = "1"
+		vtab.TclVarSet("unusable_page", "207", "1")
+		unusable_pageMap["412"] = "1"
+		vtab.TclVarSet("unusable_page", "412", "1")
 	}
 	unusable_pageMap[pending_byte_page] = "1"
 	vtab.TclVarSet("i", "", "3")

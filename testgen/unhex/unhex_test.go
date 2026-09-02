@@ -149,6 +149,7 @@ func Test_unhex(t *testing.T) {
 				}
 			}
 			if tclBool("array exists x") {
+				// array unset (not transpiled)
 			}
 			// foreach {tn hex} "1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\""
 			_items2 := tclSplitList("1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"")

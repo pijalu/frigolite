@@ -130,6 +130,7 @@ func Test_trace3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
+		// array get (not transpiled)
 	}
 	{ // do_test "trace3-3.2"
 		stmtlist_error = "" // TCL namespace variable
@@ -392,6 +393,7 @@ func Test_trace3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
+		// array get (not transpiled)
 	}
 	{ // do_test "trace3-11.1"
 		stmtlist_record = "" // TCL namespace variable

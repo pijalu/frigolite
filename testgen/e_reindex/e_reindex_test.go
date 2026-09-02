@@ -181,6 +181,22 @@ func Test_e_reindex(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc sort_by_length collation (registered via db collate)
+	VMap["one"] = "1"
+	vtab.TclVarSet("V", "one", "1")
+	VMap["two"] = "2"
+	vtab.TclVarSet("V", "two", "2")
+	VMap["three"] = "3"
+	vtab.TclVarSet("V", "three", "3")
+	VMap["four"] = "4"
+	vtab.TclVarSet("V", "four", "4")
+	VMap["five"] = "5"
+	vtab.TclVarSet("V", "five", "5")
+	VMap["six"] = "6"
+	vtab.TclVarSet("V", "six", "6")
+	VMap["seven"] = "7"
+	vtab.TclVarSet("V", "seven", "7")
+	VMap["eight"] = "8"
+	vtab.TclVarSet("V", "eight", "8")
 	// proc sort_by_value collation (registered via db collate)
 	db.RegisterCollation("collA", func(a, b string) int {
 	if a == b { return 0 }

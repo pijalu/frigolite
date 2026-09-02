@@ -328,7 +328,7 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"source": noopTclCommand, "finish_test": noopTclCommand, "test_finish": noopTclCommand,
 		"exit": noopTclCommand, "flush": noopTclCommand, "fix_testname": noopTclCommand,
 		"incr_ntest": noopTclCommand, "sqlite3_memdebug_settitle": noopTclCommand,
-		"namespace": (*transpiler).processNamespace, "rename": noopTclCommand, "array": noopTclCommand,
+		"namespace": (*transpiler).processNamespace, "rename": noopTclCommand, "array": (*transpiler).processArray,
 		"foreach_kv": noopTclCommand, "foreach_u": noopTclCommand, "global": noopTclCommand,
 		"uplevel": noopTclCommand, "upvar": noopTclCommand, "info": (*transpiler).processInfoCommand,
 		"vwait": noopTclCommand, "after": noopTclCommand, "update": noopTclCommand,
