@@ -4233,3 +4233,52 @@ fix can now drain on the next autovacuum pass.
 - **See** `.agents/btree_gap_assessment.md` for the full
   btree.c-vs-frigolite feature matrix and the P8.INCRVACUUM.phase10
   implementation plan.
+
+## P8.INCRVACUUM.phase10: 2.5.1 root cause was NOT the rebalance (2026 session)
+
+- **The phase10 gap-assessment diagnosis ("Phase 4 redistribution leaves
+  orphaned leaves") was wrong for 2.5.1.** Bisecting the exact 2.4.x
+  DROP sequence in a standalone repro showed: after dropping all 528
+  tables the file correctly shrinks to 1 page with `integrity_check =
+  ok`, yet the next CREATE TABLE fails "database disk image is
+  malformed" — on the SAME connection and after REOPEN (on-disk
+  corruption, not pager state). Two stacked causes, neither in
+  balanceNonroot Phase 4:
+  1. **meta[3] (header[52:56], BTREE_LARGEST_ROOT_PAGE) went stale.**
+     Drops never updated it, so it stayed 559 while the file shrank to
+     1 page; `ValidateHeader` rejects `largestRoot > numPages`.
+     SQLite's `btreeDropTable` calls `sqlite3BtreeUpdateMeta(p, 4,
+     maxRootPgno)` on EVERY drop (decrement, skipping ptrmap/pending
+     pages). Fix: `pager.SetLargestRootPage` + `DDLExecutor.
+     refreshLargestRootPage` recomputing the max over remaining
+     table+index entries after each DROP TABLE (recompute, not
+     decrement: our CREATE pops freelist pages rather than using
+     meta[3]+1, so density isn't guaranteed). Verified against the
+     sqlite3 oracle (drop-all leaves largestRoot=1, next CREATE takes
+     rootpage 3 — our engine now matches both).
+  2. **0-cell interior root blocks the next INSERT** (the deeper bug,
+     found after fix 1 landed on disk but CREATE still failed).
+     528 schema deletes split the sqlite_schema btree (interior root +
+     leaves) then freed all leaves, leaving page 1 as `05 ncell=0
+     rmp=0`. Reads tolerate this but the INSERT path cannot insert into
+     a 0-cell interior root. Fix: `clearEmptyRootRightmost` now rewrites
+     a 0-cell interior root with no live children as an empty leaf
+     (type 0x05->0x0D / 0x04->0x0A, content=pageSize) — exactly
+     `balance_shallower`'s end state for an emptied table. Guarded: a
+     LIVE rmp child means data survives (true single-child collapse
+     needed — still unimplemented shallower), so the root is left alone.
+- **Result: autovacuum testgen 16 errors -> 2** (only 9.3/9.5 remain).
+  2.5.1 + all 13 cascading SELECT errors fixed by the two changes above.
+- **9.3/9.5 are a TRANSPILER artifact, not an engine bug.** They compare
+  `file size` against `$::sqlite_pending_byte`, which the TCL harness
+  sets via `sqlite3_test_control_pending_byte 0x10000` (a C test API
+  that moves the pending-byte lock slot to 64KB). tcl2go leaves the
+  variable unbound (empty want), so the assertion is unwinnable. Oracle
+  check with the DEFAULT pending byte (4GB): SQLite grows or93.db to
+  73728 bytes for the 9.3 workload; frigolite grows to 68608 — same
+  order, 5-page delta from btree packing, no pending-byte involvement
+  at these sizes. Options: bind the constant in tcl2go + add a
+  test-pending-byte hook to the pager (engine work for a test-only C
+  API — poor value), or record 9.3/9.5 as out-of-scope harness
+  artifacts. Do NOT "fix" the engine to hit 65536: that size is only
+  correct under the test-control hook.

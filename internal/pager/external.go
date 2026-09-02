@@ -112,6 +112,27 @@ func (p *Pager) FreelistCount() uint32 {
 	return binary.BigEndian.Uint32(h[36:40])
 }
 
+// SetLargestRootPage writes the largest root b-tree page number (meta[3],
+// header[52:56]) and marks page 1 dirty. Mirrors btree.c
+// sqlite3BtreeUpdateMeta(p, 4, maxRootPgno) in btreeDropTable: every DROP
+// TABLE/INDEX decrements the max-root value (skipping pointer-map and
+// pending-byte pages, done by the caller when recomputing). Without this,
+// a mass DROP leaves meta[3] above the file's page count after
+// AutoVacuumCommit shrinks the file, and the next CREATE fails
+// ValidateHeader ("database disk image is malformed").
+func (p *Pager) SetLargestRootPage(v uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.header) < 56 {
+		return
+	}
+	binary.BigEndian.PutUint32(p.header[52:56], v)
+	p.dirty[1] = true
+	if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
+		copy(pg.Data[:HeaderSize], p.header)
+	}
+}
+
 // DecrementFreelistCount decrements the on-disk freelist count by n, capping
 // at zero (no underflow). This is the header-side bookkeeping for one step of
 // `PRAGMA incremental_vacuum` / autoVacuumCommit: each call consumes one

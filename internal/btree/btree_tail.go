@@ -66,16 +66,21 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 	return deleted, nil
 }
 
-// clearEmptyRootRightmost clears the btree root's rightmost-child
-// pointer when the root is an interior page with 0 cells. SQLite's
-// btree.c::balance_shallower collapses the root into its only child
-// (or converts it to a leaf when the last child is freed). Our
-// simplified port does not implement balance_shallower, so the root
-// remains an interior page with a stale rightmost-child. Clearing
-// the pointer is a minimal fix that makes the btree navigable: an
-// empty interior root with rmp=0 is treated as an empty subtree by
-// collectLeafPages (the cell loop runs 0 times, the rightmost-child
-// check at rmp==0 returns immediately).
+// clearEmptyRootRightmost collapses the btree root when it is an interior
+// page with 0 cells and no live children. SQLite's btree.c::balance_shallower
+// collapses the root into its only child (or converts it to a leaf when the
+// last child is freed); our simplified port does not implement
+// balance_shallower, so without this the root stays an interior page whose
+// rightmost-child is stale. A 0-cell interior root breaks WRITES: the next
+// INSERT's schema/btree path cannot insert into an interior root with no
+// cells (autovacuum-2.5.1: after dropping 528 tables the sqlite_schema root
+// is a 0-cell interior page and the next CREATE TABLE fails with "database
+// disk image is malformed"). With 0 cells there are no cell-children, so
+// when the rightmost-child is dead (zero or on the freelist) the subtree is
+// empty and the root is rewritten as an empty leaf — balance_shallower's end
+// state for an emptied table. When the rightmost-child is still live the
+// single-child collapse (copy child content into root) is required; that is
+// the unimplemented shallower path, so the root is left untouched.
 func (t *BTree) clearEmptyRootRightmost() error {
 	rootPg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
@@ -92,18 +97,24 @@ func (t *BTree) clearEmptyRootRightmost() error {
 	if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
 		return nil
 	}
-	// Root is an interior page with 0 cells. Clear the rightmost-child
-	// pointer so the btree reader does not follow a stale reference
-	// to a freed leaf.
+	// Root is an interior page with 0 cells: the only possible child is
+	// the rightmost-child. A live child means the subtree still holds data
+	// (single-child collapse needed — the unimplemented shallower path).
 	rmp := binary.BigEndian.Uint32(rootPg.Data[coff+8 : coff+12])
-	if rmp == 0 {
+	if rmp != 0 && !pager.IsPageOnFreelist(t.pager, rmp) {
 		return nil
 	}
-	// Only clear if the rightmost-child is on the freelist (freed by
-	// the DELETE). If it's a valid in-use page, leave it alone.
-	if !pager.IsPageOnFreelist(t.pager, rmp) {
-		return nil
+	// No live children: rewrite the root as an empty leaf of the matching
+	// kind (interior table -> leaf table, interior index -> leaf index),
+	// with the cell-content pointer at the usable end and no fragmentation.
+	if page.PageType == storage.PageTypeInteriorTable {
+		rootPg.Data[coff] = storage.PageTypeLeafTable
+	} else {
+		rootPg.Data[coff] = storage.PageTypeLeafIndex
 	}
+	binary.BigEndian.PutUint16(rootPg.Data[coff+1:coff+3], 0)
+	binary.BigEndian.PutUint16(rootPg.Data[coff+5:coff+7], uint16(t.pageSize))
+	rootPg.Data[coff+7] = 0
 	binary.BigEndian.PutUint32(rootPg.Data[coff+8:coff+12], 0)
 	pager.MarkPageDirtyForVacuum(t.pager, t.rootPage)
 	return nil

@@ -270,10 +270,42 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 			return &Result{Error: err}
 		}
 	}
+	e.refreshLargestRootPage(ctx)
 	if res := e.dropTableCleanup(entry, ctx); res != nil {
 		return res
 	}
 	return &Result{}
+}
+ 
+// refreshLargestRootPage recomputes meta[3] (header[52:56], the largest
+// root b-tree page number) from the remaining table+index schema entries
+// and writes it via pager.SetLargestRootPage. Mirrors btree.c
+// btreeDropTable's maxRootPgno-- update (sqlite3BtreeUpdateMeta(p, 4, ...)):
+// without it a mass DROP leaves meta[3] above the file's page count after
+// AutoVacuumCommit shrinks the file, and the next CREATE fails
+// ValidateHeader ("database disk image is malformed", autovacuum-2.5.1).
+// SQLite keeps meta[3] at 1 when no tables remain (observed on the oracle:
+// drop-all leaves largestRoot=1, and the next CREATE takes rootpage 3).
+func (e *DDLExecutor) refreshLargestRootPage(ctx *DatabaseContext) {
+	if ctx == nil || ctx.Pager == nil || ctx.Schema == nil {
+		return
+	}
+	var largest uint32 = 1
+	for _, st := range []schema.SchemaType{schema.TypeTable, schema.TypeIndex} {
+		entries, err := ctx.Schema.GetEntries(st)
+		if err != nil {
+			return
+		}
+		for _, en := range entries {
+			if en == nil || en.RootPage <= 1 {
+				continue
+			}
+			if en.RootPage > largest {
+				largest = en.RootPage
+			}
+		}
+	}
+	ctx.Pager.SetLargestRootPage(largest)
 }
 
 // dropTableFKChecks enforces FOREIGN KEY constraints: DROP TABLE fails if a
