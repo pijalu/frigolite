@@ -1190,6 +1190,24 @@ p.numPages++
 		p.dirty[ptr.PageNum] = true
 		p.numPages++
 	}
+	// P8.INCRVACUUM.phase9.q: in autovacuum mode, btree.c's
+	// allocateBTreePage skips the pending-byte page (PENDING_BYTE_PAGE)
+	// so a btree page never lands on the lock-byte slot. Materialize
+	// the pending-byte page as a free slot (zeroed, no btree header)
+	// and increment numPages again so the caller gets a real page
+	// past it. Without this, a CREATE TABLE whose next rootpage would
+	// otherwise be the pending-byte page silently lands on that slot
+	// and is later read as a sparse gap page, which reports
+	// "database disk image is malformed".
+	if p.autoVacuum && p.numPages == pendingBytePage(p.pageSize) {
+		pending := &Page{
+			Data:    make([]byte, p.pageSize),
+			PageNum: p.numPages,
+		}
+		p.pages[pending.PageNum] = pending
+		p.dirty[pending.PageNum] = true
+		p.numPages++
+	}
 	pg := &Page{
 		Data:    make([]byte, p.pageSize),
 		PageNum: p.numPages,
@@ -1426,6 +1444,22 @@ func (p *Pager) Truncate(n uint32) error {
 			delete(p.trunkPages, pgno)
 		}
 		if p.leafToTrunk != nil {
+			// P8.INCRVACUUM.phase9 (chain-tracking fix): also drop
+			// leafToTrunk entries where the VALUE (trunk) is being
+			// truncated, not just the KEY (leaf). A leaf can still
+			// be a valid page in the file (within the new n) while
+			// its trunk has been truncated past; popFromFreePagesChainLocked
+			// reads the trunk to find/zero the leaf's slot, so a
+			// stale trunk reference must be cleared. Without this,
+			// a later AllocatePage pops leaf L, then tries to read
+			// trunk T to zero L's slot, but T is past numPages and
+			// readPageLocked fails with "database disk image is
+			// malformed" (autovacuum-2.5.1).
+			for leaf, trunk := range p.leafToTrunk {
+				if trunk == pgno {
+					delete(p.leafToTrunk, leaf)
+				}
+			}
 			delete(p.leafToTrunk, pgno)
 		}
 	}

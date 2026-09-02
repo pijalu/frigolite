@@ -4122,3 +4122,66 @@ fix can now drain on the next autovacuum pass.
   references pages that autovacuum truncates. The chain is
   now consistent; the schema btree is not. Phase 10 (proper
   btree rebalance) is the right scope for this.
+
+## P8.INCRVACUUM.phase9.q: SetAutoVacuum must NOT bump numPages (2026 session)
+
+- **Bumping `numPages` to the pending-byte page in `SetAutoVacuum` is the WRONG
+  invariant for the autovacuum step.** The previous c0bbfa78 era set
+  `p.numPages = pendingBytePage(p.pageSize)` in `SetAutoVacuum`, intending
+  to reserve the lock-byte slot so `AllocateBTreePage` wouldn't land on
+  it. But the file is NOT actually extended to that size (it's a logical
+  hint), and `IncrVacuumStep` reads `numPages` to decide what to truncate.
+  The first call returns `lastPg = 1048577` (pending byte for 1024-byte
+  pages), the page is "in use" (not on the freelist, not a ptrmap page
+  because `IsPtrmapPageNo(1048577, 1024)` is false — `ptrmapPageNo`
+  bumps the result past the pending byte), and `RelocatePage` tries to
+  read page 1048577 from disk. The file is only 7 pages, so the read
+  fails with EOF, normalized to "database disk image is malformed". The
+  fix:
+  1. `SetAutoVacuum` does NOT bump `numPages` (just sets the flag).
+  2. `AllocatePageMode` adds an inline `pendingBytePage` skip that
+     mirrors the existing `IsPtrmapPageNo` skip: when the next page
+     would be the pending byte, materialize it as a zeroed free slot
+     and increment `numPages` again so the caller gets a real page
+     past it. This is the btree.c `allocateBTreePage` line ~6280
+     `if( pgno==PENDING_BYTE_PAGE(pBt) ) pgno++` behavior, ported.
+  3. `IncrVacuumStep` no longer sees a phantom numPages and works
+     against the real file page count.
+
+- **`Truncate` MUST drop `leafToTrunk` entries where the VALUE is the
+  truncated page, not just the KEY.** `p.leafToTrunk` is
+  `map[leaf]trunk`; the leaf is a page that's a free page in the
+  freelist, the trunk is the page that holds the chain. When Truncate
+  shrinks the file past a page, that page might still be a leaf in
+  someone else's chain (the leaf is still in the file at a lower
+  pgno) or it might be the trunk itself. The KEY-side cleanup
+  (`delete(p.leafToTrunk, pgno)`) handles the leaf case; the VALUE-side
+  cleanup (iterate `leafToTrunk` and delete entries where `trunk ==
+  pgno`) handles the trunk case. Without the VALUE-side cleanup, a
+  later `AllocatePage` pops leaf L, then calls
+  `popFromFreePagesChainLocked(L)` which reads the trunk T to find/zero
+  L's slot, but T is past numPages, and `readPageLocked` fails with
+  "database disk image is malformed" (autovacuum-2.5.1's root error).
+
+- **`AutoVacuumCommit`'s outer loop must continue until numPages
+  reaches 1, not 2.** The previous `if i+1 >= nVac && NumPages() <= 2
+  break` would stop the loop one page early: after the btree pages
+  are truncated, numPages = 2 (header + ptrmap), the loop breaks, and
+  the ptrmap page remains. The autovacuum-9.2 test wants the file to
+  shrink to 1 page after dropping all tables. Fix: change the bound
+  to `<= 1` so the loop iterates one more time, calling
+  `IncrVacuumStep(1)` which sees lastPg = 2 (a ptrmap page) and
+  truncates past it. SQLite's btree.c `sqlite3BtreeCommitPhaseOne`
+  similarly truncates the trailing ptrmap.
+
+- **Fixing 9.2 reveals the pre-existing 2.5.1+ btree-rebalance bug.**
+  9.2's "file size = 1024" assertion was failing in c0bbfa78 with
+  `got: 2048` (file still 2 pages, ptrmap not truncated). Fixing the
+  break condition to `<= 1` makes 9.2 pass. But 2.5.1's "database
+  disk image is malformed" (line 429) remains — that's the
+  documented c0bbfa78 out-of-scope btree rebalance bug. The
+  testgen FAIL count goes from 17 (c0bbfa78) to 16 (this fix):
+  - 9.2 (line 718): now PASSES
+  - 9.3, 9.5: still FAIL (pending-byte-cap out of scope per c0bbfa78)
+  - 2.5.1+ cascade (line 429 + 13 lines): still FAIL (pre-existing
+    btree rebalance bug out of scope per c0bbfa78)

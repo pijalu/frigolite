@@ -130,7 +130,14 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 		nVac = nFree
 	}
 	totalSteps := uint32(0)
-	for i := uint32(0); i < nVac; i++ {
+	// P8.INCRVACUUM.phase9.s: drain the freelist past nVac when the only
+	// remaining work is a final ptrmap-page truncation (autovacuum-9.2
+	// expects the file to drop to 1 page after dropping all tables;
+	// nFree counts only the freelist chain, not the trailing ptrmap).
+	// The first nVac iterations honour the callback's batch cap; the
+	// extra iterations only run as far as the work itself allows
+	// (the loop breaks when no progress is made).
+	for i := uint32(0); ; i++ {
 		npBefore := ctx.Pager.NumPages()
 		_, err := e.runIncrVacuumStep(ctx)
 		if err != nil {
@@ -141,6 +148,9 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 			break
 		}
 		totalSteps++
+		if i+1 >= nVac && ctx.Pager.NumPages() <= 1 {
+			break
+		}
 	}
 	return int(totalSteps), nil
 }
