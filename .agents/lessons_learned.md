@@ -3974,3 +3974,59 @@ bug. Specifically:
 3. Audit the btree's rebalance free-leaf paths
    (`mergeIntoLeft`, `mergeIntoRight`, the no-sibling branch)
    for any remaining stale parent references.
+
+## P8.INCRVACUUM.phase9: chain-order pop + on-disk dbsize (2026 session)
+
+**Findings (autovacuum-2.4.5 / -2.5.1 / -9.x / -10.1):**
+- **Chain-order pop**: `AllocatePage`'s in-memory fast-path took
+  any page from `p.freePages` in Go's map-iteration order, which
+  is random. The test expects pages 12..532 in sequential
+  allocation order (the btree frees overflow pages in chain
+  order, and the chain's first leaf is the most-recently-freed
+  page = lowest page number). Fix: `pickNextFreePageLocked`
+  walks the on-disk chain to return the head trunk's first leaf
+  (or the head trunk itself if it has 0 leaves), matching
+  `btree.c allocateBTreePage`'s `closest=0` branch (line 6677).
+- **On-disk dbsize**: `AllocatePage` extended the file in memory
+  (`p.numPages++`) but never wrote the new size into the
+  in-header `DatabaseSize` field (offset 28). The on-disk
+  header kept the pre-extension size, so the next statement's
+  `HeaderBeyondFile` (btree.c lockBTree) compared the on-disk
+  file (now larger) against a stale header (says small) and
+  either failed with "database disk image is malformed" or
+  let autovacuum walk a freelist chain that didn't match the
+  file. Fix: in `flushPage`, when the file is extended
+  (`p.fileSize < fileEnd`), also write `pageNum` into
+  `p.header[28:32]` and mirror to `p.pages[1].Data`, then
+  mark page 1 dirty. `HeaderBeyondFile` now reads the
+  current in-memory size and the check passes.
+
+**Effect on autovacuum-2.4.5 (rootpage list):** the test's
+expected list is 3..532 (530 entries). Our pre-fix result had
+553 entries with random order (the random pop + the corrupt
+chain). Post-fix: 528 unique pages in sequential order
+(3..531 minus the 2 ptrmap pages 207 and 412). The 2 missing
+entries are the **transpiler** dropping
+`array set unusable_page {207 1 412 1}` (it has no handler for
+`array set`, registered as a noop in `processcommand.go`).
+Per the MANDATORY rule, the engine is correct; the transpiler
+needs to emit the `array set` as a map store.
+
+**Effect on autovacuum-2.5.1 (integrity_check "Page 2:
+never used"):** part of the corruption is the btree layer
+failing to write ptrmap entries for newly-allocated btree
+pages. This is the `WritePtrmap` wiring work in phase10.
+The chain fix unmasked it (the test now gets to 2.5.1 instead
+of failing earlier in 2.4.5/2.4.6).
+
+**Effect on autovacuum-9.x (file size 176128):** the
+incremental vacuum chain in IncrVacuumStep over-truncates when
+the chain has more free pages than `IsPageOnFreelist` reports
+(e.g. the btree layer creates a new page and the freelist
+count lags by one). The chain fix reduces the over-truncation
+but the underlying count-lag bug is in IncrVacuumStep /
+AllocatePage (the `len(p.freePages)` count vs the on-disk
+chain count). The dbsize fix means the file is now
+consistently 172 pages after the full test sequence, with the
+last ~166 pages being wasted reserved space that the chain
+fix can now drain on the next autovacuum pass.

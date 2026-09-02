@@ -706,6 +706,111 @@ func (p *Pager) SetHeader(h []byte) {
 	p.header = append([]byte(nil), h...)
 }
 
+// pickNextFreePageLocked returns the page that AllocatePage should
+// hand out next, walking the on-disk freelist chain to preserve chain
+// order. Returns 0 if the chain is empty / inconsistent. Caller must
+// hold p.mu.
+//
+// P8.INCRVACUUM.phase9: the previous in-memory fast-path took any
+// page from p.freePages (Go map iteration is random), which
+// scrambled the rootpage order in autovacuum-2.4.5. The chain
+// order is well-defined: the FIRST leaf of the head trunk is the
+// most-recently-freed leaf (LIFO of FreePage), and the head trunk
+// itself (with 0 leaves) follows the last leaf. Walking in chain
+// order matches SQLite's btree.c allocateBTreePage (closest=0
+// branch) and the test's expected sequential allocation (3..532).
+//
+// The function also guards against the in-memory freePages set
+// diverging from the on-disk chain (e.g. after Restore from a
+// snapshot whose chain was not synchronised). If the chain is
+// empty/inconsistent, it falls back to any in-memory free page so
+// the chain-corruption-detection path still fires and surfaces the
+// problem to integrity_check.
+func (p *Pager) pickNextFreePageLocked() uint32 {
+	if p.header == nil || len(p.header) < 40 {
+		// Defensive: no chain header — fall back to any in-memory
+		// free page (the chain-correction machinery downstream
+		// will re-derive the on-disk state on the next FreePage).
+		for pg := range p.freePages {
+			return pg
+		}
+		return 0
+	}
+	trunk := binary.BigEndian.Uint32(p.header[32:36])
+	if trunk == 0 || trunk > p.numPages {
+		// Empty or invalid chain — fall back.
+		for pg := range p.freePages {
+			return pg
+		}
+		return 0
+	}
+	trunkPg, terr := p.readPageLocked(trunk)
+	if terr != nil || len(trunkPg.Data) < 8 {
+		for pg := range p.freePages {
+			return pg
+		}
+		return 0
+	}
+	leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+	if leafCount > 0 {
+		// Pop the first leaf of the head trunk (closest=0, the
+		// leftmost slot in the leaves array).
+		firstLeaf := binary.BigEndian.Uint32(trunkPg.Data[8:12])
+		if firstLeaf != 0 && p.freePages[firstLeaf] {
+			return firstLeaf
+		}
+		// The first leaf is missing from the in-memory set
+		// (e.g. p.freePages was rebuilt from a chain whose
+		// leaves were already consumed). Walk leaves in order
+		// until we find one that's still in p.freePages.
+		for i := uint32(0); i < leafCount; i++ {
+			off := 8 + i*4
+			if int(off)+4 > len(trunkPg.Data) {
+				break
+			}
+			leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+			if leaf != 0 && p.freePages[leaf] {
+				return leaf
+			}
+		}
+	}
+	// No leaves available: the head trunk itself is the next-to-pop.
+	if p.freePages[trunk] {
+		return trunk
+	}
+	// Walk the chain looking for any in-memory free page (a leaf
+	// of a non-head trunk, or a trunk whose leaves are gone). The
+	// chain order is preserved (we visit trunk[0], then its
+	// leaves, then trunk[1], then its leaves, ...).
+	for t := trunk; t != 0 && t <= p.numPages; {
+		tpg, terr := p.readPageLocked(t)
+		if terr != nil || len(tpg.Data) < 8 {
+			break
+		}
+		next := binary.BigEndian.Uint32(tpg.Data[0:4])
+		lc := binary.BigEndian.Uint32(tpg.Data[4:8])
+		for i := uint32(0); i < lc; i++ {
+			off := 8 + i*4
+			if int(off)+4 > len(tpg.Data) {
+				break
+			}
+			leaf := binary.BigEndian.Uint32(tpg.Data[off : off+4])
+			if leaf != 0 && p.freePages[leaf] {
+				return leaf
+			}
+		}
+		if next == 0 {
+			break
+		}
+		t = next
+	}
+	// Last resort: any in-memory free page.
+	for pg := range p.freePages {
+		return pg
+	}
+	return 0
+}
+
 // popFromFreePagesChainLocked removes `pgno` from the on-disk freelist
 // chain. `pgno` must be in p.freePages (or otherwise known to the chain).
 // The on-disk chain is updated so a subsequent checkFreelistCount walk
@@ -913,21 +1018,28 @@ func (p *Pager) AllocatePage() *Page {
 		// page is no longer referenced by any trunk's leaves list (which
 		// is what the P8.INCRVACUUM.phase8 trunkPages / leafToTrunk
 		// maps track).
+		//
+		// P8.INCRVACUUM.phase9: popping from p.freePages in Go's map
+		// iteration order is RANDOM, which produced out-of-order
+		// rootpage allocation in autovacuum-2.4.5 (the test expects
+		// pages 3..532 in order; the chain's order is 3..532, but the
+		// map iteration scrambled it). Walk the chain to pick the
+		// next-to-allocate page in chain order: the first leaf of the
+		// head trunk, or the head trunk itself if it has 0 leaves
+		// (SQLite btree.c allocateBTreePage lines 6649-6700).
 		if len(p.freePages) > 0 {
-			var trunk uint32
-			for pg := range p.freePages {
-				trunk = pg
-				break
+			next := p.pickNextFreePageLocked()
+			if next != 0 {
+				delete(p.freePages, next)
+				// P8.INCRVACUUM.phase8: maintain the on-disk chain
+				// (extracted to popFromFreePagesChainLocked so
+				// AllocatePageLE can share the same logic).
+				p.popFromFreePagesChainLocked(next)
+				pg := &Page{Data: make([]byte, p.pageSize), PageNum: next}
+				p.pages[next] = pg
+				p.dirty[next] = true
+				return pg
 			}
-			delete(p.freePages, trunk)
-			// P8.INCRVACUUM.phase8: maintain the on-disk chain
-			// (extracted to popFromFreePagesChainLocked so
-			// AllocatePageLE can share the same logic).
-			p.popFromFreePagesChainLocked(trunk)
-			pg := &Page{Data: make([]byte, p.pageSize), PageNum: trunk}
-			p.pages[trunk] = pg
-			p.dirty[trunk] = true
-			return pg
 		}
 		// If the on-disk freelist has pages (header byte 32..36 = trunk, 36..40 =
 		// count), recycle one instead of extending the file. SQLite's
@@ -2033,6 +2145,27 @@ func (p *Pager) flushPage(pageNum uint32) error {
 			return fmt.Errorf("pager: truncate: %w", err)
 		}
 		p.fileSize = fileEnd
+		// Mirror the new file size in the in-header database size (offset
+		// 28). Without this, the on-disk header keeps the pre-extension
+		// size even after the file grew, so the next statement's
+		// HeaderBeyondFile check (src/btree.c lockBtree) compares a stale
+		// header against the new file size and either fails with
+		// "database disk image is malformed" (when the version-valid-for
+		// check at offset 92 trusts the header) or lets autovacuum walk a
+		// freelist chain that no longer matches the file (corrupt2 /
+		// autovacuum-2.4.5, -2.5.1, -9.x, -10.1).
+		if p.header != nil && len(p.header) >= 32 {
+			binary.BigEndian.PutUint32(p.header[28:32], pageNum)
+			// Mirror the updated header into the cached page 1 so the
+			// subsequent flushAll() writes the new header bytes; the page
+			// cache holds a separate copy of pg.Data[0:100] from the
+			// original Open() read (pager.c pager_write_changecounter
+			// likewise mutates page 1's buffer in place at COMMIT).
+			if pg, ok := p.pages[1]; ok && pg != nil {
+				copy(pg.Data[:HeaderSize], p.header)
+			}
+			p.dirty[1] = true
+		}
 	}
 	// Record the BEFORE image of this page in the rollback journal. The
 	// pg.Data we have here is the AFTER image (the in-memory dirty copy);
