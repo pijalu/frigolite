@@ -4185,3 +4185,39 @@ fix can now drain on the next autovacuum pass.
   - 9.3, 9.5: still FAIL (pending-byte-cap out of scope per c0bbfa78)
   - 2.5.1+ cascade (line 429 + 13 lines): still FAIL (pre-existing
     btree rebalance bug out of scope per c0bbfa78)
+
+## Btree gap assessment (P8.INCRVACUUM.phase10 scope, 2026 session)
+
+- **Root cause of 2.5.1+ autovacuum testgen failures**: schema btree
+  leaves (pages 25, 26, 49, 72, 95, 116, ... with 19-22 valid cells
+  each) become disconnected from interior parents during the
+  528-table DROP sequence. The rebalance's cell redistribution
+  (balanceNonroot Phase 4 in
+  `internal/btree/btree_balance_nonroot.go`) writes cells to
+  sibling pages but doesn't update the parent's cell-child array
+  to reflect which pages received cells. The cells become
+  orphaned in the file.
+- **The freeOrphanedLeaves approach is unsafe**: a
+  `walkInterior` that fails partway (e.g. on a page that fails to
+  parse) marks a subset of pages as reachable, then frees the
+  rest. The 173-error regression in the testgen (16 → 173)
+  confirmed this.
+- **The rebalanceEmptyLeaves approach is also unsafe**:
+  `mergeIntoLeft` has bugs in cell pointer sorting and page
+  reconstruction that cause data loss (the 9000-insert stress
+  test lost 5 keys).
+- **The proper fix is balanceNonroot Phase 4**:
+  - Compute the size-balanced cell distribution
+  - Determine which siblings end up empty after redistribution
+  - For empty siblings, remove the parent's cell-child OR clear
+    the rmp
+  - Free the empty sibling pages
+  - Rewrite the divider cells between non-empty siblings
+- **Phase 5b/5c in the current balanceNonroot has a no-op
+  Phase 5c** (line 458-473): `for _, p := range emptyPages { _ = p }`
+  — it iterates empty pages but does nothing. This is the immediate
+  source of the orphan bug for the rmp case. Filling in this
+  block would fix the rightmost-child orphan case.
+- **See** `.agents/btree_gap_assessment.md` for the full
+  btree.c-vs-frigolite feature matrix and the P8.INCRVACUUM.phase10
+  implementation plan.
