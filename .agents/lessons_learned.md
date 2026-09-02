@@ -4082,3 +4082,43 @@ fix can now drain on the next autovacuum pass.
   doesn't always free empty interior pages, leaving the schema
   btree pointing at ghost pages that the autovacuum then
   truncates. Phase 10 work (writePtrmap + btree rebalance).
+
+## P8.INCRVACUUM.phase9.d: Truncate-time freelist map cleanup (2026 session)
+
+- **`Truncate` MUST drop pages from `p.trunkPages` and
+  `p.leafToTrunk`**, not just `p.freePages`. The maps are
+  in-memory freelist state that survive across the pager's
+  lifetime. When a Truncate drops a page that was in
+  `trunkPages` or as a value in `leafToTrunk`, a later
+  `FreePage(thatPage)` call hits the idempotence check at the
+  top of FreePage (line 1781: "page is already on the chain")
+  and just bumps `header.count` without actually inserting the
+  page into the chain. The chain count then diverges from the
+  visible chain length, and a subsequent `AllocatePage` reads
+  `header.trunk + header.count`, finds a phantom page that
+  the chain's next_trunk pointer points to (the original trunk
+  link, but the trunk itself was rewritten to lc=0 by
+  `pruneFreelistChain`), and `readPageLocked` fails with
+  "database disk image is malformed" when that phantom page
+  is beyond the new numPages. Fix: in the Truncate loop, also
+  `delete(p.trunkPages, pgno)` and `delete(p.leafToTrunk, pgno)`
+  for each truncated page. `pruneFreelistChain` should also
+  delete the corresponding entry from `leafToTrunk` for any
+  leaf it zeroes out, and from `trunkPages` for any trunk it
+  skips because `trunk > n`.
+
+- **`Truncate` MUST clear `header[52:56]` (meta[3], the
+  largest root btree page number) when the value exceeds the
+  new file size.** If AllocatePage bumped meta[3] to N during
+  the transaction and then a Truncate shrinks the file to
+  n < N, the next `ValidateHeader` call sees `largestRoot >
+  numPages` and aborts with "database disk image is malformed"
+  on the first statement after the truncate. Fix: in Truncate,
+  if `header[52:56] > n`, set it to 0.
+
+- **2.5.1 still fails — that's a btree rebalance bug, not a
+  chain bug.** The schema btree's rebalance after DROP doesn't
+  free empty interior pages, so the schema btree still
+  references pages that autovacuum truncates. The chain is
+  now consistent; the schema btree is not. Phase 10 (proper
+  btree rebalance) is the right scope for this.

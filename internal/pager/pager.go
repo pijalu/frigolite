@@ -1073,8 +1073,8 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 		// snapshot's pages, so a chain pop inside a transaction is
 		// safely undone.
 		if len(p.freePages) > 0 {
-		next := p.pickNextFreePageLocked()
-		if next != 0 {
+			next := p.pickNextFreePageLocked()
+			if next != 0 {
 			delete(p.freePages, next)
 			// P8.INCRVACUUM.phase8: maintain the on-disk chain
 			// (extracted to popFromFreePagesChainLocked so
@@ -1407,6 +1407,27 @@ func (p *Pager) Truncate(n uint32) error {
 			// no longer exists, so it must not be popped by AllocatePage.
 			delete(p.freePages, pgno)
 		}
+		// P8.INCRVACUUM.phase9: also drop the page from the
+		// trunkPages and leafToTrunk maps. Without this, a
+		// later FreePage(pgno) hits the idempotence check at
+		// FreePage's lines 1781-1785 (page is in the chain) and
+		// just bumps header.count without actually inserting the
+		// page into the chain. The chain count then diverges from
+		// the visible chain length, and a subsequent AllocatePage
+		// reading header.trunk + header.count finds a phantom
+		// page that the chain's trunk points to (the original
+		// next-trunk pointer) but the trunk's leafCount was
+		// rewritten to 0 by pruneFreelistChain, so the phantom
+		// page is never visited; the next valid page in the
+		// chain (which may be a stale btree page reference) is
+		// returned, and readPageLocked fails with "database disk
+		// image is malformed" when that page is beyond numPages.
+		if p.trunkPages != nil {
+			delete(p.trunkPages, pgno)
+		}
+		if p.leafToTrunk != nil {
+			delete(p.leafToTrunk, pgno)
+		}
 	}
 	for pgno := range p.pages {
 		if pgno > n {
@@ -1482,6 +1503,19 @@ func (p *Pager) Truncate(n uint32) error {
 	if p.header != nil && len(p.header) >= 32 {
 		binary.BigEndian.PutUint32(p.header[28:32], n)
 		p.dirty[1] = true
+	}
+	// P8.INCRVACUUM.phase9 follow-up: also clear the largest root
+	// btree page number (header[52:56] = meta[3]) if the previous
+	// value is beyond the new file size. Without this, the next
+	// ValidateHeader call sees largestRoot > numPages and aborts
+	// with "database disk image is malformed" on the first statement
+	// after a truncate (e.g. autovacuum-2.4.7 → 2.5.1).
+	if p.header != nil && len(p.header) >= 56 {
+		largest := binary.BigEndian.Uint32(p.header[52:56])
+		if largest > n {
+			binary.BigEndian.PutUint32(p.header[52:56], 0)
+			p.dirty[1] = true
+		}
 	}
 	// Mirror the updated header into the cached page 1 so the next
 	// flush writes the new header bytes (FreePage/Truncate only update
@@ -1566,6 +1600,12 @@ func (p *Pager) pruneFreelistChain(n uint32) error {
 			// follow its next-trunk pointer (the read may be
 			// impossible since the page no longer exists on disk,
 			// but if the page is still in the cache, we can read it).
+			// P8.INCRVACUUM.phase9: also drop the trunk from
+			// p.trunkPages so a later FreePage of the same page
+			// does not hit the idempotence check.
+			if p.trunkPages != nil {
+				delete(p.trunkPages, trunk)
+			}
 			if pg, ok := p.pages[trunk]; ok && pg != nil && len(pg.Data) >= 8 {
 				trunk = binary.BigEndian.Uint32(pg.Data[0:4])
 			} else {
@@ -1602,6 +1642,15 @@ func (p *Pager) pruneFreelistChain(n uint32) error {
 			} else if leaf > n {
 				// Mark this slot as free (zero).
 				binary.BigEndian.PutUint32(pg.Data[off:off+4], 0)
+				// P8.INCRVACUUM.phase9: drop the truncated leaf
+				// from p.leafToTrunk so a later FreePage of
+				// the same page does not hit the idempotence
+				// check (FreePage line 1781) and bump
+				// header.count without actually inserting
+				// the page into the chain.
+				if p.leafToTrunk != nil {
+					delete(p.leafToTrunk, leaf)
+				}
 			}
 		}
 		// Update the trunk's leaf count to match survivors.
