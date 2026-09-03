@@ -4381,12 +4381,33 @@ natural density now matches. Root cause was per-cell size:
   - internal/pager/pager.go: SetNumPagesForTesting helper (the
     autovacuum resync safety net's only public surface).
 
-**Testgen transpiler gap (pre-existing, unrelated):** 9.3/9.5
-compare file size against a Go global `sqlite_pending_byte` that
-tcl2go doesn't wire through. The engine's `got` is the correct
-density (`[65536]` and `[126976]`); the `want: []` is the missing
-global. Pure-Go port of the test would be a one-liner; the engine
-itself is now correct.
+**Testgen transpiler gap (FIXED in 2026-09 P8.INCRVACUUM.phase12):**
+autovacuum-9.3/9.5 and 2.4.5 previously compared file size / rootpage
+list against an empty `sqlite_pending_byte` global. The fix is
+two-part:
+
+  1. **tcl2go** initialises the Go shadow `var sqlite_pending_byte =
+     "65536"` in the test preamble for any test that references
+     `::sqlite_pending_byte` (tester.tcl:102 pins the harness byte to
+     0x10000), AND registers the `sqlite3_test_control_pending_byte`
+     handler for the standalone TCL command in case a test file
+     re-sets it.
+  2. **engine** exposes `DB.SetPendingByte(uint32)` /
+     `Engine.SetPendingByteMain` / `Pager.SetPendingByte` plumbing so
+     the test can lower the production PENDING_BYTE (0x40000000) to
+     0x10000. The transpiler emits `db.SetPendingByte(0x10000)` at
+     the top of every test that needs it. The pager's AllocatePage /
+     AllocatePageLE / pickNextFreePageLocked now consult
+     `p.pendingBytePageFor()` (resolver that honours the override)
+     instead of the static `pendingBytePage(p.pageSize)` so the
+     freelist filter correctly skips the test-mode reserved slot.
+
+After the fix: autovacuum-9.3 passes, 2.4.5 passes (rootpage list
+excludes 65/207/412), and autovacuum-9.5 still under-shrinks
+(140 pages vs 64 expected) because Phase 5d (free the rightmost-child
+when ctx.page becomes empty) only handles the rightmost-cell case;
+the engine still leaves ~75 interior-leaf shadow pages on the file
+after a half-rowid DELETE.
 
 **Why this was hard:** the failures of the same test (9.3/9.5 size)
 across multiple prior phases looked like a single root cause (page
