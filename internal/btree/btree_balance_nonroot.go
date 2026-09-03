@@ -30,6 +30,7 @@ package btree
 import (
 	"encoding/binary"
 	"fmt"
+	"os"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -401,6 +402,7 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 			break
 		}
 	}
+	fmt.Fprintf(os.Stderr, "DBG: balanceNonroot ctx.page=%d iParentIdx=%d parent.CellCount=%d pageWasEmptied=%d\n", ctx.page.PageNum, ctx.iParentIdx, parent.CellCount, pageWasEmptied)
 	if pageWasEmptied && ctx.iParentIdx >= 0 && ctx.iParentIdx < int(parent.CellCount) {
 		// The page being balanced was a cell-child of the parent
 		// and is now empty. Drop the parent cell at iParentIdx,
@@ -480,6 +482,32 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 		}
 	}
 
+	// Phase 5d: when the page being balanced is the parent's
+	// rightmost-child (iParentIdx==-1) and ctx.page became empty
+	// after Phase 4, the rightmost-child pointer still references
+	// ctx.page. Swap it for the left sibling and free ctx.page.
+	// Without this, autovacuum-9.5 leaves the empty rightmost leaf
+	// on the file (never on the freelist) and the file stays at 124
+	// pages after DELETE; the test expects 64 pages.
+	if ctx.iParentIdx == -1 && pageWasEmptied && len(siblings) >= 1 {
+			newRmp := siblings[0].PageNum
+		binary.BigEndian.PutUint32(ctx.parent.Data[parentCo+8:parentCo+12], newRmp)
+		if int(parent.CellCount) > 0 {
+			lastCellIdx := int(parent.CellCount) - 1
+			ptrBase := parentCo + cellPtrOffset(parent.PageType) - 8
+			cp := storage.CellPointer(ctx.parent.Data, ptrBase, lastCellIdx, int(t.pageSize))
+			if newRmpPg, nerr := t.pager.ReadPage(newRmp); nerr == nil {
+				newRmpCo := contentOffset(newRmp)
+				if newRmpPage, perr := storage.ParsePage(newRmpPg.Data, int(t.pageSize), newRmpCo); perr == nil && newRmpPage.CellCount > 0 {
+					largestRowID := readLastRowID(newRmpPg.Data, newRmpCo, newRmpPage, storage.CellTableLeaf, int(t.usableSize))
+					_ = binary.PutUvarint(ctx.parent.Data[cp+4:cp+4+9], uint64(largestRowID))
+				}
+			}
+		}
+		if err := t.pager.FreePage(ctx.page.PageNum); err != nil {
+			return nil, err
+		}
+	}
 	if err := t.pager.WritePage(ctx.parent); err != nil {
 		return nil, fmt.Errorf("balanceNonroot: write parent: %w", err)
 	}

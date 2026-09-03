@@ -438,16 +438,16 @@ func (t *BTree) findParentByWalk(target uint32) (uint32, byte, error) {
 	}
 	// 2. The schema walk itself does not visit user btree pages (the
 	//    schema records point at root pages, but their interior/leaf
-	//    subtrees are not reached). When this BTree handle is the
-	//    schema btree (rootPage==1), enumerate the rootpages recorded
+	//    subtrees are not reached). Enumerate the rootpages recorded
 	//    in sqlite_schema and walk each subtree for the target.
-	//
-	//    P8.INCRVACUUM: relocates with uninitialised ptrmap entries
-	//    rely on this fallback (the btree's allocation sites don't
-	//    always write ptrmap). Without it, user-btree pages are
-	//    reported as orphans and the vacuum loop never relocates
-	//    anything (file keeps the original size).
-	if t.rootPage == 1 {
+	//    Done unconditionally so user-btree interior/leaf pages can
+	//    be located even when the BTree handle's rootPage points
+	//    at a user-table root (autovacuum-9.5: maybeRebalanceAfterDelete
+	//    must find the parent of an empty user-table leaf to call
+	//    balanceNonroot + FreePage; the schema walk covers only page 1,
+	//    not the user-table subtrees).
+	{
+		_ = t.rootPage // walked regardless of whether this handle is the schema btree
 		roots, rerr := t.collectSchemaRoots()
 		if rerr == nil {
 			for _, r := range roots {
@@ -703,16 +703,31 @@ func (t *BTree) findParentInOverflowChain(rootPgno, target uint32) (uint32, erro
 	return 0, errNotInBtree
 }
 
-// collectSchemaRoots reads every (rootpage) value from
+// schemaCursor opens a cursor on the schema btree (rooted at page 1).
+// Used by collectSchemaRoots to walk the schema even when the BTree
+// handle's rootPage is a user-table root.
+func (t *BTree) schemaCursor() (*Cursor, error) {
+	savedRoot := t.rootPage
+	t.rootPage = 1
+	defer func() { t.rootPage = savedRoot }()
+	return t.OpenCursor()
+}
+
+
 // sqlite_schema. The schema btree's cells are (type, name, tblname,
 // rootpage, sql) records. We open a cursor on the schema btree
 // (rooted at page 1) and walk every cell, decoding just enough of
 // the record header to extract the rootpage int64.
 func (t *BTree) collectSchemaRoots() ([]uint32, error) {
-	if t.rootPage != 1 {
-		return nil, nil
-	}
-	cur, err := t.OpenCursor()
+	// Open the schema btree directly (it's always at page 1), regardless
+	// of what this BTree handle's rootPage is. The previous guard
+	// `if t.rootPage != 1 { return nil }` made the function a no-op for
+	// user-table BTree handles, which broke findParentByWalk in
+	// maybeRebalanceAfterDelete (autovacuum-9.5: no roots enumerated
+	// → user-table leaves reported as orphans → balanceNonroot never
+	// called → FreePage never called → autovacuum never shrinks the
+	// file).
+	cur, err := t.schemaCursor()
 	if err != nil {
 		return nil, err
 	}
