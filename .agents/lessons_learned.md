@@ -4641,3 +4641,43 @@ re-runs its own verify command.
   misleads greps (not parsed by `tools/status`, but delete it).
 - The 60s/pkg status-tool timeout can mark slow-but-passing packages as
   FAIL; confirm borderline packages serially before treating them as red.
+
+## 2026-09-03 — Sub-plan validation: stale names, dead skip keys, rtree classification bug
+
+Validated all 80 `plan/goals/*.md` files (63 §4 goals + 17 auxiliary notes)
+for structural correctness, verify-command coverage, and live-state
+consistency. Spot-ran P7.AUTOINDEX and P8.ENCODING verify commands end-to-end
+— both exit 0, so "complete + live-green" goals hold. Findings that matter:
+
+1. **Stale target package names in sub-plans**: P2.CONSTRAINT targets
+   `8_3_names` (actual testgen pkg: `p_8_3_names`); P6.EXT targets `quota_`
+   (actual: `quota`/`quota2`/`quota_glob`); P8.RECOVER targets `recover`
+   (actual: `recover_pkg`). Names drifted from TCL file names to generated
+   package names and were never reconciled.
+2. **Dead skip-map keys** (`tools/tcl2go/skiptestfiles.go`): `"quota_"`,
+   `"quota-glob"`, `"recover"` match no testgen package — they skip nothing.
+   The audit (`tools/status --audit`) only checks NA_EVIDENCE coverage of
+   *live* skips, so orphan keys are invisible.
+3. **families.tsv `rtree` entry lacks the `*` wildcard** (line 168) — all
+   ~17 `rtree*` packages classify into OTHER, so the family table showed
+   "RTREE: 1 pkg, 100%" while rtree1/2/3/4/8/9/A/C/E/H/J, rtreecheck,
+   rtreecirc, rtreedoc*, rtreefuzz001 all FAIL unowned (no §4 goal owns
+   RTREE; the orphan `P6.RTREE.md` was never indexed).
+4. **Queued-goal verify commands under-cover their DoD**: P8.PAGER verify
+   runs 8 of 24 targets; P8.PRAGMA omits `tkt2686`; P8.RECOVER's verify
+   uses the right pkg (`recover_pkg`) but the target list is stale. Under
+   §5b a goal completes against its verifyCommand, so DoD promises would go
+   unexercised. Fix before executing those goals (or rely on the §5g green
+   ledger to catch it mechanically).
+5. Completed goals' verify commands often legitimately cover fewer packages
+   than the target list (documented scope narrowing in PORTPLAN rows: WAL-B,
+   ENCODING, LOCK-B/C, SKIPSCAN, VTAB, FTS-A/F, BLOB) — not defects, but the
+   sub-plan target lists were never annotated, so header counts (3 mismatch:
+   P1.WHERE 8v9, P7.WAL-B 8v10, P8.ENCODING 8v11) and lists overstate scope.
+
+**Lessons**: (a) package identity = testgen dir name; any plan/skip entry
+must be validated against `ls testgen/` — TCL-derived names rot. (b) Family
+classification needs a wildcard audit — a missing `*` hid 17 failures.
+(c) Validate skip maps by diffing keys against actual package dirs, not just
+against NA_EVIDENCE. (d) §5g's green ledger will make classes 2–3
+mechanically detectable; until then, grep-based reconciliation is the check.
