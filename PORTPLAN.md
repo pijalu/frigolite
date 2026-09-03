@@ -88,6 +88,9 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
   pager/btree work) — needs a dedicated bisect/triage goal (§5a item 11).
   The drift does NOT invalidate the engine work recorded in each row, but
   for *current* planning the live marker supersedes the historical claim.
+  Countermeasure adopted 2026-09-03: the §5g Anti-Drift Protocol (green
+  ledger, pre-goal baseline, full-run gate at goal close, testgen-regen
+  rule) — binding for every goal from now on.
 - **Active goal: P8.INCRVACUUM (queue item 10), 1/5 green** (autovacuum2).
   autovacuum / incrvacuum / incrvacuum2 / incrvacuum3 fail on ONE diagnosed
   root cause (phase14): btree `allocPage` bypasses `WritePtrmap`, so pages
@@ -306,7 +309,7 @@ created only after the previous goal's `verifyCommand` passes and the goal is
 | 8 | `P7.CONCURRENCY` ✅ **complete** (2026-09-01) — AUTOINDEX, LOCK-A/B/C, WAL-A/B/C/D/E, SNAPSHOT all closed (see §4 rows; single-connection WAL writer in P7.WAL-C; shared-cache/snapshot/protocol layers N-A G7 with oracle evidence) | AUTOINDEX, LOCK-A/B/C, WAL-A/B/C/D/E, SNAPSHOT; UCL: WAL frame decoder (src/wal.c) + oracle-generated -wal/-journal fixtures BEFORE any pager edit | `P7.*.md` | Sub-plan verify commands |
 | 9 | `P7.PLANNER` ✅ **complete** (2026-09-03) — PLANNER (ANALYZE/stat tables, 8+1 packages un-skipped and green), PUSHDOWN (N-A with evidence), SKIPSCAN (skip-scan implemented; 4/6 green; skipscan1 OR-EQP residue documented) | PLANNER, PUSHDOWN, SKIPSCAN; UCL: golden EXPLAIN QUERY PLAN fixtures | `P7.*.md` | Sub-plan verify commands |
 | 10 | `P8.STORAGE` 🔄 **ACTIVE** — CORRUPT ✅ (⚠ live 6/13), ENCODING ✅ (live green), **INCRVACUUM 🔄 in progress (live 1/5; phase15 ptrmap-at-allocation fix next)**; MISC→PRAGMA→PAGER→RECOVER→ROLLBACK→VACUUM queued; UCL: hexdump/ptrmap fixtures + corrupted-DB corpus | `P8.*.md` | Sub-plan verify commands |
-| 11 | `FULL-SUITE-DRIFT` (new 2026-09-03) | Triage the 290 red packages from the 2026-09-03 full run: (a) bisect the visible-window regressions (fts3snippet, fts4opt perf/hang passed at `ba771a6b`, fail at HEAD; suspects P7.PLANNER/SKIPSCAN planner-stat + P8 pager/btree); (b) re-baseline pre-squash drift (select1/insert/where class) in per-goal tranches with UCL; create goal per §5b before engine edits | §2 DRIFT ALERT, §4 `⚠ live` markers | `tools/status` full run + per-package serial verify |
+| 11 | `FULL-SUITE-DRIFT` (new 2026-09-03) | FIRST build the green-ledger instrument (§5g item 1: package → expected-state ledger + `tools/status` check mode that fails on unexpected flips), THEN triage the 290 red packages from the 2026-09-03 run: (a) bisect the visible-window regressions (fts3snippet, fts4opt perf/hang passed at `ba771a6b`, fail at HEAD; suspects P7.PLANNER/SKIPSCAN planner-stat + P8 pager/btree); (b) re-baseline pre-squash drift (select1/insert/where class) in per-goal tranches with UCL; create goal per §5b before engine edits | §2 DRIFT ALERT, §4 `⚠ live` markers, §5g | Green ledger + `tools/status` full run + per-package serial verify |
 | 12 | `P9.PERF` | Final performance + full-suite closeout + legacy golang-check remediation (§5d) | `P9.PERF.md` | Sub-plan verify commands |
 
 Each queue item maps to existing `plan/goals/P*.md` files; no new plan file may
@@ -324,6 +327,10 @@ For every queue item, at goal start:
    unit tests whose expectations come only from the oracle or SQLite C
    source. If the instrument does not exist yet, building it IS the first
    micro-task. Circuit breaker U5 applies for the whole goal lifetime.
+0b. **Anti-drift baseline (mandatory, §5g)** — before any engine edit,
+   record in the sub-plan: the target packages' serial live states, the
+   current full-suite totals, and the `last_run.json` stamp. At goal
+   close this baseline is what proves "no regression" (§5e item 4).
 1. `goal create` with:
    - `objective` — the sub-plan objective + "all target packages un-skipped
      and passing".
@@ -372,8 +379,12 @@ no "mostly green":
    hard 1000 / soft 500), and `go test -race -count=1 -run "^Test[^C]" ./...`
    all pass.
 3. **SOLID**: `go test -run TestSOLID_ ./...` passes.
-4. **No regression**: every previously-green package still passes; the
-   verify commands of all completed goals still exit 0.
+4. **No regression (full-suite, §5g)**: a `tools/status` live full run at
+   goal close introduces ZERO new FAILs outside the goal's own target
+   packages compared with the pre-goal baseline recorded in the sub-plan;
+   the verify commands of all completed goals still exit 0. Packages that
+   only fail on the status tool's 60s/package timeout are confirmed
+   serially before being counted red.
 5. **Oracle-verified**: every behavior fix checked against
    `/usr/bin/sqlite3` and traceable to SQLite source
    (`/Users/muaddib/dev/sqlite/src/`, `ext/`).
@@ -382,13 +393,18 @@ no "mostly green":
    `portplan/NA_EVIDENCE.md` AND preserves the functionality through an
    equivalent Go surface. "Slow", "hard", "big" are never skip reasons.
 7. **Plan status updated**: sub-plan file marked done with evidence;
-   PORTPLAN.md §4 table row updated; every key step committed AND pushed
-   (see §8).
+   PORTPLAN.md §4 table row updated (including its `⚠ live N/M` marker);
+   every key step committed AND pushed (see §8).
 8. **Todos closed**: all goa todos for the goal are `done`.
 9. **UCL satisfied**: the seam's scenarios + oracle fixtures + localized
    unit tests exist, are committed, and pass; every behavior fix made
    during the goal is covered by at least one localized UCL assertion
    (not only the e2e testgen package).
+10. **Status artifacts refreshed (§5g)**: `tools/status/last_run.json` and
+   `tools/status/last_run_report.md` (via `--out`) regenerated at the
+   final checkpoint; §4 `⚠ live N/M` markers for the goal's row(s) and the
+   §2 totals updated from that run; the closure claim cites the run stamp
+   (date + totals), not a memory of an earlier green run.
 
 ### 5f. Unit Conformance Layer (mandatory method)
 
@@ -399,6 +415,53 @@ decoders ported from SQLite tooling (U3), first-divergence failure output
 §5a queue — byte-layout seams get decoders, all other seams get golden
 transcripts/values. testgen packages remain the e2e safety net; UCL tests
 are the debugging and localization layer.
+
+### 5g. Anti-Drift Protocol (mandatory, adopted 2026-09-03)
+
+The 2026-09-03 status refresh exposed that per-goal "no regression" gates
+had drifted silently from the live suite (§2 DRIFT ALERT): 38 goal rows
+claimed green packages that were red in the full run. Root cause: a goal's
+verify command only re-runs its OWN target packages, so transpiler
+regenerations and engine evolution during later goals flip earlier
+packages red with nobody watching. The following rules are BINDING for
+every goal:
+
+1. **Green ledger (instrument)** — `FULL-SUITE-DRIFT` (§5a item 11) builds
+   the instrument FIRST, before any drift fixing: a machine-readable
+   ledger of expected per-package state (package → pass/fail/skip +
+   goal attribution + evidence pointer) plus a check mode that diffs a
+   live `tools/status` run against it and exits non-zero on any
+   unexpected state flip. Until the ledger lands, the diff is done
+   manually from `last_run.json` + the §4 markers.
+2. **Baseline at goal start** — before the first engine edit, record in
+   the sub-plan: the target packages' serial live states
+   (`go test -tags testgen ./testgen/<pkg>/ -count=1` per package), the
+   current full-suite totals, and the `last_run.json` generation stamp.
+   "Green before" is the only way to prove "green after".
+3. **Full run at goal close** — regenerate `last_run.json` and
+   `last_run_report.md`, diff against the pre-goal baseline/ledger.
+   Zero unexpected flips outside the goal's targets, else not complete
+   (§5e item 4). Full-suite totals + run stamp go into the closure
+   evidence.
+4. **Testgen regeneration is a suite-wide event** — any goal that runs
+   `go run ./tools/tcl2go/` changes ~1,200 generated files at once and
+   may change generated assertions in packages it does not target. Such a
+   goal must run the full suite in the same checkpoint and record the
+   package-state delta in the sub-plan. A regeneration that flips
+   unrelated packages red without an evidence trail is a regression, not
+   progress.
+5. **Marker hygiene** — a §4 `⚠ live N/M` marker older than the newest
+   `last_run.json` is stale by definition. Markers and §2 totals are
+   refreshed in the goal's final checkpoint commit (§8 step 6).
+6. **Serial confirmation** — the status tool's 60s/package timeout marks
+   slow-but-green packages FAIL. Before treating any such package as red
+   (or skipping it), re-run it serially with the sub-plan's timeout.
+   "Slow" is an optimization task (§6.7), never a skip reason.
+7. **Closure claims cite the run** — every "all packages green" /
+   "complete" statement in a sub-plan or PORTPLAN row must cite the exact
+   command, totals, and run stamp it is based on (e.g. "644/290/285 of
+   1219, 2026-09-03T16:50Z"). A claim that cannot name its run is not
+   evidence.
 
 ---
 
@@ -429,21 +492,31 @@ are the debugging and localization layer.
 
 ## 7. Definition of Done (per goal)
 
-See §5c — the Strict Definition of Done. Summary: target packages 0 FAIL,
-all quality gates + SOLID + race pass, no regression, oracle-verified,
-feature preservation documented, plan status updated, commits pushed,
-goal todos closed.
+See §5e — the Strict Definition of Done. Summary: target packages 0 FAIL,
+all quality gates + SOLID + race pass, full-suite no-regression diff vs the
+pre-goal baseline (§5g), oracle-verified, feature preservation documented,
+plan status updated with refreshed `⚠ live` markers and status artifacts,
+commits pushed, goal todos closed.
 
 ## 8. Checkpointing (per key step)
 
 After **every key step** (each micro-task / todo closed, each fix batch):
 1. Update the sub-plan file (mark task done, record evidence: commands,
    outputs, commit hash).
-2. Update the PORTPLAN.md §4 goal-table row status.
+2. Update the PORTPLAN.md §4 goal-table row status — including its
+   `⚠ live N/M` marker whenever the step flipped a target package's state.
 3. `goal update_todo` — close the corresponding goa todo.
 4. `git add -A && git commit -m "<GOAL_ID>.<task>: <summary>"` — atomic.
 5. `git push` — the remote is the checkpoint; work is only resumable from
    a committed AND pushed state.
+6. At the goal's FINAL checkpoint additionally (anti-drift §5g):
+   regenerate `tools/status/last_run.json` + `last_run_report.md`
+   (`go run ./tools/status` and `--out`), diff against the pre-goal
+   baseline (§5b item 0b), refresh the §4 markers and §2 totals, and cite
+   the run in the closure evidence (§5e items 4 and 10). Targeted
+   per-package runs are enough for intermediate steps; the full run is
+   required only at goal close and after any testgen regeneration
+   (§5g item 4).
 
 No key step is "done" until its plan status is updated and the commit is
 pushed. Resumes happen from the pushed state only.
