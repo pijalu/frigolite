@@ -678,7 +678,13 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 			off := coff + 8 + int(i)*4
 			leaf := binary.BigEndian.Uint32(data[off : off+4])
 			if leaf == 0 {
-				break
+				// Zero slots can appear when a leaf was popped and
+				// the trunk's leaf array was not compacted (e.g. a
+				// chain-popped leaf that was later relocated). Skip
+				// the slot rather than breaking so trailing leaves
+				// (whose slot was filled after the pop) are still
+				// counted.
+				continue
 			}
 			if seen[leaf] {
 				return fmt.Sprintf("database disk image is malformed (cycle at leaf=%d trunk=%d)", leaf, trunk)

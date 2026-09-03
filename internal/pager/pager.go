@@ -1595,16 +1595,32 @@ func (p *Pager) Truncate(n uint32) error {
 		binary.BigEndian.PutUint32(p.header[28:32], n)
 		p.dirty[1] = true
 	}
-	// P8.INCRVACUUM.phase9 follow-up: also clear the largest root
-	// btree page number (header[52:56] = meta[3]) if the previous
-	// value is beyond the new file size. Without this, the next
-	// ValidateHeader call sees largestRoot > numPages and aborts
-	// with "database disk image is malformed" on the first statement
-	// after a truncate (e.g. autovacuum-2.4.7 → 2.5.1).
+	// P8.INCRVACUUM.phase9 follow-up: the largest root btree page
+	// number (header[52:56] = meta[3]) is the autovacuum-mode flag
+	// (a non-zero value at Open time enables autovacuum). It is set
+	// to the new page number by AllocatePage for each new rootpage
+	// (P8.INCRVACUUM.phase9 follow-up). The autovacuum's truncate
+	// may leave the field stale (largest > n if the new file size
+	// is below the previous largest rootpage); ValidateHeader then
+	// reports "database disk image is malformed" on the next Open
+	// (autovacuum-2.4.7 → 2.5.1, autovacuum-9.x after the
+	// DELETE-t4 + autovacuum step).
+	//
+	// Cap largestRoot at the new file size so ValidateHeader
+	// passes. Cap to `n` (not 0): the cap must preserve
+	// autovacuum mode (largest != 0 enables autovacuum). Capping
+	// to n means "the autovacuum-mode flag is still set, but the
+	// recorded largest rootpage is the current file size". The
+	// next Open reads autovacuum=on; the actual rootpage map is
+	// re-derived from the schema btree. (The previous
+	// implementation cleared largest=0 here, which silently
+	// disabled autovacuum for the rest of the connection's life
+	// and produced the autovacuum-9.x failure pattern where the
+	// file stayed at full size after DROP TABLE.)
 	if p.header != nil && len(p.header) >= 56 {
 		largest := binary.BigEndian.Uint32(p.header[52:56])
 		if largest > n {
-			binary.BigEndian.PutUint32(p.header[52:56], 0)
+			binary.BigEndian.PutUint32(p.header[52:56], n)
 			p.dirty[1] = true
 		}
 	}

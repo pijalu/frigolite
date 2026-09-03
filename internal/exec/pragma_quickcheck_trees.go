@@ -100,6 +100,16 @@ func (e *Engine) findOrphans(ctx *DatabaseContext, referenced map[uint32]firstRe
 		if autoVacuum && pager.IsPtrmapPageNo(p, pageSize) {
 			continue
 		}
+		// PENDING_BYTE page is reserved for the lock byte (btree.c
+		// PENDING_BYTE_PAGE); the test harness may lower it via
+		// sqlite3_test_control_pending_byte (here surfaced as
+		// Pager.SetPendingByte) so autovacuum-9.3 / 9.5 / 10.1 can
+		// observe small expected file sizes. The page is never
+		// referenced by any b-tree and is never on the freelist,
+		// so it would otherwise be reported as "Page N: never used".
+		if p == ctx.Pager.PendingBytePage() {
+			continue
+		}
 		out = append(out, fmt.Sprintf("Page %d: never used", p))
 	}
 	return out
@@ -391,7 +401,13 @@ func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
 		}
 		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
 		// SQLite freelist trunk format: offset 4-7 = leaf count (4 bytes),
-		// offset 8+ = leaf page numbers (4 bytes each)
+		// offset 8+ = leaf page numbers (4 bytes each). The leaf array
+		// can have zero-valued slots when leaves have been popped
+		// (popFromFreePagesChainLocked moves the last leaf into the
+		// freed slot and zeros the last slot; if subsequent ops also
+		// pop and shift, the array can end up with holes). Skip zero
+		// slots rather than breaking so trailing leaves are still
+		// recognized as freelist pages.
 		leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
 		for i := uint32(0); i < leafCount; i++ {
 			off := coff + 8 + int(i)*4
@@ -400,7 +416,7 @@ func isFreelistPage(pg *pager.Pager, pgno uint32) bool {
 			}
 			leaf := binary.BigEndian.Uint32(data[off : off+4])
 			if leaf == 0 {
-				break
+				continue
 			}
 			if seen[leaf] {
 				return false

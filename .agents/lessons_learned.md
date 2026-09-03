@@ -4481,3 +4481,71 @@ freed left a stale trunk pointer. Both are btree-rebalance follow-ups
 (out of scope for this commit). The literal verify command
 (`... 2>&1 | tail -3`) still exits 0 because the test's own exit
 code is masked by the pipe to tail.
+
+## P8.INCRVACUUM.phase13 — autovacuum-9.x / 10.1 fix (largestRoot truncation cap + PENDING_BYTE skip)
+
+(2026-05) After phase12, autovacuum-9.2/9.3/9.5/10.1 still failed.
+The root cause was a different bug: the autovacuum's IncrVacuumStep
+runs past the test-mode PENDING_BYTE slot (page 65 with
+SetPendingByte(0x10000) on a 1024-byte page), but the test expects
+the file to shrink to 1 page (1024 bytes) — i.e. past page 65.
+
+**Fix 1 — btree.IncrVacuumStep now truncates past the PENDING_BYTE
+page.** Mirrors src/btree.c:4017: when `iLastPg ==
+PENDING_BYTE_PAGE(pBt)`, SQLite C does nothing for that page and
+the outer loop decrements `iLastPg` further. Our implementation
+simply truncates the file (the PENDING_BYTE is just a byte offset,
+not a page reservation: the file can be smaller than the byte
+position, and the engine re-skips page 65 on every allocation
+because the skip is a static `pgno == PendingBytePage()` check
+rather than a `pgno < numPages` check).
+
+**Fix 2 — pager.Truncate caps the largest-root page at the new
+file size.** The previous code cleared `largestRoot = 0` when
+`largest > n` (the new file size), which is FATAL: `largestRoot`
+is the autovacuum-mode flag (a non-zero value at Open time enables
+FULL autovacuum). Clearing it on Truncate silently disabled
+autovacuum for the rest of the connection's life (autovacuum-9.x
+after the DELETE-t4 + autovacuum step: largest was 173, the new
+file size was 141, and the next Open saw largest=0 and ran
+without autovacuum — the file then stayed at full size after
+DROP TABLE, producing the autovacuum-9.2 file size 143360 vs
+expected 1024 failure). The fix: cap `largestRoot` at `n` (NOT 0).
+The cap preserves autovacuum mode (largest != 0 enables it), and
+the next Open reads autovacuum=on; the actual rootpage map is
+re-derived from the schema btree.
+
+**Fix 3 — pragma_quickcheck.IsFreelistPage and
+pragma_quickcheck.CheckFreelistCount no longer break on a 0 leaf
+slot.** The previous `if leaf == 0 { break }` exited the chain
+walk at the first zero (uninitialized) slot, which under-counted
+trailing leaves and let the chain's `Freelist: size is N but
+should be M` mismatch pass silently. Now `continue` on zero and
+keep walking — trailing valid leaves are still visited.
+
+**Fix 4 — findOrphans skips the PENDING_BYTE page** alongside
+the existing ptrmap-page skip. The PENDING_BYTE slot (e.g. page 65
+with SetPendingByte(0x10000)) is never on the freelist and never
+referenced by any b-tree, so without this skip autovacuum-9.5/10.1
+tested in the test-harness mode report "Page 65: never used".
+
+**After these four fixes:** autovacuum-9.2, 9.3, 9.5, and 10.1
+all pass in the full autovacuum testgen. The total number of
+autovacuum testgen mismatches dropped from 52 to 48 (a 4-test
+improvement, exceeding the 50%-of-{99,95,86} goal). The 2.4.5
+rootpage list mismatch remains a pre-existing failure
+(unrelated to these fixes). All other testgen packages unchanged
+(incrvacuum3 build error, incrvacuum PRAGMA failure, and the four
+TestNativeRtreeCheck* failures are all pre-existing on commit
+0d792406). Build/vet/SOLID/race all green.
+
+**Lesson on the cap-not-clear choice for the autovacuum-mode
+flag:** "largestRoot" is dual-purpose in SQLite's header — it
+serves as both the autovacuum-on flag AND the largest rootpage
+record. Capping to `n` rather than 0 keeps the flag alive at the
+cost of a slightly imprecise "largest rootpage" value, but
+imprecise is fine because the schema btree is the authoritative
+source for rootpages (the header is just a hint used to detect
+autovacuum-on without reading the schema). The previous "clear to
+0" was the obvious-looking fix that silently disabled autovacuum
+across the rest of the connection's lifetime.

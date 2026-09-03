@@ -160,3 +160,60 @@ go build ./... && go vet ./... && go test -run TestSOLID_ ./...
   issue at leaf=34 trunk=107 may have a different root cause (the
   page-swap step's relocate path), which is P8.INCRVACUUM.phase3
   follow-up work. Acceptance: ≥50% reduction in errors, not 100%.
+
+## Outcome (2026-09 P8.INCRVACUUM.phase13)
+
+Applied four fixes that dropped autovacuum testgen mismatches from
+52 to 48 (a 4-test improvement, all of which were 9.2/9.3/9.5/10.1):
+
+1. **`internal/btree/btree_vacuum.go`** — `IncrVacuumStep` now
+   truncates past the PENDING_BYTE page (mirrors btree.c:4017
+   `if( iLastPg!=PENDING_BYTE_PAGE )`). The autovacuum testgen
+   tests use `sqlite3_test_control_pending_byte 0x10000` to lower
+   the byte to 65536 / page 65; the file is expected to shrink to
+   1 page (1024 bytes) — i.e. past page 65.
+
+2. **`internal/pager/pager.go`** — `Truncate` caps the
+   largest-root page at the new file size (NOT 0). The previous
+   code cleared `largestRoot = 0` when `largest > n`, which is
+   FATAL: `largestRoot` is the autovacuum-mode flag (a non-zero
+   value at Open time enables FULL autovacuum). Clearing it on
+   Truncate silently disabled autovacuum for the rest of the
+   connection's life and produced the autovacuum-9.2/9.3/9.5 file
+   size 143360 (140 pages) vs expected 65536 (64 pages) failure
+   pattern.
+
+3. **`internal/exec/pragma_quickcheck_trees.go`** —
+   `isFreelistPage` (and the `checkFreelistCount` companion in
+   `internal/exec/pragma_quickcheck.go`) no longer `break` on a
+   zero-valued leaf slot. The `popFromFreePagesChainLocked` code
+   zeros popped leaf slots and shifts the last leaf into the
+   freed slot; a subsequent pop + shift can leave a hole in the
+   array (the leaf that was "moved" was actually the previous
+   "last leaf" which was zeroed at pop time). Continuing instead of
+   breaking lets the walker count the trailing valid leaves.
+
+4. **`internal/exec/pragma_quickcheck_trees.go`** —
+   `findOrphans` skips the PENDING_BYTE page alongside the existing
+   ptrmap-page skip. PENDING_BYTE slot is never on the freelist
+   and never referenced by any b-tree.
+
+## Verification (machine, post-phase13)
+
+```bash
+# autovacuum testgen total mismatches: 52 -> 48 (-4, all of 9.2/9.3/9.5/10.1)
+# autovacuum-9.2: got 1024 == want 1024 (pass)
+# autovacuum-9.3: got 65536 == want 65536 (pass)
+# autovacuum-9.5: got 65536 == want 65536 (pass)
+# autovacuum-10.1: got "ok" == want "ok" (pass)
+# autovacuum-2.4.5: still failing (pre-existing, rootpage list mismatch)
+go test -tags testgen ./testgen/autovacuum/ -count=1 -timeout 60s
+go build ./... && go vet ./... && go test -run TestSOLID_ ./...
+go test -race -run 'TestAutovacuum|TestP8' -count=1 -timeout 60s ./...
+```
+
+Build/vet/SOLID/race all green. TestNativeRtreeCheck* failures
+unchanged (pre-existing on commit 0d792406). Other testgen
+packages unchanged (incrvacuum3 build error, incrvacuum PRAGMA
+failure all pre-existing). Zero new failures introduced by these
+fixes.

@@ -301,6 +301,22 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// Page 1 is the schema page; can't truncate below it.
 			return steps, nil
 		}
+		// PENDING_BYTE page: the lock-byte reservation (btree.c
+		// PENDING_BYTE_PAGE; src/btree.c:4017 skips this page in
+		// incrVacuumStep). The test harness may lower the byte to
+		// 0x10000 via sqlite3_test_control_pending_byte; with
+		// pageSize=1024, the byte lives in page 65. SQLite's
+		// autovacuum truncates the file PAST the pending byte
+		// page: the PENDING_BYTE is just a byte offset, and the
+		// file can be smaller than the byte position. Mirror that
+		// here: simply truncate the file and continue.
+		if lastPg == t.pager.PendingBytePage() {
+			if err := t.pager.Truncate(lastPg - 1); err != nil {
+				return steps, fmt.Errorf("btree: IncrVacuumStep: truncate past pending byte: %w", err)
+			}
+			steps++
+			continue
+		}
 		// Check if `lastPg` is on the freelist. We don't have a direct
 		// IsOnFreelist query; instead, check if `lastPg` is in
 		// p.freePages. This is the fast path for the common case
