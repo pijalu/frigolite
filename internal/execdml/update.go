@@ -571,21 +571,31 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 // updateRowConflicts reports whether an existing row's values conflict with a
 // change's new values on any UNIQUE/PRIMARY KEY column or UNIQUE index.
 func updateRowConflicts(e *DMLExecutor, rowValues, newValues []interface{}, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, rowID, newRowID int64) bool {
-	if uniqueColsMatch(rowValues, newValues, uniqueCols) {
+	if uniqueColsMatch(rowValues, newValues, colDefs, rowID, newRowID, uniqueCols) {
 		return true
 	}
 	return indexDefsMatch(e, rowValues, newValues, colDefs, colIndex, idxColsList, rowID, newRowID)
 }
 
 // uniqueColsMatch reports whether two value sets agree on any UNIQUE/PRIMARY
-// KEY column index.
-func uniqueColsMatch(a, b []interface{}, uniqueCols []int) bool {
+// KEY column index. colDefs and rowids perform the INTEGER PRIMARY KEY
+// rowid-alias substitution (a stored NULL becomes the rowid before comparison).
+func uniqueColsMatch(a, b []interface{}, colDefs []sql.ColumnDef, rowIDa, rowIDb int64, uniqueCols []int) bool {
 	for _, idx := range uniqueCols {
-		if idx < len(a) && idx < len(b) {
-			if a[idx] == nil || b[idx] == nil {
+		if idx < len(a) && idx < len(b) && idx < len(colDefs) {
+			av, bv := a[idx], b[idx]
+			if isIPKRowidAliasCol(colDefs[idx]) {
+				if av == nil {
+					av = rowIDa
+				}
+				if bv == nil {
+					bv = rowIDb
+				}
+			}
+			if av == nil || bv == nil {
 				continue
 			}
-			if util.CompareValues(a[idx], b[idx]) == 0 {
+			if util.CompareValues(av, bv) == 0 {
 				return true
 			}
 		}
@@ -624,7 +634,7 @@ func indexDefsMatch(e *DMLExecutor, a, b []interface{}, colDefs []sql.ColumnDef,
 // valuesConflict reports whether two value sets conflict on any UNIQUE/PRIMARY
 // KEY column or UNIQUE index (partial-index predicates evaluated).
 func (e *DMLExecutor) valuesConflict(a, b []interface{}, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
-	if uniqueColsMatch(a, b, uniqueCols) {
+	if uniqueColsMatch(a, b, colDefs, 0, 0, uniqueCols) {
 		return true
 	}
 	return indexDefsMatch(e, a, b, colDefs, colIndex, idxColsList, 0, 0)

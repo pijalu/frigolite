@@ -13,7 +13,7 @@ import (
 )
 
 func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, s *sql.InsertStmt) (*Result, []interface{}) {
-	record, err := storage.EncodeRecord(values)
+	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, values, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))))
 	if err != nil {
 		return &Result{Error: err}, nil
 	}

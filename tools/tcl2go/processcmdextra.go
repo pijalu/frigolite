@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -211,7 +212,58 @@ func (tp *transpiler) processSqlite3TestControl(args []tcl.RawWord) {
 		} else {
 			tp.emitLine("// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT %s (unsupported mode)", mode)
 		}
+		return
 	}
+	// `sqlite3_test_control SQLITE_TESTCTRL_PENDING_BYTE 0x0010000`:
+	// update the global ::sqlite_pending_byte to the parsed value. The
+	// transpiler materialises the value as a Go literal so file-size
+	// checks (autovacuum-9.3 / 9.5) compare against the same number the
+	// SQLite C harness would have computed (tester.tcl:102 pins
+	// 0x10000=65536).
+	if len(args) >= 1 && args[0].Text == "SQLITE_TESTCTRL_PENDING_BYTE" {
+		if len(args) < 2 {
+			return
+		}
+		val := strings.TrimSpace(args[1].Text)
+		var n int64
+		var err error
+		if strings.HasPrefix(val, "0x") || strings.HasPrefix(val, "0X") {
+			n, err = strconv.ParseInt(val[2:], 16, 64)
+		} else {
+			n, err = strconv.ParseInt(val, 0, 64)
+		}
+		if err != nil {
+			tp.emitLine("// sqlite3_test_control SQLITE_TESTCTRL_PENDING_BYTE %s (parse error: %v)", val, err)
+			return
+		}
+		tp.emitLine("sqlite_pending_byte = %q // sqlite3_test_control SQLITE_TESTCTRL_PENDING_BYTE %s", strconv.FormatInt(n, 10), val)
+	}
+}
+
+// processSqlite3TestControlPendingByte handles the standalone TCL command
+// `sqlite3_test_control_pending_byte 0x0010000` (tester.tcl:102, trans.tcl,
+// etc.) — the C-defined wrapper around sqlite3_test_control
+// SQLITE_TESTCTRL_PENDING_BYTE. We don't actually move the engine's
+// pending byte (the C-side byte stays at 0x40000000); we just record the
+// value in the Go shadow variable so file-size comparisons in the test
+// see the harness's expected value rather than the production default.
+func (tp *transpiler) processSqlite3TestControlPendingByte(args []tcl.RawWord) {
+	if len(args) < 1 {
+		return
+	}
+	val := strings.TrimSpace(args[0].Text)
+	var n int64
+	var err error
+	if strings.HasPrefix(val, "0x") || strings.HasPrefix(val, "0X") {
+		n, err = strconv.ParseInt(val[2:], 16, 64)
+	} else {
+		n, err = strconv.ParseInt(val, 0, 64)
+	}
+	if err != nil {
+		tp.emitLine("// sqlite3_test_control_pending_byte %s (parse error: %v)", val, err)
+		return
+	}
+	tp.emitLine("sqlite_pending_byte = %q // sqlite3_test_control_pending_byte %s", strconv.FormatInt(n, 10), val)
 }
 
 // processSqlite3Limit handles sqlite3_limit; the expression/trigger depth,

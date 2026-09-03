@@ -80,7 +80,21 @@ func duplicateCTEName(ctes []sql.CTEDef) string {
 // buildRowMapFromValues builds a RowMap from a positional value slice,
 // wrapping values with their column affinities and adding rowid aliases.
 func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID int64) RowMap {
-	row := buildRowMapFromValuesNoRowID(values, colDefs)
+	row := make(RowMap, len(colDefs))
+	for i, v := range values {
+		if i >= len(colDefs) {
+			break
+		}
+		cd := colDefs[i]
+		// IPK rowid-alias substitution: a stored NULL becomes the rowid
+		// before the row map is built, so triggers, RETURNING, ORDER BY,
+		// and CHECK constraints all see the rowid value (matching
+		// SQLite's column-affinity + rowid-alias rules).
+		if v == nil && isIPKRowidAliasCol(cd) {
+			v = rowID
+		}
+		row[cd.Name] = wrapValueForRowMap(v, cd)
+	}
 	if !RowHasRowIDColumn(colDefs) {
 		row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
 		row["_rowid_"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}

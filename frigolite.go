@@ -136,6 +136,18 @@ func (db *DB) SetAuthorizer(a auth.Authorizer) {
 	}
 }
 
+// SetPendingByte overrides the PENDING_BYTE lock-byte offset for this
+// database's main pager. Mirrors the SQLite C test harness
+// (sqlite3_test_control_pending_byte from src/test2.c), which lowers the
+// byte to 0x10000 so file-size checks in autovacuum-9.3 / 9.5 / corrupt2
+// / lock4 etc. observe a small expected value without creating a 1GB
+// database. Pass 0 to restore the production default (0x40000000).
+func (db *DB) SetPendingByte(byteOffset uint32) {
+	if db != nil && db.engine != nil {
+		db.engine.SetPendingByteMain(byteOffset)
+	}
+}
+
 // BeginActiveStatement marks the start of a harness-emulated active read
 // statement. Upstream, a sqlite3_stmt that has returned SQLITE_ROW stays in
 // RUN state until it is finalized, and DROP TABLE/DROP INDEX executed while

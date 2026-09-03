@@ -275,7 +275,7 @@ func unwrapCollationWrappers(values []interface{}) {
 // writeTableRow encodes and inserts a table row, returning the tree (for
 // index-failure cleanup) and any write result.
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
-	record, err := storage.EncodeRecord(values)
+	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, values, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))))
 	if err != nil {
 		return nil, &Result{Error: err}
 	}

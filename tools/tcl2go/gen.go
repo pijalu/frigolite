@@ -376,6 +376,27 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	if strings.Contains(src, "sqlite_options_default_autovacuum") || strings.Contains(src, "sqlite_options(default_autovacuum)") {
 		body.WriteString("\tvar sqlite_options_default_autovacuum = \"0\" // SQLITE_DEFAULT_AUTOVACUUM=0 (NONE)\n")
 		}
+	// `::sqlite_pending_byte` is a TCL test-harness global set by
+	// tester.tcl:102 to 0x10000 (65536) via sqlite3_test_control_pending_byte,
+	// so `file size` checks in autovacuum-9.3/9.5 etc. observe a small
+	// expected value rather than the production 1GB. Tests that
+	// reference this global never re-set it themselves, so the
+	// transpiler must initialise the shadow var to 65536 here for any
+	// test file that mentions it. We also override the later
+	// pre-declared `var sqlite_pending_byte string` so the file
+	// compiles (the var-declared branch is suppressed for this name).
+	if strings.Contains(src, "sqlite_pending_byte") {
+		body.WriteString("\t// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size\n")
+		body.WriteString("\t// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).\n")
+		body.WriteString("\tvar sqlite_pending_byte = \"65536\" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102\n")
+		body.WriteString("\t// Pager.SetPendingByte(0x10000) makes the engine skip page 65 (the\n")
+		body.WriteString("\t// pending-byte slot) when handing out rootpages — without this,\n")
+		body.WriteString("\t// autovacuum-2.4.5 allocates a table at the reserved slot and\n")
+		body.WriteString("\t// the btree reader later reports \"database disk image is\n")
+		body.WriteString("\t// malformed\". The test harness pins the byte in C via\n")
+		body.WriteString("\t// sqlite3_test_control_pending_byte; mirror that here.\n")
+		body.WriteString("\tdb.SetPendingByte(0x10000)\n")
+		}
 	body.WriteString("\n")
 	// Pre-declare secondary DB connection variables (TCL scope is function-wide)
 	for i := 1; i <= 9; i++ {
@@ -611,6 +632,13 @@ func preambleDeclaredNames(src string, preDeclared []string) map[string]bool {
 		// redeclared in this block".
 	if strings.Contains(src, "sqlite_options_default_autovacuum") || strings.Contains(src, "sqlite_options(default_autovacuum)") {
 		declared["sqlite_options_default_autovacuum"] = true
+		}
+	// sqlite_pending_byte is shadow-declared (initialised) by
+	// emitTestPreamble whenever the TCL source references
+	// ::sqlite_pending_byte; the preDeclared loop must skip it to
+	// avoid a redeclared-in-this-block build error.
+	if strings.Contains(src, "sqlite_pending_byte") {
+		declared["sqlite_pending_byte"] = true
 		}
 	for _, bn := range collectBackupNames(src) {
 		declared[bn] = true

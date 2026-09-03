@@ -591,7 +591,7 @@ func buildTriggerNewRow(colDefs []sql.ColumnDef, values []interface{}) RowMap {
 // insertDefaultRow encodes and writes one DEFAULT VALUES row, bumping the
 // rowid cache.
 func (e *DMLExecutor) insertDefaultRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) *Result {
-	record, err := storage.EncodeRecord(values)
+	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, values, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))))
 	if err != nil {
 		return &Result{Error: err}
 	}

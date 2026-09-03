@@ -32,6 +32,16 @@ func Test_misc7(t *testing.T) {
 	_ = r    // suppress unused warning
 	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
+	// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size
+	// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).
+	var sqlite_pending_byte = "65536" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102
+	// Pager.SetPendingByte(0x10000) makes the engine skip page 65 (the
+	// pending-byte slot) when handing out rootpages — without this,
+	// autovacuum-2.4.5 allocates a table at the reserved slot and
+	// the btree reader later reports "database disk image is
+	// malformed". The test harness pins the byte in C via
+	// sqlite3_test_control_pending_byte; mirror that here.
+	db.SetPendingByte(0x10000)
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -90,8 +100,6 @@ func Test_misc7(t *testing.T) {
 	_ = Id_ // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
-	var sqlite_pending_byte string
-	_ = sqlite_pending_byte // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "misc7")
@@ -316,7 +324,7 @@ func Test_misc7(t *testing.T) {
 			}
 			pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
 			_ = pending_byte_page // suppress unused warning
-			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (unsupported command, not transpiled)
+			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (parse error: strconv.ParseInt: parsing "$::sqlite_pending_byte": invalid syntax)
 			{ // "misc7-17.3" — skipped: sqlite3_test_control_pending_byte + writable_schema rootpage corruption N-A (SQL side effects only)
 				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests

@@ -105,6 +105,10 @@ type Pager struct {
 	// and btreeStructureOK as a cycle.
 	trunkPages  map[uint32]bool
 	leafToTrunk map[uint32]uint32
+	// pendingByteOverride stores a non-default PENDING_BYTE offset installed
+	// by the SQLite test harness via sqlite3_test_control_pending_byte
+	// (src/test2.c::testPendingByte). 0 means production default.
+	pendingByteOverride uint32
 	// P8.INCRVACUUM.phase7: set by the exec engine at BEGIN, cleared at
 	// COMMIT/ROLLBACK. While true, AllocatePage skips chain consumption
 	// (the chain pages are not popped; the file is extended instead) so a
@@ -672,6 +676,37 @@ func (p *Pager) AutoVacuum() bool {
 	return p.autoVacuum
 }
 
+// SetPendingByte overrides the PENDING_BYTE lock-byte offset for this
+// pager. The SQLite C test harness installs a non-default value
+// (typically 0x10000, page 65 at 1024-byte page size) so file-size
+// checks in autovacuum-9.3 / 9.5 / corrupt2 / lock4 can observe a
+// small expected value without creating a 1GB database. The override
+// is consulted by AllocatePage / AllocatePageLE when deciding whether
+// a candidate page lands on the reserved pending-byte slot. A value
+// of 0 restores the production default (0x40000000).
+func (p *Pager) SetPendingByte(byteOffset uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.pendingByteOverride = byteOffset
+}
+
+// PendingBytePage returns the page number holding the PENDING_BYTE lock
+// byte, honouring any SetPendingByte override.
+func (p *Pager) PendingBytePage() uint32 {
+	return p.pendingBytePageFor()
+}
+
+// SetNumPagesForTesting clamps the in-memory page count to n when n is
+// smaller. Used by the btree autovacuum pipeline to resync from the
+// on-disk file when a memory/file divergence is observed.
+func (p *Pager) SetNumPagesForTesting(n uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if n < p.numPages {
+		p.numPages = n
+	}
+}
+
 // ReadAutoVacuumFromHeader reports the auto-vacuum mode stored in the
 // on-disk database header. SQLite encodes the largest root btree page
 // number at header[52:56] in autovacuum mode; the mode is FULL when
@@ -723,9 +758,28 @@ func PtrmapPageNo(pgno, pageSize uint32) uint32 {
 
 // pendingBytePage is the page holding the PENDING_BYTE lock byte
 // (1073741824), which SQLite reserves and never uses (btree.c
-// PENDING_BYTE_PAGE).
+// PENDING_BYTE_PAGE). The PENDING_BYTE offset is fixed at 0x40000000
+// (1073741824) by the SQLite source; for the test harness, see
+// Pager.SetPendingByte / Pager.PendingBytePage.
 func pendingBytePage(pageSize uint32) uint32 {
 	return 1073741824/pageSize + 1
+}
+
+// pendingBytePageFor returns the page holding the PENDING_BYTE lock byte
+// for the given pager, honouring a per-pager override set by the SQLite
+// test harness via sqlite3_test_control_pending_byte. Without an
+// override the value matches the production default.
+//
+// The caller MUST hold p.mu (RLock or Lock); the function does not
+// re-acquire the lock because callers that already hold the write lock
+// (AllocatePageMode, AllocatePageLE, pickNextFreePageLocked) would
+// otherwise self-deadlock. The lock-free read of a uint32 is safe
+// under the mutex.
+func (p *Pager) pendingBytePageFor() uint32 {
+	if p.pendingByteOverride != 0 {
+		return p.pendingByteOverride/p.pageSize + 1
+	}
+	return pendingBytePage(p.pageSize)
 }
 
 // IsPtrmapPageNo reports whether pgno itself is a pointer-map page.
@@ -775,12 +829,15 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 	skipPtrmap := func(pg uint32) bool {
 		return p.autoVacuum && IsPtrmapPageNo(pg, p.pageSize)
 	}
+	skipReserved := func(pg uint32) bool {
+		return skipPtrmap(pg) || pg == p.pendingBytePageFor()
+	}
 	if p.header == nil || len(p.header) < 40 {
 		// Defensive: no chain header — fall back to any in-memory
 		// free page (the chain-correction machinery downstream
 		// will re-derive the on-disk state on the next FreePage).
 		for pg := range p.freePages {
-			if !skipPtrmap(pg) {
+			if !skipReserved(pg) {
 				return pg
 			}
 		}
@@ -790,7 +847,7 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 	if trunk == 0 || trunk > p.numPages {
 		// Empty or invalid chain — fall back.
 		for pg := range p.freePages {
-			if !skipPtrmap(pg) {
+			if !skipReserved(pg) {
 				return pg
 			}
 		}
@@ -799,7 +856,7 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 	trunkPg, terr := p.readPageLocked(trunk)
 	if terr != nil || len(trunkPg.Data) < 8 {
 		for pg := range p.freePages {
-			if !skipPtrmap(pg) {
+			if !skipReserved(pg) {
 				return pg
 			}
 		}
@@ -815,13 +872,13 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 				break
 			}
 			leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
-			if leaf != 0 && p.freePages[leaf] && !skipPtrmap(leaf) {
+			if leaf != 0 && p.freePages[leaf] && !skipReserved(leaf) {
 				return leaf
 			}
 		}
 	}
 	// No leaves available: the head trunk itself is the next-to-pop.
-	if p.freePages[trunk] && !skipPtrmap(trunk) {
+	if p.freePages[trunk] && !skipReserved(trunk) {
 		return trunk
 	}
 	// Walk the chain looking for any in-memory free page (a leaf
@@ -841,7 +898,7 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 				break
 			}
 			leaf := binary.BigEndian.Uint32(tpg.Data[off : off+4])
-			if leaf != 0 && p.freePages[leaf] && !skipPtrmap(leaf) {
+			if leaf != 0 && p.freePages[leaf] && !skipReserved(leaf) {
 				return leaf
 			}
 		}
@@ -852,7 +909,7 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 	}
 	// Last resort: any in-memory free page (skipping ptrmap pages).
 	for pg := range p.freePages {
-		if !skipPtrmap(pg) {
+		if !skipReserved(pg) {
 			return pg
 		}
 	}
@@ -1199,7 +1256,7 @@ p.numPages++
 	// otherwise be the pending-byte page silently lands on that slot
 	// and is later read as a sparse gap page, which reports
 	// "database disk image is malformed".
-	if p.autoVacuum && p.numPages == pendingBytePage(p.pageSize) {
+	if p.autoVacuum && p.numPages == p.pendingBytePageFor() {
 		pending := &Page{
 			Data:    make([]byte, p.pageSize),
 			PageNum: p.numPages,
@@ -2000,6 +2057,9 @@ func (p *Pager) AllocatePageLE() (*Page, error) {
 	var lowest uint32 = 0xFFFFFFFF
 	for pg := range p.freePages {
 		if p.autoVacuum && IsPtrmapPageNo(pg, p.pageSize) {
+			continue
+		}
+		if pg == p.pendingBytePageFor() {
 			continue
 		}
 		if pg < lowest {

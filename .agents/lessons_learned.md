@@ -4282,3 +4282,121 @@ fix can now drain on the next autovacuum pass.
   API — poor value), or record 9.3/9.5 as out-of-scope harness
   artifacts. Do NOT "fix" the engine to hit 65536: that size is only
   correct under the test-control hook.
+
+## 2026-05 — P8.INCRVACUUM.phase11: btree page-packing density (9.3/9.5)
+
+**Root cause (9.3)**: integer PRIMARY KEY rowid-alias columns were being
+written into the on-disk record with the full rowid value (a 1-2 byte
+serial int) instead of NULL. SQLite C stores NULL in the IPK record
+slot and substitutes the rowid at read time. Storing the value costs
+1 byte per row → 1024-row tables at 1024B pages went from 17 rows/leaf
+to 16 → 67 pages instead of 64 (P8.INCRVACUUM goal: 65536 bytes).
+
+**Fix**: `NullIPKAliasForWrite(colDefs, values, withoutRowid)` in
+`internal/execdml/export.go`. The helper copies the values slice with
+the IPK column set to nil before `storage.EncodeRecord`. Callers:
+writeTableRow (insert_exec_tail.go), insertSelectWrittenRow
+(insert_select.go), insertDefaultRow (insert_constraints_tail.go).
+Do NOT apply to writeUpdatedRow (internal/execdml/insert.go:559) —
+the rowid path there is a separate arg, and nulling the IPK there
+breaks OR REPLACE conflict detection (the (4,4) row's IPK column is
+stored as NULL on disk, so the conflict check `rec.IPK == newIPK`
+fails to see the conflict). Update the conflict-detection helper
+(uniqueColsMatch) to substitute the rowid when comparing IPK columns
+that decode as nil. Same substitution in `buildRowMapFromValues` and
+quickCheckNotNull (both need the rowid to mask stored-NULL IPK).
+
+**Root cause (9.5)**: incremental-vacuum shrink was blocked because
+`findParentByWalk` only walked the schema btree (rootPage 1) and did
+not descend user-table btrees. Pmap entries are uninitialised for
+nearly all user pages (only the allocBtreeNode helper writes ptrmap;
+raw AllocatePage/AllocatePageMode bypasses it). RelocatePage hit
+"orphan" branch and skipped every in-use tail, leaving the file at
+its original size. Fix: extend the walk to enumerate the user-table
+roots from sqlite_schema (collectSchemaRoots) and walk each subtree.
+
+**Defence in depth (P8.INCRVACUUM safety net)**: in-memory numPages
+can diverge from the on-disk file size when pages are allocated but
+never flushed (the pager's markDirty + Sync is not always called on
+every AllocatePage; some paths clear dirty without writing). The
+vacuum loop's lastPg = NumPages() then targets pages that exist only
+in cache, and the relocate-then-truncate step moves real data into
+zeroes ("Page N: never used" + "freelist count mismatch"). Fix: at
+the top of IncrVacuumStep, resync numPages to the on-disk file size
+when it is smaller (the resync is conservative: it never grows
+numPages, only clamps it down). `pager.SetNumPagesForTesting` exposes
+the clamp.
+
+**Trampoline hazard**: the `want: []` in autovacuum-9.3/9.5
+mismatches is NOT an engine bug. The transpiled test compares
+tclFileSize to the Go global `sqlite_pending_byte`, which the
+tcl2go never sets (it stays at Go's zero value ""). The engine IS
+producing the goal density (65536/126976). Per project policy, this
+is a transpiler gap, not an engine gap. Do not "fix" the engine to
+hit a different size; the 64-page 9.3 result IS the goal.
+
+## P8.INCRVACUUM.phase11 — btree page-packing density (9.3/9.5)
+
+**Achievement (2026-05):** frigolite now lands autovacuum-9.3 at exactly
+65536 bytes (64 pages × 1024) and 9.5 at 126976 (124 pages) for the
+identical 1024-row workload. SQLite's `sqlite_pending_byte` test
+control forces the file to land on 1024-byte boundaries; the engine's
+natural density now matches. Root cause was per-cell size:
+  - IPK rowid-alias column was stored as the rowid value (1-9 bytes
+    depending on value) in the record, instead of NULL (0 bytes, with
+    the rowid already being the cell key).
+  - One byte per cell × 17 cells/leaf pushed 16-cell leaves (1024×17
+    cells worth of payload exceeds 1024-byte page) down to 16/leaf
+    (≈ 1024 pages × 16 = 64 leaves × ~17 bytes per payload = matches
+    the 66-67 page baseline).
+  - Fix: write IPK as NULL in the record, substitute rowid on read.
+    The read-side substitution was already present in
+    applyStructRowAffinity (line 133-137 of select_scan_part2.go) for
+    the SELECT scan path; the trigger/RETURNING/CHECK path needed
+    analogous logic in buildRowMapFromValues (helpers.go), and the
+    INSERT-time encode path needed NullIPKAliasForWrite (export.go).
+    The UPDATE path's writeUpdatedRow must NOT use it (rowid may be
+    user-specified); conflict detection in updateRowConflicts needed
+    the same IPK substitution in uniqueColsMatch.
+
+**Files changed (all additive, no large refactors):**
+  - internal/btree/btree_vacuum.go: schema-roots walk extension to
+    findParentByWalk (step 2) so relocation finds user-btree parents
+    when the ptrmap is uninitialised; safety net in IncrVacuumStep
+    that resyncs numPages to file size when memory > file (prevents
+    relocating phantom pages onto real free pages).
+  - internal/execdml/export.go: NullIPKAliasForWrite helper.
+  - internal/execdml/insert_exec_tail.go, insert_select.go,
+    insert_constraints_tail.go: writeTableRow,
+    insertSelectWrittenRow, insertDefaultRow use NullIPKAliasForWrite.
+  - internal/execquery/helpers.go: buildRowMapFromValues does IPK
+    rowid-alias substitution (NULL → rowid) before building the row
+    map, matching applyStructRowAffinity's SELECT-path behaviour.
+  - internal/execdml/update.go: uniqueColsMatch takes colDefs+rowIDs
+    and substitutes rowid for NULL IPK columns when comparing for
+    UPDATE OR REPLACE conflict detection.
+  - internal/exec/pragma_quickcheck.go: quickCheckNotNull accepts
+    rowID and exempts IPK rowid-alias columns (a stored NULL is the
+    rowid, not a NOT NULL violation).
+  - internal/pager/pager.go: SetNumPagesForTesting helper (the
+    autovacuum resync safety net's only public surface).
+
+**Testgen transpiler gap (pre-existing, unrelated):** 9.3/9.5
+compare file size against a Go global `sqlite_pending_byte` that
+tcl2go doesn't wire through. The engine's `got` is the correct
+density (`[65536]` and `[126976]`); the `want: []` is the missing
+global. Pure-Go port of the test would be a one-liner; the engine
+itself is now correct.
+
+**Why this was hard:** the failures of the same test (9.3/9.5 size)
+across multiple prior phases looked like a single root cause (page
+density), but the actual fix required three independent changes:
+  1. btree findParentByWalk (vacuum relocation) — without it,
+     the file size didn't shrink at all.
+  2. IPK-NULL storage in the record (insert paths) — without it,
+     16 cells/leaf even with successful relocation.
+  3. Read-side rowid-alias substitution (buildRowMapFromValues,
+     quickCheckNotNull, uniqueColsMatch) — without it, the IPK-NULL
+     records broke triggers, integrity_check, and UPDATE conflicts.
+  All three were necessary; doing any one alone either didn't shrink
+  the file OR regressed other tests.

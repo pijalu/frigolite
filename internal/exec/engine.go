@@ -389,6 +389,18 @@ func (e *Engine) SetExprDepthLimit(n int) int {
 	return e.settings.exprDepthLimit
 }
 
+// SetPendingByteMain overrides the PENDING_BYTE lock-byte offset for the
+// main pager. Mirrors the SQLite C test harness
+// (sqlite3_test_control_pending_byte from src/test2.c), which lowers the
+// byte to 0x10000 so file-size checks in autovacuum-9.3 / 9.5 / corrupt2
+// / lock4 etc. observe a small expected value without creating a 1GB
+// database. Pass 0 to restore the production default (0x40000000).
+func (e *Engine) SetPendingByteMain(byteOffset uint32) {
+	if e.mainDB != nil && e.mainDB.Pager != nil {
+		e.mainDB.Pager.SetPendingByte(byteOffset)
+	}
+}
+
 // SetTriggerDepthLimit sets the maximum trigger nesting depth
 // (SQLITE_LIMIT_TRIGGER_DEPTH). A negative value queries the current limit.
 // The limit is stored on the trigger manager and used by fireTrigger to abort

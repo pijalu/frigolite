@@ -278,6 +278,23 @@ func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, pare
 // Reference: btree.c::sqlite3BtreeIncrVacuum (line ~6780).
 func (t *BTree) IncrVacuumStep(n int) (int, error) {
 	steps := 0
+	// P8.INCRVACUUM safety net: if the in-memory page count is ahead of
+	// the on-disk file (e.g. pages were allocated in memory but never
+	// flushed), the "tail" lives in cache only. Trusting it as a vacuum
+	// target would relocate phantom pages onto real free pages and
+	// corrupt the tree. SQLite C never sees this state because it grows
+	// the file at allocation time. Best-effort resync: flush any dirty
+	// extends, then clamp numPages to the actual file size when smaller.
+	if info, ok := t.pager.FileInfo(); ok && info != nil {
+		if fp := uint32(info.Size() / int64(t.pager.PageSize())); fp > 0 && t.pager.NumPages() > fp {
+			_ = t.pager.Sync()
+			if info2, ok2 := t.pager.FileInfo(); ok2 && info2 != nil {
+				if fp2 := uint32(info2.Size() / int64(t.pager.PageSize())); fp2 > 0 && fp2 < t.pager.NumPages() {
+					t.pager.SetNumPagesForTesting(fp2)
+				}
+			}
+		}
+	}
 	for i := 0; i < n; i++ {
 		lastPg := t.pager.NumPages()
 		if lastPg <= 1 {
@@ -418,6 +435,32 @@ func (t *BTree) findParentByWalk(target uint32) (uint32, byte, error) {
 	} else if !errors.Is(err, errNotInBtree) {
 		// Schema btree walk itself failed; report the underlying error.
 		return 0, 0, err
+	}
+	// 2. The schema walk itself does not visit user btree pages (the
+	//    schema records point at root pages, but their interior/leaf
+	//    subtrees are not reached). When this BTree handle is the
+	//    schema btree (rootPage==1), enumerate the rootpages recorded
+	//    in sqlite_schema and walk each subtree for the target.
+	//
+	//    P8.INCRVACUUM: relocates with uninitialised ptrmap entries
+	//    rely on this fallback (the btree's allocation sites don't
+	//    always write ptrmap). Without it, user-btree pages are
+	//    reported as orphans and the vacuum loop never relocates
+	//    anything (file keeps the original size).
+	if t.rootPage == 1 {
+		roots, rerr := t.collectSchemaRoots()
+		if rerr == nil {
+			for _, r := range roots {
+				if r == target {
+					return 0, 0, fmt.Errorf("page %d is a root", target)
+				}
+				if pp, err := t.findParentInBtree(r, target); err == nil {
+					return pp.parent, storage.PtrmapBtree, nil
+				} else if !errors.Is(err, errNotInBtree) {
+					return 0, 0, err
+				}
+			}
+		}
 	}
 	return 0, 0, fmt.Errorf("page %d not found in btree", target)
 }

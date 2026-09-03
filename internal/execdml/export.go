@@ -80,6 +80,31 @@ func IsIPKRowidAliasCol(cd sql.ColumnDef) bool {
 	return isIPKRowidAliasCol(cd)
 }
 
+// NullIPKAliasForWrite returns a copy of values with the INTEGER PRIMARY KEY
+// rowid-alias column set to NULL for on-disk encoding. SQLite stores NULL in
+// the record for the alias column (btree.c: the alias IS the rowid, which is
+// already the cell key); readers substitute the rowid at scan time. Storing
+// the rowid value in the record wastes 1-2 bytes per row and degrades leaf
+// page packing density (autovacuum-9.3: 16 rows/leaf instead of 17).
+// WITHOUT ROWID tables have no rowid alias; values are returned unchanged.
+// The input slice is never mutated.
+func NullIPKAliasForWrite(colDefs []sql.ColumnDef, values []interface{}, withoutRowid bool) []interface{} {
+	if withoutRowid {
+		return values
+	}
+	for i, cd := range colDefs {
+		if i < len(values) && isIPKRowidAliasCol(cd) {
+			if values[i] == nil {
+				return values
+			}
+			out := append([]interface{}(nil), values...)
+			out[i] = nil
+			return out
+		}
+	}
+	return values
+}
+
 // IndexColumnListText extracts the column-list text of a CREATE INDEX.
 func IndexColumnListText(entSQL string) string {
 	return indexColumnListText(entSQL)

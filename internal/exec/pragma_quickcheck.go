@@ -327,7 +327,7 @@ func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit 
 			break
 		}
 		row := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
-		if e.quickCheckRow(te, colDefs, uniqIdx, row, rec.Values, seenKeys, emit) {
+		if e.quickCheckRow(te, colDefs, uniqIdx, row, rec.Values, cell.RowID, seenKeys, emit) {
 			break
 		}
 		ok, err := cursor.Next()
@@ -339,9 +339,9 @@ func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit 
 
 // quickCheckRow runs the per-row integrity checks for execQuickCheck: UNIQUE
 // index key grouping, NOT NULL, STRICT types, and CHECK constraints.
-func (e *Engine) quickCheckRow(te *schema.Entry, colDefs []sql.ColumnDef, uniqIdx []uniqueIndexDef, row RowMap, values []interface{}, seenKeys map[string]int, emit func(string)) bool {
+func (e *Engine) quickCheckRow(te *schema.Entry, colDefs []sql.ColumnDef, uniqIdx []uniqueIndexDef, row RowMap, values []interface{}, rowID int64, seenKeys map[string]int, emit func(string)) bool {
 	e.quickCheckUnique(te, colDefs, uniqIdx, row, values, seenKeys, emit)
-	e.quickCheckNotNull(te, colDefs, values, emit)
+	e.quickCheckNotNull(te, colDefs, values, rowID, emit)
 	e.quickCheckStrict(te, colDefs, values, emit)
 	e.quickCheckConstraints(te, colDefs, row, emit)
 	return false
@@ -365,12 +365,19 @@ func (e *Engine) quickCheckUnique(te *schema.Entry, colDefs []sql.ColumnDef, uni
 }
 
 // quickCheckNotNull reports NULL values in NOT NULL or PRIMARY KEY columns.
-func (e *Engine) quickCheckNotNull(te *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, emit func(string)) {
+// INTEGER PRIMARY KEY columns of rowid tables are stored as NULL in the record
+// (the value lives in the rowid); treat a stored NULL as the rowid for the
+// NOT NULL check.
+func (e *Engine) quickCheckNotNull(te *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, emit func(string)) {
 	for i, cd := range colDefs {
 		if cd.Generated != nil {
 			continue
 		}
 		if (cd.NotNull || cd.PrimaryKey) && i < len(values) && values[i] == nil {
+			// IPK rowid-alias substitution: NULL in the IPK slot means rowid.
+			if cd.PrimaryKey && !cd.PKDesc && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+				continue
+			}
 			emit(fmt.Sprintf("NULL value in %s.%s", te.Name, cd.Name))
 		}
 	}

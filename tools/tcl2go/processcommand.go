@@ -132,7 +132,12 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		// sqlite3 C API
 		"sqlite3":                     (*transpiler).processSqlite3,
 		"sqlite3_exec":                (*transpiler).processSqlite3Exec,
-	"sqlite3_test_control":        (*transpiler).processSqlite3TestControl,
+		"sqlite3_test_control":        (*transpiler).processSqlite3TestControl,
+		// `sqlite3_test_control_pending_byte 0x0010000` — the C-defined
+		// TCL command in src/test2.c::testPendingByte. Updates the global
+		// pending byte (tester.tcl:102 calls it on harness init). The
+		// transpiler emits an assignment to the Go shadow variable.
+		"sqlite3_test_control_pending_byte": (*transpiler).processSqlite3TestControlPendingByte,
 			"sqlite3_limit":               (*transpiler).processSqlite3Limit,
 			"sqlite3_db_config":           (*transpiler).processDBConfig,
 			"optimization_control":        (*transpiler).processOptimizationControl,
