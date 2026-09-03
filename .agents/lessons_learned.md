@@ -4654,10 +4654,15 @@ consistency. Spot-ran P7.AUTOINDEX and P8.ENCODING verify commands end-to-end
    (actual: `quota`/`quota2`/`quota_glob`); P8.RECOVER targets `recover`
    (actual: `recover_pkg`). Names drifted from TCL file names to generated
    package names and were never reconciled.
-2. **Dead skip-map keys** (`tools/tcl2go/skiptestfiles.go`): `"quota_"`,
-   `"quota-glob"`, `"recover"` match no testgen package — they skip nothing.
+2. **Dead skip-map keys** (`tools/tcl2go/skiptestfiles.go`): `"atof"`,
+   `"quota_"`, `"win32"` matched no generated test file base — removed
+   (floor lowered 288→285 with rationale). CORRECTION of the first draft of
+   this entry: `"quota-glob"` and `"recover"` are LIVE — skip keys match the
+   generated *file* base (`quota-glob_test.go` inside `testgen/quota_glob/`,
+   `recover_test.go` inside `testgen/recover_pkg/`), not the directory name.
    The audit (`tools/status --audit`) only checks NA_EVIDENCE coverage of
-   *live* skips, so orphan keys are invisible.
+   *live* skips, so orphan keys are invisible — validate keys against
+   `ls testgen/*/*_test.go` bases, not dir names.
 3. **families.tsv `rtree` entry lacks the `*` wildcard** (line 168) — all
    ~17 `rtree*` packages classify into OTHER, so the family table showed
    "RTREE: 1 pkg, 100%" while rtree1/2/3/4/8/9/A/C/E/H/J, rtreecheck,

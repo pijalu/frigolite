@@ -162,7 +162,6 @@ var skipTestFiles = map[string]string{
 	// float round-trips. The transpiler emits `undefined: rand` and treats
 	// `pow` as a string variable; TCL's random-number expr functions are not
 	// transpilable. N-A (TCL expr rand/pow stress harness).
-	"atof": "TCL expr rand/pow/format %.32e random float stress harness N-A",
 
 	// bigfile: >4GB database file testing (file size 0x100000000, TCL file
 	// commands), platform-guarded (skips on Darwin). Generated code also
@@ -189,7 +188,6 @@ var skipTestFiles = map[string]string{
 
 	// quota_: quota VFS extension (quota-glob) — generated code does
 	// invalid operation on "*?" glob constant. N-A (quota VFS extension).
-	"quota_": "quota VFS extension not implemented N-A",
 
 	// resetdb: SQLITE_DBCONFIG_RESET_DATABASE (sqlite3_db_config C API) —
 	// resetting the database file while open. Generated code mangles the
@@ -212,7 +210,6 @@ var skipTestFiles = map[string]string{
 
 	// win32: Windows-specific path/encoding tests (win32longpath); generated
 	// code redeclares msg. N-A (win32 platform).
-	"win32": "win32 platform-specific tests N-A",
 
 	// zipfile: zipfile extension tests (zipfile() table-valued function);
 	// generated code has "expected type, found '=='" at zipfile_test.go:163

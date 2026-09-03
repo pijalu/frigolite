@@ -93,8 +93,8 @@ Frigolite supports a useful subset of SQLite SQL:
 - VIEW / TRIGGER (stored and expanded/fired)
 
 ### Implemented Extensions
-- **FTS3/4/5** — `internal/fts/` (tokenizers simple/unicode61, inverted index, MATCH, FTS3/4/5 modules)
-- **Virtual tables** — `internal/vtab/` module system (`generate_series`, `fts3`/`fts4`/`fts5`)
+- **FTS3/4** — `internal/fts/` (tokenizers simple/unicode61, inverted index, MATCH, FTS3/4 modules). fts5 is NOT implemented (`NoopModule`, zero testgen packages) — queued goal `P6.FTS5` (see PORTPLAN §4)
+- **Virtual tables** — `internal/vtab/` module system (`generate_series`, `fts3`/`fts4`; `fts5`/`dbstat`/`dbdata` are `NoopModule` stubs — queued goals `P6.FTS5`/`P6.DBSTAT`/`P6.DBDATA`)
 - **EXPLAIN / EXPLAIN QUERY PLAN** — `internal/execquery/explain.go`
 
 ### Not Yet Implemented (planned — see PORTPLAN phases)

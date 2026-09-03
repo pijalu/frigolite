@@ -165,7 +165,7 @@ rowvaluevtab	VTAB
 json*	JSON
 
 # --- RTree (G6.RTREE) ---
-rtree	RTREE
+rtree*	RTREE
 
 # --- C-API (G5) ---
 bind*	C-API

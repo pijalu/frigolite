@@ -98,8 +98,11 @@ func TestParseSkipMaps(t *testing.T) {
 		// symlink/symlink2 (VFS-layer symlink + -nofollow + PATH_MAX truncation
 		// N-A → frigolite_symlink_test.go). Lower the floor only alongside
 		// documented un-skip work.
-		if len(skips.skipTestFiles) < 288 {
-			t.Errorf("skipTestFiles has %d entries, want >= 288", len(skips.skipTestFiles))
+		// 288 -> 285 (2026-09-03): removed 3 dead keys that matched no
+		// generated test file base (atof, quota_, win32) — see
+		// .agents/lessons_learned.md sub-plan-validation entry.
+		if len(skips.skipTestFiles) < 285 {
+			t.Errorf("skipTestFiles has %d entries, want >= 285", len(skips.skipTestFiles))
 		}
 	if len(skips.skipTests) < 600 {
 		t.Errorf("skipTests has %d entries, want >= 600", len(skips.skipTests))
