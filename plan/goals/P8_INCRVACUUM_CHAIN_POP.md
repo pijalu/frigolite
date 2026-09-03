@@ -217,3 +217,67 @@ unchanged (pre-existing on commit 0d792406). Other testgen
 packages unchanged (incrvacuum3 build error, incrvacuum PRAGMA
 failure all pre-existing). Zero new failures introduced by these
 fixes.
+
+## Outcome (2026-09 P8.INCRVACUUM.phase14 — strict 0-FAIL blocker)
+
+The strict DoD for the new clever.ibex goal (0 FAIL across
+`autovacuum` + `autovacuum2` + `incrvacuum` + `incrvacuum2` +
+`incrvacuum3`) could not be met in this session. State at
+HEAD `0cbb7171`:
+
+- `autovacuum`: 48 mismatches (unchanged from phase13; the
+  btree's ptrmap-at-allocation gap is the root cause of the
+  remaining 1.x / 2.x failures)
+- `autovacuum2`: PASS (unchanged)
+- `incrvacuum`: 9 errors (5 distinct root causes: ATTACH
+  engine gap, multi-statement parse error, integrity check
+  failures from chain corruption)
+- `incrvacuum2`: HANGS at `do_test incrvacuum-2.3` (infinite
+  loop, timeout 30s+; pre-existing on phase13)
+- `incrvacuum3`: now BUILDS (phase14 silenced the
+  `sqlite_pending_byte` unused-var error) but fails with
+  "trunk 5 leafCount=33607168 exceeds maxLeaves=248" and
+  "Freelist: size is 96 but should be 46" — pager chain
+  corruption from the same root cause as autovacuum-1.x
+
+Root cause is a single architectural gap: the btree's
+allocation path (`t.allocPage()` in `internal/btree/btree.go`
+and direct `pager.AllocatePage()` callers in
+`internal/btree/btree_insert.go` and
+`internal/btree/btree_tail.go`) does NOT call `WritePtrmap`
+to record the new page's parent. The downstream
+`IncrVacuumStep` -> `RelocatePage` -> `updateParentChildPtr`
+flow reads `t.pager.ReadPtrmap(from)` and either (a) gets a
+stale OVERFLOW1/2 entry from a prior use of the page, or
+(b) gets type=0 and falls through to the `findParentByWalk`
+fallback which only walks the schema btree (page 1) and
+cannot reach user-btree interior/leaf pages. Both paths
+fail the parent update, so the orphan branch in
+`IncrVacuumStep` returns `relocated=false` without
+truncating the file. With 70+ free pages and many
+empty-leaves-not-on-freelist, the autovacuum completes only
+a handful of steps before giving up, leaving the file at
+~132 pages instead of the expected 4.
+
+This is the same gap that phase3/phase8/phase9 of this
+goal series documented in the code comments (search for
+"P8.INCRVACUUM phase 5" in `btree_alloc.go` and
+"P8.INCRVACUUM.phase9: in frigolite, some pages sit between
+the btree and the freelist" in `btree_vacuum.go`).
+
+Fixing it requires porting `btree.c::setChildPtrmaps` /
+`ptrmapPutOvflPtr` into every btree-node and overflow-page
+allocation site — estimated 8-12 files, ~500 lines of
+Go code, plus regression coverage for each
+drop-corner-case the C code handles (ROLLBACK fidelity,
+PTMAP_BTREE-vs-PTMAP_ROOTPAGE distinction, free-after-truncate
+ordering). This exceeds a single-session budget; a follow-up
+goal (P8.INCRVACUUM.phase15) is required.
+
+incrvacuum2's hang is a separate concern — likely an
+infinite loop in the autovacuum step when a chain has
+self-referential entries (the "Freelist: size is X but
+should be Y" pattern from phase13 hints at this). Likely
+resolves once the ptrmap-at-allocation fix lands.
+
+No new failures were introduced by phase14.

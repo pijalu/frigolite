@@ -4549,3 +4549,49 @@ source for rootpages (the header is just a hint used to detect
 autovacuum-on without reading the schema). The previous "clear to
 0" was the obvious-looking fix that silently disabled autovacuum
 across the rest of the connection's lifetime.
+
+**P8.INCRVACUUM.phase14 — root cause of remaining 48 autovacuum
+mismatches + incrvacuum2/3 failures identified.** During the
+clever.ibex goal attempt, the deeper root cause of all 5
+target packages' failures was isolated: the btree's
+allocation path bypasses `WritePtrmap`. Specifically,
+`internal/btree/btree.go::allocPage` calls
+`pager.AllocatePage` (or `AllocatePageSkipFreelist`) without
+writing a ptrmap entry. Callers in
+`internal/btree/btree_insert.go` (lines 66, 195, 724, 890,
+944, 1045) use `t.allocPage()` directly for leaf splits,
+root creation, and rebalance growth. The ptrmap-at-allocation
+gap means:
+- `pager.ReadPtrmap(leafPage)` returns type=0 for new leaves
+  (the orphan branch in RelocatePage triggers) OR returns
+  a stale OVERFLOW1/2 entry from a prior use of the slot
+  (e.g. if the page was once an overflow page, then freed,
+  then re-allocated for a leaf).
+- `findParentByWalk` walks the schema btree (page 1) which
+  points to user btree ROOTS only — it cannot reach
+  user-btree interior/leaf pages, so the tree-walk fallback
+  fails for any user-btree page.
+- The orphan branch in `IncrVacuumStep` returns
+  `relocated=false, err=nil` and the function returns
+  without progress. `AutoVacuumCommit`'s loop sees no
+  progress and breaks, leaving the file at ~132 pages
+  instead of the expected 4 (autovacuum-1.1.3 expects 4).
+- The pager chain accumulates duplicates and self-references
+  because FreePage re-adds pages that the btree still
+  references, leading to "trunk 5 leafCount=33607168
+  exceeds maxLeaves=248" (incrvacuum3) and "Freelist: size
+  is 96 but should be 46" (autovacuum-1.x).
+
+The fix is to wire `WritePtrmap` into `allocPage` (with
+parent inferred from the BTree's rootPage or the caller's
+context). Estimated scope: 8-12 files, ~500 lines including
+ROLLBACK fidelity, rootpage vs btree-node distinction, and
+overflow vs leaf distinction. This is the work for
+P8.INCRVACUUM.phase15+ — a follow-up goal, not a single-
+session fix.
+
+**Lesson: when a complex testgen package shows "1.x and 2.x
+failures with similar patterns", the root cause is usually
+ONE architectural gap, not 48 separate bugs.** Investing in
+one pure-Go reproduction to identify the gap saves dozens
+of fix attempts.
