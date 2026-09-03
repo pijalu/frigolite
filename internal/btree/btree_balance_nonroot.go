@@ -30,7 +30,6 @@ package btree
 import (
 	"encoding/binary"
 	"fmt"
-	"os"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -402,7 +401,6 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 			break
 		}
 	}
-	fmt.Fprintf(os.Stderr, "DBG: balanceNonroot ctx.page=%d iParentIdx=%d parent.CellCount=%d pageWasEmptied=%d\n", ctx.page.PageNum, ctx.iParentIdx, parent.CellCount, pageWasEmptied)
 	if pageWasEmptied && ctx.iParentIdx >= 0 && ctx.iParentIdx < int(parent.CellCount) {
 		// The page being balanced was a cell-child of the parent
 		// and is now empty. Drop the parent cell at iParentIdx,
