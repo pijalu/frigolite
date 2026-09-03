@@ -4595,3 +4595,49 @@ failures with similar patterns", the root cause is usually
 ONE architectural gap, not 48 separate bugs.** Investing in
 one pure-Go reproduction to identify the gap saves dozens
 of fix attempts.
+
+## 2026-09-03 — PORTPLAN status refresh: full-suite drift discovered
+
+**Context.** A status-refresh pass ran `tools/status` live (1,219 packages,
+60s/pkg, 8 workers): **644 PASS / 290 FAIL / 285 SKIP (52.8%)** — vs the
+§2 checkpoint claim of "615 PASS / 162 FAIL / 415 SKIP". The per-goal ✅
+marks in PORTPLAN §4 were point-in-time closure claims that had silently
+drifted from the live suite, because each goal's "no regression" gate only
+re-runs its own verify command.
+
+**Findings (verified via throwaway `git worktree` probes, not guesses):**
+
+1. **Pre-squash drift**: select1, insert, where (and ~40 more core packages:
+   upsert1-5, altertab*, trigger1/2/4/7/9, fkey*, e_fkey, with1/2,
+   returning1, backup, bind, hook, dbstatus2, …) already FAIL at the
+   2026-08-28 squash point `ba771a6b`. The drift predates the visible git
+   history — most likely testgen regenerations during later goals changed
+   generated assertions after earlier goals had verified their packages.
+2. **Visible-window regressions**: fts3snippet and fts4opt PASS at
+   `ba771a6b` (fts4opt: 38s) and FAIL at HEAD (fts4opt: >240s timeout with
+   a panic through `engine_core.go:736` execDispatch). Suspects: the
+   P7.PLANNER/SKIPSCAN planner/stat changes (explain paths, stat-derived
+   index costs) and/or the P8 pager/btree work. A bisect goal is queued as
+   §5a item 11 `FULL-SUITE-DRIFT`.
+3. **PORTPLAN §4 rows now carry `⚠ live N/M (2026-09-03)` markers** derived
+   programmatically from each sub-plan's Target Packages list vs
+   `tools/status/last_run.json`, so the plan's per-row status is
+   machine-checkable against the live suite. Markers were inserted for the
+   38 goals with at least one red target.
+
+**Lessons:**
+
+- *Goal-scoped "no regression" gates cannot see cross-goal drift.* Any
+  claim of "all green" must be backed by a full `tools/status` run, not
+  just the goal's verify command. The `⚠ live N/M` markers make the
+  difference visible; keep them refreshed whenever `last_run.json` is
+  regenerated.
+- *Worktree probes are the cheap ground truth for "was it ever green":*
+  `git worktree add /tmp/x <sha>` + one package test run answers
+  regression-vs-pre-existing in minutes without touching the working tree.
+- *Status-tool artifacts:* `last_run_report.md` only refreshes with
+  `--out` (it had gone stale at Aug 16 while `last_run.json` updated);
+  `tools/tcl2go/skiptestfiles.go.bak` contains obsolete skip entries and
+  misleads greps (not parsed by `tools/status`, but delete it).
+- The 60s/pkg status-tool timeout can mark slow-but-passing packages as
+  FAIL; confirm borderline packages serially before treating them as red.
