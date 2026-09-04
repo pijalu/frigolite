@@ -510,7 +510,7 @@ func (t *BTree) IncrVacuumStep(n int, bCommit bool) (int, error) {
 			continue
 		}
 		// The last page is in use. Try to allocate a free page.
-		freePg, err := t.pager.AllocatePageLE()
+		freePg, err := t.pager.AllocatePageLE(lastPg)
 		if err != nil {
 			// No free page available. We're done.
 			return steps, nil
