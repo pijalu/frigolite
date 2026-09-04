@@ -9,7 +9,6 @@ import (
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
-	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // Compile-time probe: Engine satisfies the execpragma.EngineState capability
@@ -294,43 +293,20 @@ func (e *Engine) AutoVacuum(schema, value string) *execpragma.Result {
 			name = ctx.Name
 		}
 		e.settings.autoVacuumModes[name] = int64(n)
-		// Apply the mode to the pager — but only while the database file is
-		// still empty (btree.c sqlite3BtreeSetAutoVacuum:3206: once the
-		// file has content, BTS_PAGESIZE_FIXED makes a differing mode
-		// change return SQLITE_READONLY, silently swallowed by pragma.c,
-		// and the request is only recorded in db->nextAutovac for the
-		// next VACUUM). For any non-empty file the persisted header wins
-		// anyway (lockBtree:3419 re-reads the mode from meta[4] at every
-		// open). Applying the mode immediately to a non-empty database
-		// built without pointer-map pages mixes geometries: the next
-		// commit drains/vacuum-moves pages of a file whose page 2 is a
-		// data root, and corrupts it (autovacuum-3.6/3.7).
+		// Apply the mode to the pager — but only while the database file
+		// is still empty (btree.c sqlite3BtreeSetAutoVacuum:3206: once
+		// the file has content, BTS_PAGESIZE_FIXED makes a differing
+		// mode change return SQLITE_READONLY, silently swallowed by
+		// pragma.c, and the request is only recorded in db->nextAutovac
+		// for the next VACUUM). For any non-empty file the persisted
+		// header wins anyway (lockBtree:3419 re-reads the mode from
+		// meta[4] at every open). Applying the mode immediately to a
+		// non-empty database built without pointer-map pages mixes
+		// geometries: the next commit drains/vacuum-moves pages of a
+		// file whose page 2 is a data root, and corrupts it
+		// (autovacuum-3.6/3.7).
 		if ctx != nil && ctx.Pager != nil && ctx.Pager.NumPages() <= 1 {
 			ctx.Pager.SetAutoVacuum(n > 0)
-			// Persist the mode in the header (meta[6] = eAuto-1,
-			// header[64:68]). pragma.c auto_vacuum setter emits
-			// OP_Transaction + OP_SetCookie in the same statement; a
-			// fresh DB without tables still owns page 1, so
-			// updateDBHeaderField marks it dirty and the autocommit
-			// flush below writes the bytes. incrvacuum-12.1 expects
-			// the file to exist and survive close/reopen with
-			// auto_vacuum=1 readable.
-			// Persist the auto_vacuum flag in the file header. The SQLite format
-			// stores the flag at offset 52 (the same 4 bytes the btree later
-			// uses for BTREE_LARGEST_ROOT_PAGE — SQLite relies on the fact that
-			// a freshly created autovacuum database has largest_root=1, and
-			// BtreeNewDb explicitly writes pBt->autoVacuum there; see btree.c
-			// lines 3537 / 2727). A fresh DB without tables reports 0 because
-			// the meta field has not been set yet, so we set it to 1 here so
-			// the in-memory flag survives a close/reopen (incrvacuum-12.4).
-			// The flag is binary in our pager (0=NONE, 1=FULL|INCR); the
-			// distinction between FULL and INCR is captured separately by the
-			// in-memory p.autoVacuum flag set via SetAutoVacuum.
-			if n == 1 || n == 2 {
-				_ = e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
-					h.LargestBTreePage = 1
-				})
-			}
 		}
 		return &execpragma.Result{}
 	}

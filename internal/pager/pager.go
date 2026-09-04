@@ -87,6 +87,24 @@ type Pager struct {
 	// ends (sqlite3BtreeSetJournalMode / btreeEndTransaction). Empty means no
 	// pending change.
 	pendingJournalMode string
+	// freePages tracks pages returned to the freelist by FreePage (P8.INCRVACUUM
+	// phase 1). The on-disk SQLite-format freelist (header.trunk + count) is
+	// also updated, but AllocatePage uses freePages for fast O(1) pop without
+	// having to read the freed page's chain pointer. The freed page's on-disk
+	// content is left as-is (it was a valid b-tree leaf, and zeroing it would
+	// break the b-tree reader's integrity-check walk).
+	freePages map[uint32]bool
+	// P8.INCRVACUUM.phase8: trunkPages / leafToTrunk are the in-memory
+	// mirror of the on-disk freelist chain topology. They let AllocatePage
+	// (in-memory branch) advance header.trunk when popping a trunk page and
+	// zero a leaf slot when popping a leaf, so the on-disk chain stays in
+	// sync with the in-memory freePages set. Without these, popping a leaf
+	// leaves the trunk's leaves list referencing the popped page; the next
+	// FreePage of the same page (after re-alloc + re-free) creates a
+	// duplicate, which checkFreelistCount reports as "Page X: never used"
+	// and btreeStructureOK as a cycle.
+	trunkPages  map[uint32]bool
+	leafToTrunk map[uint32]uint32
 	// pendingByteOverride stores a non-default PENDING_BYTE offset installed
 	// by the SQLite test harness via sqlite3_test_control_pending_byte
 	// (src/test2.c::testPendingByte). 0 means production default.
@@ -152,11 +170,12 @@ type Page struct {
 // PagerState is a deep snapshot of a pager's in-memory state, used for
 // statement-level rollback (e.g. a failed REPLACE that fired triggers).
 type PagerState struct {
-	pages    map[uint32]*Page
-	dirty    map[uint32]bool
-	numPages uint32
-	header   []byte
-	fileSize int64
+	pages     map[uint32]*Page
+	dirty     map[uint32]bool
+	numPages  uint32
+	header    []byte
+	freePages map[uint32]bool
+	fileSize  int64
 }
 
 // Snapshot captures the pager's current in-memory pages and header so they
@@ -197,6 +216,12 @@ func (p *Pager) Snapshot() *PagerState {
 			s.dirty[n] = true
 		}
 	}
+	if len(p.freePages) > 0 {
+		s.freePages = make(map[uint32]bool, len(p.freePages))
+		for n := range p.freePages {
+			s.freePages[n] = true
+		}
+	}
 	s.fileSize = p.fileSize
 	return s
 }
@@ -221,18 +246,29 @@ func (p *Pager) Restore(s *PagerState) {
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
 	}
-	// Restore the file size so the on-disk image matches the snapshot's
-	// page count in BOTH directions: a transaction may have appended
-	// pages (AllocatePage extends the file) or SHRUNK it (in-transaction
-	// incremental vacuum truncates the image), and the BEGIN image may
-	// itself be an EMPTY file (fresh database — nothing flushed yet, so
-	// s.fileSize == 0). C's sqlite3PagerRollback always truncates the
-	// database file back to the size recorded in the journal header
-	// (pager.c pager_rollback / pagerPlayback), including down to zero
-	// pages; skipping the truncate for a zero-size snapshot left the
-	// transaction's pages on disk and integrity_check reported every one
-	// of them as "Page N: never used" after ROLLBACK.
-	if p.file != nil && p.fileSize != s.fileSize {
+	// Restore the freelist so pages freed during the transaction are
+	// re-marked as free, and pages allocated from the freelist during the
+	// transaction are removed from the free set. Without this, a ROLLBACK
+	// after a DELETE+rebalance (which calls pager.FreePage) leaves the
+	// freed pages on the in-memory freelist while the btree still
+	// references them via the parent cell, and PRAGMA integrity_check
+	// reports "database disk image is malformed".
+	if s.freePages != nil {
+		p.freePages = make(map[uint32]bool, len(s.freePages))
+		for n := range s.freePages {
+			p.freePages[n] = true
+		}
+	} else {
+		p.freePages = nil
+	}
+	// Restore the file size so pages that were appended during the
+	// transaction (AllocatePage grew the file) are removed from the
+	// integrity-check scan. Without this, the file still has the
+	// post-transaction size while the in-memory pages map holds the
+	// BEGIN state, and PRAGMA integrity_check sees the appended pages
+	// as "never used" (neither on the freelist nor referenced by the
+	// btree). Truncate the file to the BEGIN size to match.
+	if s.fileSize > 0 && p.file != nil && p.fileSize > s.fileSize {
 		if err := p.file.Truncate(s.fileSize); err != nil {
 			// Best-effort: if truncate fails, continue and let the
 			// integrity check report the mismatch.
@@ -240,43 +276,8 @@ func (p *Pager) Restore(s *PagerState) {
 		} else {
 			p.fileSize = s.fileSize
 		}
-	}
-	// Restore the header SYMMETRICALLY: a snapshot taken before the
-	// header was ever materialized (fresh database — page 1 never read
-	// or flushed, so p.header was nil at BEGIN) has s.header == nil, and
-	// the post-transaction header must then be DROPPED, not kept. Keeping
-	// it left header[28] claiming the vacuumed page count after the page
-	// cache itself had rolled back (integrity_check walked the stale
-	// count and reported the transaction's pages as "never used").
-	// pager.c restores page 1's before-image from the journal; for an
-	// empty BEGIN image that means no header at all — the next page-1
-	// read/flush re-materializes it (readPageLocked / AllocatePage).
-	p.header = nil
-	if s.header != nil {
-		p.header = append([]byte(nil), s.header...)
-	}
-	// P8.INCRVACUUM.phase16: persist the restored header bytes too.
-	// truncatePages writes the shrunken header directly to offset 0
-	// mid-transaction (the next statement's HeaderBeyondFile check
-	// reads the ON-DISK header), so a ROLLBACK that only restored the
-	// in-memory copy would leave the file header claiming the
-	// truncated size while the file itself is back at the snapshot
-	// size — every subsequent statement fails with "database disk
-	// image is malformed" (incrvacuum3 tn3: BEGIN / incremental_vacuum
-	// / ROLLBACK). pager.c restores page 1's before-image (which
-	// carries the header) from the journal; write it here.
-	if p.file != nil && s.header != nil && len(s.header) >= HeaderSize {
-		if _, err := p.file.WriteAt(s.header[:HeaderSize], 0); err != nil {
-			_ = err
-		}
-	}
-	// The restore rewrote the file behind the external-modification
-	// detector's back; re-baseline the file stamp so our own writes are
-	// not mistaken for another connection's (pager.c does the same after
-	// journal playback — pagerPlayback ends with pager_unlock re-reading
-	// the file state).
-	if p.file != nil {
-		p.refreshKnownFileStamp()
+	} else {
+		_ = s.fileSize
 	}
 }
 
@@ -358,22 +359,6 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 			// the USABLE size (pageSize - reserved), not the raw page size —
 			// SQLite files written with reserved > 0 are otherwise unreadable.
 			pr.reserved = uint32(hdr.ReservedSpace)
-			// Restore the autovacuum mode from the file header. SQLite stores
-			// the flag at offset 52, the same 4-byte slot the btree later
-			// uses for BTREE_LARGEST_ROOT_PAGE (btree.c:2727 / 3537:
-			// `pBt->autoVacuum = (get4byte(&zDbHeader[36+4*4])?1:0)`
-			// and `put4byte(&data[36+4*4], pBt->autoVacuum)`). The
-			// dual-use is intentional: a freshly-created autovacuum DB
-			// has largest_root=1 (the schema btree lives at page 1), so
-			// writing 1 there serves both purposes. A subsequent
-			// btreeCreateTable raises the value to ≥3 once a user table
-			// exists with the ptrmap page 2 reserved — still flagging
-			// auto_vacuum=true. Without this restore, the engine reports
-			// auto_vacuum=0 for a DB created with PRAGMA auto_vacuum=1
-			// (incrvacuum-12.4 expects auto_vacuum=1 after close/reopen).
-			if hdr.LargestBTreePage != 0 {
-				pr.autoVacuum = true
-			}
 		}
 		// Read full page 1 into a temporary buffer
 		fullPage := make([]byte, pr.pageSize)
@@ -816,6 +801,310 @@ func (p *Pager) SetHeader(h []byte) {
 	p.header = append([]byte(nil), h...)
 }
 
+// pickNextFreePageLocked returns the page that AllocatePage should
+// hand out next, walking the on-disk freelist chain to preserve chain
+// order. Returns 0 if the chain is empty / inconsistent. Caller must
+// hold p.mu.
+//
+// P8.INCRVACUUM.phase9: the previous in-memory fast-path took any
+// page from p.freePages (Go map iteration is random), which
+// scrambled the rootpage order in autovacuum-2.4.5. The chain
+// order is well-defined: the FIRST leaf of the head trunk is the
+// most-recently-freed leaf (LIFO of FreePage), and the head trunk
+// itself (with 0 leaves) follows the last leaf. Walking in chain
+// order matches SQLite's btree.c allocateBTreePage (closest=0
+// branch) and the test's expected sequential allocation (3..532).
+//
+// The function also guards against the in-memory freePages set
+// diverging from the on-disk chain (e.g. after Restore from a
+// snapshot whose chain was not synchronised). If the chain is
+// empty/inconsistent, it falls back to any in-memory free page so
+// the chain-corruption-detection path still fires and surfaces the
+// problem to integrity_check.
+func (p *Pager) pickNextFreePageLocked() uint32 {
+	// P8.INCRVACUUM.phase9 follow-up: in autovacuum mode, the
+	// returned page must NOT be a pointer-map page. btree.c::
+	// allocateBTreePage explicitly avoids ptrmap pages
+	// (ptrmapPageno(pgno)==pgno → SQLITE_CORRUPT_BKPT in
+	// BTALLOC_EXACT; BTALLOC_ANY walks past ptrmap pages
+	// implicitly because the freelist is populated by FreePage
+	// which writes ptrmap pages with eType=PTRMAP_FREEPAGE
+	// only after the user btree is destroyed). Our engine
+	// doesn't maintain that distinction yet, so we filter
+	// ptrmap pages here. The chain pop still removes the page
+	// from the freelist (AllocatePageMode's pop logic), so
+	// the on-disk chain stays consistent.
+	skipPtrmap := func(pg uint32) bool {
+		return p.autoVacuum && IsPtrmapPageNo(pg, p.pageSize)
+	}
+	skipReserved := func(pg uint32) bool {
+		return skipPtrmap(pg) || pg == p.pendingBytePageFor()
+	}
+	if p.header == nil || len(p.header) < 40 {
+		// Defensive: no chain header — fall back to any in-memory
+		// free page (the chain-correction machinery downstream
+		// will re-derive the on-disk state on the next FreePage).
+		for pg := range p.freePages {
+			if !skipReserved(pg) {
+				return pg
+			}
+		}
+		return 0
+	}
+	trunk := binary.BigEndian.Uint32(p.header[32:36])
+	if trunk == 0 || trunk > p.numPages {
+		// Empty or invalid chain — fall back.
+		for pg := range p.freePages {
+			if !skipReserved(pg) {
+				return pg
+			}
+		}
+		return 0
+	}
+	trunkPg, terr := p.readPageLocked(trunk)
+	if terr != nil || len(trunkPg.Data) < 8 {
+		for pg := range p.freePages {
+			if !skipReserved(pg) {
+				return pg
+			}
+		}
+		return 0
+	}
+	leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+	if leafCount > 0 {
+		// Pop the first leaf of the head trunk (closest=0, the
+		// leftmost slot in the leaves array). Skip ptrmap pages.
+		for i := uint32(0); i < leafCount; i++ {
+			off := 8 + i*4
+			if int(off)+4 > len(trunkPg.Data) {
+				break
+			}
+			leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+			if leaf != 0 && p.freePages[leaf] && !skipReserved(leaf) {
+				return leaf
+			}
+		}
+	}
+	// No leaves available: the head trunk itself is the next-to-pop.
+	if p.freePages[trunk] && !skipReserved(trunk) {
+		return trunk
+	}
+	// Walk the chain looking for any in-memory free page (a leaf
+	// of a non-head trunk, or a trunk whose leaves are gone). The
+	// chain order is preserved (we visit trunk[0], then its
+	// leaves, then trunk[1], then its leaves, ...).
+	for t := trunk; t != 0 && t <= p.numPages; {
+		tpg, terr := p.readPageLocked(t)
+		if terr != nil || len(tpg.Data) < 8 {
+			break
+		}
+		next := binary.BigEndian.Uint32(tpg.Data[0:4])
+		lc := binary.BigEndian.Uint32(tpg.Data[4:8])
+		for i := uint32(0); i < lc; i++ {
+			off := 8 + i*4
+			if int(off)+4 > len(tpg.Data) {
+				break
+			}
+			leaf := binary.BigEndian.Uint32(tpg.Data[off : off+4])
+			if leaf != 0 && p.freePages[leaf] && !skipReserved(leaf) {
+				return leaf
+			}
+		}
+		if next == 0 {
+			break
+		}
+		t = next
+	}
+	// Last resort: any in-memory free page (skipping ptrmap pages).
+	for pg := range p.freePages {
+		if !skipReserved(pg) {
+			return pg
+		}
+	}
+	return 0
+}
+
+// popFromFreePagesChainLocked removes `pgno` from the on-disk freelist
+// chain. `pgno` must be in p.freePages (or otherwise known to the chain).
+// The on-disk chain is updated so a subsequent checkFreelistCount walk
+// does not count `pgno` as a free page, and p.trunkPages / p.leafToTrunk
+// are kept in sync. header.count is decremented by 1. Caller must hold
+// p.mu.
+//
+// This is the chain-aware pop that AllocatePage and AllocatePageLE both
+// need. Without it, popping a free page leaves the on-disk chain
+// pointing at the now-allocated page; integrity_check's chain walker
+// (checkFreelistCount) sees a page that is no longer in p.freePages
+// but is still listed in some trunk's leaves, and reports it as
+// "Freelist: size is N but should be M" (the chain walk returns N
+// reachable pages, but p.header.count says M).
+//
+// P8.INCRVACUUM.phase8: extracted from AllocatePage so AllocatePageLE
+// (the page-swap target allocator) can use the same chain-aware pop.
+// The on-disk chain has three cases for `pgno`:
+//  1. pgno is a trunk: advance header.trunk to the trunk's nextTrunk
+//     and remove from p.trunkPages.
+//  2. pgno is a leaf of some trunk: find the leaf slot, shift the
+//     last leaf into it (or zero the slot if it's the last leaf),
+//     decrement the trunk's leafCount, mark the trunk dirty, remove
+//     from p.leafToTrunk.
+//  3. pgno is an orphan (not in chain, not in p.freePages): nothing
+//     to do beyond decrementing header.count.
+func (p *Pager) popFromFreePagesChainLocked(pgno uint32) {
+	if p.header == nil || len(p.header) < 40 {
+		return
+	}
+	if p.trunkPages[pgno] {
+		// Trunk pop: the popped page is itself a freelist trunk.
+		// SQLite's btree.c allocateBtreePage handles two sub-cases:
+		//   (a) The trunk has 0 leaves: just advance header.trunk to
+		//       the trunk's next_trunk pointer and free the trunk.
+		//   (b) The trunk has k>0 leaves: the FIRST leaf becomes the
+		//       new trunk (with the remaining k-1 leaves and the
+		//       same next_trunk pointer), and the popped trunk
+		//       becomes the allocated page.
+		// Without (b), the leaves are silently dropped (their page
+		// numbers are gone) and checkFreelistCount reports the
+		// chain-walked count as too small.
+		trunkPg, terr := p.readPageLocked(pgno)
+		if terr == nil && len(trunkPg.Data) >= 8 {
+			nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+			leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+			if leafCount > 0 {
+				// Sub-case (b): promote the first leaf to trunk.
+				if len(trunkPg.Data) < 8+4 {
+					// Trunk too small to hold a leaf slot.
+					// Fall back to (a): just advance.
+					binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+					p.dirty[1] = true
+				} else {
+					newTrunk := binary.BigEndian.Uint32(trunkPg.Data[8:12])
+					if newTrunk == 0 {
+						// Defensive: malformed trunk.
+						binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+						p.dirty[1] = true
+					} else {
+						// Read the new trunk's page and rewrite it
+						// with the remaining leaves.
+						newTrunkPg, nterr := p.readPageLocked(newTrunk)
+						if nterr != nil || len(newTrunkPg.Data) < 8 {
+							// Defensive: can't read.
+							binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+							p.dirty[1] = true
+						} else {
+							// Copy next_trunk pointer from the old
+							// trunk to the new trunk (it inherits
+							// the chain position).
+							binary.BigEndian.PutUint32(newTrunkPg.Data[0:4], nextTrunk)
+							// leafCount-1 remaining leaves.
+							binary.BigEndian.PutUint32(newTrunkPg.Data[4:8], leafCount-1)
+							// Copy the rest of the leaves (skip the
+							// first which is now the trunk itself).
+							if leafCount-1 > 0 {
+								if len(newTrunkPg.Data) >= 8+int(leafCount-1)*4 {
+									copy(newTrunkPg.Data[8:8+int(leafCount-1)*4], trunkPg.Data[12:12+int(leafCount-1)*4])
+								}
+							}
+							// Zero the now-unused last slot in the
+							// new trunk's leaf array.
+							lastOff := 8 + int(leafCount-1)*4
+							if lastOff+4 <= len(newTrunkPg.Data) {
+								binary.BigEndian.PutUint32(newTrunkPg.Data[lastOff:lastOff+4], 0)
+							}
+							p.dirty[newTrunk] = true
+							// Update leafToTrunk: all leaves of the
+							// old trunk that are NOT the new trunk
+							// now point to the new trunk.
+							if p.leafToTrunk != nil {
+								for leaf, lt := range p.leafToTrunk {
+									if lt == pgno && leaf != newTrunk {
+										p.leafToTrunk[leaf] = newTrunk
+									}
+								}
+								// newTrunk is no longer a leaf of
+								// pgno (it's now a trunk itself).
+								delete(p.leafToTrunk, newTrunk)
+							}
+							// Advance header.trunk to newTrunk.
+							binary.BigEndian.PutUint32(p.header[32:36], newTrunk)
+							p.trunkPages[newTrunk] = true
+							p.dirty[1] = true
+						}
+					}
+				}
+			} else {
+				// Sub-case (a): no leaves, just advance header.trunk.
+				binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+				p.dirty[1] = true
+			}
+		}
+		delete(p.trunkPages, pgno)
+	} else if trunkT, ok := p.leafToTrunk[pgno]; ok {
+		// Leaf pop: find the leaf slot in the trunk's data
+		// and zero it. The trunk is still in p.pages from
+		// the FreePage that added this leaf; if evicted,
+		// re-read.
+		trunkPg, terr := p.readPageLocked(trunkT)
+		if terr == nil && len(trunkPg.Data) >= 8 {
+			lc := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+			for i := uint32(0); i < lc; i++ {
+				off := 8 + i*4
+				if int(off)+4 > len(trunkPg.Data) {
+					break
+				}
+				leaf := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+				if leaf == pgno {
+					// Found it: copy the LAST leaf into the freed
+					// slot (SQLite btree.c lines 6697-6700:
+					//   if( closest<k-1 ){
+					//     memcpy(&aData[8+closest*4], &aData[4+k*4], 4);
+					//   }
+					// 4+k*4 = 8+(k-1)*4, i.e. the last leaf's slot).
+					// The frigolite port previously copied
+					// slot[i+1] into the freed slot, which leaves
+					// the original last leaf in place when the
+					// freed slot was not the last one — the chain
+					// then contains the same page twice (e.g.
+					// popping the first leaf of [A,B,C] yields
+					// [B,B,C] instead of [B,C,0]; subsequent
+					// alloc/free cycles amplify the duplicate and
+					// integrity_check reports "Page X: never used"
+					// and "cycle at leaf=N trunk=M").
+					if i < lc-1 {
+						lastOff := 8 + (lc-1)*4
+						copy(trunkPg.Data[off:off+4], trunkPg.Data[lastOff:lastOff+4])
+						if int(lastOff)+4 <= len(trunkPg.Data) {
+							binary.BigEndian.PutUint32(trunkPg.Data[lastOff:lastOff+4], 0)
+						}
+					}
+					binary.BigEndian.PutUint32(trunkPg.Data[4:8], lc-1)
+					p.dirty[trunkT] = true
+					// ROLLBACK fidelity: journal
+					// the trunk's BEFORE image so
+					// ROLLBACK can restore the
+					// leaf slot and count.
+					if p.journalFile != nil {
+						trunkOff := int64(trunkT-1) * int64(p.pageSize)
+						trunkBefore := make([]byte, p.pageSize)
+						if _, err := p.file.ReadAt(trunkBefore, trunkOff); err == nil {
+							if err := p.appendRollbackRecordLocked(trunkT, trunkBefore); err == nil {
+								// fall through
+							}
+						}
+					}
+					break
+				}
+			}
+		}
+		delete(p.leafToTrunk, pgno)
+	}
+	count := binary.BigEndian.Uint32(p.header[36:40])
+	if count > 0 {
+		binary.BigEndian.PutUint32(p.header[36:40], count-1)
+	}
+	p.dirty[1] = true
+}
+
 // For page 1, the first HeaderSize bytes are reserved for the database header.
 // With auto-vacuum enabled, page numbers at pointer-map positions are
 // reserved as zeroed pointer-map pages and the caller receives the following
@@ -840,13 +1129,115 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if !skipFreelist {
-		// btree.c allocateBtreePage: reuse a freelist page whenever the
-		// on-disk chain has one (n = header[36] > 0), before extending
-		// the file. The pop itself is the C algorithm — take the head
-		// trunk when it has no leaves, else its first leaf (copying the
-		// last leaf into the freed slot). No in-memory shadow state.
-		if pgno := p.allocateFreelistLocked(); pgno != 0 {
-			return p.grabPageLocked(pgno)
+		// P8.INCRVACUUM.phase9: pop from the in-memory freePages set in
+		// chain order (the previous random Go-map-iteration scrambled the
+		// rootpage list in autovacuum-2.4.5; the test expects pages
+		// 3..532 in order, and the chain's order matches). The chain
+		// update is applied to the in-memory trunk page and p.header;
+		// the next flush writes them to disk. ROLLBACK restores the
+		// snapshot's pages, so a chain pop inside a transaction is
+		// safely undone.
+		if len(p.freePages) > 0 {
+			next := p.pickNextFreePageLocked()
+			if next != 0 {
+				delete(p.freePages, next)
+				// P8.INCRVACUUM.phase8: maintain the on-disk chain
+				// (extracted to popFromFreePagesChainLocked so
+				// AllocatePageLE can share the same logic).
+				p.popFromFreePagesChainLocked(next)
+				pg := &Page{Data: make([]byte, p.pageSize), PageNum: next}
+				p.pages[next] = pg
+				p.dirty[next] = true
+				return pg
+			}
+		}
+		// If the on-disk freelist has pages (header byte 32..36 = trunk, 36..40 =
+		// count), recycle one instead of extending the file. SQLite's
+		// allocateBtreePage branch in btree.c consumes freelist pages before
+		// extending the database. Without this, DELETE/DROP never recycle pages
+		// (vacuum.go documents that), and PRAGMA integrity_check can't see a
+		// meaningful freelist count. corrupt2-14.2/14.3/14.5 depend on the
+		// freelist count surviving a DELETE and being mismatched by a hex patch.
+		if p.header != nil && len(p.header) >= 40 {
+			trunk := binary.BigEndian.Uint32(p.header[32:36])
+			count := binary.BigEndian.Uint32(p.header[36:40])
+			if trunk != 0 && count > 0 && trunk <= p.numPages {
+				trunkPg, terr := p.readPageLocked(trunk)
+				if terr == nil && len(trunkPg.Data) >= 8 {
+					// The trunk page is a freelist trunk: first 4 bytes = next trunk
+					// (or 0 if last), bytes 4..6 = leaf count, bytes 8+ = leaves. Pop
+					// the trunk itself (subtract 1 from count) and clear the leaf
+					// pages too so checkFreelistCount doesn't count them as still
+					// reachable. (The leaf pages were the original overflow pages of
+					// deleted cells — they are no longer valid freelist entries once
+					// the trunk itself is consumed.)
+					nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+					// SQLite freelist trunk format (btree.c:10701): leaf count is
+					// a 4-byte big-endian integer at offset 4, NOT 2 bytes. Reading
+					// only 2 bytes also pulls bytes 6..7 which are the high two bytes
+					// of the first leaf page number, yielding a garbage count that
+					// confuses the integrity_check walker. pragma_quickcheck.go reads
+					// 4 bytes for the same reason.
+					leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+					clearedLeaves := uint32(0)
+					for i := 0; i < int(leafCount); i++ {
+						off := 8 + i*4
+						if off+4 > len(trunkPg.Data) {
+							break
+						}
+						leafPg := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+						if leafPg != 0 && leafPg <= p.numPages {
+							if lp, lerr := p.readPageLocked(leafPg); lerr == nil {
+								for j := range lp.Data {
+									lp.Data[j] = 0
+								}
+								p.dirty[leafPg] = true
+								clearedLeaves++
+								// P8.INCRVACUUM.phase8: the leaf
+								// is being consumed by the on-disk
+								// branch. Remove from leafToTrunk
+								// (the entry pointing to this
+								// trunk).
+								if p.leafToTrunk != nil {
+									if existingT, ok := p.leafToTrunk[leafPg]; ok && existingT == trunk {
+										delete(p.leafToTrunk, leafPg)
+									}
+								}
+							}
+						}
+					}
+					binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+					// P8.INCRVACUUM.phase8: the trunk itself is
+					// being consumed; remove from trunkPages.
+					// The chain's new head is nextTrunk; if it's
+					// non-zero, it must also be in trunkPages
+					// (it was already there from the FreePage
+					// that chained it).
+					if p.trunkPages != nil {
+						delete(p.trunkPages, trunk)
+					}
+					// Decrement count by 1 (for the trunk) plus the number of leaves
+					// we cleared (each leaf was a free page in the chain). Without
+					// this, after AllocatePage consumes a trunk with leaves, the
+					// header's count stays high while checkFreelistCount no longer
+					// sees those pages (we zeroed them), so integrity_check reports
+					// a "size is N but should be M" mismatch (corrupt2-14.5).
+					totalFreed := uint32(1) + clearedLeaves
+					if totalFreed > count {
+						totalFreed = count
+					}
+					binary.BigEndian.PutUint32(p.header[36:40], count-totalFreed)
+					p.dirty[trunk] = true
+					delete(p.pages, trunk)
+					pg := &Page{
+						Data:    make([]byte, p.pageSize),
+						PageNum: trunk,
+					}
+					p.pages[trunk] = pg
+					p.dirty[trunk] = true
+					return pg
+				}
+			}
 		}
 	}
 	p.numPages++
@@ -1087,16 +1478,56 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// C-parity (P8.INCRVACUUM phase16): the freelist chain on disk is the
-	// only bookkeeping. For the plain Truncate path, chain entries above
-	// the truncation point are removed (and the count kept in lockstep) by
-	// freelistPagesAboveLocked BEFORE numPages/file shrink — the splice
-	// needs to read trunks above n for their next pointers. The
-	// auto-vacuum drain path (TruncateNoFreelistAdjust) leaves the chain
-	// untouched: bCommit=1 tolerates trailing "garbage entries"
-	// (btree.c:4022-4028) and the count stays in lockstep with the chain.
-	if adjustFreelistCount {
-		p.freelistPagesAboveLocked(n)
+	// Update the on-disk freelist count: pages being truncated that
+	// are on the freelist (in p.freePages) reduce the header's freelist
+	// count by one each. The pager is the only writer of header.count;
+	// the integrity check (checkFreelistCount) compares this count
+	// against the actual chain length.
+	truncatedFree := uint32(0)
+	for pgno := p.numPages; pgno > n; pgno-- {
+		if p.freePages[pgno] {
+			truncatedFree++
+			// Drop truncated free pages from p.freePages too — the page
+			// no longer exists, so it must not be popped by AllocatePage.
+			delete(p.freePages, pgno)
+		}
+		// P8.INCRVACUUM.phase9: also drop the page from the
+		// trunkPages and leafToTrunk maps. Without this, a
+		// later FreePage(pgno) hits the idempotence check at
+		// FreePage's lines 1781-1785 (page is in the chain) and
+		// just bumps header.count without actually inserting the
+		// page into the chain. The chain count then diverges from
+		// the visible chain length, and a subsequent AllocatePage
+		// reading header.trunk + header.count finds a phantom
+		// page that the chain's trunk points to (the original
+		// next-trunk pointer) but the trunk's leafCount was
+		// rewritten to 0 by pruneFreelistChain, so the phantom
+		// page is never visited; the next valid page in the
+		// chain (which may be a stale btree page reference) is
+		// returned, and readPageLocked fails with "database disk
+		// image is malformed" when that page is beyond numPages.
+		if p.trunkPages != nil {
+			delete(p.trunkPages, pgno)
+		}
+		if p.leafToTrunk != nil {
+			// P8.INCRVACUUM.phase9 (chain-tracking fix): also drop
+			// leafToTrunk entries where the VALUE (trunk) is being
+			// truncated, not just the KEY (leaf). A leaf can still
+			// be a valid page in the file (within the new n) while
+			// its trunk has been truncated past; popFromFreePagesChainLocked
+			// reads the trunk to find/zero the leaf's slot, so a
+			// stale trunk reference must be cleared. Without this,
+			// a later AllocatePage pops leaf L, then tries to read
+			// trunk T to zero L's slot, but T is past numPages and
+			// readPageLocked fails with "database disk image is
+			// malformed" (autovacuum-2.5.1).
+			for leaf, trunk := range p.leafToTrunk {
+				if trunk == pgno {
+					delete(p.leafToTrunk, leaf)
+				}
+			}
+			delete(p.leafToTrunk, pgno)
+		}
 	}
 	for pgno := range p.pages {
 		if pgno > n {
@@ -1122,18 +1553,36 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	// Skipped for the auto-vacuum drain (adjustFreelistCount=false): the
 	// chain still lists the truncated pages by design (bCommit=1 garbage
 	// entries), so the count must stay in lockstep with the chain.
-	// P8.INCRVACUUM.phase16 (C-parity): the freelist-count adjustment for
-	// truncated chain entries lives entirely in freelistPagesAboveLocked
-	// (called above, plain-Truncate path only). SQLite's pager truncate
-	// does no freelist-chain surgery of its own (pager.c
-	// pager_truncate_image only shrinks the file); the btree layer
-	// maintains the chain exclusively via allocateBtreePage (pop) and
-	// freePage2 (push) — src/btree.c:4022-4032 leaves a trailing FREE
-	// page untouched at commit ("the free-list will be truncated to zero
-	// after this function returns, so it doesn't matter if it still
-	// contains some garbage entries"), and autoVacuumCommit zeroes
-	// header.trunk/header.count when the drain completes
-	// (src/btree.c:4249-4252, mirrored by ZeroFreelistChain).
+	if adjustFreelistCount && truncatedFree > 0 && p.header != nil && len(p.header) >= 40 {
+		oldCount := binary.BigEndian.Uint32(p.header[36:40])
+		if oldCount >= truncatedFree {
+			binary.BigEndian.PutUint32(p.header[36:40], oldCount-truncatedFree)
+			p.dirty[1] = true
+			// Mirror the header into the cached page 1: integrity_check
+			// parses page 1 from the page cache (not from p.header), so
+			// a check run in the same session — before the flush — would
+			// otherwise read the stale pre-truncate count and report
+			// "Freelist: size is N but should be M" (autovacuum2-1.5).
+			p.syncHeaderPage1Locked()
+		}
+		// P8.INCRVACUUM.T5 (SQLite-faithful): the previous trunk-advance
+		// fixup that rewrote header.trunk to the highest surviving free
+		// page and fabricated a next-chain pointer into that page's
+		// buffer is GONE. SQLite never rewires the freelist chain at
+		// truncate: the chain is maintained exclusively by
+		// allocateBtreePage (pop) and freePage2 (push) —
+		// src/btree.c:4022-4032 leaves a trailing FREE page untouched at
+		// commit ("the free-list will be truncated to zero after this
+		// function returns, so it doesn't matter if it still contains
+		// some garbage entries"), and autoVacuumCommit zeroes
+		// header.trunk/header.count when the drain completes
+		// (src/btree.c:4249-4252, mirrored by ZeroFreelistChain). The
+		// fabricated chain made pruneFreelistChain misread non-trunk
+		// pages as trunks (leaf count taken from row-data bytes) and
+		// zero their content in 4-byte slots, destroying freshly
+		// relocated pages (the autovacuum corruption behind
+		// TestP8Autovacuum*).
+	}
 	// Update the in-header database size (offset 28) so the next
 	// HeaderBeyondFile check (src/btree.c lockBtree) reports the new
 	// file page count instead of the pre-truncate size. SQLite sets
@@ -1227,6 +1676,42 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	// garbage is removed by the autovacuum commit zeroing.
 	return nil
 }
+
+// FreePage returns a page number to the on-disk freelist (P8.INCRVACUUM
+// phase 1 + multi-trunk fix). The freed page's on-disk content is
+// left as-is (it was a valid b-tree page before FreePage was called,
+// and zeroing it would break the b-tree reader's integrity-check walk
+// on a freed leaf). The freelist is tracked in two places:
+//   - p.freePages: in-memory set for O(1) pop in AllocatePage.
+//   - header.trunk + header.count: on-disk SQLite format (kept in sync
+//     for corrupt2-14.x tests + integrity_check).
+//
+// The on-disk freelist chain mirrors SQLite btree.c::freePage2 (lines
+// 6797-6930): if the current trunk's leafCount < (pageSize-8)/4 - 8,
+// the freed page is added as a leaf of the current trunk; otherwise
+// the freed page becomes a new trunk and the previous trunk is linked
+// as its next-trunk. (The previous code always made the new page a
+// 0-leaf trunk, which produced a chain of empty trunks after > 254
+// frees and left the actual data pages as "Page X: never used" in
+// integrity_check.)
+
+// AllocatePageLE is the page-swap target allocator (P8.INCRVACUUM phase 3).
+// Like AllocatePage, it returns a free page from p.freePages, but it
+// picks the LOWEST free page (for the page-swap step: the last page of
+// the file is moved to a free page near the front, so we want a
+// low-numbered free page to keep the file contiguous). If no free page
+// is available, returns nil and an SQLITE_FULL error.
+//
+// P8.INCRVACUUM.phase8: the pop must update the on-disk freelist chain
+// (remove the popped page from its trunk's leaves list, or advance
+// header.trunk if the popped page is a trunk itself). Without this,
+// the on-disk chain still references the now-overwritten page; a
+// subsequent integrity_check reports "Freelist: size is N but should
+// be M" (the chain walker counts M reachable pages including the
+// allocated one, but the chain header was decremented in
+// popFromFreePagesChainLocked; or vice versa). AllocatePageLE shares
+// popFromFreePagesChainLocked with AllocatePage so both paths are
+// chain-aware.
 
 // Flush is the public flush entry point. See flushAll for the actual work.
 func (p *Pager) Flush() error {
