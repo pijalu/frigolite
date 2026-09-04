@@ -1455,6 +1455,24 @@ func (p *Pager) WritePage(pg *Page) error {
 // database file to n pages (src/dbpage.c INSERT with NULL data truncates via
 // sqlite3PagerTruncateImage).
 func (p *Pager) Truncate(n uint32) error {
+	return p.truncatePages(n, true)
+}
+
+// TruncateNoFreelistAdjust is Truncate for the auto-vacuum/incremental
+// vacuum paths (btree.c incrVacuumStep): the freelist count is owned
+// exclusively by explicit chain operations — the BTALLOC_EXACT pop
+// (TakePageFromFreelist) for a bCommit==0 trailing FREE page, and the
+// full-drain zeroing (ZeroFreelistChain) at commit end — never by the
+// truncation itself. A bCommit==1 trailing FREE page is truncated away
+// WITHOUT being popped: its chain entry becomes intentional garbage
+// ("it doesn't matter if it still contains some garbage entries",
+// btree.c:4026-4028), so the header count must stay in lockstep with
+// the chain length.
+func (p *Pager) TruncateNoFreelistAdjust(n uint32) error {
+	return p.truncatePages(n, false)
+}
+
+func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	if p.readOnly {
 		return fmt.Errorf("pager: read-only")
 	}
@@ -1532,11 +1550,20 @@ func (p *Pager) Truncate(n uint32) error {
 		p.fileSize = newSize
 	}
 	// Adjust the on-disk freelist count for the truncated free pages.
-	if truncatedFree > 0 && p.header != nil && len(p.header) >= 40 {
+	// Skipped for the auto-vacuum drain (adjustFreelistCount=false): the
+	// chain still lists the truncated pages by design (bCommit=1 garbage
+	// entries), so the count must stay in lockstep with the chain.
+	if adjustFreelistCount && truncatedFree > 0 && p.header != nil && len(p.header) >= 40 {
 		oldCount := binary.BigEndian.Uint32(p.header[36:40])
 		if oldCount >= truncatedFree {
 			binary.BigEndian.PutUint32(p.header[36:40], oldCount-truncatedFree)
 			p.dirty[1] = true
+			// Mirror the header into the cached page 1: integrity_check
+			// parses page 1 from the page cache (not from p.header), so
+			// a check run in the same session — before the flush — would
+			// otherwise read the stale pre-truncate count and report
+			// "Freelist: size is N but should be M" (autovacuum2-1.5).
+			p.syncHeaderPage1Locked()
 		}
 		// P8.INCRVACUUM.T5 (SQLite-faithful): the previous trunk-advance
 		// fixup that rewrote header.trunk to the highest surviving free
@@ -2214,6 +2241,17 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 	return nil
 }
 
+// syncHeaderPage1Locked copies the authoritative in-memory header into the
+// cached page-1 buffer (caller holds p.mu). Header consumers split between
+// p.header (FreelistCount, HeaderPageCount) and the page cache
+// (integrity_check parses page 1's bytes), so every header mutation must
+// reach both or the two views diverge.
+func (p *Pager) syncHeaderPage1Locked() {
+	if pg1, ok := p.pages[1]; ok && pg1 != nil && len(p.header) >= HeaderSize && len(pg1.Data) >= HeaderSize {
+		copy(pg1.Data[:HeaderSize], p.header)
+	}
+}
+
 // growHeaderSizeLocked records a file growth in the in-header database size
 // (offset 28), monotonically. flushAll iterates the dirty map in random
 // order, so a non-monotonic write lets a lower-numbered page flushed late
@@ -2254,6 +2292,20 @@ func (p *Pager) flushPage(pageNum uint32) error {
 	}
 	off := int64(pageNum-1) * int64(p.pageSize)
 	fileEnd := int64(pageNum) * int64(p.pageSize)
+	// Page 1 carries the 100-byte database header. p.header is the
+	// authoritative in-memory copy (updated by Truncate, FreePage,
+	// SetHeader, ...), but several of those writers only touch the cache
+	// and mark page 1 dirty without copying the bytes into the cached
+	// page buffer (ZeroFreelistChain and updateDBHeaderField do; the
+	// Truncate freelist-count/size adjustments did not). Stamping the
+	// live header here — right before the write — guarantees the flushed
+	// page 1 never carries a stale freelist count or file size
+	// (integrity_check parses page 1 from the page cache and compares it
+	// against the chain walk; a stale count reports "Freelist: size is 9
+	// but should be 5" after an auto-vacuum drain).
+	if pageNum == 1 && len(pg.Data) >= HeaderSize && len(p.header) >= HeaderSize {
+		copy(pg.Data[:HeaderSize], p.header)
+	}
 	if p.fileSize < fileEnd {
 		if err := p.file.Truncate(fileEnd); err != nil {
 			return fmt.Errorf("pager: truncate: %w", err)

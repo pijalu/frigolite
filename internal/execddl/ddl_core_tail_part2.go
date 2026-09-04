@@ -10,10 +10,13 @@ package execddl
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -58,33 +61,15 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 	}
 	colType := columnTypeLookup(s)
 	colPKDesc := columnPKDescLookup(s)
-	// On WITHOUT ROWID tables the PRIMARY KEY is the table's own clustered
-	// key; SQLite merges any UNIQUE constraint with the same column list into
-	// it, creating no separate autoindex (and consuming no slot).
-	var pkCols []string
-	for _, u := range uniq {
-		if u.IsPK {
-			pkCols = u.Cols
-			break
-		}
-	}
+	pkCols := pkConstraintCols(uniq)
 	seen := map[string]bool{}
 	seq := 0
 	for _, u := range uniq {
-		key := strings.Join(u.Cols, ",")
-		// An INTEGER PRIMARY KEY (not DESC) is a rowid alias: no autoindex
-		// exists at all and no sequence slot is consumed (SQLite creates no
-		// index). INTEGER PRIMARY KEY DESC is an ordinary column and DOES get
-		// an autoindex.
-		if u.IsPK && len(u.Cols) == 1 && execdml.IsIPKRowidAliasCol(sql.ColumnDef{PrimaryKey: true, Type: colType(u.Cols[0]), PKDesc: colPKDesc(u.Cols[0])}) {
-			continue
-		}
-		// On WITHOUT ROWID, a UNIQUE constraint duplicating the PRIMARY KEY
-		// is merged into the clustered key: no autoindex, no slot consumed.
-		if s.WithoutRowid && !u.IsPK && sameColumnNames(u.Cols, pkCols) {
+		if !needsAutoIndex(s, u, pkCols, colType, colPKDesc) {
 			continue
 		}
 		seq++
+		key := strings.Join(u.Cols, ",")
 		if seen[key] {
 			continue // duplicate constraint — no entry, no slot consumed
 		}
@@ -99,6 +84,35 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 		}
 	}
 	return &Result{}
+}
+
+// pkConstraintCols returns the column list of the first PRIMARY KEY
+// constraint among the unique definitions (used to merge duplicate
+// UNIQUE constraints on WITHOUT ROWID tables into the clustered key).
+func pkConstraintCols(uniq []uniqDef) []string {
+	for _, u := range uniq {
+		if u.IsPK {
+			return u.Cols
+		}
+	}
+	return nil
+}
+
+// needsAutoIndex reports whether a UNIQUE/PK constraint gets its own
+// auto-index (and consumes a sqlite_autoindex slot):
+//   - An INTEGER PRIMARY KEY (not DESC) is a rowid alias: no autoindex
+//     exists at all and no sequence slot is consumed. INTEGER PRIMARY KEY
+//     DESC is an ordinary column and DOES get an autoindex.
+//   - On WITHOUT ROWID, a UNIQUE constraint duplicating the PRIMARY KEY
+//     is merged into the clustered key: no autoindex, no slot consumed.
+func needsAutoIndex(s *sql.CreateTableStmt, u uniqDef, pkCols []string, colType func(string) string, colPKDesc func(string) bool) bool {
+	if u.IsPK && len(u.Cols) == 1 && execdml.IsIPKRowidAliasCol(sql.ColumnDef{PrimaryKey: true, Type: colType(u.Cols[0]), PKDesc: colPKDesc(u.Cols[0])}) {
+		return false
+	}
+	if s.WithoutRowid && !u.IsPK && sameColumnNames(u.Cols, pkCols) {
+		return false
+	}
+	return true
 }
 
 // collectUniqueDefs gathers UNIQUE and PRIMARY KEY constraints (column-level
@@ -200,41 +214,42 @@ func addAutoIndexEntry(ctx *DatabaseContext, tableName string, seq int) error {
 	return ctx.Schema.AddEntry(idxEntry)
 }
 
-// execDropTable implements DROP TABLE.
-func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
-	e.ctx.InvalidateTableCaches()
-	// SQLITE_IGNORE on SQLITE_DROP_TABLE silently skips the drop (auth-1.23.1
-	// returns IGNORE for DROP TABLE and the table survives); DENY errors.
+// authorizeDropTable runs the authorizer checks DROP TABLE performs:
+// SQLITE_DROP_TABLE on the table, then SQLITE_DELETE on the table's rows
+// and on sqlite_schema (auth-1.63 denies via SQLITE_DELETE sqlite_master;
+// auth-1.65 denies via SQLITE_DELETE t2; auth-1.71/1.73 IGNORE them and
+// the drop is skipped). SQLITE_IGNORE on SQLITE_DROP_TABLE silently skips
+// the drop (auth-1.23.1 returns IGNORE for DROP TABLE and the table
+// survives); DENY errors.
+func (e *DDLExecutor) authorizeDropTable(s *sql.DropTableStmt) *Result {
 	if res := e.authorizeActionOrSkip(auth.ActionDropTable, s.Name, "", "", ""); res != nil {
 		return res
 	}
-	// SQLite fires SQLITE_DELETE against the table's rows and against
-	// sqlite_schema when dropping a table (auth-1.63 denies via
-	// SQLITE_DELETE sqlite_master; auth-1.65 denies via SQLITE_DELETE t2;
-	// auth-1.71/1.73 IGNORE them and the drop is skipped).
 	for _, tgt := range []string{s.Name, "sqlite_master"} {
 		if res := e.authorizeActionOrSkip(auth.ActionDelete, tgt, "", "", ""); res != nil {
 			return res
 		}
 	}
-	// Force a fresh schema read so a stale schema cache cannot make the DROP
-	// target a table that is no longer in the btree ("deleted=0").
-	for _, dbCtx := range e.ctx.DBList() {
-		dbCtx.Schema.InvalidateCache()
-	}
+	return nil
+}
+
+// resolveDropTableTarget locates the DROP TABLE target. A non-nil
+// *Result is final (an error, or the silent no-op DROP TABLE IF EXISTS
+// takes when the name is gone); nil means entry/ctx are valid and the
+// drop proceeds.
+func (e *DDLExecutor) resolveDropTableTarget(s *sql.DropTableStmt) (*schema.Entry, *DatabaseContext, *Result) {
 	entry, ctx, err := e.ctx.FindTable(s.Name)
 	if err != nil {
 		// The name is not a table. If it is a view, SQLite rejects rather
 		// than deleting the wrong object ("use DROP VIEW to delete view v1").
 		if _, _, vErr := e.ctx.FindView(s.Name); vErr == nil && !s.IfExists {
-			return &Result{Error: fmt.Errorf("use DROP VIEW to delete view %s", s.Name)}
+			return nil, nil, &Result{Error: fmt.Errorf("use DROP VIEW to delete view %s", s.Name)}
 		}
 		if s.IfExists {
-			return &Result{}
+			return nil, nil, &Result{}
 		}
-		return &Result{Error: err}
+		return nil, nil, &Result{Error: err}
 	}
-
 	// SQLite refuses to drop tables whose names begin with "sqlite_"
 	// (src/build.c:3471 tableMayNotBeDropped, 3560-3561), except the
 	// sqlite_statN analysis tables and sqlite_parameters. Error:
@@ -242,7 +257,25 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	lower := strings.ToLower(entry.Name)
 	if strings.HasPrefix(lower, "sqlite_") &&
 		!strings.HasPrefix(lower, "sqlite_stat") && lower != "sqlite_parameters" {
-		return &Result{Error: fmt.Errorf("table %s may not be dropped", entry.Name)}
+		return nil, nil, &Result{Error: fmt.Errorf("table %s may not be dropped", entry.Name)}
+	}
+	return entry, ctx, nil
+}
+
+// execDropTable implements DROP TABLE.
+func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
+	e.ctx.InvalidateTableCaches()
+	if res := e.authorizeDropTable(s); res != nil {
+		return res
+	}
+	// Force a fresh schema read so a stale schema cache cannot make the DROP
+	// target a table that is no longer in the btree ("deleted=0").
+	for _, dbCtx := range e.ctx.DBList() {
+		dbCtx.Schema.InvalidateCache()
+	}
+	entry, ctx, res := e.resolveDropTableTarget(s)
+	if res != nil {
+		return res
 	}
 	if res := e.dropTableFKChecks(entry, ctx); res != nil {
 		return res
@@ -254,6 +287,11 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	if e.ctx.ActiveReadStatements() > 0 {
 		return &Result{Error: fmt.Errorf("database table is locked")}
 	}
+	// P8.INCRVACUUM (FIX E): collect every b-tree root this DROP frees
+	// (each index's root + the table's own) BEFORE any schema removal —
+	// the compaction in dropBtreeRoot must still resolve the owner of the
+	// current largest root from the schema.
+	drops := e.collectBtreeRootDrops(ctx, entry)
 	e.dropTableCascade(ctx, entry)
 	e.markDropTableFKDirty(entry, ctx)
 	// Remove from schema — by TYPE so a TRIGGER named the same as the table
@@ -262,22 +300,162 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	if err := ctx.Schema.RemoveEntryOfType(s.Name, schema.TypeTable); err != nil {
 		return &Result{Error: err}
 	}
-	// P8.INCRVACUUM: free the table's btree pages so the next
-	// AutoVacuumCommit (FULL mode) or PRAGMA incremental_vacuum
-	// can truncate the file. Without this, DROP TABLE leaks all
-	// the table's pages — autovacuum-9.2 (file size after
-	// DROP TABLE x5) needs this to shrink to 1024.
-	if entry.RootPage != 0 && ctx.Pager != nil {
-		bt := e.ctx.TableBTreePg(ctx.Pager, entry.Name, entry.RootPage, true)
-		if err := bt.FreeTable(entry.RootPage); err != nil {
-			return &Result{Error: err}
-		}
+	// P8.INCRVACUUM (FIX E): free each dropped b-tree root through
+	// dropBtreeRoot, which implements btree.c btreeDropTable's
+	// auto-vacuum root-block compaction. Roots are processed in
+	// DESCENDING order — the same order SQLite's codegen emits the
+	// OP_Destroy calls (src/build.c: "dropping the btrees in descending
+	// order of root-pages"). Without the compaction the root block stays
+	// sparse; the commit drain then meets a root page as the file tail
+	// (the btree.c:4030 CORRUPT position) and stalls with freelist pages
+	// trapped below it, leaving header.count > file pages (autovacuum
+	// 3.1: count 10 on an 8-page file → finalDbSize wrap).
+	if err := e.applyBtreeRootDrops(ctx, drops); err != nil {
+		return &Result{Error: err}
 	}
 	e.refreshLargestRootPage(ctx)
 	if res := e.dropTableCleanup(entry, ctx); res != nil {
 		return res
 	}
 	return &Result{}
+}
+
+// btreeRootDrop is one dropped b-tree root pending page reclamation
+// (execDropTable's FIX E collection, processed in descending root order).
+type btreeRootDrop struct {
+	name    string
+	root    uint32
+	isTable bool
+}
+
+// collectBtreeRootDrops snapshots the b-tree roots a DROP TABLE frees —
+// every index root on the table plus the table's own root — sorted in
+// DESCENDING root order (src/build.c emits OP_Destroy calls in that
+// order). Collection happens before any schema removal so the owner
+// lookups inside dropBtreeRoot still see the full schema.
+func (e *DDLExecutor) collectBtreeRootDrops(ctx *DatabaseContext, entry *schema.Entry) []btreeRootDrop {
+	if ctx == nil || ctx.Pager == nil || entry == nil {
+		return nil
+	}
+	var drops []btreeRootDrop
+	indexEntries, _ := ctx.Schema.FindIndexesForTable(entry.Name)
+	for _, idx := range indexEntries {
+		if idx != nil && idx.RootPage != 0 {
+			drops = append(drops, btreeRootDrop{name: idx.Name, root: idx.RootPage})
+		}
+	}
+	if entry.RootPage != 0 {
+		drops = append(drops, btreeRootDrop{name: entry.Name, root: entry.RootPage, isTable: true})
+	}
+	sort.Slice(drops, func(i, j int) bool { return drops[i].root > drops[j].root })
+	return drops
+}
+
+// applyBtreeRootDrops frees every collected root in order.
+func (e *DDLExecutor) applyBtreeRootDrops(ctx *DatabaseContext, drops []btreeRootDrop) error {
+	for _, d := range drops {
+		if err := e.dropBtreeRoot(ctx, d.name, d.root, d.isTable); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// dropBtreeRoot frees one dropped b-tree's pages with btree.c
+// btreeDropTable's auto-vacuum root-block compaction (src/btree.c
+// 10310-10365): when the dropped root is NOT the largest root, the page
+// holding the largest root is moved into the vacated slot (BTree.MoveRoot)
+// and the vacated root's old page is freed instead; meta[3] then steps
+// down one usable slot (skipping pointer-map and pending-byte pages) in
+// both branches. The schema entry whose rootpage was moved (C's *piMoved
+// handshake: OP_Destroy returns the moved page and the DDL layer rewrites
+// its sqlite_master rootpage) is persisted via UpdateEntryRoot so the
+// move survives a reopen. On non-auto-vacuum databases this is a plain
+// FreeTable — src/btree.c:10314 gates the whole max-root maintenance on
+// pBt->autoVacuum.
+func (e *DDLExecutor) dropBtreeRoot(ctx *DatabaseContext, name string, root uint32, isTable bool) error {
+	pg := ctx.Pager
+	if pg == nil || root == 0 {
+		return nil
+	}
+	bt := e.ctx.TableBTreePg(pg, name, root, isTable)
+	if err := bt.FreeTable(root); err != nil {
+		return err
+	}
+	if !pg.AutoVacuum() {
+		return nil
+	}
+	maxRoot := pg.LargestRootPage()
+	if maxRoot > 1 && root != maxRoot && maxRoot <= pg.NumPages() {
+		if err := e.avRelocateMaxRoot(ctx, pg, bt, root, maxRoot); err != nil {
+			return err
+		}
+	}
+	avStepDownLargestRoot(pg, maxRoot)
+	return nil
+}
+
+// avMaxRootOwner finds the schema entry (table or index) whose rootpage
+// equals maxRoot, mirroring destroyRootPage's "UPDATE ..schema SET
+// rootpage=%d WHERE rootpage=#r1" match (src/build.c:3296-3299). The
+// UPDATE simply matches zero rows when the watermark points at a page
+// no root owns, so a false result must never suppress the move itself —
+// it only gates the schema rewrite.
+func avMaxRootOwner(ctx *DatabaseContext, maxRoot uint32) (string, bool) {
+	for _, st := range []schema.SchemaType{schema.TypeTable, schema.TypeIndex} {
+		entries, err := ctx.Schema.GetEntries(st)
+		if err != nil {
+			continue
+		}
+		for _, en := range entries {
+			if en != nil && en.RootPage == maxRoot {
+				return en.Name, true
+			}
+		}
+	}
+	return "", false
+}
+
+// avRelocateMaxRoot implements the btreeDropTable relocation branch
+// (src/btree.c:10341-10359): move WHATEVER page currently sits at
+// meta[3] into the vacated slot — usually the largest root, but the
+// watermark can also point at a free or content page (btreeCreateTable
+// only guarantees the top of the root block is dense, not that every
+// watermark slot is a root). The vacated slot was freed by FreeTable
+// (the C clearTable frees only the content and keeps the root allocated
+// for the relocation), so it is popped back off the freelist first,
+// giving MoveRoot an allocated destination (allocateBtreePage
+// BTALLOC_EXACT parity).
+func (e *DDLExecutor) avRelocateMaxRoot(ctx *DatabaseContext, pg *pager.Pager, bt *btree.BTree, root, maxRoot uint32) error {
+	ownerName, found := avMaxRootOwner(ctx, maxRoot)
+	pg.TakePageFromFreelist(root)
+	if err := bt.MoveRoot(maxRoot, root); err != nil {
+		return err
+	}
+	if found {
+		// destroyRootPage's "UPDATE ..schema SET rootpage=%d WHERE
+		// rootpage=#r1" parity. UpdateEntryRoot is name-keyed and
+		// works for index rows too (UpdateRootPagePg only resolves
+		// tables — using it here would leave a moved index's
+		// schema row pointing at the freed page).
+		return ctx.Schema.UpdateEntryRoot(ownerName, root)
+	}
+	return nil
+}
+
+// avStepDownLargestRoot steps meta[3] down one slot after a root-block
+// compaction, skipping pointer-map and pending-byte pages
+// (src/btree.c:10360-10366); floor at 1 (SQLite keeps meta[3]=1 when no
+// roots remain).
+func avStepDownLargestRoot(pg *pager.Pager, maxRoot uint32) {
+	newMax := int64(maxRoot) - 1
+	for newMax > 1 && (storage.IsPtrmapPageNo(uint32(newMax), pg.PageSize()) || uint32(newMax) == pg.PendingBytePage()) {
+		newMax--
+	}
+	if newMax < 1 {
+		newMax = 1
+	}
+	pg.SetLargestRootPage(uint32(newMax))
 }
 
 // refreshLargestRootPage recomputes meta[3] (header[52:56], the largest
@@ -340,15 +518,11 @@ func (e *DDLExecutor) dropTableCascade(ctx *DatabaseContext, entry *schema.Entry
 	}
 	indexes, _ := ctx.Schema.FindIndexesForTable(entry.Name)
 	for _, idx := range indexes {
-		// Free the index's btree pages so AutoVacuumCommit (FULL
-		// mode) can truncate them. Without this, autovacuum-9.2
-		// (file size after DROP TABLE x5) leaves the file at
-		// hundreds of pages because the indexes' pages are still
-		// "live" even though their schema entries are gone.
-		if idx.RootPage != 0 && ctx.Pager != nil {
-			ibt := e.ctx.TableBTreePg(ctx.Pager, idx.Name, idx.RootPage, false)
-			_ = ibt.FreeTable(idx.RootPage)
-		}
+		// FIX E: the index's b-tree pages are freed by dropBtreeRoot
+		// (with auto-vacuum root-block compaction, in descending root
+		// order) — not here. Freeing them inline would put the freed
+		// pages on the freelist while higher roots stay live, and the
+		// commit drain would stall on a root page as the file tail.
 		_ = ctx.Schema.RemoveEntry(idx.Name)
 	}
 	// Remove sqlite_stat1 entries for the dropped table and any of its

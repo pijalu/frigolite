@@ -144,7 +144,10 @@ func finishAutoVacuumCommit(p *pager.Pager, nVac, nFree, nFin uint32) error {
 		p.ZeroFreelistChain()
 	}
 	if p.NumPages() > nFin {
-		return p.Truncate(nFin)
+		// Same bCommit=1 garbage-entry rule: the chain keeps listing any
+		// free pages above nFin; only the chain header (zeroed above for
+		// a full drain) and the file size change.
+		return p.TruncateNoFreelistAdjust(nFin)
 	}
 	return nil
 }
@@ -184,29 +187,17 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 		return 0, fmt.Errorf("btree: autoVacuumCommit: final size %d exceeds current size %d", nFin, nOrig)
 	}
 	totalSteps := 0
-	// Drain loop (btree.c:4243-4245): step until the file reaches
-	// nFin. IncrVacuumStep truncates directly when the tail page is
-	// free and relocates it into a lower free page otherwise. Progress
-	// stops legitimately when the freelist is exhausted
-	// (btree.c:4021-4023 returns SQLITE_DONE) or the tail is an
-	// unrelocatable root page — in that case the file simply stays
-	// above nFin and nothing is zeroed or truncated (the safe
-	// direction: live pages are never chopped).
-	for ctx.Pager.NumPages() > nFin {
-		npBefore := ctx.Pager.NumPages()
-		steps, err := e.runIncrVacuumStep(ctx, true)
-		totalSteps += steps
-		if err != nil {
-			// btree.c:4257: rc!=SQLITE_OK rolls the pager back. Our
-			// caller aborts the commit on error, which unwinds the
-			// transaction — propagate instead of swallowing.
-			return totalSteps, err
-		}
-		if ctx.Pager.NumPages() >= npBefore {
-			// No progress possible this step: stop the drain without
-			// erroring. The freelist chain stays exactly as it is.
-			break
-		}
+	// btree.c:4243-4245 passes bCommit=(nVac==nFree) to every
+	// incrVacuumStep call: a FULL drain (callback returned the whole
+	// freelist, or no callback) takes the garbage-entry shortcut and
+	// zeroing at the end, while a PARTIAL callback-capped drain takes
+	// the incremental path — every trailing FREE page is popped from
+	// the chain (BTALLOC_EXACT) before its truncation, keeping
+	// count==chain==nFree-nVac consistent below the truncation point.
+	bCommit := nVac == nFree
+	totalSteps, err := e.drainAutoVacuum(ctx, bCommit, nFin)
+	if err != nil {
+		return totalSteps, err
 	}
 	if ctx.Pager.NumPages() > nFin || nFree == 0 {
 		// Drain incomplete (freelist exhausted or an unrelocatable root
@@ -215,6 +206,34 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	}
 	if err := finishAutoVacuumCommit(ctx.Pager, nVac, nFree, nFin); err != nil {
 		return totalSteps, err
+	}
+	return totalSteps, nil
+}
+
+// drainAutoVacuum runs IncrVacuumStep until the file reaches nFin
+// (btree.c:4243-4245). IncrVacuumStep truncates directly when the tail
+// page is free and relocates it into a lower free page otherwise.
+// Progress stops legitimately when the freelist is exhausted
+// (btree.c:4021-4023 returns SQLITE_DONE) or the tail is an
+// unrelocatable root page — in that case the file simply stays
+// above nFin and nothing is zeroed or truncated (the safe
+// direction: live pages are never chopped). Errors propagate so the
+// caller aborts the commit and rolls the transaction back
+// (btree.c:4257 sqlite3PagerRollback).
+func (e *Engine) drainAutoVacuum(ctx *DatabaseContext, bCommit bool, nFin uint32) (int, error) {
+	totalSteps := 0
+	for ctx.Pager.NumPages() > nFin {
+		npBefore := ctx.Pager.NumPages()
+		steps, err := e.runIncrVacuumStep(ctx, bCommit)
+		totalSteps += steps
+		if err != nil {
+			return totalSteps, err
+		}
+		if ctx.Pager.NumPages() >= npBefore {
+			// No progress possible this step: stop the drain without
+			// erroring. The freelist chain stays exactly as it is.
+			break
+		}
 	}
 	return totalSteps, nil
 }

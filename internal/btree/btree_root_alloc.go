@@ -41,35 +41,8 @@ func (t *BTree) AllocateRootPage() (*pager.Page, error) {
 	for storage.IsPtrmapPageNo(pgnoRoot, t.pageSize) || pgnoRoot == t.pager.PendingBytePage() {
 		pgnoRoot++
 	}
-	if pgnoRoot > t.pager.NumPages() {
-		// Beyond the current file: extend to exactly pgnoRoot. Pages
-		// allocated along the way are the skipped pointer-map pages —
-		// AllocatePage extends by one page at a time and phase 15's
-		// allocation wiring leaves them untracked.
-		for t.pager.NumPages() < pgnoRoot {
-			_ = t.pager.AllocatePageSkipFreelist()
-		}
-	} else if pager.IsPageOnFreelist(t.pager, pgnoRoot) {
-		// Free slot at pgnoRoot: pop it from the freelist exactly
-		// (allocateBtreePage BTALLOC_EXACT finding iNear on the chain).
-		t.pager.TakePageFromFreelist(pgnoRoot)
-	} else {
-		// A live page occupies pgnoRoot: relocate it to a fresh page at
-		// the end of the file (src/btree.c:10177-10217). The occupant
-		// must not itself be a root or a free page (btree.c:10194-10197
-		// treats both as corruption). A type-0 entry is fine here:
-		// RelocatePage resolves the parent by tree walk for those.
-		parentType, _, err := t.pager.ReadPtrmap(pgnoRoot)
-		if err != nil {
-			return nil, fmt.Errorf("btree: AllocateRootPage: read ptrmap for %d: %w", pgnoRoot, err)
-		}
-		if parentType == storage.PtrmapRootpage || parentType == storage.PtrmapFreelist {
-			return nil, fmt.Errorf("btree: AllocateRootPage: page %d has ptrmap type %d (corrupt)", pgnoRoot, parentType)
-		}
-		moveTo := t.pager.AllocatePageSkipFreelist()
-		if _, err := t.RelocatePage(moveTo.PageNum, pgnoRoot); err != nil {
-			return nil, fmt.Errorf("btree: AllocateRootPage: relocate occupant %d -> %d: %w", pgnoRoot, moveTo.PageNum, err)
-		}
+	if err := t.prepareRootSlot(pgnoRoot); err != nil {
+		return nil, err
 	}
 	pg, err := t.pager.ReadPage(pgnoRoot)
 	if err != nil {
@@ -82,4 +55,84 @@ func (t *BTree) AllocateRootPage() (*pager.Page, error) {
 	}
 	t.pager.SetLargestRootPage(pgnoRoot)
 	return pg, nil
+}
+
+// prepareRootSlot makes pgnoRoot usable for a new root page, mirroring
+// allocateBtreePage's BTALLOC_EXACT outcomes (src/btree.c:10177-10217):
+// beyond EOF the file is extended page by page (the pages allocated along
+// the way are the skipped pointer-map pages — phase 15's allocation wiring
+// leaves them untracked); a free slot is popped from the freelist; a live
+// occupant is relocated to a fresh page at the end of the file. The
+// occupant must not itself be a root or a free page (btree.c:10194-10197
+// treats both as corruption). A type-0 entry is fine: RelocatePage
+// resolves the parent by tree walk for those.
+func (t *BTree) prepareRootSlot(pgnoRoot uint32) error {
+	if pgnoRoot > t.pager.NumPages() {
+		for t.pager.NumPages() < pgnoRoot {
+			_ = t.pager.AllocatePageSkipFreelist()
+		}
+		return nil
+	}
+	if pager.IsPageOnFreelist(t.pager, pgnoRoot) {
+		t.pager.TakePageFromFreelist(pgnoRoot)
+		return nil
+	}
+	parentType, _, err := t.pager.ReadPtrmap(pgnoRoot)
+	if err != nil {
+		return fmt.Errorf("btree: AllocateRootPage: read ptrmap for %d: %w", pgnoRoot, err)
+	}
+	if parentType == storage.PtrmapRootpage || parentType == storage.PtrmapFreelist {
+		return fmt.Errorf("btree: AllocateRootPage: page %d has ptrmap type %d (corrupt)", pgnoRoot, parentType)
+	}
+	moveTo := t.pager.AllocatePageSkipFreelist()
+	if _, err := t.RelocatePage(moveTo.PageNum, pgnoRoot); err != nil {
+		return fmt.Errorf("btree: AllocateRootPage: relocate occupant %d -> %d: %w", pgnoRoot, moveTo.PageNum, err)
+	}
+	return nil
+}
+
+// MoveRoot moves a root b-tree page from `from` to `to` (btree.c
+// relocatePage's PTRMAP_ROOTPAGE branch as driven by btreeDropTable:
+// the largest root page is moved into a vacated lower-numbered slot so
+// the root block stays dense — src/btree.c:10341-10352). `to` must be
+// an allocated page (pop it from the freelist first when it was just
+// freed — the engine's FreeTable, unlike C's clearTable, frees the root
+// page too). The page content is copied, `to`'s pointer-map entry
+// becomes PTRMAP_ROOTPAGE, and every child page of the moved root is
+// re-parented in the pointer-map (relocatePage's setChildPtrmaps step,
+// src/btree.c:6605). A root has no parent pointer to update. `from` is
+// freed last (btreeDropTable's freePage(pMove), src/btree.c:10353-10359);
+// the caller persists the schema rootpage change and updates meta[3].
+func (t *BTree) MoveRoot(from, to uint32) error {
+	if from == to {
+		return fmt.Errorf("btree: MoveRoot: from == to == %d", from)
+	}
+	fromPg, err := t.pager.ReadPage(from)
+	if err != nil {
+		return fmt.Errorf("btree: MoveRoot: read page %d: %w", from, err)
+	}
+	toPg, err := t.pager.ReadPage(to)
+	if err != nil {
+		return fmt.Errorf("btree: MoveRoot: read page %d: %w", to, err)
+	}
+	copy(toPg.Data, fromPg.Data)
+	pager.MarkPageDirtyForVacuum(t.pager, to)
+	if err := t.pager.WritePtrmap(to, storage.PtrmapRootpage, 0); err != nil {
+		return fmt.Errorf("btree: MoveRoot: ptrmap for %d: %w", to, err)
+	}
+	// btreeDropTable relocates whatever page sits at meta[3] — usually a
+	// root, but the meta watermark can also point at a free or content
+	// page (src/btree.c keeps no stronger invariant; the schema UPDATE in
+	// destroyRootPage matches zero rows in that case). A page with no
+	// parseable content has no children to re-parent, so skip the
+	// re-parenting step for unparseable content.
+	if _, perr := storage.ParsePage(toPg.Data, int(t.pageSize), contentOffset(to)); perr == nil {
+		if err := t.setChildPtrmaps(toPg, to); err != nil {
+			return fmt.Errorf("btree: MoveRoot: setChildPtrmaps for %d: %w", to, err)
+		}
+	}
+	if err := t.freePageWithPtrmap(from); err != nil {
+		return fmt.Errorf("btree: MoveRoot: free page %d: %w", from, err)
+	}
+	return nil
 }

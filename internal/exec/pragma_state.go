@@ -266,30 +266,39 @@ func (e *Engine) AutoVacuum(schema, value string) *execpragma.Result {
 			name = ctx.Name
 		}
 		e.settings.autoVacuumModes[name] = int64(n)
-		// Apply the mode to the pager immediately. The pager uses
-		// the flag at every subsequent AllocatePage to decide
-		// whether to reserve a pointer-map page (the page number
-		// at PTRMAP_PAGENO positions). Setting it later in the
-		// database lifecycle is still meaningful for future page
-		// allocations: any table btree page that comes after the
-		// next ptrmap-page-number gets a reserved ptrmap page
-		// ahead of it, even if the existing pages weren't
-		// allocated that way. (SQLite's PRAGMA auto_vacuum on a
-		// non-empty database has the same caveat — the change
-		// applies at the next VACUUM.)
-		if ctx != nil && ctx.Pager != nil {
+		// Apply the mode to the pager — but only while the database file
+		// is still empty (btree.c sqlite3BtreeSetAutoVacuum:3206: once
+		// the file has content, BTS_PAGESIZE_FIXED makes a differing
+		// mode change return SQLITE_READONLY, silently swallowed by
+		// pragma.c, and the request is only recorded in db->nextAutovac
+		// for the next VACUUM). For any non-empty file the persisted
+		// header wins anyway (lockBtree:3419 re-reads the mode from
+		// meta[4] at every open). Applying the mode immediately to a
+		// non-empty database built without pointer-map pages mixes
+		// geometries: the next commit drains/vacuum-moves pages of a
+		// file whose page 2 is a data root, and corrupts it
+		// (autovacuum-3.6/3.7).
+		if ctx != nil && ctx.Pager != nil && ctx.Pager.NumPages() <= 1 {
 			ctx.Pager.SetAutoVacuum(n > 0)
 		}
 		return &execpragma.Result{}
 	}
+	// Read path: report the EFFECTIVE mode (the pager's flag — restored
+	// from header[52:56] at Open and applied at set-time only for empty
+	// files), never a deferred request. SQLite reports
+	// sqlite3BtreeGetAutoVacuum (the in-memory btree flag), which lags a
+	// deferred auto_vacuum= assignment until VACUUM.
+	name := "main"
+	if ctx != nil && ctx.Name != "" {
+		name = ctx.Name
+	}
 	mode := int64(0)
-	if e.settings.autoVacuumModes != nil {
-		name := "main"
-		if ctx != nil && ctx.Name != "" {
-			name = ctx.Name
-		}
-		if m, ok := e.settings.autoVacuumModes[name]; ok {
-			mode = m
+	if ctx != nil && ctx.Pager != nil && ctx.Pager.AutoVacuum() {
+		mode = 1
+		if e.settings.autoVacuumModes != nil {
+			if m, ok := e.settings.autoVacuumModes[name]; ok && m != 0 {
+				mode = m // FULL (1) vs INCREMENTAL (2)
+			}
 		}
 	}
 	return &execpragma.Result{Rows: [][]interface{}{{mode}}}
@@ -613,15 +622,15 @@ func (e *Engine) SetPerSchemaSecureDelete(schemaUpper string, v int64) {
 // src/pragma.c PragTyp_SECURE_DELETE and src/attach.c sqlite3BtreeSecureDelete
 // inheritance from main (Btree-level tracking, per-DB).
 //
-// - Setter with no schema: sets every attached DB to the value (pragma.c
-//   pId2->n==0 && b>=0 branch), including MAIN.
-// - Setter with a schema: updates only that schema.
-// - Getter with no schema: returns MAIN's value (pragma.c returnSingleInt
-//   reads pDb->pBt where pDb defaults to main when pId2 is empty).
-// - Getter with a schema: returns that schema's value, or MAIN's value when
-//   the schema has no explicit entry (mirrors the Btree's per-DB tracking —
-//   the new Btree inherits MAIN's value at attach time, so newly attached DBs
-//   always have a value).
+//   - Setter with no schema: sets every attached DB to the value (pragma.c
+//     pId2->n==0 && b>=0 branch), including MAIN.
+//   - Setter with a schema: updates only that schema.
+//   - Getter with no schema: returns MAIN's value (pragma.c returnSingleInt
+//     reads pDb->pBt where pDb defaults to main when pId2 is empty).
+//   - Getter with a schema: returns that schema's value, or MAIN's value when
+//     the schema has no explicit entry (mirrors the Btree's per-DB tracking —
+//     the new Btree inherits MAIN's value at attach time, so newly attached DBs
+//     always have a value).
 func (e *Engine) SecureDelete(schema, value string) *execpragma.Result {
 	if value != "" {
 		v, err := parseSecureDeleteValue(value)

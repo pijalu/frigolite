@@ -401,6 +401,18 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	if res == nil || res.Error != nil || e.tx.inTransaction {
 		return nil
 	}
+	// Transaction-control statements complete their own commit/rollback
+	// path (execCommit / execRollback): the change-counter bump, pager
+	// flush, and the auto-vacuum drain have already run exactly once
+	// there (btree.c autoVacuumCommit fires once per commit event,
+	// sqlite3BtreeCommitPhaseOne). Running the flush again for the
+	// COMMIT statement itself would drain a second batch — with a
+	// registered sqlite3_autovacuum_pages callback, the callback would
+	// fire twice for one commit (autovacuum2-1.3).
+	switch stmt.(type) {
+	case *sql.CommitStmt, *sql.RollbackStmt:
+		return nil
+	}
 	// Nested Exec calls (trigger bodies, the FTS segment flush's internal
 	// shadow-table writes) are part of the enclosing statement, not separate
 	// autocommit transactions: their dirty pages are flushed once by the
@@ -440,8 +452,22 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// only enabled for FULL mode (mode==1) and the pager's AutoVacuum()
 	// flag; INCREMENTAL mode is opt-in via PRAGMA incremental_vacuum and
 	// skips this path.
-	if autovacErr := e.runAutoVacuumCommitAll(); autovacErr != nil {
-		return &Result{Error: autovacErr}
+	//
+	// The drain fires only when the statement actually wrote pages:
+	// btree.c autoVacuumCommit runs from sqlite3BtreeCommitPhaseOne, which
+	// a read-only transaction never enters. Without the dirty gate, every
+	// subsequent read-only statement (PRAGMA page_count, integrity_check,
+	// ...) would drain another callback-capped batch — the
+	// sqlite3_autovacuum_pages callback would keep firing once per read
+	// until the freelist ran dry (autovacuum2-1.3 expects exactly one
+	// callback invocation for BEGIN/DELETE/COMMIT).
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
+			if autovacErr := e.runAutoVacuumCommitAll(); autovacErr != nil {
+				return &Result{Error: autovacErr}
+			}
+			break
+		}
 	}
 	// Flush attached database pagers so a later connection on the attached
 	// file sees the writes immediately. The MAIN pager is flushed only for
