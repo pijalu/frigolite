@@ -36,8 +36,19 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	if ctx == nil || ctx.Pager == nil {
 		return &execpragma.Result{}
 	}
+	// btree.c sqlite3BtreeIncrVacuum: "if( !pBt->autoVacuum ) rc =
+	// SQLITE_DONE" — on a database not in auto-vacuum mode the pragma is
+	// a silent no-op (no rows, no error). This must precede the corrupt
+	// guards: finalDbSize's unsigned ptrmap arithmetic wraps for
+	// non-autovacuum databases and would misreport them as corrupt.
+	if !ctx.Pager.AutoVacuum() {
+		return &execpragma.Result{}
+	}
 	ps := ctx.Pager.PageSize()
-	nOrig := ctx.Pager.HeaderPageCount()
+	// C reads nOrig via btreePagecount(pBt->nPage) — the in-memory page
+	// count, which during an open write transaction legitimately leads
+	// the on-disk file (uncommitted appends live in the page cache).
+	nOrig := ctx.Pager.NumPages()
 	nFree := ctx.Pager.FreelistCount()
 	nFin := finalDbSize(nOrig, nFree, ps)
 	// btree.c sqlite3BtreeIncrVacuum corruption guard.
@@ -48,8 +59,12 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	// rejects a header page count above the file's page count before
 	// sqlite3BtreeIncrVacuum ever runs. The pragma path here can be the
 	// first statement on a fresh connection (no schema load, no
-	// ValidateHeader), so mirror the check explicitly.
-	if ctx.Pager.HeaderBeyondFile() {
+	// ValidateHeader), so mirror the check explicitly — on the autocommit
+	// path only: during an open transaction the header count legitimately
+	// leads the file, so comparing against the on-disk size there would
+	// misreport every in-transaction vacuum as corrupt (C has no such
+	// check; it trusts the in-memory btree state).
+	if !e.tx.inTransaction && !e.settings.writableSchema && ctx.Pager.HeaderBeyondFile() {
 		return &execpragma.Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
 	// With an empty freelist there is no work: SQLITE_DONE, no rows.
@@ -57,10 +72,16 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 		return &execpragma.Result{}
 	}
 	// Transactional guard (P8.INCRVACUUM.phase7): yield the row and
-	// return without modifying the file or the chain count. The vacuum
-	// is performed at COMMIT (or the user's next incremental_vacuum
-	// after ROLLBACK). For non-transactional callers the step loop
-	// runs below.
+	// return without modifying the file or the chain count. The journal
+	// machinery does not yet capture the BEFORE image of the truncated
+	// tail page, so a ROLLBACK after an in-transaction shrink would
+	// leave the file shorter than the btree expects. In a transaction we
+	// still yield the row but do NOT call runIncrVacuumStep — the chain
+	// still references the page, so a count decrement would create a
+	// header.count / chain-walked-count mismatch. C runs the steps
+	// inside the transaction (journal-protected); the engine's deferral
+	// is a documented divergence until the journal captures tail-page
+	// before-images.
 	if e.tx.inTransaction {
 		return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
 	}

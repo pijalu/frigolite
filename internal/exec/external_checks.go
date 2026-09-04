@@ -44,7 +44,7 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 	}
 	changed := false
 	for _, ctx := range e.databases {
-		dbChanged, err := checkDBFileCtx(ctx)
+		dbChanged, err := checkDBFileCtx(ctx, e.settings.writableSchema)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -60,7 +60,13 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 // (change-version stamp or size difference) drops that database's caches,
 // and a header page count beyond the file is corruption. TEMP and in-memory
 // databases have no file and are skipped.
-func checkDBFileCtx(ctx *DatabaseContext) (changed bool, err error) {
+//
+// PRAGMA writable_schema=ON mirrors btree.c lockBtree's escape hatch: the
+// nPage>nPageFile corruption is reported only "if( sqlite3WritableSchema
+// (pBt->db)==0 )" (src/btree.c:3415-3418) — with the flag set the btree
+// tolerates a header leading the file (incrvacuum-17.1 runs
+// incremental_vacuum against such an image and expects success).
+func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool) (changed bool, err error) {
 	if ctx == nil || ctx.Pager == nil || ctx.IsMemory || ctx.Pager.IsMemory() {
 		return false, nil
 	}
@@ -74,7 +80,7 @@ func checkDBFileCtx(ctx *DatabaseContext) (changed bool, err error) {
 		}
 		changed = true
 	}
-	if ctx.Pager.HeaderBeyondFile() {
+	if !writableSchema && ctx.Pager.HeaderBeyondFile() {
 		return changed, fmt.Errorf("database disk image is malformed")
 	}
 	return changed, nil
@@ -88,6 +94,16 @@ func checkDBFileCtx(ctx *DatabaseContext) (changed bool, err error) {
 func stmtTouchesDatabase(stmt sql.Stmt) bool {
 	s, ok := stmt.(*sql.SelectStmt)
 	if !ok {
+		if p, isPragma := stmt.(*sql.PragmaStmt); isPragma {
+			// PRAGMA writable_schema never opens a b-tree transaction in
+			// SQLite: the vdbe program just sets the connection flag
+			// (pragma.c PragTyp_WRITABLE_SCHEMA emits no OP_Transaction),
+			// so it succeeds even on an image whose header page count
+			// exceeds the file (incrvacuum-17.1 relies on this).
+			if strings.EqualFold(p.Name, "writable_schema") {
+				return false
+			}
+		}
 		return true
 	}
 	return selectTouchesDatabase(s)
