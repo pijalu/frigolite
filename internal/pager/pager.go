@@ -87,24 +87,6 @@ type Pager struct {
 	// ends (sqlite3BtreeSetJournalMode / btreeEndTransaction). Empty means no
 	// pending change.
 	pendingJournalMode string
-	// freePages tracks pages returned to the freelist by FreePage (P8.INCRVACUUM
-	// phase 1). The on-disk SQLite-format freelist (header.trunk + count) is
-	// also updated, but AllocatePage uses freePages for fast O(1) pop without
-	// having to read the freed page's chain pointer. The freed page's on-disk
-	// content is left as-is (it was a valid b-tree leaf, and zeroing it would
-	// break the b-tree reader's integrity-check walk).
-	freePages map[uint32]bool
-	// P8.INCRVACUUM.phase8: trunkPages / leafToTrunk are the in-memory
-	// mirror of the on-disk freelist chain topology. They let AllocatePage
-	// (in-memory branch) advance header.trunk when popping a trunk page and
-	// zero a leaf slot when popping a leaf, so the on-disk chain stays in
-	// sync with the in-memory freePages set. Without these, popping a leaf
-	// leaves the trunk's leaves list referencing the popped page; the next
-	// FreePage of the same page (after re-alloc + re-free) creates a
-	// duplicate, which checkFreelistCount reports as "Page X: never used"
-	// and btreeStructureOK as a cycle.
-	trunkPages  map[uint32]bool
-	leafToTrunk map[uint32]uint32
 	// pendingByteOverride stores a non-default PENDING_BYTE offset installed
 	// by the SQLite test harness via sqlite3_test_control_pending_byte
 	// (src/test2.c::testPendingByte). 0 means production default.
@@ -170,12 +152,11 @@ type Page struct {
 // PagerState is a deep snapshot of a pager's in-memory state, used for
 // statement-level rollback (e.g. a failed REPLACE that fired triggers).
 type PagerState struct {
-	pages     map[uint32]*Page
-	dirty     map[uint32]bool
-	numPages  uint32
-	header    []byte
-	freePages map[uint32]bool
-	fileSize  int64
+	pages    map[uint32]*Page
+	dirty    map[uint32]bool
+	numPages uint32
+	header   []byte
+	fileSize int64
 }
 
 // Snapshot captures the pager's current in-memory pages and header so they
@@ -216,12 +197,6 @@ func (p *Pager) Snapshot() *PagerState {
 			s.dirty[n] = true
 		}
 	}
-	if len(p.freePages) > 0 {
-		s.freePages = make(map[uint32]bool, len(p.freePages))
-		for n := range p.freePages {
-			s.freePages[n] = true
-		}
-	}
 	s.fileSize = p.fileSize
 	return s
 }
@@ -246,29 +221,18 @@ func (p *Pager) Restore(s *PagerState) {
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
 	}
-	// Restore the freelist so pages freed during the transaction are
-	// re-marked as free, and pages allocated from the freelist during the
-	// transaction are removed from the free set. Without this, a ROLLBACK
-	// after a DELETE+rebalance (which calls pager.FreePage) leaves the
-	// freed pages on the in-memory freelist while the btree still
-	// references them via the parent cell, and PRAGMA integrity_check
-	// reports "database disk image is malformed".
-	if s.freePages != nil {
-		p.freePages = make(map[uint32]bool, len(s.freePages))
-		for n := range s.freePages {
-			p.freePages[n] = true
-		}
-	} else {
-		p.freePages = nil
-	}
-	// Restore the file size so pages that were appended during the
-	// transaction (AllocatePage grew the file) are removed from the
-	// integrity-check scan. Without this, the file still has the
-	// post-transaction size while the in-memory pages map holds the
-	// BEGIN state, and PRAGMA integrity_check sees the appended pages
-	// as "never used" (neither on the freelist nor referenced by the
-	// btree). Truncate the file to the BEGIN size to match.
-	if s.fileSize > 0 && p.file != nil && p.fileSize > s.fileSize {
+	// Restore the file size so the on-disk image matches the snapshot's
+	// page count in BOTH directions: a transaction may have appended
+	// pages (AllocatePage extends the file) or SHRUNK it (in-transaction
+	// incremental vacuum truncates the image), and the BEGIN image may
+	// itself be an EMPTY file (fresh database — nothing flushed yet, so
+	// s.fileSize == 0). C's sqlite3PagerRollback always truncates the
+	// database file back to the size recorded in the journal header
+	// (pager.c pager_rollback / pagerPlayback), including down to zero
+	// pages; skipping the truncate for a zero-size snapshot left the
+	// transaction's pages on disk and integrity_check reported every one
+	// of them as "Page N: never used" after ROLLBACK.
+	if p.file != nil && p.fileSize != s.fileSize {
 		if err := p.file.Truncate(s.fileSize); err != nil {
 			// Best-effort: if truncate fails, continue and let the
 			// integrity check report the mismatch.
@@ -276,8 +240,43 @@ func (p *Pager) Restore(s *PagerState) {
 		} else {
 			p.fileSize = s.fileSize
 		}
-	} else {
-		_ = s.fileSize
+	}
+	// Restore the header SYMMETRICALLY: a snapshot taken before the
+	// header was ever materialized (fresh database — page 1 never read
+	// or flushed, so p.header was nil at BEGIN) has s.header == nil, and
+	// the post-transaction header must then be DROPPED, not kept. Keeping
+	// it left header[28] claiming the vacuumed page count after the page
+	// cache itself had rolled back (integrity_check walked the stale
+	// count and reported the transaction's pages as "never used").
+	// pager.c restores page 1's before-image from the journal; for an
+	// empty BEGIN image that means no header at all — the next page-1
+	// read/flush re-materializes it (readPageLocked / AllocatePage).
+	p.header = nil
+	if s.header != nil {
+		p.header = append([]byte(nil), s.header...)
+	}
+	// P8.INCRVACUUM.phase16: persist the restored header bytes too.
+	// truncatePages writes the shrunken header directly to offset 0
+	// mid-transaction (the next statement's HeaderBeyondFile check
+	// reads the ON-DISK header), so a ROLLBACK that only restored the
+	// in-memory copy would leave the file header claiming the
+	// truncated size while the file itself is back at the snapshot
+	// size — every subsequent statement fails with "database disk
+	// image is malformed" (incrvacuum3 tn3: BEGIN / incremental_vacuum
+	// / ROLLBACK). pager.c restores page 1's before-image (which
+	// carries the header) from the journal; write it here.
+	if p.file != nil && s.header != nil && len(s.header) >= HeaderSize {
+		if _, err := p.file.WriteAt(s.header[:HeaderSize], 0); err != nil {
+			_ = err
+		}
+	}
+	// The restore rewrote the file behind the external-modification
+	// detector's back; re-baseline the file stamp so our own writes are
+	// not mistaken for another connection's (pager.c does the same after
+	// journal playback — pagerPlayback ends with pager_unlock re-reading
+	// the file state).
+	if p.file != nil {
+		p.refreshKnownFileStamp()
 	}
 }
 
@@ -359,6 +358,22 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 			// the USABLE size (pageSize - reserved), not the raw page size —
 			// SQLite files written with reserved > 0 are otherwise unreadable.
 			pr.reserved = uint32(hdr.ReservedSpace)
+			// Restore the autovacuum mode from the file header. SQLite stores
+			// the flag at offset 52, the same 4-byte slot the btree later
+			// uses for BTREE_LARGEST_ROOT_PAGE (btree.c:2727 / 3537:
+			// `pBt->autoVacuum = (get4byte(&zDbHeader[36+4*4])?1:0)`
+			// and `put4byte(&data[36+4*4], pBt->autoVacuum)`). The
+			// dual-use is intentional: a freshly-created autovacuum DB
+			// has largest_root=1 (the schema btree lives at page 1), so
+			// writing 1 there serves both purposes. A subsequent
+			// btreeCreateTable raises the value to ≥3 once a user table
+			// exists with the ptrmap page 2 reserved — still flagging
+			// auto_vacuum=true. Without this restore, the engine reports
+			// auto_vacuum=0 for a DB created with PRAGMA auto_vacuum=1
+			// (incrvacuum-12.4 expects auto_vacuum=1 after close/reopen).
+			if hdr.LargestBTreePage != 0 {
+				pr.autoVacuum = true
+			}
 		}
 		// Read full page 1 into a temporary buffer
 		fullPage := make([]byte, pr.pageSize)
@@ -1072,56 +1087,16 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// Update the on-disk freelist count: pages being truncated that
-	// are on the freelist (in p.freePages) reduce the header's freelist
-	// count by one each. The pager is the only writer of header.count;
-	// the integrity check (checkFreelistCount) compares this count
-	// against the actual chain length.
-	truncatedFree := uint32(0)
-	for pgno := p.numPages; pgno > n; pgno-- {
-		if p.freePages[pgno] {
-			truncatedFree++
-			// Drop truncated free pages from p.freePages too — the page
-			// no longer exists, so it must not be popped by AllocatePage.
-			delete(p.freePages, pgno)
-		}
-		// P8.INCRVACUUM.phase9: also drop the page from the
-		// trunkPages and leafToTrunk maps. Without this, a
-		// later FreePage(pgno) hits the idempotence check at
-		// FreePage's lines 1781-1785 (page is in the chain) and
-		// just bumps header.count without actually inserting the
-		// page into the chain. The chain count then diverges from
-		// the visible chain length, and a subsequent AllocatePage
-		// reading header.trunk + header.count finds a phantom
-		// page that the chain's trunk points to (the original
-		// next-trunk pointer) but the trunk's leafCount was
-		// rewritten to 0 by pruneFreelistChain, so the phantom
-		// page is never visited; the next valid page in the
-		// chain (which may be a stale btree page reference) is
-		// returned, and readPageLocked fails with "database disk
-		// image is malformed" when that page is beyond numPages.
-		if p.trunkPages != nil {
-			delete(p.trunkPages, pgno)
-		}
-		if p.leafToTrunk != nil {
-			// P8.INCRVACUUM.phase9 (chain-tracking fix): also drop
-			// leafToTrunk entries where the VALUE (trunk) is being
-			// truncated, not just the KEY (leaf). A leaf can still
-			// be a valid page in the file (within the new n) while
-			// its trunk has been truncated past; popFromFreePagesChainLocked
-			// reads the trunk to find/zero the leaf's slot, so a
-			// stale trunk reference must be cleared. Without this,
-			// a later AllocatePage pops leaf L, then tries to read
-			// trunk T to zero L's slot, but T is past numPages and
-			// readPageLocked fails with "database disk image is
-			// malformed" (autovacuum-2.5.1).
-			for leaf, trunk := range p.leafToTrunk {
-				if trunk == pgno {
-					delete(p.leafToTrunk, leaf)
-				}
-			}
-			delete(p.leafToTrunk, pgno)
-		}
+	// C-parity (P8.INCRVACUUM phase16): the freelist chain on disk is the
+	// only bookkeeping. For the plain Truncate path, chain entries above
+	// the truncation point are removed (and the count kept in lockstep) by
+	// freelistPagesAboveLocked BEFORE numPages/file shrink — the splice
+	// needs to read trunks above n for their next pointers. The
+	// auto-vacuum drain path (TruncateNoFreelistAdjust) leaves the chain
+	// untouched: bCommit=1 tolerates trailing "garbage entries"
+	// (btree.c:4022-4028) and the count stays in lockstep with the chain.
+	if adjustFreelistCount {
+		p.freelistPagesAboveLocked(n)
 	}
 	for pgno := range p.pages {
 		if pgno > n {
@@ -1147,36 +1122,18 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 	// Skipped for the auto-vacuum drain (adjustFreelistCount=false): the
 	// chain still lists the truncated pages by design (bCommit=1 garbage
 	// entries), so the count must stay in lockstep with the chain.
-	if adjustFreelistCount && truncatedFree > 0 && p.header != nil && len(p.header) >= 40 {
-		oldCount := binary.BigEndian.Uint32(p.header[36:40])
-		if oldCount >= truncatedFree {
-			binary.BigEndian.PutUint32(p.header[36:40], oldCount-truncatedFree)
-			p.dirty[1] = true
-			// Mirror the header into the cached page 1: integrity_check
-			// parses page 1 from the page cache (not from p.header), so
-			// a check run in the same session — before the flush — would
-			// otherwise read the stale pre-truncate count and report
-			// "Freelist: size is N but should be M" (autovacuum2-1.5).
-			p.syncHeaderPage1Locked()
-		}
-		// P8.INCRVACUUM.T5 (SQLite-faithful): the previous trunk-advance
-		// fixup that rewrote header.trunk to the highest surviving free
-		// page and fabricated a next-chain pointer into that page's
-		// buffer is GONE. SQLite never rewires the freelist chain at
-		// truncate: the chain is maintained exclusively by
-		// allocateBtreePage (pop) and freePage2 (push) —
-		// src/btree.c:4022-4032 leaves a trailing FREE page untouched at
-		// commit ("the free-list will be truncated to zero after this
-		// function returns, so it doesn't matter if it still contains
-		// some garbage entries"), and autoVacuumCommit zeroes
-		// header.trunk/header.count when the drain completes
-		// (src/btree.c:4249-4252, mirrored by ZeroFreelistChain). The
-		// fabricated chain made pruneFreelistChain misread non-trunk
-		// pages as trunks (leaf count taken from row-data bytes) and
-		// zero their content in 4-byte slots, destroying freshly
-		// relocated pages (the autovacuum corruption behind
-		// TestP8Autovacuum*).
-	}
+	// P8.INCRVACUUM.phase16 (C-parity): the freelist-count adjustment for
+	// truncated chain entries lives entirely in freelistPagesAboveLocked
+	// (called above, plain-Truncate path only). SQLite's pager truncate
+	// does no freelist-chain surgery of its own (pager.c
+	// pager_truncate_image only shrinks the file); the btree layer
+	// maintains the chain exclusively via allocateBtreePage (pop) and
+	// freePage2 (push) — src/btree.c:4022-4032 leaves a trailing FREE
+	// page untouched at commit ("the free-list will be truncated to zero
+	// after this function returns, so it doesn't matter if it still
+	// contains some garbage entries"), and autoVacuumCommit zeroes
+	// header.trunk/header.count when the drain completes
+	// (src/btree.c:4249-4252, mirrored by ZeroFreelistChain).
 	// Update the in-header database size (offset 28) so the next
 	// HeaderBeyondFile check (src/btree.c lockBtree) reports the new
 	// file page count instead of the pre-truncate size. SQLite sets

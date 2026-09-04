@@ -360,6 +360,21 @@ func lockAccessForStmt(stmt sql.Stmt) (write bool, schemaName string) {
 		return true, stmtSchema(s.Name)
 	case *sql.DropTableStmt:
 		return true, stmtSchema(s.Name)
+	case *sql.PragmaStmt:
+		// PRAGMA setter (Value != "") takes a write lock on its target schema:
+		// pragma.c emits OP_Transaction before persisting the value, so a
+		// setter must check the cross-conn lock. A bare getter (Value == "")
+		// reads the in-memory flag and takes no lock. incrvacuum-12.2 expects
+		// "database is locked" when PRAGMA auto_vacuum=2 is issued while
+		// another connection holds BEGIN EXCLUSIVE on the same file.
+		if s.Value == "" {
+			return false, ""
+		}
+		schema := s.Schema
+		if schema == "" {
+			schema = "main"
+		}
+		return true, schema
 	default:
 		return false, ""
 	}
