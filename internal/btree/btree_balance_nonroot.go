@@ -325,7 +325,6 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 			}
 		}
 		children := make([]uint32, 0, nNewFull)
-		seps := make([]uint64, 0, nNewFull)
 		for i := 0; i < nNewFull; i++ {
 			sp := siblings[i]
 			sub := newBalanceCellArray(cntNewFull[i+1]-cntNewFull[i], 1)
@@ -347,17 +346,22 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 				return nil, err
 			}
 			children = append(children, sp.PageNum)
-			if i < nNewFull-1 {
-				// Separator convention of this engine's splits: the
-				// divider key is the FIRST rowid of the RIGHT subtree —
-				// seekInInteriorTable routes keys < K to the divider's
-				// left child and keys >= K to the following subtree.
-				// (SQLite's leafData branch uses the LEFT page's last
-				// rowid because its OP_Seek/MoveToChild convention is
-				// key <= K routes left; the boundary must match the
-				// seek code it serves, here the right-page minimum.)
-				seps = append(seps, uint64(readFirstRowID(siblings[i+1].Data, contentOffset(siblings[i+1].PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize))))
-			}
+		}
+		// Separator convention of this engine's splits: the divider key
+		// is the FIRST rowid of the RIGHT subtree — seekInInteriorTable
+		// routes keys < K to the divider's left child and keys >= K to
+		// the following subtree. (SQLite's leafData branch uses the LEFT
+		// page's last rowid because its OP_Seek/MoveToChild convention
+		// is key <= K routes left; the boundary must match the seek code
+		// it serves, here the right-page minimum.) The keys are read in
+		// a SECOND loop, after every survivor has been rebuilt: reading
+		// siblings[i+1] during the rebuild loop picked up the PRE-rebuild
+		// page state (an emptied leaf yielded separator 0), producing
+		// out-of-order dividers that then scrambled the parent rewrite
+		// (rows dropped from the tree — BUG C).
+		seps := make([]uint64, 0, nNewFull)
+		for i := 0; i < nNewFull-1; i++ {
+			seps = append(seps, uint64(readFirstRowID(siblings[i+1].Data, contentOffset(siblings[i+1].PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize))))
 		}
 		// Uniform parent rebuild (balance_nonroot tail): one divider
 		// per survivor boundary, last survivor is the rightmost child.
