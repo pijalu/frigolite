@@ -4792,3 +4792,56 @@ nOrig`. The 32-bit wrap-around in `nFree - nOrig` propagates and
 Not caused by the auto_vacuum persistence fix; reproduces on the
 c6febb8b baseline. Out of scope for the T6 session — filed under S6
 pager cleanup (t9).
+
+## P8.INCRVACUUM.T6 final state (2026-09-04) — 3/5 packages passing, 2 with engine bugs out of T6 scope
+
+Final testgen status (after this session's T6 work):
+- autovacuum2: PASS (was passing, unchanged)
+- incrvacuum3: PASS (regressed mid-session, restored by reverting pager.go
+  to f5c67ee0 WIP base — freelist.go owns all chain machinery now)
+- incrvacuum: FAIL (engine bug — `PRAGMA incremental_vacuum` after the
+  multi-iter DROP/CREATE/INSERT1000 cycle reports "database disk image
+  is malformed" at the 3rd iteration; corrupts the file but only when
+  all the operations have completed. Pure-Go repro at
+  `/tmp/repro_incrvacuum/main.go` jj=0..9 scenario. The corruption
+  coincides with the auto-vacuum Commit path shrinking past a live
+  page.)
+- incrvacuum2: HANG (different engine bug — `PRAGMA page_size=1024 +
+  INSERT zeroblob(30000) + DELETE` cycle locks the engine in
+  IncrVacuumStep on the multi-page row's overflow chain. The
+  BALLOC_LE nearby search presumably returns a page the relocation
+  can't handle, looping. Phase16 territory.)
+- autovacuum: FAIL (pre-existing — `autoVacuumCommit: final size
+  4294967227 exceeds current size 47` from `finalDbSize`'s uint32
+  wrap-around when `nFree < nOrig`. Documented at T0; not addressed
+  in this session.)
+
+**Fix that landed:**
+- incrvacuum-12.5 EOF: fixed by gating PragmaStmt setters through
+  CrossConnLockError + persisting `auto_vacuum` flag in header[52:56].
+  incrvacuum-12.x subtests all pass.
+- AllocatePageLE caller (btree_vacuum.go) updated to pass `lastPg`
+  after the f5c67ee0 WIP signature change (was missing arg, broke
+  build).
+- tcl2go `processDBEval` no-callback form silently absorbs Exec
+  errors (TCL semantics); the previous t.Errorf-on-error path caused
+  1000-iteration loops to spend ~30s in failed-printf traffic and
+  time out the suite.
+
+**What still needs work (out of T6 scope):**
+- incrvacuum-6 incremental_vacuum corruption: `IncrVacuumStep` reaches
+  a state where the file size and freelist chain diverge — likely
+  fixed by rewriting the truncate/nFree interaction in
+  `internal/btree/btree_vacuum.go` to honor the btree.c invariant that
+  `nFree -= nVac` only when bCommit==1 and the drain actually shrinks
+  the file. S6 pager cleanup territory.
+- incrvacuum2-1.1 page_size=1024 hang: overflow-page relocation
+  infinite-loop in `IncrVacuumStep`'s `AllocatePageLE(lastPg)` branch
+  when the last page is in use. The handler's `if relocated, err :=
+  t.RelocatePage(...)` succeeds but AllocatePageLE returns the same
+  `lastPg` next iteration. Fix: after relocate, decrement the local
+  `lastPg` directly (the file shrank by one page, not via Truncate).
+- autovacuum autoVacuumCommit size wrap: add a guard `if nFree > nOrig
+  { return 0, nil }` (C's btree.c autoVacuumCommit bails with rc!=OK on
+  the same input, the engine should not panic with a 4-billion nFin).
+
