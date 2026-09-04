@@ -718,6 +718,17 @@ func (tp *transpiler) setListValue(goName, cmdText string) bool {
 		listText = msg
 	}
 	valExpr := tp.goStringLiteral(tcl.RawWord{Text: listText})
+	// A list whose elements are SQL scripts with declared $var references
+	// (incrvacuum.test's `set TestScriptList [list {...$::str1...} ...]`,
+	// consumed later as `foreach sql $TestScriptList { execsql $sql }`)
+	// must render each $var as a SQL literal (TCL's `db eval` binds $var
+	// as a parameter); the default raw-variable rendering produces
+	// syntactically invalid SQL. Lists containing top-level command
+	// substitutions ([catch {...} msg]) keep the default rendering.
+	if (hasDeclaredDollarVarRef(listText, tp) || hasColonVarRef(listText, tp)) &&
+		looksLikeSQLText(listText) && !hasTopLevelCmdSubst(listText) {
+		valExpr = tp.buildSQLStringExprNoCmd(listText)
+	}
 	if tp.isVarDeclared(goName) {
 		tp.emitLine("%s = %s", goName, valExpr)
 	} else {

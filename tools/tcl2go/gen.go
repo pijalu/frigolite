@@ -389,6 +389,10 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 		body.WriteString("\t// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size\n")
 		body.WriteString("\t// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).\n")
 		body.WriteString("\tvar sqlite_pending_byte = \"65536\" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102\n")
+		// Usage suppressor: packages that never assign the shadow var
+		// (no test_control emission) would fail to build with
+		// "declared and not used". Harmless where the var IS used.
+		body.WriteString("\t_ = sqlite_pending_byte\n")
 		body.WriteString("\t// Pager.SetPendingByte(0x10000) makes the engine skip page 65 (the\n")
 		body.WriteString("\t// pending-byte slot) when handing out rootpages — without this,\n")
 		body.WriteString("\t// autovacuum-2.4.5 allocates a table at the reserved slot and\n")

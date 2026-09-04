@@ -35,6 +35,7 @@ func Test_autovacuum(t *testing.T) {
 	// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size
 	// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).
 	var sqlite_pending_byte = "65536" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102
+	_ = sqlite_pending_byte
 	// Pager.SetPendingByte(0x10000) makes the engine skip page 65 (the
 	// pending-byte slot) when handing out rootpages — without this,
 	// autovacuum-2.4.5 allocates a table at the reserved slot and

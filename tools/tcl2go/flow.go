@@ -489,6 +489,10 @@ func unsupportedSQL(sql string) string {
 	// file-level VACUUM (P8.VACUUM), so statements that run it or assert its
 	// effects (file size, freelist, rowid renumbering, fragment counts) are
 	// skipped.
+	// Keyword checks must ignore SQL comments: "-- Vacuum up the two
+	// pages." (incrvacuum-5.2.3) is a comment, not a VACUUM statement —
+	// matching it caused a whole-block skip that left tbl2 uncreated.
+	sql = stripSQLComments(sql)
 	if reVACUUM.MatchString(sql) {
 		return "VACUUM not implemented (P8.VACUUM)"
 	}
@@ -566,6 +570,93 @@ func isIdentChar(c byte) bool {
 
 // reVACUUM matches a VACUUM statement (plain, VACUUM INTO, or VACUUM schema).
 var reVACUUM = regexp.MustCompile(`(?i)\bVACUUM\b`)
+
+// stripSQLComments removes SQL line comments (`-- ...` to end of line) and
+// block comments (`/* ... */`) from sql so keyword matching in
+// unsupportedSQL does not misfire on words inside comments. Single-quoted
+// string literals are preserved verbatim (doubled-quote escape respected) so a literal
+// containing '--' is not truncated.
+func stripSQLComments(sql string) string {
+	var b strings.Builder
+	b.Grow(len(sql))
+	inStr := false
+	for i := 0; i < len(sql); i++ {
+		c := sql[i]
+		if inStr {
+			b.WriteByte(c)
+			if c == '\'' {
+				if i+1 < len(sql) && sql[i+1] == '\'' {
+					b.WriteByte('\'')
+					i++
+				} else {
+					inStr = false
+				}
+			}
+			continue
+		}
+		switch {
+		case c == '\'':
+			inStr = true
+			b.WriteByte(c)
+		case c == '-' && i+1 < len(sql) && sql[i+1] == '-':
+			i += 2
+			for i < len(sql) && sql[i] != '\n' {
+				i++
+			}
+			if i < len(sql) {
+				b.WriteByte('\n')
+			}
+		case c == '/' && i+1 < len(sql) && sql[i+1] == '*':
+			i += 2
+			for i+1 < len(sql) && !(sql[i] == '*' && sql[i+1] == '/') {
+				i++
+			}
+			i++ // consume '*' of '*/'; the loop increment consumes '/'
+			b.WriteByte(' ')
+		default:
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
+}
+
+// reSQLVerb matches a SQL statement keyword as a standalone word.
+var reSQLVerb = regexp.MustCompile(`(?i)\b(INSERT|UPDATE|DELETE|SELECT|CREATE|DROP|ALTER|PRAGMA|BEGIN|COMMIT|ROLLBACK|REPLACE|VACUUM|ANALYZE|REINDEX)\b`)
+
+// looksLikeSQLText reports whether s contains a SQL statement keyword.
+// Used to route declared-$var string lists (incrvacuum's
+// `set TestScriptList [list {INSERT INTO t1 VALUES($::str1)} ...]`) through
+// SQL-literal rendering while leaving ordinary TCL data lists untouched.
+func looksLikeSQLText(s string) bool {
+	return reSQLVerb.MatchString(s)
+}
+
+// hasTopLevelCmdSubst reports whether s contains a `[` command
+// substitution outside any brace-quoted element (e.g. interrupt2's
+// `set res [list [catch {...} msg] $msg]`). Such lists mix commands with
+// text and must keep the default command-evaluating rendering; only
+// pure literal lists (SQL scripts inside braces) qualify for
+// SQL-literal rewriting.
+func hasTopLevelCmdSubst(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch c := s[i]; c {
+		case '\\':
+			i++
+		case '{':
+			depth++
+		case '}':
+			if depth > 0 {
+				depth--
+			}
+		case '[':
+			if depth == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
 
 // sanitizeSQL rewrites constructs the transpiler understands so they run on
 // the engine. In SQLite's VALUES-coroutine execution, row_number() OVER ()
