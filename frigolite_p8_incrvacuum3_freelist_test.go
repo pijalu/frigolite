@@ -76,7 +76,6 @@ func TestP8IncrVacuum3OracleSequence(t *testing.T) {
 			t.Fatalf("%s: %s error: %v", stage, pragma, r.Error)
 		}
 		var n int64
-		fmt.Sprint(r.Rows[0][0]) // force materialization
 		n = r.Rows[0][0].(int64)
 		return n
 	}
