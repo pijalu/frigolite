@@ -318,6 +318,27 @@ created only after the previous goal's `verifyCommand` passes and the goal is
 | 12 | `P6.MODULES` (new 2026-09-03) | RTREE (live 10/27) → FTS5 (NoopModule, 0 pkgs converted — mission-critical) → DBDATA → DBSTAT: index the missing vtab modules; UCL per module contract; one module at a time | `P6.RTREE.md`, `P6.FTS5.md`, `P6.DBDATA.md`, `P6.DBSTAT.md` | Sub-plan verify commands |
 | 13 | `P9.PERF` | Final performance + full-suite closeout + legacy golang-check remediation (§5d) | `P9.PERF.md` | Sub-plan verify commands |
 
+> ### 5a-1. Queue instantiation (2026-09, plan update — user-approved)
+>
+> The §5a queue is instantiated in the goa goal tool as a chained goal list
+> (one active, rest queued; auto-start on complete). Additions vs the items
+> above:
+>
+> | # | Goal | Change | Rationale |
+> |---|------|--------|-----------|
+> | 10a | `GREEN-LEDGER` | SPLIT from item 11: instrument build lands FIRST (right after INCRVACUUM), before the P8 storage tranches | §5g item 1 ("instrument FIRST"): every later goal close gets a machine-enforced no-flip check (`tools/status --check`) instead of manual `last_run.json` diffs; triage of the 290 red packages stays in item 11 |
+> | 11a | `P6.FTS-RESIDUE` | NEW (from Blocker Register) | fts4langid (3 assertions) + fts4merge4 (automerge distribution) on the P6.FTS-WPORT structural-port base; runs after FULL-SUITE-DRIFT per blocker-register order |
+> | 11b | `P7.PLANNER.bestindex` | NEW (from Blocker Register) | bestindex1-9/B/C/E/F/G + autoanalyze1 DEFERRED skips; runs after drift triage per blocker-register order |
+> | 12d | `P7.WAL-G7` | NEW (from Blocker Register "P7 WAL G7 layer") | port src/wal.c wal-index header + lock-bitmap protocol; un-skips walprotocol/walsetlk/walrestart/snapshot/shared families currently N-A G7; sub-plan to be written per §5b before engine edits |
+>
+> Full order: INCRVACUUM → GREEN-LEDGER → P8.MISC → P8.PRAGMA → P8.PAGER →
+> P8.RECOVER → P8.ROLLBACK → P8.VACUUM → FULL-SUITE-DRIFT → P6.FTS-RESIDUE →
+> P7.PLANNER.bestindex → P6.RTREE → P6.FTS5 → P6.DBDATA → P6.DBSTAT →
+> P7.WAL-G7 → P9.PERF. Every goal carries the §5e strict DoD + §5g
+> anti-regression protocol (baseline before edits, zero unexpected flips at
+> close, native regression tests pinning previously-green seams before
+> refactors, `tools/status --check` gate once GREEN-LEDGER lands).
+
 Each queue item maps to existing `plan/goals/P*.md` files; no new plan file may
 silently replace an existing task. Genuine N/A requires evidence in
 `portplan/NA_EVIDENCE.md` and explicit skip-map rationale.

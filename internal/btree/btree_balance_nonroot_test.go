@@ -47,7 +47,7 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 	leftPg, _ := pg.ReadPage(2)
 	lcoff := contentOffset(2)
 	leftPg.Data[lcoff+0] = storage.PageTypeLeafTable
-	binary.BigEndian.PutUint16(leftPg.Data[lcoff+3:lcoff+5], 0)          // 0 cells
+	binary.BigEndian.PutUint16(leftPg.Data[lcoff+3:lcoff+5], 0)            // 0 cells
 	binary.BigEndian.PutUint16(leftPg.Data[lcoff+5:lcoff+7], uint16(1024)) // content = end
 	leftPg.Data[lcoff+7] = 0
 	pg.WritePage(leftPg)
@@ -59,32 +59,22 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 	rightCell6 := buildTableLeafCell(t, 6, []byte("a"), 0)
 	rightCell7 := buildTableLeafCell(t, 7, []byte("bb"), 0)
 	rightCell8 := buildTableLeafCell(t, 8, []byte("ccc"), 0)
-	// Cells grow downward; place rightCell8 at highest, then 7, then 6.
-	// The cell pointer array stores cell addresses in DECREASING order
-	// (cell 0 at the highest address, cell n-1 at the lowest), per the
-	// SQLite btree convention. So:
-	//   cell 0 (rowid 6) at pos + len(cell6) + len(cell7) (highest)
-	//   cell 1 (rowid 7) at pos + len(cell6)
-	//   cell 2 (rowid 8) at pos (lowest)
+	// Engine cell layout: cells grow downward from the end of the usable
+	// area and the pointer array is ordered by ASCENDING rowid — cell 0
+	// (lowest rowid) at the highest address. Cursor seeks binary-search
+	// the pointer array in index order, so the array must be sorted by
+	// rowid (the fixture previously stored rowids descending, which no
+	// real engine-written page does).
 	pos := 1024 - 4
-	pos -= len(rightCell8)
-	copy(rightPg.Data[pos:pos+len(rightCell8)], rightCell8)
-	pos -= len(rightCell7)
-	copy(rightPg.Data[pos:pos+len(rightCell7)], rightCell7)
 	pos -= len(rightCell6)
 	copy(rightPg.Data[pos:pos+len(rightCell6)], rightCell6)
-	// After the loop, pos is the start of cell 6 (lowest address).
-	// cell 6 is at [pos, pos+len(cell6))
-	// cell 7 is at [pos+len(cell6), pos+len(cell6)+len(cell7))
-	// cell 8 is at [pos+len(cell6)+len(cell7), pos+len(cell6)+len(cell7)+len(cell8))
-	// Cell pointer array (in DECREASING order of cell index → INCREASING
-	// order of cell pointer value, since cell 0 is at the highest address):
-	//   ptr[0] = pos + len(cell6) + len(cell7)  (cell 0 = rowid 6, at highest address)
-	//   ptr[1] = pos + len(cell6)              (cell 1 = rowid 7, middle)
-	//   ptr[2] = pos                            (cell 2 = rowid 8, at lowest address)
-	ptrCell0 := pos + len(rightCell6) + len(rightCell7) // rowid 6
-	ptrCell1 := pos + len(rightCell6)                    // rowid 7
-	ptrCell2 := pos                                      // rowid 8
+	ptrCell0 := pos
+	pos -= len(rightCell7)
+	copy(rightPg.Data[pos:pos+len(rightCell7)], rightCell7)
+	ptrCell1 := pos
+	pos -= len(rightCell8)
+	copy(rightPg.Data[pos:pos+len(rightCell8)], rightCell8)
+	ptrCell2 := pos
 	binary.BigEndian.PutUint16(rightPg.Data[rcoff+8:rcoff+10], uint16(ptrCell0))
 	binary.BigEndian.PutUint16(rightPg.Data[rcoff+10:rcoff+12], uint16(ptrCell1))
 	binary.BigEndian.PutUint16(rightPg.Data[rcoff+12:rcoff+14], uint16(ptrCell2))
@@ -109,44 +99,51 @@ func TestBalanceNonroot_MergeEmptyLeaf(t *testing.T) {
 		t.Fatalf("balanceNonroot: %v", err)
 	}
 
-	// After balance: the empty left sibling should be freed (or
-	// overwritten with the right sibling's content). The right
-	// sibling should still have all 3 cells.
-	rightPg2, _ := pg.ReadPage(3)
-	rp, err := storage.ParsePage(rightPg2.Data, 1024, rcoff)
+	// After balance: SQLite's positional page reuse (apNew[i] = apOld[i],
+	// src/btree.c:8617) keeps the LEFTMOST gathered page as the sole
+	// survivor and frees the surplus HIGHEST-numbered page
+	// (freePage(apOld[nNew..nOld)), src/btree.c:8960). Page 2 therefore
+	// holds all 3 cells and page 3 returns to the freelist. Freeing the
+	// rightmost page is what keeps the file truncatable from the right
+	// during auto/incremental vacuum (src/btree.c:3822-3984).
+	leftPg2, _ := pg.ReadPage(2)
+	lp, err := storage.ParsePage(leftPg2.Data, 1024, lcoff)
 	if err != nil {
-		t.Fatalf("ParsePage right sibling: %v", err)
+		t.Fatalf("ParsePage survivor (left sibling): %v", err)
 	}
-	if rp.CellCount != 3 {
-		t.Errorf("right sibling cell count: got %d, want 3", rp.CellCount)
+	if lp.CellCount != 3 {
+		t.Errorf("survivor cell count: got %d, want 3", lp.CellCount)
 	}
-	// Verify the rowids in order.
-	for i := uint16(0); i < rp.CellCount; i++ {
-		cp := int(storage.CellPointer(rightPg2.Data, rcoff, int(i), 1024))
-		c, err := storage.DecodeCell(rightPg2.Data, cp, storage.CellTableLeaf, 1024)
+	// Verify the rowids are present and in ascending order (walk order).
+	var got []int64
+	for i := uint16(0); i < lp.CellCount; i++ {
+		cp := int(storage.CellPointer(leftPg2.Data, lcoff, int(i), 1024))
+		c, err := storage.DecodeCell(leftPg2.Data, cp, storage.CellTableLeaf, 1024)
 		if err != nil {
-			t.Errorf("right sibling cell %d: decode: %v", i, err)
+			t.Errorf("survivor cell %d: decode: %v", i, err)
 			continue
 		}
-		// Cell 0 is at the highest address (rightCell8 was placed
-		// there first, and the cell pointer array stores the
-		// most-recently-inserted cell at index 0).
-		wantRowid := []int64{8, 7, 6}[i]
-		if c.RowID != wantRowid {
-			t.Errorf("right sibling cell %d: rowid got %d, want %d", i, c.RowID, wantRowid)
-		}
+		got = append(got, c.RowID)
 	}
-	// The parent should now reference only the right sibling.
+	if len(got) != 3 || got[0] != 6 || got[1] != 7 || got[2] != 8 {
+		t.Errorf("survivor rowids: got %v, want [6 7 8]", got)
+	}
+	// The freed page's type byte is its freelist chain pointer.
+	if !pager.IsPageOnFreelist(pg, 3) {
+		t.Errorf("page 3 not on freelist after balance (surplus page must be freed)")
+	}
+	// The parent should now reference only the survivor (rightmost = 2),
+	// with no divider cells (a single child needs no divider).
 	parentPg2, _ := pg.ReadPage(1)
 	pp, err := storage.ParsePage(parentPg2.Data, 1024, pcoff)
 	if err != nil {
 		t.Fatalf("ParsePage parent: %v", err)
 	}
-	// Either: parent has 0 cells and rightmost = page 3 (left sibling was
-	// coalesced into right sibling), OR parent has 1 cell pointing to page 3
-	// (right sibling got the divider cell).
 	rmp := pp.RightmostPtr
-	if rmp != 3 {
-		t.Errorf("parent rightmost: got %d, want 3", rmp)
+	if rmp != 2 {
+		t.Errorf("parent rightmost: got %d, want 2", rmp)
+	}
+	if pp.CellCount != 0 {
+		t.Errorf("parent cell count: got %d, want 0", pp.CellCount)
 	}
 }

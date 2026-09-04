@@ -17,6 +17,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // RelocatePage moves the content of `from` to the page `to`. The `to`
@@ -43,6 +44,7 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	if to == from {
 		return false, fmt.Errorf("btree: RelocatePage: to == from == %d", to)
 	}
+
 	// Read the pointer-map entry for `from` to find its parent. The
 	// parent type tells us how to update the parent's reference:
 	//   - PTRMAP_BTREE_NODE / PTRMAP_HAS_ROWID: parent is an interior
@@ -55,6 +57,7 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	if err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: read ptrmap for %d: %w", from, err)
 	}
+
 	if parentType == 0 {
 		// Uninitialized ptrmap entry — fall back to a tree walk from
 		// the root to find `from`'s parent. The walk is O(n) but
@@ -174,9 +177,22 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	// (entry says parent=from), and the engine falls back to a
 	// tree-walk that may pick the wrong ancestor if the parent's
 	// own child pointer was already updated. (Port of
-	// btree.c::setChildPtrmaps, ~line 6490.)
-	if err := t.setChildPtrmaps(toPg, to); err != nil {
-		return false, fmt.Errorf("btree: RelocatePage: setChildPtrmaps for %d: %w", to, err)
+	// btree.c::relocatePage's child-fixup step, ~line 6605: b-tree
+	// pages run setChildPtrmaps; overflow pages only re-parent their
+	// next-in-chain pointer, the first 4 bytes.)
+	switch parentType {
+	case storage.PtrmapBtree, storage.PtrmapRootpage:
+		if err := t.setChildPtrmaps(toPg, to); err != nil {
+			return false, fmt.Errorf("btree: RelocatePage: setChildPtrmaps for %d: %w", to, err)
+		}
+	case storage.PtrmapOverflow1, storage.PtrmapOverflow2:
+		if len(toPg.Data) >= 4 {
+			if next := binary.BigEndian.Uint32(toPg.Data[0:4]); next != 0 {
+				if err := t.pager.WritePtrmap(next, storage.PtrmapOverflow2, to); err != nil {
+					return false, fmt.Errorf("btree: RelocatePage: ptrmap next-ovfl %d: %w", next, err)
+				}
+			}
+		}
 	}
 	// P8.INCRVACUUM fix: do NOT call FreePage(from) here. The
 	// caller (IncrVacuumStep / AutoVacuumCommit) will truncate the
@@ -212,14 +228,43 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 }
 
 // updateParentChildPtr updates the parent page's child pointer from
-// `oldChild` to `newChild`. The parent is identified by the pointer-map
-// type: for interior b-tree pages, `oldChild` appears either as a cell
-// left-child (the first 4 bytes of an interior cell) or as the
-// rightmost-pointer. We scan the parent for the matching pointer and
-// replace it.
+// `oldChild` to `newChild`. Port of btree.c::modifyPagePointer (~line
+// 3877). The parent is identified by the pointer-map type:
+//
+//   - PTRMAP_OVERFLOW2: the pointer is always the first 4 bytes of the
+//     parent overflow page (the chain's next pointer).
+//   - PTRMAP_OVERFLOW1: the parent is a leaf b-tree page; the overflowing
+//     cell's last 4 on-page bytes hold the chain head.
+//   - PTRMAP_BTREE: `oldChild` appears either as a cell left-child (the
+//     first 4 bytes of an interior cell) or as the rightmost-pointer.
+//   - PTRMAP_ROOTPAGE: a root page has no page-level parent (the schema
+//     owns the root pointer) — btree.c relocatePage skips the
+//     modifyPagePointer call entirely for this type.
 func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, parentType byte) error {
-	if parentType == storage.PtrmapOverflow1 || parentType == storage.PtrmapOverflow2 {
-		return fmt.Errorf("btree: updateParentChildPtr: overflow parent not supported (parent=%d oldChild=%d)", parentPgno, oldChild)
+	switch parentType {
+	case storage.PtrmapOverflow2:
+		parentPg, err := t.pager.ReadPage(parentPgno)
+		if err != nil {
+			return err
+		}
+		if len(parentPg.Data) < 8 {
+			return fmt.Errorf("btree: updateParentChildPtr: overflow parent %d too small", parentPgno)
+		}
+		if got := binary.BigEndian.Uint32(parentPg.Data[0:4]); got != oldChild {
+			return fmt.Errorf("btree: updateParentChildPtr: overflow page %d chains to %d, not %d", parentPgno, got, oldChild)
+		}
+		binary.BigEndian.PutUint32(parentPg.Data[0:4], newChild)
+		pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
+		return nil
+	case storage.PtrmapOverflow1:
+		parentPg, err := t.pager.ReadPage(parentPgno)
+		if err != nil {
+			return err
+		}
+		return t.updateOvfl1ParentPtr(parentPg, parentPgno, oldChild, newChild)
+	case storage.PtrmapRootpage:
+		// The schema owns the root pointer; no page-level fixup.
+		return nil
 	}
 	parentPg, err := t.pager.ReadPage(parentPgno)
 	if err != nil {
@@ -264,19 +309,78 @@ func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, pare
 	return fmt.Errorf("btree: updateParentChildPtr: parent %d does not reference child %d (cells=%d, rmp=%d)", parentPgno, oldChild, page.CellCount, rmp)
 }
 
+// updateOvfl1ParentPtr rewrites the overflow-chain head pointer stored in
+// a leaf page's cell (btree.c modifyPagePointer, PTRMAP_OVERFLOW1 branch:
+// the cell's last 4 on-page bytes hold the chain head when the payload
+// overflows). Scans every cell; the one whose chain head is `oldChild`
+// is rewritten to `newChild`.
+func (t *BTree) updateOvfl1ParentPtr(parentPg *pager.Page, parentPgno, oldChild, newChild uint32) error {
+	coff := contentOffset(parentPg.PageNum)
+	page, err := storage.ParsePage(parentPg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return err
+	}
+	var cellType storage.CellType
+	switch page.PageType {
+	case storage.PageTypeLeafTable:
+		cellType = storage.CellTableLeaf
+	case storage.PageTypeLeafIndex:
+		cellType = storage.CellIndexLeaf
+	default:
+		return fmt.Errorf("btree: updateOvfl1ParentPtr: parent %d is not a leaf (type 0x%02x)", parentPgno, page.PageType)
+	}
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(storage.CellPointer(parentPg.Data, ptrBase, i, int(t.pageSize)))
+		if cellOff+4 > len(parentPg.Data) {
+			continue
+		}
+		c, cerr := storage.DecodeCell(parentPg.Data, cellOff, cellType, int(t.usableSize))
+		if cerr != nil || c.Overflow == 0 {
+			continue
+		}
+		// Cell size on the page: payload-length varint (+ rowid varint
+		// for table leaves) + local payload + 4-byte overflow pointer.
+		_, n1 := util.GetVarint(parentPg.Data[cellOff:])
+		sz := n1 + c.LocalLen + 4
+		if cellType == storage.CellTableLeaf {
+			_, n2 := util.GetVarint(parentPg.Data[cellOff+n1:])
+			sz += n2
+		}
+		ovflOff := cellOff + sz - 4
+		if ovflOff < 0 || ovflOff+4 > len(parentPg.Data) {
+			continue
+		}
+		if binary.BigEndian.Uint32(parentPg.Data[ovflOff:ovflOff+4]) == oldChild {
+			binary.BigEndian.PutUint32(parentPg.Data[ovflOff:ovflOff+4], newChild)
+			pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
+			return nil
+		}
+	}
+	return fmt.Errorf("btree: updateOvfl1ParentPtr: leaf %d does not chain to overflow %d", parentPgno, oldChild)
+}
+
 // IncrVacuumStep performs up to n steps of the incremental-vacuum
-// algorithm (P8.INCRVACUUM phase 3). Each step:
+// algorithm (port of btree.c::incrVacuumStep, src/btree.c:4010).
+// Each step:
 //  1. If the last page of the file is on the freelist, just truncate
 //     the file (decrement numPages by 1).
 //  2. Otherwise, the last page is in use. Find the lowest free page
 //     (pager.AllocatePageLE) and relocate the last page to that free
 //     page (RelocatePage). Truncate the file.
 //
+// bCommit mirrors the C parameter: false for PRAGMA incremental_vacuum
+// (sqlite3BtreeIncrVacuum — each step keeps the freelist chain
+// consistent below the truncation point by popping the trailing FREE
+// page via TakePageFromFreelist, the BTALLOC_EXACT path), true for
+// autoVacuumCommit — where a trailing FREE page is left alone ("it
+// doesn't matter if it still contains some garbage entries",
+// src/btree.c:4022-4024) and the chain garbage is cleared by the
+// commit-end ZeroFreelistChain call (src/btree.c:4247-4252).
+//
 // Returns the number of steps actually performed. Stops early if the
 // freelist is empty (no more free pages to swap) or if `n` is exhausted.
-//
-// Reference: btree.c::sqlite3BtreeIncrVacuum (line ~6780).
-func (t *BTree) IncrVacuumStep(n int) (int, error) {
+func (t *BTree) IncrVacuumStep(n int, bCommit bool) (int, error) {
 	steps := 0
 	// P8.INCRVACUUM safety net: if the in-memory page count is ahead of
 	// the on-disk file (e.g. pages were allocated in memory but never
@@ -322,6 +426,14 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 		// p.freePages. This is the fast path for the common case
 		// (Delete freed pages near the end of the file).
 		if pager.IsPageOnFreelist(t.pager, lastPg) {
+			// bCommit==0: pop the page from the freelist chain properly
+			// (allocateBtreePage BTALLOC_EXACT equivalent) before the file
+			// shrinks, so the on-disk chain never references a truncated
+			// page. bCommit==1: leave it; the commit end zeroes the chain
+			// header (btree.c:4249-4252).
+			if !bCommit {
+				t.pager.TakePageFromFreelist(lastPg)
+			}
 			// Truncate by 1 page.
 			if err := t.pager.Truncate(lastPg - 1); err != nil {
 				return steps, fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", lastPg-1, err)
@@ -359,6 +471,8 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 		// entirely, and pruneFreelistChain will clean the dangling
 		// chain entry.
 		relocated, err := t.RelocatePage(freePg.PageNum, lastPg)
+		if err == nil && relocated {
+		}
 		if err != nil {
 			// P8.INCRVACUUM.phase8: even on a relocation ERROR (not
 			// just the orphan branch), put the wasted `to` page
@@ -375,7 +489,7 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			// returns (false, nil) for the orphan branch, so the
 			// `err != nil` case is the failure branch where the
 			// relocator decided it cannot proceed safely.
-			_ = t.pager.FreePage(freePg.PageNum)
+			_ = t.freePageWithPtrmap(freePg.PageNum)
 			return steps, fmt.Errorf("btree: IncrVacuumStep: relocate %d -> %d: %w", lastPg, freePg.PageNum, err)
 		}
 		if !relocated {
@@ -392,7 +506,7 @@ func (t *BTree) IncrVacuumStep(n int) (int, error) {
 			//
 			// P8.INCRVACUUM.phase8: keep the FreePage so the chain
 			// count stays accurate.
-			if err := t.pager.FreePage(freePg.PageNum); err != nil {
+			if err := t.freePageWithPtrmap(freePg.PageNum); err != nil {
 				return steps, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
 			}
 			//
@@ -728,7 +842,6 @@ func (t *BTree) schemaCursor() (*Cursor, error) {
 	defer func() { t.rootPage = savedRoot }()
 	return t.OpenCursor()
 }
-
 
 // sqlite_schema. The schema btree's cells are (type, name, tblname,
 // rootpage, sql) records. We open a cursor on the schema btree

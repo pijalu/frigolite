@@ -3,6 +3,7 @@
 package btree
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 
@@ -18,33 +19,53 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
 		return 0, err
 	}
-	for _, leafNum := range leaves {
-		// Delete every matching cell in ONE pass (SQLite's single-sweep
-		// delete). The previous per-cell loop re-parsed the page and scanned
-		// from index 0 after each deletion — O(k^2) per leaf, which made
-		// DELETE FROM %_segments (thousands of 4KB blob rows) take ~40s
-		// (fts4merge4's between-scenario DELETE).
-		for {
-			n, err := t.deleteAllMatchingFromLeaf(leafNum, fn)
-			if err != nil {
+	// The sweep runs in passes: balanceNonroot (invoked when a leaf
+	// empties) can redistribute surviving cells into a leaf that was
+	// already swept earlier in this pass. SQLite's row-by-row OP_Delete
+	// keeps its cursor position across balances; this bulk sweep instead
+	// re-runs the leaf list until a full pass deletes nothing, so no
+	// migrated cell is stranded.
+	for {
+		passDeleted := int64(0)
+		for _, leafNum := range leaves {
+			// balanceNonroot may have freed this page as a surplus empty
+			// sibling during an earlier iteration of this loop; a freed
+			// page's first bytes are its freelist chain pointer (type byte
+			// 0x00), so it must be skipped, not parsed.
+			if pager.IsPageOnFreelist(t.pager, leafNum) {
+				continue
+			}
+			// Delete every matching cell in ONE pass (SQLite's single-sweep
+			// delete). The previous per-cell loop re-parsed the page and
+			// scanned from index 0 after each deletion — O(k^2) per leaf,
+			// which made DELETE FROM %_segments (thousands of 4KB blob
+			// rows) take ~40s (fts4merge4's between-scenario DELETE).
+			for {
+				n, err := t.deleteAllMatchingFromLeaf(leafNum, fn)
+				if err != nil {
+					return deleted, err
+				}
+				deleted += n
+				passDeleted += n
+				if n == 0 {
+					break
+				}
+			}
+			// P8.INCRVACUUM phase 5.5: after a leaf becomes empty,
+			// rebalance it. The leaf is the rightmost child of its
+			// parent (typical case for DELETE which leaves the
+			// rightmost leaf empty). We invoke balanceNonroot with
+			// iParentIdx = -1 (rightmost-child) and the empty leaf as
+			// the "page being balanced". balanceNonroot's Phase 3
+			// filter drops the empty leaf, Phase 5 frees it, and the
+			// parent is rewritten to point to the next non-empty
+			// sibling.
+			if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
 				return deleted, err
 			}
-			deleted += n
-			if n == 0 {
-				break
-			}
 		}
-		// P8.INCRVACUUM phase 5.5: after a leaf becomes empty,
-		// rebalance it. The leaf is the rightmost child of its
-		// parent (typical case for DELETE which leaves the
-		// rightmost leaf empty). We invoke balanceNonroot with
-		// iParentIdx = -1 (rightmost-child) and the empty leaf as
-		// the "page being balanced". balanceNonroot's Phase 3
-		// filter drops the empty leaf, Phase 5 frees it, and the
-		// parent is rewritten to point to the next non-empty
-		// sibling.
-		if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
-			return deleted, err
+		if passDeleted == 0 {
+			break
 		}
 	}
 	// P8.INCRVACUUM phase 5.5 fix: after deleting all rows, the root
@@ -124,6 +145,10 @@ func (t *BTree) clearEmptyRootRightmost() error {
 // have become empty after a delete. The leaf must be a child of
 // an interior page (i.e. not the root of the btree); the root
 // being a leaf is handled by the caller (Clear/Clear-like paths).
+// Index leaves are never routed through balanceNonroot (which only
+// handles table leaves): an emptied index leaf is removed from its
+// parent directly (removeEmptyIndexLeaf), mirroring SQLite's
+// btree.c::clearDatabasePage + balance propagation for index trees.
 func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	// Only rebalance if the leaf became empty.
 	leafPg, err := t.pager.ReadPage(leafNum)
@@ -137,6 +162,9 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	}
 	if leafPage.CellCount != 0 {
 		return nil
+	}
+	if leafPage.PageType == storage.PageTypeLeafIndex {
+		return t.removeEmptyIndexLeaf(leafNum)
 	}
 	// The leaf is a child of some parent. We need to find it.
 	// The btree.c approach uses the pointer map; we use the
@@ -162,9 +190,173 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 		page:       leafPg,
 	}
 	_, err = t.balanceNonroot(ctx)
-	if err != nil {
-	}
 	return err
+}
+
+// removeEmptyIndexLeaf frees an index leaf that became empty and drops its
+// reference from the parent interior page: a cell-child reference loses its
+// divider cell; a rightmost-child reference promotes the last divider's
+// left child into the rightmost pointer and drops that divider (keeping the
+// ncells+1-children invariant; see the comment in the body for the btree.c
+// citation). SQLite's balance
+// propagates underflow up the tree (balance_deeper/balance_nonroot); here the
+// parent always keeps at least one child (a single removal can drop either a
+// cell-child or the rightmost child, never both), so no cascade is needed.
+// A root collapse is handled by clearEmptyRootRightmost in DeleteIndexEntry.
+func (t *BTree) removeEmptyIndexLeaf(leafNum uint32) error {
+	parentPgno, _, err := t.findParentByWalk(leafNum)
+	if err != nil {
+		// No parent (the empty leaf is the btree root): nothing to
+		// unlink; the empty leaf root is a valid empty index tree.
+		return nil
+	}
+	parentPg, err := t.pager.ReadPage(parentPgno)
+	if err != nil {
+		return err
+	}
+	parentCo := contentOffset(parentPg.PageNum)
+	parentPage, err := storage.ParsePage(parentPg.Data, int(t.pageSize), parentCo)
+	if err != nil {
+		return err
+	}
+	idx, err := t.findLeafIndexInParent(parentPg, leafNum)
+	if err != nil {
+		return err
+	}
+	if idx >= 0 {
+		if err := t.removeInteriorCellRange(parentPg, parentPage, idx, 1); err != nil {
+			return err
+		}
+	} else {
+		// The empty leaf is the parent's rightmost child. Zeroing the
+		// pointer alone would leave ncells dividers with only ncells
+		// children (interior pages need ncells+1). SQLite's balance
+		// keeps the page valid by dropping the boundary divider and
+		// repointing the rightmost-child at the divider's left child
+		// (dropCell + put4byte(pRight, apNew[nNew-1]), src/btree.c:8699):
+		//   [c0] d0 [c1] ... d(n-1) [c(n)=rmp]  ->  [c0] d0 ... [c(n-1)=rmp]
+		// The dropped divider's key belonged to the removed subtree, so
+		// the surviving dividers need no key edits.
+		if parentPage.CellCount > 0 {
+			last := int(parentPage.CellCount) - 1
+			ptrBase := parentCo + cellPtrOffset(parentPage.PageType)
+			cp := int(binary.BigEndian.Uint16(parentPg.Data[ptrBase+last*2 : ptrBase+last*2+2]))
+			if cp+4 > len(parentPg.Data) {
+				return fmt.Errorf("removeEmptyIndexLeaf: bad cell pointer %d in parent %d", cp, parentPg.PageNum)
+			}
+			leftChild := binary.BigEndian.Uint32(parentPg.Data[cp : cp+4])
+			if err := t.removeInteriorCellRange(parentPg, parentPage, last, 1); err != nil {
+				return err
+			}
+			binary.BigEndian.PutUint32(parentPg.Data[parentCo+8:parentCo+12], leftChild)
+		} else {
+			// No dividers: the removed leaf was the only child.
+			binary.BigEndian.PutUint32(parentPg.Data[parentCo+8:parentCo+12], 0)
+		}
+	}
+	if err := t.pager.WritePage(parentPg); err != nil {
+		return err
+	}
+	if err := t.freePageWithPtrmap(leafNum); err != nil {
+		return err
+	}
+	// The parent may have lost its last child; collapse upward.
+	return t.cascadeChildless(parentPgno)
+}
+
+// DeleteIndexEntry removes the first index cell whose FULL payload (local
+// bytes reassembled with its overflow chain) equals target. Index entries
+// are unique per row (the rowid suffix is part of the record), so at most
+// one cell matches. Returns true when an entry was removed. This is the
+// delete-side counterpart of InsertCell for CellIndexLeaf entries written
+// by execdml (maintainIndexesOnInsert), and keeps index btrees consistent
+// after DELETE/REPLACE so stale entries cannot pin overflow pages (which
+// stalled auto-vacuum truncation and corrupted integrity_check walks).
+func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
+	var leaves []uint32
+	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
+		return false, err
+	}
+	deleted := false
+	for _, leafNum := range leaves {
+		// A leaf freed as a surplus empty sibling during an earlier
+		// iteration must be skipped (its type byte is the freelist
+		// chain pointer, not a page type).
+		if pager.IsPageOnFreelist(t.pager, leafNum) {
+			continue
+		}
+		found, err := t.deleteIndexEntryFromLeaf(leafNum, target)
+		if err != nil {
+			return deleted, err
+		}
+		if found {
+			deleted = true
+			if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
+				return deleted, err
+			}
+		}
+	}
+	// A fully-emptied index tree can leave its root an interior page with
+	// 0 cells and a dead rightmost-child (removeEmptyIndexLeaf zeroed it
+	// at the root level); rewrite the root as an empty leaf — the same
+	// end state clearEmptyRootRightmost produces for table trees.
+	if err := t.clearEmptyRootRightmost(); err != nil {
+		return deleted, err
+	}
+	return deleted, nil
+}
+
+// deleteIndexEntryFromLeaf removes the cells on one index leaf whose FULL
+// payload equals target. Unlike deleteAllMatchingFromLeaf's predicate
+// callback (which deliberately receives LOCAL-only payloads for FTS
+// performance), index-entry deletion must compare the complete record:
+// an overflowing index cell's local bytes are a prefix of the target and
+// would never match without reassembly (readOverflow).
+func (t *BTree) deleteIndexEntryFromLeaf(leafNum uint32, target []byte) (bool, error) {
+	pg, err := t.pager.ReadPage(leafNum)
+	if err != nil {
+		return false, err
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return false, err
+	}
+	if page.PageType != storage.PageTypeLeafIndex {
+		return false, nil
+	}
+	encoded := make([][]byte, 0, int(page.CellCount))
+	decoded := make([]storage.Cell, int(page.CellCount))
+	for i := 0; i < int(page.CellCount); i++ {
+		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
+		c, derr := storage.DecodeCell(pg.Data, int(p), storage.CellIndexLeaf, int(t.usableSize))
+		if derr != nil {
+			return false, derr
+		}
+		decoded[i] = *c
+		encoded = append(encoded, storage.EncodeCell(c))
+	}
+	var keep []int
+	var deletedIdx []int
+	for i := 0; i < len(encoded); i++ {
+		full, ferr := t.readOverflow(&decoded[i])
+		if ferr != nil {
+			return false, ferr
+		}
+		match := bytes.Equal(full.Payload, target)
+		if match {
+			deletedIdx = append(deletedIdx, i)
+			continue
+		}
+		keep = append(keep, i)
+	}
+	if len(deletedIdx) == 0 {
+		return false, nil
+	}
+	if _, err := t.finishLeafDelete(pg, page, encoded, keep, decoded, deletedIdx, int64(len(deletedIdx))); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // findLeafIndexInParent returns the cell-pointer index of leaf in
@@ -249,7 +441,7 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 		encoded = append(encoded, storage.EncodeCell(c))
 	}
 	// Keep the survivors, preserving order. Also collect the deleted cell
-	// indices so we can free their overflow-page chains.
+	// indices so their overflow-page chains can be freed.
 	var keep []int
 	deleted := int64(0)
 	var deletedIdx []int
@@ -264,8 +456,21 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 	if deleted == 0 {
 		return 0, nil
 	}
+	return t.finishLeafDelete(pg, page, encoded, keep, decoded, deletedIdx, deleted)
+}
+
+// finishLeafDelete completes a leaf-cell deletion: it frees the deleted
+// cells' overflow-page chains, rewrites the surviving cells contiguously
+// from the end of the usable area, and persists the page. Shared by
+// deleteAllMatchingFromLeaf (predicate deletes) and deleteIndexEntryFromLeaf
+// (full-payload index-entry deletes). `encoded` holds each cell's encoded
+// bytes, `keep` the survivor indices, `decoded`/`deletedIdx` the decoded
+// cells whose overflow chains must be freed, and `deleted` the running
+// deletion count.
+func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encoded [][]byte, keep []int, decoded []storage.Cell, deletedIdx []int, deleted int64) (int64, error) {
+	coff := contentOffset(pg.PageNum)
 	// Free the overflow pages of the cells that were deleted. Each
-	// table-leaf cell may carry a chain of overflow pages (4KB blobs
+	// leaf cell may carry a chain of overflow pages (4KB blobs
 	// need several pages); when the cell is deleted the chain becomes
 	// orphaned and must be returned to the freelist so the header count
 	// tracks the freed space (corrupt2-14.2/14.3/14.5 depend on this).
@@ -279,7 +484,7 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 					break
 				}
 				next := binary.BigEndian.Uint32(np.Data[0:4])
-				_ = t.pager.FreePage(pn)
+				_ = t.freePageWithPtrmap(pn)
 				pn = next
 			}
 		}

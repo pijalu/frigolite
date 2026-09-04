@@ -20,13 +20,14 @@ import (
 // decides what the children are). Returns the page.
 //
 // The btree header layout (interior table) is:
-//   0: page type (0x05 = interior table)
-//   1-2: first freeblock (0)
-//   3-4: cell count (N)
-//   5-6: cell content start (we set it to len(cellContent))
-//   7:   fragmented free bytes (0)
-//   8-11: rightmost-child pointer
-//   12+: cell pointer array (2 bytes per cell)
+//
+//	0: page type (0x05 = interior table)
+//	1-2: first freeblock (0)
+//	3-4: cell count (N)
+//	5-6: cell content start (we set it to len(cellContent))
+//	7:   fragmented free bytes (0)
+//	8-11: rightmost-child pointer
+//	12+: cell pointer array (2 bytes per cell)
 //
 // Each interior-table cell is 4 bytes (left child) + varint (rowid).
 // We use the minimum rowid (a single byte 0x00 = rowid 0 for the
@@ -217,7 +218,7 @@ func TestBalanceQuick_AllocateSibling(t *testing.T) {
 	parentPg, _ := pg.ReadPage(1)
 	coff := contentOffset(1)
 	parentPg.Data[coff+0] = storage.PageTypeInteriorTable
-	binary.BigEndian.PutUint16(parentPg.Data[coff+3:coff+5], 1) // 1 cell
+	binary.BigEndian.PutUint16(parentPg.Data[coff+3:coff+5], 1)  // 1 cell
 	binary.BigEndian.PutUint32(parentPg.Data[coff+8:coff+12], 2) // rightmost = page 2
 	// Place a divider cell: 4-byte child=2 + varint rowid=100.
 	// Cell goes at end of usable area.
@@ -321,113 +322,113 @@ func buildTableLeafCell(t *testing.T, rowid int64, localPayload []byte, overflow
 		out = append(out, byte(plen>>7))
 	}
 	// varint(rowid).
-		if rowid < 0 {
-			t.Fatalf("rowid out of range: %d", rowid)
-		}
-		if rowid < 128 {
-			out = append(out, byte(rowid))
-		} else {
-			out = append(out, byte((rowid&0x7f)|0x80))
-			out = append(out, byte(rowid>>7))
-		}
-		// local payload.
-		out = append(out, localPayload...)
-		// overflow pointer (4 bytes, big-endian).
-		if overflow != 0 {
-			out = append(out, byte(overflow>>24), byte(overflow>>16), byte(overflow>>8), byte(overflow))
-		} else {
-			out = append(out, 0, 0, 0, 0)
-		}
-		return out
+	if rowid < 0 {
+		t.Fatalf("rowid out of range: %d", rowid)
 	}
+	if rowid < 128 {
+		out = append(out, byte(rowid))
+	} else {
+		out = append(out, byte((rowid&0x7f)|0x80))
+		out = append(out, byte(rowid>>7))
+	}
+	// local payload.
+	out = append(out, localPayload...)
+	// overflow pointer (4 bytes, big-endian).
+	if overflow != 0 {
+		out = append(out, byte(overflow>>24), byte(overflow>>16), byte(overflow>>8), byte(overflow))
+	} else {
+		out = append(out, 0, 0, 0, 0)
+	}
+	return out
+}
 
-	// TestRebuildPage_Leaf: build a leaf with 0 cells, then call
-	// rebuildPage with 3 cells in a CellArray. Verify the page now
-	// has 3 cells in the right order, with the cell-content pointer
-	// at the correct address.
-	func TestRebuildPage_Leaf(t *testing.T) {
-			pg := pager.OpenInMemory(1024)
-			pg.AllocatePage()
-			rootPg, _ := pg.ReadPage(1)
-			coff := contentOffset(1)
-			rootPg.Data[coff+0] = storage.PageTypeLeafTable
-			// Initialize cell content pointer to end of page so the
-			// page validates as a fresh empty leaf (matches
-			// setEmptyLeafContent).
-			setEmptyLeafContent(rootPg)
-			pg.WritePage(rootPg)
-		bt := NewBTree(pg, 1, true)
+// TestRebuildPage_Leaf: build a leaf with 0 cells, then call
+// rebuildPage with 3 cells in a CellArray. Verify the page now
+// has 3 cells in the right order, with the cell-content pointer
+// at the correct address.
+func TestRebuildPage_Leaf(t *testing.T) {
+	pg := pager.OpenInMemory(1024)
+	pg.AllocatePage()
+	rootPg, _ := pg.ReadPage(1)
+	coff := contentOffset(1)
+	rootPg.Data[coff+0] = storage.PageTypeLeafTable
+	// Initialize cell content pointer to end of page so the
+	// page validates as a fresh empty leaf (matches
+	// setEmptyLeafContent).
+	setEmptyLeafContent(rootPg)
+	pg.WritePage(rootPg)
+	bt := NewBTree(pg, 1, true)
 
-		// Build 3 cells.
-		cell1 := buildTableLeafCell(t, 10, []byte("hello"), 0)
-		cell2 := buildTableLeafCell(t, 20, []byte("world"), 0)
-		cell3 := buildTableLeafCell(t, 30, []byte("!"), 0)
-		bca := newBalanceCellArray(3, 1)
-		bca.addCell(cell1, 1024, 0)
-		bca.endRegion()
-		bca.finalizeRegionEnds([]int{1024})
+	// Build 3 cells.
+	cell1 := buildTableLeafCell(t, 10, []byte("hello"), 0)
+	cell2 := buildTableLeafCell(t, 20, []byte("world"), 0)
+	cell3 := buildTableLeafCell(t, 30, []byte("!"), 0)
+	bca := newBalanceCellArray(3, 1)
+	bca.addCell(cell1, 1024, 0)
+	bca.endRegion()
+	bca.finalizeRegionEnds([]int{1024})
 
-		// Note: the CellArray design needs cells to be added with
-		// their region index; the rebuildPage walks b.cells[iFirst+k]
-		// in cell-index order, so we need to add them with region
-		// 0/1/2 (not all region 0).
-		bca2 := newBalanceCellArray(3, 3)
-		bca2.addCell(cell1, 1024, 0)
-		bca2.addCell(cell2, 1024, 1)
-		bca2.addCell(cell3, 1024, 2)
-		bca2.endRegion()
-		bca2.finalizeRegionEnds([]int{1024, 1024, 1024})
-		_ = bca
+	// Note: the CellArray design needs cells to be added with
+	// their region index; the rebuildPage walks b.cells[iFirst+k]
+	// in cell-index order, so we need to add them with region
+	// 0/1/2 (not all region 0).
+	bca2 := newBalanceCellArray(3, 3)
+	bca2.addCell(cell1, 1024, 0)
+	bca2.addCell(cell2, 1024, 1)
+	bca2.addCell(cell3, 1024, 2)
+	bca2.endRegion()
+	bca2.finalizeRegionEnds([]int{1024, 1024, 1024})
+	_ = bca
 
-		if err := bt.rebuildPage(rootPg, bca2, 0, 3); err != nil {
-			t.Fatalf("rebuildPage: %v", err)
-		}
-		// Re-read and verify.
-		pg2, _ := pg.ReadPage(1)
-		page, err := storage.ParsePage(pg2.Data, 1024, coff)
+	if err := bt.rebuildPage(rootPg, bca2, 0, 3); err != nil {
+		t.Fatalf("rebuildPage: %v", err)
+	}
+	// Re-read and verify.
+	pg2, _ := pg.ReadPage(1)
+	page, err := storage.ParsePage(pg2.Data, 1024, coff)
+	if err != nil {
+		t.Fatalf("ParsePage: %v", err)
+	}
+	if page.CellCount != 3 {
+		t.Errorf("cell count: got %d, want 3", page.CellCount)
+	}
+	// Verify each cell decodes and has the right rowid.
+	for i := uint16(0); i < page.CellCount; i++ {
+		cp := int(storage.CellPointer(pg2.Data, coff, int(i), 1024))
+		c, err := storage.DecodeCell(pg2.Data, cp, storage.CellTableLeaf, 1024)
 		if err != nil {
-			t.Fatalf("ParsePage: %v", err)
+			t.Errorf("cell %d: decode: %v", i, err)
+			continue
 		}
-		if page.CellCount != 3 {
-			t.Errorf("cell count: got %d, want 3", page.CellCount)
-		}
-		// Verify each cell decodes and has the right rowid.
-		for i := uint16(0); i < page.CellCount; i++ {
-			cp := int(storage.CellPointer(pg2.Data, coff, int(i), 1024))
-			c, err := storage.DecodeCell(pg2.Data, cp, storage.CellTableLeaf, 1024)
-			if err != nil {
-				t.Errorf("cell %d: decode: %v", i, err)
-				continue
-			}
-			wantRowid := []int64{10, 20, 30}[i]
-			if c.RowID != wantRowid {
-				t.Errorf("cell %d: rowid got %d, want %d", i, c.RowID, wantRowid)
-			}
+		wantRowid := []int64{10, 20, 30}[i]
+		if c.RowID != wantRowid {
+			t.Errorf("cell %d: rowid got %d, want %d", i, c.RowID, wantRowid)
 		}
 	}
+}
 
-	// TestEditPage_Empty: editPage with nNew=0 should produce an
-	// empty page (cell count 0, content pointer at usableSize).
-	func TestEditPage_Empty(t *testing.T) {
-		pg := pager.OpenInMemory(1024)
-		pg.AllocatePage()
-		rootPg, _ := pg.ReadPage(1)
-		coff := contentOffset(1)
-		rootPg.Data[coff+0] = storage.PageTypeLeafTable
-		// Pre-fill with 2 cells to make sure editPage clears them.
-		rootPg.Data[coff+3] = 2 // cell count
-		pg.WritePage(rootPg)
-		bt := NewBTree(pg, 1, true)
-		bca := newBalanceCellArray(0, 0)
-		if err := bt.editPage(rootPg, 0, 0, 0, bca); err != nil {
-			t.Fatalf("editPage: %v", err)
-		}
-		pg2, _ := pg.ReadPage(1)
-		page, err := storage.ParsePage(pg2.Data, 1024, coff)
-		if err != nil {
-			t.Fatalf("ParsePage: %v", err)
-		}
-		if page.CellCount != 0 {
-			t.Errorf("cell count: got %d, want 0", page.CellCount)
-		}
+// TestEditPage_Empty: editPage with nNew=0 should produce an
+// empty page (cell count 0, content pointer at usableSize).
+func TestEditPage_Empty(t *testing.T) {
+	pg := pager.OpenInMemory(1024)
+	pg.AllocatePage()
+	rootPg, _ := pg.ReadPage(1)
+	coff := contentOffset(1)
+	rootPg.Data[coff+0] = storage.PageTypeLeafTable
+	// Pre-fill with 2 cells to make sure editPage clears them.
+	rootPg.Data[coff+3] = 2 // cell count
+	pg.WritePage(rootPg)
+	bt := NewBTree(pg, 1, true)
+	bca := newBalanceCellArray(0, 0)
+	if err := bt.editPage(rootPg, 0, 0, 0, bca); err != nil {
+		t.Fatalf("editPage: %v", err)
 	}
+	pg2, _ := pg.ReadPage(1)
+	page, err := storage.ParsePage(pg2.Data, 1024, coff)
+	if err != nil {
+		t.Fatalf("ParsePage: %v", err)
+	}
+	if page.CellCount != 0 {
+		t.Errorf("cell count: got %d, want 0", page.CellCount)
+	}
+}

@@ -46,28 +46,28 @@ const (
 
 // WalHeader is the decoded 32-byte WAL header (wal.c L34-44).
 type WalHeader struct {
-	Magic          uint32 // 0x377f0682 or 0x377f0683
-	Version        uint32 // 3007000
-	PageSize       uint32
-	CheckpointSeq  uint32
-	Salt1          uint32
-	Salt2          uint32
-	Checksum1      uint32
-	Checksum2      uint32
-	BigEndCksum    bool // magic LSB set: checksums computed big-endian
-	HeaderCksumOK  bool // header checksum over bytes [0:24] matches
+	Magic         uint32 // 0x377f0682 or 0x377f0683
+	Version       uint32 // 3007000
+	PageSize      uint32
+	CheckpointSeq uint32
+	Salt1         uint32
+	Salt2         uint32
+	Checksum1     uint32
+	Checksum2     uint32
+	BigEndCksum   bool // magic LSB set: checksums computed big-endian
+	HeaderCksumOK bool // header checksum over bytes [0:24] matches
 }
 
 // WalFrame is one decoded frame (frame-header + page data reference).
 type WalFrame struct {
-	Number       int    // 1-based frame index
+	Number       int // 1-based frame index
 	PageNumber   uint32
 	CommitDBSize uint32 // non-zero marks a commit record
 	Salt1        uint32
 	Salt2        uint32
 	Checksum1    uint32
 	Checksum2    uint32
-	Valid        bool // salts match header and cumulative checksum matches
+	Valid        bool   // salts match header and cumulative checksum matches
 	PageData     []byte // page-size slice into the file content
 }
 

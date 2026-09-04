@@ -4686,3 +4686,58 @@ classification needs a wildcard audit — a missing `*` hid 17 failures.
 (c) Validate skip maps by diffing keys against actual package dirs, not just
 against NA_EVIDENCE. (d) §5g's green ledger will make classes 2–3
 mechanically detectable; until then, grep-based reconciliation is the check.
+
+## P8.INCRVACUUM.T5 session (2026-09-04) — vacuum-phase btree/pager bugs
+
+**Bug A — Truncate-time freelist surgery corrupted relocated pages.** The old
+`Truncate` (a) fabricated a header.trunk when the freelist trunk was truncated
+away and wrote a fake next-chain pointer into a non-trunk page's Data[0:4],
+and (b) ran `pruneFreelistChain`, whose walk misread non-trunk pages as trunks
+(read leaf-count from row-data bytes) and zeroed every 4-byte slot > n,
+destroying live relocated rows. SQLite contract (btree.c): the freelist chain
+is modified ONLY by allocateBtreePage (pop) and freePage2 (push); truncate does
+NO chain surgery; `incrVacuumStep` with bCommit!=0 tolerates trailing FREE
+pages ("garbage entries", btree.c:4022-4024); autoVacuumCommit zeroes
+header trunk/count after full drain (btree.c:4247-4252); bCommit==0 pops the
+trailing free page via BTALLOC_EXACT. Fix: deleted pruneFreelistChain + the
+trunk-advance fixup; added `TakePageFromFreelist` + `ZeroFreelistChain`
+(SQLite-faithful mirrors); plumbed bCommit through IncrVacuumStep.
+**Lesson: when a cleaner heuristic fights a documented SQLite invariant, delete
+the heuristic — SQLite tolerates the "garbage" on purpose.**
+
+**Bug B — DELETE on the rightmost index leaf wrote rmp=0 with ncells>0.**
+`removeEmptyIndexLeaf` zeroed the parent's rightmost-child pointer without
+dropping a divider → interior page with ncells dividers but only ncells
+children (invariant: ncells+1 children). Trigger: equal index keys make each
+new entry insert LEFTWARD, so the FIRST row lives in the RIGHTMOST leaf —
+DELETE oid=1 empties the rightmost leaf (not the leftmost as intuition says).
+SQLite-faithful fix: drop the LAST divider and repoint rmp at its left child
+(dropCell + put4byte(pRight, apNew[nNew-1]), btree.c:8699); dropped divider's
+key belonged to the removed subtree, so no key edits needed.
+**Lesson: "children = dividers + rmp" must hold after every unlink; and probe
+BEFORE/DELETE state with a hexdump — the BEFORE dump revealed the surprising
+leaf layout that made the rmp branch reachable.**
+
+**Oracle calibration — invented density invariants failed for SQLite too.**
+TestRebalanceInsertAfterBulkDelete's `leavesAfter <= leavesMid*2` bound was
+arithmetically impossible (100 rows × ~520B encoded need ≥ ~50 packed 1KB
+leaves). Oracle (sqlite3 3.51.0 + dbstat, same deterministic workload):
+**exactly 91 leaf pages — identical to the engine** — with the same local
+slack (page 3: 2 cells, 657B unused) and fresh allocation past the old
+high-water (max pageno 153). SQLite's balance_nonroot is window-local and does
+NOT globally greedy-pack after bulk deletes. Test now pins the oracle count
+(+10% slack) + leavesAfter <= leavesBefore.
+**Lesson: before pinning space-reuse/density invariants, measure the oracle
+with dbstat; a strict per-leaf fill invariant that SQLite itself violates is a
+false-positive generator. Same for trunk leaf slots: allocateBtreePage's
+copy-last-into-slot (btree.c:6697-6700) leaves stale bytes when n→0 — only
+leafCount bounds interpretation.**
+
+**Deferred (pre-existing at HEAD, evidenced):** TestWriterConformance/
+fts-x6-growth — `merge=2500,4` consumes level-0 segments but leaves stale
+duplicate segdir rows (idx=0 twice; idx=3 duplicates idx=1's start_block)
+referencing deleted %_segments blocks; the next merge's upfront
+ValidateFTSSegments hits the dangling start_block → "malformed". SQLite
+tolerates truncated end_block during merge and ends with one clean level-1
+row. Merge errors are swallowed in empty `if dres.Error != nil {}` blocks in
+export_fts_merge.go, hiding root causes. Repro: /tmp/p8probe7 + scenario JSON.

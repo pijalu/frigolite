@@ -182,7 +182,10 @@ func addAutoIndexEntry(ctx *DatabaseContext, tableName string, seq int) error {
 	// from the table's constraint list (compositeUniqueGroups), and query
 	// paths never scan the autoindex b-tree, but the physical root keeps
 	// page counts and rootpage values at parity with SQLite.
-	pg := ctx.Pager.AllocatePage()
+	pg, perr := ctx.Pager.AllocateRootPage()
+	if perr != nil {
+		return perr
+	}
 	initIndexRootPage(pg, ctx.Pager.PageSize())
 	if err := ctx.Pager.WritePage(pg); err != nil {
 		return err
@@ -276,7 +279,7 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	}
 	return &Result{}
 }
- 
+
 // refreshLargestRootPage recomputes meta[3] (header[52:56], the largest
 // root b-tree page number) from the remaining table+index schema entries
 // and writes it via pager.SetLargestRootPage. Mirrors btree.c

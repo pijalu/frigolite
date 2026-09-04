@@ -226,7 +226,7 @@ func (t *BTree) mergeOrFreeEmptyLeaf(e emptyLeafInfo) (bool, error) {
 	if err := t.removeLeafFromParent(e.parent, e.leaf, e.cellIdx); err != nil {
 		return false, err
 	}
-	if err := t.pager.FreePage(e.leaf); err != nil {
+	if err := t.freePageWithPtrmap(e.leaf); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -345,7 +345,7 @@ func (t *BTree) mergeIntoLeft(src, dst, parent uint32, srcParentIdx, dstParentId
 	if err := t.removeLeafFromParent(parent, src, srcParentIdx); err != nil {
 		return false, err
 	}
-	if err := t.pager.FreePage(src); err != nil {
+	if err := t.freePageWithPtrmap(src); err != nil {
 		return false, err
 	}
 	_ = dstParentIdx
@@ -440,7 +440,7 @@ func (t *BTree) freeLeafOverflows(pg *pager.Page, coff int, page *storage.BTreeP
 				break
 			}
 			next := binary.BigEndian.Uint32(np.Data[0:4])
-			if err := t.pager.FreePage(pn); err != nil {
+			if err := t.freePageWithPtrmap(pn); err != nil {
 				return err
 			}
 			pn = next

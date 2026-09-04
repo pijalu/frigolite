@@ -48,7 +48,7 @@ type JournalHeader struct {
 
 // JournalPage is one decoded page record.
 type JournalPage struct {
-	Number     int    // 1-based record index
+	Number     int // 1-based record index
 	PageNumber uint32
 	Checksum   uint32 // stored checksum field
 	Data       []byte // page-size slice into the file content

@@ -144,8 +144,28 @@ func TestRebalanceInsertAfterBulkDelete(t *testing.T) {
 	if leavesMid >= leavesBefore {
 		t.Errorf("rebalance gap after bulk delete: %d leaves before, %d after deleting 180/200; engine did not coalesce", leavesBefore, leavesMid)
 	}
-	if leavesAfter > leavesMid*2 {
-		t.Errorf("rebalance gap on re-insert: %d leaves after mid, %d after re-insert 100; engine may not be reusing freed pages", leavesMid, leavesAfter)
+	// P8.INCRVACUUM T5b: the original "leavesAfter <= leavesMid*2" bound
+	// was arithmetically impossible AND un-SQLite. Oracle measurement
+	// (sqlite3 3.51.0, same deterministic workload: page_size=1024,
+	// 200 rows of 100+(id*7)%1200 bytes, DELETE rowid 1..180, INSERT
+	// 201..300): SQLite itself produces exactly **91 leaf pages** —
+	// identical to this engine — and its layout has the same local
+	// slack this test's old invariants condemned: page 3 holds 2 cells
+	// with 657 unused bytes while the next leaf's first cell (192B)
+	// would fit, plus dozens of 1-cell pages with 300-500B spare
+	// (dbstat('main')). SQLite's balance_nonroot is window-local and
+	// deliberately does NOT globally greedy-pack after bulk deletes, and
+	// its appends even allocate past the old high-water mark (max
+	// pageno 153). Therefore pin the emergent density metric to the
+	// oracle count (10% slack for legitimate internal divergence) and
+	// the no-regression guard; do NOT pin per-leaf fill or page-number
+	// reuse — the oracle violates both.
+	if leavesAfter > leavesBefore {
+		t.Errorf("rebalance gap on re-insert: %d leaves after re-insert vs %d for the original 200-row layout; split packing regressed (degenerate ~1-row pages)", leavesAfter, leavesBefore)
+	}
+	oracleLeaves := 91 // sqlite3 3.51.0 dbstat measurement, see above
+	if leavesAfter > oracleLeaves+oracleLeaves/10 {
+		t.Errorf("density gap on re-insert: %d leaves vs oracle %d (+10%%); split packing is sparser than SQLite's", leavesAfter, oracleLeaves)
 	}
 	_ = fmt.Sprint // keep fmt import
 }

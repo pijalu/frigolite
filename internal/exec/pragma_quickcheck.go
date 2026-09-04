@@ -120,15 +120,15 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	if !ok {
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
-		// Multi-line per-page diagnostics (Tree N page M cell K: 2nd reference
-		// to page X / Page Y: never used). Mirrors btree.c::checkTree /
-		// checkTreePage. corrupt2-5.1 asserts the "Tree 2 page 2 cell 0:
-		// 2nd reference to page 10 / Page 4: never used" diagnostic format.
-		e.checkTreePage(emit)
-		if msg := e.checkFreelistCount(emit); msg != "" {
-			emit(msg)
-		}
-		e.quickCheckTables(arg, emit)
+	// Multi-line per-page diagnostics (Tree N page M cell K: 2nd reference
+	// to page X / Page Y: never used). Mirrors btree.c::checkTree /
+	// checkTreePage. corrupt2-5.1 asserts the "Tree 2 page 2 cell 0:
+	// 2nd reference to page 10 / Page 4: never used" diagnostic format.
+	e.checkTreePage(emit)
+	if msg := e.checkFreelistCount(emit); msg != "" {
+		emit(msg)
+	}
+	e.quickCheckTables(arg, emit)
 
 	if len(rows) == 0 {
 		rows = append(rows, []interface{}{"ok"})

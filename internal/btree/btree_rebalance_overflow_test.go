@@ -136,7 +136,7 @@ func TestRebalancePreservesFreeblockOrderCells(t *testing.T) {
 	for id := range live {
 		cur, _ := tr.OpenCursor()
 		found, serr := cur.SeekToRowID(id)
-		
+
 		if serr != nil || !found {
 			t.Errorf("key %d missing after fragment+rebalance (found=%v err=%v)", id, found, serr)
 		}
@@ -194,7 +194,7 @@ func TestRebalancePreservesMixedPayloadSizes(t *testing.T) {
 	for id := range live {
 		cur, _ := tr.OpenCursor()
 		found, serr := cur.SeekToRowID(id)
-		
+
 		if serr != nil || !found {
 			t.Errorf("key %d missing (found=%v err=%v)", id, found, serr)
 		}

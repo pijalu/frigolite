@@ -256,6 +256,64 @@ func (p *Pager) WritePtrmap(pgno uint32, parentType byte, parentPgno uint32) err
 	return nil
 }
 
+// AllocateRootPage allocates a b-tree root page and, when auto-vacuum is
+// active, immediately records its PtrmapRootpage entry (btree.c
+// btreeCreateTable's ptrmapPut(pBt, pgnoRoot, PTRMAP_ROOTPAGE, 0),
+// src/btree.c:10126). Without this, relocatePage would treat a freshly
+// created table root as an orphan page and incremental vacuum could
+// relocate a live root. The caller still owns page-content initialization.
+func (p *Pager) AllocateRootPage() (*Page, error) {
+	pg := p.AllocatePage()
+	if p.autoVacuum {
+		if err := p.WritePtrmap(pg.PageNum, storage.PtrmapRootpage, 0); err != nil {
+			return nil, err
+		}
+	}
+	return pg, nil
+}
+
+// TakePageFromFreelist removes pgno from the freelist without handing
+// the page to a caller (mirror of allocateBtreePage's BTALLOC_EXACT pop
+// used by incrVacuumStep for a trailing FREE page when bCommit==0,
+// src/btree.c:4025-4032). The on-disk chain entry is properly removed
+// (trunk advance or copy-last-into-slot leaf removal) and the header
+// freelist count is decremented, so the chain stays consistent below
+// the truncation point that the caller performs afterwards.
+func (p *Pager) TakePageFromFreelist(pgno uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if !p.freePages[pgno] {
+		return
+	}
+	delete(p.freePages, pgno)
+	p.popFromFreePagesChainLocked(pgno)
+}
+
+// ZeroFreelistChain clears the on-disk freelist header fields
+// (header.trunk = 0, header.count = 0). Mirror of autoVacuumCommit's
+// post-drain step (src/btree.c:4247-4252):
+//
+//	rc = sqlite3PagerWrite(pBt->pPage1->pDbPage);
+//	if( nVac==nFree ){ put4byte(&pBt->pPage1->aData[32], 0); ... [36], 0); }
+//
+// After a full autovacuum drain every former free page has been either
+// relocated into or truncated away; chain entries that survive on disk
+// are intentionally garbage at that point (same as SQLite) and the
+// zeroed header makes that legal for integrity_check's freelist walk.
+func (p *Pager) ZeroFreelistChain() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.header == nil || len(p.header) < 40 {
+		return
+	}
+	binary.BigEndian.PutUint32(p.header[32:36], 0)
+	binary.BigEndian.PutUint32(p.header[36:40], 0)
+	p.dirty[1] = true
+	if pg, ok := p.pages[1]; ok && pg != nil {
+		copy(pg.Data[:HeaderSize], p.header)
+	}
+}
+
 // IsPageOnFreelist reports whether pgno is currently on the in-memory
 // freelist (P8.INCRVACUUM phase 3). Used by IncrVacuumStep to decide
 // whether the last page of the file can be truncated directly (it's on

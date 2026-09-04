@@ -44,7 +44,7 @@ func (t *BTree) FreeTable(rootPage uint32) error {
 	// reverse-walk order so the most-root pages are freed last
 	// (which is what a human reading the freelist would expect).
 	for i := len(pages) - 1; i >= 0; i-- {
-		if err := t.pager.FreePage(pages[i]); err != nil {
+		if err := t.freePageWithPtrmap(pages[i]); err != nil {
 			return err
 		}
 	}

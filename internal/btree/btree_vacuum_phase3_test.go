@@ -70,7 +70,7 @@ func TestRelocatePageBasic(t *testing.T) {
 			parent = tr.RootPage()
 		}
 		writePtrmapForParent(t, tr, leaf, parent, parentType)
-		}
+	}
 	// Pick a non-root leaf, free a slot manually (mimic the
 	// post-DELETE state), then relocate the last page to it.
 	lastPg := pg.NumPages()
@@ -82,12 +82,12 @@ func TestRelocatePageBasic(t *testing.T) {
 	// pager.WritePtrmap call rejects them with "pgno N is a pointer-map page".
 	// pageSize=1024 means every (1024/5)+1 = 205 pages is a ptrmap page;
 	// pageSize=4096 means every 818. Walk backward to find a non-ptrmap slot.
-		for storage.IsPtrmapPageNo(target, tr.pageSize) && target > 1 {
+	for storage.IsPtrmapPageNo(target, tr.pageSize) && target > 1 {
 		target--
-		}
-		if target <= 1 {
+	}
+	if target <= 1 {
 		t.Skipf("could not find a non-ptrmap target near lastPg=%d", lastPg)
-		}
+	}
 	// We need a "free" page to be allocated. AllocatePageLE returns
 	// one from the in-memory freelist, which is empty, so this would
 	// fail. Instead, use the last page of the file as the "to"
@@ -133,7 +133,7 @@ func TestIncrVacuumStepFreelistOnly(t *testing.T) {
 		}
 	}
 	before := pg.NumPages()
-	steps, err := tr.IncrVacuumStep(3)
+	steps, err := tr.IncrVacuumStep(3, false)
 	if err != nil {
 		t.Fatalf("IncrVacuumStep: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestIncrVacuumStepInUseLastPage(t *testing.T) {
 	tr, pg := newBtreeForVacuum(t, 1024)
 	fillBtreeWithBigRows(t, tr, 10, 800)
 	// No free pages in this scenario. IncrVacuumStep should be a no-op.
-	steps, err := tr.IncrVacuumStep(5)
+	steps, err := tr.IncrVacuumStep(5, false)
 	if err != nil {
 		t.Fatalf("IncrVacuumStep: %v", err)
 	}

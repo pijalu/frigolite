@@ -153,10 +153,10 @@ func (t *BTree) rebuildPage(pg *pager.Page, b *balanceCellArray, iFirst, nCell i
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+8+k*2:ptrBase+8+k*2+2], uint16(pos))
 	}
 	// Update page header.
-	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0)            // first freeblock
+	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0)             // first freeblock
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(nCell)) // cell count
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(pos))   // cell content start
-	pg.Data[coff+7] = 0                                              // frag free
+	pg.Data[coff+7] = 0                                               // frag free
 	_ = page
 	return nil
 }

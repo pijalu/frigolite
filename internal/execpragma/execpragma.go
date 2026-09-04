@@ -77,8 +77,11 @@ type EngineState interface {
 
 	// IncrementalVacuum performs PRAGMA incremental_vacuum on a schema,
 	// following btree.c sqlite3BtreeIncrVacuum (corruption guard on the
-	// header freelist count, then the vacuum step work).
-	IncrementalVacuum(schema string) *Result
+	// header freelist count, then the vacuum step work). limit is the
+	// N-step cap from `PRAGMA incremental_vacuum(N)` (pragma.c
+	// PragTyp_INCREMENTAL_VACUUM; an absent or non-positive N means
+	// 0x7fffffff — the VDBE loops OP_IncrVacuum until SQLITE_DONE).
+	IncrementalVacuum(schema string, limit int64) *Result
 
 	// Report pragmas.
 	LockStatus() *Result
@@ -475,7 +478,15 @@ var pragmaHandlers = map[string]Handler{
 		return st.AutoVacuum(s.Schema, s.Value)
 	},
 	"INCREMENTAL_VACUUM": func(st EngineState, s *sql.PragmaStmt) *Result {
-		return st.IncrementalVacuum(s.Schema)
+		// pragma.c PragTyp_INCREMENTAL_VACUUM: an absent, non-integer,
+		// or non-positive N means "no limit" (0x7fffffff).
+		limit := int64(0x7fffffff)
+		if s.Value != "" {
+			if n, err := strconv.ParseInt(s.Value, 10, 32); err == nil && n > 0 {
+				limit = n
+			}
+		}
+		return st.IncrementalVacuum(s.Schema, limit)
 	},
 	"SYNCHRONOUS": pragmaGetOnly(func(st EngineState) *Result {
 		return &Result{Rows: [][]interface{}{{int64(1)}}}

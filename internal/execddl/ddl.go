@@ -81,7 +81,10 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return res
 	}
 
-	pg := ctx.Pager.AllocatePage()
+	pg, perr := ctx.Pager.AllocateRootPage()
+	if perr != nil {
+		return &Result{Error: perr}
+	}
 	// A reused page (from a dropped table) must not carry the previous
 	// table's cached rowid sequence; a fresh table starts at rowid 1.
 	e.ctx.ClearRowIDState(ctx.Pager, pg.PageNum)
@@ -730,7 +733,10 @@ func (e *DDLExecutor) ensureSQLiteSequenceTable(ctx *DatabaseContext) error {
 			}
 		}
 	}
-	pg := ctx.Pager.AllocatePage()
+	pg, perr := ctx.Pager.AllocateRootPage()
+	if perr != nil {
+		return perr
+	}
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}

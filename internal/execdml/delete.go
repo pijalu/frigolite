@@ -326,6 +326,12 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 		}); err != nil {
 			return &Result{Error: err}
 		}
+		// Remove the deleted rows' index entries (SQLite OP_Delete deletes
+		// from every index; stale entries pin overflow pages and stall
+		// auto-vacuum truncation).
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, deletedRows); err != nil {
+			return &Result{Error: err}
+		}
 		for _, row := range deletedRows {
 			rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
 			oldVals := e.rowMapColumnValues(row, colDefs)
@@ -359,6 +365,9 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 			if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 				return cell.RowID == rowID
 			}); err != nil {
+				return &Result{Error: err}
+			}
+			if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{row}); err != nil {
 				return &Result{Error: err}
 			}
 			// Fire the preupdate hook with the deleted row's values.
@@ -416,6 +425,9 @@ func (e *DMLExecutor) execDeleteReturning(s *sql.DeleteStmt, tableEntry *schema.
 		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 			return cell.RowID == rowID
 		}); err != nil {
+			return &Result{Error: err}
+		}
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{row}); err != nil {
 			return &Result{Error: err}
 		}
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)

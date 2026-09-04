@@ -57,7 +57,9 @@ var oracleInsert = ptrmapFixture{
 
 // oracleDelete adds the post-DELETE (pre-vacuum) state: the freed chain of
 // row 2 (8-11) and the rebalance-freed leaf 18 carry type FREE (btree.c
-// freePage → ptrmapPut(PTRMAP_FREEPAGE)).
+// freePage → ptrmapPut(PTRMAP_FREEPAGE)). The balance also moves row 3's
+// cell from the freed leaf 18 into survivor 13, so the chain's first
+// overflow (14) is re-parented to 13 (ptrmapPutOvflPtr, src/btree.c:8783).
 var oracleDelete = func() ptrmapFixture {
 	f := ptrmapFixture{}
 	for pg, e := range oracleInsert {
@@ -69,6 +71,10 @@ var oracleDelete = func() ptrmapFixture {
 			parent uint32
 		}{storage.PtrmapFreelist, 0}
 	}
+	f[14] = struct {
+		typ    byte
+		parent uint32
+	}{storage.PtrmapOverflow1, 13}
 	return f
 }()
 

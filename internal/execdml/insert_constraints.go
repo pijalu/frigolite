@@ -491,6 +491,11 @@ func (e *DMLExecutor) deleteReplaceConflictRow(tree *btree.BTree, tableEntry *sc
 	}); err != nil {
 		return &Result{Error: err}
 	}
+	// Remove the conflicting row's index entries (REPLACE deletes the old
+	// row; its index entries must go with it).
+	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{oldRow}); err != nil {
+		return &Result{Error: err}
+	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 	// Fire the preupdate hook for the deleted conflicting row (REPLACE
 	// deletes the old row, then the INSERT fires for the new one).

@@ -31,7 +31,7 @@ import (
 // header.count / chain-walked-count mismatch. The file is actually shrunk
 // at COMMIT (AutoVacuumCommit on FULL mode / IncrVacuumStep on
 // INCREMENTAL-mode COMMITs).
-func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
+func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Result {
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
 		return &execpragma.Result{}
@@ -51,46 +51,56 @@ func (e *Engine) IncrementalVacuum(schema string) *execpragma.Result {
 	// Transactional guard (P8.INCRVACUUM.phase7): yield the row and
 	// return without modifying the file or the chain count. The vacuum
 	// is performed at COMMIT (or the user's next incremental_vacuum
-	// after ROLLBACK). For non-transactional callers the original
-	// step+decrement path runs below.
+	// after ROLLBACK). For non-transactional callers the step loop
+	// runs below.
 	if e.tx.inTransaction {
 		return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
 	}
-	// Run one IncrVacuumStep via the btree (P8.INCRVACUUM phase 3).
-	steps, err := e.runIncrVacuumStep(ctx)
-	if err != nil {
-		// If the step fails (e.g. no free page available for a
-		// non-freelist last page), we still surface a row so the
-		// `db eval {PRAGMA incremental_vacuum}` callback chain
-		// terminates. The DecrementFreelistCount below is the
-		// existing row-yield mechanism.
-		_ = err
+	// btree.c sqlite3BtreeIncrVacuum + pragma.c PragTyp_INCREMENTAL_VACUUM:
+	// the VDBE loops OP_IncrVacuum — one incrVacuumStep per iteration —
+	// until SQLITE_DONE or the N-step limit. Each step (truncate a free
+	// tail page, or relocate the live last page onto the lowest free
+	// page) maintains the freelist count, the freelist chain, and the
+	// header page count itself; the pragma adds no bookkeeping of its
+	// own (a DecrementFreelistCount here would double-count against
+	// Truncate's own truncatedFree adjustment — "Freelist: size is N
+	// but should be M").
+	total := int64(0)
+	var rows [][]interface{}
+	for total < limit {
+		steps, err := e.runIncrVacuumStep(ctx, false)
+		if err != nil {
+			// A failed step (e.g. the relocation orphan branch)
+			// ends the loop; whatever steps already completed are
+			// reported. The `db eval {PRAGMA incremental_vacuum}`
+			// callback chain terminates on the last row.
+			_ = err
+			break
+		}
+		if steps == 0 {
+			break // SQLITE_DONE — no more work
+		}
+		total += int64(steps)
+		rows = append(rows, []interface{}{int64(1)})
 	}
-	// Only consume one free page if the step actually did work.
-	// P8.INCRVACUUM: when the orphan branch is taken (parent not
-	// found in the btree), the step returns steps=0 and the file
-	// is not shrunk. Decrementing the count in that case would
-	// create a header.count / chain-walked-count mismatch
-	// (checkFreelistCount reports it as "Freelist: size is N but
-	// should be M").
-	if steps == 0 {
+	if total == 0 {
 		return &execpragma.Result{}
 	}
-	// Consume one free page: decrement header count and emit a row.
-	ctx.Pager.DecrementFreelistCount(1)
-	return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
+	return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: rows}
 }
 
 // runIncrVacuumStep performs a single btree.c incrVacuumStep: the last
 // page of the file is either on the freelist (just truncate) or in
 // use (relocate to a low free page via AllocatePageLE + RelocatePage,
-// then truncate). The step does one page of work.
+// then truncate). The step does one page of work. bCommit mirrors the
+// C parameter: false for PRAGMA incremental_vacuum, true for the
+// autocommit drain (autoVacuumCommit).
 //
 // Reference: btree.c sqlite3BtreeIncrVacuum / incrVacuumStep
-// (~line 6780 / 6700).
-func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext) (int, error) {
+// (~line 6780 / 4010).
+func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext, bCommit bool) (int, error) {
 	bt := btree.NewBTree(ctx.Pager, 1, true)
-	steps, err := bt.IncrVacuumStep(1)
+	steps, err := bt.IncrVacuumStep(1, bCommit)
 	return steps, err
 }
 
@@ -139,7 +149,7 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	// (the loop breaks when no progress is made).
 	for i := uint32(0); ; i++ {
 		npBefore := ctx.Pager.NumPages()
-		_, err := e.runIncrVacuumStep(ctx)
+		_, err := e.runIncrVacuumStep(ctx, true)
 		if err != nil {
 			break
 		}
@@ -152,13 +162,29 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 			break
 		}
 	}
+	// P8.INCRVACUUM.T5: mirror autoVacuumCommit's post-drain step
+	// (src/btree.c:4247-4252): when the whole freelist was drained
+	// (nVac==nFree), the chain header is zeroed — chain entries that
+	// survive on disk are intentionally garbage at that point (every
+	// former free page was relocated into or truncated away), and the
+	// zeroed trunk/count make that legal for integrity_check. Without
+	// this, header.trunk could point above the truncation point and
+	// later chain walks (checkFreelistCount) would read truncated
+	// pages. A callback-capped batch (nVac<nFree) keeps the chain:
+	// remaining free pages below the truncation point are still
+	// reachable through it, exactly as in SQLite.
+	if nVac == nFree {
+		ctx.Pager.ZeroFreelistChain()
+	}
 	return int(totalSteps), nil
 }
 
 // SetAutovacuumPagesCallback registers (or clears, if nil) a
 // callback fired by AutoVacuumCommit before each batch. The callback
 // signature mirrors btree.c sqlite3_autovacuum_pages:
-//   cb(schema, fileSize, nFree, pageSize) -> nVac
+//
+//	cb(schema, fileSize, nFree, pageSize) -> nVac
+//
 // The engine returns the desired number of pages to vacuum this
 // batch (clamped to nFree).
 func (e *Engine) SetAutovacuumPagesCallback(cb func(schema string, fileSize, nFree, pageSize uint32) uint32) {

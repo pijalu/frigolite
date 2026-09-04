@@ -61,14 +61,14 @@ type Pager struct {
 	// 0 bytes when opened (pager.c lazy creation): opening it must not
 	// materialize the file.
 	openedEmpty bool
-		// headerCorrupt records that Open was given a file whose 100-byte header
-		// did not parse (bad magic, short header, etc.). SQLite defers header
-		// errors to the first statement; frigolite mirrors that so tests like
-		// corrupt2-1.2 can run their expected error-producing query against the
-		// open connection rather than seeing Open itself fail. The flag is
-		// read by the schema-init path which produces "file is not a database"
-		// on the first SELECT * FROM sqlite_master.
-		headerCorrupt bool
+	// headerCorrupt records that Open was given a file whose 100-byte header
+	// did not parse (bad magic, short header, etc.). SQLite defers header
+	// errors to the first statement; frigolite mirrors that so tests like
+	// corrupt2-1.2 can run their expected error-producing query against the
+	// open connection rather than seeing Open itself fail. The flag is
+	// read by the schema-init path which produces "file is not a database"
+	// on the first SELECT * FROM sqlite_master.
+	headerCorrupt bool
 	// path is the canonical database file path (filepath.Clean'd), used to
 	// derive the "-wal"/"-shm" companion files in WAL mode.
 	path string
@@ -323,10 +323,10 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	}
 
 	if info.Size() > 0 {
-			// Read the 100-byte header first: it contains the real page size.
-			headerBuf := make([]byte, HeaderSize)
-			n, err := f.ReadAt(headerBuf, 0)
-			if err != nil && n < HeaderSize {
+		// Read the 100-byte header first: it contains the real page size.
+		headerBuf := make([]byte, HeaderSize)
+		n, err := f.ReadAt(headerBuf, 0)
+		if err != nil && n < HeaderSize {
 			// Short read (file smaller than the 100-byte header) — SQLite
 			// does not fail on Open; it defers to the first statement that
 			// touches the page (which then reports "file is not a database"
@@ -336,10 +336,10 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 			// incrvacuum.test-14.1 depend on this deferral.)
 			pr.pageSize = DefaultPageSize
 			pr.headerCorrupt = true
-			} else if err != nil {
+		} else if err != nil {
 			f.Close()
 			return nil, fmt.Errorf("pager: read header: %w", err)
-			} else if hdr, perr := storage.ParseHeader(headerBuf); perr != nil {
+		} else if hdr, perr := storage.ParseHeader(headerBuf); perr != nil {
 			// SQLite's sqlite3PagerOpen does NOT fail on bad header parse: the
 			// error is surfaced by the first statement that touches the page
 			// (sqlite_master scan reports "file is not a database" via
@@ -352,14 +352,14 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 			// require this deferral.
 			pr.pageSize = DefaultPageSize
 			pr.headerCorrupt = true
-			} else {
+		} else {
 			pr.pageSize = hdr.PageSize
 			// Header byte 20: bytes reserved at the end of every page (used by
 			// e.g. codec/checksum extensions). Payload distribution math must use
 			// the USABLE size (pageSize - reserved), not the raw page size —
 			// SQLite files written with reserved > 0 are otherwise unreadable.
 			pr.reserved = uint32(hdr.ReservedSpace)
-			}
+		}
 		// Read full page 1 into a temporary buffer
 		fullPage := make([]byte, pr.pageSize)
 		if _, err := f.ReadAt(fullPage, 0); err != nil && err != io.EOF {
@@ -519,11 +519,11 @@ func (p *Pager) ValidateHeader() error {
 	// If Open observed a header that did not parse (bad magic / short header),
 	// mirror SQLite's deferral: surface "file is not a database" on the first
 	// statement that actually reads the schema btree. corrupt2.test 1.2/1.3/1.5
-		// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
-		// returns the error).
-		if p.headerCorrupt {
-			return fmt.Errorf("database disk image is malformed")
-		}
+	// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
+	// returns the error).
+	if p.headerCorrupt {
+		return fmt.Errorf("database disk image is malformed")
+	}
 	freelistTrunk := binary.BigEndian.Uint32(p.header[32:36])
 	freelistCount := binary.BigEndian.Uint32(p.header[36:40])
 	largestRoot := binary.BigEndian.Uint32(p.header[52:56])
@@ -634,9 +634,9 @@ func (p *Pager) MarkClean() {
 // OpenedEmpty reports whether the database file was 0 bytes when opened.
 func (p *Pager) OpenedEmpty() bool { return p.openedEmpty }
 
-func (p *Pager) NumPages() uint32 { p.mu.RLock(); defer p.mu.RUnlock(); return p.numPages }
+func (p *Pager) NumPages() uint32        { p.mu.RLock(); defer p.mu.RUnlock(); return p.numPages }
 func (p *Pager) Pages() map[uint32]*Page { p.mu.RLock(); defer p.mu.RUnlock(); return p.pages }
-func (p *Pager) Header() []byte   { p.mu.RLock(); defer p.mu.RUnlock(); return p.header }
+func (p *Pager) Header() []byte          { p.mu.RLock(); defer p.mu.RUnlock(); return p.header }
 
 // IsHeaderCorrupt reports whether Open observed a 100-byte header that did
 // not parse (bad magic, short header, etc.). The schema-init path reads
@@ -934,14 +934,14 @@ func (p *Pager) pickNextFreePageLocked() uint32 {
 // P8.INCRVACUUM.phase8: extracted from AllocatePage so AllocatePageLE
 // (the page-swap target allocator) can use the same chain-aware pop.
 // The on-disk chain has three cases for `pgno`:
-//   1. pgno is a trunk: advance header.trunk to the trunk's nextTrunk
-//      and remove from p.trunkPages.
-//   2. pgno is a leaf of some trunk: find the leaf slot, shift the
-//      last leaf into it (or zero the slot if it's the last leaf),
-//      decrement the trunk's leafCount, mark the trunk dirty, remove
-//      from p.leafToTrunk.
-//   3. pgno is an orphan (not in chain, not in p.freePages): nothing
-//      to do beyond decrementing header.count.
+//  1. pgno is a trunk: advance header.trunk to the trunk's nextTrunk
+//     and remove from p.trunkPages.
+//  2. pgno is a leaf of some trunk: find the leaf slot, shift the
+//     last leaf into it (or zero the slot if it's the last leaf),
+//     decrement the trunk's leafCount, mark the trunk dirty, remove
+//     from p.leafToTrunk.
+//  3. pgno is an orphan (not in chain, not in p.freePages): nothing
+//     to do beyond decrementing header.count.
 func (p *Pager) popFromFreePagesChainLocked(pgno uint32) {
 	if p.header == nil || len(p.header) < 40 {
 		return
@@ -1089,13 +1089,13 @@ func (p *Pager) popFromFreePagesChainLocked(pgno uint32) {
 			}
 		}
 		delete(p.leafToTrunk, pgno)
-		}
-		count := binary.BigEndian.Uint32(p.header[36:40])
-		if count > 0 {
-			binary.BigEndian.PutUint32(p.header[36:40], count-1)
-		}
-		p.dirty[1] = true
 	}
+	count := binary.BigEndian.Uint32(p.header[36:40])
+	if count > 0 {
+		binary.BigEndian.PutUint32(p.header[36:40], count-1)
+	}
+	p.dirty[1] = true
+}
 
 // For page 1, the first HeaderSize bytes are reserved for the database header.
 // With auto-vacuum enabled, page numbers at pointer-map positions are
@@ -1132,107 +1132,107 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 		if len(p.freePages) > 0 {
 			next := p.pickNextFreePageLocked()
 			if next != 0 {
-			delete(p.freePages, next)
-			// P8.INCRVACUUM.phase8: maintain the on-disk chain
-			// (extracted to popFromFreePagesChainLocked so
-			// AllocatePageLE can share the same logic).
-			p.popFromFreePagesChainLocked(next)
-			pg := &Page{Data: make([]byte, p.pageSize), PageNum: next}
-			p.pages[next] = pg
-			p.dirty[next] = true
-			return pg
+				delete(p.freePages, next)
+				// P8.INCRVACUUM.phase8: maintain the on-disk chain
+				// (extracted to popFromFreePagesChainLocked so
+				// AllocatePageLE can share the same logic).
+				p.popFromFreePagesChainLocked(next)
+				pg := &Page{Data: make([]byte, p.pageSize), PageNum: next}
+				p.pages[next] = pg
+				p.dirty[next] = true
+				return pg
+			}
 		}
-	}
-	// If the on-disk freelist has pages (header byte 32..36 = trunk, 36..40 =
-	// count), recycle one instead of extending the file. SQLite's
-	// allocateBtreePage branch in btree.c consumes freelist pages before
-	// extending the database. Without this, DELETE/DROP never recycle pages
-	// (vacuum.go documents that), and PRAGMA integrity_check can't see a
-	// meaningful freelist count. corrupt2-14.2/14.3/14.5 depend on the
-	// freelist count surviving a DELETE and being mismatched by a hex patch.
-	if p.header != nil && len(p.header) >= 40 {
-		trunk := binary.BigEndian.Uint32(p.header[32:36])
-		count := binary.BigEndian.Uint32(p.header[36:40])
-		if trunk != 0 && count > 0 && trunk <= p.numPages {
-			trunkPg, terr := p.readPageLocked(trunk)
-			if terr == nil && len(trunkPg.Data) >= 8 {
-				// The trunk page is a freelist trunk: first 4 bytes = next trunk
-				// (or 0 if last), bytes 4..6 = leaf count, bytes 8+ = leaves. Pop
-				// the trunk itself (subtract 1 from count) and clear the leaf
-				// pages too so checkFreelistCount doesn't count them as still
-				// reachable. (The leaf pages were the original overflow pages of
-				// deleted cells — they are no longer valid freelist entries once
-				// the trunk itself is consumed.)
-				nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
-				// SQLite freelist trunk format (btree.c:10701): leaf count is
-				// a 4-byte big-endian integer at offset 4, NOT 2 bytes. Reading
-				// only 2 bytes also pulls bytes 6..7 which are the high two bytes
-				// of the first leaf page number, yielding a garbage count that
-				// confuses the integrity_check walker. pragma_quickcheck.go reads
-				// 4 bytes for the same reason.
-				leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
-				clearedLeaves := uint32(0)
-				for i := 0; i < int(leafCount); i++ {
-					off := 8 + i*4
-					if off+4 > len(trunkPg.Data) {
-						break
-					}
-					leafPg := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
-					if leafPg != 0 && leafPg <= p.numPages {
-						if lp, lerr := p.readPageLocked(leafPg); lerr == nil {
-							for j := range lp.Data {
-								lp.Data[j] = 0
-							}
-							p.dirty[leafPg] = true
-							clearedLeaves++
-							// P8.INCRVACUUM.phase8: the leaf
-							// is being consumed by the on-disk
-							// branch. Remove from leafToTrunk
-							// (the entry pointing to this
-							// trunk).
-							if p.leafToTrunk != nil {
-								if existingT, ok := p.leafToTrunk[leafPg]; ok && existingT == trunk {
-									delete(p.leafToTrunk, leafPg)
+		// If the on-disk freelist has pages (header byte 32..36 = trunk, 36..40 =
+		// count), recycle one instead of extending the file. SQLite's
+		// allocateBtreePage branch in btree.c consumes freelist pages before
+		// extending the database. Without this, DELETE/DROP never recycle pages
+		// (vacuum.go documents that), and PRAGMA integrity_check can't see a
+		// meaningful freelist count. corrupt2-14.2/14.3/14.5 depend on the
+		// freelist count surviving a DELETE and being mismatched by a hex patch.
+		if p.header != nil && len(p.header) >= 40 {
+			trunk := binary.BigEndian.Uint32(p.header[32:36])
+			count := binary.BigEndian.Uint32(p.header[36:40])
+			if trunk != 0 && count > 0 && trunk <= p.numPages {
+				trunkPg, terr := p.readPageLocked(trunk)
+				if terr == nil && len(trunkPg.Data) >= 8 {
+					// The trunk page is a freelist trunk: first 4 bytes = next trunk
+					// (or 0 if last), bytes 4..6 = leaf count, bytes 8+ = leaves. Pop
+					// the trunk itself (subtract 1 from count) and clear the leaf
+					// pages too so checkFreelistCount doesn't count them as still
+					// reachable. (The leaf pages were the original overflow pages of
+					// deleted cells — they are no longer valid freelist entries once
+					// the trunk itself is consumed.)
+					nextTrunk := binary.BigEndian.Uint32(trunkPg.Data[0:4])
+					// SQLite freelist trunk format (btree.c:10701): leaf count is
+					// a 4-byte big-endian integer at offset 4, NOT 2 bytes. Reading
+					// only 2 bytes also pulls bytes 6..7 which are the high two bytes
+					// of the first leaf page number, yielding a garbage count that
+					// confuses the integrity_check walker. pragma_quickcheck.go reads
+					// 4 bytes for the same reason.
+					leafCount := binary.BigEndian.Uint32(trunkPg.Data[4:8])
+					clearedLeaves := uint32(0)
+					for i := 0; i < int(leafCount); i++ {
+						off := 8 + i*4
+						if off+4 > len(trunkPg.Data) {
+							break
+						}
+						leafPg := binary.BigEndian.Uint32(trunkPg.Data[off : off+4])
+						if leafPg != 0 && leafPg <= p.numPages {
+							if lp, lerr := p.readPageLocked(leafPg); lerr == nil {
+								for j := range lp.Data {
+									lp.Data[j] = 0
+								}
+								p.dirty[leafPg] = true
+								clearedLeaves++
+								// P8.INCRVACUUM.phase8: the leaf
+								// is being consumed by the on-disk
+								// branch. Remove from leafToTrunk
+								// (the entry pointing to this
+								// trunk).
+								if p.leafToTrunk != nil {
+									if existingT, ok := p.leafToTrunk[leafPg]; ok && existingT == trunk {
+										delete(p.leafToTrunk, leafPg)
+									}
 								}
 							}
 						}
 					}
+					binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
+					// P8.INCRVACUUM.phase8: the trunk itself is
+					// being consumed; remove from trunkPages.
+					// The chain's new head is nextTrunk; if it's
+					// non-zero, it must also be in trunkPages
+					// (it was already there from the FreePage
+					// that chained it).
+					if p.trunkPages != nil {
+						delete(p.trunkPages, trunk)
+					}
+					// Decrement count by 1 (for the trunk) plus the number of leaves
+					// we cleared (each leaf was a free page in the chain). Without
+					// this, after AllocatePage consumes a trunk with leaves, the
+					// header's count stays high while checkFreelistCount no longer
+					// sees those pages (we zeroed them), so integrity_check reports
+					// a "size is N but should be M" mismatch (corrupt2-14.5).
+					totalFreed := uint32(1) + clearedLeaves
+					if totalFreed > count {
+						totalFreed = count
+					}
+					binary.BigEndian.PutUint32(p.header[36:40], count-totalFreed)
+					p.dirty[trunk] = true
+					delete(p.pages, trunk)
+					pg := &Page{
+						Data:    make([]byte, p.pageSize),
+						PageNum: trunk,
+					}
+					p.pages[trunk] = pg
+					p.dirty[trunk] = true
+					return pg
 				}
-				binary.BigEndian.PutUint32(p.header[32:36], nextTrunk)
-				// P8.INCRVACUUM.phase8: the trunk itself is
-				// being consumed; remove from trunkPages.
-				// The chain's new head is nextTrunk; if it's
-				// non-zero, it must also be in trunkPages
-				// (it was already there from the FreePage
-				// that chained it).
-				if p.trunkPages != nil {
-					delete(p.trunkPages, trunk)
-				}
-				// Decrement count by 1 (for the trunk) plus the number of leaves
-				// we cleared (each leaf was a free page in the chain). Without
-				// this, after AllocatePage consumes a trunk with leaves, the
-				// header's count stays high while checkFreelistCount no longer
-				// sees those pages (we zeroed them), so integrity_check reports
-				// a "size is N but should be M" mismatch (corrupt2-14.5).
-				totalFreed := uint32(1) + clearedLeaves
-				if totalFreed > count {
-					totalFreed = count
-				}
-				binary.BigEndian.PutUint32(p.header[36:40], count-totalFreed)
-				p.dirty[trunk] = true
-				delete(p.pages, trunk)
-				pg := &Page{
-					Data:    make([]byte, p.pageSize),
-					PageNum: trunk,
-				}
-				p.pages[trunk] = pg
-				p.dirty[trunk] = true
-				return pg
 			}
 		}
 	}
-}
-p.numPages++
+	p.numPages++
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
 	// a pointer-map page, zero it out (no b-tree header — its content is a
 	// flat array of 5-byte entries maintained by ptrmapPut, unused until
@@ -1354,8 +1354,6 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		_, err := p.file.ReadAt(pg.Data, off)
 		if err != nil {
 			return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
-		}
-		if pg.Data[0] == 0 && pg.Data[1] == 0 && pg.Data[2] == 0 && pg.Data[3] == 0 {
 		}
 		// For page 1, extract the header from the full page data
 		if pageNum == 1 && p.header == nil {
@@ -1547,43 +1545,23 @@ func (p *Pager) Truncate(n uint32) error {
 			binary.BigEndian.PutUint32(p.header[36:40], oldCount-truncatedFree)
 			p.dirty[1] = true
 		}
-		// If the trunk was one of the truncated pages, advance the trunk
-		// to the next free page still in the file. Without this, the
-		// isFreelistPage walker (src/btree.c checkTree) starts at a
-		// page that no longer exists and reports every remaining free
-		// page as "Page N: never used" → integrity_check fails.
-		trunk := binary.BigEndian.Uint32(p.header[32:36])
-		if trunk > n {
-			// Find the highest free page that survived the truncate.
-			var newTrunk uint32
-			for pgno := n; pgno >= 2; pgno-- {
-				if p.freePages[pgno] {
-					newTrunk = pgno
-					break
-				}
-			}
-			binary.BigEndian.PutUint32(p.header[32:36], newTrunk)
-			p.dirty[1] = true
-			// Break the chain at the new trunk: set its first 4 bytes
-			// to the next free page below it (or 0 if newTrunk is the
-			// lowest free page). The original FreePage chain was a
-			// monotonic sequence (e.g. 8→7→6→5→4) so the next page
-			// below newTrunk is the one that was originally chained to
-			// newTrunk.
-			if newTrunk > 0 {
-				if pg, ok := p.pages[newTrunk]; ok && pg != nil {
-					var nextFree uint32
-					for pgno := newTrunk - 1; pgno >= 2; pgno-- {
-						if p.freePages[pgno] {
-							nextFree = pgno
-							break
-						}
-					}
-					binary.BigEndian.PutUint32(pg.Data[0:4], nextFree)
-					p.dirty[newTrunk] = true
-				}
-			}
-		}
+		// P8.INCRVACUUM.T5 (SQLite-faithful): the previous trunk-advance
+		// fixup that rewrote header.trunk to the highest surviving free
+		// page and fabricated a next-chain pointer into that page's
+		// buffer is GONE. SQLite never rewires the freelist chain at
+		// truncate: the chain is maintained exclusively by
+		// allocateBtreePage (pop) and freePage2 (push) —
+		// src/btree.c:4022-4032 leaves a trailing FREE page untouched at
+		// commit ("the free-list will be truncated to zero after this
+		// function returns, so it doesn't matter if it still contains
+		// some garbage entries"), and autoVacuumCommit zeroes
+		// header.trunk/header.count when the drain completes
+		// (src/btree.c:4249-4252, mirrored by ZeroFreelistChain). The
+		// fabricated chain made pruneFreelistChain misread non-trunk
+		// pages as trunks (leaf count taken from row-data bytes) and
+		// zero their content in 4-byte slots, destroying freshly
+		// relocated pages (the autovacuum corruption behind
+		// TestP8Autovacuum*).
 	}
 	// Update the in-header database size (offset 28) so the next
 	// HeaderBeyondFile check (src/btree.c lockBtree) reports the new
@@ -1648,9 +1626,13 @@ func (p *Pager) Truncate(n uint32) error {
 			return fmt.Errorf("pager: truncate: write header: %w", err)
 		}
 		// Flush the trunk page's updated chain pointer (if any) so the
-		// freelist chain is consistent on disk.
+		// freelist chain is consistent on disk. Only a trunk that still
+		// exists below the truncation point is written; a stale
+		// header.trunk above n is chain garbage that the autovacuum
+		// commit zeroing (ZeroFreelistChain) removes — writing it here
+		// would persist a reference to a truncated page.
 		trunk := binary.BigEndian.Uint32(p.header[32:36])
-		if trunk > 0 {
+		if trunk > 0 && trunk <= n {
 			if pg, ok := p.pages[trunk]; ok && pg != nil {
 				off := int64(trunk-1) * int64(p.pageSize)
 				if _, err := p.file.WriteAt(pg.Data, off); err != nil {
@@ -1664,160 +1646,14 @@ func (p *Pager) Truncate(n uint32) error {
 		p.knownFileVers = vers
 		p.knownFileSize = size
 	}
-	// P8.INCRVACUUM phase 5 multi-trunk fix: after truncating the file
-	// to n pages, walk the on-disk freelist chain and prune any trunk or
-	// leaf that references a page > n. Without this, integrity_check
-	// reports "Freelist: size is N but should be M" because the chain
-	// walk sees pages that no longer exist on disk. We also fix up
-	// the next-trunk pointers so the chain is still well-formed
-	// (no dangling references to truncated pages).
-	if err := p.pruneFreelistChain(n); err != nil {
-		return fmt.Errorf("pager: truncate: prune chain: %w", err)
-	}
-	return nil
-}
-
-// pruneFreelistChain walks the on-disk freelist chain starting at
-// header.trunk and drops any trunk or leaf page that is past the file
-// size `n`. The remaining chain is rewired (next-trunk pointers of the
-// kept trunks) so the chain is well-formed. This is the counterpart of
-// the multi-trunk FreePage fix: FreePage can build chains with pages in
-// arbitrary order, and Truncate needs to keep the chain consistent when
-// the file shrinks.
-//
-// Returns nil if no chain exists (header.trunk == 0) or if all entries
-// survive. If all trunks are dropped, header.trunk and header.count are
-// both zeroed.
-func (p *Pager) pruneFreelistChain(n uint32) error {
-	if p.header == nil || len(p.header) < 40 {
-		return nil
-	}
-	// Pass 1: walk the chain, collect surviving (trunk, [leaves]) pairs.
-	type trunkRec struct {
-		pgno       uint32
-		leaves     []uint32
-		nextTrunk  uint32
-	}
-	var survivors []trunkRec
-	trunk := binary.BigEndian.Uint32(p.header[32:36])
-	const maxIter = 100000
-	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
-		if trunk > n {
-			// Trunk itself is past the truncation point; skip and
-			// follow its next-trunk pointer (the read may be
-			// impossible since the page no longer exists on disk,
-			// but if the page is still in the cache, we can read it).
-			// P8.INCRVACUUM.phase9: also drop the trunk from
-			// p.trunkPages so a later FreePage of the same page
-			// does not hit the idempotence check.
-			if p.trunkPages != nil {
-				delete(p.trunkPages, trunk)
-			}
-			if pg, ok := p.pages[trunk]; ok && pg != nil && len(pg.Data) >= 8 {
-				trunk = binary.BigEndian.Uint32(pg.Data[0:4])
-			} else {
-				// Page is gone and not in cache; bail.
-				break
-			}
-			continue
-		}
-		pg, err := p.readPageLocked(trunk)
-		if err != nil || len(pg.Data) < 8 {
-			break
-		}
-		coff := 0
-		if trunk == 1 {
-			coff = 100
-		}
-		next := binary.BigEndian.Uint32(pg.Data[coff : coff+4])
-		lc := binary.BigEndian.Uint32(pg.Data[coff+4 : coff+8])
-		// Filter leaves: keep only those <= n. SQLite's truncate
-		// leaves the rest of the leaf array alone (count is already
-		// decremented by the caller); we follow the same convention
-		// and zero out removed leaves while keeping the array length.
-		var keptLeaves []uint32
-		newLC := uint32(0)
-		for i := uint32(0); i < lc; i++ {
-			off := coff + 8 + int(i)*4
-			if off+4 > len(pg.Data) {
-				break
-			}
-			leaf := binary.BigEndian.Uint32(pg.Data[off : off+4])
-			if leaf != 0 && leaf <= n {
-				keptLeaves = append(keptLeaves, leaf)
-				newLC++
-			} else if leaf > n {
-				// Mark this slot as free (zero).
-				binary.BigEndian.PutUint32(pg.Data[off:off+4], 0)
-				// P8.INCRVACUUM.phase9: drop the truncated leaf
-				// from p.leafToTrunk so a later FreePage of
-				// the same page does not hit the idempotence
-				// check (FreePage line 1781) and bump
-				// header.count without actually inserting
-				// the page into the chain.
-				if p.leafToTrunk != nil {
-					delete(p.leafToTrunk, leaf)
-				}
-			}
-		}
-		// Update the trunk's leaf count to match survivors.
-		if newLC != lc {
-			binary.BigEndian.PutUint32(pg.Data[coff+4:coff+8], newLC)
-		}
-		// If a leaf was zeroed, mark the trunk dirty so the next
-		// flush writes the updated array.
-		if newLC < lc {
-			p.dirty[trunk] = true
-		}
-		if newLC > 0 {
-			survivors = append(survivors, trunkRec{pgno: trunk, leaves: keptLeaves, nextTrunk: next})
-		}
-		trunk = next
-	}
-	// Pass 2: rewire the chain. For each survivor in order, set its
-	// next-trunk pointer to the NEXT survivor's trunk page (or 0 if
-	// last). This drops the truncated-trunk entries and any
-	// survivor-trunks that became empty after the leaf prune.
-	if len(survivors) == 0 {
-		// Whole chain is gone.
-		binary.BigEndian.PutUint32(p.header[32:36], 0)
-		binary.BigEndian.PutUint32(p.header[36:40], 0)
-		p.dirty[1] = true
-		if pg, ok := p.pages[1]; ok && pg != nil {
-			copy(pg.Data[:HeaderSize], p.header)
-		}
-		return nil
-	}
-	for i := range survivors {
-		var nextTrunk uint32
-		if i+1 < len(survivors) {
-			nextTrunk = survivors[i+1].pgno
-		}
-		if survivors[i].nextTrunk != nextTrunk {
-			pg, err := p.readPageLocked(survivors[i].pgno)
-			if err == nil && len(pg.Data) >= 4 {
-				coff := 0
-				if survivors[i].pgno == 1 {
-					coff = 100
-				}
-				binary.BigEndian.PutUint32(pg.Data[coff:coff+4], nextTrunk)
-				p.dirty[survivors[i].pgno] = true
-			}
-		}
-	}
-	// Update header.trunk to the first survivor.
-	binary.BigEndian.PutUint32(p.header[32:36], survivors[0].pgno)
-	// Recompute header.count from survivors' leaf counts + 1 per
-	// survivor-trunk (the trunk itself is also on the freelist).
-	newCount := uint32(len(survivors))
-	for _, s := range survivors {
-		newCount += uint32(len(s.leaves))
-	}
-	binary.BigEndian.PutUint32(p.header[36:40], newCount)
-	p.dirty[1] = true
-	if pg, ok := p.pages[1]; ok && pg != nil {
-		copy(pg.Data[:HeaderSize], p.header)
-	}
+	// P8.INCRVACUUM.T5: the pruneFreelistChain walk is GONE. SQLite's
+	// truncate does no freelist-chain surgery (pager.c
+	// pager_truncate_image only shrinks the file); the engine's prune
+	// followed the chain into pages it could not verify as trunks and
+	// zeroed their content (see the T5 note above). Chain consistency
+	// below the truncation point is maintained by the pops
+	// (TakePageFromFreelist / AllocatePageLE); above-the-truncation
+	// garbage is removed by the autovacuum commit zeroing.
 	return nil
 }
 
@@ -1963,7 +1799,7 @@ func (p *Pager) FreePage(pageNum uint32) error {
 		binary.BigEndian.PutUint32(p.header[32:36], pageNum)
 		if pg, ok := p.pages[pageNum]; ok && pg != nil {
 			binary.BigEndian.PutUint32(pg.Data[0:4], oldTrunk) // next_trunk = old trunk
-			binary.BigEndian.PutUint32(pg.Data[4:8], 0)         // leaf count = 0
+			binary.BigEndian.PutUint32(pg.Data[4:8], 0)        // leaf count = 0
 			p.dirty[pageNum] = true
 		} else {
 			// The page isn't in the cache (was dropped before being
@@ -2441,6 +2277,7 @@ func (p *Pager) flushPage(pageNum uint32) error {
 			}
 		}
 	}
+
 	if _, err := p.file.WriteAt(pg.Data, off); err != nil {
 		return fmt.Errorf("pager: write page %d: %w", pageNum, err)
 	}

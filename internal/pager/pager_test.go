@@ -64,14 +64,17 @@ func TestPhase8TrunkPopAdvancesHeader(t *testing.T) {
 		t.Fatalf("AllocatePage returned page %d, want 3", alloc.PageNum)
 	}
 
-	// After pop, trunk 2 should have leafCount=0 and slot 0 zeroed.
+	// After pop, trunk 2 should have leafCount=0. The leaf slot itself
+	// is NOT required to zero: SQLite's allocateBtreePage removes a leaf
+	// by copying the LAST leaf into the removed slot and decrementing
+	// the count (src/btree.c:6697-6700). When the removed leaf is the
+	// only one, the copy is a no-op and the stale page number remains
+	// at slot 0; consumers only read slots [0, leafCount), so the stale
+	// bytes are inert. P8.INCRVACUUM T5: the engine keeps SQLite's
+	// copy-last semantics, so assert only the count.
 	lc := binary.BigEndian.Uint32(p.pages[2].Data[4:8])
 	if lc != 0 {
 		t.Errorf("trunk 2 leafCount = %d, want 0", lc)
-	}
-	leaf0 := binary.BigEndian.Uint32(p.pages[2].Data[8:12])
-	if leaf0 != 0 {
-		t.Errorf("trunk 2 leaf slot 0 = %d, want 0", leaf0)
 	}
 	// header.count should be 1.
 	count := binary.BigEndian.Uint32(p.header[36:40])
