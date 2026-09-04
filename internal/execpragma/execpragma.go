@@ -69,6 +69,7 @@ type EngineState interface {
 	// Cache pragmas.
 	CacheSize(schema, value string) *Result
 	CacheSpill(schema, value string) *Result
+	MmapSize(schema, value string) *Result
 
 	// AutoVacuum returns or sets the auto_vacuum mode (pragma.c
 	// getAutoVacuum: 0=none, 1=full, 2=incremental) for a schema. The value
@@ -448,10 +449,7 @@ var pragmaHandlers = map[string]Handler{
 		return &Result{Rows: [][]interface{}{{int64(st.RecursiveCTELimit())}}}
 	},
 	"MMAP_SIZE": func(st EngineState, s *sql.PragmaStmt) *Result {
-		if s.Value == "" {
-			return &Result{}
-		}
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
+		return st.MmapSize(s.Schema, s.Value)
 	},
 
 	// --- Simple getters (setter form is a no-op) ---

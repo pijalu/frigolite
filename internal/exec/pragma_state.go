@@ -228,6 +228,33 @@ func (e *Engine) CacheSpill(schema, value string) *execpragma.Result {
 	return &execpragma.Result{Rows: [][]interface{}{{e.pragmaCacheSpillFor(ctx)}}}
 }
 
+// MmapSize implements PRAGMA mmap_size (pragma.c PragTyp_MMAP_SIZE): the
+// setter parses the limit (decimal, or hex with a 0x prefix —
+// sqlite3DecOrHexToI64), stores it, and returns the effective value as a
+// single integer row; a negative value selects the build default (0, the
+// SQLITE_DEFAULT_MMAP_SIZE equivalent — the engine performs no real mmap,
+// so the setting is a C-parity value store). The getter returns the
+// current limit.
+func (e *Engine) MmapSize(schema, value string) *execpragma.Result {
+	if value != "" {
+		v := strings.TrimSpace(value)
+		base := 10
+		if strings.HasPrefix(v, "0x") || strings.HasPrefix(v, "0X") {
+			base, v = 16, v[2:]
+		}
+		if n, err := strconv.ParseInt(v, base, 64); err == nil {
+			if n < 0 {
+				n = 0
+			}
+			e.settings.mmapSize = n
+		}
+		// An unparseable value is ignored for storage but the getter
+		// still reports the current limit, matching sqlite3DecOrHexToI64
+		// leaving sz unchanged on a parse failure.
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{e.settings.mmapSize}}}
+}
+
 // AutoVacuum implements PRAGMA auto_vacuum (getter and setter) using
 // SQLite's numbering (pragma.c getAutoVacuum): 0=NONE, 1=FULL,
 // 2=INCREMENTAL. The mode is tracked per database in memory; actual

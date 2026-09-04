@@ -254,6 +254,7 @@ type engineSettings struct {
 	defensive              bool             // SQLITE_DBCONFIG_DEFENSIVE: ignore certain writes (e.g. schema_version)
 	recursiveCTELimit      int              // PRAGMA recursive_cte_limit setting (default 1000000)
 	cacheSpillSize         int              // PRAGMA cache_spill threshold in pages (negative = KiB until read)
+	mmapSize               int64            // PRAGMA mmap_size limit in bytes (value store only; the engine performs no real mmap)
 	exprDepthLimit         int              // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
 	columnLimit            int              // SQLITE_LIMIT_COLUMN: max columns per table/index/view (default 2000)
 	lengthLimit            int              // SQLITE_LIMIT_LENGTH: max length of a string/blob value (default 1000000000)

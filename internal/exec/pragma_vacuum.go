@@ -83,7 +83,7 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	// is a documented divergence until the journal captures tail-page
 	// before-images.
 	if e.tx.inTransaction {
-		return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: [][]interface{}{{int64(1)}}}
+		return &execpragma.Result{Rows: [][]interface{}{{}}}
 	}
 	// btree.c sqlite3BtreeIncrVacuum + pragma.c PragTyp_INCREMENTAL_VACUUM:
 	// the VDBE loops OP_IncrVacuum — one incrVacuumStep per iteration —
@@ -110,12 +110,17 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 			break // SQLITE_DONE — no more work
 		}
 		total += int64(steps)
-		rows = append(rows, []interface{}{int64(1)})
+		// pragma.c PragTyp_INCREMENTAL_VACUUM emits OP_ResultRow with
+		// p2=0 — a ZERO-COLUMN row per successful step, invisible to
+		// every row consumer (TCL's db eval appends nothing for a
+		// column-less row). Mirror that: one empty row per step, no
+		// column names.
+		rows = append(rows, []interface{}{})
 	}
 	if total == 0 {
 		return &execpragma.Result{}
 	}
-	return &execpragma.Result{Columns: []string{"incremental_vacuum"}, Rows: rows}
+	return &execpragma.Result{Rows: rows}
 }
 
 // runIncrVacuumStep performs a single btree.c incrVacuumStep: the last
