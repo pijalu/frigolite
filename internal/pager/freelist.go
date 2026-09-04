@@ -208,25 +208,58 @@ func (p *Pager) allocateFreelistNearLocked(nearby uint32, le bool) uint32 {
 			return 0
 		}
 		if cur == nearby || (le && cur < nearby) {
-			// The trunk page itself is the allocation target.
+			// The trunk page itself is the allocation target. Source: btree.c
+			// allocateBtreePage src/btree.c:6430-6490 (k==0 path unlinks the
+			// trunk; k>0 path promotes leaf[0] to a new trunk). Mirror the
+			// C behavior exactly: the unlink for k==0 advances the chain to
+			// the next trunk; the k>0 path REPLACES the chain head with the
+			// new trunk, not with t.next (which would orphan the new trunk
+			// when the old one was the only trunk — P8.INCRVACUUM.S6
+			// regression: the chain header was set to t.next=0 instead of
+			// the promoted leaf, leaving 16 free pages reachable only by a
+			// dead-on-disk trunk).
 			p.journalPageBeforeLocked(1)
 			binary.BigEndian.PutUint32(p.header[36:40], n-1)
 			p.mirrorHeaderToPage1Locked()
 			if len(t.leaves) == 0 {
+				// k==0: the trunk page is the allocation target. Splice
+				// the chain at prev: prev.next (or header[32] when no prev)
+				// becomes t.next. The popped trunk page is now reused.
 				p.unlinkTrunkLocked(prev, t)
 			} else {
-				// The first leaf becomes a trunk page carrying the
-				// remaining k-1 leaves and the same next pointer
-				// (allocateBtreePage's iNewTrunk block).
+				// k>0: promote leaf[0] to a new trunk carrying the
+				// remaining k-1 leaves. Then update the chain head
+				// (header[32] when !prev, or prev.next) to point at the
+				// NEW trunk, not at t.next.
 				first := t.leaves[0]
 				rest := t.leaves[1:]
 				if first < 2 || first > p.numPages {
+					// C-parity: rollback the count decrement (the
+					// pre-decrement is undone on a corruption abort —
+					// see btree.c allocateBtreePage's `goto end_allocate_page`
+					// branch with a *pPgno=0 result).
+					p.journalPageBeforeLocked(1)
+					binary.BigEndian.PutUint32(p.header[36:40], n)
+					p.mirrorHeaderToPage1Locked()
 					return 0
 				}
 				p.journalPageBeforeLocked(first)
 				nt := freelistTrunk{pgno: first, next: t.next, leaves: rest}
 				p.writeFreelistTrunkLocked(nt)
-				p.unlinkTrunkLocked(prev, t)
+				// Update the chain link (header[32] or prev.next) to
+				// the new trunk. The old trunk is the alloc target.
+				if prev == 0 {
+					p.journalPageBeforeLocked(1)
+					binary.BigEndian.PutUint32(p.header[32:36], first)
+					p.mirrorHeaderToPage1Locked()
+				} else {
+					pt, pok := p.readFreelistTrunkLocked(prev)
+					if !pok {
+						return 0
+					}
+					pt.next = first
+					p.writeFreelistTrunkLocked(pt)
+				}
 			}
 			return cur
 		}
