@@ -81,7 +81,7 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return res
 	}
 
-	pg, perr := ctx.Pager.AllocateRootPage()
+	pg, perr := allocateRootPage(ctx.Pager)
 	if perr != nil {
 		return &Result{Error: perr}
 	}
@@ -733,7 +733,7 @@ func (e *DDLExecutor) ensureSQLiteSequenceTable(ctx *DatabaseContext) error {
 			}
 		}
 	}
-	pg, perr := ctx.Pager.AllocateRootPage()
+	pg, perr := allocateRootPage(ctx.Pager)
 	if perr != nil {
 		return perr
 	}

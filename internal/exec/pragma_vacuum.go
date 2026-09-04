@@ -44,6 +44,14 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	if nOrig < nFin || nFree >= nOrig {
 		return &execpragma.Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
+	// lockBtree (btree.c:3401) runs on every statement start in SQLite and
+	// rejects a header page count above the file's page count before
+	// sqlite3BtreeIncrVacuum ever runs. The pragma path here can be the
+	// first statement on a fresh connection (no schema load, no
+	// ValidateHeader), so mirror the check explicitly.
+	if ctx.Pager.HeaderBeyondFile() {
+		return &execpragma.Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
 	// With an empty freelist there is no work: SQLITE_DONE, no rows.
 	if nFree == 0 {
 		return &execpragma.Result{}
@@ -104,6 +112,43 @@ func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext, bCommit bool) (int, err
 	return steps, err
 }
 
+// autovacuumBatchSize computes the nVac batch cap (btree.c:4230-4241): the
+// optional sqlite3_autovacuum_pages callback's wish, clamped to nFree; or
+// nFree itself (drain everything) when no callback is registered.
+func (e *Engine) autovacuumBatchSize(schema string, nOrig, nFree, pageSize uint32) uint32 {
+	if cb := e.getAutovacPagesCallback(); cb != nil {
+		// btree.c autoVacuumCommit passes nFilePages (in pages) and
+		// pageSize (in bytes) to the callback. Our public Go signature
+		// mirrors the C signature: cb(schema, fileSize, nFree, pageSize)
+		// where fileSize is in pages and pageSize is in bytes.
+		want := cb(schema, nOrig, nFree, pageSize)
+		if want > nFree {
+			want = nFree
+		}
+		return want
+	}
+	return nFree
+}
+
+// finishAutoVacuumCommit is the post-drain block (btree.c:4246-4254): only
+// after a completed drain with work done. When the whole freelist was
+// drained (nVac==nFree), the chain header is zeroed — surviving chain
+// entries are intentionally garbage at that point (every former free page
+// was relocated into or truncated away). A callback-capped batch
+// (nVac<nFree) keeps the chain: remaining free pages below the truncation
+// point are still reachable through it, exactly as in SQLite. Truncating
+// to nFin also mirrors the header page count (offset 28) update —
+// pager.Truncate maintains it.
+func finishAutoVacuumCommit(p *pager.Pager, nVac, nFree, nFin uint32) error {
+	if nVac == nFree {
+		p.ZeroFreelistChain()
+	}
+	if p.NumPages() > nFin {
+		return p.Truncate(nFin)
+	}
+	return nil
+}
+
 // AutoVacuumCommit drains the on-disk freelist via repeated
 // IncrVacuumStep calls (P8.INCRVACUUM phase 4). Called from
 // engine.go's commit() hook when the database is in FULL auto-vacuum
@@ -111,72 +156,67 @@ func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext, bCommit bool) (int, err
 // sqlite3_autovacuum_pages callback (which the engine stores in
 // e.autovacPagesCallback; nil if not registered).
 //
-// Reference: btree.c autoVacuumCommit (~line 4174).
+// Structure mirrors btree.c autoVacuumCommit (~4196): corrupt guard on
+// a ptrmap/pending-byte tail page, nVac from the callback, final size
+// nFin = finalDbSize(nOrig, nVac), drain loop bounded by nFin, and the
+// post-drain block (zero chain + truncate to nFin) only when the drain
+// completed. Errors propagate so the caller aborts the commit and
+// rolls the transaction back (btree.c:4257 sqlite3PagerRollback).
 func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
 		return 0, nil
 	}
 	ps := ctx.Pager.PageSize()
+	nOrig := ctx.Pager.NumPages()
+	// btree.c:4210: the last page must never be a pointer-map page or
+	// the pending-byte page — that means corruption.
+	if isPtrmapPageFor(nOrig, ps) || nOrig == pendingBytePageFor(ps) {
+		return 0, fmt.Errorf("btree: autoVacuumCommit: page count %d ends on a pointer-map or pending-byte page", nOrig)
+	}
 	nFree := ctx.Pager.FreelistCount()
 	if nFree == 0 {
 		return 0, nil
 	}
-	// Compute the upper bound on what to vacuum this batch. If a
-	// callback is registered, ask it; otherwise drain all.
-	var nVac uint32
-	if cb := e.getAutovacPagesCallback(); cb != nil {
-		// btree.c autoVacuumCommit passes nFilePages (in pages) and
-		// pageSize (in bytes) to the callback. Our public Go signature
-		// mirrors the C signature: cb(schema, fileSize, nFree, pageSize)
-		// where fileSize is in pages and pageSize is in bytes.
-		fileSize := ctx.Pager.NumPages()
-		want := cb(schema, uint32(fileSize), nFree, ps)
-		if want > nFree {
-			want = nFree
-		}
-		nVac = want
-	} else {
-		nVac = nFree
+	nVac := e.autovacuumBatchSize(schema, nOrig, nFree, ps)
+	nFin := finalDbSize(nOrig, nVac, ps)
+	if nFin > nOrig {
+		return 0, fmt.Errorf("btree: autoVacuumCommit: final size %d exceeds current size %d", nFin, nOrig)
 	}
-	totalSteps := uint32(0)
-	// P8.INCRVACUUM.phase9.s: drain the freelist past nVac when the only
-	// remaining work is a final ptrmap-page truncation (autovacuum-9.2
-	// expects the file to drop to 1 page after dropping all tables;
-	// nFree counts only the freelist chain, not the trailing ptrmap).
-	// The first nVac iterations honour the callback's batch cap; the
-	// extra iterations only run as far as the work itself allows
-	// (the loop breaks when no progress is made).
-	for i := uint32(0); ; i++ {
+	totalSteps := 0
+	// Drain loop (btree.c:4243-4245): step until the file reaches
+	// nFin. IncrVacuumStep truncates directly when the tail page is
+	// free and relocates it into a lower free page otherwise. Progress
+	// stops legitimately when the freelist is exhausted
+	// (btree.c:4021-4023 returns SQLITE_DONE) or the tail is an
+	// unrelocatable root page — in that case the file simply stays
+	// above nFin and nothing is zeroed or truncated (the safe
+	// direction: live pages are never chopped).
+	for ctx.Pager.NumPages() > nFin {
 		npBefore := ctx.Pager.NumPages()
-		_, err := e.runIncrVacuumStep(ctx, true)
+		steps, err := e.runIncrVacuumStep(ctx, true)
+		totalSteps += steps
 		if err != nil {
-			break
+			// btree.c:4257: rc!=SQLITE_OK rolls the pager back. Our
+			// caller aborts the commit on error, which unwinds the
+			// transaction — propagate instead of swallowing.
+			return totalSteps, err
 		}
-		npAfter := ctx.Pager.NumPages()
-		if npAfter >= npBefore {
-			break
-		}
-		totalSteps++
-		if i+1 >= nVac && ctx.Pager.NumPages() <= 1 {
+		if ctx.Pager.NumPages() >= npBefore {
+			// No progress possible this step: stop the drain without
+			// erroring. The freelist chain stays exactly as it is.
 			break
 		}
 	}
-	// P8.INCRVACUUM.T5: mirror autoVacuumCommit's post-drain step
-	// (src/btree.c:4247-4252): when the whole freelist was drained
-	// (nVac==nFree), the chain header is zeroed — chain entries that
-	// survive on disk are intentionally garbage at that point (every
-	// former free page was relocated into or truncated away), and the
-	// zeroed trunk/count make that legal for integrity_check. Without
-	// this, header.trunk could point above the truncation point and
-	// later chain walks (checkFreelistCount) would read truncated
-	// pages. A callback-capped batch (nVac<nFree) keeps the chain:
-	// remaining free pages below the truncation point are still
-	// reachable through it, exactly as in SQLite.
-	if nVac == nFree {
-		ctx.Pager.ZeroFreelistChain()
+	if ctx.Pager.NumPages() > nFin || nFree == 0 {
+		// Drain incomplete (freelist exhausted or an unrelocatable root
+		// stopped it): keep the chain and the file as they are.
+		return totalSteps, nil
 	}
-	return int(totalSteps), nil
+	if err := finishAutoVacuumCommit(ctx.Pager, nVac, nFree, nFin); err != nil {
+		return totalSteps, err
+	}
+	return totalSteps, nil
 }
 
 // SetAutovacuumPagesCallback registers (or clears, if nil) a
@@ -230,4 +270,13 @@ func pendingBytePageFor(pageSize uint32) uint32 {
 // isPtrmapPageFor reports whether pgno is itself a pointer-map page.
 func isPtrmapPageFor(pgno, pageSize uint32) bool {
 	return pgno >= 2 && PtrmapPagenoFor(pgno, pageSize) == pgno
+}
+
+// allocateRootPage allocates the next table/index root page through the
+// btree layer so auto-vacuum databases place every root page in the
+// [3..meta[3]] root block (btreeCreateTable's pgnoMove dance,
+// src/btree.c ~10150). Used by the ANALYZE-driven sqlite_statN creation.
+func allocateRootPage(p *pager.Pager) (*pager.Page, error) {
+	bt := btree.NewBTree(p, 1, true)
+	return bt.AllocateRootPage()
 }

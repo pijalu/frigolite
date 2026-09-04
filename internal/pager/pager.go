@@ -533,6 +533,14 @@ func (p *Pager) ValidateHeader() error {
 	if freelistTrunk > p.numPages || freelistCount > p.numPages || largestRoot > p.numPages {
 		return fmt.Errorf("database disk image is malformed")
 	}
+	// lockBtree (btree.c:3401): a header page count (offset 28, trusted
+	// only when the change counter matches version-valid-for) that
+	// exceeds the file's actual page count means the file was truncated
+	// underneath the header — malformed. Corrupt2/incrvacuum suites load
+	// images cut short while the header still advertises more pages.
+	if p.HeaderBeyondFile() {
+		return fmt.Errorf("database disk image is malformed")
+	}
 	return nil
 }
 
@@ -1275,21 +1283,6 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 	}
 	p.pages[pg.PageNum] = pg
 	p.dirty[pg.PageNum] = true
-	// P8.INCRVACUUM.phase9 follow-up: in autovacuum mode, track the
-	// largest root btree page number (meta[3] = header[52:56]) so
-	// re-opened databases can detect the mode from the on-disk header.
-	// btree.c::sqlite3BtreeSetAutoVacuum's corollary in
-	// btreeCreateTable: every new table root bumps this counter, and a
-	// non-zero value at Open time is the canonical signal that
-	// autovacuum is on. Without this, ReadAutoVacuumFromHeader
-	// returns 0 and the engine forgets the mode on restart.
-	if p.autoVacuum && p.header != nil && len(p.header) >= 56 {
-		largest := binary.BigEndian.Uint32(p.header[52:56])
-		if pg.PageNum > largest {
-			binary.BigEndian.PutUint32(p.header[52:56], pg.PageNum)
-			p.dirty[1] = true
-		}
-	}
 	return pg
 }
 
@@ -2221,6 +2214,35 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 	return nil
 }
 
+// growHeaderSizeLocked records a file growth in the in-header database size
+// (offset 28), monotonically. flushAll iterates the dirty map in random
+// order, so a non-monotonic write lets a lower-numbered page flushed late
+// overwrite the size an earlier flush of a higher page already recorded
+// (e.g. page 22 after page 24 → header says 22 while the file holds 24
+// pages). A stale-SMALL header is legal for lockBtree (only
+// nPage > nPageFile is corrupt, btree.c:3401) but it defeats the
+// incrcorrupt-2.2 parity check after an external truncate and misleads
+// HeaderPageCount readers. Only the commit paths (updateFileChangeCounter /
+// Truncate) lower the value.
+func (p *Pager) growHeaderSizeLocked(pageNum uint32) {
+	if p.header == nil || len(p.header) < 32 {
+		return
+	}
+	if cur := binary.BigEndian.Uint32(p.header[28:32]); pageNum <= cur {
+		return
+	}
+	binary.BigEndian.PutUint32(p.header[28:32], pageNum)
+	// Mirror the updated header into the cached page 1 so the
+	// subsequent flushAll() writes the new header bytes; the page
+	// cache holds a separate copy of pg.Data[0:100] from the
+	// original Open() read (pager.c pager_write_changecounter
+	// likewise mutates page 1's buffer in place at COMMIT).
+	if pg1, ok := p.pages[1]; ok && pg1 != nil {
+		copy(pg1.Data[:HeaderSize], p.header)
+		p.dirty[1] = true
+	}
+}
+
 // flushPage writes one dirty page to the file, truncating the file first when
 // the page extends past the current end (a newly allocated page). The file
 // size is cached (p.fileSize) so a page write does not need an Fstat syscall
@@ -2246,18 +2268,7 @@ func (p *Pager) flushPage(pageNum uint32) error {
 		// check at offset 92 trusts the header) or lets autovacuum walk a
 		// freelist chain that no longer matches the file (corrupt2 /
 		// autovacuum-2.4.5, -2.5.1, -9.x, -10.1).
-		if p.header != nil && len(p.header) >= 32 {
-			binary.BigEndian.PutUint32(p.header[28:32], pageNum)
-			// Mirror the updated header into the cached page 1 so the
-			// subsequent flushAll() writes the new header bytes; the page
-			// cache holds a separate copy of pg.Data[0:100] from the
-			// original Open() read (pager.c pager_write_changecounter
-			// likewise mutates page 1's buffer in place at COMMIT).
-			if pg, ok := p.pages[1]; ok && pg != nil {
-				copy(pg.Data[:HeaderSize], p.header)
-			}
-			p.dirty[1] = true
-		}
+		p.growHeaderSizeLocked(pageNum)
 	}
 	// Record the BEFORE image of this page in the rollback journal. The
 	// pg.Data we have here is the AFTER image (the in-memory dirty copy);

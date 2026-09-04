@@ -113,7 +113,7 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	// Allocate root page for index
-	pg, perr := tableCtx.Pager.AllocateRootPage()
+	pg, perr := allocateRootPage(tableCtx.Pager)
 	if perr != nil {
 		return &Result{Error: perr}
 	}

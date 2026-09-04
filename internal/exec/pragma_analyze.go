@@ -171,7 +171,7 @@ func (e *Engine) ensureStatTable(name, schemaSQL string) error {
 	}
 
 	// Create table — allocate a new root page and add schema entry
-	pg, perr := e.pager.AllocateRootPage()
+	pg, perr := allocateRootPage(e.pager)
 	if perr != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (e *Engine) EnsureStatTableIn(schemaName, name, schemaSQL string) error {
 	if err == nil {
 		return nil // already exists
 	}
-	pg, perr := ctx.Pager.AllocateRootPage()
+	pg, perr := allocateRootPage(ctx.Pager)
 	if perr != nil {
 		return err
 	}

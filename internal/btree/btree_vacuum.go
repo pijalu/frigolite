@@ -20,6 +20,12 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 )
 
+// errRelocateRoot marks the incrVacuumStep position where the tail page
+// is a genuine root page (btree.c reports SQLITE_CORRUPT there,
+// src/btree.c:4030). The drain stops without truncating the root; the
+// file simply stays larger.
+var errRelocateRoot = errors.New("btree: cannot relocate a root page")
+
 // RelocatePage moves the content of `from` to the page `to`. The `to`
 // page must be a free page (allocated via pager.AllocatePageLE). The
 // parent of `from` is located via the pointer-map (P8.INCRVACUUM phase 2);
@@ -84,6 +90,35 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 			// cascade of overwrites at the same target. The file
 			// truncation reclaims the slot; we just leave `from`
 			// to the truncation.
+			return false, nil
+		}
+	}
+	if parentType == storage.PtrmapRootpage {
+		// P8.INCRVACUUM BUG D (btree.c incrVacuumStep, src/btree.c:4030):
+		// a PTRMAP_ROOTPAGE entry is only trustworthy if the page is
+		// still a root of some schema object. For a genuine root the
+		// vacuum must never relocate or truncate it — SQLite reports
+		// CORRUPT in this position; the engine stops the drain step
+		// (the caller leaves the file above the root). For a STALE
+		// entry (the page changed role since the entry was written)
+		// the real parent is resolved by tree walk and the relocation
+		// proceeds with it.
+		isRoot := false
+		if roots, rerr := t.collectSchemaRoots(); rerr == nil {
+			for _, r := range roots {
+				if r == from {
+					isRoot = true
+					break
+				}
+			}
+		}
+		if isRoot {
+			return false, fmt.Errorf("btree: RelocatePage: %w: page %d is a root", errRelocateRoot, from)
+		}
+		if pp, pt, perr := t.findParentByWalk(from); perr == nil {
+			parentPgno = pp
+			parentType = pt
+		} else {
 			return false, nil
 		}
 	}
@@ -421,11 +456,20 @@ func (t *BTree) IncrVacuumStep(n int, bCommit bool) (int, error) {
 			steps++
 			continue
 		}
-		// Check if `lastPg` is on the freelist. We don't have a direct
-		// IsOnFreelist query; instead, check if `lastPg` is in
-		// p.freePages. This is the fast path for the common case
-		// (Delete freed pages near the end of the file).
-		if pager.IsPageOnFreelist(t.pager, lastPg) {
+		// Check if `lastPg` is free. btree.c:4019 decides this from
+		// the pointer-map entry (ptrmapGet): PTRMAP_FREEPAGE means the
+		// page can be dropped straight off the tail. The in-memory
+		// freelist set is only a fast path for session-local frees —
+		// it is empty after a reopen, but a real auto-vacuum file
+		// persists PtrmapFreelist entries for freed pages, so the
+		// ptrmap read is authoritative when the set misses.
+		isFree := pager.IsPageOnFreelist(t.pager, lastPg)
+		if !isFree {
+			if ptype, _, err := t.pager.ReadPtrmap(lastPg); err == nil && ptype == storage.PtrmapFreelist {
+				isFree = true
+			}
+		}
+		if isFree {
 			// bCommit==0: pop the page from the freelist chain properly
 			// (allocateBtreePage BTALLOC_EXACT equivalent) before the file
 			// shrinks, so the on-disk chain never references a truncated
@@ -471,7 +515,16 @@ func (t *BTree) IncrVacuumStep(n int, bCommit bool) (int, error) {
 		// entirely, and pruneFreelistChain will clean the dangling
 		// chain entry.
 		relocated, err := t.RelocatePage(freePg.PageNum, lastPg)
-		if err == nil && relocated {
+		if errors.Is(err, errRelocateRoot) {
+			// The tail page is a genuine root page: the vacuum must
+			// never relocate or truncate it (btree.c:4030 reports
+			// CORRUPT). Return the wasted `to` allocation to the
+			// freelist and stop the drain cleanly — the file stays
+			// above the root. (With root pages allocated in the
+			// [3..meta[3]] root block this position is unreachable,
+			// matching SQLite's structural guarantee.)
+			_ = t.freePageWithPtrmap(freePg.PageNum)
+			return steps, nil
 		}
 		if err != nil {
 			// P8.INCRVACUUM.phase8: even on a relocation ERROR (not

@@ -112,6 +112,17 @@ func (p *Pager) FreelistCount() uint32 {
 	return binary.BigEndian.Uint32(h[36:40])
 }
 
+// LargestRootPage reads the largest root b-tree page number (meta[3],
+// header[52:56]). Returns 0 when no header is loaded.
+func (p *Pager) LargestRootPage() uint32 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if len(p.header) < 56 {
+		return 0
+	}
+	return binary.BigEndian.Uint32(p.header[52:56])
+}
+
 // SetLargestRootPage writes the largest root b-tree page number (meta[3],
 // header[52:56]) and marks page 1 dirty. Mirrors btree.c
 // sqlite3BtreeUpdateMeta(p, 4, maxRootPgno) in btreeDropTable: every DROP

@@ -182,7 +182,7 @@ func addAutoIndexEntry(ctx *DatabaseContext, tableName string, seq int) error {
 	// from the table's constraint list (compositeUniqueGroups), and query
 	// paths never scan the autoindex b-tree, but the physical root keeps
 	// page counts and rootpage values at parity with SQLite.
-	pg, perr := ctx.Pager.AllocateRootPage()
+	pg, perr := allocateRootPage(ctx.Pager)
 	if perr != nil {
 		return perr
 	}
@@ -291,6 +291,17 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 // drop-all leaves largestRoot=1, and the next CREATE takes rootpage 3).
 func (e *DDLExecutor) refreshLargestRootPage(ctx *DatabaseContext) {
 	if ctx == nil || ctx.Pager == nil || ctx.Schema == nil {
+		return
+	}
+	// btree.c:10314: the whole max-root-page maintenance lives inside
+	// "if( pBt->autoVacuum )". A non-autovacuum database never writes
+	// meta[3] (header[52:56]) — btreeDropTable's else branch is just
+	// freePage. Writing it unconditionally here flips header[52:56]
+	// nonzero in a mode-0 file, and the next Open restores FULL
+	// auto-vacuum from that field (btree.c lockBtree:3419 reads the
+	// same offset), firing a drain against a file that has no
+	// pointer-map pages and corrupting it.
+	if !ctx.Pager.AutoVacuum() {
 		return
 	}
 	var largest uint32 = 1
