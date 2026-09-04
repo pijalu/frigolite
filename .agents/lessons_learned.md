@@ -4741,3 +4741,54 @@ ValidateFTSSegments hits the dangling start_block → "malformed". SQLite
 tolerates truncated end_block during merge and ends with one clean level-1
 row. Merge errors are swallowed in empty `if dres.Error != nil {}` blocks in
 export_fts_merge.go, hiding root causes. Repro: /tmp/p8probe7 + scenario JSON.
+
+## P8.INCRVACUUM.T6 session (2026-09-04) — 12.x autovacuum persistence + locks gate
+
+**Bug — PRAGMA auto_vacuum mode lost on reopen.** `updateDBHeaderField` had
+no hook for the `LargestBTreePage` (header[52:56]) meta field used by
+SQLite as the dual-purpose auto_vacuum flag (b.c:2727/3537:
+`pBt->autoVacuum = (get4byte(&zDbHeader[36+4*4])?1:0)` and
+`put4byte(&data[36+4*4], pBt->autoVacuum)`). After PRAGMA auto_vacuum=1
+the file was 0 bytes and reopen reported auto_vacuum=0
+(incrvacuum-12.4 expects 1). Fix: in `pragma_state.go` AutoVacuum setter,
+write `h.LargestBTreePage = 1` to the header; in `pager.go` Open restore
+`pr.autoVacuum = true` when `hdr.LargestBTreePage != 0`. Both go through
+the existing `updateDBHeaderField` plumbing (which creates page 1 if the
+file is still empty and flushes the autocommit commit) — no new code
+paths.
+
+**Bug — PRAGMA auto_vacuum=N bypassed cross-connection locking.**
+`lockAccessForStmt`'s default case returned `(false, "")` for every
+PragmaStmt, so CrossConnLockError early-returned and the test scenario
+"PRAGMA auto_vacuum = 2 with db2 BEGIN EXCLUSIVE" succeeded where SQLite
+returns "database is locked". Fix: classify PragmaStmt setter (Value !=
+"") as a write to its schema (defaults to "main"); the bare getter stays
+read-only. incrvacuum-12.2 now errors `database is locked`.
+
+**Bug — incrvacuum2/incrvacuum test hangs at 60s timeout.** Transpiler
+emits `db eval {INSERT INTO tbl1 ...}` as a tight `for {ii<1000} {
+db.Exec(...) + t.Errorf(...) }`. After the outer TCL loop's DROP TABLE
+tbl1, all 1000 inserts in the inner loop fail with "no such table", each
+calling `t.Errorf` which writes a multi-kilobyte failure message via
+syscall.write — the test spends ~30 seconds in failed-printf traffic, not
+in the engine. Not an engine bug; the engine's checkExternalMod was
+called 1000 times (each INSERT calls findTable → externalSchemaChanged),
+each call doing one ReadAt of the 4-byte change counter — fast. Root
+cause: TCL `db eval` semantics silently ignore errors; the transpiler
+should NOT promote the per-iteration exec error to a t.Errorf for eval
+bodies, only for catchsql/execsql.
+
+**Bug — WIP commit f5c67ee0 (C-parity freelist) was non-compiling.** The
+btree_vacuum.go caller of AllocatePageLE passed no argument but the WIP
+freelist.go signature requires `nearby uint32`. Restored to a compiling
+state by passing `lastPg`; the WIP signature change is intentional
+(searchList EXACT/LE bounds to BTALLOC_LE nearby).
+
+**Pre-existing — autovacuum testgen fails at autovacuum-1.1.(19).3.**
+Pre-existing engine bug in autoVacuumCommit's `finalDbSize` math:
+returns `final size 4294967227 exceeds current size 47` when `nFree <
+nOrig`. The 32-bit wrap-around in `nFree - nOrig` propagates and
+`nPtrmap` overflows to a huge value, making `nFin` wrap to ~UINT32_MAX.
+Not caused by the auto_vacuum persistence fix; reproduces on the
+c6febb8b baseline. Out of scope for the T6 session — filed under S6
+pager cleanup (t9).
