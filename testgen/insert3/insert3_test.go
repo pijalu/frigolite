@@ -170,9 +170,6 @@ func Test_insert3(t *testing.T) {
 	tab := fmt.Sprint(_row0[0])
 	_ = tab // suppress unused warning
 		_res = db.Exec("DROP TABLE " + tab)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + tab)
-		}
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")

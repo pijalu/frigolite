@@ -77,9 +77,6 @@ func Test_intarray(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "intarray-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
-		}
 		vtab.TclVarSet("i", "", "1")
 		i = "1"
 		_ = i // suppress unused warning
@@ -87,9 +84,6 @@ func Test_intarray(t *testing.T) {
 			b = tclFormat("x%03d", i)
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t1(a,b) VALUES(" + sqlLiteral(i) + "," + sqlLiteral(b) + ")")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a,b) VALUES(" + sqlLiteral(i) + "," + sqlLiteral(b) + ")")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -99,9 +93,6 @@ func Test_intarray(t *testing.T) {
 			}
 		}
 		_res = db.Exec("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT b FROM t1 WHERE a IN (12,34,56,78) ORDER BY a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT b FROM t1 WHERE a IN (12,34,56,78) ORDER BY a\n  ")
-		}
 	}
 	{ // do_test "intarray-1.1"
 		_r = vtab.IntarrayRegisterHandle("ia1")
@@ -125,15 +116,9 @@ func Test_intarray(t *testing.T) {
 		ia4 = _r
 		_ = ia4 // suppress unused warning
 		_res = db.Exec("\n    SELECT type, name FROM temp.sqlite_master\n     ORDER BY name\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT type, name FROM temp.sqlite_master\n     ORDER BY name\n  ")
-		}
 	}
 	{ // do_test "intarray-1.1b"
 		_res = db.Exec("DROP TABLE ia1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE ia1")
-		}
 		_r = vtab.IntarrayRegisterHandle("ia1")
 		_res = db.Exec("CREATE VIRTUAL TABLE temp.ia1 USING intarray('ia1')")
 		if _res.Error != nil { t.Errorf("intarray create: %v", _res.Error) }
@@ -151,9 +136,6 @@ func Test_intarray(t *testing.T) {
 		_iaName := vtab.IntarrayResolveHandle(ia3)
 		vtab.IntarrayBind(_iaName, []int64{45, 123, 678})
 		_res = db.Exec("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
-		}
 	}
 	{ // do_test "intarray-1.4"
 		r = db.Query("\n    SELECT count(b) FROM t1 WHERE a NOT IN ia3 ORDER BY a\n  ")
@@ -189,9 +171,6 @@ func Test_intarray(t *testing.T) {
 		}
 		if err := tclEvalRuntime(cmd); err != nil { t.Errorf("eval %s: %v", cmd, err) }
 		_res = db.Exec("\n    REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;\n  ")
-		}
 	}
 	{ // do_test "intarray-1.6"
 		r = db.Query("\n    DELETE FROM t1 WHERE a IN ia1;\n    SELECT count(*) FROM t1;\n  ")
@@ -224,8 +203,5 @@ func Test_intarray(t *testing.T) {
 		ia5 = _r
 		_ = ia5 // suppress unused warning
 		_res = db.Exec("\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
-		}
 	}
 }

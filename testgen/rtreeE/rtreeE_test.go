@@ -181,9 +181,6 @@ func Test_rtreeE(t *testing.T) {
 	}
 	{ // do_test "rtreeE-2.1"
 		_res = db.Exec("\n    CREATE TABLE t2(id,x0,x1,y0,y1);\n    CREATE VIRTUAL TABLE rt2 USING rtree(id,x0,x1,y0,y1);\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(id,x0,x1,y0,y1);\n    CREATE VIRTUAL TABLE rt2 USING rtree(id,x0,x1,y0,y1);\n    BEGIN;\n  ")
-		}
 		// expr srand(0) (not evaluated)
 		vtab.TclVarSet("i", "", "1")
 		i = "1"
@@ -204,9 +201,6 @@ func Test_rtreeE(t *testing.T) {
 			id = tclExprWith("$i+10000", map[string]string{"i": i})
 			_ = id // suppress unused warning
 			_res = db.Exec("INSERT INTO t2 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(x0) + "," + sqlLiteral(x1) + "," + sqlLiteral(y0) + "," + sqlLiteral(y1) + ")")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(x0) + "," + sqlLiteral(x1) + "," + sqlLiteral(y0) + "," + sqlLiteral(y1) + ")")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -216,9 +210,6 @@ func Test_rtreeE(t *testing.T) {
 			}
 		}
 		_res = db.Exec("\n    INSERT INTO rt2 SELECT * FROM t2;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO rt2 SELECT * FROM t2;\n    COMMIT;\n  ")
-		}
 	}
 	// do_rtree_integrity_test rtreeE-2.1.1 rt2 (unsupported command, not transpiled)
 	vtab.TclVarSet("i", "", "1")

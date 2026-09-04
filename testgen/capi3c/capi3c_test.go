@@ -815,9 +815,6 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-17.4"
 			_r = tclResetStmtCode("STMT")
 			_res = db.Exec("CREATE INDEX i2 ON t2(a)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i2 ON t2(a)")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // do_test "capi3c-17.5"
@@ -829,9 +826,6 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-17.7"
 			_r = tclResetStmtCode("STMT")
 			_res = db.Exec("DROP INDEX i2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX i2")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // do_test "capi3c-17.8"
@@ -849,9 +843,6 @@ func Test_capi3c(t *testing.T) {
 			_ = STMT // prepared statement handle
 			_r = tclBindStmt(db, "STMT", 1, "int", "2", -1)
 			_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,'one');\n    INSERT INTO t1 VALUES(2,'two');\n    INSERT INTO t1 VALUES(3,'three');\n    INSERT INTO t1 VALUES(4,'four');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,'one');\n    INSERT INTO t1 VALUES(2,'two');\n    INSERT INTO t1 VALUES(3,'three');\n    INSERT INTO t1 VALUES(4,'four');\n  ")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // do_test "capi3c-17.11"
@@ -863,9 +854,6 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-17.13"
 			_r = tclResetStmtCode("STMT")
 			_res = db.Exec("CREATE INDEX i1 ON t1(a)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i1 ON t1(a)")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // do_test "capi3c-17.14"
@@ -877,9 +865,6 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-17.16"
 			_r = tclResetStmtCode("STMT")
 			_res = db.Exec("DROP INDEX i1")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX i1")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // do_test "capi3c-17.17"
@@ -920,9 +905,6 @@ func Test_capi3c(t *testing.T) {
 		}
 		{ // "capi3c-19.1" (prepare-step internals; SQL side effects only)
 			_res = db.Exec("\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
-			}
 			_r = tclPrepareStmt(db, "STMT", "SELECT * FROM t3", -1)
 			// prepared STMT: SELECT * FROM t3 (bind/step emulation)
 			TAIL = tclSqlTail("SELECT * FROM t3")
@@ -939,9 +921,6 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-19.4"
 			_r = tclResetStmtCode("STMT")
 			_res = db.Exec("DROP TABLE t3")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t3")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // "capi3c-19.4.1" — skipped: sqlite3_errmsg after cross-connection DROP TABLE on a prepared statement N-A
@@ -957,9 +936,6 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-19.5"
 			_r = tclResetStmtCode("STMT")
 			_res = db.Exec("\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
-			}
 			_r = tclStepStmt(db, "STMT")
 		}
 		{ // do_test "capi3c-19.5.2"

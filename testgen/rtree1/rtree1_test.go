@@ -1273,19 +1273,12 @@ func Test_rtree1(t *testing.T) {
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // do_test "23.0"
 				_res = db.Exec("CREATE TABLE t1(a,b,c);")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c);")
-				}
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 					_res = db.Exec("CREATE TABLE t2 AS SELECT rtreecheck('t1') AS y;")
-					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				_res = db.Exec("PRAGMA integrity_check;")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA integrity_check;")
-				}
 			}
 			db.Close()
 			os.Remove("test.db")

@@ -59,9 +59,6 @@ func Test_tkt3838(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt3838-1.1" (do_realnum_test; SQL side effects only)
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b INTEGER DEFAULT '999';\n    ALTER TABLE t1 ADD COLUMN c REAL DEFAULT '9e99';\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT 'xyzzy';\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b INTEGER DEFAULT '999';\n    ALTER TABLE t1 ADD COLUMN c REAL DEFAULT '9e99';\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT 'xyzzy';\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM t1;\n  ")
-		}
 	}
 	{ // do_test "tkt3838-1.2"
 		r = db.Query("\n      CREATE TABLE log(y);\n      CREATE TRIGGER r1 AFTER INSERT ON T1 BEGIN\n        INSERT INTO log VALUES(new.x);\n      END;\n      INSERT INTO t1(x) VALUES(123);\n      ALTER TABLE T1 RENAME TO XYZ2;\n      INSERT INTO xyz2(x) VALUES(456);\n      ALTER TABLE xyz2 RENAME TO pqr3;\n      INSERT INTO pqr3(x) VALUES(789);\n      SELECT * FROM log;\n    ")

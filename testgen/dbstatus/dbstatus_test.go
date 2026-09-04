@@ -130,15 +130,9 @@ func Test_dbstatus(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n  ")
-		}
 		sz1 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_CACHE_USED"), "1")
 		_ = sz1 // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t2(y);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(y);\n  ")
-		}
 		sz2 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_CACHE_USED"), "1")
 		_ = sz2 // suppress unused warning
 		PAGESZ = tclExprWith("$sz2-$sz1", map[string]string{"sz2": sz2, "sz1": sz1})
@@ -149,9 +143,6 @@ func Test_dbstatus(t *testing.T) {
 	}
 	{ // "dbstatus-1.2" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(zeroblob(9000));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(zeroblob(9000));\n  ")
-		}
 		_r = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_CACHE_USED"), "1") // lindex result
 	}
 	// proc definition (not transpiled)

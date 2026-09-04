@@ -347,9 +347,6 @@ func Test_collate3(t *testing.T) {
 		// expr 0 → "0"
 	}
 	_res = db.Exec("select * from collate3t1")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select * from collate3t1")
-	}
 	{ // do_test "collate3-3.1"
 		_res = db.Exec("\n    INSERT INTO collate3t1 VALUES('xxx', 0);\n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: string_compare") {

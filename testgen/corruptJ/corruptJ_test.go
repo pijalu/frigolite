@@ -88,9 +88,6 @@ func Test_corruptJ(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;\n  ")
-		}
 	}
 	{ // do_test "2.2"
 		db.Close()

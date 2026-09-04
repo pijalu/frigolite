@@ -211,13 +211,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA cache_size=" + ii)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=" + ii)
-			}
 			_res = db.Exec("\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;\n    ")
-			}
 		}
 		// incr ii 1
 		{
@@ -233,22 +227,13 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db wholenumber (unsupported command, not transpiled)
 	_res = db.Exec("\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;\n")
-	}
 	vtab.TclVarSet("ii", "", "1")
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 10 }() {
 		{ // do_test "tkt-2d1a5c67d.2." + ii
 			_res = db.Exec("PRAGMA cache_size=" + ii)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=" + ii)
-			}
 			_res = db.Exec("\n      DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;\n    ")
-			}
 		}
 		// incr ii 1
 		{

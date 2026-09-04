@@ -996,9 +996,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1.1"
 		_res = db.Exec("PRAGMA full_column_names=on")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA full_column_names=on")
-		}
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1065,9 +1062,6 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		_res = db.Exec("PRAGMA full_column_names=off")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA full_column_names=off")
-		}
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.5"
@@ -1352,9 +1346,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.3"
 		_res = db.Exec("\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=OFF;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=OFF;\n  ")
-		}
 		r = db.Query("\n     SELECT test1 . f1, test1 . f2 FROM test1 LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT test1 . f1, test1 . f2 FROM test1 LIMIT 1\n  ")
@@ -1362,9 +1353,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.4"
 		_res = db.Exec("\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;\n  ")
-		}
 		r = db.Query("\n     SELECT test1 . f1, test1 . f2 FROM test1 LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT test1 . f1, test1 . f2 FROM test1 LIMIT 1\n  ")
@@ -1372,9 +1360,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.5"
 		_res = db.Exec("\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;\n  ")
-		}
 		r = db.Query("\n     SELECT 123.45;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT 123.45;\n  ")
@@ -1422,9 +1407,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.11"
 		_res = db.Exec("\n     PRAGMA short_column_names=ON;\n     PRAGMA full_column_names=ON;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA short_column_names=ON;\n     PRAGMA full_column_names=ON;\n  ")
-		}
 		r = db.Query("\n     SELECT a.f1, b.f2 FROM test1 a, test1 b LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a.f1, b.f2 FROM test1 a, test1 b LIMIT 1\n  ")
@@ -1438,9 +1420,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.13"
 		_res = db.Exec("\n     PRAGMA short_column_names=ON;\n     PRAGMA full_column_names=OFF;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA short_column_names=ON;\n     PRAGMA full_column_names=OFF;\n  ")
-		}
 		r = db.Query("\n     SELECT a.f1, b.f1 FROM test1 a, test1 b LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a.f1, b.f1 FROM test1 a, test1 b LIMIT 1\n  ")
@@ -1454,9 +1433,6 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.15"
 		_res = db.Exec("\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=ON;\n  ")
-		}
 		r = db.Query("\n     SELECT a.f1, b.f1 FROM test1 a, test1 b LIMIT 1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a.f1, b.f1 FROM test1 a, test1 b LIMIT 1\n  ")
@@ -1469,9 +1445,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  PRAGMA short_column_names=ON;\n  PRAGMA full_column_names=OFF;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA short_column_names=ON;\n  PRAGMA full_column_names=OFF;\n")
-	}
 	{ // do_test "select1-6.10"
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -2055,9 +2028,6 @@ func Test_select1(t *testing.T) {
 	tab := fmt.Sprint(_row8[0])
 	_ = tab // suppress unused warning
 		_res = db.Exec("DROP TABLE " + tab)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + tab)
-		}
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")

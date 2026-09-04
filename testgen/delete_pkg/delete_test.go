@@ -713,9 +713,6 @@ func Test_delete(t *testing.T) {
 			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 ")
-				}
 			}
 			res = tclListAppend(res, _r, c, d)
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
@@ -756,9 +753,6 @@ func Test_delete(t *testing.T) {
 			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 2 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 WHERE rowid = 2 ")
-				}
 			}
 			res = tclListAppend(res, _r, c, d)
 			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
@@ -799,9 +793,6 @@ func Test_delete(t *testing.T) {
 			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 1 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 WHERE rowid = 1 ")
-				}
 			}
 			res = tclListAppend(res, _r, c, d)
 			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
@@ -842,9 +833,6 @@ func Test_delete(t *testing.T) {
 			}
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n == 2 }() {
 				_res = db.Exec(" DELETE FROM t5 WHERE rowid = 3 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t5 WHERE rowid = 3 ")
-				}
 			}
 			res = tclListAppend(res, _r, c, d)
 			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }

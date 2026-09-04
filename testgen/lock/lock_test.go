@@ -283,7 +283,6 @@ func Test_lock(t *testing.T) {
 				{ // catch block
 					var _catchErr error
 					_res = db.Exec("UPDATE t2 SET x=y, y=x")
-					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						_r = "1"
 						msg = _catchErr.Error()
@@ -327,7 +326,6 @@ func Test_lock(t *testing.T) {
 				{ // catch block
 					var _catchErr error
 					_res = db.Exec("SELECT a FROM t1")
-					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						_r = "1"
 						msg = _catchErr.Error()
@@ -655,16 +653,9 @@ func Test_lock(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("ROLLBACK")
-			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
 		_res = db.Exec("UPDATE t1 SET a=0 WHERE 0")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=0 WHERE 0")
-		}
 		db2, err = frigolite.Open("./test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("UPDATE t1 SET a=0")

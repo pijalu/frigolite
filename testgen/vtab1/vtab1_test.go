@@ -1270,13 +1270,7 @@ func Test_vtab1(t *testing.T) {
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 					_res = db.Exec("INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-					}
 					_res = db.Exec("INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
-					}
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)

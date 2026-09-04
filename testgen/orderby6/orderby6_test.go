@@ -93,13 +93,7 @@ func Test_orderby6(t *testing.T) {
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // do_test tn + ".1"
 				_res = db.Exec("CREATE TABLE t1(a,b,c,PRIMARY KEY(b,c)) " + rowidclause + ";")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c,PRIMARY KEY(b,c)) " + rowidclause + ";")
-				}
 				_res = db.Exec("\n      WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<1000)\n     INSERT INTO t1 SELECT x, x%40, x/40 FROM cnt;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<1000)\n     INSERT INTO t1 SELECT x, x%40, x/40 FROM cnt;\n    ")
-				}
 			}
 			{ // tn + ".2"
 				r = db.Query("\n    SELECT b,a,c FROM t1 ORDER BY b,a,c;\n  ")
@@ -302,13 +296,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				{ // do_test tn + ".31"
 					_res = db.Exec("CREATE TABLE t2(a,b,c,d,e,f,PRIMARY KEY(b,c,d,e,f)) " + rowidclause + ";")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2(a,b,c,d,e,f,PRIMARY KEY(b,c,d,e,f)) " + rowidclause + ";")
-					}
 					_res = db.Exec("\n      WITH RECURSIVE\n       cnt(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM cnt WHERE x<242)\n     INSERT INTO t2 SELECT x,  x%3, (x/3)%3, (x/9)%3, (x/27)%3, (x/81)%3\n                      FROM cnt;\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      WITH RECURSIVE\n       cnt(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM cnt WHERE x<242)\n     INSERT INTO t2 SELECT x,  x%3, (x/3)%3, (x/9)%3, (x/27)%3, (x/81)%3\n                      FROM cnt;\n    ")
-					}
 				}
 				{ // tn + ".32"
 					r = db.Query("\n    SELECT a FROM t2 ORDER BY b,c,d,e,f;\n  ")

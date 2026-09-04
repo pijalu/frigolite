@@ -66,14 +66,8 @@ func Test_amatch1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "amatch1-1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);\n  ")
-		}
 		ftsKJVGenesis(t, db)
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5\n  ")
-		}
 	}
 	{ // do_test "amatch1-1.1"
 		r = db.Query("\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5\n  ")

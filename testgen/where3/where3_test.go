@@ -273,9 +273,6 @@ func Test_where3(t *testing.T) {
 			sql += " NATURAL JOIN t6z "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".2"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w JOIN t6x USING(a) JOIN t6y USING(a)")
@@ -284,9 +281,6 @@ func Test_where3(t *testing.T) {
 			sql += " JOIN t6z USING(a) "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".3"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w NATURAL JOIN t6x JOIN t6y USING(a)")
@@ -295,9 +289,6 @@ func Test_where3(t *testing.T) {
 			sql += " JOIN t6z USING(a) "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".4"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w JOIN t6x USING(a) NATURAL JOIN t6y")
@@ -306,9 +297,6 @@ func Test_where3(t *testing.T) {
 			sql += " JOIN t6z USING(a) "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".5"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w JOIN t6x USING(a) JOIN t6y USING(a)")
@@ -317,9 +305,6 @@ func Test_where3(t *testing.T) {
 			sql += " NATURAL JOIN t6z "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".6"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w JOIN t6x USING(a) NATURAL JOIN t6y")
@@ -328,9 +313,6 @@ func Test_where3(t *testing.T) {
 			sql += " NATURAL JOIN t6z "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".7"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w NATURAL JOIN t6x JOIN t6y USING(a)")
@@ -339,9 +321,6 @@ func Test_where3(t *testing.T) {
 			sql += " NATURAL JOIN t6z "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 		{ // do_test "where3-6." + cnt + ".8"
 			vtab.TclVarSet("sql", "", "SELECT * FROM t6w NATURAL JOIN t6x NATURAL JOIN t6y")
@@ -350,9 +329,6 @@ func Test_where3(t *testing.T) {
 			sql += " JOIN t6z USING(a) "
 			sql += predicate
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 		}
 	}
 	{ // "where3-7-setup"

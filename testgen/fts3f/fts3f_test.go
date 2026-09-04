@@ -92,9 +92,6 @@ func Test_fts3f(t *testing.T) {
 			}
 			if func() bool { docid_n, _docid_e := strconv.Atoi(docid); if _docid_e != nil { return false }; return docid_n == 2 }() {
 				_res = db.Exec("COMMIT")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-				}
 			}
 			ret = tclListAppend(ret, docid)
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }

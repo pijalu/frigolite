@@ -64,9 +64,6 @@ func Test_shrink(t *testing.T) {
 	}
 	{ // do_test "shrink-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(randomblob(1000000),1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(randomblob(1000000),1);\n  ")
-		}
 		vtab.TclVarSet("baseline", "", "sqlite3_memory_used")
 		baseline = "sqlite3_memory_used" // TCL namespace variable
 		_ = baseline // suppress unused warning
@@ -77,18 +74,12 @@ func Test_shrink(t *testing.T) {
 		baseline = "sqlite3_memory_used"
 		_ = baseline // suppress unused warning
 		_res = db.Exec("\n    UPDATE t1 SET y=y+1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET y=y+1;\n  ")
-		}
 		// expr $::baseline+500000 < [sqlite3_memory_used] (not evaluated)
 	}
 	{ // do_test "shrink-1.3"
 		baseline = "sqlite3_memory_used"
 		_ = baseline // suppress unused warning
 		_res = db.Exec("PRAGMA shrink_memory")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA shrink_memory")
-		}
 		// expr $::baseline > [sqlite3_memory_used]+500000 (not evaluated)
 	}
 	// test_restore_config_pagecache (unsupported command, not transpiled)

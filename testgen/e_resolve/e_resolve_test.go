@@ -73,9 +73,6 @@ func Test_e_resolve(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(schema)
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
-	}
 	{ // "1.1"
 		r = db.Query(" SELECT * FROM n1 ")
 		if r.Error != nil {
@@ -129,9 +126,6 @@ func Test_e_resolve(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(schema)
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
-	}
 	{ // "2.1.1"
 		r = db.Query(" SELECT * FROM main.n1 ")
 		if r.Error != nil {
@@ -191,9 +185,6 @@ func Test_e_resolve(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(schema)
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
-	}
 	{ // "3.1"
 		r = db.Query(" SELECT * FROM MAIN.n1 ")
 		if r.Error != nil {

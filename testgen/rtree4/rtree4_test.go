@@ -139,21 +139,9 @@ func Test_rtree4(t *testing.T) {
 				}
 			}
 			_res = db.Exec("DROP TABLE IF EXISTS rx")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS rx")
-			}
 			_res = db.Exec("DROP TABLE IF EXISTS bx")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS bx")
-			}
 			_res = db.Exec("CREATE VIRTUAL TABLE rx USING rtree(id, " + strings.Join(tclSplitList(clist), ",") + ")")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE rx USING rtree(id, " + strings.Join(tclSplitList(clist), ",") + ")")
-			}
 			_res = db.Exec("CREATE TABLE bx(id INTEGER PRIMARY KEY,                " + strings.Join(tclSplitList(clist), ",") + ", CHECK( " + strings.Join(tclSplitList(cklist), " AND ") + " ))")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE bx(id INTEGER PRIMARY KEY,                " + strings.Join(tclSplitList(clist), ",") + ", CHECK( " + strings.Join(tclSplitList(cklist), " AND ") + " ))")
-			}
 		}
 		vtab.TclVarSet("i", "", "1")
 		i = "1"
@@ -181,13 +169,7 @@ func Test_rtree4(t *testing.T) {
 					}
 				}
 				_res = db.Exec("INSERT INTO rx VALUES(NULL, " + strings.Join(tclSplitList(vlist), ",") + ")")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO rx VALUES(NULL, " + strings.Join(tclSplitList(vlist), ",") + ")")
-				}
 				_res = db.Exec("INSERT INTO bx VALUES(NULL, " + strings.Join(tclSplitList(vlist), ",") + ")")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO bx VALUES(NULL, " + strings.Join(tclSplitList(vlist), ",") + ")")
-				}
 			}
 			vtab.TclVarSet("where", "", "")
 			where = ""

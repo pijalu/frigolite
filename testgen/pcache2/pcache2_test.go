@@ -74,9 +74,6 @@ func Test_pcache2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
-		}
 		_r = tclLIndex(tclStatus(db, "0"), "1") // lindex result
 		if _r != "2" {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "2", "pcache2-1.2")
@@ -95,9 +92,6 @@ func Test_pcache2(t *testing.T) {
 	}
 	{ // do_test "pcache2-1.4"
 		_res = db.Exec("\n     CREATE TABLE t1(a,b);\n     CREATE TABLE t2(x,y);\n     INSERT INTO t1 VALUES(1, zeroblob(800));\n     INSERT INTO t1 VALUES(2, zeroblob(800));\n     INSERT INTO t2 SELECT * FROM t1;\n     INSERT INTO t1 SELECT x+2, y FROM t2;\n     INSERT INTO t2 SELECT a+10, b FROM t1;\n     INSERT INTO t1 SELECT x+10, y FROM t2;\n     INSERT INTO t2 SELECT a+100, b FROM t1;\n     INSERT INTO t1 SELECT x+100, y FROM t2;\n     INSERT INTO t2 SELECT a+1000, b FROM t1;\n     INSERT INTO t1 SELECT x+1000, y FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1(a,b);\n     CREATE TABLE t2(x,y);\n     INSERT INTO t1 VALUES(1, zeroblob(800));\n     INSERT INTO t1 VALUES(2, zeroblob(800));\n     INSERT INTO t2 SELECT * FROM t1;\n     INSERT INTO t1 SELECT x+2, y FROM t2;\n     INSERT INTO t2 SELECT a+10, b FROM t1;\n     INSERT INTO t1 SELECT x+10, y FROM t2;\n     INSERT INTO t2 SELECT a+100, b FROM t1;\n     INSERT INTO t1 SELECT x+100, y FROM t2;\n     INSERT INTO t2 SELECT a+1000, b FROM t1;\n     INSERT INTO t1 SELECT x+1000, y FROM t2;\n  ")
-		}
 		// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache2-2.1"

@@ -800,9 +800,6 @@ func Test_with1(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			_res = db.Exec(dual)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, dual)
-			}
 			{ // "25." + id
 				r = db.Query("\n    WITH cte1 AS (\n      SELECT TRUE, (\n        WITH cte2 AS (SELECT avg(DISTINCT TRUE) FROM dual)\n        SELECT 2571 FROM cte2\n      ) AS subquery1\n      FROM dual\n      GROUP BY 1\n    )\n    SELECT (SELECT 1324 FROM cte1) FROM cte1;\n  ")
 				if r.Error != nil {

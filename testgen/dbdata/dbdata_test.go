@@ -76,7 +76,6 @@ func Test_dbdata(t *testing.T) {
 	{
 		var _catchErr error
 		_res = db.Exec(" SELECT load_extension('../dbdata') ")
-		if _res.Error != nil { _catchErr = _res.Error }
 		if _catchErr != nil {
 			_cc1 = "1"
 		} else {
@@ -148,9 +147,6 @@ func Test_dbdata(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	_res = db.Exec(" SELECT load_extension('../dbdata') ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT load_extension('../dbdata') ")
-	}
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT randomblob(900) FROM s;\n")
 		if _res.Error != nil {

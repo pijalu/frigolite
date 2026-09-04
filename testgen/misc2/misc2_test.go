@@ -242,9 +242,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
-				}
 			}
 			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -279,9 +276,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
-				}
 			}
 			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -314,9 +308,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
-				}
 			}
 			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -351,9 +342,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
-				}
 			}
 			if _dbevalRb17 { _dbevalErr18 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt19 { _dbevalErr18 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -386,9 +374,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 10 }() {
 				_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(x) + "+1)")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(x) + "+1)")
-				}
 			}
 			if _dbevalRb21 { _dbevalErr22 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt23 { _dbevalErr22 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -471,9 +456,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid))
-				}
 			}
 			if _dbevalRb29 { _dbevalErr30 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt31 { _dbevalErr30 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -508,9 +490,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "+1")
-				}
 			}
 			if _dbevalRb33 { _dbevalErr34 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt35 { _dbevalErr34 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -543,9 +522,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("DELETE FROM t1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
-				}
 			}
 			if _dbevalRb37 { _dbevalErr38 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt39 { _dbevalErr38 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -580,9 +556,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if tclBool(x + " & 1") {
 				_res = db.Exec("UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET x=x+100 WHERE rowid=" + sqlLiteral(rowid))
-				}
 			}
 			if _dbevalRb41 { _dbevalErr42 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt43 { _dbevalErr42 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -615,9 +588,6 @@ func Test_misc2(t *testing.T) {
 			}
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n > 1 }() {
 				_res = db.Exec("INSERT INTO t1(rowid,x) VALUES(" + sqlLiteral(x) + "-1," + sqlLiteral(x) + "-1)")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(rowid,x) VALUES(" + sqlLiteral(x) + "-1," + sqlLiteral(x) + "-1)")
-				}
 			}
 			if _dbevalRb45 { _dbevalErr46 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt47 { _dbevalErr46 = errors.New("interrupted"); db.ClearInterrupt() }

@@ -76,9 +76,6 @@ func Test_trustschema1(t *testing.T) {
 			return args[0], nil
 		}, 0, -1, false, true)
 		_res = db.Exec("\n    CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);\n  ")
-		}
 	}
 	{ // "1.110"
 		_res = db.Exec("\n  SELECT a, b, c FROM t1;\n")

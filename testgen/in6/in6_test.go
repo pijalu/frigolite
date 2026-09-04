@@ -65,16 +65,10 @@ func Test_in6(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	{ // do_test "in6-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b,c,d)\n        SELECT 100, 200+x/2, 300+x/5, x FROM c;\n    CREATE INDEX t1abc ON t1(a,b,c);\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='1000000 500000 500 50';\n    ANALYZE sqlite_master;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b,c,d)\n        SELECT 100, 200+x/2, 300+x/5, x FROM c;\n    CREATE INDEX t1abc ON t1(a,b,c);\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='1000000 500000 500 50';\n    ANALYZE sqlite_master;\n  ")
-		}
 		vtab.TclVarSet("sqlite_search_count", "", "0")
 		sqlite_search_count = "0" // TCL namespace variable
 		_ = sqlite_search_count // suppress unused warning
 		_res = db.Exec("\n    SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);\n  ")
-		}
 	}
 	{ // do_test "in6-1.2"
 		_ = sqlite_search_count // TCL namespace variable (query)

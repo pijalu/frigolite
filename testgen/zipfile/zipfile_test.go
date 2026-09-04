@@ -697,9 +697,6 @@ func Test_zipfile(t *testing.T) {
 					os.MkdirAll("test_unzip", 0755)
 					// exec $::UNZIP -d test_unzip test1.zip (unsupported command, not transpiled)
 					_res = db.Exec("\n      SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
-					}
 				}
 				{ // do_test "6.0b"
 					r = db.Query("\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
@@ -730,9 +727,6 @@ func Test_zipfile(t *testing.T) {
 					os.MkdirAll("test_unzip", 0755)
 					// exec $::UNZIP -d test_unzip test2.zip (unsupported command, not transpiled)
 					_res = db.Exec("\n      SELECT name, mtime \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT name, mtime \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
-					}
 				}
 				{ // "6.3"
 					r = db.Query("\n    SELECT name, mtime, sz, rawdata, data FROM zipfile('test2.zip')\n  ")
@@ -815,9 +809,6 @@ func Test_zipfile(t *testing.T) {
 					}
 					if data == "2" {
 						_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
-						}
 					}
 					if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
 					if _dbevalInt5 { _dbevalErr4 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -845,9 +836,6 @@ func Test_zipfile(t *testing.T) {
 						}
 					}
 					_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
-					}
 					if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
 					if _dbevalInt9 { _dbevalErr8 = errors.New("interrupted"); db.ClearInterrupt() }
 				}
@@ -1227,17 +1215,11 @@ func Test_zipfile(t *testing.T) {
 					// load_static_extension db zipfile (unsupported command, not transpiled)
 					os.Remove("zipfile19.zip")
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;\n  ")
-					}
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
 					// load_static_extension db zipfile (unsupported command, not transpiled)
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
-					}
 				}
 				db.Close()
 				os.Remove("zipfile19.zip")

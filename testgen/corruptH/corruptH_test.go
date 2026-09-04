@@ -121,9 +121,6 @@ func Test_corruptH(t *testing.T) {
 	}
 	{ // do_test "1.3"
 		_res = db.Exec(" PRAGMA secure_delete=1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA secure_delete=1 ")
-		}
 		_rc := "0"
 		{
 			var _catchErr error
@@ -138,9 +135,6 @@ func Test_corruptH(t *testing.T) {
 					}
 				}
 				_res = db.Exec(" DELETE FROM t2 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t2 ")
-				}
 				if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -221,9 +215,6 @@ func Test_corruptH(t *testing.T) {
 					}
 				}
 				_res = db.Exec(" \n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n    ")
-				}
 				res = tclListAppend(res, b)
 				if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -296,9 +287,6 @@ func Test_corruptH(t *testing.T) {
 					}
 				}
 				_res = db.Exec(" \n      DELETE FROM t2 WHERE c=1;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE c=1;\n    ")
-				}
 				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
 			}

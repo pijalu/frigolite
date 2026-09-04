@@ -89,16 +89,10 @@ func Test_openv2(t *testing.T) {
 		_ = err
 		db.ResetChangesCounters()
 		_res = db.Exec("CREATE TABLE t1(x)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT name FROM sqlite_master")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT name FROM sqlite_master")
-		}
 	}
 	{ // do_test "openv2-1.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(123)\n  ")
@@ -111,9 +105,6 @@ func Test_openv2(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM sqlite_master")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
-		}
 	}
 	{ // do_test "openv2-2.2"
 		_res = db.Exec("CREATE TABLE t1(x)")

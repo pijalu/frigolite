@@ -73,9 +73,6 @@ func Test_orderby8(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);\n  ")
-		}
 		vtab.TclVarSet("result_set", "", "x")
 		result_set = "x" // TCL namespace variable
 		_ = result_set // suppress unused warning

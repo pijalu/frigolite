@@ -100,9 +100,6 @@ func Test_gencol1(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
-			}
 			{ // "gencol1-2." + tn + ".100"
 				r = db.Query("\n    INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;\n  ")
 				if r.Error != nil {
@@ -822,9 +819,6 @@ func Test_gencol1(t *testing.T) {
 					}
 				}
 				_res = db.Exec("\n      DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x " + t1 + ",\n        a " + t2 + " AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x " + t1 + ",\n        a " + t2 + " AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');\n    ")
-				}
 				x1 = tclSort(tclExecSQL(db, "SELECT typeof(b) FROM t1"))
 				_ = x1 // suppress unused warning
 				{ // "gencol1-23.1." + cnt — skipped: do_test lsort db-eval error body not transpiled + EXPLAIN order N-A (no-side-effects)

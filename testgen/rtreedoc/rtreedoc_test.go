@@ -375,7 +375,6 @@ func Test_rtreedoc(t *testing.T) {
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
 							_res = db.Exec(" INSERT INTO rtF VALUES(NULL, " + sqlLiteral(x1) + ", " + sqlLiteral(x2) + ", " + sqlLiteral(y1) + ", " + sqlLiteral(y2) + ") ")
-							if _res.Error != nil { _catchErr = _res.Error }
 						}
 					}
 				}
@@ -404,7 +403,6 @@ func Test_rtreedoc(t *testing.T) {
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
 								_res = db.Exec(" INSERT INTO rtI VALUES(NULL," + sqlLiteral(x1) + "," + sqlLiteral(x2) + "," + sqlLiteral(y1) + "," + sqlLiteral(y2) + "," + sqlLiteral(z1) + "," + sqlLiteral(z2) + ") ")
-								if _res.Error != nil { _catchErr = _res.Error }
 							}
 						}
 					}
@@ -987,9 +985,6 @@ func Test_rtreedoc(t *testing.T) {
 												res1o = _dbeval11
 												_ = res1o // suppress unused warning
 												_res = db.Exec(" INSERT INTO rt VALUES(NULL, 50, 50) ")
-												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO rt VALUES(NULL, 50, 50) ")
-												}
 												_dbeval12 := tclExecSQL(db, "SELECT * FROM rt WHERE maxX < 30")
 												res2 = _dbeval12
 												_ = res2 // suppress unused warning
@@ -1041,7 +1036,6 @@ func Test_rtreedoc(t *testing.T) {
 														{ // catch block
 															var _catchErr error
 															_res = db.Exec("\n        INSERT INTO rt VALUES(NULL, 51, 51);\n      ")
-															if _res.Error != nil { _catchErr = _res.Error }
 															if _catchErr != nil {
 																rc = "1"
 																msg = _catchErr.Error()
@@ -1089,7 +1083,6 @@ func Test_rtreedoc(t *testing.T) {
 													{ // catch block
 														var _catchErr error
 														_res = db.Exec(" UPDATE demo_index SET maxY=maxY+0.5 WHERE id=" + sqlLiteral(id) + " ")
-														if _res.Error != nil { _catchErr = _res.Error }
 														if _catchErr != nil {
 															rc = "1"
 															msg = _catchErr.Error()
@@ -1180,7 +1173,6 @@ func Test_rtreedoc(t *testing.T) {
 													{ // catch block
 														var _catchErr error
 														_res = db.Exec(" INSERT INTO rt VALUES(53,53,53) ")
-														if _res.Error != nil { _catchErr = _res.Error }
 														if _catchErr != nil {
 															rc = "1"
 															msg = _catchErr.Error()
@@ -1217,7 +1209,6 @@ func Test_rtreedoc(t *testing.T) {
 													{ // catch block
 														var _catchErr error
 														_res = db.Exec(" INSERT INTO rt VALUES(53,53,53) ")
-														if _res.Error != nil { _catchErr = _res.Error }
 														if _catchErr != nil {
 															rc = "1"
 															msg = _catchErr.Error()

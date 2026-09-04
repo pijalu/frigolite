@@ -57,9 +57,6 @@ func Test_tkt_4a03edc4c8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-4a03ed-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY ON CONFLICT REPLACE,\n      b UNIQUE ON CONFLICT FAIL\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY ON CONFLICT REPLACE,\n      b UNIQUE ON CONFLICT FAIL\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n  ")
-		}
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}

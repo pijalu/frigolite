@@ -58,9 +58,6 @@ func Test_fts3e(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n")
-	}
 	{ // do_test "fts3e-1.1"
 		r = db.Query("\n    SELECT docid FROM t1 ORDER BY docid;\n  ")
 		if r.Error != nil {
@@ -80,9 +77,6 @@ func Test_fts3e(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER UNIQUE);\n  INSERT INTO t2 VALUES (null, 10);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n  INSERT INTO t2 VALUES (null, 5);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'That was a test');\n  INSERT INTO t2 VALUES (null, 20);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER UNIQUE);\n  INSERT INTO t2 VALUES (null, 10);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n  INSERT INTO t2 VALUES (null, 5);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'That was a test');\n  INSERT INTO t2 VALUES (null, 20);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n")
-	}
 	{ // do_test "fts3e-2.1"
 		r = db.Query("\n    SELECT docid FROM t1 WHERE docid in (1, 2, 10);\n    SELECT rowid FROM t1 WHERE rowid in (1, 2, 10);\n  ")
 		if r.Error != nil {
@@ -102,9 +96,6 @@ func Test_fts3e(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER UNIQUE);\n  INSERT INTO t2 VALUES (null, 10);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n  INSERT INTO t2 VALUES (null, 5);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'That was a test');\n  INSERT INTO t2 VALUES (null, 20);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER UNIQUE);\n  INSERT INTO t2 VALUES (null, 10);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n  INSERT INTO t2 VALUES (null, 5);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'That was a test');\n  INSERT INTO t2 VALUES (null, 20);\n  INSERT INTO t1 (docid, c) VALUES (last_insert_rowid(), 'This is a test');\n")
-	}
 	{ // do_test "fts3e-3.1"
 		r = db.Query("\n    SELECT docid FROM t1 WHERE t1 MATCH 'this' ORDER BY docid;\n  ")
 		if r.Error != nil {

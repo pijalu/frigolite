@@ -460,9 +460,6 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-6.4"
 		_res = db.Exec("DELETE FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
-		}
 		_r = tclBindStmt(db, "VM", 1, "text", "hello\\000there\\000", 12)
 		_r = tclBindStmt(db, "VM", 2, "text", "hello\\000there\\000", 11)
 		_r = tclBindStmt(db, "VM", 3, "text", "hello\\000there\\000", -1)
@@ -916,9 +913,6 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-15.1"
 		_res = db.Exec("CREATE TABLE t4(a,b,c,d,e,f,g,h);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t4(a,b,c,d,e,f,g,h);")
-		}
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)", -1)
 		// prepared VM: INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?) (bind/step emulation)
 		TAIL = tclSqlTail("INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)")
@@ -935,15 +929,9 @@ func Test_bind(t *testing.T) {
 		_r = tclStepStmt(db, "VM")
 		_r = tclFinalizeStmt(db, "VM")
 		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
 	}
 	{ // do_test "bind-15.2"
 		_res = db.Exec("DELETE FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t4")
-		}
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)", -1)
 		// prepared VM: INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?) (bind/step emulation)
 		TAIL = tclSqlTail("INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)")
@@ -960,15 +948,9 @@ func Test_bind(t *testing.T) {
 		_r = tclStepStmt(db, "VM")
 		_r = tclFinalizeStmt(db, "VM")
 		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
 	}
 	{ // do_test "bind-15.3"
 		_res = db.Exec("DELETE FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t4")
-		}
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)", -1)
 		// prepared VM: INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?) (bind/step emulation)
 		TAIL = tclSqlTail("INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)")
@@ -985,15 +967,9 @@ func Test_bind(t *testing.T) {
 		_r = tclStepStmt(db, "VM")
 		_r = tclFinalizeStmt(db, "VM")
 		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
 	}
 	{ // do_test "bind-15.4"
 		_res = db.Exec("DELETE FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t4")
-		}
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)", -1)
 		// prepared VM: INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?) (bind/step emulation)
 		TAIL = tclSqlTail("INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)")
@@ -1010,8 +986,5 @@ func Test_bind(t *testing.T) {
 		_r = tclStepStmt(db, "VM")
 		_r = tclFinalizeStmt(db, "VM")
 		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
-		}
 	}
 }

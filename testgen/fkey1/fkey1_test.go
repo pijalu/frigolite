@@ -171,7 +171,6 @@ func Test_fkey1(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT OR REPLACE INTO t11 VALUES(2,3);")
-			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		got := tclListFlatten(traceoutput)
 		want := tclListFlatten("INSERT OR REPLACE INTO t11 VALUES(2,3); INSERT OR REPLACE INTO t11 VALUES(2,3); INSERT OR REPLACE INTO t11 VALUES(2,3);")

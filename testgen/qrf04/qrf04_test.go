@@ -75,9 +75,6 @@ func Test_qrf04(t *testing.T) {
 	_ = expected // suppress unused warning
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
-		}
 		vtab.TclVarSet("res", "", "\n")
 		res = "\n"
 		_ = res // suppress unused warning

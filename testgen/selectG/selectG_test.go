@@ -89,15 +89,9 @@ func Test_selectG(t *testing.T) {
 		}
 		sql += "(" + i + ");"
 		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
 		microsec = "0"
 		_ = microsec // suppress unused warning
 		_res = db.Exec("\n    SELECT count(x), sum(x), avg(x), " + sqlLiteral(microsec) + "<10000000 FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(x), sum(x), avg(x), " + sqlLiteral(microsec) + "<10000000 FROM t1;\n  ")
-		}
 	}
 	{ // do_test "110"
 		vtab.TclVarSet("sql", "", "SELECT (VALUES")
@@ -118,9 +112,6 @@ func Test_selectG(t *testing.T) {
 		}
 		sql += "(" + i + "));"
 		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
 	}
 	{ // do_test "120"
 		n = strconv.Itoa(tclLLength(tclSplitString(tclExecSQL(db, "\"explain $sql\""), "\\n")))

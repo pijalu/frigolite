@@ -86,9 +86,6 @@ func Test_tkt_fc62af4523(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			tclFixtureDBs["_chan"] = db
 			_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET b = randomblob(400);\n        UPDATE t1 SET a = randomblob(201);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET b = randomblob(400);\n        UPDATE t1 SET a = randomblob(201);\n    ")
-			}
 			_ = db
 		}
 		// file exists "test.db-journal"

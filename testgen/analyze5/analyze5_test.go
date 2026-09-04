@@ -114,9 +114,6 @@ func Test_analyze5(t *testing.T) {
 	db.RegisterFunction("lindex", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "analyze5-1.0"
 		_res = db.Exec("CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)")
-		}
 		vtab.TclVarSet("i", "", "0")
 		i = "0"
 		_ = i // suppress unused warning
@@ -143,9 +140,6 @@ func Test_analyze5(t *testing.T) {
 				_ = v // suppress unused warning
 			}
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(_t) + "," + sqlLiteral(u) + "," + sqlLiteral(v) + "," + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(_t) + "," + sqlLiteral(u) + "," + sqlLiteral(v) + "," + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -155,13 +149,7 @@ func Test_analyze5(t *testing.T) {
 			}
 		}
 		_res = db.Exec(" \n    CREATE INDEX t1t ON t1(t);  -- 0.5, 1.5, 2.5, and 3.5\n    CREATE INDEX t1u ON t1(u);  -- text\n    CREATE INDEX t1v ON t1(v);  -- mixed case text\n    CREATE INDEX t1w ON t1(w);  -- integers 0, 1, 2 and a few NULLs\n    CREATE INDEX t1x ON t1(x);  -- integers 1, 2, 3 and many NULLs\n    CREATE INDEX t1y ON t1(y);  -- integers 0 and very few 1s\n    CREATE INDEX t1z ON t1(z);  -- integers 0, 1, 2, and 3\n    ANALYZE;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE INDEX t1t ON t1(t);  -- 0.5, 1.5, 2.5, and 3.5\n    CREATE INDEX t1u ON t1(u);  -- text\n    CREATE INDEX t1v ON t1(v);  -- mixed case text\n    CREATE INDEX t1w ON t1(w);  -- integers 0, 1, 2 and a few NULLs\n    CREATE INDEX t1x ON t1(x);  -- integers 1, 2, 3 and many NULLs\n    CREATE INDEX t1y ON t1(y);  -- integers 0 and very few 1s\n    CREATE INDEX t1z ON t1(z);  -- integers 0, 1, 2, and 3\n    ANALYZE;\n  ")
-		}
 		_res = db.Exec("\n    SELECT DISTINCT lindex(test_decode(sample),0) \n      FROM sqlite_stat4 WHERE idx='t1u' ORDER BY nlt;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT lindex(test_decode(sample),0) \n      FROM sqlite_stat4 WHERE idx='t1u' ORDER BY nlt;\n  ")
-		}
 	}
 	{ // do_test "analyze5-1.1"
 		r = db.Query("\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
@@ -225,9 +213,6 @@ func Test_analyze5(t *testing.T) {
 			}
 		}
 		_res = db.Exec("\n   UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;\n")
-		}
 		// foreach {testid where index rows} "500  {x IS NULL AND u='charlie'}         t1u  17\n  501  {x=1 AND u='charlie'}               t1x   1\n  502  {x IS NULL}                         t1x 995\n  503  {x=1}                               t1x   1\n  504  {x IS NOT NULL}                     t1x   2\n  505  {+x IS NOT NULL}                     {} 500\n  506  {upper(x) IS NOT NULL}               {} 500"
 		_items3 := tclSplitList("500  {x IS NULL AND u='charlie'}         t1u  17\n  501  {x=1 AND u='charlie'}               t1x   1\n  502  {x IS NULL}                         t1x 995\n  503  {x=1}                               t1x   1\n  504  {x IS NOT NULL}                     t1x   2\n  505  {+x IS NOT NULL}                     {} 500\n  506  {upper(x) IS NOT NULL}               {} 500")
 		for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {

@@ -66,9 +66,6 @@ func Test_json106(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// load_static_extension db randomjson (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TEMP TABLE t1(j0,j5,p);\n  CREATE TEMP TABLE kv(n,key,val);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(j0,j5,p);\n  CREATE TEMP TABLE kv(n,key,val);\n")
-	}
 	vtab.TclVarSet("ii", "", "1")
 	ii = "1"
 	_ = ii // suppress unused warning

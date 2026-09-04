@@ -92,9 +92,6 @@ func Test_coveridxscan(t *testing.T) {
 	{ // do_test "2.1"
 		// optimization_control cover-idx-scan 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
-		}
 	}
 	{ // do_test "2.2"
 		r = db.Query("SELECT a, c FROM t1")

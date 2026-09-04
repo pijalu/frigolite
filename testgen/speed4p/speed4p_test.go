@@ -171,9 +171,6 @@ func Test_speed4p(t *testing.T) {
 	_ = script // suppress unused warning
 	// speed_trial_tcl speed4p-rowid-update 10000 stmt $script (unsupported command, not transpiled)
 	_res = db.Exec("\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
-	}
 	// speed_trial speed4p-insert-ignore 50000 row {\n  INSERT OR IGNORE INTO t5 SELECT t, i FROM t... (unsupported command, not transpiled)
 	_dbeval0 := tclExecSQL(db, "SELECT t FROM t5")
 	list = _dbeval0

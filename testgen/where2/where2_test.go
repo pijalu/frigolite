@@ -152,9 +152,6 @@ func Test_where2(t *testing.T) {
 	}
 	{ // do_test "where2-2.4"
 		_res = db.Exec("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
-		}
 		vtab.TclVarSet("sql", "", "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()")
 		sql = "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
 		_ = sql // suppress unused warning

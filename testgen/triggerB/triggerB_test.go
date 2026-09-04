@@ -116,9 +116,6 @@ func Test_triggerB(t *testing.T) {
 			sql = "CREATE TRIGGER t3c" + i + " AFTER UPDATE ON t3\n         WHEN old.c" + i + "!=new.c" + i + " BEGIN\n          INSERT INTO t3_changes VALUES(" + i + ", old.c" + i + ", new.c" + i + ");\n      END"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

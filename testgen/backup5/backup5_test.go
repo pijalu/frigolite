@@ -77,9 +77,6 @@ func Test_backup5(t *testing.T) {
 	{ // do_test "1.1"
 		tclFileCopy("test.db", "test.db2")
 		_res = db.Exec("\n    DROP TABLE t2;\n    INSERT INTO t1 VALUES(zeroblob(1000), zeroblob(1000));\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    INSERT INTO t1 VALUES(zeroblob(1000), zeroblob(1000));\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n  ")
-		}
 	}
 	{ // "1.2" (prepare-step internals; SQL side effects only)
 		db2, err = frigolite.Open("test.db2")

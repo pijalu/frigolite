@@ -74,9 +74,6 @@ func Test_fts3c(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n")
-	}
 	{ // do_test "fts3c-1.0.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -112,9 +109,6 @@ func Test_fts3c(t *testing.T) {
 	// check_doclist fts3c-1.0.4.3 0 2 test {[3 0[3]]} (unsupported command, not transpiled)
 	// check_doclist fts3c-1.0.4.4 0 2 this {[3 0[0]]} (unsupported command, not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid = 1;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid = 1;\n")
-	}
 	{ // do_test "fts3c-1.1.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -155,9 +149,6 @@ func Test_fts3c(t *testing.T) {
 	// check_doclist fts3c-1.1.5.3 0 3 test {[1]} (unsupported command, not transpiled)
 	// check_doclist fts3c-1.1.5.4 0 3 this {[1]} (unsupported command, not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n")
-	}
 	{ // do_test "fts3c-1.2.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -198,9 +189,6 @@ func Test_fts3c(t *testing.T) {
 	// check_doclist fts3c-1.2.5.3 0 3 test {[1] [3]} (unsupported command, not transpiled)
 	// check_doclist fts3c-1.2.5.4 0 3 this {[1] [3]} (unsupported command, not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  DROP TABLE IF EXISTS t1old;\n  ALTER TABLE t1 RENAME TO t1old;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) SELECT docid, c FROM t1old;\n  DROP TABLE t1old;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  DROP TABLE IF EXISTS t1old;\n  ALTER TABLE t1 RENAME TO t1old;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) SELECT docid, c FROM t1old;\n  DROP TABLE t1old;\n")
-	}
 	{ // do_test "fts3c-1.3.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {

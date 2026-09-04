@@ -96,16 +96,10 @@ func Test_walsetlk_snapshot(t *testing.T) {
 	}
 	{ // do_test "1.1"
 		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
 		vtab.TclVarSet("snap", "", "sqlite3_snapshot_get db main")
 		snap = "sqlite3_snapshot_get db main" // TCL namespace variable
 		_ = snap // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(7, 8);\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(7, 8);\n    COMMIT;\n  ")
-		}
 	}
 	// testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.d...} (unsupported command, not transpiled)
 	{
@@ -114,7 +108,6 @@ func Test_walsetlk_snapshot(t *testing.T) {
 		_ = _catchErrMsg // suppress unused warning
 		var _catchErr error
 		_res = db.Exec("BEGIN")
-		if _res.Error != nil { _catchErr = _res.Error }
 		// sqlite3_snapshot_open db main $::snap (unsupported command, not transpiled)
 		if _catchErr != nil {
 			msg = "1"

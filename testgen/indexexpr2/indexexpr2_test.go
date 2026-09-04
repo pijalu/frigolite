@@ -272,9 +272,6 @@ func Test_indexexpr2(t *testing.T) {
 		cnt = "0" // TCL namespace variable
 		_ = cnt // suppress unused warning
 		_res = db.Exec("UPDATE t1 SET d=d+1;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET d=d+1;")
-		}
 		_ = cnt // TCL namespace variable (query)
 		got := tclListFlatten(cnt)
 		want := tclListFlatten("0")

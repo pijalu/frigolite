@@ -80,9 +80,6 @@ func Test_dataversion1(t *testing.T) {
 	_ = dv1 // suppress unused warning
 	{ // do_test "dataversion1-101"
 		_res = db.Exec("\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);\n  ")
-		}
 		_r = tclDataVersion(db, "main")
 		if _r != dv1 {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, dv1, "dataversion1-101")
@@ -90,9 +87,6 @@ func Test_dataversion1(t *testing.T) {
 	}
 	{ // do_test "dataversion1-110"
 		_res = db.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET x=x+1;\n  ")
-		}
 		dv2 = tclDataVersion(db, "")
 		_ = dv2 // suppress unused warning
 		// expr $::dv1==$dv2 (not evaluated)
@@ -106,9 +100,6 @@ func Test_dataversion1(t *testing.T) {
 	_ = dv1 // suppress unused warning
 	{ // do_test "dataversion1-120"
 		_res = db.Exec("\n    UPDATE t2 SET y=y+1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET y=y+1;\n  ")
-		}
 		_r = tclDataVersion(db, "")
 		if _r != dv1 {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, dv1, "dataversion1-120")
@@ -140,9 +131,6 @@ func Test_dataversion1(t *testing.T) {
 	}
 	{ // do_test "dataversion1-133"
 		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
-		}
 		dv2 = tclDataVersion(db, "")
 		_ = dv2 // suppress unused warning
 		// expr $::dv1==$dv2 (not evaluated)

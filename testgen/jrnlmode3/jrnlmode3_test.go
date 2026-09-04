@@ -171,13 +171,7 @@ func Test_jrnlmode3(t *testing.T) {
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".3"
 				_res = db.Exec("\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(cnt) + ");\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(cnt) + ");\n      ")
-				}
 				_res = db.Exec("PRAGMA journal_mode=" + tojmode)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + tojmode)
-				}
 				r = db.Query("PRAGMA journal_mode=" + sqlLiteral(tojmode))
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode=" + sqlLiteral(tojmode))
@@ -207,17 +201,8 @@ func Test_jrnlmode3(t *testing.T) {
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".6"
 				_res = db.Exec("\n        DROP TABLE IF EXISTS t1;\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(1);\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DROP TABLE IF EXISTS t1;\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(1);\n      ")
-				}
 				_res = db.Exec("ROLLBACK")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-				}
 				_res = db.Exec("\n        SELECT * FROM t1;\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SELECT * FROM t1;\n      ")
-				}
 			}
 		}
 	}

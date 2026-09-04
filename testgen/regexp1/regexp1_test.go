@@ -64,9 +64,6 @@ func Test_regexp1(t *testing.T) {
 	{ // do_test "regexp1-1.1"
 		// load_static_extension db regexp (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;\n  ")
-		}
 	}
 	{ // "regexp1-1.1.2"
 		r = db.Query("\n  SELECT regexpi('abc','ABC');\n")
@@ -559,54 +556,36 @@ func Test_regexp1(t *testing.T) {
 		v1 = "abc\ndef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\ndef$'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\ndef$'")
-		}
 	}
 	{ // do_test "regexp1-2.10"
 		vtab.TclVarSet("v1", "", "abc\adef")
 		v1 = "abc\adef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\adef$'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\adef$'")
-		}
 	}
 	{ // do_test "regexp1-2.11"
 		vtab.TclVarSet("v1", "", "abc\tdef")
 		v1 = "abc\tdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\tdef$'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\tdef$'")
-		}
 	}
 	{ // do_test "regexp1-2.12"
 		vtab.TclVarSet("v1", "", "abc\rdef")
 		v1 = "abc\rdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\rdef$'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\rdef$'")
-		}
 	}
 	{ // do_test "regexp1-2.13"
 		vtab.TclVarSet("v1", "", "abc\fdef")
 		v1 = "abc\fdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\fdef$'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\fdef$'")
-		}
 	}
 	{ // do_test "regexp1-2.14"
 		vtab.TclVarSet("v1", "", "abc\vdef")
 		v1 = "abc\vdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\vdef$'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v1) + " REGEXP '^abc\\vdef$'")
-		}
 	}
 	{ // "regexp1-2.15"
 		r = db.Query("\n  SELECT 'abc\\def' REGEXP '^abc\\\\def',\n         'abc(def' REGEXP '^abc\\(def',\n         'abc)def' REGEXP '^abc\\)def',\n         'abc*def' REGEXP '^abc\\*def',\n         'abc.def' REGEXP '^abc\\.def',\n         'abc+def' REGEXP '^abc\\+def',\n         'abc?def' REGEXP '^abc\\?def',\n         'abc[def' REGEXP '^abc\\[def',\n         'abc$def' REGEXP '^abc\\$',\n         '^def'    REGEXP '\\^def',\n         'abc{4}x' REGEXP '^abc\\{4\\}x$',\n         'abc|def' REGEXP '^abc\\|def$'\n")

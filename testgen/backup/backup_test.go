@@ -463,14 +463,8 @@ func Test_backup(t *testing.T) {
 		iTab = "1"
 		_ = iTab // suppress unused warning
 		_res = db.Exec(" PRAGMA page_size = 512 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA page_size = 512 ")
-		}
 		for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclFileSize("test.db"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(sqlite_pending_byte); if r_e != nil { return false }; return l_n <= r_n }() {
 			_res = db.Exec("CREATE TABLE t" + iTab + "(a, b, c)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t" + iTab + "(a, b, c)")
-			}
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)

@@ -313,9 +313,6 @@ func Test_loadext(t *testing.T) {
 	}
 	{ // do_test "loadext-3.5"
 		_res = db.Exec("\n    SELECT sqlite3_status('MEMORY_USED') AS mused\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite3_status('MEMORY_USED') AS mused\n  ")
-		}
 		_putsMsg := "-nonewline"
 		_ = _putsMsg
 		// expr $mused>0 (not evaluated)

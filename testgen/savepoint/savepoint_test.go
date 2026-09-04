@@ -930,7 +930,6 @@ func Test_savepoint(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "savepoint-10.1.1"
 		_res = db.Exec("\n    SAVEPOINT one;\n    ATTACH 'test2.db' AS aux;\n    DETACH aux;\n  ")

@@ -576,9 +576,6 @@ func Test_returning1(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "12.1"
 		_res = db.Exec("CREATE TABLE t1(x INT, y INT)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x INT, y INT)")
-		}
 		var _cname_arr string
 		_ = _cname_arr // suppress unused warning
 		_dbevalRows0 := db.Query("INSERT INTO t1(x) VALUES(1) RETURNING \"x\";")

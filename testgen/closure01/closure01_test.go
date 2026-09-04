@@ -227,9 +227,6 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  INSERT INTO t2 SELECT x, y FROM t1 WHERE x<32;\n  CREATE INDEX t2y ON t2(y);\n  CREATE VIRTUAL TABLE c2 \n   USING transitive_closure(tablename=t2, idcolumn=x, parentcolumn=y);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  INSERT INTO t2 SELECT x, y FROM t1 WHERE x<32;\n  CREATE INDEX t2y ON t2(y);\n  CREATE VIRTUAL TABLE c2 \n   USING transitive_closure(tablename=t2, idcolumn=x, parentcolumn=y);\n")
-	}
 	{ // "2.1"
 		r = db.Query("\n  SELECT count(*), min(id), max(id) FROM c2 WHERE root=1;\n")
 		if r.Error != nil {

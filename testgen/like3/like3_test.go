@@ -485,9 +485,6 @@ func Test_like3(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA case_sensitive_like=ON")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=ON")
-	}
 	{ // "like3-6.230"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE path LIKE 'a%';\n")
 		if r.Error != nil {

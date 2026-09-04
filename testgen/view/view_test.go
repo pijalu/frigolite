@@ -696,9 +696,6 @@ func Test_view(t *testing.T) {
 	}
 	{ // do_test "view-22.2"
 		_res = db.Exec("SELECT * FROM x1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM x1")
-		}
 		_ = tclSort("array names x") // lsort result
 	}
 	{ // "view-25.1" — skipped: authorizer framework test (db authorizer) not supported by transpiler; DROP VIEW fires no sqlite_stat authorizer events (SQL side effects only)

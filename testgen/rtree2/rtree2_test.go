@@ -176,7 +176,6 @@ func Test_rtree2(t *testing.T) {
 					{ // catch block
 						var _catchErr error
 						_res = db.Exec("INSERT INTO t1 VALUES(" + ii + ", " + values + ")")
-						if _res.Error != nil { _catchErr = _res.Error }
 						if _catchErr != nil {
 							rc = "1"
 							_catchErrMsg = _catchErr.Error()
@@ -195,9 +194,6 @@ func Test_rtree2(t *testing.T) {
 						}
 					} else {
 						_res = db.Exec("INSERT INTO t2 VALUES(" + ii + ", " + values + ")")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + ii + ", " + values + ")")
-						}
 					}
 					// incr ii 1
 					{

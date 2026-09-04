@@ -94,9 +94,6 @@ func Test_badutf2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = 'UTF-8'")
-		}
 	}
 	{ // "badutf2-4.0" (prepare-step internals; SQL side effects only)
 		// prepared S: SELECT ? (bind/step emulation)

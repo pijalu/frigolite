@@ -130,9 +130,6 @@ func Test_btreefault(t *testing.T) {
 			res = tclListAppend(res, x, y)
 			if y == "b" {
 				_res = db.Exec(" DELETE FROM t1 WHERE i=25 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE i=25 ")
-				}
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }

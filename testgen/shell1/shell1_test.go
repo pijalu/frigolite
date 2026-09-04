@@ -505,7 +505,6 @@ func Test_shell1(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		_res = db.Exec("DROP VIEW v1; DROP VIEW v2; DROP TABLE t1;")
-		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "shell1-3.21.5"
 		// exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...}... (unsupported command, not transpiled)

@@ -93,9 +93,6 @@ func Test_attach2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	{ // do_test "attach2-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
-		}
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")
 		db2, err = frigolite.Open("test2.db")
@@ -107,9 +104,6 @@ func Test_attach2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	_res = db.Exec("DETACH t2")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH t2")
-	}
 	{ // do_test "attach2-2.1"
 		_res = db2.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

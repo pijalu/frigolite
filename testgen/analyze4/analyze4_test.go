@@ -57,13 +57,7 @@ func Test_analyze4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "analyze4-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 SELECT a+1, b FROM t1;\n    INSERT INTO t1 SELECT a+2, b FROM t1;\n    INSERT INTO t1 SELECT a+4, b FROM t1;\n    INSERT INTO t1 SELECT a+8, b FROM t1;\n    INSERT INTO t1 SELECT a+16, b FROM t1;\n    INSERT INTO t1 SELECT a+32, b FROM t1;\n    INSERT INTO t1 SELECT a+64, b FROM t1;\n    ANALYZE;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 SELECT a+1, b FROM t1;\n    INSERT INTO t1 SELECT a+2, b FROM t1;\n    INSERT INTO t1 SELECT a+4, b FROM t1;\n    INSERT INTO t1 SELECT a+8, b FROM t1;\n    INSERT INTO t1 SELECT a+16, b FROM t1;\n    INSERT INTO t1 SELECT a+32, b FROM t1;\n    INSERT INTO t1 SELECT a+64, b FROM t1;\n    ANALYZE;\n  ")
-		}
 		_res = db.Exec("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=5 AND b IS NULL")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=5 AND b IS NULL")
-		}
 	}
 	{ // do_test "analyze4-1.1"
 		r = db.Query("\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")

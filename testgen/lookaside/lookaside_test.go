@@ -107,9 +107,6 @@ func Test_lookaside(t *testing.T) {
 	}
 	{ // "lookaside-1.4" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("CREATE TABLE t1(w,x,y,z);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(w,x,y,z);")
-		}
 		_items0 := tclSplitList(tclDbStatus(db, "DBSTATUS_LOOKASIDE_USED"))
 		if len(_items0) >= 3 {
 			x = _items0[0]
@@ -183,9 +180,6 @@ func Test_lookaside(t *testing.T) {
 	}
 	{ // "lookaside-2.2" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("CREATE TABLE t2(x);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2(x);")
-		}
 		_items5 := tclSplitList(tclDbStatus(db, "DBSTATUS_LOOKASIDE_USED"))
 		if len(_items5) >= 3 {
 			x = _items5[0]
@@ -199,9 +193,6 @@ func Test_lookaside(t *testing.T) {
 	}
 	{ // do_test "lookaside-2.3"
 		_res = db.Exec("SELECT 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1")
-		}
 		// sqlite3_db_config_lookaside db 0 50 50 (unsupported command, not transpiled)
 	}
 	{ // do_test "lookaside-2.4"

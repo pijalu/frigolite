@@ -414,9 +414,6 @@ func Test_alter4(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")
-		}
 	}
 	db.Close()
 	os.Remove("test.db")

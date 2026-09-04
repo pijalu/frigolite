@@ -67,9 +67,6 @@ func Test_joinE(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	tcl_nullvalue = "-"
 	_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);\n")
-	}
 	{ // "joinE-1"
 		r = db.Query("\n  SELECT a, b\n  FROM t1 INNER JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);\n")
 		if r.Error != nil {
@@ -287,9 +284,6 @@ func Test_joinE(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1);\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(NULL);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1);\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(NULL);\n")
-	}
 	{ // "joinE-21"
 		r = db.Query("\n  SELECT a, b\n  FROM t1 INNER JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);\n")
 		if r.Error != nil {

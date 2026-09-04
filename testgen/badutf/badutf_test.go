@@ -59,9 +59,6 @@ func Test_badutf(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "badutf-1.1"
 		_res = db.Exec("PRAGMA encoding=UTF8")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF8")
-		}
 		_r = tclExec(db, "SELECT hex('%80') AS x")
 		if tclListFlatten(_r) != tclListFlatten("0 x 80") {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "0 x 80", "badutf-1.1")

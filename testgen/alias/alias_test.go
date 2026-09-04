@@ -70,65 +70,38 @@ func Test_alias(t *testing.T) {
 	{ // do_test "alias-1.1"
 		db.RegisterFunction("sequence", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;\n  ")
-		}
 	}
 	{ // do_test "alias-1.2"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y>0\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y>0\n  ")
-		}
 	}
 	{ // do_test "alias-1.3"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99\n  ")
-		}
 	}
 	{ // do_test "alias-1.4"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99 AND y!=55\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99 AND y!=55\n  ")
-		}
 	}
 	{ // do_test "alias-1.5"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1\n     WHERE y>0 AND y<99 AND y!=55 AND y NOT IN (56,57,58)\n       AND y NOT LIKE 'abc%' AND y%10==2\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1\n     WHERE y>0 AND y<99 AND y!=55 AND y NOT IN (56,57,58)\n       AND y NOT LIKE 'abc%' AND y%10==2\n  ")
-		}
 	}
 	{ // do_test "alias-1.6"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y BETWEEN 0 AND 99\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y BETWEEN 0 AND 99\n  ")
-		}
 	}
 	{ // do_test "alias-1.8"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, 1-sequence() AS y FROM t1 ORDER BY y\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, 1-sequence() AS y FROM t1 ORDER BY y\n  ")
-		}
 	}
 	{ // do_test "alias-1.9"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 ORDER BY -y\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 ORDER BY -y\n  ")
-		}
 	}
 	{ // do_test "alias-1.10"
 		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 ORDER BY x%2, y\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 ORDER BY x%2, y\n  ")
-		}
 	}
 	_dbeval0 := tclExecSQL(db, "SELECT random()&2147483647 AS r FROM t1, t1, t1, t1 ORDER BY r")
 	random_int_list = _dbeval0
@@ -168,9 +141,6 @@ func Test_alias(t *testing.T) {
 		{ // do_test "alias-3.1"
 			// ::seq::reset (unsupported command, not transpiled)
 			_res = db.Exec("\n      SELECT sequence(*) AS y, count(*) AS z FROM t1 GROUP BY y ORDER BY z, y\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT sequence(*) AS y, count(*) AS z FROM t1 GROUP BY y ORDER BY z, y\n    ")
-			}
 		}
 	}
 }

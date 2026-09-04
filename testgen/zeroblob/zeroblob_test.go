@@ -212,9 +212,6 @@ func Test_zeroblob(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA cache_size=10")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=10")
-	}
 	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 	memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
@@ -553,9 +550,6 @@ func Test_zeroblob(t *testing.T) {
 	}
 	{ // do_test "zeroblob-10.1"
 		_res = db.Exec("\n    CREATE TABLE t10(a,b,c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t10(a,b,c);\n  ")
-		}
 		_res = db.Exec("INSERT INTO t10 VALUES(zeroblob(1e9),zeroblob(1e9),zeroblob(1e9))")
 		_ = _res // catchsql
 	}

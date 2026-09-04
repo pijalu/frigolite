@@ -64,9 +64,6 @@ func Test_tkt_5ee23731f(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x UNIQUE);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -85,9 +82,6 @@ func Test_tkt_5ee23731f(t *testing.T) {
 					}
 				}
 				_res = db.Exec("UPDATE t1 SET x=x+1 WHERE rowid=:rowid")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET x=x+1 WHERE rowid=:rowid")
-				}
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 			}

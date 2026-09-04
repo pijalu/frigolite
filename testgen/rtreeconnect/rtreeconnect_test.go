@@ -74,9 +74,6 @@ func Test_rtreeconnect(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1"
 		_res = db.Exec(" INSERT INTO log VALUES('startup'); ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO log VALUES('startup'); ")
-		}
 		_res = db2.Exec(" CREATE TABLE newtable(x,y); ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

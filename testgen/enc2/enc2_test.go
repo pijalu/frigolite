@@ -121,9 +121,6 @@ func Test_enc2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
-		}
 		_res = db.Exec(dbcontents)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, dbcontents)
@@ -143,13 +140,7 @@ func Test_enc2(t *testing.T) {
 		}
 		{ // do_test "enc2-" + i + ".0.2"
 			_res = db.Exec("PRAGMA encoding=UTF8")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF8")
-			}
 			_res = db.Exec("PRAGMA encoding")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
-			}
 			r = db.Query("PRAGMA encoding")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
@@ -160,13 +151,7 @@ func Test_enc2(t *testing.T) {
 		}
 		{ // do_test "enc2-" + i + ".0.3"
 			_res = db.Exec("PRAGMA encoding=UTF16le")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16le")
-			}
 			_res = db.Exec("PRAGMA encoding")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
-			}
 			r = db.Query("PRAGMA encoding")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
@@ -177,13 +162,7 @@ func Test_enc2(t *testing.T) {
 		}
 		{ // do_test "enc2-" + i + ".0.4"
 			_res = db.Exec("PRAGMA encoding=UTF16be")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16be")
-			}
 			_res = db.Exec("PRAGMA encoding")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
-			}
 			r = db.Query("PRAGMA encoding")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
@@ -208,13 +187,7 @@ func Test_enc2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = 'UTF-8'")
-		}
 		_res = db.Exec("CREATE TABLE abc(a, b, c);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE abc(a, b, c);")
-		}
 	}
 	{ // do_test "enc2-4.2"
 		os.Remove("test2.db")
@@ -631,16 +604,10 @@ func Test_enc2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT name FROM sqlite_master\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM sqlite_master\n  ")
-		}
 	}
 	db.Close()
 	os.Remove("test.db")

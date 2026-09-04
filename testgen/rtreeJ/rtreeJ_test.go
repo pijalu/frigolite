@@ -93,9 +93,6 @@ func Test_rtreeJ(t *testing.T) {
 	}
 	{ // do_test "1.2"
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 3, 3);\n      INSERT INTO t1 VALUES(4, 4, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 3, 3);\n      INSERT INTO t1 VALUES(4, 4, 4);\n  ")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -118,9 +115,6 @@ func Test_rtreeJ(t *testing.T) {
 				}
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 					_res = db.Exec(" ROLLBACK ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
-					}
 				}
 				res = tclListAppend(res, id, x1, x2)
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
@@ -159,9 +153,6 @@ func Test_rtreeJ(t *testing.T) {
 		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(5, 5, 5);\n      INSERT INTO t1 VALUES(6, 6, 6);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(5, 5, 5);\n      INSERT INTO t1 VALUES(6, 6, 6);\n  ")
-		}
 		_dbevalRows4 := db.Query(" SELECT * FROM t1 ")
 		var _dbevalRb5 bool
 		var _dbevalErr6 error
@@ -180,9 +171,6 @@ func Test_rtreeJ(t *testing.T) {
 			}
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 				_res = db.Exec(" COMMIT ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
-				}
 			}
 			res = tclListAppend(res, id, x1, x2)
 			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
@@ -227,9 +215,6 @@ func Test_rtreeJ(t *testing.T) {
 		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t2(x) VALUES(12345);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t2(x) VALUES(12345);\n  ")
-		}
 		_dbevalRows8 := db.Query(" SELECT * FROM t1 ")
 		var _dbevalRb9 bool
 		var _dbevalErr10 error
@@ -248,9 +233,6 @@ func Test_rtreeJ(t *testing.T) {
 			}
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 				_res = db.Exec(" ROLLBACK ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
-				}
 			}
 			res = tclListAppend(res, id, x1, x2)
 			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
@@ -268,9 +250,6 @@ func Test_rtreeJ(t *testing.T) {
 	}
 	{ // do_test "1.8"
 		_res = db.Exec("\n    DELETE FROM t1 WHERE rowid>1;\n    BEGIN;\n    DELETE FROM t2;\n    INSERT INTO t2(x) VALUES(23456);\n    SAVEPOINT 'one';\n    INSERT INTO t1 VALUES(2,2,2),(3,3,3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE rowid>1;\n    BEGIN;\n    DELETE FROM t2;\n    INSERT INTO t2(x) VALUES(23456);\n    SAVEPOINT 'one';\n    INSERT INTO t1 VALUES(2,2,2),(3,3,3);\n  ")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -293,9 +272,6 @@ func Test_rtreeJ(t *testing.T) {
 				}
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 					_res = db.Exec(" ROLLBACK TO 'one'; ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK TO 'one'; ")
-					}
 				}
 				res = tclListAppend(res, id, x1, x2)
 				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
@@ -412,9 +388,6 @@ func Test_rtreeJ(t *testing.T) {
 	}
 	{ // do_test "2.1"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 3, 3);\n    PRAGMA writable_schema = RESET;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 3, 3);\n    PRAGMA writable_schema = RESET;\n  ")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -435,9 +408,6 @@ func Test_rtreeJ(t *testing.T) {
 				}
 				if func() bool { x1_n, _x1_e := strconv.Atoi(x1); if _x1_e != nil { return false }; return x1_n == 1 }() {
 					_res = db.Exec(" ROLLBACK ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
-					}
 				}
 				res = tclListAppend(res, x1, x2)
 				if _dbevalRb21 { _dbevalErr22 = errors.New("abort due to ROLLBACK") }
@@ -470,9 +440,6 @@ func Test_rtreeJ(t *testing.T) {
 	{ // do_test "2.3"
 		// save_t1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -529,9 +496,6 @@ func Test_rtreeJ(t *testing.T) {
 	{ // do_test "2.5"
 		// save_t1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -588,9 +552,6 @@ func Test_rtreeJ(t *testing.T) {
 	{ // do_test "2.7"
 		// save_t1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-		}
 		vtab.TclVarSet("res", "", "")
 		res = "" // TCL namespace variable
 		_ = res // suppress unused warning

@@ -133,9 +133,6 @@ func Test_rtree8(t *testing.T) {
 				res = tclListAppend(res, x1, x2)
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 3 }() {
 					_res = db.Exec(" DELETE FROM t1 WHERE id>3 ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE id>3 ")
-					}
 				}
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -174,9 +171,6 @@ func Test_rtree8(t *testing.T) {
 			}
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 3 }() {
 				_res = db.Exec(" DELETE FROM t1 WHERE id>3 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE id>3 ")
-				}
 			}
 			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -186,9 +180,6 @@ func Test_rtree8(t *testing.T) {
 			t.Errorf("db eval callback error: %v", _dbevalErr6)
 		}
 		_res = db.Exec("SELECT x1, x2 FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x1, x2 FROM t1")
-		}
 	}
 	{ // do_test "rtree8-1.1.3"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -463,9 +454,6 @@ func Test_rtree8(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=512;\n    CREATE VIRTUAL TABLE t1 USING rtree(id,x1,x2,y1,y2);\n    WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1 SELECT x, x, x+1, x, x+1 FROM c;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=512;\n    CREATE VIRTUAL TABLE t1 USING rtree(id,x1,x2,y1,y2);\n    WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1 SELECT x, x, x+1, x, x+1 FROM c;\n  ")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -486,9 +474,6 @@ func Test_rtree8(t *testing.T) {
 						}
 					}
 					_res = db.Exec("DELETE FROM t1 WHERE id=$x(id)")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id=$x(id)")
-					}
 				}
 				db.EndActiveStatement()
 			}

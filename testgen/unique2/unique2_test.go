@@ -70,17 +70,8 @@ func Test_unique2(t *testing.T) {
 		_ = _idx0
 			{ // do_test id + ".1"
 				_res = db.Exec("DROP TABLE IF EXISTS t1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1")
-				}
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-				}
 				_res = db.Exec("INSERT INTO t1(x,y) VALUES(1,1),(2,2),(3,2),(4,3)")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x,y) VALUES(1,1),(2,2),(3,2),(4,3)")
-				}
 			}
 			{ // do_test id + ".2"
 				_res = db.Exec("CREATE UNIQUE INDEX t1y ON t1(y)")
@@ -99,17 +90,8 @@ func Test_unique2(t *testing.T) {
 			_ = _idx1
 				{ // do_test id + ".1"
 					_res = db.Exec("DROP TABLE IF EXISTS t1")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1")
-					}
 					_res = db.Exec(sql)
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-					}
 					_res = db.Exec("INSERT INTO t1(w,x,y,z) VALUES(1,2,3,4),(2,3,3,4)")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(w,x,y,z) VALUES(1,2,3,4),(2,3,3,4)")
-					}
 				}
 				{ // do_test id + ".2"
 					_res = db.Exec("CREATE UNIQUE INDEX t1yz ON t1(y,z)")

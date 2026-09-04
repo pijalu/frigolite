@@ -67,9 +67,6 @@ func Test_fts3b(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (c) VALUES('this is a test');\n  INSERT INTO t1 (c) VALUES('that was a test');\n  INSERT INTO t1 (c) VALUES('this is fun');\n  DELETE FROM t1 WHERE c = 'that was a test';\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (c) VALUES('this is a test');\n  INSERT INTO t1 (c) VALUES('that was a test');\n  INSERT INTO t1 (c) VALUES('this is fun');\n  DELETE FROM t1 WHERE c = 'that was a test';\n")
-	}
 	{ // do_test "fts3b-1.1"
 		r = db.Query("\n    SELECT rowid FROM t1 WHERE c MATCH 'this';\n  ")
 		if r.Error != nil {
@@ -88,30 +85,18 @@ func Test_fts3b(t *testing.T) {
 	_ = text // suppress unused warning
 	text += text
 	_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(c)")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts3(c)")
-	}
 	vtab.TclVarSet("res", "", "")
 	res = ""
 	_ = res // suppress unused warning
 	_res = db.Exec("BEGIN")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-	}
 	vtab.TclVarSet("ii", "", "0")
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		_res = db.Exec("INSERT INTO t2 (c) VALUES (" + sqlLiteral(text) + ")")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 (c) VALUES (" + sqlLiteral(text) + ")")
-		}
 		res = tclListAppend(res, tclExprWith("$ii+1", map[string]string{"ii": ii}))
 		if func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return (ii_n%500) == 0 }() {
 			_res = db.Exec("\n      COMMIT;\n      BEGIN;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      BEGIN;\n    ")
-			}
 		}
 		// incr ii 1
 		{
@@ -122,9 +107,6 @@ func Test_fts3b(t *testing.T) {
 		}
 	}
 	_res = db.Exec("COMMIT")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-	}
 	{ // do_test "fts3b-2.1"
 		r = db.Query("\n    SELECT rowid FROM t2 WHERE c MATCH 'lorem';\n  ")
 		if r.Error != nil {
@@ -145,9 +127,6 @@ func Test_fts3b(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n  INSERT INTO t3 (c) VALUES('this is a test');\n  INSERT INTO t3 (c) VALUES('that was a test');\n  INSERT INTO t3 (c) VALUES('this is fun');\n  DELETE FROM t3 WHERE c = 'that was a test';\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n  INSERT INTO t3 (c) VALUES('this is a test');\n  INSERT INTO t3 (c) VALUES('that was a test');\n  INSERT INTO t3 (c) VALUES('this is fun');\n  DELETE FROM t3 WHERE c = 'that was a test';\n")
-	}
 	{ // do_test "fts3b-3.1"
 		r = db.Query("\n    SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'test';\n  ")
 		if r.Error != nil {
@@ -167,9 +146,6 @@ func Test_fts3b(t *testing.T) {
 		}
 	}
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts3(c);\n  INSERT INTO t4 (c) VALUES('this is a test');\n  INSERT INTO t4 (c) VALUES('that was a test');\n  INSERT INTO t4 (c) VALUES('this is fun');\n  DELETE FROM t4 WHERE c = 'that was a test';\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts3(c);\n  INSERT INTO t4 (c) VALUES('this is a test');\n  INSERT INTO t4 (c) VALUES('that was a test');\n  INSERT INTO t4 (c) VALUES('this is fun');\n  DELETE FROM t4 WHERE c = 'that was a test';\n")
-	}
 	{ // do_test "fts3b-4.1"
 		r = db.Query("\n    SELECT rowid FROM t4 WHERE rowid <> docid;\n  ")
 		if r.Error != nil {

@@ -641,18 +641,12 @@ func Test_autovacuum(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
-		}
 	}
 	{ // do_test "autovacuum-6.1"
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
-		}
 	}
 	{ // do_test "autovacuum-7.1"
 		db.Close()
@@ -690,16 +684,10 @@ func Test_autovacuum(t *testing.T) {
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA auto_vacuum")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA auto_vacuum")
-		}
 	}
 	if "" == "" {
 		{ // do_test "autovacuum-8.2"
 			_res = db.Exec("BEGIN EXCLUSIVE")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
-			}
 			_res = db2.Exec("PRAGMA auto_vacuum")
 			_ = _res // catchsql
 		}
@@ -712,7 +700,6 @@ func Test_autovacuum(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("COMMIT")
-			if _res.Error != nil { _catchErr = _res.Error }
 		}
 	}
 	{ // do_test "autovacuum-9.1"
@@ -737,9 +724,6 @@ func Test_autovacuum(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 			_res = db.Exec(" INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
-			}
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)

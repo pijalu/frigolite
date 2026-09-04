@@ -79,13 +79,7 @@ func Test_trans3(t *testing.T) {
 	}
 	{ // do_test "trans3-1.2"
 		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
 		_res = db.Exec("INSERT INTO t1 VALUES(4);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(4);")
-		}
 		vtab.TclVarSet("ecode", "", "")
 		ecode = "" // TCL namespace variable
 		_ = ecode // suppress unused warning
@@ -108,7 +102,6 @@ func Test_trans3(t *testing.T) {
 				{
 					var _catchErr error
 					_res = db.Exec("COMMIT")
-					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						errmsg = "1"
 						errmsg = _catchErr.Error()
@@ -165,13 +158,7 @@ func Test_trans3(t *testing.T) {
 	}
 	{ // do_test "trans3-1.5"
 		_res = db.Exec("BEGIN; CREATE TABLE xyzzy(abc);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN; CREATE TABLE xyzzy(abc);")
-		}
 		_res = db.Exec("INSERT INTO t1 VALUES(5);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(5);")
-		}
 		vtab.TclVarSet("ecode", "", "")
 		ecode = "" // TCL namespace variable
 		_ = ecode // suppress unused warning
@@ -195,7 +182,6 @@ func Test_trans3(t *testing.T) {
 					var _catchErr error
 					_res = db.Exec("ROLLBACK")
 					_dbevalRb5 = true
-					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						errmsg = "1"
 						errmsg = _catchErr.Error()

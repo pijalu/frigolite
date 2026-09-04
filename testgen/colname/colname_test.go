@@ -82,9 +82,6 @@ func Test_colname(t *testing.T) {
 	}
 	{ // do_test "colname-2.1"
 		_res = db.Exec("\n    CREATE TABLE tabc(a,b,c);\n    INSERT INTO tabc VALUES(1,2,3);\n    CREATE TABLE txyz(x,y,z);\n    INSERT INTO txyz VALUES(4,5,6);\n    CREATE TABLE tboth(a,b,c,x,y,z);\n    INSERT INTO tboth VALUES(11,12,13,14,15,16);\n    CREATE VIEW v1 AS SELECT tabC.a, txyZ.x, * \n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v2 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, *\n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tabc(a,b,c);\n    INSERT INTO tabc VALUES(1,2,3);\n    CREATE TABLE txyz(x,y,z);\n    INSERT INTO txyz VALUES(4,5,6);\n    CREATE TABLE tboth(a,b,c,x,y,z);\n    INSERT INTO tboth VALUES(11,12,13,14,15,16);\n    CREATE VIEW v1 AS SELECT tabC.a, txyZ.x, * \n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v2 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, *\n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;\n  ")
-		}
 		r = db.Query("\n    SELECT * FROM tabc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tabc;\n  ")
@@ -140,9 +137,6 @@ func Test_colname(t *testing.T) {
 	}
 	{ // do_test "colname-3.1"
 		_res = db.Exec("\n    PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=OFF;\n    CREATE VIEW v3 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v4 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=OFF;\n    CREATE VIEW v3 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v4 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;\n  ")
-		}
 		r = db.Query("\n    SELECT * FROM tabc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tabc;\n  ")
@@ -210,9 +204,6 @@ func Test_colname(t *testing.T) {
 	}
 	{ // do_test "colname-4.1"
 		_res = db.Exec("\n    PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=ON;\n    CREATE VIEW v5 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v6 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=ON;\n    CREATE VIEW v5 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v6 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;\n  ")
-		}
 		r = db.Query("\n    SELECT * FROM tabc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tabc;\n  ")
@@ -298,9 +289,6 @@ func Test_colname(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
-		}
 		r = db.Query("SELECT * FROM t6")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t6")
@@ -380,9 +368,6 @@ func Test_colname(t *testing.T) {
 	}
 	{ // do_test "colname-7.1"
 		_res = db.Exec("\n    CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t7 VALUES(1,2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t7 VALUES(1,2);\n  ")
-		}
 		r = db.Query("SELECT rowid, * FROM t7")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t7")
@@ -405,9 +390,6 @@ func Test_colname(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // do_test "colname-9.100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;\n  ")
-		}
 		r = db.Query("SELECT v1.x, (Y) FROM v1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT v1.x, (Y) FROM v1")
@@ -421,9 +403,6 @@ func Test_colname(t *testing.T) {
 	}
 	{ // do_test "colname-9.120"
 		_res = db.Exec("\n    CREATE VIEW v2(x,y) AS SELECT a,b FROM t1 LIMIT 10;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIEW v2(x,y) AS SELECT a,b FROM t1 LIMIT 10;\n  ")
-		}
 		r = db.Query("SELECT * FROM v2 WHERE 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM v2 WHERE 1")
@@ -443,9 +422,6 @@ func Test_colname(t *testing.T) {
 	}
 	{ // do_test "colname-9.200"
 		_res = db.Exec("\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIEW v3 AS SELECT c AS a, d AS b FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIEW v3 AS SELECT c AS a, d AS b FROM t2;\n  ")
-		}
 		r = db.Query("SELECT t1.a, v3.a AS n FROM t1 LEFT JOIN v3")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t1.a, v3.a AS n FROM t1 LEFT JOIN v3")

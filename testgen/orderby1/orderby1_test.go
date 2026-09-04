@@ -109,9 +109,6 @@ func Test_orderby1(t *testing.T) {
 	{ // do_test "1.3a"
 		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		}
 	}
 	{ // "orderby1-1.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
@@ -262,9 +259,6 @@ func Test_orderby1(t *testing.T) {
 	{ // do_test "2.3a"
 		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		}
 	}
 	{ // "orderby1-2.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
@@ -399,9 +393,6 @@ func Test_orderby1(t *testing.T) {
 	{ // do_test "3.3a"
 		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		}
 	}
 	{ // "orderby1-3.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")

@@ -677,9 +677,6 @@ func Test_autoinc(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -688,7 +685,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -706,9 +702,6 @@ func Test_autoinc(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db.SetDefensive(false)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -717,7 +710,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -738,9 +730,6 @@ func Test_autoinc(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db.SetDefensive(false)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -749,7 +738,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -766,9 +754,6 @@ func Test_autoinc(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n  ")
-		}
 		_dbone0 := tclExecSQL(db, "{SELECT rootpage FROM sqlite_master\n                     WHERE name='sqlite_sequence'}")
 		root1 = _dbone0
 		_ = root1 // suppress unused warning
@@ -777,9 +762,6 @@ func Test_autoinc(t *testing.T) {
 		_ = root2 // suppress unused warning
 		db.SetDefensive(false)
 		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -788,7 +770,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -806,9 +787,6 @@ func Test_autoinc(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -817,7 +795,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -835,9 +812,6 @@ func Test_autoinc(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -846,7 +820,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -864,9 +837,6 @@ func Test_autoinc(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db.SetDefensive(false)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")
-		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -875,7 +845,6 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()

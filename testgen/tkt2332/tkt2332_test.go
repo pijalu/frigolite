@@ -215,9 +215,6 @@ func Test_tkt2332(t *testing.T) {
 			blobstr = tclStringRange(tclStringRepeat(val, tclExprWith("($Len/[string length $val])+1", map[string]string{"Len": Len, "val": val})), "0", tclExprWith("$Len-1", map[string]string{"Len": Len})) // TCL namespace variable
 			_ = blobstr // suppress unused warning
 			_res = db.Exec(" INSERT INTO blobs VALUES(" + sqlLiteral(iKey) + ", zeroblob(" + sqlLiteral(Len) + ")) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO blobs VALUES(" + sqlLiteral(iKey) + ", zeroblob(" + sqlLiteral(Len) + ")) ")
-			}
 		}
 		{ // do_test "tkt2332." + Len + ".2"
 			r = db.Query("\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")

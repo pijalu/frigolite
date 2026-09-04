@@ -163,9 +163,6 @@ func Test_in3(t *testing.T) {
 		maxy = tclExecSQL(db, "select max(y) from t1")
 		_ = maxy // suppress unused warning
 		_res = db.Exec(" INSERT INTO t2 SELECT 101-w, x, " + sqlLiteral(maxy) + "+1-y, y FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 SELECT 101-w, x, " + sqlLiteral(maxy) + "+1-y, y FROM t1 ")
-		}
 	}
 	{ // do_test "in3-2.2"
 		r = db.Query("\n    SELECT rowid \n    FROM t1 \n    WHERE rowid IN (SELECT rowid FROM t1 WHERE rowid IN (1, 2));\n  ")

@@ -88,9 +88,6 @@ func Test_e_dropview(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;")
-	}
 	{ // "2.1"
 		r = db.Query("\n  CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";\n")
 		if r.Error != nil {

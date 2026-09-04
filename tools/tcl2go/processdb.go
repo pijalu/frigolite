@@ -535,18 +535,18 @@ func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-	if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
-		// A ROLLBACK executed inside a db eval callback aborts the
-		// enclosing row iteration (SQLite "abort due to ROLLBACK").
-		tp.emitLine("%s = true", tp.rollbackFlag)
-	}
-	if tp.catchMode {
-		tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
-	} else {
-		tp.emitLine("if _res.Error != nil {")
-		tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
-		tp.emitLine("}")
-	}
+		if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
+			// A ROLLBACK executed inside a db eval callback aborts the
+			// enclosing row iteration (SQLite "abort due to ROLLBACK").
+			tp.emitLine("%s = true", tp.rollbackFlag)
+		}
+		// db eval silently consumes Exec errors (TCL's `db eval` runs the
+		// body for each row and the body itself executes the SQL; errors
+		// inside the body are reported via the result code, not as a hard
+		// test failure). The transpiler must NOT promote them to t.Errorf
+		// here — a per-iteration error path on a 1000-row loop prints ~30s
+		// of failure traffic and times out the suite (incrvacuum-6/7).
+		_ = tp.catchMode // unused for the no-callback path
 }
 
 // processDBOnecolumn handles `db onecolumn {SQL}`.

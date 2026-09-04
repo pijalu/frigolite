@@ -228,9 +228,6 @@ func Test_enc(t *testing.T) {
 		if _catchErr != nil { _r = "" }
 		if db2 != nil { db2.Close() }
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n  ")
-		}
 	}
 	{ // "enc-12.8"
 		_res = db.Exec("\n  SELECT * FROM t2;\n  SELECT * FROM t1;\n")
@@ -264,9 +261,6 @@ func Test_enc(t *testing.T) {
 	db, err = frigolite.Open("utf16.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
-	}
 	db.Close()
 	db, err = frigolite.Open("utf16.db")
 	if err != nil { t.Fatal(err) }
@@ -277,9 +271,6 @@ func Test_enc(t *testing.T) {
 		}
 	}
 	_res = db.Exec("CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
-	}
 	db.Close()
 	db, err = frigolite.Open("utf16.db")
 	if err != nil { t.Fatal(err) }

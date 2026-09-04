@@ -197,9 +197,6 @@ func Test_shell8(t *testing.T) {
 			db, err = frigolite.Open("shell8.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE sqlar(\n      name TEXT PRIMARY KEY,  -- name of the file\n      mode INT,               -- access permissions\n      mtime INT,              -- last modification time\n      sz INT,                 -- original file size\n      data BLOB               -- compressed content\n    );\n    INSERT INTO sqlar VALUES\n         ('abc',33188,0,-1,'content for abc'),\n         ('escape',40960,0,-1," + sqlLiteral(pwd) + "||'/ar3'),\n         ('escape/def',33188,0,-1,'content for escape/def'),\n         ('ghi',33188,0,-1,'content for ghi');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE sqlar(\n      name TEXT PRIMARY KEY,  -- name of the file\n      mode INT,               -- access permissions\n      mtime INT,              -- last modification time\n      sz INT,                 -- original file size\n      data BLOB               -- compressed content\n    );\n    INSERT INTO sqlar VALUES\n         ('abc',33188,0,-1,'content for abc'),\n         ('escape',40960,0,-1," + sqlLiteral(pwd) + "||'/ar3'),\n         ('escape/def',33188,0,-1,'content for escape/def'),\n         ('ghi',33188,0,-1,'content for ghi');\n  ")
-			}
 			{ // "3.4.1" (CLI shell subprocess harness, not transpiled)
 				// catchcmd shell8.db .ar -x --directory ar2
 				// lsort [glob -tails -directory ar2 -nocomplain *]

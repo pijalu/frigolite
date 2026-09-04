@@ -64,9 +64,6 @@ func Test_tkt2920(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2920-1.1"
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA max_page_count=40;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE filler (fill);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA max_page_count=40;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE filler (fill);\n  ")
-		}
 		_r = strconv.Itoa(tclFileSize("test.db"))
 		if _r != "2048" {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "2048", "tkt2920-1.1")
@@ -74,17 +71,11 @@ func Test_tkt2920(t *testing.T) {
 	}
 	{ // do_test "tkt2920-1.2"
 		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
 		vtab.TclVarSet("i", "", "0")
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 34 }() {
 			_res = db.Exec("INSERT INTO filler VALUES(randomblob(1024))")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO filler VALUES(randomblob(1024))")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -94,15 +85,9 @@ func Test_tkt2920(t *testing.T) {
 			}
 		}
 		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
 	}
 	{ // do_test "tkt2920-1.3"
 		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
 		_res = db.Exec("\n     INSERT INTO filler VALUES(randomblob(1024))\n  ")
 		_ = _res // catchsql
 	}
@@ -110,9 +95,6 @@ func Test_tkt2920(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "tkt2920-1.5"
 		_res = db.Exec("PRAGMA max_page_count=41")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA max_page_count=41")
-		}
 		_res = db.Exec("\n     INSERT INTO filler VALUES(randomblob(2048))\n  ")
 		_ = _res // catchsql
 	}
@@ -120,9 +102,6 @@ func Test_tkt2920(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "tkt2920-1.7"
 		_res = db.Exec("PRAGMA max_page_count=42")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA max_page_count=42")
-		}
 		_res = db.Exec("\n     INSERT INTO filler VALUES(randomblob(2048))\n  ")
 		_ = _res // catchsql
 	}

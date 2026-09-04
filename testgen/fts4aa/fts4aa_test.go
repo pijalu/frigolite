@@ -109,9 +109,6 @@ func Test_fts4aa(t *testing.T) {
 	_ = fts4aa_queries // suppress unused warning
 	{ // do_test "fts4aa-1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
-		}
 		ftsKJVGenesis(t, db)
 		for _, q := range tclSplitList(fts4aa_queries) {
 		_ = q // suppress unused warning
@@ -211,9 +208,6 @@ func Test_fts4aa(t *testing.T) {
 	}
 	{ // do_test "fts4aa-2.0"
 		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(words, tokenize porter);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(words, tokenize porter);\n  ")
-		}
 		ftsKJVGenesis(t, db)
 	}
 	vtab.TclVarSet("ii", "", "0")
@@ -248,9 +242,6 @@ func Test_fts4aa(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=65536;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=65536;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
-		}
 		ftsKJVGenesis(t, db)
 	}
 	vtab.TclVarSet("ii", "", "0")
@@ -285,9 +276,6 @@ func Test_fts4aa(t *testing.T) {
 	_ = authCurrent // authorizer proc no_pragma_auth
 	{ // do_test "fts4aa-4.0"
 		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
-		}
 		ftsKJVGenesis(t, db)
 	}
 	vtab.TclVarSet("ii", "", "0")

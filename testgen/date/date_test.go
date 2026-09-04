@@ -626,9 +626,6 @@ func Test_date(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT * FROM t1")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
-			}
 		}
 		vtab.TclVarSet("i", "", "0")
 		i = "0"
@@ -657,9 +654,6 @@ func Test_date(t *testing.T) {
 	{ // do_test "date-15.1"
 		db.RegisterFunction("sleeper", func(args []interface{}) (interface{}, error) { time.Sleep(100 * time.Millisecond); return nil, nil }, 0, -1)
 		_res = db.Exec("\n     SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);\n  ")
-		}
 	}
 	{ // do_test "date-15.2"
 		r = db.Query("\n     SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);\n  ")

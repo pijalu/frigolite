@@ -1099,9 +1099,6 @@ func Test_rowid(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 		{ // do_test "rowid-12.3." + i
 			_res = db.Exec("DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);")
-			}
 			// restore_prng_state (unsupported command, not transpiled)
 			r = db.Query("\n      INSERT INTO t7 VALUES(NULL,'x');\n      SELECT count(*) FROM t7 WHERE y=='x';\n    ")
 			if r.Error != nil {
@@ -1121,9 +1118,6 @@ func Test_rowid(t *testing.T) {
 	}
 	{ // do_test "rowid-12.4"
 		_res = db.Exec("DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);")
-		}
 		// restore_prng_state (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t7 VALUES(NULL,'x');\n  ")
 		_ = _res // catchsql

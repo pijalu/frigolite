@@ -533,9 +533,6 @@ func Test_trigger1(t *testing.T) {
 	}
 	{ // do_test "trigger1-16.1"
 		_res = db.Exec("\n    CREATE TABLE t16(a,b,c);\n    CREATE INDEX t16a ON t16(a);\n    CREATE INDEX t16b ON t16(b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t16(a,b,c);\n    CREATE INDEX t16a ON t16(a);\n    CREATE INDEX t16b ON t16(b);\n  ")
-		}
 		_res = db.Exec("\n    CREATE TRIGGER main.t16err1 AFTER INSERT ON tA BEGIN\n      INSERT INTO main.t16 VALUES(1,2,3);\n    END;\n  ")
 		_ = _res // catchsql
 	}

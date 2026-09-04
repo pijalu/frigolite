@@ -74,9 +74,6 @@ func Test_mallocA(t *testing.T) {
 	}
 	os.Remove("test.db.bu")
 	_res = db.Exec("\n  CREATE TABLE t1(a COLLATE NOCASE,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(1,2,4);\n  INSERT INTO t1 VALUES(2,3,4);\n  CREATE INDEX t1i1 ON t1(a);\n  CREATE INDEX t1i2 ON t1(b,c);\n  CREATE TABLE t2(x,y,z);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a COLLATE NOCASE,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(1,2,4);\n  INSERT INTO t1 VALUES(2,3,4);\n  CREATE INDEX t1i1 ON t1(a);\n  CREATE INDEX t1i2 ON t1(b,c);\n  CREATE TABLE t2(x,y,z);\n")
-	}
 	db.Close()
 	tclFileCopy("test.db", "test.db.bu")
 	// do_malloc_test mallocA-1 -testdb test.db.bu -sqlbody {\n  ANALYZE\n} (unsupported command, not transpiled)

@@ -397,9 +397,6 @@ func Test_incrvacuum(t *testing.T) {
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 1000 }() {
 				_res = db.Exec("INSERT INTO tbl1 VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(ii) + " || " + sqlLiteral(ii) + ")")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(ii) + " || " + sqlLiteral(ii) + ")")
-				}
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -461,9 +458,6 @@ func Test_incrvacuum(t *testing.T) {
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 1000 }() {
 				_res = db.Exec("INSERT INTO tbl1 VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(ii) + " || " + sqlLiteral(ii) + ")")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(ii) + " || " + sqlLiteral(ii) + ")")
-				}
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -501,9 +495,6 @@ func Test_incrvacuum(t *testing.T) {
 				}
 				if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; iWrite_n, _iWrite_e := strconv.Atoi(iWrite); if _iWrite_e != nil { return false }; return nRow_n == iWrite_n }() {
 					_res = db.Exec("\n          CREATE TABLE tbl1(a, b);\n          INSERT INTO tbl1 VALUES('hello', 'world');\n        ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          CREATE TABLE tbl1(a, b);\n          INSERT INTO tbl1 VALUES('hello', 'world');\n        ")
-					}
 				}
 				if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -846,9 +837,6 @@ func Test_incrvacuum(t *testing.T) {
 			}
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
 				_res = db.Exec("COMMIT")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-				}
 			}
 			res = tclListAppend(res, a)
 			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }

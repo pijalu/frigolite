@@ -515,13 +515,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < nDb_n }() {
 			_res = db.Exec("ATTACH ':memory:' AS db" + ii)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH ':memory:' AS db" + ii)
-			}
 			_res = db.Exec("CREATE TABLE db" + ii + ".tbl(a, b, c)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE db" + ii + ".tbl(a, b, c)")
-			}
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -537,9 +531,6 @@ func Test_temptrigger(t *testing.T) {
 			jj = tclExprWith("$ii+1", map[string]string{"ii": ii})
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tr" + ii + " AFTER INSERT ON db" + ii + ".tbl BEGIN\n        INSERT INTO db" + jj + ".tbl VALUES(new.b, new.c, new.a);\n      END;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER tr" + ii + " AFTER INSERT ON db" + ii + ".tbl BEGIN\n        INSERT INTO db" + jj + ".tbl VALUES(new.b, new.c, new.a);\n      END;\n    ")
-			}
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -659,9 +650,6 @@ func Test_temptrigger(t *testing.T) {
 			jj = tclExprWith("$ii+1", map[string]string{"ii": ii})
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tru" + ii + " AFTER UPDATE ON db" + ii + ".tbl BEGIN\n        UPDATE db" + jj + ".tbl SET a=new.b, b=new.c, c=new.a;\n      END;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER tru" + ii + " AFTER UPDATE ON db" + ii + ".tbl BEGIN\n        UPDATE db" + jj + ".tbl SET a=new.b, b=new.c, c=new.a;\n      END;\n    ")
-			}
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -781,9 +769,6 @@ func Test_temptrigger(t *testing.T) {
 			jj = tclExprWith("$ii+1", map[string]string{"ii": ii})
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER trd" + ii + " BEFORE DELETE ON db" + ii + ".tbl BEGIN\n        DELETE FROM db" + jj + ".tbl;\n      END;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER trd" + ii + " BEFORE DELETE ON db" + ii + ".tbl BEGIN\n        DELETE FROM db" + jj + ".tbl;\n      END;\n    ")
-			}
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)

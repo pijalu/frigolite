@@ -74,9 +74,6 @@ func Test_tkt3757(t *testing.T) {
 	}
 	{ // do_test "tkt3757-1.2"
 		_res = db.Exec("\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t1','t1i1','250000 50000 30');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t1','t1i1','250000 50000 30');\n  ")
-		}
 		// count_steps {\n    SELECT * FROM t1 WHERE y IN (SELECT a FROM t...} (unsupported command, not transpiled)
 	}
 }

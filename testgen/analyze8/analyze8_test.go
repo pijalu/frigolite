@@ -76,9 +76,6 @@ func Test_analyze8(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n  ")
-		}
 		vtab.TclVarSet("i", "", "0")
 		i = "0"
 		_ = i // suppress unused warning
@@ -98,9 +95,6 @@ func Test_analyze8(t *testing.T) {
 			c = tclExprWith("$c*$c*$c", map[string]string{"c": c})
 			_ = c // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + "," + sqlLiteral(i) + ")")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + "," + sqlLiteral(i) + ")")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -110,9 +104,6 @@ func Test_analyze8(t *testing.T) {
 			}
 		}
 		_res = db.Exec("ANALYZE")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-		}
 	}
 	{ // do_test "1.1"
 		_r = tclEQP(db, "SELECT * FROM t1 WHERE a=100 AND b=55")

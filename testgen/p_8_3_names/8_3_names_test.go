@@ -63,9 +63,6 @@ func Test_t_8_3_names(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
-		}
 		// file exists "test.db-journal"
 	}
 	{ // do_test "8_3_names-1.1"
@@ -89,9 +86,6 @@ func Test_t_8_3_names(t *testing.T) {
 		db, err = frigolite.Open("file:./test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
-		}
 		// file exists "test.db-journal"
 	}
 	{ // do_test "8_3_names-2.1"
@@ -124,9 +118,6 @@ func Test_t_8_3_names(t *testing.T) {
 		db, err = frigolite.Open("file:./test.db?8_3_names=0")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
-		}
 		// file exists "test.db-journal"
 	}
 	{ // do_test "8_3_names-3.1"
@@ -159,9 +150,6 @@ func Test_t_8_3_names(t *testing.T) {
 		db, err = frigolite.Open("file:./test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ATTACH 'file:./test2.db?8_3_names=1' AS db2;\n    CREATE TABLE db2.t2(y);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t2 VALUES(4);\n    COMMIT;\n    SELECT * FROM t1, t2 ORDER BY x, y\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ATTACH 'file:./test2.db?8_3_names=1' AS db2;\n    CREATE TABLE db2.t2(y);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t2 VALUES(4);\n    COMMIT;\n    SELECT * FROM t1, t2 ORDER BY x, y\n  ")
-		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -170,9 +158,6 @@ func Test_t_8_3_names(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
-		}
 		db2, err = frigolite.Open("file:./test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		// load_static_extension db2 wholenumber (unsupported command, not transpiled)

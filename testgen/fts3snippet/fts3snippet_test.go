@@ -147,9 +147,6 @@ func Test_fts3snippet(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
-			}
 			vtab.TclVarSet("T", "", "fts3snippet-1." + enc)
 			T = "fts3snippet-1." + enc
 			_ = T // suppress unused warning

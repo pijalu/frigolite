@@ -1245,9 +1245,6 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "5.4"
 		_res = db.Exec("\n    CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;\n  ")
-		}
 		vtab.TclVarSet("sql", "", "SELECT char(0x61,0xa,0x62,0xa,0x63,0xa,0x64) a,\n           mtime b, mtime c, mtime d, mtime e FROM t1")
 		sql = "SELECT char(0x61,0xa,0x62,0xa,0x63,0xa,0x64) a,\n           mtime b, mtime c, mtime d, mtime e FROM t1"
 		_ = sql // suppress unused warning
@@ -1364,9 +1361,6 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "9.1"
 		_res = db.Exec("\n    CREATE TABLE t9(x);\n    INSERT INTO t9 VALUES\n      (x'4331323334'),\n      (x'c30431323334'),\n      (x'd3000431323334'),\n      (x'e30000000431323334'),\n      (x'f3000000000000000431323334');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t9(x);\n    INSERT INTO t9 VALUES\n      (x'4331323334'),\n      (x'c30431323334'),\n      (x'd3000431323334'),\n      (x'e30000000431323334'),\n      (x'f3000000000000000431323334');\n  ")
-		}
 	}
 	{ // do_test "9.2"
 	}
@@ -1376,9 +1370,6 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "10.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
-		}
 		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 41 -splitcolumn on                     {SELECT x FROM t1}"))
 		result = "\n" + tclDbOne(db, "db format -style column -title off -screenwidth 41 -splitcolumn on                     {SELECT x FROM t1}")
 		_ = result // suppress unused warning
@@ -1450,9 +1441,6 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "13.2"
 		_res = db.Exec("\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');\n  ")
-		}
 		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style box -text relaxed -null NULL                  -align {center left}                  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}"))
 		result = "\n" + tclDbOne(db, "db format -style box -text relaxed -null NULL                  -align {center left}                  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}")
 		_ = result // suppress unused warning

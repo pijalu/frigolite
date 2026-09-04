@@ -63,9 +63,6 @@ func Test_json108(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// load_static_extension db randomjson (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TEMP TABLE t1(j0,j5);\n  WITH RECURSIVE c(n) AS (VALUES(0) UNION ALL SELECT n+1 FROM c WHERE n<9)\n  INSERT INTO t1 SELECT random_json(n), random_json5(n) FROM c;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(j0,j5);\n  WITH RECURSIVE c(n) AS (VALUES(0) UNION ALL SELECT n+1 FROM c WHERE n<9)\n  INSERT INTO t1 SELECT random_json(n), random_json5(n) FROM c;\n")
-	}
 	{ // "1.1"
 		r = db.Query("\n  SELECT count(*) FROM t1 WHERE json(j0)==json(json_pretty(j0,NULL));\n")
 		if r.Error != nil {

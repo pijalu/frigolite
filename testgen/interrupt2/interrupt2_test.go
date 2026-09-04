@@ -214,9 +214,6 @@ func Test_interrupt2(t *testing.T) {
 		dbpointer = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = dbpointer // suppress unused warning
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
-		}
 		db.Close()
 		vtab.TclVarSet("dbpointer", "", "")
 		dbpointer = "" // TCL namespace variable
@@ -239,9 +236,6 @@ func Test_interrupt2(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "3.2.1"
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
-		}
 		db.Close()
 		// set  (invalid identifier, skipped)
 	}

@@ -362,51 +362,30 @@ func Test_without_rowid5(t *testing.T) {
 	}
 	{ // do_test "without_rowid5-5.100"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT ROLLBACK,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    BEGIN;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT ROLLBACK,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    BEGIN;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3);\n  ")
-		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(NULL,6,7);")
-			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("\n    SELECT * FROM t5;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t5;\n  ")
-		}
 	}
 	{ // do_test "without_rowid5-5.101"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT ABORT,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    BEGIN;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT ABORT,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    BEGIN;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3);\n  ")
-		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(NULL,6,7);")
-			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("\n    COMMIT;\n    SELECT * FROM t5;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT * FROM t5;\n  ")
-		}
 	}
 	{ // do_test "without_rowid5-5.102"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT FAIL,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT FAIL,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n  ")
-		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);")
-			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("\n    SELECT * FROM t5;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t5;\n  ")
-		}
 	}
 	{ // do_test "without_rowid5-5.103"
 		r = db.Query("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT IGNORE,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")

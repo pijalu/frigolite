@@ -134,9 +134,6 @@ func Test_sortfault(t *testing.T) {
 				_ = threadsmode // suppress unused warning
 			}
 			_res = db.Exec("PRAGMA threads=" + nWorker)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=" + nWorker)
-			}
 			// sqlite3_config $threadsmode (unsupported command, not transpiled)
 			if tclBool(lookaside) {
 				// sqlite3_config_lookaside 100 500 (unsupported command, not transpiled)

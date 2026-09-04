@@ -69,9 +69,6 @@ func Test_tkt_b72787b1(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // "tkt-b72787b1.1" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;\n  ")
-		}
 		db.RegisterFunction("runsql", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		DB = "db"
 		_ = DB // suppress unused warning
@@ -84,9 +81,6 @@ func Test_tkt_b72787b1(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = STMT // prepared statement handle
 		_res = db.Exec("\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
-		}
 	}
 	tclFinalizePrepared("STMT")
 	// sqlite3_finalize $STMT

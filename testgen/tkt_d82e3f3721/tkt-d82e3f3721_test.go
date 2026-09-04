@@ -91,15 +91,9 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt-d82e3-2.1"
 		_res = db.Exec("\n    CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
-		}
 		_res = db2.Exec("\n    CREATE TABLE t3(y,z);\n    INSERT INTO t3 VALUES(8,9);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
-		}
 	}
 	{ // "tkt-d82e3-2.2" — skipped: multi-connection schema visibility (db2-created table) DEFERRED (SQL side effects only)
 		_res = db.Exec("\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")

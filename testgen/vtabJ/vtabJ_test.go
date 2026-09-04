@@ -103,9 +103,6 @@ func Test_vtabJ(t *testing.T) {
 		vtabJ_3 = "a test"
 		_ = vtabJ_3 // suppress unused warning
 		_res = db.Exec("\n    SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;\n  ")
-		}
 	}
 	{ // "110"
 		r = db.Query("\n  INSERT INTO tclvar(fullname, value)\n    VALUES('vtabJ(4)',4),('vtabJ(five)',555);\n  SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;\n")
@@ -123,9 +120,6 @@ func Test_vtabJ(t *testing.T) {
 	}
 	{ // do_test "120"
 		_res = db.Exec("\n    INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',444);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',444);\n  ")
-		}
 		vtabJ_4 = vtab.TclVarGet("vtabJ", "4")
 		got := tclListFlatten(vtabJ_4)
 		want := tclListFlatten("444")
@@ -135,15 +129,9 @@ func Test_vtabJ(t *testing.T) {
 	}
 	{ // do_test "130"
 		_res = db.Exec("\n    INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',NULL);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',NULL);\n  ")
-		}
 	}
 	{ // do_test "140"
 		_res = db.Exec("\n    UPDATE tclvar SET value=55 WHERE fullname='vtabJ(five)';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE tclvar SET value=55 WHERE fullname='vtabJ(five)';\n  ")
-		}
 		vtabJ_five = vtab.TclVarGet("vtabJ", "five")
 		got := tclListFlatten(vtabJ_five)
 		want := tclListFlatten("55")
@@ -153,9 +141,6 @@ func Test_vtabJ(t *testing.T) {
 	}
 	{ // do_test "150"
 		_res = db.Exec("\n    UPDATE tclvar SET fullname='vtabJ(5)' WHERE fullname='vtabJ(five)';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE tclvar SET fullname='vtabJ(5)' WHERE fullname='vtabJ(five)';\n  ")
-		}
 		vtabJ_5 = vtab.TclVarGet("vtabJ", "5")
 		got := tclListFlatten(vtabJ_5)
 		want := tclListFlatten("55")

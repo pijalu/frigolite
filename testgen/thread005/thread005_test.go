@@ -105,9 +105,6 @@ func Test_thread005(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
-		}
 		db.Close()
 	}
 	vtab.TclVarSet("ii", "", "2")

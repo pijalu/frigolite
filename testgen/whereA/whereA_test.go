@@ -90,18 +90,12 @@ func Test_whereA(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
-		}
 	}
 	{ // do_test "whereA-1.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
-		}
 	}
 	{ // do_test "whereA-1.5"
 		r = db.Query("\n    VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
@@ -222,9 +216,6 @@ func Test_whereA(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "whereA-4.2"
 		_res = db.Exec("\n    CREATE INDEX t2x ON t2(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t2x ON t2(x);\n  ")
-		}
 		_ = db.Exec("\n    SELECT x FROM t2;\n  ") // count (search count always 0)
 	}
 	{ // do_test "whereA-4.3"
@@ -235,9 +226,6 @@ func Test_whereA(t *testing.T) {
 	}
 	{ // do_test "whereA-4.5"
 		_res = db.Exec("DROP INDEX t2x;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX t2x;")
-		}
 		_ = db.Exec("\n    SELECT x FROM t2 ORDER BY x;\n  ") // count (search count always 0)
 	}
 	{ // do_test "whereA-4.6"

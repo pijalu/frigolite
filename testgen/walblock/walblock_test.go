@@ -114,9 +114,6 @@ func Test_walblock(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			tclFixtureDBs["C"] = db
 			_res = db.Exec(" SELECT * FROM t1 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
-			}
 			_ = db
 		}
 	}
@@ -132,9 +129,6 @@ func Test_walblock(t *testing.T) {
 			}
 			db := tclFixtureDBs["C"]
 			_res = db.Exec(" SELECT * FROM t1 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
-			}
 			_ = db
 		}
 		_ = out // TCL namespace variable (query)

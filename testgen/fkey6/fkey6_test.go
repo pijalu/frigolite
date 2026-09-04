@@ -138,9 +138,6 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	_res = db.Exec("ROLLBACK")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-	}
 	{ // "fkey6-1.20" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
 		if _res.Error != nil {

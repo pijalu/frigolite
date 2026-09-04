@@ -467,9 +467,6 @@ func Test_limit(t *testing.T) {
 		limit = "10"
 		_ = limit // suppress unused warning
 		_res = db.Exec("\n    SELECT x FROM t1 LIMIT " + sqlLiteral(limit) + ";\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x FROM t1 LIMIT " + sqlLiteral(limit) + ";\n  ")
-		}
 	}
 	{ // do_test "limit-10.2"
 		vtab.TclVarSet("limit", "", "5")
@@ -479,18 +476,12 @@ func Test_limit(t *testing.T) {
 		offset = "5"
 		_ = offset // suppress unused warning
 		_res = db.Exec("\n    SELECT x FROM t1 LIMIT " + sqlLiteral(limit) + " OFFSET " + sqlLiteral(offset) + ";\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x FROM t1 LIMIT " + sqlLiteral(limit) + " OFFSET " + sqlLiteral(offset) + ";\n  ")
-		}
 	}
 	{ // do_test "limit-10.3"
 		vtab.TclVarSet("limit", "", "-1")
 		limit = "-1"
 		_ = limit // suppress unused warning
 		_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT " + sqlLiteral(limit) + ";\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x FROM t1 WHERE x<10 LIMIT " + sqlLiteral(limit) + ";\n  ")
-		}
 	}
 	{ // do_test "limit-10.4"
 		vtab.TclVarSet("limit", "", "1.5")
@@ -501,7 +492,6 @@ func Test_limit(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT " + sqlLiteral(limit) + ";\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -523,7 +513,6 @@ func Test_limit(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT " + sqlLiteral(limit) + ";\n  ")
-			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

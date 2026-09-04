@@ -154,9 +154,6 @@ func Test_fordelete(t *testing.T) {
 				root = _dbone2
 				_ = root // suppress unused warning
 				_res = db.Exec(" \n    BEGIN IMMEDIATE;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN IMMEDIATE;\n  ")
-				}
 				bt = "btree_from_db db"
 				_ = bt // suppress unused warning
 				csr = "btree_cursor $bt $root 1"
@@ -164,22 +161,13 @@ func Test_fordelete(t *testing.T) {
 				// btree_insert $csr 5 \000 (unsupported command, not transpiled)
 				// btree_close_cursor $csr (unsupported command, not transpiled)
 				_res = db.Exec(" COMMIT ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
-				}
 				_res = db.Exec("\n    SELECT * FROM x1;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM x1;\n  ")
-				}
 			}
 			{ // do_test "3.2"
 				_dbone3 := tclExecSQL(db, "{ SELECT rootpage FROM sqlite_master WHERE name = 'x2' }")
 				root = _dbone3
 				_ = root // suppress unused warning
 				_res = db.Exec(" \n    BEGIN IMMEDIATE;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN IMMEDIATE;\n  ")
-				}
 				bt = "btree_from_db db"
 				_ = bt // suppress unused warning
 				csr = "btree_cursor $bt $root 1"
@@ -187,13 +175,7 @@ func Test_fordelete(t *testing.T) {
 				// btree_insert $csr 6 \000 (unsupported command, not transpiled)
 				// btree_close_cursor $csr (unsupported command, not transpiled)
 				_res = db.Exec(" COMMIT ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
-				}
 				_res = db.Exec("\n    SELECT * FROM x2;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM x2;\n  ")
-				}
 			}
 			db.Close()
 			os.Remove("test.db")

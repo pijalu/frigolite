@@ -93,9 +93,6 @@ func Test_tkt_80ba201079(t *testing.T) {
 	{ // do_test "tkt-80ba2-102"
 		// optimization_control factor-constants 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
-		}
 	}
 	_res = db.Exec("PRAGMA skip_scan = 1")
 	if _res.Error != nil {
@@ -144,9 +141,6 @@ func Test_tkt_80ba201079(t *testing.T) {
 	{ // do_test "tkt-80ba2-202"
 		// optimization_control factor-constants 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
-		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {

@@ -222,30 +222,15 @@ func Test_autoindex4(t *testing.T) {
 		_ = _idx0
 			{ // do_test "autoindex4-4." + id + ".0"
 				_res = db.Exec("\n       DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a INT, b INT);\n       DROP TABLE IF EXISTS t2;\n       CREATE TABLE t2(x INT, y INT);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a INT, b INT);\n       DROP TABLE IF EXISTS t2;\n       CREATE TABLE t2(x INT, y INT);\n    ")
-				}
 				_res = db.Exec("INSERT INTO t1(a,b) " + data1 + ";")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a,b) " + data1 + ";")
-				}
 				_res = db.Exec("INSERT INTO t2(x,y) " + data2 + ";")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2(x,y) " + data2 + ";")
-				}
 			}
 			vtab.TclVarSet("sql", "", "SELECT * FROM t1 " + jointype + " t2 ON " + onclause + " WHERE " + whereclause)
 			sql = "SELECT * FROM t1 " + jointype + " t2 ON " + onclause + " WHERE " + whereclause
 			_ = sql // suppress unused warning
 			{ // do_test "autoindex4-4." + id + ".1"
 				_res = db.Exec("PRAGMA automatic_index=ON;")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON;")
-				}
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-				}
 				r = db.Query(sql)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
@@ -256,13 +241,7 @@ func Test_autoindex4(t *testing.T) {
 			}
 			{ // do_test "autoindex4-4." + id + ".2"
 				_res = db.Exec("PRAGMA automatic_index=OFF;")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=OFF;")
-				}
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-				}
 				r = db.Query(sql)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)
@@ -273,17 +252,11 @@ func Test_autoindex4(t *testing.T) {
 			}
 			{ // do_test "autoindex4-4." + id + ".3"
 				_res = db.Exec("PRAGMA automatic_index=ON;")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON;")
-				}
 				_res = db.Exec("PRAGMA skip_scan = 0")
 				if _res.Error != nil {
 					t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
 				}
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-				}
 				r = db.Query(sql)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, sql)

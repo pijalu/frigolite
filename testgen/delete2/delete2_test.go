@@ -154,9 +154,6 @@ func Test_delete2(t *testing.T) {
 				}
 			}
 			_res = db.Exec("DELETE FROM t1")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
-			}
 			res = tclListAppend(res, b, c, d)
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }

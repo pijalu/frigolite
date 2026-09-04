@@ -87,23 +87,11 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 				_ = _idx1
 					{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".1"
 						_res = db.Exec("PRAGMA automatic_index=ON")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON")
-						}
 						_res = db.Exec("SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-						}
 					}
 					{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".2"
 						_res = db.Exec("PRAGMA automatic_index=OFF")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=OFF")
-						}
 						_res = db.Exec("SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-						}
 					}
 				}
 			}

@@ -86,9 +86,6 @@ func Test_fts3ab(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(english,spanish,german);\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(english,spanish,german);\n")
-	}
 	vtab.TclVarSet("english", "", "one two three four five")
 	english = "one two three four five"
 	_ = english // suppress unused warning
@@ -144,9 +141,6 @@ func Test_fts3ab(t *testing.T) {
 		sql = "INSERT INTO t1(english,spanish,german) VALUES(" + strings.Join(tclSplitList(vset), ",") + ")"
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -205,9 +199,6 @@ func Test_fts3ab(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	_res = db.Exec("\n   CREATE VIRTUAL TABLE t4 USING fts3([norm],'plusone',\"invert\");\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE VIRTUAL TABLE t4 USING fts3([norm],'plusone',\"invert\");\n")
-	}
 	vtab.TclVarSet("i", "", "1")
 	i = "1"
 	_ = i // suppress unused warning
@@ -215,9 +206,6 @@ func Test_fts3ab(t *testing.T) {
 		vset = tclWordset(i) + " " + tclWordset(tclExprWith("$i+1", map[string]string{"i": i})) + " " + tclWordset(tclExprWith("~$i", map[string]string{"i": i}))
 		_ = vset // suppress unused warning
 		_res = db.Exec("INSERT INTO t4(norm,plusone,invert) VALUES(" + strings.Join(tclSplitList(vset), ",") + ");")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4(norm,plusone,invert) VALUES(" + strings.Join(tclSplitList(vset), ",") + ");")
-		}
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

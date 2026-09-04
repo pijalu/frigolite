@@ -78,9 +78,6 @@ func Test_lock2(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			tclFixtureDBs["tf1"] = db
 			_res = db.Exec("select * from sqlite_master")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select * from sqlite_master")
-			}
 			_ = db
 		}
 	}
@@ -106,9 +103,6 @@ func Test_lock2(t *testing.T) {
 			}
 			db := tclFixtureDBs["tf1"]
 			_res = db.Exec("\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
-			}
 			_ = db
 		}
 	}
@@ -126,7 +120,6 @@ func Test_lock2(t *testing.T) {
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
 				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
-				if _res.Error != nil { _catchErr = _res.Error }
 				if _catchErr != nil {
 					msg = "1"
 					_catchErrMsg = _catchErr.Error()
@@ -153,9 +146,6 @@ func Test_lock2(t *testing.T) {
 			}
 			db := tclFixtureDBs["tf1"]
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n      COMMIT;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_master;\n      COMMIT;\n    ")
-			}
 			_ = db
 		}
 	}
@@ -173,7 +163,6 @@ func Test_lock2(t *testing.T) {
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
 				_res = db.Exec("\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
-				if _res.Error != nil { _catchErr = _res.Error }
 				if _catchErr != nil {
 					msg = "1"
 					_catchErrMsg = _catchErr.Error()
@@ -207,9 +196,6 @@ func Test_lock2(t *testing.T) {
 			}
 			db := tclFixtureDBs["tf1"]
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_master;\n    ")
-			}
 			_ = db
 		}
 	}

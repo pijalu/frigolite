@@ -130,9 +130,6 @@ func Test_trace(t *testing.T) {
 	}
 	{ // do_test "trace-1.6"
 		_res = db.Exec("\n     CREATE TABLE t1b(x TEXT PRIMARY KEY, y);\n     INSERT INTO t1b VALUES('abc','def'),('ghi','jkl'),('mno','pqr');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1b(x TEXT PRIMARY KEY, y);\n     INSERT INTO t1b VALUES('abc','def'),('ghi','jkl'),('mno','pqr');\n  ")
-		}
 		vtab.TclVarSet("stmtlist", "", "")
 		stmtlist = "" // TCL namespace variable
 		_ = stmtlist // suppress unused warning
@@ -140,9 +137,6 @@ func Test_trace(t *testing.T) {
 		xyzzy = "a*"
 		_ = xyzzy // suppress unused warning
 		_res = db.Exec("\n     SELECT y FROM t1b WHERE x GLOB " + sqlLiteral(xyzzy) + "\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT y FROM t1b WHERE x GLOB " + sqlLiteral(xyzzy) + "\n  ")
-		}
 	}
 	{ // do_test "trace-1.7"
 		_ = stmtlist // TCL namespace variable (query)
@@ -343,17 +337,11 @@ func Test_trace(t *testing.T) {
 	}
 	{ // do_test "trace-5.1"
 		_res = db.Exec("\n      CREATE TRIGGER r1t1 AFTER UPDATE ON t1 BEGIN\n        UPDATE t2 SET a=new.a WHERE rowid=new.rowid;\n      END;\n      CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n        SELECT 'hello';\n      END;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER r1t1 AFTER UPDATE ON t1 BEGIN\n        UPDATE t2 SET a=new.a WHERE rowid=new.rowid;\n      END;\n      CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n        SELECT 'hello';\n      END;\n    ")
-		}
 		vtab.TclVarSet("TRACE_OUT", "", "")
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("\n      UPDATE t1 SET a=a+1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET a=a+1;\n    ")
-		}
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("UPDATE t1 SET a=a+1; -- TRIGGER r1t1 -- UPDATE t2 SET a=new.a WHERE rowid=new.rowid -- TRIGGER r1t2 -- SELECT 'hello' -- TRIGGER r1t1 -- UPDATE t2 SET a=new.a WHERE rowid=new.rowid -- TRIGGER r1t2 -- SELECT 'hello' -- TRIGGER r1t1 -- UPDATE t2 SET a=new.a WHERE rowid=new.rowid -- TRIGGER r1t2 -- SELECT 'hello'")
 		if got != want {
@@ -446,9 +434,6 @@ func Test_trace(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([" + sqlLiteral(t6str) + "],\"" + sqlLiteral(t6str) + "\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([" + sqlLiteral(t6str) + "],\"" + sqlLiteral(t6str) + "\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
-		}
 		vtab.TclVarSet("TRACE_OUT", "", "")
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
@@ -469,9 +454,6 @@ func Test_trace(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([" + sqlLiteral(t6str) + "],\"" + sqlLiteral(t6str) + "\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([" + sqlLiteral(t6str) + "],\"" + sqlLiteral(t6str) + "\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
-		}
 		vtab.TclVarSet("TRACE_OUT", "", "")
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning

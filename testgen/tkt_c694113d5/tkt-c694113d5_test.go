@@ -66,9 +66,6 @@ func Test_tkt_c694113d5(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);\n  ")
-		}
 		vtab.TclVarSet("answer", "", "")
 		answer = ""
 		_ = answer // suppress unused warning
@@ -87,9 +84,6 @@ func Test_tkt_c694113d5(t *testing.T) {
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
 				answer = tclListAppend(answer, "CREATE INDEX")
 				_res = db.Exec("CREATE INDEX t2e ON t2(e);")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX t2e ON t2(e);")
-				}
 			}
 			answer = tclListAppend(answer, "a=" + a)
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }

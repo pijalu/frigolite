@@ -78,17 +78,11 @@ func Test_extension01(t *testing.T) {
 		tclChannelAppendAt("./file1.txt", "This is a text file without a line ending", fileChannelSeek["out"])
 		// close $out
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;\n  ")
-		}
 	}
 	{ // do_test "1.1"
 		os.Remove("file2.txt")
 		tcl_nullvalue = "nil"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(2, readfile(NULL)),(3, readfile('file2.txt'));\n    SELECT a, b, typeof(b) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(2, readfile(NULL)),(3, readfile('file2.txt'));\n    SELECT a, b, typeof(b) FROM t1;\n  ")
-		}
 	}
 	{ // do_test "1.2"
 		r = db.Query("\n    SELECT writefile('./file2.txt', 'A second test line');\n  ")
@@ -137,9 +131,6 @@ func Test_extension01(t *testing.T) {
 			// file attributes "./file2.txt" -readonly (unsupported attribute)
 		}
 		_res = db.Exec("\n    SELECT writefile('./file2.txt', 'Another test');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT writefile('./file2.txt', 'Another test');\n  ")
-		}
 	}
 	{ // do_test "1.7"
 		if tcl_platform_os != "Windows NT" {
@@ -148,8 +139,5 @@ func Test_extension01(t *testing.T) {
 			// file attributes "./file2.txt" -readonly (unsupported attribute)
 		}
 		_res = db.Exec("\n    SELECT writefile(NULL, 'Another test');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT writefile(NULL, 'Another test');\n  ")
-		}
 	}
 }

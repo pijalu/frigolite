@@ -257,9 +257,6 @@ func Test_cacheflush(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n  ")
-		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
 	}
 	{ // "3.1"

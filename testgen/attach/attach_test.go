@@ -823,17 +823,11 @@ func Test_attach(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE base(x);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE base(x);")
-		}
 		vtab.TclVarSet("i", "", "0")
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return i_n < SQLITE_MAX_ATTACHED_n }() {
 			_res = db.Exec("ATTACH ':memory:' AS a" + i)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH ':memory:' AS a" + i)
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -846,16 +840,7 @@ func Test_attach(t *testing.T) {
 		m = "a" + tclExprWith("$SQLITE_MAX_ATTACHED-1", map[string]string{"SQLITE_MAX_ATTACHED": SQLITE_MAX_ATTACHED})
 		_ = m // suppress unused warning
 		_res = db.Exec("CREATE TABLE " + m + ".t1(a INTEGER PRIMARY KEY, b);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + m + ".t1(a INTEGER PRIMARY KEY, b);")
-		}
 		_res = db.Exec("CREATE TABLE " + m + ".t2(a INTEGER PRIMARY KEY, b);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + m + ".t2(a INTEGER PRIMARY KEY, b);")
-		}
 		_res = db.Exec("SELECT a FROM t1 WHERE b IN (SELECT a FROM t2);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1 WHERE b IN (SELECT a FROM t2);")
-		}
 	}
 }

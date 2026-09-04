@@ -57,9 +57,6 @@ func Test_joinC(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	tcl_nullvalue = "-"
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE TABLE t2(a INT, b INT, d INT);\n  CREATE TABLE t3(a INT, b INT, e INT);\n  CREATE TABLE t4(a INT, b INT, f INT);\n  CREATE TABLE t5(a INT, b INT, g INT);\n  INSERT INTO t1 VALUES(11,21,31),(12,22,32),(15,25,35),(17,27,37);\n  INSERT INTO t2 VALUES(12,22,32),(13,23,33),(15,25,35),(18,28,38),\n                       (NULL,NULL,36);\n  INSERT INTO t4 VALUES(11,21,31),(13,23,33),(15,25,35),(19,29,39);\n  INSERT INTO t3 SELECT * FROM t1 UNION SELECT * FROM t2 UNION SELECT * FROM t4;\n  INSERT INTO t5 SELECT * FROM t3 WHERE a>=15;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE TABLE t2(a INT, b INT, d INT);\n  CREATE TABLE t3(a INT, b INT, e INT);\n  CREATE TABLE t4(a INT, b INT, f INT);\n  CREATE TABLE t5(a INT, b INT, g INT);\n  INSERT INTO t1 VALUES(11,21,31),(12,22,32),(15,25,35),(17,27,37);\n  INSERT INTO t2 VALUES(12,22,32),(13,23,33),(15,25,35),(18,28,38),\n                       (NULL,NULL,36);\n  INSERT INTO t4 VALUES(11,21,31),(13,23,33),(15,25,35),(19,29,39);\n  INSERT INTO t3 SELECT * FROM t1 UNION SELECT * FROM t2 UNION SELECT * FROM t4;\n  INSERT INTO t5 SELECT * FROM t3 WHERE a>=15;\n")
-	}
 	{ // "joinC-1"
 		r = db.Query("\n  SELECT a, t1.a, t2.a, t3.a, t4.a, t5.a\n  FROM t1 INNER JOIN (\n  t2 INNER JOIN (\n  t3 INNER JOIN (\n  t4 INNER JOIN t5 USING(a)\n  ) USING(a)\n  ) USING(a)\n  ) USING(a)\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {

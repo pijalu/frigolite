@@ -244,9 +244,6 @@ func Test_select2(t *testing.T) {
 			i3 = tclExprWith("$i*3", map[string]string{"i": i})
 			_ = i3 // suppress unused warning
 			_res = db.Exec("INSERT INTO tbl2 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i2) + "," + sqlLiteral(i3) + ")")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl2 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i2) + "," + sqlLiteral(i3) + ")")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

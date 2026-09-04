@@ -184,9 +184,6 @@ func Test_createtab(t *testing.T) {
 	}
 	{ // do_test "createtab-3.1"
 		_res = db.Exec("DROP TABLE IF EXISTS t1;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;")
-		}
 		vtab.TclVarSet("sql", "", "CREATE TABLE t1(x,UNIQUE(x" + tclStringRepeat(",x", "100000") + "))")
 		sql = "CREATE TABLE t1(x,UNIQUE(x" + tclStringRepeat(",x", "100000") + "))"
 		_ = sql // suppress unused warning

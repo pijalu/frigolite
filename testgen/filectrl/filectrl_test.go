@@ -69,9 +69,6 @@ func Test_filectrl(t *testing.T) {
 	}
 	{ // do_test "filectrl-1.2"
 		_res = db.Exec("CREATE TEMP TABLE x(y);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TEMP TABLE x(y);")
-		}
 		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.3"

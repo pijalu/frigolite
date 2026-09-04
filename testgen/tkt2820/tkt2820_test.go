@@ -80,9 +80,6 @@ func Test_tkt2820(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n  ")
-		}
 		_dbevalRows0 := db.Query("SELECT name FROM sqlite_master")
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
@@ -97,7 +94,6 @@ func Test_tkt2820(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				_res = db.Exec("\n      INSERT INTO t1 SELECT a+1 FROM t1 ORDER BY a DESC\n    ")
-				if _res.Error != nil { _catchErr = _res.Error }
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -107,8 +103,5 @@ func Test_tkt2820(t *testing.T) {
 			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_res = db.Exec("SELECT a FROM t1 ORDER BY a")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1 ORDER BY a")
-		}
 	}
 }

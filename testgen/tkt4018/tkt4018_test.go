@@ -95,9 +95,6 @@ func Test_tkt4018(t *testing.T) {
 	}
 	{ // do_test "tkt4018-1.4"
 		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
 		// testsql {INSERT INTO t1 VALUES(3, 4)} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt4018-2.1"

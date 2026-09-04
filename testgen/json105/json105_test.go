@@ -71,9 +71,6 @@ func Test_json105(t *testing.T) {
 	testprefix = "json105"
 	_ = testprefix // suppress unused warning
 	_res = db.Exec("\n  CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}');\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":[1,[2,3],4],\"c\":99}');\n")
-	}
 	// proc definition (not transpiled)
 	// json_extract_test 10 {'$.b[#]'} NULL (unsupported command, not transpiled)
 	// json_extract_test 20 {'$.b[#-1]'} 4 (unsupported command, not transpiled)

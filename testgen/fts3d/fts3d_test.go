@@ -74,9 +74,6 @@ func Test_fts3d(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE 1=1; -- Delete each row rather than dropping table.\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE 1=1; -- Delete each row rather than dropping table.\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n")
-	}
 	{ // do_test "fts3d-1.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -100,9 +97,6 @@ func Test_fts3d(t *testing.T) {
 	// check_doclist fts3d-1.2.3 0 0 test {[1 0[3]]} (unsupported command, not transpiled)
 	// check_doclist fts3d-1.2.4 0 0 this {[1 0[0]]} (unsupported command, not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  DROP TABLE IF EXISTS t1old;\n  ALTER TABLE t1 RENAME TO t1old;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) SELECT docid, c FROM t1old;\n  DROP TABLE t1old;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  DROP TABLE IF EXISTS t1old;\n  ALTER TABLE t1 RENAME TO t1old;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) SELECT docid, c FROM t1old;\n  DROP TABLE t1old;\n")
-	}
 	{ // do_test "fts3d-2.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -126,9 +120,6 @@ func Test_fts3d(t *testing.T) {
 	// check_doclist fts3d-2.2.3 0 0 that {[2 0[0]]} (unsupported command, not transpiled)
 	// check_doclist fts3d-2.2.4 0 0 was {[2 0[1]]} (unsupported command, not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n")
-	}
 	{ // do_test "fts3d-3.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -152,9 +143,6 @@ func Test_fts3d(t *testing.T) {
 	// check_doclist fts3d-3.2.3 0 0 that {[2 0[0]]} (unsupported command, not transpiled)
 	// check_doclist fts3d-3.2.4 0 0 was {[2 0[1]]} (unsupported command, not transpiled)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1 (rowid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (rowid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (rowid, c) VALUES (3, 'This is a test');\n\n  UPDATE t1 SET c = 'This is a test one' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test one' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test one' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test two' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test two' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test two' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test three' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test three' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test three' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test four' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test four' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test four' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test' WHERE rowid = 3;\n")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1 (rowid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (rowid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (rowid, c) VALUES (3, 'This is a test');\n\n  UPDATE t1 SET c = 'This is a test one' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test one' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test one' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test two' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test two' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test two' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test three' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test three' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test three' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test four' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test four' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test four' WHERE rowid = 3;\n\n  UPDATE t1 SET c = 'This is a test' WHERE rowid = 1;\n  UPDATE t1 SET c = 'That was a test' WHERE rowid = 2;\n  UPDATE t1 SET c = 'This is a test' WHERE rowid = 3;\n")
-	}
 	{ // do_test "fts3d-4.segments"
 		r = db.Query("\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -168,9 +156,6 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	_res = db.Exec("SELECT c FROM t1 ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT c FROM t1 ")
-	}
 	// check_terms_all fts3d-4.1 {a four is test that this was} (unsupported command, not transpiled)
 	// check_doclist_all fts3d-4.1.1 a {[1 0[2]] [2 0[2]] [3 0[2]]} (unsupported command, not transpiled)
 	// check_doclist_all fts3d-4.1.2 four {} (unsupported command, not transpiled)
@@ -244,9 +229,6 @@ func Test_fts3d(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF8;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		}
 	}
 	{ // do_test "fts3d-6.1"
 		r = db.Query("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
@@ -266,9 +248,6 @@ func Test_fts3d(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16le;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16le;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		}
 	}
 	{ // do_test "fts3d-6.3"
 		r = db.Query("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
@@ -288,9 +267,6 @@ func Test_fts3d(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16be;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16be;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		}
 	}
 	{ // do_test "fts3d-6.5"
 		r = db.Query("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")

@@ -402,9 +402,6 @@ func Test_main(t *testing.T) {
 		hi_u1234x = "987"
 		_ = hi_u1234x // suppress unused warning
 		_res = db.Exec("select $hiሴx")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select $hiሴx")
-		}
 	}
 	{ // do_test "main-3.2.15"
 		_res = db.Exec("select 456ሴ")

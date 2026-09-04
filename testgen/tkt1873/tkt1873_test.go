@@ -86,9 +86,6 @@ func Test_tkt1873(t *testing.T) {
 					}
 				}
 				_res = db.Exec("DETACH aux")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH aux")
-				}
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 			}

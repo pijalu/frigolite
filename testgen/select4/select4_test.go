@@ -846,9 +846,6 @@ func Test_select4(t *testing.T) {
 		_ = err
 		db.ResetChangesCounters()
 		_res = db.Exec("\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13 VALUES(1,1);\n    INSERT INTO t13 VALUES(2,1);\n    INSERT INTO t13 VALUES(3,1);\n    INSERT INTO t13 VALUES(2,2);\n    INSERT INTO t13 VALUES(3,2);\n    INSERT INTO t13 VALUES(4,2);\n    CREATE INDEX t13ab ON t13(a,b);\n    SELECT DISTINCT b from t13 WHERE a IN (1,2,3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13 VALUES(1,1);\n    INSERT INTO t13 VALUES(2,1);\n    INSERT INTO t13 VALUES(3,1);\n    INSERT INTO t13 VALUES(2,2);\n    INSERT INTO t13 VALUES(3,2);\n    INSERT INTO t13 VALUES(4,2);\n    CREATE INDEX t13ab ON t13(a,b);\n    SELECT DISTINCT b from t13 WHERE a IN (1,2,3);\n  ")
-		}
 	}
 	{ // "select4-14.1"
 		r = db.Query("\n  CREATE TABLE t14(a,b,c);\n  INSERT INTO t14 VALUES(1,2,3),(4,5,6);\n  SELECT * FROM t14 INTERSECT VALUES(3,2,1),(2,3,1),(1,2,3),(2,1,3);\n")

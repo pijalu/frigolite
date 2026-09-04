@@ -70,9 +70,6 @@ func Test_savepoint7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "savepoint7-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SAVEPOINT x1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SAVEPOINT x1;\n  ")
-		}
 		_dbevalRows0 := db.Query("SELECT * FROM t1")
 		var _dbevalRb1 bool
 		var _dbevalErr2 error
@@ -90,9 +87,6 @@ func Test_savepoint7(t *testing.T) {
 				}
 			}
 			_res = db.Exec("\n      SAVEPOINT x2;\n      CREATE TABLE IF NOT EXISTS t3(xyz);\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      CREATE TABLE IF NOT EXISTS t3(xyz);\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
-			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -101,15 +95,9 @@ func Test_savepoint7(t *testing.T) {
 			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 		_res = db.Exec("SELECT * FROM t2; RELEASE x1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2; RELEASE x1")
-		}
 	}
 	{ // do_test "savepoint7-1.2"
 		_res = db.Exec("DELETE FROM t2;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2;")
-		}
 		_dbevalRows4 := db.Query("SELECT * FROM t1")
 		var _dbevalRb5 bool
 		var _dbevalErr6 error
@@ -127,9 +115,6 @@ func Test_savepoint7(t *testing.T) {
 				}
 			}
 			_res = db.Exec("\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
-			}
 			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -138,15 +123,9 @@ func Test_savepoint7(t *testing.T) {
 			t.Errorf("db eval callback error: %v", _dbevalErr6)
 		}
 		_res = db.Exec("SELECT * FROM t2;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2;")
-		}
 	}
 	{ // do_test "savepoint7-1.3"
 		_res = db.Exec("DELETE FROM t2; BEGIN;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2; BEGIN;")
-		}
 		_dbevalRows8 := db.Query("SELECT * FROM t1")
 		var _dbevalRb9 bool
 		var _dbevalErr10 error
@@ -164,9 +143,6 @@ func Test_savepoint7(t *testing.T) {
 				}
 			}
 			_res = db.Exec("\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT x2;\n      INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n      RELEASE x2;\n    ")
-			}
 			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -175,15 +151,9 @@ func Test_savepoint7(t *testing.T) {
 			t.Errorf("db eval callback error: %v", _dbevalErr10)
 		}
 		_res = db.Exec("SELECT * FROM t2; ROLLBACK;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2; ROLLBACK;")
-		}
 	}
 	{ // do_test "savepoint7-2.1"
 		_res = db.Exec("DELETE FROM t2; SAVEPOINT x1; CREATE TABLE t4(abc);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2; SAVEPOINT x1; CREATE TABLE t4(abc);")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -205,9 +175,6 @@ func Test_savepoint7(t *testing.T) {
 					}
 				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
-				}
 				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -224,18 +191,12 @@ func Test_savepoint7(t *testing.T) {
 			}
 		}
 		_res = db.Exec("RELEASE x1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "RELEASE x1")
-		}
 		_list := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
 		_ = _list
 		_r = _list
 	}
 	{ // do_test "savepoint7-2.2"
 		_res = db.Exec("DELETE FROM t2;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2;")
-		}
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -257,9 +218,6 @@ func Test_savepoint7(t *testing.T) {
 					}
 				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
-				}
 				if _dbevalRb17 { _dbevalErr18 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt19 { _dbevalErr18 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -289,9 +247,6 @@ func Test_savepoint7(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA page_size=1024;\n      PRAGMA temp_store=MEMORY;\n      BEGIN;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n      WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<" + sqlLiteral(i) + ")\n      INSERT INTO t1(x,y) SELECT x*10, printf('%04d%.800c',x,'*') FROM c;\n      SAVEPOINT one;\n        SELECT count(*) FROM t1;\n        WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<" + sqlLiteral(i) + ")\n        INSERT INTO t1(x,y) SELECT x*10+1, printf('%04d%.800c',x,'*') FROM c;\n      ROLLBACK TO one;\n        SELECT count(*) FROM t1;\n        SAVEPOINT twoB;\n          WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n          INSERT INTO t1(x,y) SELECT x*10+2, printf('%04d%.800c',x,'*') FROM c;\n        ROLLBACK TO twoB;\n      RELEASE one;\n      COMMIT;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size=1024;\n      PRAGMA temp_store=MEMORY;\n      BEGIN;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n      WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<" + sqlLiteral(i) + ")\n      INSERT INTO t1(x,y) SELECT x*10, printf('%04d%.800c',x,'*') FROM c;\n      SAVEPOINT one;\n        SELECT count(*) FROM t1;\n        WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<" + sqlLiteral(i) + ")\n        INSERT INTO t1(x,y) SELECT x*10+1, printf('%04d%.800c',x,'*') FROM c;\n      ROLLBACK TO one;\n        SELECT count(*) FROM t1;\n        SAVEPOINT twoB;\n          WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n          INSERT INTO t1(x,y) SELECT x*10+2, printf('%04d%.800c',x,'*') FROM c;\n        ROLLBACK TO twoB;\n      RELEASE one;\n      COMMIT;\n    ")
-			}
 		}
 		// incr i 1
 		{

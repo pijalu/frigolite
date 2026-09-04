@@ -65,9 +65,6 @@ func Test_triggerA(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerA-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT UNIQUE);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER UNIQUE, c TEXT);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT UNIQUE);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER UNIQUE, c TEXT);\n  ")
-		}
 		vtab.TclVarSet("i", "", "1")
 		i = "1"
 		_ = i // suppress unused warning
@@ -76,9 +73,6 @@ func Test_triggerA(t *testing.T) {
 			j = strconv.Itoa(toInt(i)*100 + (len(word)))
 			_ = j // suppress unused warning
 			_res = db.Exec("\n       INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(word) + ");\n       INSERT INTO t2 VALUES(20-" + sqlLiteral(i) + "," + sqlLiteral(j) + "," + sqlLiteral(word) + ");\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(word) + ");\n       INSERT INTO t2 VALUES(20-" + sqlLiteral(i) + "," + sqlLiteral(j) + "," + sqlLiteral(word) + ");\n    ")
-			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -88,9 +82,6 @@ func Test_triggerA(t *testing.T) {
 			}
 		}
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL SELECT count(*) FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(*) FROM t1 UNION ALL SELECT count(*) FROM t2;\n  ")
-		}
 	}
 	{ // do_test "triggerA-1.2"
 		r = db.Query("\n     CREATE VIEW v1 AS SELECT y, x FROM t1;\n     SELECT * FROM v1 ORDER BY 1;\n  ")

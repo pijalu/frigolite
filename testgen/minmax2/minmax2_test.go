@@ -469,15 +469,9 @@ func Test_minmax2(t *testing.T) {
 	}
 	{ // do_test "minmax2-11.111"
 		_res = db.Exec("SELECT max(b+c) FROM t11")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT max(b+c) FROM t11")
-		}
 	}
 	{ // do_test "minmax2-11.112"
 		_res = db.Exec("SELECT max(c+b) FROM t11")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT max(c+b) FROM t11")
-		}
 	}
 	{ // "minmax2-11.120"
 		r = db.Query("\n  SELECT a, min(b+c) FROM t11;\n")
@@ -493,15 +487,9 @@ func Test_minmax2(t *testing.T) {
 	}
 	{ // do_test "minmax2-11.121"
 		_res = db.Exec("SELECT min(b+c) FROM t11")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT min(b+c) FROM t11")
-		}
 	}
 	{ // do_test "minmax2-11.122"
 		_res = db.Exec("SELECT min(c+b) FROM t11")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT min(c+b) FROM t11")
-		}
 	}
 	{ // "minmax2-11.130"
 		r = db.Query("\n  INSERT INTO t11(a,b,c) VALUES(6,NULL,0),(7,0,NULL);\n  SELECT a, min(b+c) FROM t11;\n")

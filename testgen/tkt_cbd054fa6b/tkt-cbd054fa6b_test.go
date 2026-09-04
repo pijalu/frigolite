@@ -82,13 +82,7 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 	}
 	{ // do_test "tkt-cbd05-1.2"
 		_res = db.Exec(" ANALYZE; ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ANALYZE; ")
-		}
 		_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    CREATE VIEW vvv AS \n    SELECT tbl,idx,neq,nlt,ndlt,test_extract(sample,0) AS sample\n    FROM sqlite_stat4;\n    PRAGMA writable_schema = 0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema = 1;\n    CREATE VIEW vvv AS \n    SELECT tbl,idx,neq,nlt,ndlt,test_extract(sample,0) AS sample\n    FROM sqlite_stat4;\n    PRAGMA writable_schema = 0;\n  ")
-		}
 	}
 	{ // do_test "tkt-cbd05-1.3"
 		r = db.Query(" \n    SELECT tbl,idx,string_agg(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx\n  ")

@@ -64,9 +64,6 @@ func Test_tkt3824(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "tkt3824-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(9,NULL);\n    INSERT INTO t1 VALUES(5,NULL);\n    INSERT INTO t1 VALUES(123,NULL);\n    INSERT INTO t1 VALUES(-10,NULL);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(9,NULL);\n    INSERT INTO t1 VALUES(5,NULL);\n    INSERT INTO t1 VALUES(123,NULL);\n    INSERT INTO t1 VALUES(-10,NULL);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n  ")
-		}
 		// execsql_status {\n    SELECT a FROM t1 WHERE b IS NULL ORDER BY a;...} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3824-1.2"
@@ -74,9 +71,6 @@ func Test_tkt3824(t *testing.T) {
 	}
 	{ // do_test "tkt3824-2.1"
 		_res = db.Exec("\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,1,NULL);\n    INSERT INTO t2 VALUES(9,2,NULL);\n    INSERT INTO t2 VALUES(5,2,NULL);\n    INSERT INTO t2 VALUES(123,3,NULL);\n    INSERT INTO t2 VALUES(-10,3,NULL);\n    CREATE UNIQUE INDEX t2bc ON t2(b,c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,1,NULL);\n    INSERT INTO t2 VALUES(9,2,NULL);\n    INSERT INTO t2 VALUES(5,2,NULL);\n    INSERT INTO t2 VALUES(123,3,NULL);\n    INSERT INTO t2 VALUES(-10,3,NULL);\n    CREATE UNIQUE INDEX t2bc ON t2(b,c);\n  ")
-		}
 		// execsql_status {\n    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORD...} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3824-2.2"

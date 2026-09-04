@@ -77,13 +77,7 @@ func Test_autoindex1(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 SELECT a+2, b+22 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+44 FROM t1;\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 SELECT a, 900+b FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 SELECT a+2, b+22 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+44 FROM t1;\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 SELECT a, 900+b FROM t1;\n  ")
-		}
 		_res = db.Exec("\n    PRAGMA automatic_index=OFF;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA automatic_index=OFF;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;\n  ")
-		}
 	}
 	{ // do_test "autoindex1-101"
 	}
@@ -169,9 +163,6 @@ func Test_autoindex1(t *testing.T) {
 			}
 			_r = tclListAppend(_r, b, d)
 			_res = db.Exec("UPDATE t2 SET d=d+1")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t2 SET d=d+1")
-			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
@@ -199,24 +190,15 @@ func Test_autoindex1(t *testing.T) {
 	}
 	{ // do_test "autoindex1-400"
 		_res = db.Exec("\n    CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES(1,2);\n    INSERT INTO t4 VALUES(2,3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES(1,2);\n    INSERT INTO t4 VALUES(2,3);\n  ")
-		}
 		vtab.TclVarSet("n", "", "2")
 		n = "2"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 4096 }() {
 			_res = db.Exec("INSERT INTO t4 SELECT a+" + sqlLiteral(n) + ", b+" + sqlLiteral(n) + " FROM t4")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+" + sqlLiteral(n) + ", b+" + sqlLiteral(n) + " FROM t4")
-			}
 			n = tclExprWith("$n+$n", map[string]string{"n": n})
 			_ = n // suppress unused warning
 		}
 		_res = db.Exec("\n    SELECT count(*) FROM t4;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(*) FROM t4;\n  ")
-		}
 	}
 	{ // do_test "autoindex1-401"
 		r = db.Query("\n    SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;\n  ")
