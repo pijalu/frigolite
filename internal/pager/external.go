@@ -283,23 +283,6 @@ func (p *Pager) AllocateRootPage() (*Page, error) {
 	return pg, nil
 }
 
-// TakePageFromFreelist removes pgno from the freelist without handing
-// the page to a caller (mirror of allocateBtreePage's BTALLOC_EXACT pop
-// used by incrVacuumStep for a trailing FREE page when bCommit==0,
-// src/btree.c:4025-4032). The on-disk chain entry is properly removed
-// (trunk advance or copy-last-into-slot leaf removal) and the header
-// freelist count is decremented, so the chain stays consistent below
-// the truncation point that the caller performs afterwards.
-func (p *Pager) TakePageFromFreelist(pgno uint32) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if !p.freePages[pgno] {
-		return
-	}
-	delete(p.freePages, pgno)
-	p.popFromFreePagesChainLocked(pgno)
-}
-
 // ZeroFreelistChain clears the on-disk freelist header fields
 // (header.trunk = 0, header.count = 0). Mirror of autoVacuumCommit's
 // post-drain step (src/btree.c:4247-4252):
@@ -325,18 +308,7 @@ func (p *Pager) ZeroFreelistChain() {
 	}
 }
 
-// IsPageOnFreelist reports whether pgno is currently on the in-memory
-// freelist (P8.INCRVACUUM phase 3). Used by IncrVacuumStep to decide
-// whether the last page of the file can be truncated directly (it's on
-// the freelist) or needs a page-swap (it's in use).
-func IsPageOnFreelist(p *Pager, pgno uint32) bool {
-	if p == nil {
-		return false
-	}
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	return p.freePages[pgno]
-}
+// IsPageOnFreelist lives in freelist.go (C-parity: ptrmap / chain walk).
 
 // MarkPageDirtyForVacuum marks pgno as dirty so its in-memory content
 // gets written back on the next flush (P8.INCRVACUUM phase 3). Used by
