@@ -102,6 +102,7 @@ func Test_trans3(t *testing.T) {
 				{
 					var _catchErr error
 					_res = db.Exec("COMMIT")
+					if _res.Error != nil { _catchErr = _res.Error }
 					if _catchErr != nil {
 						errmsg = "1"
 						errmsg = _catchErr.Error()
@@ -181,6 +182,7 @@ func Test_trans3(t *testing.T) {
 				{
 					var _catchErr error
 					_res = db.Exec("ROLLBACK")
+					if _res.Error != nil { _catchErr = _res.Error }
 					_dbevalRb5 = true
 					if _catchErr != nil {
 						errmsg = "1"

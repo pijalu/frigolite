@@ -700,6 +700,7 @@ func Test_autovacuum(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("COMMIT")
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 	}
 	{ // do_test "autovacuum-9.1"

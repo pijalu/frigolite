@@ -75,7 +75,9 @@ func Test_tkt2686(t *testing.T) {
 			{ // catch block
 				var _catchErr error
 				for true {
+					if _catchErr != nil { break }
 					_res = db.Exec("INSERT INTO filler (fill) VALUES (randstr(1000, 10000)) ")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				if _catchErr != nil {
 					rc = "1"
@@ -99,6 +101,7 @@ func Test_tkt2686(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("COMMIT")
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		// incr i 1
 		{
@@ -124,7 +127,9 @@ func Test_tkt2686(t *testing.T) {
 			{ // catch block
 				var _catchErr error
 				for true {
+					if _catchErr != nil { break }
 					_res = db.Exec("INSERT INTO filler (fill) VALUES (randstr(1000, 10000)) ")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				if _catchErr != nil {
 					rc = "1"
@@ -148,6 +153,7 @@ func Test_tkt2686(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("COMMIT")
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		// incr i 1
 		{

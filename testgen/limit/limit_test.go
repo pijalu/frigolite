@@ -492,6 +492,7 @@ func Test_limit(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT " + sqlLiteral(limit) + ";\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -513,6 +514,7 @@ func Test_limit(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT " + sqlLiteral(limit) + ";\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

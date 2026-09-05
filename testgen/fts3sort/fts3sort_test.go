@@ -91,6 +91,10 @@ func Test_fts3sort(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 	var X_docid string
 	_ = X_docid // pre-declared from TCL source
+	AMap := map[string]string{}
+	_ = AMap // dynamic-key array from TCL source
+	BMap := map[string]string{}
+	_ = BMap // dynamic-key array from TCL source
 	CMap := map[string]string{}
 	_ = CMap // dynamic-key array from TCL source
 	DMap := map[string]string{}
@@ -99,10 +103,6 @@ func Test_fts3sort(t *testing.T) {
 	_ = DATAMap // dynamic-key array from TCL source
 	CONTROLMap := map[string]string{}
 	_ = CONTROLMap // dynamic-key array from TCL source
-	AMap := map[string]string{}
-	_ = AMap // dynamic-key array from TCL source
-	BMap := map[string]string{}
-	_ = BMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)

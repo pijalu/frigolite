@@ -535,6 +535,15 @@ func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+	if tp.catchMode {
+		// Inside a `catch { ... }` block, capture Exec errors into
+		// _catchErr so the enclosing `while {1}` break-on-error pattern
+		// (e.g. tkt2686's `while 1 { db eval {INSERT ...} }`) can unwind.
+		// Without this, the loop runs forever: `db eval` does NOT raise a
+		// Go panic on engine errors, it just sets _res.Error, so the
+		// transpiler must mirror TCL catch semantics explicitly here.
+		tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
+	}
 	if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
 		// A ROLLBACK executed inside a db eval callback aborts the
 		// enclosing row iteration (SQLite "abort due to ROLLBACK").

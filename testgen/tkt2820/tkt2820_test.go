@@ -94,6 +94,7 @@ func Test_tkt2820(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				_res = db.Exec("\n      INSERT INTO t1 SELECT a+1 FROM t1 ORDER BY a DESC\n    ")
+				if _res.Error != nil { _catchErr = _res.Error }
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }

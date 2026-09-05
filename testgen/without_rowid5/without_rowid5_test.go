@@ -366,6 +366,7 @@ func Test_without_rowid5(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(NULL,6,7);")
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("\n    SELECT * FROM t5;\n  ")
 	}
@@ -375,6 +376,7 @@ func Test_without_rowid5(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(NULL,6,7);")
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("\n    COMMIT;\n    SELECT * FROM t5;\n  ")
 	}
@@ -384,6 +386,7 @@ func Test_without_rowid5(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);")
+			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		_res = db.Exec("\n    SELECT * FROM t5;\n  ")
 	}

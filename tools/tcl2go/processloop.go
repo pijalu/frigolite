@@ -148,6 +148,14 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 	tp.emitLine("for %s {", goCond)
 	tp.indent++
 
+	// A `for true` (or `while {1}`) loop inside a catch block is meant to
+	// terminate when the body errors — the TCL `catch` block would naturally
+	// short-circuit on the first error. Emit an explicit break-on-error
+	// at the top so the generated loop mirrors that semantics.
+	if tp.catchMode && goCond == "true" {
+		tp.emitLine("if _catchErr != nil { break }")
+	}
+
 	if bodyCmds != nil {
 		bodyTP := &transpiler{
 			sb:       tp.sb,
@@ -156,6 +164,12 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 			t:        tp.t,
 			varCount: tp.varCount,
 			vars:     tp.vars,
+			// Propagate catchMode so body statements (`db eval {SQL}`)
+			// can capture Exec errors into _catchErr — required for the
+			// `while 1 { db eval INSERT }` infinite-INSERT cap test
+			// (tkt2686) to break on "database or disk is full".
+			catchMode:   tp.catchMode,
+			rollbackFlag: tp.rollbackFlag,
 			// A while loop has no increment clause: continue targets this
 			// loop, so the innermost entry is empty (plain Go continue).
 			forIncrs:   append(tp.forIncrs, nil),

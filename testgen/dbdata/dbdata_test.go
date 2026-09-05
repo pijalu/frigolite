@@ -76,6 +76,7 @@ func Test_dbdata(t *testing.T) {
 	{
 		var _catchErr error
 		_res = db.Exec(" SELECT load_extension('../dbdata') ")
+		if _res.Error != nil { _catchErr = _res.Error }
 		if _catchErr != nil {
 			_cc1 = "1"
 		} else {

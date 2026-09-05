@@ -685,6 +685,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -710,6 +711,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -738,6 +740,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -770,6 +773,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -795,6 +799,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -820,6 +825,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()
@@ -845,6 +851,7 @@ func Test_autoinc(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
+			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				res = "1"
 				msg = _catchErr.Error()

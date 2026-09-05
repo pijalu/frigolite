@@ -1277,6 +1277,7 @@ func Test_rtree1(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 					_res = db.Exec("CREATE TABLE t2 AS SELECT rtreecheck('t1') AS y;")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				_res = db.Exec("PRAGMA integrity_check;")
 			}
