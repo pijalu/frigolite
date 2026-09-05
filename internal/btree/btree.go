@@ -106,16 +106,28 @@ func NewSchemaBTree(pg *pager.Pager) *BTree {
 // allocPage allocates a page for the btree, bypassing the freelist if
 // the btree is the schema btree (sqlite_schema's pages must not take
 // slots from the user-rootpage range; P8.INCRVACUUM.phase9).
-func (t *BTree) allocPage() *pager.Page {
+//
+// P8.PRAGMA: when the pager's max_page_count cap would be exceeded,
+// AllocatePage returns nil; we surface a "database or disk is full"
+// error so callers (which all check err) bail with the canonical SQLite
+// text. Previously allocPage returned a nil *Page and the dereference at
+// pg.PageNum panicked, sending tkt2686 into an infinite INSERT loop.
+func (t *BTree) allocPage() (*pager.Page, error) {
 	// P8.INCRVACUUM.phase9: the schema btree's allocations extend the
 	// file (no freelist pop), so the schema btree's pages live
 	// beyond the user rootpage range. User btree allocations go
 	// through the normal AllocatePage path which pops from the
 	// freelist in chain order.
+	var pg *pager.Page
 	if t.isSchema {
-		return t.pager.AllocatePageSkipFreelist()
+		pg = t.pager.AllocatePageSkipFreelist()
+	} else {
+		pg = t.pager.AllocatePage()
 	}
-	return t.pager.AllocatePage()
+	if pg == nil {
+		return nil, fmt.Errorf("database or disk is full")
+	}
+	return pg, nil
 }
 
 // OpenCursor creates a new cursor positioned at the beginning.

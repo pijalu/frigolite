@@ -58,13 +58,17 @@ type EngineState interface {
 	WalCheckpoint(schema, value string) *Result
 
 	// PageCount returns the current number of pages in the named schema's
-	// database (PRAGMA page_count).
-	PageCount(schema string) int64
+		// database (PRAGMA page_count).
+		PageCount(schema string) int64
 
-	// FreelistCount returns the current on-disk freelist count (PRAGMA
-	// freelist_count: bytes 36-39 of the database header, the number of
-	// free pages reachable from the trunk chain).
-	FreelistCount(schema string) int64
+		// MaxPageCount returns or sets PRAGMA max_page_count (the cap on the
+		// pager's allocate-page count, mirroring pager.c::mxPgno).
+		MaxPageCount(schema, value string) *Result
+
+		// FreelistCount returns the current on-disk freelist count (PRAGMA
+		// freelist_count: bytes 36-39 of the database header, the number of
+		// free pages reachable from the trunk chain).
+		FreelistCount(schema string) int64
 
 	// Cache pragmas.
 	CacheSize(schema, value string) *Result
@@ -462,8 +466,11 @@ var pragmaHandlers = map[string]Handler{
 		}
 		// SQLite names the result column "page_count" (pragma.c PragTyp_PAGE_COUNT).
 		return &Result{Columns: []string{"page_count"}, Rows: [][]interface{}{{st.PageCount(s.Schema)}}}
-	},
-	"FREELIST_COUNT": pragmaGetOnly(func(st EngineState) *Result {
+			},
+			"MAX_PAGE_COUNT": func(st EngineState, s *sql.PragmaStmt) *Result {
+				return st.MaxPageCount(s.Schema, s.Value)
+			},
+			"FREELIST_COUNT": pragmaGetOnly(func(st EngineState) *Result {
 		// P8.INCRVACUUM.phase7: read the actual on-disk freelist count
 		// from the header instead of returning a hard-coded 0. The
 		// previous hard-coded 0 hid the mismatch between the in-memory

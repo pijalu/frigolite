@@ -199,16 +199,56 @@ func (e *Engine) PageCount(schema string) int64 {
 	return int64(ctx.Pager.NumPages())
 }
 
-// FreelistCount implements PRAGMA freelist_count: the number of free pages
-// recorded in the on-disk database header (bytes 36-39), regardless of the
-// in-memory p.freePages set. Mirrors btree.c sqlite3BtreeFreePageCount.
+// MaxPageCount implements PRAGMA max_page_count (getter and setter). When
+// value is "" the current cap is reported; when value parses to a non-
+// negative integer the cap is updated. Mirrors pager.c::sqlite3PagerMaxPageCount:
+// only the absolute value is stored; a value of 0 means unlimited.
 //
-// P8.INCRVACUUM.phase7: prior to this, PRAGMA freelist_count returned a
-// hard-coded 0, masking the gap between the chain's actual reach
-// (chain-walked count) and the header's declared count. The hard-coded 0
-// also hid ROLLBACK-fidelity gaps where the header was decremented but the
-// chain still held stale references (and vice versa).
-func (e *Engine) FreelistCount(schema string) int64 {
+// Per pragma.c (PragTyp_MAX_PAGE_COUNT): the new value is clamped to the
+// current database size (sqlite3BtreeLastPage / sqlite3BtreeMaxPageCount)
+// so max_page_count never shrinks below the actual file size. The
+// clamping is performed here against ctx.Pager.NumPages() to mirror the
+// VDBE OP_MaxPgcnt + sqlite3BtreeMaxPageCount chain.
+//
+// P8.PRAGMA: missing engine element implemented (2026-09).
+func (e *Engine) MaxPageCount(schema, value string) *execpragma.Result {
+	ctx := e.pragmaDBCtx(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return &execpragma.Result{}
+	}
+	if value == "" {
+		return &execpragma.Result{Rows: [][]interface{}{{int64(ctx.Pager.MaxPageCount())}}}
+	}
+	abs := int64(0)
+	for _, c := range value {
+		if c < '0' || c > '9' {
+			return &execpragma.Result{Error: fmt.Errorf("malformed max_page_count: %q", value)}
+		}
+		abs = abs*10 + int64(c-'0')
+	}
+	if abs > 0 {
+		// Mirror OP_MaxPgcnt's clamp to the current db size
+		// (sqlite3BtreeLastPage): max_page_count never shrinks below the
+		// number of pages already allocated.
+		cur := int64(ctx.Pager.NumPages())
+		if abs < cur {
+			abs = cur
+		}
+	}
+	ctx.Pager.SetMaxPageCount(uint32(abs))
+	return &execpragma.Result{Rows: [][]interface{}{{int64(ctx.Pager.MaxPageCount())}}}
+}
+
+// FreelistCount implements PRAGMA freelist_count: the number of free pages
+	// recorded in the on-disk database header (bytes 36-39), regardless of the
+	// in-memory p.freePages set. Mirrors btree.c sqlite3BtreeFreePageCount.
+	//
+	// P8.INCRVACUUM.phase7: prior to this, PRAGMA freelist_count returned a
+	// hard-coded 0, masking the gap between the chain's actual reach
+	// (chain-walked count) and the header's declared count. The hard-coded 0
+	// also hid ROLLBACK-fidelity gaps where the header was decremented but the
+	// chain still held stale references (and vice versa).
+	func (e *Engine) FreelistCount(schema string) int64 {
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
 		return 0

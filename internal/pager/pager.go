@@ -88,9 +88,15 @@ type Pager struct {
 	// pending change.
 	pendingJournalMode string
 	// pendingByteOverride stores a non-default PENDING_BYTE offset installed
-	// by the SQLite test harness via sqlite3_test_control_pending_byte
-	// (src/test2.c::testPendingByte). 0 means production default.
-	pendingByteOverride uint32
+		// by the SQLite test harness via sqlite3_test_control_pending_byte
+		// (src/test2.c::testPendingByte). 0 means production default.
+		pendingByteOverride uint32
+		// maxPageCount is the PRAGMA max_page_count cap (pager.c::mxPgno). When
+		// numPages would exceed this value, AllocatePage returns nil and the
+		// caller surfaces "database or disk is full" (SQLite behavior mirrored
+		// from pager.c::getPageNo / sqlite3BtreeSetMaxPageCount). 0 means
+		// unlimited (the production default: SQLITE_MAX_PAGE_COUNT = 0x7fffffff).
+		maxPageCount uint32
 	// P8.INCRVACUUM.phase7: set by the exec engine at BEGIN, cleared at
 	// COMMIT/ROLLBACK. While true, AllocatePage skips chain consumption
 	// (the chain pages are not popped; the file is extended instead) so a
@@ -779,14 +785,33 @@ func (p *Pager) PendingBytePage() uint32 {
 }
 
 // SetNumPagesForTesting clamps the in-memory page count to n when n is
-// smaller. Used by the btree autovacuum pipeline to resync from the
-// on-disk file when a memory/file divergence is observed.
-func (p *Pager) SetNumPagesForTesting(n uint32) {
+	// smaller. Used by the btree autovacuum pipeline to resync from the
+	// on-disk file when a memory/file divergence is observed.
+	func (p *Pager) SetNumPagesForTesting(n uint32) {
+		p.mu.Lock()
+		defer p.mu.Unlock()
+		if n < p.numPages {
+			p.numPages = n
+		}
+	}
+
+// MaxPageCount returns the current PRAGMA max_page_count cap. 0 means
+// unlimited (the production default: SQLITE_MAX_PAGE_COUNT = 0x7fffffff).
+// Mirrors pager.c::sqlite3PagerMaxPageCount returning pPager->mxPgno.
+func (p *Pager) MaxPageCount() uint32 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.maxPageCount
+}
+
+// SetMaxPageCount sets the PRAGMA max_page_count cap. When n is 0 the
+// cap is cleared (unlimited). Mirrors pager.c::sqlite3PagerMaxPageCount
+// when mxPage > 0: the value is stored verbatim. AllocatePageMode
+// enforces it on every new page allocation.
+func (p *Pager) SetMaxPageCount(n uint32) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if n < p.numPages {
-		p.numPages = n
-	}
+	p.maxPageCount = n
 }
 
 // ReadAutoVacuumFromHeader reports the auto-vacuum mode stored in the
@@ -905,10 +930,18 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 		// trunk when it has no leaves, else its first leaf (copying the
 		// last leaf into the freed slot). No in-memory shadow state.
 		if pgno := p.allocateFreelistLocked(); pgno != 0 {
-			return p.grabPageLocked(pgno)
-		}
-	}
-	p.numPages++
+					return p.grabPageLocked(pgno)
+				}
+			}
+			// P8.PRAGMA: PRAGMA max_page_count enforcement. pager.c::getPageNo
+			// rejects writes beyond mxPgno with SQLITE_FULL. We mirror that here:
+			// if the new page number would exceed maxPageCount, return nil so the
+			// caller surfaces "database or disk is full" (the canonical SQLite
+			// text). 0 means unlimited.
+			if p.maxPageCount > 0 && p.numPages+1 > p.maxPageCount {
+				return nil
+			}
+			p.numPages++
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
 	// a pointer-map page, zero it out (no b-tree header — its content is a
 	// flat array of 5-byte entries maintained by ptrmapPut, unused until

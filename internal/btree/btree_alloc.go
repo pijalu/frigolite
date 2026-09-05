@@ -32,7 +32,10 @@ func (t *BTree) ptrmapEnabled() bool {
 // cell count, etc.). Pass parentPgno=0 to skip the ptrmap write
 // (used for the schema root page, which is its own root).
 func (t *BTree) allocBtreeNode(parentPgno uint32) (*pager.Page, error) {
-	pg := t.allocPage()
+	pg, err := t.allocPage()
+	if err != nil {
+		return nil, err
+	}
 	if parentPgno != 0 && t.ptrmapEnabled() {
 		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapBtree, parentPgno); err != nil {
 			return nil, err
@@ -46,7 +49,10 @@ func (t *BTree) allocBtreeNode(parentPgno uint32) (*pager.Page, error) {
 // the btree; the ptrmap entry exists so relocatePage can identify
 // them as roots (and refuse to relocate them).
 func (t *BTree) allocRootpage() (*pager.Page, error) {
-	pg := t.allocPage()
+	pg, err := t.allocPage()
+	if err != nil {
+		return nil, err
+	}
 	if t.ptrmapEnabled() {
 		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapRootpage, 0); err != nil {
 			return nil, err
@@ -62,7 +68,10 @@ func (t *BTree) allocRootpage() (*pager.Page, error) {
 // same chain set their parent to the previous overflow (use
 // allocOverflowNext for that case).
 func (t *BTree) allocOverflow(parentPgno uint32) (*pager.Page, error) {
-	pg := t.allocPage()
+	pg, err := t.allocPage()
+	if err != nil {
+		return nil, err
+	}
 	if t.ptrmapEnabled() {
 		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapOverflow1, parentPgno); err != nil {
 			return nil, err
@@ -76,7 +85,10 @@ func (t *BTree) allocOverflow(parentPgno uint32) (*pager.Page, error) {
 // page in the chain). Mirrors btree.c fillInCell's second and later
 // ptrmapPutOvfl calls.
 func (t *BTree) allocOverflowNext(prevPgno uint32) (*pager.Page, error) {
-	pg := t.allocPage()
+	pg, err := t.allocPage()
+	if err != nil {
+		return nil, err
+	}
 	if t.ptrmapEnabled() {
 		if err := t.pager.WritePtrmap(pg.PageNum, storage.PtrmapOverflow2, prevPgno); err != nil {
 			return nil, err
