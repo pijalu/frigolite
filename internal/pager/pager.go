@@ -793,23 +793,46 @@ func (p *Pager) PendingBytePage() uint32 {
 		}
 	}
 
-// MaxPageCount returns the current PRAGMA max_page_count cap. 0 means
-// unlimited (the production default: SQLITE_MAX_PAGE_COUNT = 0x7fffffff).
+// DefaultMaxPageCount is the default PRAGMA max_page_count cap — the
+// documented SQLITE_MAX_PAGE_COUNT default (1073741823, 0x3FFFFFFF;
+// oracle /usr/bin/sqlite3 3.51.0: `PRAGMA max_page_count` on a fresh
+// database returns 1073741823).
+const DefaultMaxPageCount = 1073741823
+
+// MaxPageCount returns the current PRAGMA max_page_count cap. The
+// zero-value field (no explicit cap) reports the documented default.
 // Mirrors pager.c::sqlite3PagerMaxPageCount returning pPager->mxPgno.
 func (p *Pager) MaxPageCount() uint32 {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
+	if p.maxPageCount == 0 {
+		return DefaultMaxPageCount
+	}
 	return p.maxPageCount
 }
 
-// SetMaxPageCount sets the PRAGMA max_page_count cap. When n is 0 the
-// cap is cleared (unlimited). Mirrors pager.c::sqlite3PagerMaxPageCount
-// when mxPage > 0: the value is stored verbatim. AllocatePageMode
-// enforces it on every new page allocation.
+// SetMaxPageCount sets the PRAGMA max_page_count cap. Mirrors
+// pager.c::sqlite3PagerMaxPageCount: a value of 0 (or negative, already
+// rejected by the pragma parse) is ignored and the current cap is kept —
+// the pragma then behaves as a getter (`PRAGMA max_page_count=0` echoes
+// the current value). AllocatePageMode enforces the cap on every new page
+// allocation.
 func (p *Pager) SetMaxPageCount(n uint32) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	if n == 0 {
+		return
+	}
 	p.maxPageCount = n
+}
+
+// effectiveMaxPageCountLocked returns the cap AllocatePageMode enforces
+// (the zero-value field means the documented default). Caller holds p.mu.
+func (p *Pager) effectiveMaxPageCountLocked() uint32 {
+	if p.maxPageCount == 0 {
+		return DefaultMaxPageCount
+	}
+	return p.maxPageCount
 }
 
 // ReadAutoVacuumFromHeader reports the auto-vacuum mode stored in the
@@ -935,8 +958,8 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 			// rejects writes beyond mxPgno with SQLITE_FULL. We mirror that here:
 			// if the new page number would exceed maxPageCount, return nil so the
 			// caller surfaces "database or disk is full" (the canonical SQLite
-			// text). 0 means unlimited.
-			if p.maxPageCount > 0 && p.numPages+1 > p.maxPageCount {
+			// text).
+			if p.numPages+1 > p.effectiveMaxPageCountLocked() {
 				return nil
 			}
 			p.numPages++

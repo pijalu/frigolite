@@ -221,21 +221,29 @@ func (e *Engine) MaxPageCount(schema, value string) *execpragma.Result {
 	if value == "" {
 		return &execpragma.Result{Rows: [][]interface{}{{int64(ctx.Pager.MaxPageCount())}}}
 	}
+	// Parse the value as a signed integer (sqlite3GetInt32). A non-numeric
+	// or non-positive value leaves the cap unchanged and the pragma behaves
+	// as a getter — OP_MaxPgcnt passes p3=0, so no new cap is applied
+	// (oracle: PRAGMA max_page_count='abc' / =-5 / =0 all echo the current
+	// value with no error).
 	abs := int64(0)
-	for _, c := range value {
+	digits := strings.TrimPrefix(value, "-")
+	negative := strings.HasPrefix(value, "-")
+	for _, c := range digits {
 		if c < '0' || c > '9' {
-			return &execpragma.Result{Error: fmt.Errorf("malformed max_page_count: %q", value)}
+			return &execpragma.Result{Rows: [][]interface{}{{int64(ctx.Pager.MaxPageCount())}}}
 		}
 		abs = abs*10 + int64(c-'0')
 	}
-	if abs > 0 {
-		// Mirror OP_MaxPgcnt's clamp to the current db size
-		// (sqlite3BtreeLastPage): max_page_count never shrinks below the
-		// number of pages already allocated.
-		cur := int64(ctx.Pager.NumPages())
-		if abs < cur {
-			abs = cur
-		}
+	if negative || abs <= 0 {
+		return &execpragma.Result{Rows: [][]interface{}{{int64(ctx.Pager.MaxPageCount())}}}
+	}
+	// Mirror OP_MaxPgcnt's clamp to the current db size
+	// (sqlite3BtreeLastPage): max_page_count never shrinks below the
+	// number of pages already allocated.
+	cur := int64(ctx.Pager.NumPages())
+	if abs < cur {
+		abs = cur
 	}
 	ctx.Pager.SetMaxPageCount(uint32(abs))
 	return &execpragma.Result{Rows: [][]interface{}{{int64(ctx.Pager.MaxPageCount())}}}
