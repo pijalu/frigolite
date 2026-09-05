@@ -39,8 +39,8 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 // written, so their current values are their NEW values.
 func (e *DMLExecutor) checkEarlierChanges(changes []updateChange, i int, c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableName string) *Result {
 	for j := 0; j < i; j++ {
-		if e.valuesConflict(changes[j].values, c.values, colDefs, colIndex, uniqueCols, idxColsList) {
-			return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, changes[j].values, c.values, uniqueCols, idxColsList)}
+		if e.valuesConflict(changes[j].values, c.values, changes[j].rowID, c.rowID, colDefs, colIndex, uniqueCols, idxColsList) {
+			return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, changes[j].values, c.values, changes[j].rowID, c.rowID, uniqueCols, idxColsList)}
 		}
 	}
 	return &Result{}
@@ -99,8 +99,8 @@ func (e *DMLExecutor) checkCellConflict(cell *storage.Cell, c updateChange, skip
 	}
 	// A later change (j > i) still holds its ORIGINAL values (not yet
 	// written), which the table scan sees.
-	if e.valuesConflict(rec.Values, c.values, colDefs, colIndex, uniqueCols, idxColsList) {
-		return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, rec.Values, c.values, uniqueCols, idxColsList)}
+	if e.valuesConflict(rec.Values, c.values, cell.RowID, c.rowID, colDefs, colIndex, uniqueCols, idxColsList) {
+		return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, rec.Values, c.values, cell.RowID, c.rowID, uniqueCols, idxColsList)}
 	}
 	return nil
 }

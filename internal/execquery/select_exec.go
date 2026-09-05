@@ -83,6 +83,8 @@ func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interfa
 }
 
 func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
+	if len(s.Joins) > 0 {
+	}
 	e.selectDepth++
 	e.aggPendingErr = nil // per-statement state: a prior aborted SELECT must not leak its aggregate error
 	defer func() { e.selectDepth-- }()

@@ -746,6 +746,8 @@ func Test_in(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -913,6 +915,8 @@ func Test_in(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

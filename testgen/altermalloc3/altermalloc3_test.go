@@ -85,6 +85,8 @@ func Test_altermalloc3(t *testing.T) {
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ALTER TABLE t1 ... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

@@ -270,6 +270,8 @@ func Test_fts3fault(t *testing.T) {
 	// do_faultsim_test 10.1 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUA... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

@@ -59,6 +59,12 @@ type Engine struct {
 	// tracking (lockreg).
 	connID int64
 
+	// tempBtreeOpen mirrors SQLite's lazy aDb[1].pBt creation: the temp
+	// database starts closed and "opens" the first time anything addresses
+	// the temp schema (PRAGMA temp.<...>, CREATE TEMP TABLE, ...).
+	// PRAGMA lock_status reports "temp unknown" once open, "closed" before.
+	tempBtreeOpen bool
+
 	// lockStyle selects this connection's file-locking model (mirrors SQLite's
 	// unix VFS locking styles): LockStyleDefault uses the fine-grained
 	// SHARED/RESERVED/PENDING/EXCLUSIVE matrix; LockStyleExclusive (unix-flock)
@@ -262,6 +268,9 @@ type engineSettings struct {
 	secureDeletes          map[string]int64 // per-schema PRAGMA secure_delete value (inherits MAIN's value on ATTACH)
 	mainSecureDelete       int64            // MAIN's per-schema PRAGMA secure_delete value (seeded from defaultSecureDelete on Open)
 	defaultSecureDelete    int64            // connection-wide default (the SQLITE_FAST_SECURE_DELETE build option equivalent)
+	synchronousLevels      map[string]int64 // per-schema PRAGMA synchronous stored safety_level (btree.c: level-1 is reported; default 3 = FULL)
+	tempStore              int              // PRAGMA temp_store (0=default, 1=file, 2=memory)
+	tempStoreDirectory     string           // PRAGMA temp_store_directory value ("" = unset, mirrors sqlite3_temp_directory)
 	cacheSizes             map[string]int64
 	autoVacuumModes        map[string]int64 // per-schema PRAGMA auto_vacuum mode
 	dataVersion            int64
@@ -918,6 +927,7 @@ func newEngineSettings() engineSettings {
 		secureDeletes:       make(map[string]int64),
 		mainSecureDelete:    2, // SQLITE_FAST_SECURE_DELETE equivalent (test/securedel.test DEFAULT_SECDEL=2)
 		defaultSecureDelete: 2, // Mirrors SQLite's SQLITE_FAST_SECURE_DELETE build option
+		synchronousLevels:   make(map[string]int64),
 	}
 }
 

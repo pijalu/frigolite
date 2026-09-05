@@ -103,6 +103,8 @@ func Test_windowfault(t *testing.T) {
 	// do_faultsim_test 8 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -139,6 +141,8 @@ func Test_windowfault(t *testing.T) {
 	// tvfs delete (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -151,6 +155,8 @@ func Test_windowfault(t *testing.T) {
 	// do_faultsim_test 10 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT row_number() OVER wi... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -164,6 +170,8 @@ func Test_windowfault(t *testing.T) {
 	// do_faultsim_test 11.2 -faults oom* -prep {\n} -body {\n  execsql {\n    VALUES(false),(current_da... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -176,6 +184,8 @@ func Test_windowfault(t *testing.T) {
 	// do_faultsim_test 12 -faults oom* -prep {\n} -body {\n  execsql {\n    WITH v(a, b, row_number) AS... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

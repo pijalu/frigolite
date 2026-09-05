@@ -439,7 +439,6 @@ func (e *Engine) pragmaCacheSpillFor(ctx *DatabaseContext) int64 {
 	if spill < 0 {
 		szPage := int64(ctx.Pager.PageSize())
 		spill = int((-1024 * int64(spill)) / (szPage + 152))
-		println("ZZDEBUG spill convert:", e.settings.cacheSpillSize, "szPage=", szPage, "->", spill)
 	}
 	cache := e.pragmaCacheSizeFor(ctx)
 	if cache > int64(spill) {

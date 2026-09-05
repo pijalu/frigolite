@@ -5,6 +5,7 @@
 package fts4check
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -287,6 +288,8 @@ func Test_fts4check(t *testing.T) {
 			{ // do_test "3.0"
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db-journal")
+				os.Remove("test.db-wal")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -295,7 +298,13 @@ func Test_fts4check(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);\n  ")
 				}
-				for _, docid := range tclSplitList(tclExecSQL(db, "SELECT docid FROM t1 ORDER BY 1 ASC")) {
+				_rows2 := db.Query("SELECT docid FROM t1 ORDER BY 1 ASC")
+				if _rows2.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT docid FROM t1 ORDER BY 1 ASC")
+				}
+				for _, _row2 := range _rows2.Rows {
+				_ = _row2 // suppress unused warning
+				docid := fmt.Sprint(_row2[0])
 				_ = docid // suppress unused warning
 					_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
 					if _res.Error != nil {
@@ -307,13 +316,13 @@ func Test_fts4check(t *testing.T) {
 				// fts_integrity db t3 (unsupported command, not transpiled)
 			}
 			// foreach {tn disruption} "1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }"
-			_items2 := tclSplitList("1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				tn := _items2[_idx2+0]
+			_items3 := tclSplitList("1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }")
+			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+				tn := _items3[_idx3+0]
 				_ = tn // suppress unused warning
-				disruption := _items2[_idx2+1]
+				disruption := _items3[_idx3+1]
 				_ = disruption // suppress unused warning
-				_ = _idx2
+				_ = _idx3
 					db.SetDefensive(false)
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)
@@ -357,6 +366,8 @@ func Test_fts4check(t *testing.T) {
 				}
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db-journal")
+				os.Remove("test.db-wal")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue

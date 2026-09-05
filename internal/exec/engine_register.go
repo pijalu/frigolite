@@ -30,20 +30,31 @@ func newEngineContexts(pg *pager.Pager) (mainCtx, tempCtx *DatabaseContext) {
 		IsMemory: pg.IsMemory(),
 		IsTemp:   false,
 	}
-	if tempPg := pager.OpenInMemory(pager.DefaultPageSize); tempPg != nil {
-		tc := &DatabaseContext{
-			Name:     "temp",
-			Pager:    tempPg,
-			Schema:   schema.NewManager(tempPg),
-			FilePath: "",
-			IsMemory: true,
-			IsTemp:   true,
-		}
-		if err := tc.Schema.Init(); err == nil {
-			tempCtx = tc
-		}
+	return mainCtx, newTempContext()
+}
+
+// newTempContext builds a fresh TEMP database context over a private
+// in-memory pager (pragma.c aDb[1]: temp storage backed by a standalone
+// in-memory btree). Used at connection open and by invalidateTempStorage
+// when the temp storage is discarded (PRAGMA temp_store /
+// temp_store_directory changes).
+func newTempContext() *DatabaseContext {
+	tempPg := pager.OpenInMemory(pager.DefaultPageSize)
+	if tempPg == nil {
+		return nil
 	}
-	return mainCtx, tempCtx
+	tc := &DatabaseContext{
+		Name:     "temp",
+		Pager:    tempPg,
+		Schema:   schema.NewManager(tempPg),
+		FilePath: "",
+		IsMemory: true,
+		IsTemp:   true,
+	}
+	if err := tc.Schema.Init(); err != nil {
+		return nil
+	}
+	return tc
 }
 
 // registerVTabModules registers every built-in virtual table module and its

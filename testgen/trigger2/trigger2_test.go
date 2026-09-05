@@ -5,6 +5,7 @@
 package trigger2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -144,7 +145,13 @@ func Test_trigger2(t *testing.T) {
 			vtab.TclVarSet("r", "", "")
 			_r = ""
 			_ = _r // suppress unused warning
-			for _, v := range tclSplitList(tclExecSQL(db, " \n        UPDATE tbl SET a = a * 10, b = b * 10;\n        SELECT * FROM rlog ORDER BY idx;\n        SELECT * FROM clog ORDER BY idx;\n      ")) {
+			_rows0 := db.Query("UPDATE tbl SET a = a * 10, b = b * 10;\n        SELECT * FROM rlog ORDER BY idx;\n        SELECT * FROM clog ORDER BY idx;")
+			if _rows0.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "UPDATE tbl SET a = a * 10, b = b * 10;\n        SELECT * FROM rlog ORDER BY idx;\n        SELECT * FROM clog ORDER BY idx;")
+			}
+			for _, _row0 := range _rows0.Rows {
+			_ = _row0 // suppress unused warning
+			v := fmt.Sprint(_row0[0])
 			_ = v // suppress unused warning
 				_r = tclListAppend(_r, tclExprWith("int($v)", map[string]string{"v": v}))
 			}
@@ -162,7 +169,13 @@ func Test_trigger2(t *testing.T) {
 			vtab.TclVarSet("r", "", "")
 			_r = ""
 			_ = _r // suppress unused warning
-			for _, v := range tclSplitList(tclExecSQL(db, "\n        DELETE FROM tbl;\n        SELECT * FROM rlog;\n      ")) {
+			_rows1 := db.Query("DELETE FROM tbl;\n        SELECT * FROM rlog;")
+			if _rows1.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "DELETE FROM tbl;\n        SELECT * FROM rlog;")
+			}
+			for _, _row1 := range _rows1.Rows {
+			_ = _row1 // suppress unused warning
+			v := fmt.Sprint(_row1[0])
 			_ = v // suppress unused warning
 				_r = tclListAppend(_r, tclExprWith("int($v)", map[string]string{"v": v}))
 			}
@@ -192,7 +205,7 @@ func Test_trigger2(t *testing.T) {
 	_ = ii // suppress unused warning
 	for _, tr_program := range tclSplitList("{UPDATE tbl SET b = old.b;}\n  {INSERT INTO log VALUES(new.c, 2, 3);}\n  {DELETE FROM log WHERE a = 1;}\n  {INSERT INTO tbl VALUES(500, new.b * 10, 700); \n    UPDATE tbl SET c = old.c; \n    DELETE FROM log;}\n  {INSERT INTO log select * from tbl;}") {
 	_ = tr_program // suppress unused warning
-		type _varset0 struct {
+		type _varset2 struct {
 			statement string
 			statementSet bool
 			prep string
@@ -210,12 +223,12 @@ func Test_trigger2(t *testing.T) {
 			oldC string
 			oldCSet bool
 		}
-		_varsets0 := []_varset0{
+		_varsets2 := []_varset2{
 			{"UPDATE tbl SET c = 10 WHERE a = 1;", true, "INSERT INTO tbl VALUES(1, 2, 3);", true, "10", true, "2", true, "1", true, "1", true, "2", true, "3", true},
 			{"DELETE FROM tbl WHERE a = 1;", true, "INSERT INTO tbl VALUES(1, 2, 3);", true, "", false, "", false, "", false, "1", true, "2", true, "3", true},
 			{"INSERT INTO tbl VALUES(1, 2, 3);", true, "", false, "3", true, "2", true, "1", true, "", false, "", false, "", false},
 		}
-		for _, test_varset := range _varsets0 {
+		for _, test_varset := range _varsets2 {
 		_ = test_varset // suppress unused warning
 			vtab.TclVarSet("statement", "", "")
 			statement = ""
@@ -664,6 +677,8 @@ func Test_trigger2(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

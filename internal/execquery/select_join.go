@@ -242,6 +242,15 @@ func joinIsEmptyNonLeft(e *SelectEngine, join sql.JoinClause) bool {
 	if join.Table.Subquery != nil || join.Table.Name == "" {
 		return false
 	}
+	// A table-valued function operand (pragma_xxx(...) or a vtab function)
+	// is not a plain table: its row count depends on its arguments and on
+	// correlation with the left rows. FindTable's synthetic PRAGMA_*
+	// fallback entry (schema.go) would report zero rows and wrongly empty
+	// the join (pragma4-6.0: FROM pragma_table_list() JOIN
+	// pragma_foreign_key_list(t.name, t.schema)).
+	if join.Table.IsTabFunc || len(join.Table.Args) > 0 || isPragmaTableFunc(join.Table.Name) {
+		return false
+	}
 	entry, _, err := e.ctx.FindTable(join.Table.Name)
 	if err != nil || entry.RootPage <= 0 {
 		return false

@@ -107,6 +107,8 @@ func Test_altermalloc2(t *testing.T) {
 	// do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABL... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -127,6 +129,8 @@ func Test_altermalloc2(t *testing.T) {
 	// do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABL... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -147,6 +151,8 @@ func Test_altermalloc2(t *testing.T) {
 	// do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -b... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

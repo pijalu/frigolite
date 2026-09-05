@@ -816,6 +816,18 @@ func tclListElem(s string) string {
 	return s
 }
 
+// tclGetPwd returns the process working directory — tester.tcl's get_pwd
+// proc ([pwd]). Resolved at test runtime: the generated tests os.Chdir
+// into their temp directory before running, so the CWD is the per-test
+// scratch directory (pragma.test 9.5 temp_store_directory setup).
+func tclGetPwd() string {
+	wd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return wd
+}
+
 // tclListFlatten converts a TCL-format list to the space-joined form that
 // flatten() produces for a multi-row query result. Only the list-rendering
 // braces ({element} {element}) are removed — quoted identifiers inside an

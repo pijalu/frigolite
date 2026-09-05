@@ -86,6 +86,8 @@ func Test_indexexpr3(t *testing.T) {
 	// do_hasfunction_test 1.6 {\n  SELECT json_insert( '{}', '$.y', coalesce( jso...} {\n  2 {{"y":"two"}}... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

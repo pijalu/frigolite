@@ -347,6 +347,8 @@ func Test_corrupt2(t *testing.T) {
 	// corruption_test -tclprep {\n    db eval { \n      PRAGMA auto_vacuum = full;...} -corrupt {\n   ... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

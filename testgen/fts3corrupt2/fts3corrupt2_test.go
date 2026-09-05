@@ -5,9 +5,11 @@
 package fts3corrupt2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "testing"
 )
 
@@ -124,9 +126,103 @@ func Test_fts3corrupt2(t *testing.T) {
 	vtab.TclVarSet("c", "", "256")
 	c = "256"
 	_ = c // suppress unused warning
-	// skip: foreach over unresolved TCL command
+	_rows0 := db.Query("SELECT rowid, length(block), block FROM t2_segments")
+	if _rows0.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT rowid, length(block), block FROM t2_segments")
+	}
+	for _, _row0 := range _rows0.Rows {
+	_ = _row0 // suppress unused warning
+	rowid := fmt.Sprint(_row0[0])
+	_ = rowid // suppress unused warning
+	sz := fmt.Sprint(_row0[1])
+	_ = sz // suppress unused warning
+	blob := fmt.Sprint(_row0[2])
+	_ = blob // suppress unused warning
+		// incr tn 1
+		{
+			_n, _err := strconv.Atoi(tn)
+			if _err == nil {
+				tn = strconv.Itoa(_n + 1)
+			}
+		}
+		c = tclExprWith("(($c+255)%256)", map[string]string{"c": c})
+		_ = c // suppress unused warning
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return i_n < sz_n }() {
+			b2 = "set_byte $blob $i $c"
+			_ = b2 // suppress unused warning
+			_res = db.Exec(" UPDATE t2_segments SET block = " + sqlLiteral(b2) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segments SET block = " + sqlLiteral(b2) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+			}
+			{ // do_test "fts3corrupt2-1." + tn + "." + i
+				_res = db.Exec(" SELECT * FROM t2 WHERE t2 MATCH 'a*' ")
+				_ = _res // catchsql
+				// set  (invalid identifier, skipped)
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" UPDATE t2_segments SET block = " + sqlLiteral(blob) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segments SET block = " + sqlLiteral(blob) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+		}
+	}
 	for _, c := range tclSplitList("50 100 150 200 250") {
 	_ = c // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows1 := db.Query("SELECT rowid, length(root), root FROM t2_segdir")
+		if _rows1.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT rowid, length(root), root FROM t2_segdir")
+		}
+		for _, _row1 := range _rows1.Rows {
+		_ = _row1 // suppress unused warning
+		rowid := fmt.Sprint(_row1[0])
+		_ = rowid // suppress unused warning
+		sz := fmt.Sprint(_row1[1])
+		_ = sz // suppress unused warning
+		blob := fmt.Sprint(_row1[2])
+		_ = blob // suppress unused warning
+			// incr tn 1
+			{
+				_n, _err := strconv.Atoi(tn)
+				if _err == nil {
+					tn = strconv.Itoa(_n + 1)
+				}
+			}
+			vtab.TclVarSet("i", "", "0")
+			i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return i_n < sz_n }() {
+				b2 = "set_byte $blob $i $c"
+				_ = b2 // suppress unused warning
+				_res = db.Exec(" UPDATE t2_segdir SET root = " + sqlLiteral(b2) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segdir SET root = " + sqlLiteral(b2) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+				}
+				{ // do_test "fts3corrupt2-2." + c + "." + tn + "." + i
+					_res = db.Exec(" SELECT * FROM t2 WHERE t2 MATCH 'a*' ")
+					_ = _res // catchsql
+					// set  (invalid identifier, skipped)
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			_res = db.Exec(" UPDATE t2_segdir SET root = " + sqlLiteral(blob) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segdir SET root = " + sqlLiteral(blob) + " WHERE rowid = " + sqlLiteral(rowid) + " ")
+			}
+		}
 	}
 }

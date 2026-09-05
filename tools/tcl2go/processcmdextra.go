@@ -419,7 +419,13 @@ func (tp *transpiler) processDeleteFile(args []tcl.RawWord) {
 // nullvalue to "{}".
 func (tp *transpiler) processResetDB() {
 	tp.emitLine("db.Close()")
+	// tester.tcl reset_db:551 forcedeletes test.db, test.db-journal AND
+	// test.db-wal — a leftover -wal from a previous WAL-mode section would
+	// replay into the freshly created database and resurrect dropped
+	// objects (pragma3-5.1x "table t1 already exists").
 	tp.emitLine("os.Remove(\"test.db\")")
+	tp.emitLine("os.Remove(\"test.db-journal\")")
+	tp.emitLine("os.Remove(\"test.db-wal\")")
 	tp.emitLine("db, err = frigolite.Open(\"test.db\")")
 	tp.emitLine("if err != nil { t.Fatal(err) }")
 	tp.emitLine("tcl_nullvalue = \"{}\" // fresh connection resets nullvalue")

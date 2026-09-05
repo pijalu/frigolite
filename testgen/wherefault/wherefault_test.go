@@ -71,6 +71,8 @@ func Test_wherefault(t *testing.T) {
 	// do_malloc_test 2 -tclprep {\n  db eval {\n    BEGIN;\n    CREATE TABLE t1(a, ...} -sqlbody {\n ... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

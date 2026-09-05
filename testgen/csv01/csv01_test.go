@@ -373,6 +373,8 @@ func Test_csv01(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 200 }() {
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -415,6 +417,8 @@ func Test_csv01(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20 }() {
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -455,6 +459,8 @@ func Test_csv01(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

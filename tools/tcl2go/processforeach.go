@@ -30,6 +30,15 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	}
 	listExpr := tp.resolveForeachListExpr(rawList, isBracedList)
 
+	// foreach over a query result — [db eval {SQL}] or [execsql {SQL}
+	// [conn]] — emits a Go row loop. This MUST be tried before the
+	// script-bodies bailout below: a query source like
+	// [execsql {pragma database_list}] also contains the text
+	// "execsql {" but names a query, not script bodies (pragma.test 6.1).
+	if tp.emitDBEvalForeach(args, varNames) {
+		return
+	}
+
 	// A foreach whose list items are TCL SCRIPTS (multi-line braced bodies
 	// containing execsql — fts3defer.test's `foreach {tn setup} "1 { ... }
 	// 2 { ... }"`) cannot be executed: the transpiler has no runtime TCL
@@ -88,16 +97,9 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		}
 	}
 
-	// foreach over [db eval ...]: the transpiler can't execute TCL at
-	// generation time, but the common cleanup pattern
-	//   foreach tab [db eval {SELECT name FROM sqlite_master ...}] {
-	//     db eval "DROP TABLE $tab"
-	//   }
-	// is static enough to emit directly as a Go query loop.
+	// A non-braced [db eval ...] source (dynamic SQL) cannot be bound at
+	// generation time.
 	if strings.Contains(strings.ToLower(args[1].Text), "db eval") {
-		if tp.emitDBEvalForeach(args, varNames) {
-			return
-		}
 		tp.emitLine("// skip: foreach over unresolved TCL command")
 		return
 	}
@@ -112,11 +114,31 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	tp.emitForeachLoop(args, varNames, listExpr, splitExpr, bodyCmds)
 }
 
+// indexMatchingBrace returns the index of the '}' closing the '{' at index 0
+// (braces nest in TCL), or -1 when the brace is unbalanced.
+func indexMatchingBrace(s string) int {
+	if len(s) == 0 || s[0] != '{' {
+		return -1
+	}
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return i
+			}
+		}
+	}
+	return -1
+}
+
 // stripOuterBraces removes one balanced outer brace layer from a TCL script
 // string (e.g. "{ a b }" → " a b "). Returns the input unchanged when the
 // braces are not balanced.
-func stripOuterBraces(s string) string {
-	t := strings.TrimSpace(s)
+func stripOuterBraces(s string) string {	t := strings.TrimSpace(s)
 	if !strings.HasPrefix(t, "{") || !strings.HasSuffix(t, "}") {
 		return s
 	}
@@ -561,16 +583,54 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 		return false
 	}
 	text := strings.TrimSpace(args[1].Text)
-	prefix := "[db eval "
-	if !strings.HasPrefix(text, prefix) || !strings.HasSuffix(text, "]") {
+	if !strings.HasPrefix(text, "[") || !strings.HasSuffix(text, "]") {
 		return false
 	}
-	inner := strings.TrimSpace(text[len(prefix):])
-	inner = strings.TrimSuffix(inner, "]")
-	if !strings.HasPrefix(inner, "{") || !strings.HasSuffix(inner, "}") {
+	inner := strings.TrimSpace(text[1 : len(text)-1])
+	connExpr := tp.dbVar
+	var sql string
+	switch {
+	case strings.HasPrefix(inner, "db eval "):
+		rest := strings.TrimSpace(inner[len("db eval "):])
+		if !strings.HasPrefix(rest, "{") || !strings.HasSuffix(rest, "}") {
+			return false
+		}
+		sql = strings.TrimSpace(rest[1 : len(rest)-1])
+	case strings.HasPrefix(inner, "execsql "):
+		// [execsql {SQL}] — the harness-level execsql on the main
+		// connection (pragma.test 6.1: foreach {idx name file}
+		// [execsql {pragma database_list}] {...}) — or
+		// [execsql {SQL} conn] with an explicit connection name.
+		rest := strings.TrimSpace(inner[len("execsql "):])
+		if !strings.HasPrefix(rest, "{") {
+			return false
+		}
+		end := indexMatchingBrace(rest)
+		if end < 0 {
+			return false
+		}
+		sql = strings.TrimSpace(rest[1:end])
+		if tail := strings.TrimSpace(rest[end+1:]); tail != "" {
+			// The connection word: a declared db variable (db/db2/...)
+			// resolved through the alias map, else reject (a dynamic
+			// expression cannot be bound at generation time).
+			goConn := tclVarToGo(tail)
+			if renamed, ok := tp.varRenames[goConn]; ok {
+				goConn = renamed
+			}
+			if goConn == "db" || isPreDeclaredDB(goConn) || tp.dbConnVars[goConn] {
+				if target, ok := tp.dbAliases[goConn]; ok {
+					connExpr = target
+				} else {
+					connExpr = goConn
+				}
+			} else {
+				return false
+			}
+		}
+	default:
 		return false
 	}
-	sql := strings.TrimSpace(inner[1 : len(inner)-1])
 	bodyCmds := tp.parseBracedBody(args, 2)
 	if bodyCmds == nil {
 		return false
@@ -597,7 +657,7 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 	rowsVar := fmt.Sprintf("_rows%d", tp.varCount)
 	rowVar := fmt.Sprintf("_row%d", tp.varCount)
 	tp.varCount++
-	tp.emitLine("%s := db.Query(%q)", rowsVar, sql)
+	tp.emitLine("%s := %s.Query(%q)", rowsVar, connExpr, sql)
 	tp.emitLine("if %s.Error != nil {", rowsVar)
 	tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", %s.Error, %q)", rowsVar, sql)
 	tp.emitLine("}")

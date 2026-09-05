@@ -298,6 +298,14 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	if h, ok := cmdExprHandlersRef()[cmdName]; ok {
 		return h(tp, cmdName, cmdText, rest)
 	}
+	// [get_pwd] / [pwd] — the TCL harness proc returning the process
+	// working directory (tester.tcl get_pwd wraps [pwd]). Resolved at TEST
+	// runtime via os.Getwd because the generated test os.Chdir's into its
+	// temp dir before running (pragma.test 9.5:
+	// `set pwd [string map {' ''} [file nativename [get_pwd]]]`).
+	if cmdName == "get_pwd" || cmdName == "pwd" {
+		return "tclGetPwd()"
+	}
 	// A registered single-arg string-map proc (`[tx $ins]`, json101's
 	// JSON-shorthand translator) becomes a Go strings.NewReplacer chain on
 	// the argument expression.
@@ -1087,6 +1095,13 @@ func (tp *transpiler) cmdExprFile(cmdName, cmdText string, args []string) string
 	}
 	if len(args) >= 2 && args[0] == "size" {
 		return cmdExprFileSize(tp, cmdName, cmdText, args[1:])
+	}
+	if len(args) >= 2 && args[0] == "nativename" {
+		// [file nativename P] — the platform-native form of a path. On
+		// unix (the testgen platform) this is the path itself with no
+		// transformation (Tcl only rewrites separators/escapes on
+		// Windows). pragma.test 9.5: [file nativename [get_pwd]].
+		return tp.buildStringExpr(args[1])
 	}
 	return fmt.Sprintf("%q", cmdText)
 }

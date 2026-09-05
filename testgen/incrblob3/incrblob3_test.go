@@ -808,6 +808,8 @@ func Test_incrblob3(t *testing.T) {
 		// tvfs delete (unsupported command, not transpiled)
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue

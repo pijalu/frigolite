@@ -79,6 +79,8 @@ func Test_dbpagefault(t *testing.T) {
 	// do_faultsim_test 2 -prep {\n  sqlite3 db "xyz.db" -vfs memdb\n  execsql { AT...} -body {\n  execs... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -102,6 +104,8 @@ func Test_dbpagefault(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

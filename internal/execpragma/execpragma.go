@@ -53,6 +53,23 @@ type EngineState interface {
 	// the setter echoes the new value as a result row.
 	LockingMode(schema, value string) *Result
 
+	// Synchronous implements PRAGMA synchronous (getter/setter) per
+	// schema (pragma.c PragTyp_SYNCHRONOUS): the getter reports the
+	// stored safety_level-1 (default 2 = FULL); the setter rejects
+	// inside a transaction and is a no-op on temp.
+	Synchronous(schema, value string) *Result
+
+	// TempStore implements PRAGMA temp_store (pragma.c
+	// sqlite3PragmaTempStore): the getter reports the connection value
+	// (0=default); an actual setter change invalidates the temp storage.
+	TempStore(value string) *Result
+
+	// TempStoreDirectory implements the deprecated PRAGMA
+	// temp_store_directory (pragma.c PragTyp_TEMP_STORE_DIRECTORY): the
+	// getter returns the stored directory (NULL when unset); the setter
+	// probes the path and invalidates the temp storage when file-backed.
+	TempStoreDirectory(value string) *Result
+
 	// WalCheckpoint implements PRAGMA wal_checkpoint (PASSIVE|FULL|RESTART|
 	// TRUNCATE): it folds the WAL into the main database and resets the WAL.
 	WalCheckpoint(schema, value string) *Result
@@ -493,31 +510,20 @@ var pragmaHandlers = map[string]Handler{
 		}
 		return st.IncrementalVacuum(s.Schema, limit)
 	},
-	// PRAGMA synchronous — getter returns 1 (NORMAL); setter only
-	// honored outside an active transaction. Mirrors
-	// src/pragma.c PragTyp_SYNCHRONOUS (line 1132): a setter call
-	// inside a transaction returns the error
-	// "Safety level may not be changed inside a transaction".
+	// PRAGMA synchronous — getter/setter on the addressed schema.
+	// Mirrors src/pragma.c PragTyp_SYNCHRONOUS (line 1132): the setter
+	// rejects inside a transaction ("Safety level may not be changed
+	// inside a transaction"), is a silent no-op on temp, and stores
+	// (getSafetyLevel+1)&3; the getter reports safety_level-1.
 	"SYNCHRONOUS": func(st EngineState, s *sql.PragmaStmt) *Result {
-		if s.Value != "" {
-			if st.InTransaction() {
-				return &Result{Error: fmt.Errorf("Safety level may not be changed inside a transaction")}
-			}
-			return &Result{}
-		}
-		return &Result{Rows: [][]interface{}{{int64(1)}}}
+		return st.Synchronous(s.Schema, s.Value)
 	},
-	// PRAGMA temp_store — getter returns 0 (DEFAULT); setter only
-	// honored outside an active transaction. Mirrors
-	// src/pragma.c PragTyp_TEMP_STORE / sqlite3PragmaTempStore.
+	// PRAGMA temp_store — mirrors src/pragma.c PragTyp_TEMP_STORE /
+	// sqlite3PragmaTempStore: an actual value change invalidates the temp
+	// storage ("temporary storage cannot be changed from within a
+	// transaction" when the temp btree is open inside a transaction).
 	"TEMP_STORE": func(st EngineState, s *sql.PragmaStmt) *Result {
-		if s.Value != "" {
-			if st.InTransaction() {
-				return &Result{Error: fmt.Errorf("temporary storage cannot be changed from within a transaction")}
-			}
-			return &Result{}
-		}
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
+		return st.TempStore(s.Value)
 	},
 	"LOCKING_MODE": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.LockingMode(s.Schema, s.Value)
@@ -602,45 +608,13 @@ var pragmaHandlers = map[string]Handler{
 
 	// PRAGMA temp_store_directory — a deprecated SQLite pragma that
 	// returns/sets the directory used for temporary database files.
-	// The pure-Go engine never materializes temp files on disk
-	// (in-memory temp storage), so the setter only rejects non-empty,
-	// non-existent, or non-writable paths. Mirrors src/pragma.c
-	// PragTyp_TEMP_STORE_DIRECTORY.
+	// Mirrors src/pragma.c PragTyp_TEMP_STORE_DIRECTORY: the getter
+	// returns the stored directory (NULL when unset); the setter probes
+	// the path ("not a writable directory") and invalidates the temp
+	// storage when file-backed, so pre-existing temp tables vanish
+	// (pragma-9.10).
 	"TEMP_STORE_DIRECTORY": func(st EngineState, s *sql.PragmaStmt) *Result {
-		if s.Value == "" {
-			// Getter: always empty (in-memory temp storage).
-			return &Result{Rows: [][]interface{}{{""}}}
-		}
-		v := strings.TrimSpace(s.Value)
-		if len(v) >= 2 && v[0] == '\'' && v[len(v)-1] == '\'' {
-			v = v[1 : len(v)-1]
-		}
-		if v == "" {
-			// Setting to empty resets to default.
-			return &Result{Rows: [][]interface{}{{""}}}
-		}
-		// SQLite probes the path with sqlite3OsAccess(READWRITE) before
-		// accepting it (src/pragma.c PragTyp_DATA_STORE_DIRECTORY at
-		// line 1062 — temp_store_directory shares the same handler).
-		// The pure-Go engine has no disk-backed temp storage, so the
-		// probe is purely a contract check: reject the canonical
-		// sqlite test fixture "/NON/EXISTENT/PATH/FOOBAR" (the harness
-		// uses this to verify the error path on pragma-9.7), and
-		// otherwise accept the value verbatim.
-		if !dirAcceptable(v) {
-			return &Result{Error: fmt.Errorf("not a writable directory")}
-		}
-		return &Result{Rows: [][]interface{}{{v}}}
+		return st.TempStoreDirectory(s.Value)
 	},
 
-}
-
-func dirAcceptable(v string) bool {
-	// Reject the canonical sqlite test sentinel "/NON/EXISTENT/PATH/FOOBAR"
-	// (pragma-9.7). Real path probes are unnecessary because the engine
-	// never materializes temp files on disk.
-	if strings.Contains(v, "NON/EXISTENT/PATH/FOOBAR") {
-		return false
-	}
-	return true
 }

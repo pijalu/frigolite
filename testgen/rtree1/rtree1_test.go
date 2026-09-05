@@ -895,6 +895,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1094,6 +1096,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1117,6 +1121,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1135,6 +1141,8 @@ func Test_rtree1(t *testing.T) {
 			// expand_all_sql db (unsupported command, not transpiled)
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1164,6 +1172,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1212,6 +1222,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1242,6 +1254,8 @@ func Test_rtree1(t *testing.T) {
 			if tclBool(tcl_platform_machine + "!=\"i686\" || " + tcl_platform_os + "!=\"Linux\"") {
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db-journal")
+				os.Remove("test.db-wal")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1272,6 +1286,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -1287,6 +1303,8 @@ func Test_rtree1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue

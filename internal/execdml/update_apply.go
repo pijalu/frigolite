@@ -80,7 +80,7 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 		return false, &Result{Error: err}
 	}
 	if conflict {
-		return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, nil, ch.values, uniqueCols, idxColsList)}
+		return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, nil, ch.values, 0, ch.rowID, uniqueCols, idxColsList)}
 	}
 	if res := e.enforceUpdateFKActions(tableEntry, colDefs, ch); res != nil {
 		return false, res
@@ -205,7 +205,7 @@ func (e *DMLExecutor) cellConflicts(cell *storage.Cell, ch updateChange, colDefs
 	if err != nil || rec == nil {
 		return false, true
 	}
-	if e.valuesConflict(rec.Values, ch.values, colDefs, colIndex, uniqueCols, idxColsList) {
+	if e.valuesConflict(rec.Values, ch.values, cell.RowID, ch.rowID, colDefs, colIndex, uniqueCols, idxColsList) {
 		return true, true
 	}
 	return false, false

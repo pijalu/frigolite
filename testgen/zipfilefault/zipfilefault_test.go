@@ -106,6 +106,8 @@ func Test_zipfilefault(t *testing.T) {
 	os.Remove("test.zip")
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -120,6 +122,8 @@ func Test_zipfilefault(t *testing.T) {
 	// do_faultsim_test 4 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      SELECT...} -te... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

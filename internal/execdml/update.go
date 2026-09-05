@@ -632,24 +632,29 @@ func indexDefsMatch(e *DMLExecutor, a, b []interface{}, colDefs []sql.ColumnDef,
 }
 
 // valuesConflict reports whether two value sets conflict on any UNIQUE/PRIMARY
-// KEY column or UNIQUE index (partial-index predicates evaluated).
-func (e *DMLExecutor) valuesConflict(a, b []interface{}, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
-	if uniqueColsMatch(a, b, colDefs, 0, 0, uniqueCols) {
+// KEY column or UNIQUE index (partial-index predicates evaluated). rowIDa and
+// rowIDb are the owning rows' rowids: SQLite stores NULL in the INTEGER
+// PRIMARY KEY (rowid-alias) column of each record, so uniqueColsMatch
+// substitutes the rowid for a stored NULL — two different rows must not both
+// substitute the same placeholder (update.test: UPDATE of a 2-row table with
+// a rowid-alias PK used to self-conflict with rowID 0==0).
+func (e *DMLExecutor) valuesConflict(a, b []interface{}, rowIDa, rowIDb int64, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
+	if uniqueColsMatch(a, b, colDefs, rowIDa, rowIDb, uniqueCols) {
 		return true
 	}
-	return indexDefsMatch(e, a, b, colDefs, colIndex, idxColsList, 0, 0)
+	return indexDefsMatch(e, a, b, colDefs, colIndex, idxColsList, rowIDa, rowIDb)
 }
 
 // uniqueConflictError builds a SQLite-style UNIQUE constraint error for the
 // first conflicting column.
-func (e *DMLExecutor) uniqueConflictError(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, a, b []interface{}, uniqueCols []int, idxColsList []uniqueIndexDef) error {
+func (e *DMLExecutor) uniqueConflictError(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, a, b []interface{}, aRowID, bRowID int64, uniqueCols []int, idxColsList []uniqueIndexDef) error {
 	for _, idx := range uniqueCols {
 		if idx < len(a) && idx < len(b) && a[idx] != nil && b[idx] != nil && util.CompareValues(a[idx], b[idx]) == 0 {
 			return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
 		}
 	}
 	for _, def := range idxColsList {
-		if e.valuesConflict(a, b, colDefs, colIndex, nil, []uniqueIndexDef{def}) {
+		if e.valuesConflict(a, b, aRowID, bRowID, colDefs, colIndex, nil, []uniqueIndexDef{def}) {
 			parts := make([]string, len(def.Cols))
 			for i, cn := range def.Cols {
 				parts[i] = tableName + "." + cn

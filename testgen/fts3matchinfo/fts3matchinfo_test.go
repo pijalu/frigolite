@@ -521,6 +521,8 @@ func Test_fts3matchinfo(t *testing.T) {
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -614,6 +616,8 @@ func Test_fts3matchinfo(t *testing.T) {
 				_ = sqlite_fts3_enable_parentheses // suppress unused warning
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db-journal")
+				os.Remove("test.db-wal")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue

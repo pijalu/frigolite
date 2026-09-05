@@ -5,6 +5,7 @@
 package alter
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -563,7 +564,13 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-5.3"
 		if db2 != nil { db2.Close() }
 	}
-	for _, tblname := range tclSplitList(tclExecSQL(db, "\n  SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'\n")) {
+	_rows0 := db.Query("SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'")
+	if _rows0.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'")
+	}
+	for _, _row0 := range _rows0.Rows {
+	_ = _row0 // suppress unused warning
+	tblname := fmt.Sprint(_row0[0])
 	_ = tblname // suppress unused warning
 		_res = db.Exec("DROP TABLE \"" + tblname + "\"")
 		if _res.Error != nil {
@@ -668,13 +675,13 @@ func Test_alter(t *testing.T) {
 	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented
 	}
 	// foreach {tn sql} "1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }"
-	_items0 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // "alter-9.2." + tn — skipped: test-only internal function sqlite_rename_table not implemented (alter.test legacy)
 			}
 		}
@@ -826,13 +833,13 @@ func Test_alter(t *testing.T) {
 		_ = _res // catchsql
 		system_table_list = tclListAppend(system_table_list, "2", "sqlite_stat1")
 		// foreach {tn tbl} system_table_list
-		_items1 := tclSplitList(system_table_list)
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList(system_table_list)
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			tbl := _items1[_idx1+1]
+			tbl := _items2[_idx2+1]
 			_ = tbl // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "alter-15." + tn + ".1"
 					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table " + tbl + " may not be altered") {
@@ -888,6 +895,8 @@ func Test_alter(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -899,6 +908,8 @@ func Test_alter(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -928,6 +939,8 @@ func Test_alter(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -957,6 +970,8 @@ func Test_alter(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -998,6 +1013,8 @@ func Test_alter(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue

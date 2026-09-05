@@ -498,6 +498,8 @@ func Test_collate1(t *testing.T) {
 	// do_faultsim_test 9.1 -faults oom* -body {\n  execsql {\n    SELECT * FROM (\n        SELECT...} -... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

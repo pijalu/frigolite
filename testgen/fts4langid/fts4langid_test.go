@@ -407,6 +407,8 @@ func Test_fts4langid(t *testing.T) {
 	{ // do_test "2.0"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -436,6 +438,8 @@ func Test_fts4langid(t *testing.T) {
 	{ // do_test "2.3"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -452,6 +456,8 @@ func Test_fts4langid(t *testing.T) {
 	{ // do_test "3.0"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -509,6 +515,8 @@ func Test_fts4langid(t *testing.T) {
 	{ // do_test "4.1.0"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -585,6 +593,8 @@ func Test_fts4langid(t *testing.T) {
 	{ // do_test "5.1.0"
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -762,6 +772,8 @@ func Test_fts4langid(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

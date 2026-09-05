@@ -13,10 +13,13 @@ import (
 
 func (e *Engine) execPragmaLockStatus() *Result {
 	var rows [][]interface{}
-	tempHasTables := e.hasTempTables()
+	// SQLite reports the temp database as "closed" until something opened
+	// its lazy aDb[1].pBt (a temp pragma/table/...), and "unknown" after —
+	// the in-memory temp pager has no file locks to report.
+	tempOpen := e.tempBtreeOpen || e.hasTempTables()
 	for _, dbCtx := range e.dbList {
 		if strings.EqualFold(dbCtx.Name, "TEMP") || strings.EqualFold(dbCtx.Name, "TEMPORARY") {
-			if !tempHasTables {
+			if !tempOpen {
 				rows = append(rows, []interface{}{dbCtx.Name, "closed"})
 			} else {
 				rows = append(rows, []interface{}{dbCtx.Name, "unknown"})

@@ -186,6 +186,8 @@ func Test_sortfault(t *testing.T) {
 		// sqlite3_initialize (unsupported command, not transpiled)
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -224,6 +226,8 @@ func Test_sortfault(t *testing.T) {
 		// do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ... (unsupported command, not transpiled)
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue

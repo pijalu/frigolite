@@ -86,6 +86,8 @@ func Test_mallocA(t *testing.T) {
 	// do_malloc_test mallocA-5 -testdb test.db.bu -sqlbody {\n    REINDEX nocase;\n  } (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue

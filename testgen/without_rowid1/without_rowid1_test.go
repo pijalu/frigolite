@@ -318,6 +318,8 @@ func Test_without_rowid1(t *testing.T) {
 	// do_execsql_test_if_vtab 2.4.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {b BINARY 1 a noca... (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -556,6 +558,8 @@ func Test_without_rowid1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -645,6 +649,8 @@ func Test_without_rowid1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -668,6 +674,8 @@ func Test_without_rowid1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -685,6 +693,8 @@ func Test_without_rowid1(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue

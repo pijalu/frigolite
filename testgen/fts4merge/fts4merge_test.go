@@ -5,6 +5,7 @@
 package fts4merge
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -211,6 +212,8 @@ func Test_fts4merge(t *testing.T) {
 		_ = testprefix // suppress unused warning
 		db.Close()
 		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -346,6 +349,8 @@ func Test_fts4merge(t *testing.T) {
 			{ // do_test "3.0"
 				db.Close()
 				os.Remove("test.db")
+				os.Remove("test.db-journal")
+				os.Remove("test.db-wal")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -384,6 +389,8 @@ func Test_fts4merge(t *testing.T) {
 			}
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -461,6 +468,8 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "5.1"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db-journal")
+					os.Remove("test.db-wal")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -503,7 +512,13 @@ func Test_fts4merge(t *testing.T) {
 					}
 				}
 				{ // do_test "5.5"
-					for _, docid := range tclSplitList(tclExecSQL(db, "SELECT docid FROM t1")) {
+					_rows2 := db.Query("SELECT docid FROM t1")
+					if _rows2.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT docid FROM t1")
+					}
+					for _, _row2 := range _rows2.Rows {
+					_ = _row2 // suppress unused warning
+					docid := fmt.Sprint(_row2[0])
 					_ = docid // suppress unused warning
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						if _res.Error != nil {
@@ -553,7 +568,13 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "5.9"
 					L = "1852"
 					_ = L // suppress unused warning
-					for _, docid := range tclSplitList(tclExecSQL(db, "\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT " + L + "\n    ")) {
+					_rows3 := db.Query("SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+					if _rows3.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+					}
+					for _, _row3 := range _rows3.Rows {
+					_ = _row3 // suppress unused warning
+					docid := fmt.Sprint(_row3[0])
 					_ = docid // suppress unused warning
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						if _res.Error != nil {
@@ -588,6 +609,8 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "6.1"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db-journal")
+					os.Remove("test.db-wal")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -615,6 +638,8 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "7.0"
 					db.Close()
 					os.Remove("test.db")
+					os.Remove("test.db-journal")
+					os.Remove("test.db-wal")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -674,6 +699,8 @@ func Test_fts4merge(t *testing.T) {
 			_ = testprefix // suppress unused warning
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue

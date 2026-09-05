@@ -6,6 +6,7 @@ package pragma
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -701,6 +702,8 @@ func Test_pragma(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
@@ -779,7 +782,20 @@ func Test_pragma(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_temp_master")
 		}
-		// foreach idx name file (TCL script bodies; not transpiled)
+		_rows6 := db.Query("pragma database_list")
+		if _rows6.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows6.Error, "pragma database_list")
+		}
+		for _, _row6 := range _rows6.Rows {
+		_ = _row6 // suppress unused warning
+		idx := fmt.Sprint(_row6[0])
+		_ = idx // suppress unused warning
+		name := fmt.Sprint(_row6[1])
+		_ = name // suppress unused warning
+		file := fmt.Sprint(_row6[2])
+		_ = file // suppress unused warning
+			res = tclListAppend(res, idx, name)
+		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 main 1 temp 2 aux")
 		if got != want {
@@ -837,29 +853,7 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma-6.4"
-		capPragma6 := db.Query("\n      pragma index_list(t3);\n    ")
-		if capPragma6.Error != nil { t.Errorf("capture_pragma error: %v", capPragma6.Error) }
-		db.Exec("DROP TABLE IF EXISTS temp.out")
-		{ // capture_pragma out
-			if len(capPragma6.Columns) > 0 {
-				var colList []string
-				for _, c := range capPragma6.Columns { colList = append(colList, "\"" + c + "\"") }
-				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
-				for _, row := range capPragma6.Rows {
-					var vals []string
-					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
-					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
-				}
-			}
-		}
-		_res = db.Exec("SELECT seq, \"name\", \"unique\" FROM out ORDER BY seq")
-	}
-	{ // do_test "pragma-6.5.1"
-		_res = db.Exec("\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
-		}
-		capPragma7 := db.Query("\n    pragma index_info(t3i1);\n  ")
+		capPragma7 := db.Query("\n      pragma index_list(t3);\n    ")
 		if capPragma7.Error != nil { t.Errorf("capture_pragma error: %v", capPragma7.Error) }
 		db.Exec("DROP TABLE IF EXISTS temp.out")
 		{ // capture_pragma out
@@ -874,10 +868,14 @@ func Test_pragma(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec("SELECT seqno, cid, name FROM out ORDER BY seqno")
+		_res = db.Exec("SELECT seq, \"name\", \"unique\" FROM out ORDER BY seq")
 	}
-	{ // do_test "pragma-6.5.1b"
-		capPragma8 := db.Query("PRAGMA index_xinfo(t3i1)")
+	{ // do_test "pragma-6.5.1"
+		_res = db.Exec("\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
+		}
+		capPragma8 := db.Query("\n    pragma index_info(t3i1);\n  ")
 		if capPragma8.Error != nil { t.Errorf("capture_pragma error: %v", capPragma8.Error) }
 		db.Exec("DROP TABLE IF EXISTS temp.out")
 		{ // capture_pragma out
@@ -886,6 +884,24 @@ func Test_pragma(t *testing.T) {
 				for _, c := range capPragma8.Columns { colList = append(colList, "\"" + c + "\"") }
 				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
 				for _, row := range capPragma8.Rows {
+					var vals []string
+					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+				}
+			}
+		}
+		_res = db.Exec("SELECT seqno, cid, name FROM out ORDER BY seqno")
+	}
+	{ // do_test "pragma-6.5.1b"
+		capPragma9 := db.Query("PRAGMA index_xinfo(t3i1)")
+		if capPragma9.Error != nil { t.Errorf("capture_pragma error: %v", capPragma9.Error) }
+		db.Exec("DROP TABLE IF EXISTS temp.out")
+		{ // capture_pragma out
+			if len(capPragma9.Columns) > 0 {
+				var colList []string
+				for _, c := range capPragma9.Columns { colList = append(colList, "\"" + c + "\"") }
+				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+				for _, row := range capPragma9.Rows {
 					var vals []string
 					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
 					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
@@ -941,15 +957,15 @@ func Test_pragma(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE test_table(\n      one INT NOT NULL DEFAULT -1, \n      two text,\n      three VARCHAR(45, 65) DEFAULT 'abcde',\n      four REAL DEFAULT X'abcdef',\n      five DEFAULT CURRENT_TIME\n    );\n  ")
 		}
-		capPragma9 := db.Query("PRAGMA table_info(test_table)")
-		if capPragma9.Error != nil { t.Errorf("capture_pragma error: %v", capPragma9.Error) }
+		capPragma10 := db.Query("PRAGMA table_info(test_table)")
+		if capPragma10.Error != nil { t.Errorf("capture_pragma error: %v", capPragma10.Error) }
 		db.Exec("DROP TABLE IF EXISTS temp.out")
 		{ // capture_pragma out
-			if len(capPragma9.Columns) > 0 {
+			if len(capPragma10.Columns) > 0 {
 				var colList []string
-				for _, c := range capPragma9.Columns { colList = append(colList, "\"" + c + "\"") }
+				for _, c := range capPragma10.Columns { colList = append(colList, "\"" + c + "\"") }
 				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
-				for _, row := range capPragma9.Rows {
+				for _, row := range capPragma10.Rows {
 					var vals []string
 					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
 					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
@@ -969,15 +985,15 @@ func Test_pragma(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		capPragma10 := db.Query("PRAGMA index_list(t3)")
-		if capPragma10.Error != nil { t.Errorf("capture_pragma error: %v", capPragma10.Error) }
+		capPragma11 := db.Query("PRAGMA index_list(t3)")
+		if capPragma11.Error != nil { t.Errorf("capture_pragma error: %v", capPragma11.Error) }
 		db.Exec("DROP TABLE IF EXISTS temp.out")
 		{ // capture_pragma out
-			if len(capPragma10.Columns) > 0 {
+			if len(capPragma11.Columns) > 0 {
 				var colList []string
-				for _, c := range capPragma10.Columns { colList = append(colList, "\"" + c + "\"") }
+				for _, c := range capPragma11.Columns { colList = append(colList, "\"" + c + "\"") }
 				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
-				for _, row := range capPragma10.Rows {
+				for _, row := range capPragma11.Rows {
 					var vals []string
 					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
 					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
@@ -1316,7 +1332,7 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma-9.5"
-		pwd = strings.ReplaceAll("file nativename [get_pwd]", "'", "''")
+		pwd = strings.ReplaceAll(tclGetPwd(), "'", "''")
 		_ = pwd // suppress unused warning
 		r = db.Query("\n      PRAGMA temp_store_directory='" + pwd + "';\n    ")
 		if r.Error != nil {
@@ -1402,26 +1418,26 @@ func Test_pragma(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows11 := db.Query("SELECT t FROM temp_table")
-			var _dbevalRb12 bool
-			var _dbevalErr13 error
-			var _dbevalInt14 bool
+			_dbevalRows12 := db.Query("SELECT t FROM temp_table")
+			var _dbevalRb13 bool
+			var _dbevalErr14 error
+			var _dbevalInt15 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
-					switch _dbevalRows11.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
+					switch _dbevalRows12.Columns[_ci] {
 					}
 				}
 				r = db.Query("pragma temp_store = 1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store = 1")
 				}
-				if _dbevalRb12 { _dbevalErr13 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt14 { _dbevalErr13 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr13 != nil {
-				_catchErr = _dbevalErr13
+			if _dbevalErr14 != nil {
+				_catchErr = _dbevalErr14
 			}
 			if _catchErr != nil {
 				rc = "1"
@@ -1554,8 +1570,8 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // "pragma-14.4" (prepare-step internals; SQL side effects only)
-		_dbone15 := tclExecSQL(db, "{pragma page_size}")
-		page_size = _dbone15
+		_dbone16 := tclExecSQL(db, "{pragma page_size}")
+		page_size = _dbone16
 		_ = page_size // suppress unused warning
 		// expr [file size test.db] (not evaluated)
 	}
@@ -1623,24 +1639,24 @@ func Test_pragma(t *testing.T) {
 	// dbX eval {PRAGMA temp_store_directory = ""} (unsupported command, not transpiled)
 	// dbX close (unsupported command, not transpiled)
 	// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
-	_items16 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
-	for _idx16 := 0; _idx16+2 <= len(_items16); _idx16 += 2 {
-		autovac_setting := _items16[_idx16+0]
+	_items17 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
+	for _idx17 := 0; _idx17+2 <= len(_items17); _idx17 += 2 {
+		autovac_setting := _items17[_idx17+0]
 		_ = autovac_setting // suppress unused warning
-		val := _items16[_idx16+1]
+		val := _items17[_idx17+1]
 		_ = val // suppress unused warning
-		_ = _idx16
+		_ = _idx17
 			{ // "pragma-17.1." + autovac_setting — skipped: auto_vacuum do_test value comparison not transpiled
 			}
 		}
 		// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
-		_items17 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
-		for _idx17 := 0; _idx17+2 <= len(_items17); _idx17 += 2 {
-			temp_setting := _items17[_idx17+0]
+		_items18 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
+		for _idx18 := 0; _idx18+2 <= len(_items18); _idx18 += 2 {
+			temp_setting := _items18[_idx18+0]
 			_ = temp_setting // suppress unused warning
-			val := _items17[_idx17+1]
+			val := _items18[_idx18+1]
 			_ = val // suppress unused warning
-			_ = _idx17
+			_ = _idx18
 				{ // "pragma-18.1." + temp_setting — skipped: temp_store do_test value comparison not transpiled
 				}
 			}
@@ -1689,7 +1705,7 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				{ // do_test "pragma-20.2"
-					pwd = strings.ReplaceAll("file nativename [get_pwd]", "'", "''")
+					pwd = strings.ReplaceAll(tclGetPwd(), "'", "''")
 					_ = pwd // suppress unused warning
 					_res = db.Exec("PRAGMA data_store_directory='" + pwd + "';")
 					_ = _res // catchsql
@@ -1701,7 +1717,7 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				{ // do_test "pragma-20.4"
-					pwd = strings.ReplaceAll("file nativename \\\n    [file join [get_pwd] data_dir]", "'", "''")
+					pwd = strings.ReplaceAll("file join [get_pwd] data_dir", "'", "''")
 					_ = pwd // suppress unused warning
 					_res = db.Exec("PRAGMA data_store_directory='" + pwd + "';")
 					_ = _res // catchsql
@@ -1818,15 +1834,15 @@ func Test_pragma(t *testing.T) {
 			}
 			{ // do_test "23.2a"
 				_res = db.Exec("\n    DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);\n  ")
-				capPragma18 := db2.Query("PRAGMA index_info(i2)")
-				if capPragma18.Error != nil { t.Errorf("capture_pragma error: %v", capPragma18.Error) }
+				capPragma19 := db2.Query("PRAGMA index_info(i2)")
+				if capPragma19.Error != nil { t.Errorf("capture_pragma error: %v", capPragma19.Error) }
 				db2.Exec("DROP TABLE IF EXISTS temp.out")
 				{ // capture_pragma out
-					if len(capPragma18.Columns) > 0 {
+					if len(capPragma19.Columns) > 0 {
 						var colList []string
-						for _, c := range capPragma18.Columns { colList = append(colList, "\"" + c + "\"") }
+						for _, c := range capPragma19.Columns { colList = append(colList, "\"" + c + "\"") }
 						db2.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
-						for _, row := range capPragma18.Rows {
+						for _, row := range capPragma19.Rows {
 							var vals []string
 							for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
 							db2.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
@@ -1837,15 +1853,15 @@ func Test_pragma(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test "23.2b"
-				capPragma19 := db2.Query("PRAGMA index_xinfo(i2)")
-				if capPragma19.Error != nil { t.Errorf("capture_pragma error: %v", capPragma19.Error) }
+				capPragma20 := db2.Query("PRAGMA index_xinfo(i2)")
+				if capPragma20.Error != nil { t.Errorf("capture_pragma error: %v", capPragma20.Error) }
 				db2.Exec("DROP TABLE IF EXISTS temp.out")
 				{ // capture_pragma out
-					if len(capPragma19.Columns) > 0 {
+					if len(capPragma20.Columns) > 0 {
 						var colList []string
-						for _, c := range capPragma19.Columns { colList = append(colList, "\"" + c + "\"") }
+						for _, c := range capPragma20.Columns { colList = append(colList, "\"" + c + "\"") }
 						db2.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
-						for _, row := range capPragma19.Rows {
+						for _, row := range capPragma20.Rows {
 							var vals []string
 							for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
 							db2.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
@@ -1869,15 +1885,15 @@ func Test_pragma(t *testing.T) {
 			}
 			{ // do_test "23.3"
 				_res = db.Exec("\n    DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);\n  ")
-				capPragma20 := db2.Query("PRAGMA index_list(t1)")
-				if capPragma20.Error != nil { t.Errorf("capture_pragma error: %v", capPragma20.Error) }
+				capPragma21 := db2.Query("PRAGMA index_list(t1)")
+				if capPragma21.Error != nil { t.Errorf("capture_pragma error: %v", capPragma21.Error) }
 				db2.Exec("DROP TABLE IF EXISTS temp.out")
 				{ // capture_pragma out
-					if len(capPragma20.Columns) > 0 {
+					if len(capPragma21.Columns) > 0 {
 						var colList []string
-						for _, c := range capPragma20.Columns { colList = append(colList, "\"" + c + "\"") }
+						for _, c := range capPragma21.Columns { colList = append(colList, "\"" + c + "\"") }
 						db2.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
-						for _, row := range capPragma20.Rows {
+						for _, row := range capPragma21.Rows {
 							var vals []string
 							for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
 							db2.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
@@ -1901,6 +1917,8 @@ func Test_pragma(t *testing.T) {
 			// database_never_corrupt (unsupported command, not transpiled)
 			db.Close()
 			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "{}" // fresh connection resets nullvalue

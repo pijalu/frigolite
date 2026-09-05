@@ -2,6 +2,8 @@
 package exec
 
 import (
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -9,6 +11,13 @@ import (
 // owns the pragma handler map. The registry returns a minimal result which is
 // converted to the engine result type.
 func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
+	// SQLite opens the lazily-created temp database (aDb[1].pBt) the first
+	// time anything addresses it — including PRAGMA temp.<...> — so
+	// PRAGMA lock_status then reports "temp unknown" rather than
+	// "temp closed" (pragma2-4.1/4.4: PRAGMA temp.cache_size=2000).
+	if up := strings.ToUpper(s.Schema); up == "TEMP" || up == "TEMPORARY" {
+		e.tempBtreeOpen = true
+	}
 	res := e.pragmas.Handle(e, s)
 	if res == nil {
 		// A nil registry result means the pragma handler produced no output
