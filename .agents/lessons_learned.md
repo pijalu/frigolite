@@ -3284,6 +3284,43 @@ smallest Phase1-4 sub-goal that addresses each:
   last-page-in-use swap. Phase 3 (relocatePage) + Phase 4
   (autovacuumCommit with sqlite3_autovacuum_pages callback) needed.
 
+### incrvacuum2 4.1 (S6, fixed by 001af0a8 / a433c318) — btree divider convention
+- The engine used MIN(right) as the table-btree divider, but
+  SQLite's leafData convention is MAX(left) (btree.c:8813 + the
+  equal-key descent in sqlite3BtreeTableMoveto at btree.c:5877).
+- Reads descended into the equal-key cell's left child (pre-fix
+  `<=`), writes set the divider to MIN(right) (pre-fix). Writes
+  and reads were internally consistent but the on-disk layout was
+  not SQLite-compatible — sqlite3 integrity_check rejected every
+  split with "right child Rowid N out of order", and our own
+  reparentPageOverflowChains decoded the new root's interior
+  cells as leaf cells, reading the cell's leftChild field as
+  Overflow and stamping a phantom page (e.g. 0x20000010) into the
+  ptrmap. The very next ReadPage errored.
+- Fix: align splitLeafMulti, seekInInteriorTable,
+  findChildPageForInsert, balance_nonroot (coversParent + replace
+  window) on MAX(left), and skip reparentPageOverflowChains on
+  interior pages (no overflow chains on those).
+
+### incrvacuum2 4.2.1 (S6, fixed by 001af0a8) — PRAGMA wal_checkpoint mode
+- The default `PRAGMA wal_checkpoint` (no argument) is
+  SQLITE_CHECKPOINT_PASSIVE in SQLite, which only reports
+  busy/log/checkpointed counts. PASSIVE / FULL keep the -wal
+  frames; only RESTART / TRUNCATE reset the file to its 32-byte
+  header.
+- The Go engine's walWriter.checkpoint always did a full RESTART
+  (fold + truncate to header), turning the 1104-byte
+  `-wal = 32 + 2*(512+24)` produced by `incremental_vacuum(1)`
+  into 32 bytes. The test's `file size test.db-wal` assertion
+  failed.
+- Fix: add pager.WalCheckpointMode
+  (WalCkptPassive/Full/Restart/Truncate) and a Pager.CheckpointMode
+  entry point. Engine.WalCheckpoint maps the optional value
+  argument to a mode; unrecognised or empty defaults to PASSIVE.
+  Pager.Checkpoint (no-arg) keeps the RESTART default so
+  existing callers (wal_test.go TestWalCheckpoint) and
+  IncrVacuumStep at commit time are unaffected.
+
 ### incrvacuum3 (incremental_vacuum with ROLLBACK)
 - incrvacuum3-1.1: `BEGIN; PRAGMA incremental_vacuum = 100;
   INSERT...; ROLLBACK` returns 'database disk image is malformed'.
@@ -4941,3 +4978,69 @@ oracle passes; the S6 engine passes.
 - `src/wal.c` — the WAL machinery that the residual incrvacuum2
   4.2.1/4.3 bugs depend on (out of S6 scope).
 
+## 2026-09-05 — P8.INCRVACUUM.5/5 complete: incrvacuum2 4.1 + 4.2.1 fixed
+
+The two residual incrvacuum2 bugs from the S6 session (4.1
+overflow-page chain corruption, 4.2.1 wal_checkpoint file
+size mismatch) are now both fixed. All 5 P8.INCRVACUUM
+testgen packages pass:
+- autovacuum, autovacuum2, incrvacuum, incrvacuum2, incrvacuum3
+
+### 4.1 — btree divider convention (commit a433c318)
+The engine used the FIRST rowid of the right sibling as the
+divider cell, but SQLite's leafData convention is the LAST
+rowid of the LEFT sibling (btree.c:8813) — left subtree
+holds keys <= divider, right subtree holds keys > divider
+(sqlite3BtreeTableMoveto at btree.c:5877 descends into the
+equal-key cell's left child). The mismatch was self-consistent
+for reads (the engine used `<=` with MIN(right)), so no
+direct read error fired, but:
+  - sqlite3 integrity_check rejected every split with
+    "right child Rowid N out of order".
+  - reparentPageOverflowChains read the new interior root's
+    cells as if they were leaf cells, taking the cell's
+    leftChild field as Overflow and stamping a phantom page
+    (e.g. 0x20000010) into the ptrmap. The next ReadPage
+    errored at iter 6 with
+    "pageNum=1946251009 > numPages=67".
+
+The fix unifies splitLeafMulti, seekInInteriorTable,
+findChildPageForInsert, and balance_nonroot
+(coversParent + replace-window) on MAX(left). Index btrees
+keep their existing non-leafData MIN-of-right convention.
+reparentPageOverflowChains now skips interior pages (they
+have no overflow chains; decoding them as leaf cells was the
+corruption vector above).
+
+### 4.2.1 — PRAGMA wal_checkpoint mode (commit 001af0a8)
+SQLite's PRAGMA wal_checkpoint with no argument is
+SQLITE_CHECKPOINT_PASSIVE (src/pragma.c
+PragTyp_WAL_CHECKPOINT): it only reports busy/log/checkpointed
+counts. PASSIVE / FULL keep the committed frames in the -wal
+file; only RESTART / TRUNCATE reset the file to its 32-byte
+header. The engine's walWriter.checkpoint always did a full
+RESTART (fold + truncate to header), turning the
+1104-byte `-wal = 32 + 2*(512+24)` produced by
+`incremental_vacuum(1)` into 32 bytes. The test's
+`file size test.db-wal` assertion failed.
+
+Fix: add pager.WalCheckpointMode
+(WalCkptPassive/Full/Restart/Truncate) and a
+Pager.CheckpointMode entry point. Engine.WalCheckpoint maps
+the optional value argument to a mode; unrecognised or empty
+defaults to PASSIVE. Pager.Checkpoint (no-arg) keeps the
+RESTART default so existing callers (wal_test.go
+TestWalCheckpoint, IncrVacuumStep at commit time) are
+unaffected.
+
+### Diagnostic recipe for "stale WAL sidecar" reproductions
+When a test reports "WALK FAIL page=N EOF" with
+`len(p.pages) < numPages-1`, or any test that involves
+`PRAGMA journal_mode = WAL` shows impossible frame counts,
+check for leftover `test.db-wal` / `test.db-shm` files from
+a previous test run. The test driver only removes test.db,
+not the sidecars, so the next Open sees the -wal file and
+sets p.wal != nil + p.journalMode = "wal", but reads still
+hit the main file (still 0 bytes) for any page not flushed
+through the WAL path. The fix is to remove all four files
+before each run.
