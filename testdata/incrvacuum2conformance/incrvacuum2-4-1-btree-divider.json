@@ -1,0 +1,22 @@
+{
+  "name": "incrvacuum2-4-1-btree-divider",
+  "pragmas": {"page_size": "512", "auto_vacuum": "2"},
+  "sql": [
+    "CREATE TABLE t1(x);",
+    "INSERT INTO t1 VALUES(zeroblob(400));",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;",
+    "INSERT INTO t1 SELECT * FROM t1;"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "incrvacuum2-4-2-1-wal-checkpoint-passive",
+  "pragmas": {"page_size": "512", "auto_vacuum": "2", "journal_mode": "WAL", "wal_autocheckpoint": "0"},
+  "walFiles": true,
+  "sql": [
+    "CREATE TABLE t1(x);",
+    "INSERT INTO t1 VALUES(zeroblob(400));",
+    "INSERT INTO t1 VALUES(zeroblob(400));",
+    "PRAGMA wal_checkpoint;"
+  ]
+}
