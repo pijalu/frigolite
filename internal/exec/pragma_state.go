@@ -8,6 +8,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execpragma"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -164,14 +165,25 @@ func (e *Engine) currentLockingMode() string {
 }
 
 // WalCheckpoint implements PRAGMA wal_checkpoint (PASSIVE|FULL|RESTART|
-// TRUNCATE). It folds the WAL into the main database and resets the WAL,
-// returning SQLite's three-column result {busy, log, checkpointed}.
+// TRUNCATE). The default mode is PASSIVE (the value-less form), which
+// preserves the -wal file (sqlite/src/pragma.c PragTyp_WAL_CHECKPOINT).
+// PASSIVE / FULL keep the committed frames on disk; RESTART / TRUNCATE
+// fold the frames and reset the -wal to its header.
 func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
 		return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}
 	}
-	if err := ctx.Pager.Checkpoint(); err != nil {
+	mode := pager.WalCkptPassive
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "full":
+		mode = pager.WalCkptFull
+	case "restart":
+		mode = pager.WalCkptRestart
+	case "truncate":
+		mode = pager.WalCkptTruncate
+	}
+	if err := ctx.Pager.CheckpointMode(mode); err != nil {
 		return &execpragma.Result{Error: err}
 	}
 	return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}

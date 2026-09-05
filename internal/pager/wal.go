@@ -278,13 +278,42 @@ func recoverWalLocked(p *Pager, dbPath string, pageSize uint32) error {
 	return nil
 }
 
+// WalCheckpointMode mirrors the SQLITE_CHECKPOINT_* constants from
+// sqlite/src/wal.c (sqlite3.h) and selects what a WAL checkpoint does
+// beyond reporting its size. PASSIVE only reports — frames are kept in
+// the -wal file so concurrent readers (or a follow-up test that asserts
+// -wal size) can still see them. FULL/RESTART/TRUNCATE backfill the
+// main database file; RESTART/TRUNCATE additionally truncate the -wal
+// to just its 32-byte header.
+type WalCheckpointMode int
+
+const (
+	WalCkptPassive  WalCheckpointMode = 0
+	WalCkptFull     WalCheckpointMode = 1
+	WalCkptRestart  WalCheckpointMode = 2
+	WalCkptTruncate WalCheckpointMode = 3
+)
+
 // checkpoint folds every committed WAL frame into the main database file and
 // then truncates the "-wal" to just its header (a RESTART-style checkpoint,
 // wal.c walRestartLog). After a checkpoint the main file carries the committed
 // state and subsequent commits start a fresh WAL. The caller (Pager.Checkpoint)
 // must hold p.mu.
-func (w *walWriter) checkpoint() error {
+//
+// The mode argument selects the PRAGMA wal_checkpoint variant:
+//   - Passive: do not modify the WAL; the frames stay on disk and a
+//     subsequent read of test.db-wal sees the same content (incrvacuum2
+//     4.2.1 asserts on this size).
+//   - Full: fold frames into the main DB but do not truncate the WAL.
+//   - Restart / Truncate: fold frames AND truncate the WAL to its header.
+func (w *walWriter) checkpoint(mode WalCheckpointMode) error {
 	p := w.p
+	// PASSIVE: leave the WAL exactly as it is (do not fold frames, do not
+	// truncate). Used by PRAGMA wal_checkpoint with no argument — the test
+	// harness asserts on -wal file size after the call.
+	if mode == WalCkptPassive {
+		return nil
+	}
 	// Read and apply all committed frames through the writer's own file.
 	buf, err := io.ReadAll(w.file)
 	if err != nil {
@@ -341,6 +370,10 @@ func (w *walWriter) checkpoint() error {
 	}
 	p.dirty = make(map[uint32]bool)
 	p.refreshKnownFileStamp()
+	// FULL: keep the WAL frames (backfill only); RESTART/TRUNCATE reset it.
+	if mode == WalCkptFull {
+		return nil
+	}
 	// Truncate the WAL to its header (RESTART checkpoint).
 	if err := w.file.Truncate(WalHdrSize); err != nil {
 		return err

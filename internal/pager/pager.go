@@ -1481,14 +1481,24 @@ func (p *Pager) SetJournalFileOpHook(fn func(op, path string)) {
 }
 
 // Checkpoint folds the WAL into the main database file and resets the WAL
-// (RESTART-style). It is a no-op when not in WAL mode.
+// (RESTART-style). It is a no-op when not in WAL mode. Kept as a no-arg
+// convenience wrapper; new code should call CheckpointMode with the desired
+// PRAGMA wal_checkpoint mode.
 func (p *Pager) Checkpoint() error {
+	return p.CheckpointMode(WalCkptRestart)
+}
+
+// CheckpointMode performs a WAL checkpoint in the given mode. PASSIVE
+// only reports (frames are kept in -wal); FULL backfills the main DB but
+// does not truncate; RESTART/TRUNCATE backfill and truncate the -wal to
+// its 32-byte header (sqlite/src/wal.c walCheckpoint).
+func (p *Pager) CheckpointMode(mode WalCheckpointMode) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.wal == nil {
 		return nil
 	}
-	return p.wal.checkpoint()
+	return p.wal.checkpoint(mode)
 }
 
 // WalFileSize reports the current "-wal" file size in bytes (0 when not in
