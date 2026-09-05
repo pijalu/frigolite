@@ -5085,3 +5085,32 @@ fixtures. S8 backfills them, learning:
    random data path, keep `randomblob` (it doesn't need
    byte-identical regen since the test only asserts
    `count`/`integrity_check`).
+
+## 2026-09-05 — GREEN-LEDGER instrument (§5g item 1, §5a item 10a) lands
+
+- **`tools/status --check` is the new no-flip gate**. Every goal close
+  MUST now run it (with `--check-against-cache` for fast CI). The diff
+  is no longer done manually from `last_run.json`.
+- **§5g item 6 serial re-confirm cleared 8/13 timeout-suspects** in the
+  2026-09-03 baseline run (alterdropcol, changes, index4, index5, intarray,
+  tkt_d11f09d36e, vtabD, incrvacuum2 — all PASS when given 180s instead
+  of 60s/pkg). The other 5 (fts4check, fts4merge4, fts4opt, fts4unicode,
+  limit) are real FAILs (database-disk-image-malformed, FTS gaps).
+- **flag-name collision pitfall**: defining `--check-allow-new`,
+  `--check-against-cache`, `--check-ledger` makes the bare `--check`
+  token a flag-parse error (Go's flag package treats `--check` as a
+  partial of `--check-allow-new` and rejects it). Solution: define `--check`
+  as a separate bool flag and dispatch on it (not as a subcommand).
+- **gocognit ceiling**: `runLedger` originally hit 24/15 cognitive + 21/12
+  cyclomatic. Refactor into 6 small helpers (`buildPackageGoalIndex`,
+  `ledgerPackagesFromBaseline`, `ledgerEvidence`, `countLedgerStates`,
+  `buildGoalAttributions`, `writeLedger`) — `runLedger` drops to ~3 each.
+- **Cross-platform regex escaping**: backslashes in Go raw-string regex
+  literals (`regexp.MustCompile(\`...\`)`) need DOUBLE-escaping when the
+  pattern is built inside a function — e.g. `\\s` (regex) vs `\s` (raw
+  string). The compile error "unknown escape" catches this; use raw
+  string literals with single backslashes for all regex patterns.
+- **`stateTimeoutSuspect` is a placeholder state**: it appears ONLY in
+  the seed ledger (when the seed detects duration ≥ 55s FAIL) and is
+  silently ignored by `tools/status --check`. The operator must amend
+  the ledger after serial re-confirm. This is the §5g item 6 contract.

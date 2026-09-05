@@ -2,12 +2,15 @@ package main
 
 import "time"
 
-// Package states reported by the tool.
+// Package states reported by the tool. stateTimeoutSuspect is an
+// intermediate "needs serial re-confirmation" marker used only in the seed
+// ledger (PORTPLAN §5g item 6) — it never appears in a live run.
 const (
-	statePass    = "pass"
-	stateFail    = "fail"
-	stateSkipped = "skipped"
-	stateNotRun  = "not-run"
+	statePass           = "pass"
+	stateFail           = "fail"
+	stateSkipped        = "skipped"
+	stateNotRun         = "not-run"
+	stateTimeoutSuspect = "timeout-suspect"
 )
 
 // pkgInfo is the full per-package record: static classification (family,

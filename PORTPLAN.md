@@ -237,7 +237,7 @@ Each phase starts only after its dependencies are green.
 | Area | Current blocker | Evidence / entry points | Recommended analysis order |
 |------|-----------------|-------------------------|-----------------------------|
 | P8.INCRVACUUM (**ACTIVE**) | 4/5 target packages green after S6 (autovacuum, autovacuum2, incrvacuum, incrvacuum3 PASS); `incrvacuum2` still FAILs on pre-existing WAL/overflow bugs (test 4.1: 400-byte payload on 512-byte page corrupts at 64→128 row doubling; test 4.2.1: `PRAGMA wal_checkpoint` reports "database disk image is malformed"; test 4.3: WAL+checkpoint+vacuum loop hangs). S6 fix is in: `IncrVacuumStep` mirrors btree.c:4010-4104 (do-while BTALLOC_ANY + LE(nFin)), `vacuumSkipPages` mirrors btree.c:4096-4102 (skip-decrement past ptrmap/pending-byte), and `SetAutoVacuum`/`schema.Init` persist the on-disk `LargestBTreePage=1` flag (btree.c:3537). The 5.2.5 (DROP+PRAGMA hang) and 12.4/12.5 (PRAGMA auto_vacuum persistence) failures are fixed; incrvacuum2 4.1/4.2.1/4.3 are out of S6 scope. | `plan/goals/P8.INCRVACUUM.md` § S6 Close Status, `internal/btree/btree_vacuum.go::IncrVacuumStep`, `internal/pager/pager.go::SetAutoVacuum`, `internal/schema/schema.go::Init` | incrvacuum2 4.1: overflow-page chain in `INSERT INTO t1 SELECT * FROM t1` for many overflow pages (audit `internal/btree/btree_insert.go` cell pointer for overflow-header offset). incrvacuum2 4.2.1/4.3: WAL checkpoint machinery (audit `internal/pager/wal.go` walIndex backfill counters). |
-| Full-suite drift (NEW, §5a item 11) | 290 packages red in the 2026-09-03 full run; §4 rows carry `⚠ live N/M` markers. Two verified classes: (a) pre-squash drift (select1/insert/where fail at `ba771a6b`); (b) visible-window regressions — fts3snippet, fts4opt (38s → >240s timeout) passed at `ba771a6b`, fail at HEAD | `tools/status/last_run.json`, §2 DRIFT ALERT, worktree probes at `ba771a6b`/`2a6ed23f` | Bisect class (b) across the visible P7/P8 commits (suspects: P7.PLANNER/SKIPSCAN planner-stat changes, P8 pager/btree work); then triage class (a) in per-goal tranches; never skip without NA_EVIDENCE |
+| Full-suite drift (§5a item 11) | **GREEN-LEDGER (item 10a) instrument built 2026-09-05** — `tools/status --check` is the new no-flip gate. 282 FAIL packages in the 2026-09-05 baseline (8 of the 13 §5g item 6 timeout-suspects were serial-confirmed PASS); §4 rows carry `⚠ live N/M` markers. Two verified classes: (a) pre-squash drift (select1/insert/where fail at `ba771a6b`); (b) visible-window regressions — fts3snippet, fts4opt passed at `ba771a6b`, fail at HEAD | `tools/status/ledger.json`, `tools/status/last_run.json`, §2 DRIFT ALERT, worktree probes at `ba771a6b`/`2a6ed23f` | Bisect class (b) across the visible P7/P8 commits (suspects: P7.PLANNER/SKIPSCAN planner-stat changes, P8 pager/btree work); then triage class (a) in per-goal tranches with `tools/status --check` between tranches; never skip without NA_EVIDENCE |
 | P6.FTS residue | fts4langid (languageid= WIP: 3 assertions left), fts4merge4 (automerge level distribution), plus drift-red packages (fts3join/fts3matchinfo/fts3snippet/fts3tok1/fts3prefix2/fts4check/fts4content/fts4growth/fts4noti/fts4onepass/fts4unicode/fts4opt/fts4merge/fts3integrity/e_fts3 and FTS-B failures) — see `⚠ live` markers | `plan/goals/P6.FTS-*.md`, `internal/fts` | Cover FTS drift under §5a item 11 first; then finish fts4langid + fts4merge4 on the structural-port base |
 | P6 missing modules | fts5/dbstat/dbdata registered as `NoopModule`, rtree partially red — now indexed as queued goals P6.RTREE / P6.FTS5 / P6.DBDATA / P6.DBSTAT (§4). fts5 has NO testgen conversion (144 TCL sources); dbstat none either | `internal/vtab/vtab.go:180-182`, `plan/goals/P6.{RTREE,FTS5,DBDATA,DBSTAT}.md` | Queue item 12, one module at a time, UCL oracle transcripts per module |
 | P7 WAL G7 layer | Single-connection WAL writer exists (P7.WAL-C), but shared wal-index (`-shm`) header, multi-connection frame visibility, read-marks, protocol/lock bits are not implemented — blocks snapshot API, shared-cache, walprotocol/walsetlk families | `internal/pager/wal.go`, `portplan/NA_EVIDENCE.md` §P7.WAL-*, `frigolite_shared_test.go`, `frigolite_snapshot_test.go` | G7 milestone: port `src/wal.c` wal-index header + lock-bitmap protocol; UCL frame decoder + fixtures already exist (`internal/pager/walview.go`, `testdata/walconformance`) |
@@ -326,12 +326,12 @@ created only after the previous goal's `verifyCommand` passes and the goal is
 >
 > | # | Goal | Change | Rationale |
 > |---|------|--------|-----------|
-> | 10a | `GREEN-LEDGER` | SPLIT from item 11: instrument build lands FIRST (right after INCRVACUUM), before the P8 storage tranches | §5g item 1 ("instrument FIRST"): every later goal close gets a machine-enforced no-flip check (`tools/status --check`) instead of manual `last_run.json` diffs; triage of the 290 red packages stays in item 11 |
+> | 10a | `GREEN-LEDGER` ✅ **complete** (2026-09-05) | SPLIT from item 11: instrument lands FIRST (`tools/status/ledger.json` seeded from `last_run.json` + PORTPLAN §4 markers; `tools/status --check` diffs live run vs ledger, exits non-zero on any unexpected flip; §5g item 6 serial re-confirm cleared 8/13 timeout-suspects; 15 unit tests; SOLID/-race/quality_gate clean). Every later goal close now runs `tools/status --check` as the no-flip gate (§5g items 1, 2, 4, 7). | §5g item 1 ("instrument FIRST") |
 > | 11a | `P6.FTS-RESIDUE` | NEW (from Blocker Register) | fts4langid (3 assertions) + fts4merge4 (automerge distribution) on the P6.FTS-WPORT structural-port base; runs after FULL-SUITE-DRIFT per blocker-register order |
 > | 11b | `P7.PLANNER.bestindex` | NEW (from Blocker Register) | bestindex1-9/B/C/E/F/G + autoanalyze1 DEFERRED skips; runs after drift triage per blocker-register order |
 > | 12d | `P7.WAL-G7` | NEW (from Blocker Register "P7 WAL G7 layer") | port src/wal.c wal-index header + lock-bitmap protocol; un-skips walprotocol/walsetlk/walrestart/snapshot/shared families currently N-A G7; sub-plan to be written per §5b before engine edits |
 >
-> Full order: INCRVACUUM → GREEN-LEDGER → P8.MISC → P8.PRAGMA → P8.PAGER →
+> Full order: INCRVACUUM → **GREEN-LEDGER ✅ (2026-09-05)** → P8.MISC → P8.PRAGMA → P8.PAGER →
 > P8.RECOVER → P8.ROLLBACK → P8.VACUUM → FULL-SUITE-DRIFT → P6.FTS-RESIDUE →
 > P7.PLANNER.bestindex → P6.RTREE → P6.FTS5 → P6.DBDATA → P6.DBSTAT →
 > P7.WAL-G7 → P9.PERF. Every goal carries the §5e strict DoD + §5g
@@ -453,13 +453,15 @@ regenerations and engine evolution during later goals flip earlier
 packages red with nobody watching. The following rules are BINDING for
 every goal:
 
-1. **Green ledger (instrument)** — `FULL-SUITE-DRIFT` (§5a item 11) builds
-   the instrument FIRST, before any drift fixing: a machine-readable
-   ledger of expected per-package state (package → pass/fail/skip +
-   goal attribution + evidence pointer) plus a check mode that diffs a
-   live `tools/status` run against it and exits non-zero on any
-   unexpected state flip. Until the ledger lands, the diff is done
-   manually from `last_run.json` + the §4 markers.
+1. **Green ledger (instrument)** — `GREEN-LEDGER` (§5a item 10a, complete 2026-09-05) built
+   the instrument FIRST, before any drift fixing: `tools/status/ledger.json` is the
+   machine-readable ledger of expected per-package state (package → pass/fail/skip +
+   goal attribution + evidence pointer) seeded from `tools/status/last_run.json`
+   + PORTPLAN §4 markers; `tools/status --check` (also `--check-against-cache`
+   for fast CI) diffs a live `tools/status` run against it and exits non-zero
+   on any unexpected state flip. **Every goal close MUST now run
+   `tools/status --check --check-against-cache` as the no-flip gate**; the
+   diff is no longer done manually.
 2. **Baseline at goal start** — before the first engine edit, record in
    the sub-plan: the target packages' serial live states
    (`go test -tags testgen ./testgen/<pkg>/ -count=1` per package), the

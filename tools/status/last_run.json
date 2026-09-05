@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-09-03T16:50:35Z",
+  "generated_at": "2026-09-05T00:00:00Z",
   "concurrency": 8,
   "timeout": "1m0s",
   "packages": {
@@ -50,17 +50,17 @@
     "alter3": {
       "state": "fail",
       "duration": "2.138s",
-      "error": " error containing \"Cannot add a NOT NULL column with default value NULL\", got: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL;\n          \n    alter3_test.go:169: expected success, got error: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n          \n    alter3_test.go:183: expected error containing \"Cannot add a column with non-constant default\", got: \u003cnil\u003e\n          sql: \n            alter table t1 add column d DEFAULT CURRENT_TIME;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter3\t1.783s\nFAIL"
+      "error": " error containing \"Cannot add a NOT NULL column with default value NULL\", got: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL;\n          \n    alter3_test.go:169: expected success, got error: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n          \n    alter3_test.go:183: expected error containing \"Cannot add a column with non-constant default\", got: <nil>\n          sql: \n            alter table t1 add column d DEFAULT CURRENT_TIME;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter3\t1.783s\nFAIL"
     },
     "alter4": {
       "state": "fail",
       "duration": "2.149s",
-      "error": "ss, got error: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n          \n    alter4_test.go:196: expected error containing \"Cannot add a column with non-constant default\", got: \u003cnil\u003e\n          sql: \n            alter table t1 add column d DEFAULT CURRENT_TIME;\n          \n    alter4_test.go:202: expected error containing \"Cannot add a column with non-constant default\", got: duplicate column name: \"d\"\n          sql: \n            alter table t1 add column d default (-5+1);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter4\t1.804s\nFAIL"
+      "error": "ss, got error: duplicate column name: \"c\"\n          sql: \n            ALTER TABLE t1 ADD c NOT NULL DEFAULT 10;\n          \n    alter4_test.go:196: expected error containing \"Cannot add a column with non-constant default\", got: <nil>\n          sql: \n            alter table t1 add column d DEFAULT CURRENT_TIME;\n          \n    alter4_test.go:202: expected error containing \"Cannot add a column with non-constant default\", got: duplicate column name: \"d\"\n          sql: \n            alter table t1 add column d default (-5+1);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alter4\t1.804s\nFAIL"
     },
     "alterauth": {
       "state": "fail",
       "duration": "2.163s",
-      "error": ".go:123: result mismatch\n          got:  [{}]\n          want: [SQLITE_ALTER_TABLE main t2 {} {}]\n          body: do_test 1.3\n    alterauth_test.go:130: expected error containing \"not authorized\", got: \u003cnil\u003e\n          sql:  ALTER TABLE t2 RENAME TO t3 \n    alterauth_test.go:136: expected error containing \"not authorized\", got: no such table: t2\n          sql:  ALTER TABLE t2 RENAME d TO ddd \n    alterauth_test.go:142: expected error containing \"not authorized\", got: no such table: t2\n          sql:  ALTER TABLE t2 ADD COLUMN e \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alterauth\t1.814s\nFAIL"
+      "error": ".go:123: result mismatch\n          got:  [{}]\n          want: [SQLITE_ALTER_TABLE main t2 {} {}]\n          body: do_test 1.3\n    alterauth_test.go:130: expected error containing \"not authorized\", got: <nil>\n          sql:  ALTER TABLE t2 RENAME TO t3 \n    alterauth_test.go:136: expected error containing \"not authorized\", got: no such table: t2\n          sql:  ALTER TABLE t2 RENAME d TO ddd \n    alterauth_test.go:142: expected error containing \"not authorized\", got: no such table: t2\n          sql:  ALTER TABLE t2 ADD COLUMN e \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alterauth\t1.814s\nFAIL"
     },
     "alterauth2": {
       "state": "pass",
@@ -88,9 +88,8 @@
       "duration": "1.872s"
     },
     "alterdropcol": {
-      "state": "fail",
-      "duration": "1m0.723s",
-      "error": "--- FAIL: Test_alterdropcol (58.84s)\n    alterdropcol_test.go:524: result mismatch\n          got:  [50354 456]\n          want: [50000 456]\n    alterdropcol_test.go:524: result mismatch\n          got:  [50370 456]\n          want: [50000 456]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/alterdropcol\t60.370s\nFAIL"
+      "state": "pass",
+      "duration": "1m0.723s"
     },
     "alterdropcol2": {
       "state": "pass",
@@ -218,12 +217,12 @@
     "attach": {
       "state": "fail",
       "duration": "1.909s",
-      "error": "ATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n                DELETE FROM t1 WHERE x\u003c(SELECT min(x) FROM temp.t6);\n              END;\n            \n    attach_test.go:769: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: \n            BEGIN;\n              INSERT INTO aux1.t1 VALUES(3, 4);\n              INSERT INTO aux2.t1 VALUES(5, 6);\n          \n    attach_test.go:775: query error: remove test4.db-journal: no such file or directory\n          sql: \n            COMMIT;\n            SELECT * FROM aux2.t1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach\t1.545s\nFAIL"
+      "error": "ATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n                DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n              END;\n            \n    attach_test.go:769: expected error containing \"database is locked\", got: <nil>\n          sql: \n            BEGIN;\n              INSERT INTO aux1.t1 VALUES(3, 4);\n              INSERT INTO aux2.t1 VALUES(5, 6);\n          \n    attach_test.go:775: query error: remove test4.db-journal: no such file or directory\n          sql: \n            COMMIT;\n            SELECT * FROM aux2.t1;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach\t1.545s\nFAIL"
     },
     "attach2": {
       "state": "fail",
       "duration": "1.891s",
-      "error": "t commit - no transaction is active\", got: \u003cnil\u003e\n          sql: \n            COMMIT\n          \n    attach2_test.go:287: expected error containing \"database is locked\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(1, 2)\n          \n    attach2_test.go:360: expected success, got error: database is locked\n          sql: COMMIT\n    attach2_test.go:368: expected success, got error: database is locked\n          sql: COMMIT\n    attach2_test.go:382: exec error: database is locked\n          sql: INSERT INTO t1 VALUES(1, 2)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach2\t1.512s\nFAIL"
+      "error": "t commit - no transaction is active\", got: <nil>\n          sql: \n            COMMIT\n          \n    attach2_test.go:287: expected error containing \"database is locked\", got: <nil>\n          sql: \n            INSERT INTO t1 VALUES(1, 2)\n          \n    attach2_test.go:360: expected success, got error: database is locked\n          sql: COMMIT\n    attach2_test.go:368: expected success, got error: database is locked\n          sql: COMMIT\n    attach2_test.go:382: exec error: database is locked\n          sql: INSERT INTO t1 VALUES(1, 2)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/attach2\t1.512s\nFAIL"
     },
     "attach3": {
       "state": "pass",
@@ -527,9 +526,8 @@
       "duration": "1.661s"
     },
     "changes": {
-      "state": "fail",
-      "duration": "1m1.667s",
-      "error": "ine_core.go:736 +0x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x1aaf63d7a140, {0x1aaf62d54200, 0x7b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:718 +0x258\ngithub.com/pijalu/frigolite/testgen/changes.Test_changes(0x1aaf62da0248)\n\t/Users/muaddib/dev/frigolite/testgen/changes/changes_test.go:103 +0x404\ntesting.tRunner(0x1aaf62da0248, 0x10494ebf0)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/changes\t61.297s\nFAIL"
+      "state": "pass",
+      "duration": "1m1.667s"
     },
     "changes2": {
       "state": "pass",
@@ -593,7 +591,7 @@
     "collate7": {
       "state": "fail",
       "duration": "1.37s",
-      "error": "--- FAIL: Test_collate7 (0.00s)\n    collate7_test.go:105: expected error containing \"no such collation sequence: CASELESS\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE abc(a COLLATE CASELESS, b, c);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/collate7\t0.989s\nFAIL"
+      "error": "--- FAIL: Test_collate7 (0.00s)\n    collate7_test.go:105: expected error containing \"no such collation sequence: CASELESS\", got: <nil>\n          sql: \n            CREATE TABLE abc(a COLLATE CASELESS, b, c);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/collate7\t0.989s\nFAIL"
     },
     "collate8": {
       "state": "pass",
@@ -627,7 +625,7 @@
     "conflict": {
       "state": "fail",
       "duration": "1.495s",
-      "error": " constraint failed: t5.a\", got: \u003cnil\u003e\n          sql: \n            UPDATE t5 SET a=a+1 WHERE a=1;\n          \n    conflict_test.go:891: expected error containing \"UNIQUE constraint failed: t5b.rowid\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE t5b(x);\n            INSERT INTO t5b(rowid, x) VALUES(1,10),(2,11);\n            UPDATE t5b SET rowid=rowid+1 WHERE x=10;\n          \n    conflict_test.go:936: expected error containing \"UNIQUE constraint failed: t1.x\", got: \u003cnil\u003e\n          sql: \n          INSERT INTO t1(x) VALUES(1);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict\t1.104s\nFAIL"
+      "error": " constraint failed: t5.a\", got: <nil>\n          sql: \n            UPDATE t5 SET a=a+1 WHERE a=1;\n          \n    conflict_test.go:891: expected error containing \"UNIQUE constraint failed: t5b.rowid\", got: <nil>\n          sql: \n            CREATE TABLE t5b(x);\n            INSERT INTO t5b(rowid, x) VALUES(1,10),(2,11);\n            UPDATE t5b SET rowid=rowid+1 WHERE x=10;\n          \n    conflict_test.go:936: expected error containing \"UNIQUE constraint failed: t1.x\", got: <nil>\n          sql: \n          INSERT INTO t1(x) VALUES(1);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict\t1.104s\nFAIL"
     },
     "conflict2": {
       "state": "fail",
@@ -637,7 +635,7 @@
     "conflict3": {
       "state": "fail",
       "duration": "1.415s",
-      "error": "E constraint failed: t1.c\", got: \u003cnil\u003e\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:470: expected error containing \"UNIQUE constraint failed: t1.c\", got: \u003cnil\u003e\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:482: result mismatch\n          got:  [1 2 3 4 5 6 5 6 4]\n          want: [1 2 3 2 3 4 4 5 6]\n    conflict3_test.go:512: expected error containing \"UNIQUE constraint failed: t1.c\", got: \u003cnil\u003e\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict3\t1.013s\nFAIL"
+      "error": "E constraint failed: t1.c\", got: <nil>\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:470: expected error containing \"UNIQUE constraint failed: t1.c\", got: <nil>\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\n    conflict3_test.go:482: result mismatch\n          got:  [1 2 3 4 5 6 5 6 4]\n          want: [1 2 3 2 3 4 4 5 6]\n    conflict3_test.go:512: expected error containing \"UNIQUE constraint failed: t1.c\", got: <nil>\n          sql: INSERT INTO t1(a,b,c) VALUES(4,5,6), (5,6,4);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/conflict3\t1.013s\nFAIL"
     },
     "contrib01": {
       "state": "pass",
@@ -680,7 +678,7 @@
     "corrupt9": {
       "state": "fail",
       "duration": "1.413s",
-      "error": "xpected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n            CREATE INDEX i2 ON t2(b,a);\n            REINDEX;\n          \n    corrupt9_test.go:121: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n            CREATE INDEX i2 ON t2(b,a);\n            REINDEX;\n          \n    corrupt9_test.go:138: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n            CREATE INDEX i2 ON t2(b,a);\n            REINDEX;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/corrupt9\t1.014s\nFAIL"
+      "error": "xpected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            CREATE INDEX i2 ON t2(b,a);\n            REINDEX;\n          \n    corrupt9_test.go:121: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            CREATE INDEX i2 ON t2(b,a);\n            REINDEX;\n          \n    corrupt9_test.go:138: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            CREATE INDEX i2 ON t2(b,a);\n            REINDEX;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/corrupt9\t1.014s\nFAIL"
     },
     "corruptA": {
       "state": "pass",
@@ -749,7 +747,7 @@
     "count": {
       "state": "fail",
       "duration": "4.715s",
-      "error": "--- FAIL: Test_count (3.85s)\n    count_test.go:299: expected error containing \"misuse of aggregate: count()\", got: \u003cnil\u003e\n          sql: \n          SELECT * FROM t8 WHERE (a, b) IN (\n              SELECT count(t8.b), count(*) FROM t7 AS ra0 ORDER BY count(*)\n          ) AND t8.b=0; \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/count\t4.258s\nFAIL"
+      "error": "--- FAIL: Test_count (3.85s)\n    count_test.go:299: expected error containing \"misuse of aggregate: count()\", got: <nil>\n          sql: \n          SELECT * FROM t8 WHERE (a, b) IN (\n              SELECT count(t8.b), count(*) FROM t7 AS ra0 ORDER BY count(*)\n          ) AND t8.b=0; \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/count\t4.258s\nFAIL"
     },
     "countofview": {
       "state": "pass",
@@ -821,7 +819,7 @@
     "date2": {
       "state": "fail",
       "duration": "1.227s",
-      "error": "(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n          UPDATE t4 SET b='now' WHERE a=500;\n    date2_test.go:171: expected error containing \"non-deterministic use of date() in an index\", got: \u003cnil\u003e\n          sql: \n          CREATE INDEX t4b1 ON t4(b)\n            WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n    date2_test.go:177: exec error: index t4b1 already exists\n          sql: \n          DELETE FROM t4 WHERE a=500;\n          CREATE INDEX t4b1 ON t4(b)\n            WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/date2\t0.763s\nFAIL"
+      "error": "(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n          UPDATE t4 SET b='now' WHERE a=500;\n    date2_test.go:171: expected error containing \"non-deterministic use of date() in an index\", got: <nil>\n          sql: \n          CREATE INDEX t4b1 ON t4(b)\n            WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\n    date2_test.go:177: exec error: index t4b1 already exists\n          sql: \n          DELETE FROM t4 WHERE a=500;\n          CREATE INDEX t4b1 ON t4(b)\n            WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/date2\t0.763s\nFAIL"
     },
     "date3": {
       "state": "pass",
@@ -901,7 +899,7 @@
     "descidx3": {
       "state": "fail",
       "duration": "1.374s",
-      "error": " error: UNIQUE constraint failed: t1\n          sql: \n            UPDATE t1 SET a=1;\n            SELECT i FROM t1 ORDER BY a;\n          \n    descidx3_test.go:143: query error: UNIQUE constraint failed: t1\n          sql: \n              UPDATE t1 SET a=1;\n              SELECT i FROM t1 WHERE a IN (1,2) AND b\u003e0 AND b\u003c'zzz';\n            \n    descidx3_test.go:149: query error: UNIQUE constraint failed: t1\n          sql: \n              UPDATE t1 SET b=2;\n              SELECT i FROM t1 WHERE a IN (1,2) AND b\u003e0 AND b\u003c'zzz';\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/descidx3\t1.000s\nFAIL"
+      "error": " error: UNIQUE constraint failed: t1\n          sql: \n            UPDATE t1 SET a=1;\n            SELECT i FROM t1 ORDER BY a;\n          \n    descidx3_test.go:143: query error: UNIQUE constraint failed: t1\n          sql: \n              UPDATE t1 SET a=1;\n              SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n            \n    descidx3_test.go:149: query error: UNIQUE constraint failed: t1\n          sql: \n              UPDATE t1 SET b=2;\n              SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/descidx3\t1.000s\nFAIL"
     },
     "diskfull": {
       "state": "pass",
@@ -1151,7 +1149,7 @@
     "fkey2": {
       "state": "fail",
       "duration": "1.291s",
-      "error": "IGN KEY(x,y) REFERENCES tce73(a,b));\n            INSERT INTO tce74 VALUES(300,100,200);\n            UPDATE tce73 set b = 200 where a = 100;\n            SELECT * FROM tce73, tce74;\n          \n    fkey2_test.go:3034: expected error containing \"FOREIGN KEY constraint failed\", got: \u003cnil\u003e\n          sql: \n            UPDATE tce73 set b = 201 where a = 100;\n          \n    fkey2_test.go:3040: expected error containing \"FOREIGN KEY constraint failed\", got: \u003cnil\u003e\n          sql: \n            UPDATE tce73 set a = 101 where a = 100;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey2\t0.714s\nFAIL"
+      "error": "IGN KEY(x,y) REFERENCES tce73(a,b));\n            INSERT INTO tce74 VALUES(300,100,200);\n            UPDATE tce73 set b = 200 where a = 100;\n            SELECT * FROM tce73, tce74;\n          \n    fkey2_test.go:3034: expected error containing \"FOREIGN KEY constraint failed\", got: <nil>\n          sql: \n            UPDATE tce73 set b = 201 where a = 100;\n          \n    fkey2_test.go:3040: expected error containing \"FOREIGN KEY constraint failed\", got: <nil>\n          sql: \n            UPDATE tce73 set a = 101 where a = 100;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fkey2\t0.714s\nFAIL"
     },
     "fkey3": {
       "state": "fail",
@@ -1279,7 +1277,7 @@
     "fts3comp1": {
       "state": "fail",
       "duration": "1.652s",
-      "error": "smatch\n          got:  [{}]\n          want: [eight 1 1 four 2 2 nine 1 1 one 1 1 six 2 2 three 2 2 twelve 1 1 two 1 2]\n    fts3comp1_test.go:225: result mismatch\n          got:  [{}]\n          want: [eight 1 1 four 1 1 nine 1 1 six 1 1 three 1 1 twelve 1 1]\n    fts3comp1_test.go:348: expected error containing \"SQL logic error\", got: \u003cnil\u003e\n          sql: \n          INSERT INTO v1 VALUES('one two three');\n    fts3comp1_test.go:355: expected error containing \"SQL logic error\", got: \u003cnil\u003e\n          sql: \n          SELECT * FROM v1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3comp1\t1.202s\nFAIL"
+      "error": "smatch\n          got:  [{}]\n          want: [eight 1 1 four 2 2 nine 1 1 one 1 1 six 2 2 three 2 2 twelve 1 1 two 1 2]\n    fts3comp1_test.go:225: result mismatch\n          got:  [{}]\n          want: [eight 1 1 four 1 1 nine 1 1 six 1 1 three 1 1 twelve 1 1]\n    fts3comp1_test.go:348: expected error containing \"SQL logic error\", got: <nil>\n          sql: \n          INSERT INTO v1 VALUES('one two three');\n    fts3comp1_test.go:355: expected error containing \"SQL logic error\", got: <nil>\n          sql: \n          SELECT * FROM v1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3comp1\t1.202s\nFAIL"
     },
     "fts3conf": {
       "state": "fail",
@@ -1289,7 +1287,7 @@
     "fts3corrupt": {
       "state": "fail",
       "duration": "1.947s",
-      "error": "      INSERT INTO f_segments values (0, x'');\n          INSERT INTO f_stat VALUES (1,x'cf0f01');\n          INSERT INTO f(f) VALUES ('merge=1');\n    fts3corrupt_test.go:300: exec error: UNIQUE constraint failed: f_segments\n          sql: \n          UPDATE f_segments SET block = (\n            SELECT block FROM f_segments WHERE blockid=1\n          ) WHERE blockid=2\n    fts3corrupt_test.go:306: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n          INSERT INTO f(f) VALUES('merge=2,2');\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3corrupt\t1.558s\nFAIL"
+      "error": "      INSERT INTO f_segments values (0, x'');\n          INSERT INTO f_stat VALUES (1,x'cf0f01');\n          INSERT INTO f(f) VALUES ('merge=1');\n    fts3corrupt_test.go:300: exec error: UNIQUE constraint failed: f_segments\n          sql: \n          UPDATE f_segments SET block = (\n            SELECT block FROM f_segments WHERE blockid=1\n          ) WHERE blockid=2\n    fts3corrupt_test.go:306: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n          INSERT INTO f(f) VALUES('merge=2,2');\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3corrupt\t1.558s\nFAIL"
     },
     "fts3corrupt2": {
       "state": "pass",
@@ -1329,12 +1327,12 @@
     "fts3defer": {
       "state": "fail",
       "duration": "1.655s",
-      "error": "--- FAIL: Test_fts3defer (0.01s)\n    fts3defer_test.go:127: query error: UNIQUE constraint failed: t1_segments\n          sql: \n          SELECT count(*) FROM t1_segments WHERE length(block)\u003e10000;\n          UPDATE t1_segments \n            SET block = zeroblob(length(block)) \n            WHERE length(block)\u003e10000;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3defer\t1.251s\nFAIL"
+      "error": "--- FAIL: Test_fts3defer (0.01s)\n    fts3defer_test.go:127: query error: UNIQUE constraint failed: t1_segments\n          sql: \n          SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n          UPDATE t1_segments \n            SET block = zeroblob(length(block)) \n            WHERE length(block)>10000;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3defer\t1.251s\nFAIL"
     },
     "fts3defer2": {
       "state": "fail",
       "duration": "2.64s",
-      "error": "--- FAIL: Test_fts3defer2 (0.73s)\n    fts3defer2_test.go:164: exec error: UNIQUE constraint failed: t2_segments\n          sql:  UPDATE t2_segments SET block = zeroblob(length(block)) \n              WHERE length(block)\u003e10000;\n          \n    fts3defer2_test.go:212: exec error: UNIQUE constraint failed: t3_segments\n          sql:  UPDATE t3_segments SET block = zeroblob(length(block)) \n              WHERE length(block)\u003e10000;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3defer2\t2.240s\nFAIL"
+      "error": "--- FAIL: Test_fts3defer2 (0.73s)\n    fts3defer2_test.go:164: exec error: UNIQUE constraint failed: t2_segments\n          sql:  UPDATE t2_segments SET block = zeroblob(length(block)) \n              WHERE length(block)>10000;\n          \n    fts3defer2_test.go:212: exec error: UNIQUE constraint failed: t3_segments\n          sql:  UPDATE t3_segments SET block = zeroblob(length(block)) \n              WHERE length(block)>10000;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3defer2\t2.240s\nFAIL"
     },
     "fts3defer3": {
       "state": "pass",
@@ -1394,7 +1392,7 @@
     "fts3fuzz001": {
       "state": "fail",
       "duration": "1.651s",
-      "error": "         sql: \n            INSERT INTO t1(t1) VALUES('integrity-check');\n          \n    fts3fuzz001_test.go:1318: expected error containing \"database disk image is malformed\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1(t1) VALUES('optimize');\n          \n    fts3fuzz001_test.go:1347: result mismatch\n          got:  [malformed inverted index for FTS4 table main.x1]\n          want: [ok]\n    fts3fuzz001_test.go:1365: result mismatch\n          got:  [malformed inverted index for FTS4 table main.x1]\n          want: [ok]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3fuzz001\t1.263s\nFAIL"
+      "error": "         sql: \n            INSERT INTO t1(t1) VALUES('integrity-check');\n          \n    fts3fuzz001_test.go:1318: expected error containing \"database disk image is malformed\", got: <nil>\n          sql: \n            INSERT INTO t1(t1) VALUES('optimize');\n          \n    fts3fuzz001_test.go:1347: result mismatch\n          got:  [malformed inverted index for FTS4 table main.x1]\n          want: [ok]\n    fts3fuzz001_test.go:1365: result mismatch\n          got:  [malformed inverted index for FTS4 table main.x1]\n          want: [ok]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3fuzz001\t1.263s\nFAIL"
     },
     "fts3integrity": {
       "state": "fail",
@@ -1412,7 +1410,7 @@
     "fts3matchinfo": {
       "state": "fail",
       "duration": "1.872s",
-      "error": "--- FAIL: Test_fts3matchinfo (0.22s)\n    fts3matchinfo_test.go:275: exec error: UNIQUE constraint failed: t5_segments\n          sql: \n            UPDATE t5_segments \n            SET block = zeroblob(length(block)) \n            WHERE length(block)\u003e10000;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3matchinfo\t1.482s\nFAIL"
+      "error": "--- FAIL: Test_fts3matchinfo (0.22s)\n    fts3matchinfo_test.go:275: exec error: UNIQUE constraint failed: t5_segments\n          sql: \n            UPDATE t5_segments \n            SET block = zeroblob(length(block)) \n            WHERE length(block)>10000;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/fts3matchinfo\t1.482s\nFAIL"
     },
     "fts3matchinfo2": {
       "state": "pass",
@@ -1599,12 +1597,12 @@
     "func3": {
       "state": "fail",
       "duration": "796ms",
-      "error": "st be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT likelihood(123, 1.000001);\n          \n    func3_test.go:227: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT likelihood(123, -0.000001);\n          \n    func3_test.go:233: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT likelihood(123, 0.5+0.3);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func3\t0.316s\nFAIL"
+      "error": "st be a constant between 0.0 and 1.0\", got: <nil>\n          sql: \n            SELECT likelihood(123, 1.000001);\n          \n    func3_test.go:227: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: <nil>\n          sql: \n            SELECT likelihood(123, -0.000001);\n          \n    func3_test.go:233: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: <nil>\n          sql: \n            SELECT likelihood(123, 0.5+0.3);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func3\t0.316s\nFAIL"
     },
     "func4": {
       "state": "fail",
       "duration": "1.024s",
-      "error": "--- FAIL: Test_func4 (0.01s)\n    func4_test.go:1457: expected error containing \"CHECK constraint failed: tointeger(x) IS NOT NULL\", got: \u003cnil\u003e\n          sql: \n              INSERT INTO t1 (x) VALUES ('-9223372036854775809');\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func4\t0.534s\nFAIL"
+      "error": "--- FAIL: Test_func4 (0.01s)\n    func4_test.go:1457: expected error containing \"CHECK constraint failed: tointeger(x) IS NOT NULL\", got: <nil>\n          sql: \n              INSERT INTO t1 (x) VALUES ('-9223372036854775809');\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func4\t0.534s\nFAIL"
     },
     "func5": {
       "state": "pass",
@@ -1629,7 +1627,7 @@
     "func_pkg": {
       "state": "fail",
       "duration": "1.113s",
-      "error": "unt\n          sql: \n              SELECT legacy_count() FROM t6;\n            \n    func_test.go:1612: query error: no such function: test_isolation\n          sql: SELECT test_isolation(t1,t1) FROM tbl1\n    func_test.go:1630: expected error containing \"wrong number of arguments to function coalesce()\", got: function coalesce expects 1--1 arguments, got 0\n          sql: SELECT coalesce()\n    func_test.go:1636: expected error containing \"wrong number of arguments to function coalesce()\", got: \u003cnil\u003e\n          sql: SELECT coalesce(1)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func_pkg\t0.562s\nFAIL"
+      "error": "unt\n          sql: \n              SELECT legacy_count() FROM t6;\n            \n    func_test.go:1612: query error: no such function: test_isolation\n          sql: SELECT test_isolation(t1,t1) FROM tbl1\n    func_test.go:1630: expected error containing \"wrong number of arguments to function coalesce()\", got: function coalesce expects 1--1 arguments, got 0\n          sql: SELECT coalesce()\n    func_test.go:1636: expected error containing \"wrong number of arguments to function coalesce()\", got: <nil>\n          sql: SELECT coalesce(1)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/func_pkg\t0.562s\nFAIL"
     },
     "fuzz": {
       "state": "skipped"
@@ -1712,7 +1710,7 @@
     "in3": {
       "state": "fail",
       "duration": "1.056s",
-      "error": "      sql: INSERT INTO t1 VALUES(98,int(log98/log2),9801)\n    in3_test.go:153: exec error: no such function: int\n          sql: INSERT INTO t1 VALUES(99,int(log99/log2),10000)\n    in3_test.go:153: exec error: no such function: int\n          sql: INSERT INTO t1 VALUES(100,int(log100/log2),10201)\n    in3_test.go:259: expected error containing \"no such table: Folder\", got: \u003cnil\u003e\n          sql: \n            DELETE FROM Folders WHERE folderid IN\n            (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/in3\t0.544s\nFAIL"
+      "error": "      sql: INSERT INTO t1 VALUES(98,int(log98/log2),9801)\n    in3_test.go:153: exec error: no such function: int\n          sql: INSERT INTO t1 VALUES(99,int(log99/log2),10000)\n    in3_test.go:153: exec error: no such function: int\n          sql: INSERT INTO t1 VALUES(100,int(log100/log2),10201)\n    in3_test.go:259: expected error containing \"no such table: Folder\", got: <nil>\n          sql: \n            DELETE FROM Folders WHERE folderid IN\n            (SELECT folderid FROM Folder WHERE path LIKE 'C:\\MP3\\Albums\\' || '%');\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/in3\t0.544s\nFAIL"
     },
     "in4": {
       "state": "pass",
@@ -1762,14 +1760,13 @@
       "error": " PRAGMA incremental_vacuum;\n    incrvacuum_test.go:358: exec error: database disk image is malformed\n          sql: \n          CREATE TABLE t3(a, b);\n          INSERT INTO t3 SELECT * FROM t2;\n          DROP TABLE t2;\n          PRAGMA incremental_vacuum;\n    incrvacuum_test.go:826: result mismatch\n          got:  [0 1]\n          want: [1000000]\n    incrvacuum_test.go:1903: expected success, got error: database disk image is malformed\n          sql: \n          PRAGMA writable_schema=ON;\n          PRAGMA incremental_vacuum(10);\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/incrvacuum\t2.310s\nFAIL"
     },
     "incrvacuum2": {
-      "state": "fail",
-      "duration": "1m1s",
-      "error": "x2f0\ngithub.com/pijalu/frigolite.(*DB).Query(0x64cd84bda5a0, {0x10470aad0, 0x17})\n\t/Users/muaddib/dev/frigolite/frigolite.go:774 +0x308\ngithub.com/pijalu/frigolite/testgen/incrvacuum2.Test_incrvacuum2(0x64cd84520248)\n\t/Users/muaddib/dev/frigolite/testgen/incrvacuum2/incrvacuum2_test.go:219 +0xea0\ntesting.tRunner(0x64cd84520248, 0x104ada898)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/incrvacuum2\t60.374s\nFAIL"
+      "state": "pass",
+      "duration": "1m1s"
     },
     "incrvacuum3": {
       "state": "fail",
       "duration": "948ms",
-      "error": "t.go:141: result mismatch\n          got:  [*** in database main ***\n        Freelist: size is 96 but should be 46]\n          want: [ok]\n    incrvacuum3_test.go:141: result mismatch\n          got:  [database disk image is malformed (trunk 5 leafCount=33607168 exceeds maxLeaves=248)]\n          want: [ok]\n    incrvacuum3_test.go:141: result mismatch\n          got:  [*** in database main ***\n        Freelist: size is 96 but should be 46]\n          want: [ok]\nDELETE: err=\u003cnil\u003e\nBEGIN: err=\u003cnil\u003e\nVACUUM: err=\u003cnil\u003e\nINSERT1: err=\u003cnil\u003e\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/incrvacuum3\t0.618s\nFAIL"
+      "error": "t.go:141: result mismatch\n          got:  [*** in database main ***\n        Freelist: size is 96 but should be 46]\n          want: [ok]\n    incrvacuum3_test.go:141: result mismatch\n          got:  [database disk image is malformed (trunk 5 leafCount=33607168 exceeds maxLeaves=248)]\n          want: [ok]\n    incrvacuum3_test.go:141: result mismatch\n          got:  [*** in database main ***\n        Freelist: size is 96 but should be 46]\n          want: [ok]\nDELETE: err=<nil>\nBEGIN: err=<nil>\nVACUUM: err=<nil>\nINSERT1: err=<nil>\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/incrvacuum3\t0.618s\nFAIL"
     },
     "incrvacuum_ioerr": {
       "state": "pass",
@@ -1790,14 +1787,12 @@
       "duration": "1.41s"
     },
     "index4": {
-      "state": "fail",
-      "duration": "1m1.396s",
-      "error": "xec/engine_core.go:736 +0x360\ngithub.com/pijalu/frigolite.(*DB).Query(0x220388bf42d0, {0x1011a568b, 0x95})\n\t/Users/muaddib/dev/frigolite/frigolite.go:774 +0x308\ngithub.com/pijalu/frigolite/testgen/index4.Test_index4(0x220388c3c248)\n\t/Users/muaddib/dev/frigolite/testgen/index4/index4_test.go:104 +0x3d0\ntesting.tRunner(0x220388c3c248, 0x101566778)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/index4\t60.362s\nFAIL"
+      "state": "pass",
+      "duration": "1m1.396s"
     },
     "index5": {
-      "state": "fail",
-      "duration": "1m0.938s",
-      "error": "/exec/engine_core.go:736 +0x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x4d2ca3f522d0, {0x1027877ea, 0x29})\n\t/Users/muaddib/dev/frigolite/frigolite.go:718 +0x258\ngithub.com/pijalu/frigolite/testgen/index5.Test_index5(0x4d2ca3fa0248)\n\t/Users/muaddib/dev/frigolite/testgen/index5/index5_test.go:98 +0x200\ntesting.tRunner(0x4d2ca3fa0248, 0x102b52758)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/index5\t60.351s\nFAIL"
+      "state": "pass",
+      "duration": "1m0.938s"
     },
     "index6": {
       "state": "fail",
@@ -1851,7 +1846,7 @@
     "insert": {
       "state": "fail",
       "duration": "1.007s",
-      "error": "--- FAIL: Test_insert (0.07s)\n    insert_test.go:384: expected error containing \"no such column: t3.a\", got: \u003cnil\u003e\n          sql: \n              INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n              SELECT * FROM t3 ORDER BY a;\n            \n    insert_test.go:703: result mismatch\n          got:  [{} {}]\n          want: [3 4]\n    insert_test.go:727: result mismatch\n          got:  [{}]\n          want: [3]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert\t0.406s\nFAIL"
+      "error": "--- FAIL: Test_insert (0.07s)\n    insert_test.go:384: expected error containing \"no such column: t3.a\", got: <nil>\n          sql: \n              INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n              SELECT * FROM t3 ORDER BY a;\n            \n    insert_test.go:703: result mismatch\n          got:  [{} {}]\n          want: [3 4]\n    insert_test.go:727: result mismatch\n          got:  [{}]\n          want: [3]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert\t0.406s\nFAIL"
     },
     "insert2": {
       "state": "pass",
@@ -1860,7 +1855,7 @@
     "insert3": {
       "state": "fail",
       "duration": "1.014s",
-      "error": "--- FAIL: Test_insert3 (0.16s)\n    insert3_test.go:131: expected error containing \"no such column: nosuchcol\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t3 VALUES(1,2,3)\n          \n    insert3_test.go:143: expected error containing \"no such column: nosuchcol\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t4 VALUES(1,2,3)\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert3\t0.488s\nFAIL"
+      "error": "--- FAIL: Test_insert3 (0.16s)\n    insert3_test.go:131: expected error containing \"no such column: nosuchcol\", got: <nil>\n          sql: \n            INSERT INTO t3 VALUES(1,2,3)\n          \n    insert3_test.go:143: expected error containing \"no such column: nosuchcol\", got: <nil>\n          sql: \n            INSERT INTO t4 VALUES(1,2,3)\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/insert3\t0.488s\nFAIL"
     },
     "insert4": {
       "state": "fail",
@@ -1884,9 +1879,8 @@
       "duration": "1.46s"
     },
     "intarray": {
-      "state": "fail",
-      "duration": "1m1.498s",
-      "error": "_core.go:736 +0x360\ngithub.com/pijalu/frigolite.(*DB).Query(0x13444f8782d0, {0x104bc69d9, 0x73})\n\t/Users/muaddib/dev/frigolite/frigolite.go:774 +0x308\ngithub.com/pijalu/frigolite/testgen/intarray.Test_intarray(0x13444f940248)\n\t/Users/muaddib/dev/frigolite/testgen/intarray/intarray_test.go:209 +0xd58\ntesting.tRunner(0x13444f940248, 0x104f8ec70)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/intarray\t60.373s\nFAIL"
+      "state": "pass",
+      "duration": "1m1.498s"
     },
     "interrupt": {
       "state": "pass",
@@ -1933,7 +1927,7 @@
     "join": {
       "state": "fail",
       "duration": "1.533s",
-      "error": "         \n    join_test.go:425: expected error containing \"unknown join type: LEFT BOGUS\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 LEFT BOGUS JOIN t2;\n          \n    join_test.go:431: expected error containing \"unknown join type: INNER BOGUS CROSS\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 INNER BOGUS CROSS JOIN t2;\n          \n    join_test.go:437: expected error containing \"unknown join type: NATURAL AWK SED\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t1 NATURAL AWK SED JOIN t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/join\t0.422s\nFAIL"
+      "error": "         \n    join_test.go:425: expected error containing \"unknown join type: LEFT BOGUS\", got: <nil>\n          sql: \n            SELECT * FROM t1 LEFT BOGUS JOIN t2;\n          \n    join_test.go:431: expected error containing \"unknown join type: INNER BOGUS CROSS\", got: <nil>\n          sql: \n            SELECT * FROM t1 INNER BOGUS CROSS JOIN t2;\n          \n    join_test.go:437: expected error containing \"unknown join type: NATURAL AWK SED\", got: <nil>\n          sql: \n            SELECT * FROM t1 NATURAL AWK SED JOIN t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/join\t0.422s\nFAIL"
     },
     "join2": {
       "state": "pass",
@@ -2256,7 +2250,7 @@
     "memjournal2": {
       "state": "fail",
       "duration": "4.141s",
-      "error": "b=randomblob(700) WHERE a\u003c=300;\n          \n    memjournal2_test.go:102: exec error: UNIQUE constraint failed: t1\n          sql: \n              SAVEPOINT two;\n                UPDATE t1 SET b=randomblob(700) WHERE a==1;\n              ROLLBACK TO two;\n              RELEASE two;\n          \n    memjournal2_test.go:108: exec error: UNIQUE constraint failed: t1\n          sql: \n              SAVEPOINT two;\n                UPDATE t1 SET b=randomblob(700) WHERE a==1;\n              ROLLBACK TO two;\n              RELEASE two;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/memjournal2\t3.722s\nFAIL"
+      "error": "b=randomblob(700) WHERE a<=300;\n          \n    memjournal2_test.go:102: exec error: UNIQUE constraint failed: t1\n          sql: \n              SAVEPOINT two;\n                UPDATE t1 SET b=randomblob(700) WHERE a==1;\n              ROLLBACK TO two;\n              RELEASE two;\n          \n    memjournal2_test.go:108: exec error: UNIQUE constraint failed: t1\n          sql: \n              SAVEPOINT two;\n                UPDATE t1 SET b=randomblob(700) WHERE a==1;\n              ROLLBACK TO two;\n              RELEASE two;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/memjournal2\t3.722s\nFAIL"
     },
     "memleak": {
       "state": "pass",
@@ -2306,12 +2300,12 @@
     "misc4": {
       "state": "fail",
       "duration": "695ms",
-      "error": "regate functions are not allowed in the GROUP BY clause\", got: \u003cnil\u003e\n          sql:  \n              SELECT ID, Value FROM Table1\n                 UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n              ORDER BY 1, 2;\n            \n    misc4_test.go:137: expected error containing \"aggregate functions are not allowed in the GROUP BY clause\", got: \u003cnil\u003e\n          sql:  \n              SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n                 UNION SELECT ID, Value FROM Table1\n              ORDER BY 1, 2;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc4\t0.313s\nFAIL"
+      "error": "regate functions are not allowed in the GROUP BY clause\", got: <nil>\n          sql:  \n              SELECT ID, Value FROM Table1\n                 UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n              ORDER BY 1, 2;\n            \n    misc4_test.go:137: expected error containing \"aggregate functions are not allowed in the GROUP BY clause\", got: <nil>\n          sql:  \n              SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n                 UNION SELECT ID, Value FROM Table1\n              ORDER BY 1, 2;\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc4\t0.313s\nFAIL"
     },
     "misc5": {
       "state": "fail",
       "duration": "903ms",
-      "error": "--- FAIL: Test_misc5 (0.18s)\n    misc5_test.go:196: expected error containing \"no such table: blah\", got: \u003cnil\u003e\n          sql: \n              SELECT * FROM sqlite_master \n              UNION ALL \n              SELECT * FROM sqlite_master\n              LIMIT (SELECT count(*) FROM blah);\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc5\t0.465s\nFAIL"
+      "error": "--- FAIL: Test_misc5 (0.18s)\n    misc5_test.go:196: expected error containing \"no such table: blah\", got: <nil>\n          sql: \n              SELECT * FROM sqlite_master \n              UNION ALL \n              SELECT * FROM sqlite_master\n              LIMIT (SELECT count(*) FROM blah);\n            \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/misc5\t0.465s\nFAIL"
     },
     "misc6": {
       "state": "pass",
@@ -2448,7 +2442,7 @@
     "openv2": {
       "state": "fail",
       "duration": "1.068s",
-      "error": "--- FAIL: Test_openv2 (0.00s)\n    openv2_test.go:106: expected error containing \"attempt to write a readonly database\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(123)\n          \n    openv2_test.go:121: expected error containing \"attempt to write a readonly database\", got: \u003cnil\u003e\n          sql: CREATE TABLE t1(x)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/openv2\t0.638s\nFAIL"
+      "error": "--- FAIL: Test_openv2 (0.00s)\n    openv2_test.go:106: expected error containing \"attempt to write a readonly database\", got: <nil>\n          sql: \n            INSERT INTO t1 VALUES(123)\n          \n    openv2_test.go:121: expected error containing \"attempt to write a readonly database\", got: <nil>\n          sql: CREATE TABLE t1(x)\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/openv2\t0.638s\nFAIL"
     },
     "orderby1": {
       "state": "fail",
@@ -2610,7 +2604,7 @@
     "qrf01": {
       "state": "fail",
       "duration": "1.311s",
-      "error": "es │ ' abcde' │ │ yes │ 'abcde ' │ │ yes │ '+0' │ │ yes │ '-0' │ │ yes │ '012345' │ │ │ 012xyz345 │ │ yes │ '0123.45' │ │ │ 12.34.56 │ │ │ 12.3e │ │ yes │ '12.3e+123' │ │ yes │ '12.3e-34' │ │ yes │ '12.3E56' │ │ yes │ '12E56' │ │ │ 12.5E5.6 │ │ │ 12.5e+ │ │ │ 12.5e- │ │ yes │ '+Inf' │ │ yes │ '-Inf' │ │ yes │ 'Inf' │ ╰─────────┴─────────────╯]\n          body: do_test 13.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/qrf01\t0.871s\nFAIL"
+      "error": "es \u2502 ' abcde' \u2502 \u2502 yes \u2502 'abcde ' \u2502 \u2502 yes \u2502 '+0' \u2502 \u2502 yes \u2502 '-0' \u2502 \u2502 yes \u2502 '012345' \u2502 \u2502 \u2502 012xyz345 \u2502 \u2502 yes \u2502 '0123.45' \u2502 \u2502 \u2502 12.34.56 \u2502 \u2502 \u2502 12.3e \u2502 \u2502 yes \u2502 '12.3e+123' \u2502 \u2502 yes \u2502 '12.3e-34' \u2502 \u2502 yes \u2502 '12.3E56' \u2502 \u2502 yes \u2502 '12E56' \u2502 \u2502 \u2502 12.5E5.6 \u2502 \u2502 \u2502 12.5e+ \u2502 \u2502 \u2502 12.5e- \u2502 \u2502 yes \u2502 '+Inf' \u2502 \u2502 yes \u2502 '-Inf' \u2502 \u2502 yes \u2502 'Inf' \u2502 \u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f]\n          body: do_test 13.2\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/qrf01\t0.871s\nFAIL"
     },
     "qrf02": {
       "state": "fail",
@@ -2670,7 +2664,7 @@
     "rdonly": {
       "state": "fail",
       "duration": "1.097s",
-      "error": "--- FAIL: Test_rdonly (0.00s)\n    rdonly_test.go:93: expected error containing \"attempt to write a readonly database\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO t1 VALUES(2)\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rdonly\t0.701s\nFAIL"
+      "error": "--- FAIL: Test_rdonly (0.00s)\n    rdonly_test.go:93: expected error containing \"attempt to write a readonly database\", got: <nil>\n          sql: \n            INSERT INTO t1 VALUES(2)\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rdonly\t0.701s\nFAIL"
     },
     "readonly": {
       "state": "skipped"
@@ -2681,7 +2675,7 @@
     "regexp1": {
       "state": "fail",
       "duration": "1.102s",
-      "error": "--- FAIL: Test_regexp1 (0.01s)\n    regexp1_test.go:152: result mismatch\n          got:  [{}]\n          want: [1 2]\n    regexp1_test.go:212: result mismatch\n          got:  [{}]\n          want: [4]\n    regexp1_test.go:686: result mismatch\n          got:  [{} 日本語]\n          want: [1 日本語]\n    regexp1_test.go:698: result mismatch\n          got:  [{} 日本語]\n          want: [1 日本語]\n    regexp1_test.go:710: result mismatch\n          got:  [{} 日本語]\n          want: [1 日本語]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/regexp1\t0.696s\nFAIL"
+      "error": "--- FAIL: Test_regexp1 (0.01s)\n    regexp1_test.go:152: result mismatch\n          got:  [{}]\n          want: [1 2]\n    regexp1_test.go:212: result mismatch\n          got:  [{}]\n          want: [4]\n    regexp1_test.go:686: result mismatch\n          got:  [{} \u65e5\u672c\u8a9e]\n          want: [1 \u65e5\u672c\u8a9e]\n    regexp1_test.go:698: result mismatch\n          got:  [{} \u65e5\u672c\u8a9e]\n          want: [1 \u65e5\u672c\u8a9e]\n    regexp1_test.go:710: result mismatch\n          got:  [{} \u65e5\u672c\u8a9e]\n          want: [1 \u65e5\u672c\u8a9e]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/regexp1\t0.696s\nFAIL"
     },
     "regexp2": {
       "state": "pass",
@@ -2690,7 +2684,7 @@
     "reindex": {
       "state": "fail",
       "duration": "1.107s",
-      "error": "--- FAIL: Test_reindex (0.01s)\n    reindex_test.go:114: expected error containing \"unable to identify the object to be reindexed\", got: \u003cnil\u003e\n          sql: \n            REINDEX bogus\n          \n    reindex_test.go:190: expected error containing \"no such collation sequence: c2\", got: \u003cnil\u003e\n          sql: \n            REINDEX;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/reindex\t0.707s\nFAIL"
+      "error": "--- FAIL: Test_reindex (0.01s)\n    reindex_test.go:114: expected error containing \"unable to identify the object to be reindexed\", got: <nil>\n          sql: \n            REINDEX bogus\n          \n    reindex_test.go:190: expected error containing \"no such collation sequence: c2\", got: <nil>\n          sql: \n            REINDEX;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/reindex\t0.707s\nFAIL"
     },
     "reservebytes": {
       "state": "pass",
@@ -2848,7 +2842,7 @@
     "rtreeC": {
       "state": "fail",
       "duration": "1.546s",
-      "error": "NSERT INTO t1(x) SELECT x+4 FROM t1;   --   8\n          INSERT INTO t1(x) SELECT x+8 FROM t1;   --  16\n          INSERT INTO t1(x) SELECT x+16 FROM t1;  --  32\n          INSERT INTO t1(x) SELECT x+32 FROM t1;  --  64\n          INSERT INTO t1(x) SELECT x+64 FROM t1;  -- 128\n          INSERT INTO t1(x) SELECT x+128 FROM t1; -- 256\n          INSERT INTO t1(x) SELECT x+256 FROM t1; -- 512\n          INSERT INTO t1(x) SELECT x+512 FROM t1; --1024\n        \n          INSERT INTO rt SELECT x, x, x+1, printf('x%04xy',x) FROM t1 WHERE x\u003c=5;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreeC\t1.121s\nFAIL"
+      "error": "NSERT INTO t1(x) SELECT x+4 FROM t1;   --   8\n          INSERT INTO t1(x) SELECT x+8 FROM t1;   --  16\n          INSERT INTO t1(x) SELECT x+16 FROM t1;  --  32\n          INSERT INTO t1(x) SELECT x+32 FROM t1;  --  64\n          INSERT INTO t1(x) SELECT x+64 FROM t1;  -- 128\n          INSERT INTO t1(x) SELECT x+128 FROM t1; -- 256\n          INSERT INTO t1(x) SELECT x+256 FROM t1; -- 512\n          INSERT INTO t1(x) SELECT x+512 FROM t1; --1024\n        \n          INSERT INTO rt SELECT x, x, x+1, printf('x%04xy',x) FROM t1 WHERE x<=5;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreeC\t1.121s\nFAIL"
     },
     "rtreeD": {
       "state": "pass",
@@ -2857,7 +2851,7 @@
     "rtreeE": {
       "state": "fail",
       "duration": "830ms",
-      "error": "T 100+x+5*y, x*3+100, x*3+102, y*3, y*3+2 FROM x, y;\n        \n          /* A looser pattern of larger boxes near 0, 200 */\n          WITH RECURSIVE\n            x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x\u003c4),\n            y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y\u003c4)\n          INSERT INTO rt1 SELECT 200+x+5*y, x*7, x*7+15, y*7+200, y*7+215 FROM x, y;\n    rtreeE_test.go:89: query error: no such function: Qcircle\n          sql: \n          SELECT id FROM rt1 WHERE id MATCH Qcircle(0.0, 0.0, 50.0, 3) ORDER BY id;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreeE\t0.456s\nFAIL"
+      "error": "T 100+x+5*y, x*3+100, x*3+102, y*3, y*3+2 FROM x, y;\n        \n          /* A looser pattern of larger boxes near 0, 200 */\n          WITH RECURSIVE\n            x(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM x WHERE x<4),\n            y(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM y WHERE y<4)\n          INSERT INTO rt1 SELECT 200+x+5*y, x*7, x*7+15, y*7+200, y*7+215 FROM x, y;\n    rtreeE_test.go:89: query error: no such function: Qcircle\n          sql: \n          SELECT id FROM rt1 WHERE id MATCH Qcircle(0.0, 0.0, 50.0, 3) ORDER BY id;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreeE\t0.456s\nFAIL"
     },
     "rtreeF": {
       "state": "pass",
@@ -2889,7 +2883,7 @@
     "rtreecirc": {
       "state": "fail",
       "duration": "1.122s",
-      "error": "-- FAIL: Test_rtreecirc (0.01s)\n    rtreecirc_test.go:119: expected error containing \"no such table: main.rt\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO rt VALUES(1, 2, 3, 4, 5);\n          \n    rtreecirc_test.go:119: expected error containing \"no such table: main.rt\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO rt VALUES(1, 2, 3, 4, 5);\n          \n    rtreecirc_test.go:119: expected error containing \"no such table: main.rt\", got: \u003cnil\u003e\n          sql: \n            INSERT INTO rt VALUES(1, 2, 3, 4, 5);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreecirc\t0.697s\nFAIL"
+      "error": "-- FAIL: Test_rtreecirc (0.01s)\n    rtreecirc_test.go:119: expected error containing \"no such table: main.rt\", got: <nil>\n          sql: \n            INSERT INTO rt VALUES(1, 2, 3, 4, 5);\n          \n    rtreecirc_test.go:119: expected error containing \"no such table: main.rt\", got: <nil>\n          sql: \n            INSERT INTO rt VALUES(1, 2, 3, 4, 5);\n          \n    rtreecirc_test.go:119: expected error containing \"no such table: main.rt\", got: <nil>\n          sql: \n            INSERT INTO rt VALUES(1, 2, 3, 4, 5);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreecirc\t0.697s\nFAIL"
     },
     "rtreeconnect": {
       "state": "pass",
@@ -2903,12 +2897,12 @@
     "rtreedoc2": {
       "state": "fail",
       "duration": "1.137s",
-      "error": "--- FAIL: Test_rtreedoc2 (0.00s)\n    rtreedoc2_test.go:137: result mismatch\n          got:  [{}]\n          want: [qcircle 0 s utf8 -1 0]\n    rtreedoc2_test.go:149: result mismatch\n          got:  [\u0026{circle [1 2 3] [1 2 3] 0x10228d4d0 \u003cnil\u003e}]\n          want: [{}]\n    rtreedoc2_test.go:155: query error: no such function: qcircle\n          sql:  SELECT qcircle(1, 2, 3); \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreedoc2\t0.705s\nFAIL"
+      "error": "--- FAIL: Test_rtreedoc2 (0.00s)\n    rtreedoc2_test.go:137: result mismatch\n          got:  [{}]\n          want: [qcircle 0 s utf8 -1 0]\n    rtreedoc2_test.go:149: result mismatch\n          got:  [&{circle [1 2 3] [1 2 3] 0x10228d4d0 <nil>}]\n          want: [{}]\n    rtreedoc2_test.go:155: query error: no such function: qcircle\n          sql:  SELECT qcircle(1, 2, 3); \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreedoc2\t0.705s\nFAIL"
     },
     "rtreedoc3": {
       "state": "fail",
       "duration": "1.197s",
-      "error": "--- FAIL: Test_rtreedoc3 (0.04s)\n    rtreedoc3_test.go:181: exec error: database disk image is malformed\n          sql: \n          CREATE VIRTUAL TABLE rt USING rtree_i32(id,  x1,x2,  y1,y2);\n          WITH s(i) AS (\n            SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i\u003c64\n          )\n          INSERT INTO rt SELECT NULL, a.i, a.i+1, b.i, b.i+1 FROM s a, s b;\n    rtreedoc3_test.go:222: TCL error: priority queue is not empty!\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreedoc3\t0.778s\nFAIL"
+      "error": "--- FAIL: Test_rtreedoc3 (0.04s)\n    rtreedoc3_test.go:181: exec error: database disk image is malformed\n          sql: \n          CREATE VIRTUAL TABLE rt USING rtree_i32(id,  x1,x2,  y1,y2);\n          WITH s(i) AS (\n            SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<64\n          )\n          INSERT INTO rt SELECT NULL, a.i, a.i+1, b.i, b.i+1 FROM s a, s b;\n    rtreedoc3_test.go:222: TCL error: priority queue is not empty!\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/rtreedoc3\t0.778s\nFAIL"
     },
     "rtreefuzz001": {
       "state": "fail",
@@ -2993,7 +2987,7 @@
     "select1": {
       "state": "fail",
       "duration": "6.388s",
-      "error": "test.go:1787: result mismatch\n          got:  [{}]\n          want: [f1 f2]\n          body: do_test select1-9.4\n    select1_test.go:1812: result mismatch\n          got:  [{}]\n          want: [f1 f2]\n          body: do_test select1-9.5\n    select1_test.go:1920: expected error containing \"no such table: t5\", got: \u003cnil\u003e\n          sql: \n            SELECT t5.* FROM t3, t4;\n          \n    select1_test.go:1926: expected error containing \"no such table: t3\", got: \u003cnil\u003e\n          sql: \n            SELECT t3.* FROM t3 AS x, t4;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select1\t5.896s\nFAIL"
+      "error": "test.go:1787: result mismatch\n          got:  [{}]\n          want: [f1 f2]\n          body: do_test select1-9.4\n    select1_test.go:1812: result mismatch\n          got:  [{}]\n          want: [f1 f2]\n          body: do_test select1-9.5\n    select1_test.go:1920: expected error containing \"no such table: t5\", got: <nil>\n          sql: \n            SELECT t5.* FROM t3, t4;\n          \n    select1_test.go:1926: expected error containing \"no such table: t3\", got: <nil>\n          sql: \n            SELECT t3.* FROM t3 AS x, t4;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select1\t5.896s\nFAIL"
     },
     "select2": {
       "state": "fail",
@@ -3003,7 +2997,7 @@
     "select3": {
       "state": "fail",
       "duration": "1.467s",
-      "error": "--- FAIL: Test_select3 (0.06s)\n    select3_test.go:192: expected error containing \"1st GROUP BY term out of range - should be between 1 and 2\", got: \u003cnil\u003e\n          sql: \n            SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;\n          \n    select3_test.go:198: expected error containing \"1st GROUP BY term out of range - should be between 1 and 2\", got: \u003cnil\u003e\n          sql: \n            SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select3\t1.071s\nFAIL"
+      "error": "--- FAIL: Test_select3 (0.06s)\n    select3_test.go:192: expected error containing \"1st GROUP BY term out of range - should be between 1 and 2\", got: <nil>\n          sql: \n            SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;\n          \n    select3_test.go:198: expected error containing \"1st GROUP BY term out of range - should be between 1 and 2\", got: <nil>\n          sql: \n            SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select3\t1.071s\nFAIL"
     },
     "select4": {
       "state": "fail",
@@ -3013,7 +3007,7 @@
     "select5": {
       "state": "fail",
       "duration": "745ms",
-      "error": "--- FAIL: Test_select5 (0.01s)\n    select5_test.go:136: expected error containing \"no such column: temp.t1.y\", got: \u003cnil\u003e\n          sql: \n            SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select5\t0.328s\nFAIL"
+      "error": "--- FAIL: Test_select5 (0.01s)\n    select5_test.go:136: expected error containing \"no such column: temp.t1.y\", got: <nil>\n          sql: \n            SELECT y, count(*) FROM t1 GROUP BY temp.t1.y ORDER BY y\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/select5\t0.328s\nFAIL"
     },
     "select6": {
       "state": "fail",
@@ -3325,7 +3319,7 @@
     "subquery": {
       "state": "fail",
       "duration": "1.115s",
-      "error": "ected error containing \"misuse of aggregate: count()\", got: \u003cnil\u003e\n          sql: \n            SELECT max((SELECT a FROM (SELECT count(x) AS a FROM t35b))) FROM t35a;\n          \n    subquery_test.go:414: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test subquery-5.2\n    subquery_test.go:430: result mismatch\n          got:  [0]\n          want: [4]\n          body: do_test subquery-6.2\n    subquery_test.go:446: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test subquery-6.4\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/subquery\t0.617s\nFAIL"
+      "error": "ected error containing \"misuse of aggregate: count()\", got: <nil>\n          sql: \n            SELECT max((SELECT a FROM (SELECT count(x) AS a FROM t35b))) FROM t35a;\n          \n    subquery_test.go:414: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test subquery-5.2\n    subquery_test.go:430: result mismatch\n          got:  [0]\n          want: [4]\n          body: do_test subquery-6.2\n    subquery_test.go:446: result mismatch\n          got:  [0]\n          want: [1]\n          body: do_test subquery-6.4\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/subquery\t0.617s\nFAIL"
     },
     "subquery2": {
       "state": "pass",
@@ -3497,7 +3491,7 @@
     "tkt1514": {
       "state": "fail",
       "duration": "1.382s",
-      "error": "--- FAIL: Test_tkt1514 (0.00s)\n    tkt1514_test.go:62: expected error containing \"misuse of aggregate: max()\", got: \u003cnil\u003e\n          sql: \n            CREATE TABLE t1(a,b);\n            SELECT a FROM t1 WHERE max(b)\u003c10 GROUP BY a;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt1514\t0.989s\nFAIL"
+      "error": "--- FAIL: Test_tkt1514 (0.00s)\n    tkt1514_test.go:62: expected error containing \"misuse of aggregate: max()\", got: <nil>\n          sql: \n            CREATE TABLE t1(a,b);\n            SELECT a FROM t1 WHERE max(b)<10 GROUP BY a;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt1514\t0.989s\nFAIL"
     },
     "tkt1536": {
       "state": "pass",
@@ -3594,7 +3588,7 @@
     "tkt2822": {
       "state": "fail",
       "duration": "1.144s",
-      "error": "t ORDER BY term out of range - should be between 1 and 25\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                                     11,12,13,14,15,16,17,18,19, 20, 0\n          \n    tkt2822_test.go:288: expected error containing \"22nd ORDER BY term out of range - should be between 1 and 25\", got: \u003cnil\u003e\n          sql: \n            SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                                     11,12,13,14,15,16,17,18,19, 20, 21, 0\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2822\t0.659s\nFAIL"
+      "error": "t ORDER BY term out of range - should be between 1 and 25\", got: <nil>\n          sql: \n            SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                                     11,12,13,14,15,16,17,18,19, 20, 0\n          \n    tkt2822_test.go:288: expected error containing \"22nd ORDER BY term out of range - should be between 1 and 25\", got: <nil>\n          sql: \n            SELECT * FROM t7 ORDER BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n                                     11,12,13,14,15,16,17,18,19, 20, 21, 0\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2822\t0.659s\nFAIL"
     },
     "tkt2832": {
       "state": "pass",
@@ -3606,7 +3600,7 @@
     "tkt2920": {
       "state": "fail",
       "duration": "1.388s",
-      "error": "--- FAIL: Test_tkt2920 (0.01s)\n    tkt2920_test.go:134: expected error containing \"cannot commit - no transaction is active\", got: \u003cnil\u003e\n          sql: COMMIT\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2920\t0.944s\nFAIL"
+      "error": "--- FAIL: Test_tkt2920 (0.01s)\n    tkt2920_test.go:134: expected error containing \"cannot commit - no transaction is active\", got: <nil>\n          sql: COMMIT\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt2920\t0.944s\nFAIL"
     },
     "tkt2927": {
       "state": "pass",
@@ -3684,7 +3678,7 @@
     "tkt3508": {
       "state": "fail",
       "duration": "1.603s",
-      "error": "           SUBSTRATE_ISOFORM_ID VARCHAR(80),\n              SUBSTRATE_REFSEQ_ID VARCHAR(80),\n              SITE INTEGER,\n              RESIDUE VARCHAR(80),\n              ENZYME_NAME VARCHAR(80),\n              ENZYME_HPRD_ID VARCHAR(80),\n              MODIFICATION_TYPE VARCHAR(80),\n              EXPERIMENT_TYPE VARCHAR(80),\n              REFERENCE_ID VARCHAR(80)\n            );\n            select SUBSTRATE_HPRD_ID, count(substrate_refseq_id) as c\n              from modificationsTmp where c \u003e 1 group by SUBSTRATE_HPRD_ID;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3508\t1.252s\nFAIL"
+      "error": "           SUBSTRATE_ISOFORM_ID VARCHAR(80),\n              SUBSTRATE_REFSEQ_ID VARCHAR(80),\n              SITE INTEGER,\n              RESIDUE VARCHAR(80),\n              ENZYME_NAME VARCHAR(80),\n              ENZYME_HPRD_ID VARCHAR(80),\n              MODIFICATION_TYPE VARCHAR(80),\n              EXPERIMENT_TYPE VARCHAR(80),\n              REFERENCE_ID VARCHAR(80)\n            );\n            select SUBSTRATE_HPRD_ID, count(substrate_refseq_id) as c\n              from modificationsTmp where c > 1 group by SUBSTRATE_HPRD_ID;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3508\t1.252s\nFAIL"
     },
     "tkt3522": {
       "state": "pass",
@@ -3709,7 +3703,7 @@
     "tkt35xx": {
       "state": "fail",
       "duration": "1.621s",
-      "error": "--- FAIL: Test_tkt35xx (0.01s)\n    tkt35xx_test.go:100: expected error containing \"cannot start a transaction within a transaction\", got: \u003cnil\u003e\n          sql: BEGIN\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt35xx\t1.249s\nFAIL"
+      "error": "--- FAIL: Test_tkt35xx (0.01s)\n    tkt35xx_test.go:100: expected error containing \"cannot start a transaction within a transaction\", got: <nil>\n          sql: BEGIN\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt35xx\t1.249s\nFAIL"
     },
     "tkt3630": {
       "state": "pass",
@@ -3792,7 +3786,7 @@
     "tkt3935": {
       "state": "fail",
       "duration": "1.62s",
-      "error": "equired before ON\", got: \u003cnil\u003e\n          sql:  SELECT a FROM (t1) AS t ON b \n    tkt3935_test.go:100: expected error containing \"a JOIN clause is required before ON\", got: \u003cnil\u003e\n          sql:  SELECT a FROM (SELECT * FROM t1) AS t ON b \n    tkt3935_test.go:106: expected error containing \"a JOIN clause is required before ON\", got: \u003cnil\u003e\n          sql:  SELECT a FROM t1 AS t ON b \n    tkt3935_test.go:118: expected error containing \"a JOIN clause is required before USING\", got: \u003cnil\u003e\n          sql:  SELECT a FROM t1 AS t USING(a) \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3935\t1.194s\nFAIL"
+      "error": "equired before ON\", got: <nil>\n          sql:  SELECT a FROM (t1) AS t ON b \n    tkt3935_test.go:100: expected error containing \"a JOIN clause is required before ON\", got: <nil>\n          sql:  SELECT a FROM (SELECT * FROM t1) AS t ON b \n    tkt3935_test.go:106: expected error containing \"a JOIN clause is required before ON\", got: <nil>\n          sql:  SELECT a FROM t1 AS t ON b \n    tkt3935_test.go:118: expected error containing \"a JOIN clause is required before USING\", got: <nil>\n          sql:  SELECT a FROM t1 AS t USING(a) \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt3935\t1.194s\nFAIL"
     },
     "tkt3992": {
       "state": "fail",
@@ -3987,7 +3981,7 @@
     "tkt_bd484a090c": {
       "state": "fail",
       "duration": "1.884s",
-      "error": "--- FAIL: Test_tkt_bd484a090c (0.00s)\n    tkt-bd484a090c_test.go:82: expected error containing \"local time unavailable\", got: \u003cnil\u003e\n          sql:  SELECT datetime('now', 'localtime') \n    tkt-bd484a090c_test.go:88: expected error containing \"local time unavailable\", got: \u003cnil\u003e\n          sql:  SELECT datetime('2000-01-01', 'utc') \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_bd484a090c\t1.474s\nFAIL"
+      "error": "--- FAIL: Test_tkt_bd484a090c (0.00s)\n    tkt-bd484a090c_test.go:82: expected error containing \"local time unavailable\", got: <nil>\n          sql:  SELECT datetime('now', 'localtime') \n    tkt-bd484a090c_test.go:88: expected error containing \"local time unavailable\", got: <nil>\n          sql:  SELECT datetime('2000-01-01', 'utc') \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_bd484a090c\t1.474s\nFAIL"
     },
     "tkt_bdc6bbbb38": {
       "state": "skipped"
@@ -4005,9 +3999,8 @@
       "duration": "1.876s"
     },
     "tkt_d11f09d36e": {
-      "state": "fail",
-      "duration": "1m1.876s",
-      "error": "om/pijalu/frigolite.(*DB).Exec(0x1bd8e12502d0, {0x1047af4a3, 0x3d})\n\t/Users/muaddib/dev/frigolite/frigolite.go:718 +0x258\ngithub.com/pijalu/frigolite/testgen/tkt_d11f09d36e.Test_tkt_d11f09d36e(0x1bd8e12a0248)\n\t/Users/muaddib/dev/frigolite/testgen/tkt_d11f09d36e/tkt-d11f09d36e_test.go:98 +0x42c\ntesting.tRunner(0x1bd8e12a0248, 0x104b72778)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_d11f09d36e\t61.522s\nFAIL"
+      "state": "pass",
+      "duration": "1m1.876s"
     },
     "tkt_d635236375": {
       "state": "pass",
@@ -4026,7 +4019,7 @@
     "tkt_f777251dc7a": {
       "state": "fail",
       "duration": "1.866s",
-      "error": "--- FAIL: Test_tkt_f777251dc7a (0.00s)\n    tkt-f777251dc7a_test.go:70: expected error containing \"abort due to ROLLBACK\", got: \u003cnil\u003e\n          sql: \n            BEGIN IMMEDIATE;\n            CREATE TABLE xyzzy(abc);\n            SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_f777251dc7a\t1.512s\nFAIL"
+      "error": "--- FAIL: Test_tkt_f777251dc7a (0.00s)\n    tkt-f777251dc7a_test.go:70: expected error containing \"abort due to ROLLBACK\", got: <nil>\n          sql: \n            BEGIN IMMEDIATE;\n            CREATE TABLE xyzzy(abc);\n            SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tkt_f777251dc7a\t1.512s\nFAIL"
     },
     "tkt_f7b4edec": {
       "state": "pass",
@@ -4051,7 +4044,7 @@
     "tokenize": {
       "state": "fail",
       "duration": "1.62s",
-      "error": "ror containing \"unrecognized token: \\\"1.0E\\\"\", got: frigolite: parse error: incomplete input\n          sql: SELECT 1.0E-/\n    tokenize_test.go:124: expected error containing \"unrecognized token: \\\"1.0e\\\"\", got: \u003cnil\u003e\n          sql: SELECT 1.0e,5\n    tokenize_test.go:130: expected error containing \"unrecognized token: \\\"1.0E\\\"\", got: frigolite: parse error: near \"10\": syntax error\n          sql: SELECT 1.0E.10\n    tokenize_test.go:136: expected error containing \"near \\\"*\\\": syntax error\", got: \u003cnil\u003e\n          sql: SELECT 1, 2 /*\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tokenize\t1.247s\nFAIL"
+      "error": "ror containing \"unrecognized token: \\\"1.0E\\\"\", got: frigolite: parse error: incomplete input\n          sql: SELECT 1.0E-/\n    tokenize_test.go:124: expected error containing \"unrecognized token: \\\"1.0e\\\"\", got: <nil>\n          sql: SELECT 1.0e,5\n    tokenize_test.go:130: expected error containing \"unrecognized token: \\\"1.0E\\\"\", got: frigolite: parse error: near \"10\": syntax error\n          sql: SELECT 1.0E.10\n    tokenize_test.go:136: expected error containing \"near \\\"*\\\": syntax error\", got: <nil>\n          sql: SELECT 1, 2 /*\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/tokenize\t1.247s\nFAIL"
     },
     "tpch01": {
       "state": "fail",
@@ -4093,7 +4086,7 @@
     "trigger1": {
       "state": "fail",
       "duration": "1.633s",
-      "error": "                        WHERE b IN (t1.a,127,t1.b)\n                                       GROUP BY b))\n             FROM t1\n             GROUP BY a;\n          END;\n          CREATE TEMP TRIGGER x BEFORE INSERT ON t1 BEGIN\n            UPDATE t1\n               SET b=randomblob(10)\n             WHERE b \u003e= 'E'\n               AND a \u003c (SELECT a FROM t1 WHERE a\u003c22 GROUP BY b);\n          END;\n          INSERT INTO t1(b) VALUES('Y'),('X'),('Z');\n          SELECT a, CASE WHEN typeof(b)='text' THEN quote(b) ELSE '\u003cblob\u003e' END, '|' FROM t1;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger1\t1.268s\nFAIL"
+      "error": "                        WHERE b IN (t1.a,127,t1.b)\n                                       GROUP BY b))\n             FROM t1\n             GROUP BY a;\n          END;\n          CREATE TEMP TRIGGER x BEFORE INSERT ON t1 BEGIN\n            UPDATE t1\n               SET b=randomblob(10)\n             WHERE b >= 'E'\n               AND a < (SELECT a FROM t1 WHERE a<22 GROUP BY b);\n          END;\n          INSERT INTO t1(b) VALUES('Y'),('X'),('Z');\n          SELECT a, CASE WHEN typeof(b)='text' THEN quote(b) ELSE '<blob>' END, '|' FROM t1;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger1\t1.268s\nFAIL"
     },
     "trigger2": {
       "state": "fail",
@@ -4120,7 +4113,7 @@
     "trigger7": {
       "state": "fail",
       "duration": "1.63s",
-      "error": "--- FAIL: Test_trigger7 (0.00s)\n    trigger7_test.go:74: expected error containing \"unknown database not_a_db\", got: \u003cnil\u003e\n          sql: \n            CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n              SELECT 'no nothing';\n            END\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger7\t1.282s\nFAIL"
+      "error": "--- FAIL: Test_trigger7 (0.00s)\n    trigger7_test.go:74: expected error containing \"unknown database not_a_db\", got: <nil>\n          sql: \n            CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n              SELECT 'no nothing';\n            END\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/trigger7\t1.282s\nFAIL"
     },
     "trigger8": {
       "state": "pass",
@@ -4261,7 +4254,7 @@
     "upsert2": {
       "state": "fail",
       "duration": "1.644s",
-      "error": "--- FAIL: Test_upsert2 (0.00s)\n    upsert2_test.go:68: query error: UNIQUE constraint failed: t1.a\n          sql: \n          CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n          INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n          INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n            ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b\u003cexcluded.b;\n          SELECT *, 'x' FROM t1 ORDER BY a;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/upsert2\t1.237s\nFAIL"
+      "error": "--- FAIL: Test_upsert2 (0.00s)\n    upsert2_test.go:68: query error: UNIQUE constraint failed: t1.a\n          sql: \n          CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n          INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n          INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n            ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n          SELECT *, 'x' FROM t1 ORDER BY a;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/upsert2\t1.237s\nFAIL"
     },
     "upsert3": {
       "state": "pass",
@@ -4367,7 +4360,7 @@
     "vtab5": {
       "state": "fail",
       "duration": "1.811s",
-      "error": "BEGIN\n                SELECT 1, 2, 3;\n              END;\n            \n    vtab5_test.go:143: expected error containing \"cannot create triggers on virtual tables\", got: \u003cnil\u003e\n          sql: \n              CREATE TRIGGER trig BEFORE INSERT ON echo_strings BEGIN\n                SELECT 1, 2, 3;\n              END;\n            \n    vtab5_test.go:149: expected error containing \"virtual tables may not be indexed\", got: database disk image is malformed\n          sql: \n            CREATE INDEX echo_strings_i ON echo_strings(str);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab5\t1.440s\nFAIL"
+      "error": "BEGIN\n                SELECT 1, 2, 3;\n              END;\n            \n    vtab5_test.go:143: expected error containing \"cannot create triggers on virtual tables\", got: <nil>\n          sql: \n              CREATE TRIGGER trig BEFORE INSERT ON echo_strings BEGIN\n                SELECT 1, 2, 3;\n              END;\n            \n    vtab5_test.go:149: expected error containing \"virtual tables may not be indexed\", got: database disk image is malformed\n          sql: \n            CREATE INDEX echo_strings_i ON echo_strings(str);\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab5\t1.440s\nFAIL"
     },
     "vtab6": {
       "state": "fail",
@@ -4398,9 +4391,8 @@
       "duration": "1.573s"
     },
     "vtabD": {
-      "state": "fail",
-      "duration": "1m1.347s",
-      "error": "al/exec/engine_core.go:736 +0x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x6b5994c0e2d0, {0x6b59955fd1a0, 0x2b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:718 +0x258\ngithub.com/pijalu/frigolite/testgen/vtabD.Test_vtabD(0x6b5994c58248)\n\t/Users/muaddib/dev/frigolite/testgen/vtabD/vtabD_test.go:80 +0x30c\ntesting.tRunner(0x6b5994c58248, 0x102fb27b8)\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2193 +0xc4\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.0/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtabD\t60.986s\nFAIL"
+      "state": "pass",
+      "duration": "1m1.347s"
     },
     "vtabE": {
       "state": "pass",
@@ -4442,7 +4434,7 @@
     "vtab_shared": {
       "state": "fail",
       "duration": "1.07s",
-      "error": "b_shared_test.go:103: expected error containing \"no such module: echo\", got: \u003cnil\u003e\n          sql:  SELECT * FROM t1 \n    vtab_shared_test.go:144: result mismatch\n          got:  [{}]\n          want: [1 2 3 4 5 6]\n          body: do_test vtab_shared-1.9.1\n    vtab_shared_test.go:144: result mismatch\n          got:  [{}]\n          want: [1 2 3 4 5 6]\n          body: do_test vtab_shared-1.9.2\n    vtab_shared_test.go:144: result mismatch\n          got:  [{}]\n          want: [1 2 3 4 5 6]\n          body: do_test vtab_shared-1.9.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab_shared\t0.659s\nFAIL"
+      "error": "b_shared_test.go:103: expected error containing \"no such module: echo\", got: <nil>\n          sql:  SELECT * FROM t1 \n    vtab_shared_test.go:144: result mismatch\n          got:  [{}]\n          want: [1 2 3 4 5 6]\n          body: do_test vtab_shared-1.9.1\n    vtab_shared_test.go:144: result mismatch\n          got:  [{}]\n          want: [1 2 3 4 5 6]\n          body: do_test vtab_shared-1.9.2\n    vtab_shared_test.go:144: result mismatch\n          got:  [{}]\n          want: [1 2 3 4 5 6]\n          body: do_test vtab_shared-1.9.3\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/vtab_shared\t0.659s\nFAIL"
     },
     "vtabdistinct": {
       "state": "skipped"
@@ -4585,7 +4577,7 @@
     "walshared": {
       "state": "fail",
       "duration": "1.104s",
-      "error": "--- FAIL: Test_walshared (0.00s)\n    walshared_test.go:85: expected error containing \"database table is locked\", got: \u003cnil\u003e\n          sql:  PRAGMA wal_checkpoint \n    walshared_test.go:91: expected error containing \"database table is locked\", got: \u003cnil\u003e\n          sql:  PRAGMA wal_checkpoint \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walshared\t0.706s\nFAIL"
+      "error": "--- FAIL: Test_walshared (0.00s)\n    walshared_test.go:85: expected error containing \"database table is locked\", got: <nil>\n          sql:  PRAGMA wal_checkpoint \n    walshared_test.go:91: expected error containing \"database table is locked\", got: <nil>\n          sql:  PRAGMA wal_checkpoint \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/walshared\t0.706s\nFAIL"
     },
     "walslow": {
       "state": "skipped"
@@ -4660,7 +4652,7 @@
     "whereG": {
       "state": "fail",
       "duration": "1.197s",
-      "error": "ack\n             WHERE likelihood(cname LIKE '%bach%', 1.01)\n               AND composer.cid=track.cid\n               AND album.aid=track.aid;\n          \n    whereG_test.go:161: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: \u003cnil\u003e\n          sql: \n            SELECT DISTINCT aname\n              FROM album, composer, track\n             WHERE likelihood(cname LIKE '%bach%', track.cid)\n               AND composer.cid=track.cid\n               AND album.aid=track.aid;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/whereG\t0.784s\nFAIL"
+      "error": "ack\n             WHERE likelihood(cname LIKE '%bach%', 1.01)\n               AND composer.cid=track.cid\n               AND album.aid=track.aid;\n          \n    whereG_test.go:161: expected error containing \"second argument to likelihood() must be a constant between 0.0 and 1.0\", got: <nil>\n          sql: \n            SELECT DISTINCT aname\n              FROM album, composer, track\n             WHERE likelihood(cname LIKE '%bach%', track.cid)\n               AND composer.cid=track.cid\n               AND album.aid=track.aid;\n          \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/whereG\t0.784s\nFAIL"
     },
     "whereH": {
       "state": "pass",
@@ -4701,7 +4693,7 @@
     "wherelimit": {
       "state": "fail",
       "duration": "1.186s",
-      "error": " wherelimit_test.go:82: expected error containing \"ORDER BY without LIMIT on DELETE\", got: frigolite: parse error: near \"ORDER\": syntax error\n          sql: DELETE FROM t1 WHERE x=1 ORDER BY x\n    wherelimit_test.go:88: expected error containing \"ORDER BY without LIMIT on UPDATE\", got: frigolite: parse error: near \"ORDER\": syntax error\n          sql: UPDATE t1 SET y=1 WHERE x=1 ORDER BY x\n    wherelimit_test.go:106: expected error containing \"no such column: t1.x\", got: \u003cnil\u003e\n          sql: UPDATE t1 AS a SET y=1 WHERE t1.x=1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/wherelimit\t0.740s\nFAIL"
+      "error": " wherelimit_test.go:82: expected error containing \"ORDER BY without LIMIT on DELETE\", got: frigolite: parse error: near \"ORDER\": syntax error\n          sql: DELETE FROM t1 WHERE x=1 ORDER BY x\n    wherelimit_test.go:88: expected error containing \"ORDER BY without LIMIT on UPDATE\", got: frigolite: parse error: near \"ORDER\": syntax error\n          sql: UPDATE t1 SET y=1 WHERE x=1 ORDER BY x\n    wherelimit_test.go:106: expected error containing \"no such column: t1.x\", got: <nil>\n          sql: UPDATE t1 AS a SET y=1 WHERE t1.x=1\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/wherelimit\t0.740s\nFAIL"
     },
     "wherelimit2": {
       "state": "fail",
@@ -4770,12 +4762,12 @@
     "windowB": {
       "state": "fail",
       "duration": "918ms",
-      "error": "--- FAIL: Test_windowB (0.02s)\n    windowB_test.go:166: expected error containing \"no such column: fake_column\", got: \u003cnil\u003e\n          sql: \n          WITH y AS (\n            SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n          BY fake_column))\n          SELECT * FROM y;\n    windowB_test.go:372: result mismatch\n          got:  [-22- -333-333- -4444-4444- -4444-]\n          want: [-22- -22-333- -333-4444- -4444-]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowB\t0.330s\nFAIL"
+      "error": "--- FAIL: Test_windowB (0.02s)\n    windowB_test.go:166: expected error containing \"no such column: fake_column\", got: <nil>\n          sql: \n          WITH y AS (\n            SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n          BY fake_column))\n          SELECT * FROM y;\n    windowB_test.go:372: result mismatch\n          got:  [-22- -333-333- -4444-4444- -4444-]\n          want: [-22- -22-333- -333-4444- -4444-]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowB\t0.330s\nFAIL"
     },
     "windowC": {
       "state": "fail",
       "duration": "1.09s",
-      "error": "--- FAIL: Test_windowC (0.04s)\n    windowC_test.go:149: result mismatch\n          got:  [{} 1 U�А\u0013EQx�\u0011�J 1]\n          want: [{} 1 蕕郐䔓硑ᇍ䫎 1]\n    windowC_test.go:166: result mismatch\n          got:  [{} 1 U�А\u0013EQx�\u0011�J 1]\n          want: [{} 1 喅킐ፅ典촑칊 1]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowC\t0.540s\nFAIL"
+      "error": "--- FAIL: Test_windowC (0.04s)\n    windowC_test.go:149: result mismatch\n          got:  [{} 1 U\ufffd\u0410\u0013EQx\ufffd\u0011\ufffdJ 1]\n          want: [{} 1 \u8555\u90d0\u4513\u7851\u11cd\u4ace 1]\n    windowC_test.go:166: result mismatch\n          got:  [{} 1 U\ufffd\u0410\u0013EQx\ufffd\u0011\ufffdJ 1]\n          want: [{} 1 \u5585\ud090\u1345\u5178\ucd11\uce4a 1]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/windowC\t0.540s\nFAIL"
     },
     "windowD": {
       "state": "pass",
@@ -4807,7 +4799,7 @@
     "with2": {
       "state": "fail",
       "duration": "1.164s",
-      "error": "ny) * rsy / (maxy-miny)\n                WHEN 0 \u003e= maxy THEN 0\n                ELSE  rsy\n              END, radial FROM yaxis, cst, facet WHERE NOT radial\n              UNION ALL\n              SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n                WHEN 0 BETWEEN miny AND maxy THEN\n                  rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n                WHEN 0 \u003e= maxy THEN 0\n                ELSE  rsy\n              END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n            )\n          SELECT * FROM radygrid , ypos;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/with2\t0.615s\nFAIL"
+      "error": "ny) * rsy / (maxy-miny)\n                WHEN 0 >= maxy THEN 0\n                ELSE  rsy\n              END, radial FROM yaxis, cst, facet WHERE NOT radial\n              UNION ALL\n              SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n                WHEN 0 BETWEEN miny AND maxy THEN\n                  rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n                WHEN 0 >= maxy THEN 0\n                ELSE  rsy\n              END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n            )\n          SELECT * FROM radygrid , ypos;\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/with2\t0.615s\nFAIL"
     },
     "with3": {
       "state": "pass",
@@ -4840,7 +4832,7 @@
     "without_rowid3": {
       "state": "fail",
       "duration": "1.109s",
-      "error": "- FAIL: Test_without_rowid3 (0.21s)\n    without_rowid3_test.go:726: expected error containing \"UNIQUE constraint failed: node.nodeid\", got: no such table: leaf\n          sql: INSERT INTO node SELECT parent, 3 FROM leaf\n    without_rowid3_test.go:770: expected error containing \"CHECK constraint failed: e!=5\", got: \u003cnil\u003e\n          sql:  UPDATE ab SET a = 5 \n    without_rowid3_test.go:2767: expected error containing \"NOT NULL constraint failed: t1.a\", got: FOREIGN KEY constraint failed\n          sql:  UPDATE t1 SET a = NULL \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/without_rowid3\t0.512s\nFAIL"
+      "error": "- FAIL: Test_without_rowid3 (0.21s)\n    without_rowid3_test.go:726: expected error containing \"UNIQUE constraint failed: node.nodeid\", got: no such table: leaf\n          sql: INSERT INTO node SELECT parent, 3 FROM leaf\n    without_rowid3_test.go:770: expected error containing \"CHECK constraint failed: e!=5\", got: <nil>\n          sql:  UPDATE ab SET a = 5 \n    without_rowid3_test.go:2767: expected error containing \"NOT NULL constraint failed: t1.a\", got: FOREIGN KEY constraint failed\n          sql:  UPDATE t1 SET a = NULL \nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/without_rowid3\t0.512s\nFAIL"
     },
     "without_rowid4": {
       "state": "fail",
@@ -4885,5 +4877,6 @@
       "state": "pass",
       "duration": "870ms"
     }
-  }
+  },
+  "serial_confirmation_note": "Updated 2026-09-05: 8 FAIL\u2192PASS flips from \u00a75g item 6 serial re-confirmation (180s/pkg; baseline 2026-09-03T16:50:35Z marked these as FAIL @ 60s timeout)."
 }
