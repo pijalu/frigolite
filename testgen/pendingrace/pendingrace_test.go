@@ -5,8 +5,140 @@
 package pendingrace
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strings"
 "testing"
 )
 
-func Test_pendingrace(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pendingrace(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nPg string
+	_ = nPg // pre-declared from TCL source
+	var fd1 string
+	_ = fd1 // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var seen_unlock string
+	_ = seen_unlock // pre-declared from TCL source
+	var seen_access string
+	_ = seen_access // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "pendingrace")
+	testprefix = "pendingrace"
+	_ = testprefix // suppress unused warning
+	// testvfs tvfs (unsupported command, not transpiled)
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "1.0"
+		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;\n")
+		}
+	}
+	{ // do_test "1.1a"
+		_dbone0 := tclExecSQL(db, "{ PRAGMA page_count }")
+		nPg = _dbone0
+		_ = nPg // suppress unused warning
+		// expr ($nPg==20 (not evaluated)
+	}
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "1.1"
+		r = db2.Query("\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
+		}
+	}
+	// db_save: snapshot test.db* under sv_ prefix
+	for _, _sf := range tclSplitList(tclGlob("test.db*")) {
+		tclFileCopy(_sf, "sv_"+_sf)
+	}
+	if db2 != nil { db2.Close() }
+	// proc definition (not transpiled)
+	tclFileCopy("sv_test.db-journal", "test.db-journal")
+	fd1 = "sv_test.db"
+	_ = fd1 // suppress unused warning
+	data = tclReadFile(fd1)
+	_ = data // suppress unused warning
+	// close $fd1
+	_ = os.WriteFile("test.db", nil, 0644)
+	fd1 = "test.db"
+	_ = fd1 // suppress unused warning
+	tclChannelAppendAt("test.db", data, fileChannelSeek["fd1"])
+	// close $fd1
+	{ // do_test "1.2"
+		// file exists "test.db-journal"
+	}
+	// testvfs tvfs2 (unsupported command, not transpiled)
+	// tvfs2 filter xUnlock (unsupported command, not transpiled)
+	// tvfs2 script xUnlock (unsupported command, not transpiled)
+	vtab.TclVarSet("seen_unlock", "", "0")
+	seen_unlock = "0" // TCL namespace variable
+	_ = seen_unlock // suppress unused warning
+	// proc definition (not transpiled)
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	// tvfs filter xAccess (unsupported command, not transpiled)
+	// tvfs script xAccess (unsupported command, not transpiled)
+	vtab.TclVarSet("seen_access", "", "0")
+	seen_access = "0" // TCL namespace variable
+	_ = seen_access // suppress unused warning
+	// proc definition (not transpiled)
+	{ // "1.3"
+		_res = db.Exec("\n  PRAGMA integrity_check\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  PRAGMA integrity_check\n")
+		}
+	}
+	db.Close()
+	if db2 != nil { db2.Close() }
+	// tvfs delete (unsupported command, not transpiled)
+	// tvfs2 delete (unsupported command, not transpiled)
+}

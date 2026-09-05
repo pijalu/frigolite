@@ -5,8 +5,156 @@
 package tkt2686
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_tkt2686(t *testing.T) {}
-// skipped: PRAGMA max_page_count not enforced (database or disk is full) N-A; MAX_PAGE_COUNT NEEDED
+func Test_tkt2686(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE filler (fill);\n")
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
+		{ // do_test "tkt2686-" + i + ".1"
+			_res = db.Exec("BEGIN")
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+			{ // catch block
+				var _catchErr error
+				for true {
+					_res = db.Exec("INSERT INTO filler (fill) VALUES (randstr(1000, 10000)) ")
+				}
+				if _catchErr != nil {
+					rc = "1"
+					msg = _catchErr.Error()
+				} else {
+					rc = "0"
+					msg = ""
+				}
+			}
+			rc = tclListAppend(rc, msg)
+		}
+		{ // do_test "tkt2686-" + i + ".2"
+			_res = db.Exec("\n      DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)\n    ")
+			}
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_res = db.Exec("COMMIT")
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE filler (fill);\n")
+	vtab.TclVarSet("i", "", "10000")
+	i = "10000"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 12000 }() {
+		{ // do_test "tkt2686-" + i + ".1"
+			_res = db.Exec("BEGIN")
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+			{ // catch block
+				var _catchErr error
+				for true {
+					_res = db.Exec("INSERT INTO filler (fill) VALUES (randstr(1000, 10000)) ")
+				}
+				if _catchErr != nil {
+					rc = "1"
+					msg = _catchErr.Error()
+				} else {
+					rc = "0"
+					msg = ""
+				}
+			}
+			rc = tclListAppend(rc, msg)
+		}
+		{ // do_test "tkt2686-" + i + ".2"
+			_res = db.Exec("\n      DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)\n    ")
+			}
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_res = db.Exec("COMMIT")
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+}

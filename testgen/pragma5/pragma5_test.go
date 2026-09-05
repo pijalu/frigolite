@@ -5,8 +5,148 @@
 package pragma5
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_pragma5(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pragma5(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "pragma5")
+	testprefix = "pragma5"
+	_ = testprefix // suppress unused warning
+	if false {
+		return
+	}
+	db.RegisterFunction("external", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	{ // "1.0"
+		r = db.Query("\n  PRAGMA table_info(pragma_function_list)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA table_info(pragma_function_list)\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 name {} 0 {} 0 1 builtin {} 0 {} 0 2 type {} 0 {} 0 3 enc {} 0 {} 0 4 narg {} 0 {} 0 5 flags {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.1"
+		r = db.Query("\n  SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name='upper' AND builtin\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name='upper' AND builtin\n")
+			return
+		}
+		got := flatten(r)
+		want := "upper 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.2"
+		r = db.Query("\n  SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name LIKE 'exter%';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name LIKE 'exter%';\n")
+			return
+		}
+		got := flatten(r)
+		want := "external 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "2.0"
+		r = db.Query("\n    PRAGMA table_info(pragma_module_list)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA table_info(pragma_module_list)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 name {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "2.1"
+		r = db.Query("\n    SELECT * FROM pragma_module_list WHERE name='fts5'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM pragma_module_list WHERE name='fts5'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "fts5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "3.0"
+		r = db.Query("\n  PRAGMA table_info(pragma_pragma_list)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA table_info(pragma_pragma_list)\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 name {} 0 {} 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "3.1"
+		r = db.Query("\n  SELECT * FROM pragma_pragma_list WHERE name='pragma_list'\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM pragma_pragma_list WHERE name='pragma_list'\n")
+			return
+		}
+		got := flatten(r)
+		want := "pragma_list"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

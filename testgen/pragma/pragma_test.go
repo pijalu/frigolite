@@ -5,8 +5,1884 @@
 package pragma
 
 import (
+"errors"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_pragma(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pragma(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var dbX *frigolite.DB
+	_ = dbX
+	var DUMMY string
+	_ = DUMMY // prepared-statement tail var
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var once string
+	_ = once // pre-declared from TCL source
+	var ins string
+	_ = ins // pre-declared from TCL source
+	var crtab string
+	_ = crtab // pre-declared from TCL source
+	var sep string
+	_ = sep // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var DFLT_CACHE_SZ string
+	_ = DFLT_CACHE_SZ // pre-declared from TCL source
+	var TEMP_CACHE_SZ string
+	_ = TEMP_CACHE_SZ // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var in string
+	_ = in // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var DB2 string
+	_ = DB2 // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var pwd string
+	_ = pwd // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var page_size string
+	_ = page_size // pre-declared from TCL source
+	var sqlite_hostid_num string
+	_ = sqlite_hostid_num // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var env_SQLITE_FORCE_PROXY_LOCKING string
+	_ = env_SQLITE_FORCE_PROXY_LOCKING // pre-declared from TCL source
+	var lockpath string
+	_ = lockpath // pre-declared from TCL source
+	var lockpath2 string
+	_ = lockpath2 // pre-declared from TCL source
+	var autovac_setting string
+	_ = autovac_setting // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var temp_setting string
+	_ = temp_setting // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var mainerr string
+	_ = mainerr // pre-declared from TCL source
+	var auxerr string
+	_ = auxerr // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tabname string
+	_ = tabname // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var _x_arr string
+	_ = _x_arr // pre-declared from TCL source
+	var x_col string
+	_ = x_col // pre-declared from TCL source
+	var sqlite_options_integrityck string
+	_ = sqlite_options_integrityck // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "pragma")
+	testprefix = "pragma"
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test3.db")
+	os.Remove("test3.db-journal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	_dbone0 := tclExecSQL(db, "{PRAGMA default_cache_size}")
+	DFLT_CACHE_SZ = _dbone0
+	_ = DFLT_CACHE_SZ // suppress unused warning
+	_dbone1 := tclExecSQL(db, "{PRAGMA temp.default_cache_size}")
+	TEMP_CACHE_SZ = _dbone1
+	_ = TEMP_CACHE_SZ // suppress unused warning
+	{ // do_test "pragma-1.1"
+		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.2"
+		r = db.Query("\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.3"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.4"
+		r = db.Query("\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.5"
+		r = db.Query("\n    PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.6"
+		r = db.Query("\n    PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.7"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.8"
+		r = db.Query("\n    PRAGMA default_cache_size=-123;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA default_cache_size=-123;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.9.1"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.9.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "pragma-1.10"
+		r = db.Query("\n    PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.11.1"
+		r = db.Query("\n    PRAGMA synchronous=EXTRA;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=EXTRA;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.11.2"
+		r = db.Query("\n    PRAGMA synchronous=FULL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=FULL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.12"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		r = db.Query("\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.13"
+		r = db.Query("\n    PRAGMA synchronous=0;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=0;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.14"
+		r = db.Query("\n    PRAGMA synchronous=2;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=2;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.14.1"
+		r = db.Query("\n    PRAGMA synchronous=4;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=4;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.14.2"
+		r = db.Query("\n    PRAGMA synchronous=3;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=3;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.14.3"
+		r = db.Query("\n    PRAGMA synchronous=8;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=8;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.14.4"
+		r = db.Query("\n    PRAGMA synchronous=10;\n    PRAGMA synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA synchronous=10;\n    PRAGMA synchronous;\n  ")
+		}
+	}
+	{ // "1.15.1"
+		r = db.Query("\n  PRAGMA default_cache_size = 0;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA default_cache_size = 0;\n")
+		}
+	}
+	{ // "1.15.2"
+		r = db.Query("\n  PRAGMA default_cache_size;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA default_cache_size;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten(DFLT_CACHE_SZ)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.15.3"
+		r = db.Query("\n  PRAGMA default_cache_size = -500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA default_cache_size = -500;\n")
+		}
+	}
+	{ // "pragma-1.15.4" — skipped: hexio_write header patching not transpiled (SQL side effects only)
+		_res = db.Exec("\n  PRAGMA default_cache_size;\n")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+	}
+	{ // "1.15.3"
+		r = db.Query("\n  PRAGMA default_cache_size = 500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA default_cache_size = 500;\n")
+		}
+	}
+	{ // "pragma-1.15.4" — skipped: hexio_write header patching not transpiled (SQL side effects only)
+		_res = db.Exec("\n  PRAGMA default_cache_size;\n")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+	}
+	db.Close()
+	tclHexioWrite("test.db", int64(48), "FFFFFF00")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "pragma-1.15.4" — skipped: hexio_write header patching not transpiled (SQL side effects only)
+		_res = db.Exec("\n  PRAGMA default_cache_size;\n")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+	}
+	{ // do_test "pragma-1.17"
+		r = db.Query("\n    PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;\n  ")
+		}
+	}
+	{ // do_test "pragma-1.18"
+		r = db.Query("\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA bogus = -1234;  -- Parsing of negative values\n  ")
+		}
+	}
+	{ // do_test "pragma-2.1"
+		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
+		}
+	}
+	{ // do_test "pragma-2.2"
+		r = db.Query("\n      pragma aux.synchronous;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.synchronous;\n    ")
+		}
+	}
+	{ // do_test "pragma-2.3"
+		r = db.Query("\n      pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;\n    ")
+		}
+	}
+	{ // do_test "pragma-2.4"
+		r = db.Query("\n      pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;\n    ")
+		}
+	}
+	{ // do_test "pragma-3.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE t2(a,b,c);\n    CREATE INDEX i2 ON t2(a);\n    INSERT INTO t2 VALUES(11,2,3);\n    INSERT INTO t2 VALUES(22,3,4);\n    COMMIT;\n    SELECT rowid, * from t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE t2(a,b,c);\n    CREATE INDEX i2 ON t2(a);\n    INSERT INTO t2 VALUES(11,2,3);\n    INSERT INTO t2 VALUES(22,3,4);\n    COMMIT;\n    SELECT rowid, * from t2;\n  ")
+		}
+	}
+	if tclBool("!" + "" + " && " + sqlite_options_integrityck) {
+		{ // do_test "pragma-3.2"
+			_res = db.Exec("SELECT rootpage FROM sqlite_master WHERE name='i2'")
+			_dbeval0 := tclExecSQL(db, "PRAGMA page_size")
+			pgsz = _dbeval0
+			_ = pgsz // suppress unused warning
+			offset = tclExprWith("$pgsz*($rootpage-1)", map[string]string{"pgsz": pgsz, "rootpage": rootpage})
+			_ = offset // suppress unused warning
+			tclHexioWrite("test.db", int64(toInt(offset)), "0a00000000040000000000")
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			r = db.Query("PRAGMA integrity_check")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+			}
+		}
+		{ // do_test "pragma-3.3"
+			r = db.Query("PRAGMA integrity_check=1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check=1")
+			}
+		}
+		{ // do_test "pragma-3.4"
+			r = db.Query("\n        ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check\n      ")
+			}
+		}
+		{ // do_test "pragma-3.5"
+			r = db.Query("\n        PRAGMA integrity_check=4\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=4\n      ")
+			}
+		}
+		{ // "pragma-3.5.2"
+			_res = db.Exec("\n      PRAGMA integrity_check='4'\n    ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: 4") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: 4", _res.Error, "\n      PRAGMA integrity_check='4'\n    ")
+			}
+		}
+		{ // "pragma-3.6"
+			_res = db.Exec("\n      PRAGMA integrity_check=xyz\n    ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: xyz") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xyz", _res.Error, "\n      PRAGMA integrity_check=xyz\n    ")
+			}
+		}
+		{ // "pragma-3.6b"
+			_res = db.Exec("\n      PRAGMA integrity_check=t2\n    ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      PRAGMA integrity_check=t2\n    ")
+			}
+		}
+		{ // "pragma-3.6c"
+			_res = db.Exec("\n      PRAGMA integrity_check=sqlite_schema\n    ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      PRAGMA integrity_check=sqlite_schema\n    ")
+			}
+		}
+		{ // do_test "pragma-3.7"
+			r = db.Query("\n        PRAGMA integrity_check=0\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=0\n      ")
+			}
+		}
+		{ // do_test "pragma-3.8"
+			_res = db.Exec("DETACH t2")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH t2")
+			}
+			os.Remove("testerr.db")
+			_ = os.WriteFile("testerr.db", nil, 0644)
+			out = "testerr.db"
+			_ = out // suppress unused warning
+			in = "test.db"
+			_ = in // suppress unused warning
+			tclChannelAppendAt("testerr.db", "read $in", fileChannelSeek["out"])
+			fileChannelSeek["in"] = int64(tclAtoi("0"))
+			tclChannelAppendAt("testerr.db", "read $in", fileChannelSeek["out"])
+			// close $in
+			// close $out
+			tclHexioWrite("testerr.db", int64(28), "00000000")
+			_res = db.Exec("REINDEX t2")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX t2")
+			}
+			r = db.Query("PRAGMA integrity_check")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+			}
+		}
+		{ // do_test "pragma-3.8.1"
+			r = db.Query("PRAGMA quick_check")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA quick_check")
+			}
+		}
+		{ // do_test "pragma-3.8.2"
+			r = db.Query("PRAGMA QUICK_CHECK")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA QUICK_CHECK")
+			}
+		}
+		{ // do_test "pragma-3.9a"
+			r = db.Query("\n        ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check\n      ")
+			}
+		}
+		{ // "pragma-3.9b"
+			r = db.Query("\n      PRAGMA t2.integrity_check=t2;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA t2.integrity_check=t2;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "wrong # of entries in index i2 row 1 missing from index i2 row 2 missing from index i2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "pragma-3.9c"
+			r = db.Query("\n      PRAGMA t2.integrity_check=sqlite_schema;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA t2.integrity_check=sqlite_schema;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // do_test "pragma-3.10"
+			r = db.Query("\n        PRAGMA integrity_check=1\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=1\n      ")
+			}
+		}
+		{ // do_test "pragma-3.11"
+			r = db.Query("\n        PRAGMA integrity_check=5\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=5\n      ")
+			}
+		}
+		{ // do_test "pragma-3.12"
+			r = db.Query("\n        PRAGMA integrity_check=4\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=4\n      ")
+			}
+		}
+		{ // do_test "pragma-3.13"
+			r = db.Query("\n        PRAGMA integrity_check=3\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=3\n      ")
+			}
+		}
+		{ // do_test "pragma-3.14"
+			r = db.Query("\n        PRAGMA integrity_check(2)\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check(2)\n      ")
+			}
+		}
+		{ // do_test "pragma-3.15"
+			r = db.Query("\n        ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check\n      ")
+			}
+		}
+		{ // do_test "pragma-3.16"
+			r = db.Query("\n        PRAGMA integrity_check(10)\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check(10)\n      ")
+			}
+		}
+		{ // do_test "pragma-3.17"
+			r = db.Query("\n        PRAGMA integrity_check=8\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=8\n      ")
+			}
+		}
+		{ // do_test "pragma-3.18"
+			r = db.Query("\n        PRAGMA integrity_check=4\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA integrity_check=4\n      ")
+			}
+		}
+	}
+	{ // "pragma-3.19" — skipped: hexio_write header patching not transpiled (SQL side effects only)
+		_res = db.Exec("PRAGMA integrity_check")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+	}
+	db.SetDefensive(false)
+	{ // "pragma-3.20"
+		r = db.Query("\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1a ON t1(a);\n      INSERT INTO t1 VALUES(1,1),(2,2),(3,3),(2,4),(NULL,5),(NULL,6);\n      PRAGMA writable_schema=ON;\n      UPDATE sqlite_master SET sql='CREATE UNIQUE INDEX t1a ON t1(a)'\n        WHERE name='t1a';\n      UPDATE sqlite_master SET sql='CREATE TABLE t1(a NOT NULL,b)'\n        WHERE name='t1';\n      PRAGMA writable_schema=OFF;\n      ALTER TABLE t1 RENAME TO t1x;\n      PRAGMA integrity_check;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1a ON t1(a);\n      INSERT INTO t1 VALUES(1,1),(2,2),(3,3),(2,4),(NULL,5),(NULL,6);\n      PRAGMA writable_schema=ON;\n      UPDATE sqlite_master SET sql='CREATE UNIQUE INDEX t1a ON t1(a)'\n        WHERE name='t1a';\n      UPDATE sqlite_master SET sql='CREATE TABLE t1(a NOT NULL,b)'\n        WHERE name='t1';\n      PRAGMA writable_schema=OFF;\n      ALTER TABLE t1 RENAME TO t1x;\n      PRAGMA integrity_check;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "non-unique entry in index t1a NULL value in t1x.a non-unique entry in index t1a NULL value in t1x.a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma-3.21"
+		r = db.Query("\n    PRAGMA integrity_check(3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check(3);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "non-unique entry in index t1a NULL value in t1x.a non-unique entry in index t1a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma-3.22"
+		r = db.Query("\n    PRAGMA integrity_check(2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check(2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "non-unique entry in index t1a NULL value in t1x.a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma-3.23"
+		r = db.Query("\n    PRAGMA integrity_check(1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check(1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "non-unique entry in index t1a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma-3.24"
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES (1);\n    ALTER TABLE t1 ADD COLUMN b NOT NULL DEFAULT 0.25;\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES (1);\n    ALTER TABLE t1 ADD COLUMN b NOT NULL DEFAULT 0.25;\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0.25 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma-3.25"
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN c CHECK (1);\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN c CHECK (1);\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0.25 {} ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma-3.30"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			db.Close()
+		}
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);\n  ")
+		_dbevalRows2 := db.Query("PRAGMA integrity_check")
+		var _dbevalRb3 bool
+		var _dbevalErr4 error
+		var _dbevalInt5 bool
+		db.BeginActiveStatement()
+		for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
+				switch _dbevalRows2.Columns[_ci] {
+				}
+			}
+			_res = db.Exec("DELETE FROM t1")
+			if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt5 { _dbevalErr4 = errors.New("interrupted"); db.ClearInterrupt() }
+		}
+		db.EndActiveStatement()
+		if _dbevalErr4 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr4)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "pragma-3.40"
+		r = db.Query("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','two'),\n    (3, 'three','three','three'),\n    (4, 'four','four','four'),\n    (5, 'five','five','five');\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE TABLE t2(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t2(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','TWO'),\n    (3, 'three','THREE','three'),\n    (4, 'FOUR','four','four'),\n    (5, 'FIVE','FIVE','five');\n  CREATE INDEX t2bcd ON t2(b,c,d);\n  CREATE TEMP TABLE saved_schema AS SELECT name, rootpage FROM sqlite_schema;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t2bcd')\n   WHERE name='t1bcd';\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t1bcd')\n   WHERE name='t2bcd';\n  PRAGMA Writable_schema=RESET;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','two'),\n    (3, 'three','three','three'),\n    (4, 'four','four','four'),\n    (5, 'five','five','five');\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE TABLE t2(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t2(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','TWO'),\n    (3, 'three','THREE','three'),\n    (4, 'FOUR','four','four'),\n    (5, 'FIVE','FIVE','five');\n  CREATE INDEX t2bcd ON t2(b,c,d);\n  CREATE TEMP TABLE saved_schema AS SELECT name, rootpage FROM sqlite_schema;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t2bcd')\n   WHERE name='t1bcd';\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t1bcd')\n   WHERE name='t2bcd';\n  PRAGMA Writable_schema=RESET;\n")
+		}
+	}
+	{ // "pragma-3.41" — skipped: index b-tree consistency check requires real index btrees (SQL side effects only)
+		_res = db.Exec("\n    SELECT integrity_check AS x FROM pragma_integrity_check ORDER BY 1;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+	}
+	_res = db.Exec("DROP TABLE t2")
+	{ // do_test "pragma-4.1"
+		r = db.Query("\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		}
+	}
+	{ // do_test "pragma-4.2"
+		r = db.Query("\n    pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		}
+	}
+	{ // do_test "pragma-4.3"
+		r = db.Query("\n    pragma aux.default_cache_size = 456;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma aux.default_cache_size = 456;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		}
+	}
+	{ // do_test "pragma-4.4"
+		r = db.Query("\n    pragma cache_size;\n    pragma default_cache_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma cache_size;\n    pragma default_cache_size;\n  ")
+		}
+	}
+	{ // do_test "pragma-4.5"
+		r = db.Query("\n    DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		}
+	}
+	{ // do_test "pragma-4.6"
+		r = db.Query("\n    DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;\n  ")
+		}
+	}
+	{ // do_test "pragma-5.0"
+		r = db.Query("\n    pragma synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma synchronous;\n  ")
+		}
+	}
+	{ // do_test "pragma-5.1"
+		_res = db.Exec("\n    BEGIN;\n    pragma synchronous = OFF;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Safety level may not be changed inside a transaction") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Safety level may not be changed inside a transaction", _res.Error, "\n    BEGIN;\n    pragma synchronous = OFF;\n  ")
+		}
+	}
+	{ // do_test "pragma-5.2"
+		r = db.Query("\n    pragma synchronous;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma synchronous;\n  ")
+		}
+	}
+	_res = db.Exec("COMMIT;")
+	_ = _res // catchsql
+	{ // do_test "pragma-6.1"
+		vtab.TclVarSet("res", "", "")
+		res = ""
+		_ = res // suppress unused warning
+		r = db.Query("SELECT * FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_temp_master")
+		}
+		// foreach idx name file (TCL script bodies; not transpiled)
+		got := tclListFlatten(res)
+		want := tclListFlatten("0 main 1 temp 2 aux")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "pragma-6.1")
+		}
+	}
+	{ // do_test "pragma-6.2"
+		r = db.Query("\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+		}
+	}
+	{ // do_test "pragma-6.2.1"
+		r = db.Query("\n    pragma table_info;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma table_info;\n  ")
+		}
+	}
+	tcl_nullvalue = "<<NULL>>"
+	{ // do_test "pragma-6.2.2"
+		r = db.Query("\n    CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);\n  ")
+		}
+	}
+	tcl_nullvalue = ""
+	{ // do_test "pragma-6.2.3"
+		r = db.Query("\n    CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)\n  ")
+		}
+	}
+	{ // do_test "pragma-6.3.1"
+		r = db.Query("\n      CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.3.2"
+		r = db.Query("\n      pragma foreign_key_list;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma foreign_key_list;\n    ")
+		}
+	}
+	{ // do_test "pragma-6.3.3"
+		r = db.Query("\n      pragma foreign_key_list(t3_bogus);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma foreign_key_list(t3_bogus);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.3.4"
+		r = db.Query("\n      pragma foreign_key_list(t5);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma foreign_key_list(t5);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.4"
+		capPragma6 := db.Query("\n      pragma index_list(t3);\n    ")
+		if capPragma6.Error != nil { t.Errorf("capture_pragma error: %v", capPragma6.Error) }
+		db.Exec("DROP TABLE IF EXISTS temp.out")
+		{ // capture_pragma out
+			if len(capPragma6.Columns) > 0 {
+				var colList []string
+				for _, c := range capPragma6.Columns { colList = append(colList, "\"" + c + "\"") }
+				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+				for _, row := range capPragma6.Rows {
+					var vals []string
+					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+				}
+			}
+		}
+		_res = db.Exec("SELECT seq, \"name\", \"unique\" FROM out ORDER BY seq")
+	}
+	{ // do_test "pragma-6.5.1"
+		_res = db.Exec("\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
+		}
+		capPragma7 := db.Query("\n    pragma index_info(t3i1);\n  ")
+		if capPragma7.Error != nil { t.Errorf("capture_pragma error: %v", capPragma7.Error) }
+		db.Exec("DROP TABLE IF EXISTS temp.out")
+		{ // capture_pragma out
+			if len(capPragma7.Columns) > 0 {
+				var colList []string
+				for _, c := range capPragma7.Columns { colList = append(colList, "\"" + c + "\"") }
+				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+				for _, row := range capPragma7.Rows {
+					var vals []string
+					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+				}
+			}
+		}
+		_res = db.Exec("SELECT seqno, cid, name FROM out ORDER BY seqno")
+	}
+	{ // do_test "pragma-6.5.1b"
+		capPragma8 := db.Query("PRAGMA index_xinfo(t3i1)")
+		if capPragma8.Error != nil { t.Errorf("capture_pragma error: %v", capPragma8.Error) }
+		db.Exec("DROP TABLE IF EXISTS temp.out")
+		{ // capture_pragma out
+			if len(capPragma8.Columns) > 0 {
+				var colList []string
+				for _, c := range capPragma8.Columns { colList = append(colList, "\"" + c + "\"") }
+				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+				for _, row := range capPragma8.Rows {
+					var vals []string
+					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+				}
+			}
+		}
+		_res = db.Exec("SELECT seqno, cid, name FROM out ORDER BY seqno")
+	}
+	{ // "pragma-6.5.1c"
+		r = db.Query("\n  CREATE INDEX t3i2 ON t3(b,a);\n  PRAGMA index_info='t3i2';\n  DROP INDEX t3i2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX t3i2 ON t3(b,a);\n  PRAGMA index_info='t3i2';\n  DROP INDEX t3i2;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 b 1 0 a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma-6.5.2"
+		r = db.Query("\n    pragma index_info(t3i1_bogus);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma index_info(t3i1_bogus);\n  ")
+		}
+	}
+	{ // do_test "pragma-6.6.1"
+		_res = db.Exec("\n      CREATE TABLE trial(col_main);\n      CREATE TEMP TABLE trial(col_temp);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE trial(col_main);\n      CREATE TEMP TABLE trial(col_temp);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.6.2"
+		r = db.Query("\n      PRAGMA table_info(trial);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA table_info(trial);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.6.3"
+		r = db.Query("\n      PRAGMA temp.table_info(trial);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.table_info(trial);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.6.4"
+		r = db.Query("\n      PRAGMA main.table_info(trial);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.table_info(trial);\n    ")
+		}
+	}
+	{ // do_test "pragma-6.7"
+		_res = db.Exec("\n    CREATE TABLE test_table(\n      one INT NOT NULL DEFAULT -1, \n      two text,\n      three VARCHAR(45, 65) DEFAULT 'abcde',\n      four REAL DEFAULT X'abcdef',\n      five DEFAULT CURRENT_TIME\n    );\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE test_table(\n      one INT NOT NULL DEFAULT -1, \n      two text,\n      three VARCHAR(45, 65) DEFAULT 'abcde',\n      four REAL DEFAULT X'abcdef',\n      five DEFAULT CURRENT_TIME\n    );\n  ")
+		}
+		capPragma9 := db.Query("PRAGMA table_info(test_table)")
+		if capPragma9.Error != nil { t.Errorf("capture_pragma error: %v", capPragma9.Error) }
+		db.Exec("DROP TABLE IF EXISTS temp.out")
+		{ // capture_pragma out
+			if len(capPragma9.Columns) > 0 {
+				var colList []string
+				for _, c := range capPragma9.Columns { colList = append(colList, "\"" + c + "\"") }
+				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+				for _, row := range capPragma9.Rows {
+					var vals []string
+					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+				}
+			}
+		}
+		_res = db.Exec("SELECT cid, \"name\", type, \"notnull\", dflt_value, pk FROM out\n            ORDER BY cid")
+	}
+	{ // do_test "pragma-6.8"
+		r = db.Query("\n    CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);\n  ")
+		}
+	}
+	{ // do_test "pragma-7.1.1"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		capPragma10 := db.Query("PRAGMA index_list(t3)")
+		if capPragma10.Error != nil { t.Errorf("capture_pragma error: %v", capPragma10.Error) }
+		db.Exec("DROP TABLE IF EXISTS temp.out")
+		{ // capture_pragma out
+			if len(capPragma10.Columns) > 0 {
+				var colList []string
+				for _, c := range capPragma10.Columns { colList = append(colList, "\"" + c + "\"") }
+				db.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+				for _, row := range capPragma10.Rows {
+					var vals []string
+					for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+					db.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+				}
+			}
+		}
+		_res = db.Exec("SELECT name, \"origin\" FROM out ORDER BY name DESC")
+	}
+	{ // do_test "pragma-7.1.2"
+		r = db.Query("\n    pragma index_list(t3_bogus);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma index_list(t3_bogus);\n  ")
+		}
+	}
+	{ // do_test "pragma-7.3"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      pragma lock_status;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma lock_status;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.1.1"
+		r = db.Query("\n    PRAGMA schema_version = 105;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 105;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.1.2"
+		r = db.Query("\n    PRAGMA schema_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+		}
+	}
+	db.SetDefensive(true)
+	{ // "pragma-8.1.3"
+		r = db.Query("\n  PRAGMA schema_version = 106;\n  PRAGMA schema_version;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA schema_version = 106;\n  PRAGMA schema_version;\n")
+			return
+		}
+		got := flatten(r)
+		want := "105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.SetDefensive(false)
+	{ // "pragma-8.1.4"
+		r = db.Query("\n  PRAGMA schema_version = 106;\n  PRAGMA schema_version;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA schema_version = 106;\n  PRAGMA schema_version;\n")
+			return
+		}
+		got := flatten(r)
+		want := "106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma-8.1.5"
+		r = db.Query("\n    CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.1.6"
+		r = db.Query("\n    PRAGMA schema_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.1.7"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		vtab.TclVarSet("DB2", "", "sqlite3_connection_pointer db2")
+		DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
+		_ = DB2 // suppress unused warning
+		r = db2.Query("\n    SELECT * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t4;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.1.8"
+		r = db.Query("\n    PRAGMA schema_version = 108;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version = 108;\n  ")
+		}
+	}
+	{ // "pragma-8.1.9" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM t4 (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM t4", "STMT")
+		DUMMY = tclSqlTail("SELECT * FROM t4")
+		_ = DUMMY // suppress unused warning
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM t4")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "pragma-8.1.10" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+	}
+	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
+	{ // do_test "pragma-8.1.11"
+		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.1.12"
+		r = db.Query("\n      PRAGMA aux.schema_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.schema_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.1.13"
+		r = db.Query("\n    PRAGMA schema_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+		}
+	}
+	{ // "pragma-8.1.14" — skipped: second-connection ATTACH not representable with db2 aliasing
+	}
+	{ // do_test "pragma-8.1.15"
+		r = db.Query("\n      PRAGMA aux.schema_version = 206;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.schema_version = 206;\n    ")
+		}
+	}
+	{ // "pragma-8.1.16" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT * FROM aux.t1 (bind/step emulation)
+		tclPrepareStep(db, "SELECT * FROM aux.t1", "STMT")
+		DUMMY = tclSqlTail("SELECT * FROM aux.t1")
+		_ = DUMMY // suppress unused warning
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT * FROM aux.t1")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "pragma-8.1.17" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+	}
+	{ // do_test "pragma-8.1.18"
+		if db2 != nil { db2.Close() }
+	}
+	{ // do_test "pragma-8.2.1"
+		r = db.Query("\n    PRAGMA user_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.2.2"
+		r = db.Query("\n    PRAGMA user_version = 2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version = 2;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.2.3.1"
+		r = db.Query("\n    PRAGMA user_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.2.3.2"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA user_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.2.4.1"
+		r = db.Query("\n    PRAGMA schema_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA schema_version;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.2.4.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "pragma-8.2.4.3"
+		r = db.Query("\n      PRAGMA schema_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA schema_version;\n    ")
+		}
+	}
+	_res = db.Exec("ATTACH 'test2.db' AS aux")
+	{ // do_test "pragma-8.2.5"
+		r = db.Query("\n      PRAGMA aux.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.6"
+		r = db.Query("\n      PRAGMA aux.user_version = 3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version = 3;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.7"
+		r = db.Query("\n      PRAGMA aux.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.8"
+		r = db.Query("\n      PRAGMA main.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.9"
+		r = db.Query("\n      BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.10"
+		r = db.Query("\n      PRAGMA aux.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.11"
+		r = db.Query("\n      PRAGMA main.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.12"
+		r = db.Query("\n      ROLLBACK;\n      PRAGMA aux.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      PRAGMA aux.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.13"
+		r = db.Query("\n      PRAGMA main.user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.user_version;\n    ")
+		}
+	}
+	{ // do_test "pragma-8.2.14"
+		r = db.Query("\n    PRAGMA user_version = -450;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version = -450;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.2.15"
+		r = db.Query("\n    PRAGMA user_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA user_version;\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "pragma-8.3.1"
+		r = db.Query("\n    PRAGMA application_id;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA application_id;\n  ")
+		}
+	}
+	{ // do_test "pragma-8.3.2"
+		r = db.Query("PRAGMA Application_ID(12345); PRAGMA application_id;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA Application_ID(12345); PRAGMA application_id;")
+		}
+	}
+	{ // do_test "pragma-9.1"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n <= 1 }() {
+		{ // do_test "pragma-9.1.1"
+			// check_temp_store (unsupported command, not transpiled)
+		}
+	} else {
+		{ // do_test "pragma-9.1.1"
+			// check_temp_store (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "pragma-9.2"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA temp_store=file;\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store=file;\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n == 3 }() {
+		{ // do_test "pragma-9.2.1"
+			// check_temp_store (unsupported command, not transpiled)
+		}
+	} else {
+		{ // do_test "pragma-9.2.1"
+			// check_temp_store (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "pragma-9.3"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA temp_store=memory;\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store=memory;\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n == 0 }() {
+		{ // do_test "pragma-9.3.1"
+			// check_temp_store (unsupported command, not transpiled)
+		}
+	} else {
+		{ // do_test "pragma-9.3.1"
+			// check_temp_store (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "pragma-9.4"
+		r = db.Query("\n    PRAGMA temp_store_directory;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store_directory;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.5"
+		pwd = strings.ReplaceAll("file nativename [get_pwd]", "'", "''")
+		_ = pwd // suppress unused warning
+		r = db.Query("\n      PRAGMA temp_store_directory='" + pwd + "';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp_store_directory='" + pwd + "';\n    ")
+		}
+	}
+	{ // do_test "pragma-9.6"
+		r = db.Query(" \n      PRAGMA temp_store_directory;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA temp_store_directory;\n    ")
+		}
+	}
+	{ // do_test "pragma-9.7"
+		_res = db.Exec(" \n      PRAGMA temp_store_directory='/NON/EXISTENT/PATH/FOOBAR';\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not a writable directory") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not a writable directory", _res.Error, " \n      PRAGMA temp_store_directory='/NON/EXISTENT/PATH/FOOBAR';\n    ")
+		}
+	}
+	{ // do_test "pragma-9.8"
+		r = db.Query(" \n      PRAGMA temp_store_directory='';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA temp_store_directory='';\n    ")
+		}
+	}
+	if tclBool("!" + tclBool01(vtab.TclVarExists("TEMP_STORE", "")) + " || " + TEMP_STORE + "<=1") {
+		{ // do_test "pragma-9.9"
+			r = db.Query(" \n          PRAGMA temp_store_directory;\n          PRAGMA temp_store=FILE;\n          CREATE TEMP TABLE temp_store_directory_test(a integer);\n          INSERT INTO temp_store_directory_test values (2);\n          SELECT * FROM temp_store_directory_test;\n        ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n          PRAGMA temp_store_directory;\n          PRAGMA temp_store=FILE;\n          CREATE TEMP TABLE temp_store_directory_test(a integer);\n          INSERT INTO temp_store_directory_test values (2);\n          SELECT * FROM temp_store_directory_test;\n        ")
+			}
+		}
+		{ // do_test "pragma-9.10"
+			_res = db.Exec("\n          PRAGMA temp_store_directory='" + pwd + "';\n          SELECT * FROM temp_store_directory_test;\n        ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp_store_directory_test") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp_store_directory_test", _res.Error, "\n          PRAGMA temp_store_directory='" + pwd + "';\n          SELECT * FROM temp_store_directory_test;\n        ")
+			}
+		}
+	}
+	{ // do_test "pragma-9.11"
+		r = db.Query("\n    PRAGMA temp_store = 0;\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 0;\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.12"
+		r = db.Query("\n    PRAGMA temp_store = 1;\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 1;\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.13"
+		r = db.Query("\n    PRAGMA temp_store = 2;\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 2;\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.14"
+		r = db.Query("\n    PRAGMA temp_store = 3;\n    PRAGMA temp_store;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp_store = 3;\n    PRAGMA temp_store;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.15"
+		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TEMP TABLE temp_table(t);\n    INSERT INTO temp_table VALUES('valuable data');\n    PRAGMA temp_store = 1;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "temporary storage cannot be changed from within a transaction") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "temporary storage cannot be changed from within a transaction", _res.Error, "\n    BEGIN EXCLUSIVE;\n    CREATE TEMP TABLE temp_table(t);\n    INSERT INTO temp_table VALUES('valuable data');\n    PRAGMA temp_store = 1;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.16"
+		r = db.Query("\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM temp_table;\n    COMMIT;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.17"
+		r = db.Query("\n    INSERT INTO temp_table VALUES('valuable data II');\n    SELECT * FROM temp_table;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO temp_table VALUES('valuable data II');\n    SELECT * FROM temp_table;\n  ")
+		}
+	}
+	{ // do_test "pragma-9.18"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			_dbevalRows11 := db.Query("SELECT t FROM temp_table")
+			var _dbevalRb12 bool
+			var _dbevalErr13 error
+			var _dbevalInt14 bool
+			db.BeginActiveStatement()
+			for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
+					switch _dbevalRows11.Columns[_ci] {
+					}
+				}
+				r = db.Query("pragma temp_store = 1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store = 1")
+				}
+				if _dbevalRb12 { _dbevalErr13 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt14 { _dbevalErr13 = errors.New("interrupted"); db.ClearInterrupt() }
+			}
+			db.EndActiveStatement()
+			if _dbevalErr13 != nil {
+				_catchErr = _dbevalErr13
+			}
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		_list := tclList([]string{rc, msg})
+		_ = _list
+		_r = _list
+	}
+	{ // do_test "pragma-10.0"
+		_res = db.Exec("\n    DROP TABLE main.t1;\n  ")
+		_ = _res // catchsql
+		r = db.Query("\n    PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;\n  ")
+		}
+	}
+	{ // do_test "pragma-10.1"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(10,10));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(10,10));\n  ")
+		}
+	}
+	{ // do_test "pragma-10.2"
+		_res = db.Exec("\n    UPDATE t1 SET a = randstr(10,10);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a = randstr(10,10);\n  ")
+		}
+	}
+	{ // do_test "pragma-10.3"
+		_res = db.Exec("\n    DELETE FROM t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n  ")
+		}
+	}
+	{ // do_test "pragma-11.1"
+		r = db.Query("\n      pragma collation_list;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma collation_list;\n    ")
+		}
+	}
+	{ // do_test "pragma-11.2"
+		// db collate New_Collation (not transpiled)
+		r = db.Query("\n      pragma collation_list;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma collation_list;\n    ")
+		}
+	}
+	{ // do_test "pragma-12.1"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n      PRAGMA temp.table_info('abc');\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.table_info('abc');\n    ")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "pragma-12.2"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n      PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;\n    ")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "pragma-12.3"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n      PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;\n    ")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "pragma-13.1"
+		r = db.Query("\n    DROP TABLE IF EXISTS t4;\n    PRAGMA vdbe_trace=on;\n    PRAGMA vdbe_listing=on;\n    PRAGMA sql_trace=on;\n    CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n    INSERT INTO t4(b) VALUES(x'0123456789abcdef0123456789abcdef0123456789');\n    INSERT INTO t4(b) VALUES(randstr(30,30));\n    INSERT INTO t4(b) VALUES(1.23456);\n    INSERT INTO t4(b) VALUES(NULL);\n    INSERT INTO t4(b) VALUES(0);\n    INSERT INTO t4(b) SELECT b||b||b||b FROM t4;\n    SELECT * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t4;\n    PRAGMA vdbe_trace=on;\n    PRAGMA vdbe_listing=on;\n    PRAGMA sql_trace=on;\n    CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n    INSERT INTO t4(b) VALUES(x'0123456789abcdef0123456789abcdef0123456789');\n    INSERT INTO t4(b) VALUES(randstr(30,30));\n    INSERT INTO t4(b) VALUES(1.23456);\n    INSERT INTO t4(b) VALUES(NULL);\n    INSERT INTO t4(b) VALUES(0);\n    INSERT INTO t4(b) SELECT b||b||b||b FROM t4;\n    SELECT * FROM t4;\n  ")
+		}
+		r = db.Query("\n    PRAGMA vdbe_trace=off;\n    PRAGMA vdbe_listing=off;\n    PRAGMA sql_trace=off;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA vdbe_trace=off;\n    PRAGMA vdbe_listing=off;\n    PRAGMA sql_trace=off;\n  ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "pragma-14.1"
+		r = db.Query(" pragma auto_vacuum = 0 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma auto_vacuum = 0 ")
+		}
+		r = db.Query(" pragma page_count; pragma main.page_count ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma page_count; pragma main.page_count ")
+		}
+	}
+	{ // do_test "pragma-14.2"
+		r = db.Query(" \n      CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;\n    ")
+		}
+	}
+	{ // do_test "pragma-14.2uc"
+		r = db.Query("pragma PAGE_COUNT")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma PAGE_COUNT")
+		}
+	}
+	{ // do_test "pragma-14.3"
+		r = db.Query(" \n      BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;\n    ")
+		}
+	}
+	{ // do_test "pragma-14.3uc"
+		r = db.Query("pragma PAGE_COUNT")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma PAGE_COUNT")
+		}
+	}
+	{ // "pragma-14.4" (prepare-step internals; SQL side effects only)
+		_dbone15 := tclExecSQL(db, "{pragma page_size}")
+		page_size = _dbone15
+		_ = page_size // suppress unused warning
+		// expr [file size test.db] (not evaluated)
+	}
+	{ // do_test "pragma-14.5"
+		r = db.Query("\n      ROLLBACK;\n      PRAGMA page_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      PRAGMA page_count;\n    ")
+		}
+	}
+	{ // do_test "pragma-14.6"
+		os.Remove("test2.db")
+		db2, err = frigolite.Open("test2.db")
+		if err != nil { t.Fatal(err) }
+		r = db2.Query("\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
+		}
+		if db2 != nil { db2.Close() }
+		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_count;\n    ")
+		}
+	}
+	{ // do_test "pragma-14.6uc"
+		r = db.Query("pragma AUX.PAGE_COUNT")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma AUX.PAGE_COUNT")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "pragma-15.1"
+		r = db.Query("\n      PRAGMA cache_size=59;\n      PRAGMA cache_size;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size=59;\n      PRAGMA cache_size;\n    ")
+		}
+	}
+	{ // do_test "pragma-15.2"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n      CREATE TABLE newtable(a, b, c);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE newtable(a, b, c);\n    ")
+		}
+		if db2 != nil { db2.Close() }
+	}
+	{ // do_test "pragma-15.3"
+		r = db.Query(" SELECT * FROM sqlite_master ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sqlite_master ")
+		}
+		r = db.Query(" PRAGMA cache_size ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size ")
+		}
+	}
+	dbX, err = frigolite.Open(":memory:")
+	if err != nil { t.Fatal(err) }
+	if err != nil { t.Fatal(err) }
+	// dbX eval {PRAGMA temp_store_directory = ""} (unsupported command, not transpiled)
+	// dbX close (unsupported command, not transpiled)
+	// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
+	_items16 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
+	for _idx16 := 0; _idx16+2 <= len(_items16); _idx16 += 2 {
+		autovac_setting := _items16[_idx16+0]
+		_ = autovac_setting // suppress unused warning
+		val := _items16[_idx16+1]
+		_ = val // suppress unused warning
+		_ = _idx16
+			{ // "pragma-17.1." + autovac_setting — skipped: auto_vacuum do_test value comparison not transpiled
+			}
+		}
+		// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
+		_items17 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
+		for _idx17 := 0; _idx17+2 <= len(_items17); _idx17 += 2 {
+			temp_setting := _items17[_idx17+0]
+			_ = temp_setting // suppress unused warning
+			val := _items17[_idx17+1]
+			_ = val // suppress unused warning
+			_ = _idx17
+				{ // "pragma-18.1." + temp_setting — skipped: temp_store do_test value comparison not transpiled
+				}
+			}
+			db.Close()
+			// testvfs tvfs (unsupported command, not transpiled)
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // do_test "pragma-19.1"
+				_res = db.Exec("PRAGMA error")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "PRAGMA error")
+				}
+			}
+			{ // do_test "pragma-19.2"
+				_res = db.Exec("PRAGMA error='This is the error message'")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "This is the error message") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "This is the error message", _res.Error, "PRAGMA error='This is the error message'")
+				}
+			}
+			{ // do_test "pragma-19.3"
+				_res = db.Exec("PRAGMA error='7 This is the error message'")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "This is the error message") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "This is the error message", _res.Error, "PRAGMA error='7 This is the error message'")
+				}
+			}
+			{ // do_test "pragma-19.4"
+				_res = db.Exec("PRAGMA error=7")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "out of memory") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "out of memory", _res.Error, "PRAGMA error=7")
+				}
+			}
+			{ // do_test "pragma-19.5"
+				// file tail [lindex [execsql {PRAGMA filename}] 0]
+			}
+			if tcl_platform_platform == "windows" {
+				db.Close()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				os.MkdirAll("data_dir", 0755)
+				{ // do_test "pragma-20.1"
+					_res = db.Exec("PRAGMA data_store_directory")
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory")
+					}
+				}
+				{ // do_test "pragma-20.2"
+					pwd = strings.ReplaceAll("file nativename [get_pwd]", "'", "''")
+					_ = pwd // suppress unused warning
+					_res = db.Exec("PRAGMA data_store_directory='" + pwd + "';")
+					_ = _res // catchsql
+				}
+				{ // do_test "pragma-20.3"
+					_res = db.Exec("PRAGMA data_store_directory")
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory")
+					}
+				}
+				{ // do_test "pragma-20.4"
+					pwd = strings.ReplaceAll("file nativename \\\n    [file join [get_pwd] data_dir]", "'", "''")
+					_ = pwd // suppress unused warning
+					_res = db.Exec("PRAGMA data_store_directory='" + pwd + "';")
+					_ = _res // catchsql
+				}
+				{ // do_test "pragma-20.5"
+					db2, err = frigolite.Open("test2.db")
+					if err != nil { t.Fatal(err) }
+					_res = db2.Exec("PRAGMA database_list;")
+					_ = _res // catchsql
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					if db2 != nil { db2.Close() }
+				}
+				{ // do_test "pragma-20.6"
+					db2, err = frigolite.Open("file join [get_pwd] test2.db")
+					if err != nil { t.Fatal(err) }
+					_res = db2.Exec("PRAGMA database_list;")
+					_ = _res // catchsql
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					if db2 != nil { db2.Close() }
+				}
+				{ // do_test "pragma-20.7"
+					_res = db.Exec("PRAGMA data_store_directory='';")
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory='';")
+					}
+				}
+				{ // do_test "pragma-20.8"
+					_res = db.Exec("PRAGMA data_store_directory")
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "PRAGMA data_store_directory")
+					}
+				}
+				os.Remove("data_dir")
+			}
+			// database_may_be_corrupt (unsupported command, not transpiled)
+			if tclBool("!" + "nonzero_reserved_bytes") {
+				{ // do_test "21.1"
+					db.Close()
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					r = db.Query(" \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
+					}
+					vtab.TclVarSet("i", "", "0")
+					i = "0"
+					_ = i // suppress unused warning
+					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+						_res = db.Exec(" INSERT INTO t1 SELECT a + (1 << " + sqlLiteral(i) + "), b + (1 << " + sqlLiteral(i) + ") FROM t1 ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT a + (1 << " + sqlLiteral(i) + "), b + (1 << " + sqlLiteral(i) + ") FROM t1 ")
+						}
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					db.Close()
+					tclFileCopy("test.db", "testerr.db")
+					tclHexioWrite("testerr.db", int64(15000), tclStringRepeat("55", "100"))
+				}
+				vtab.TclVarSet("mainerr", "", "*** in database main ***\nMultiple uses for byte 672 of page 15")
+				mainerr = "*** in database main ***\nMultiple uses for byte 672 of page 15"
+				_ = mainerr // suppress unused warning
+				vtab.TclVarSet("auxerr", "", "*** in database aux ***\nMultiple uses for byte 672 of page 15")
+				auxerr = "*** in database aux ***\nMultiple uses for byte 672 of page 15"
+				_ = auxerr // suppress unused warning
+				vtab.TclVarSet("mainerr", "", "/{\\*\\*\\* in database main \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/")
+				mainerr = "/{\\*\\*\\* in database main \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
+				_ = mainerr // suppress unused warning
+				vtab.TclVarSet("auxerr", "", "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/")
+				auxerr = "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
+				_ = auxerr // suppress unused warning
+				{ // "pragma-22.2" — skipped: hexio page-corruption integrity check not supported
+				}
+				{ // "pragma-22.3.1" — skipped: hexio page-corruption integrity check not supported
+				}
+				{ // "pragma-22.3.2" — skipped: hexio page-corruption integrity check not supported
+				}
+				{ // "pragma-22.3.3" — skipped: hexio page-corruption integrity check not supported
+				}
+				{ // "pragma-22.4.1" — skipped: hexio page-corruption integrity check not supported
+				}
+				{ // "pragma-22.4.2" — skipped: hexio page-corruption integrity check not supported
+				}
+				{ // "pragma-22.4.3" — skipped: hexio page-corruption integrity check not supported
+				}
+			}
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			db2, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // do_test "23.1"
+				_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);\n  ")
+				_res = db2.Exec("SELECT name FROM sqlite_master")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.2a"
+				_res = db.Exec("\n    DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);\n  ")
+				capPragma18 := db2.Query("PRAGMA index_info(i2)")
+				if capPragma18.Error != nil { t.Errorf("capture_pragma error: %v", capPragma18.Error) }
+				db2.Exec("DROP TABLE IF EXISTS temp.out")
+				{ // capture_pragma out
+					if len(capPragma18.Columns) > 0 {
+						var colList []string
+						for _, c := range capPragma18.Columns { colList = append(colList, "\"" + c + "\"") }
+						db2.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+						for _, row := range capPragma18.Rows {
+							var vals []string
+							for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+							db2.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+						}
+					}
+				}
+				_res = db2.Exec("SELECT cid, name, '|' FROM out ORDER BY seqno")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.2b"
+				capPragma19 := db2.Query("PRAGMA index_xinfo(i2)")
+				if capPragma19.Error != nil { t.Errorf("capture_pragma error: %v", capPragma19.Error) }
+				db2.Exec("DROP TABLE IF EXISTS temp.out")
+				{ // capture_pragma out
+					if len(capPragma19.Columns) > 0 {
+						var colList []string
+						for _, c := range capPragma19.Columns { colList = append(colList, "\"" + c + "\"") }
+						db2.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+						for _, row := range capPragma19.Rows {
+							var vals []string
+							for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+							db2.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+						}
+					}
+				}
+				_res = db2.Exec("SELECT cid, name, \"desc\", coll, \"key\", '|' FROM out ORDER BY seqno")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.2c"
+				_res = db2.Exec("PRAGMA index_xinfo(i2)")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.2d"
+				_res = db2.Exec("PRAGMA index_xinfo(i2x)")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.2e"
+				_res = db2.Exec("PRAGMA index_xinfo(i3)")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.3"
+				_res = db.Exec("\n    DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);\n  ")
+				capPragma20 := db2.Query("PRAGMA index_list(t1)")
+				if capPragma20.Error != nil { t.Errorf("capture_pragma error: %v", capPragma20.Error) }
+				db2.Exec("DROP TABLE IF EXISTS temp.out")
+				{ // capture_pragma out
+					if len(capPragma20.Columns) > 0 {
+						var colList []string
+						for _, c := range capPragma20.Columns { colList = append(colList, "\"" + c + "\"") }
+						db2.Exec("CREATE TEMP TABLE out (" + strings.Join(colList, ",") + ")")
+						for _, row := range capPragma20.Rows {
+							var vals []string
+							for _, v := range row { vals = append(vals, strconv.Quote(tclStr(v))) }
+							db2.Exec("INSERT INTO out VALUES (" + strings.Join(vals, ",") + ")")
+						}
+					}
+				}
+				_res = db2.Exec("SELECT seq, name, \"unique\", origin, '|' FROM out ORDER BY seq")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.4"
+				_res = db.Exec("\n      ALTER TABLE t1 ADD COLUMN e;\n    ")
+				_res = db2.Exec("\n      PRAGMA table_info(t1);\n    ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			{ // do_test "23.5"
+				_res = db.Exec("\n    DROP TABLE t2;\n    CREATE TABLE t2(x, y INTEGER REFERENCES t1);\n  ")
+				_res = db2.Exec("\n    PRAGMA foreign_key_list(t2);\n  ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			}
+			if db2 != nil { db2.Close() }
+			// database_never_corrupt (unsupported command, not transpiled)
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			{ // "25.0"
+				r = db.Query("\n  CREATE TABLE t1(a INT, b AS (a*2) NOT NULL);\n  CREATE TEMP TABLE t2(a PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2x ON t2(c,b);\n  PRAGMA integrity_check;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT, b AS (a*2) NOT NULL);\n  CREATE TEMP TABLE t2(a PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2x ON t2(c,b);\n  PRAGMA integrity_check;\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+}

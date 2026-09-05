@@ -315,6 +315,18 @@ func bodyEndsWithQueryFunc(bodyCmds [][]tcl.RawWord, queryFuncs map[string]strin
 	return ok
 }
 
+// bodyEndsWithQuotaGlob reports whether a do_test body's last command is
+// `sqlite3_quota_glob PATTERN TEXT` (test/quota-glob.test). The transpiler
+// maps the command to a runtime helper that returns "1"/"0" in `_r`; the
+// body comparison uses emitQueryFuncResultCheck to compare that result.
+func bodyEndsWithQuotaGlob(bodyCmds [][]tcl.RawWord) bool {
+	if len(bodyCmds) == 0 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	return len(last) >= 1 && last[0].Text == "sqlite3_quota_glob"
+}
+
 // bodyEndsWithEQP reports whether a do_test body's last command is `eqp
 // "SQL"` (the EXPLAIN QUERY PLAN detail collector). Its result is the detail
 // list the do_test compares against the expected value.

@@ -178,11 +178,34 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		// intarray test-only C-API (src/test_intarray.c), emulated so the
 		// intarray virtual table can be created and populated by the harness.
 		"sqlite3_intarray_create": (*transpiler).processIntarrayCreate,
-		"sqlite3_intarray_bind":   (*transpiler).processIntarrayBind,
-		"sqlite3_reset":           (*transpiler).processReset,
-		"sqlite3_finalize":        (*transpiler).processFinalize,
-		"sqlite3_clear_bindings":  (*transpiler).processClearBindings,
-		"sqlite3_create_function": (*transpiler).processCreateFunction,
+				"sqlite3_intarray_bind":   (*transpiler).processIntarrayBind,
+				"sqlite3_reset":           (*transpiler).processReset,
+				"sqlite3_finalize":        (*transpiler).processFinalize,
+				"sqlite3_clear_bindings":  (*transpiler).processClearBindings,
+				"sqlite3_create_function": (*transpiler).processCreateFunction,
+
+				// quota VFS (src/test_quota.c). Each command returns its result via
+				// the runtime helper of the same name (defined in helpersTemplatePart2).
+				"sqlite3_quota_initialize":       (*transpiler).processSqlite3QuotaInitialize,
+				"sqlite3_quota_shutdown":         (*transpiler).processSqlite3QuotaShutdown,
+				"sqlite3_quota_set":              (*transpiler).processSqlite3QuotaSet,
+				"sqlite3_quota_remove":           (*transpiler).processSqlite3QuotaRemove,
+				"sqlite3_quota_file":             (*transpiler).processSqlite3QuotaFile,
+				"sqlite3_quota_dump":             (*transpiler).processSqlite3QuotaDump,
+				"sqlite3_quota_glob":             (*transpiler).processSqlite3QuotaGlob,
+				"sqlite3_quota_dir":              (*transpiler).processSqlite3QuotaDir,
+				"sqlite3_quota_fopen":            (*transpiler).processSqlite3QuotaFopen,
+				"sqlite3_quota_fclose":           (*transpiler).processSqlite3QuotaFclose,
+				"sqlite3_quota_fread":            (*transpiler).processSqlite3QuotaFread,
+				"sqlite3_quota_fwrite":           (*transpiler).processSqlite3QuotaFwrite,
+				"sqlite3_quota_fflush":           (*transpiler).processSqlite3QuotaFflush,
+				"sqlite3_quota_fseek":            (*transpiler).processSqlite3QuotaFseek,
+				"sqlite3_quota_rewind":           (*transpiler).processSqlite3QuotaRewind,
+				"sqlite3_quota_ftell":            (*transpiler).processSqlite3QuotaFTell,
+				"sqlite3_quota_ftruncate":        (*transpiler).processSqlite3QuotaFtruncate,
+				"sqlite3_quota_file_available":   (*transpiler).processSqlite3QuotaFileAvailable,
+				"sqlite3_quota_file_size":        (*transpiler).processSqlite3QuotaFileSize,
+				"sqlite3_quota_ferror":           (*transpiler).processSqlite3QuotaFerror,
 
 		// Prepared-statement metadata queries (value-producing statements).
 		// Only active for files using the runtime Stmt VM emulation; other

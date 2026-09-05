@@ -5,8 +5,208 @@
 package rollback
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_rollback(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_rollback(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+	// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size
+	// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).
+	var sqlite_pending_byte = "65536" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102
+	_ = sqlite_pending_byte
+	// Pager.SetPendingByte(0x10000) makes the engine skip page 65 (the
+	// pending-byte slot) when handing out rootpages — without this,
+	// autovacuum-2.4.5 allocates a table at the reserved slot and
+	// the btree reader later reports "database disk image is
+	// malformed". The test harness pins the byte in C via
+	// sqlite3_test_control_pending_byte; mirror that here.
+	db.SetPendingByte(0x10000)
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var TAIL string
+	_ = TAIL // prepared-statement tail var
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var mj string
+	_ = mj // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var mj_pgno string
+	_ = mj_pgno // pre-declared from TCL source
+	var zAppend string
+	_ = zAppend // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	DB = "db"
+	_ = DB // suppress unused warning
+	{ // do_test "rollback-1.1"
+		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "rollback-1.2"
+		_res = db.Exec("\n      CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // "rollback-1.3" (prepare-step internals; SQL side effects only)
+		// prepared STMT: SELECT a FROM t1 (bind/step emulation)
+		tclPrepareStep(db, "SELECT a FROM t1", "STMT")
+		TAIL = tclSqlTail("SELECT a FROM t1")
+		_ = TAIL // suppress unused warning
+		_ = STMT // prepared statement handle
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // do_test "rollback-1.4"
+		_res = db.Exec("\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t3.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t3.a", _res.Error, "\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
+		}
+	}
+	{ // "rollback-1.5" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // do_test "rollback-1.6"
+		tclResetPrepared("STMT")
+		// sqlite3_reset $STMT
+	}
+	{ // "rollback-1.7" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "rollback-1.8" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("SELECT a FROM t1")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "rollback-1.9" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("STMT")
+		// sqlite3_finalize $STMT
+	}
+	if tclBool(tcl_platform_platform + " == \"unix\" \n && " + "" + " != \"onefile\"\n && " + "" + " != \"inmemory_journal\"\n && " + "" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
+		{ // do_test "rollback-2.1"
+			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t3 VALUES('hello world');\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t3 VALUES('hello world');\n    ")
+			}
+			tclFileCopy("test.db", "testA.db")
+			tclFileCopy("test.db-journal", "testA.db-journal")
+			_res = db.Exec("\n      COMMIT;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n    ")
+			}
+		}
+		mj = "file normalize testA.db-mj-123"
+		_ = mj // suppress unused warning
+		// binary scan $mj c* a (test infra, not transpiled)
+		vtab.TclVarSet("cksum", "", "0")
+		cksum = "0"
+		_ = cksum // suppress unused warning
+		for _, i := range tclSplitList(a) {
+		_ = i // suppress unused warning
+			// incr cksum i
+			{
+				_n, _err := strconv.Atoi(cksum)
+				if _err == nil {
+					cksum = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(i); return _v }())
+				}
+			}
+		}
+		mj_pgno = tclExprWith("$sqlite_pending_byte / 1024", map[string]string{"sqlite_pending_byte": sqlite_pending_byte})
+		_ = mj_pgno // suppress unused warning
+		zAppend = ""
+		_ = zAppend // suppress unused warning
+		iOffset = strconv.Itoa(((tclFileSize("testA.db-journal") + 511)/512)*512)
+		_ = iOffset // suppress unused warning
+		fd = "testA.db-journal"
+		_ = fd // suppress unused warning
+		fileChannelSeek["fd"] = int64(tclAtoi(iOffset))
+		tclChannelAppendAt("testA.db-journal", zAppend, fileChannelSeek["fd"])
+		fileChannelSeek["fd"] = int64(tclAtoi("0"))
+		tclChannelAppendAt("testA.db-journal", "\xd9\xd5\x05\xf9 \xa1c\xd7", fileChannelSeek["fd"])
+		// close $fd
+		{ // do_test "rollback-2.2"
+			db2, err = frigolite.Open("testA.db")
+			if err != nil { t.Fatal(err) }
+			r = db2.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+			}
+		}
+		if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLsearch("exclusive persistent_journal no_journal", ""))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n < r_n }() {
+			{ // do_test "rollback-2.3"
+				// file exists "testA.db-journal"
+			}
+		}
+		{ // do_test "rollback-2.4"
+			r = db2.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+			}
+		}
+		if db2 != nil { db2.Close() }
+	}
+}

@@ -5,8 +5,389 @@
 package quota2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_quota2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_quota2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var dir string
+	_ = dir // pre-declared from TCL source
+	var quota_pwd string
+	_ = quota_pwd // pre-declared from TCL source
+	var quota_mapping string
+	_ = quota_mapping // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var quota string
+	_ = quota // pre-declared from TCL source
+	var quota_request_ok string
+	_ = quota_request_ok // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var bigtext string
+	_ = bigtext // pre-declared from TCL source
+	var h1 string
+	_ = h1 // pre-declared from TCL source
+	var h2 string
+	_ = h2 // pre-declared from TCL source
+	var h3 string
+	_ = h3 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var limitvar string
+	_ = limitvar // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var size string
+	_ = size // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	db.Close()
+	_r = tclQuotaInitialize("", 1)
+	for _, dir := range tclSplitList("quota2a/x1 quota2a/x2 quota2a quota2b quota2c") {
+	_ = dir // suppress unused warning
+		os.Remove(dir)
+	}
+	for _, dir := range tclSplitList("quota2a quota2a/x1 quota2a/x2 quota2b quota2c") {
+	_ = dir // suppress unused warning
+		os.MkdirAll(dir, 0755)
+	}
+	vtab.TclVarSet("quota_pwd", "", strings.ReplaceAll("get_pwd", "\\\\", "/"))
+	quota_pwd = strings.ReplaceAll("get_pwd", "\\\\", "/") // TCL namespace variable
+	_ = quota_pwd // suppress unused warning
+	vtab.TclVarSet("quota_mapping", "", quota_pwd+" "+"PWD")
+	quota_mapping = quota_pwd+" "+"PWD" // TCL namespace variable
+	_ = quota_mapping // suppress unused warning
+	// proc definition (not transpiled)
+	vtab.TclVarSet("quota", "", "")
+	quota = "" // TCL namespace variable
+	_ = quota // suppress unused warning
+	vtab.TclVarSet("quota_request_ok", "", "0")
+	quota_request_ok = "0" // TCL namespace variable
+	_ = quota_request_ok // suppress unused warning
+	// proc definition (not transpiled)
+	_r = tclQuotaSet("*/quota2a/*", 4000, "quota_check")
+	_r = tclQuotaSet("*/quota2b/*", 5000, "quota_check")
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
+		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%10 == 0 }() {
+			bigtext += tclFormat("%06d\n", i)
+		} else {
+			bigtext += tclFormat("%06d ", i)
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+	}
+	{ // do_test "quota2-1.1"
+		vtab.TclVarSet("h1", "", "sqlite3_quota_fopen quota2a/xyz.txt w+b")
+		h1 = "sqlite3_quota_fopen quota2a/xyz.txt w+b" // TCL namespace variable
+		_ = h1 // suppress unused warning
+		tclQuotaFwrite(h1, 1, 7000, bigtext)
+	}
+	{ // do_test "quota2-1.2"
+		_ = quota // TCL namespace variable (query)
+		got := tclListFlatten(quota)
+		want := tclListFlatten("PWD/quota2a/xyz.txt 4000 7000")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota2-1.2")
+		}
+	}
+	{ // do_test "quota2-1.2.1"
+		_r = tclQuotaFileSize(h1)
+	}
+	{ // do_test "quota2-1.2.2"
+		tclQuotaFflush(h1, true)
+		// sqlite3_quota_file_truesize $::h1 (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-1.3"
+		tclQuotaRewind(h1)
+		vtab.TclVarSet("x", "", "sqlite3_quota_fread $::h1 1001 7")
+		x = "sqlite3_quota_fread $::h1 1001 7" // TCL namespace variable
+		_ = x // suppress unused warning
+		_ = strconv.Itoa(len(x)) // string length result
+	}
+	{ // do_test "quota2-1.4"
+		_r = tclStringMatch01(x, tclStringRange(bigtext, "0", "3002"))
+	}
+	{ // do_test "quota2-1.5"
+		tclQuotaFseek(h1, "0", "SEEK_END")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.6"
+		tclQuotaFseek(h1, "-100", "SEEK_END")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.7"
+		tclQuotaFseek(h1, "-100", "SEEK_CUR")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.8"
+		tclQuotaFseek(h1, "50", "SEEK_CUR")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.9"
+		tclQuotaFseek(h1, "50", "SEEK_SET")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.10"
+		tclQuotaRewind(h1)
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.11"
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-1.12"
+		tclQuotaFtruncate(h1, 3500)
+		_r = tclQuotaFileSize(h1)
+	}
+	{ // do_test "quota2-1.13"
+		// sqlite3_quota_file_truesize $::h1 (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-1.14"
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-1.15"
+		tclQuotaFseek(h1, "0", "SEEK_END")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.16"
+		tclQuotaFwrite(h1, 1, 7000, bigtext)
+	}
+	{ // do_test "quota2-1.17"
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-1.18"
+		_r = tclQuotaFileSize(h1)
+	}
+	{ // do_test "quota2-1.19"
+		tclQuotaFflush(h1, true)
+		// sqlite3_quota_file_truesize $::h1 (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-1.20"
+		tclQuotaFclose(h1)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-1.21"
+		_r = tclQuotaRemove("quota2a/xyz.txt")
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	vtab.TclVarSet("quota", "", "")
+	quota = ""
+	_ = quota // suppress unused warning
+	{ // do_test "quota2-2.1"
+		vtab.TclVarSet("h1", "", "sqlite3_quota_fopen quota2c/xyz.txt w+b")
+		h1 = "sqlite3_quota_fopen quota2c/xyz.txt w+b" // TCL namespace variable
+		_ = h1 // suppress unused warning
+		tclQuotaFwrite(h1, 1, 7000, bigtext)
+	}
+	{ // do_test "quota2-2.2"
+		_ = quota // TCL namespace variable (query)
+		got := tclListFlatten(quota)
+		want := tclListFlatten("")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota2-2.2")
+		}
+	}
+	{ // do_test "quota2-2.3.1"
+		tclQuotaRewind(h1)
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.3.2"
+		vtab.TclVarSet("x", "", "sqlite3_quota_fread $::h1 1001 7")
+		x = "sqlite3_quota_fread $::h1 1001 7" // TCL namespace variable
+		_ = x // suppress unused warning
+		_ = strconv.Itoa(len(x)) // string length result
+	}
+	{ // do_test "quota2-2.3.3"
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.4"
+		_r = tclStringMatch01(x, tclStringRange(bigtext, "0", "6005"))
+	}
+	{ // do_test "quota2-2.5"
+		tclQuotaFseek(h1, "0", "SEEK_END")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-2.6"
+		tclQuotaFseek(h1, "-100", "SEEK_END")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-2.6.1"
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.7"
+		tclQuotaFseek(h1, "-100", "SEEK_CUR")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-2.7.1"
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.8"
+		tclQuotaFseek(h1, "50", "SEEK_CUR")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-2.8.1"
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.9"
+		tclQuotaFseek(h1, "50", "SEEK_SET")
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-2.9.1"
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.10"
+		tclQuotaRewind(h1)
+		_r = tclQuotaFTell(h1)
+	}
+	{ // do_test "quota2-2.10.1"
+		_r = tclQuotaFileAvailable(h1)
+	}
+	{ // do_test "quota2-2.10.2"
+		_r = tclQuotaFerror(h1)
+	}
+	{ // do_test "quota2-2.11"
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-2.12"
+		tclQuotaFclose(h1)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.1"
+		_r = tclQuotaSet("*/quota2b/*", 0, "quota_check")
+		vtab.TclVarSet("h1", "", "sqlite3_quota_fopen quota2a/x1/a.txt a")
+		h1 = "sqlite3_quota_fopen quota2a/x1/a.txt a" // TCL namespace variable
+		_ = h1 // suppress unused warning
+		tclQuotaFwrite(h1, 10, 10, bigtext)
+	}
+	{ // do_test "quota2-3.2"
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.3a"
+		tclQuotaFflush(h1, false)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.3b"
+		tclQuotaFflush(h1, true)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.3c"
+		tclQuotaFflush(h1, false)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.4"
+		tclQuotaFclose(h1)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.5"
+		vtab.TclVarSet("h2", "", "sqlite3_quota_fopen quota2a/x2/b.txt a")
+		h2 = "sqlite3_quota_fopen quota2a/x2/b.txt a" // TCL namespace variable
+		_ = h2 // suppress unused warning
+		tclQuotaFwrite(h2, 10, 20, bigtext)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.6"
+		vtab.TclVarSet("h3", "", "sqlite3_quota_fopen quota2a/x1/c.txt a")
+		h3 = "sqlite3_quota_fopen quota2a/x1/c.txt a" // TCL namespace variable
+		_ = h3 // suppress unused warning
+		tclQuotaFwrite(h3, 10, 50, bigtext)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.7"
+		// file exists "quota2a/x1/a.txt"
+	}
+	{ // do_test "quota2-3.8"
+		// file exists "quota2a/x2/b.txt"
+	}
+	{ // do_test "quota2-3.9"
+		// file exists "quota2a/x1/c.txt"
+	}
+	{ // do_test "quota2-3.10"
+		_r = tclQuotaRemove("quota2a/x1")
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.11"
+		tclQuotaFclose(h2)
+		tclQuotaFclose(h3)
+		// standard_path [sqlite3_quota_dump] (unsupported command, not transpiled)
+	}
+	{ // do_test "quota2-3.12"
+		// file exists "quota2a/x1/a.txt"
+	}
+	{ // do_test "quota2-3.13"
+		// file exists "quota2a/x2/b.txt"
+	}
+	{ // do_test "quota2-3.14"
+		// file exists "quota2a/x1/c.txt"
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		_r = tclQuotaShutdown()
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+	}
+}

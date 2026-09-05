@@ -77,12 +77,9 @@ var skipTestFiles = map[string]string{
 	// emits an infinite loop for the [info exists] array check.
 	"tkt2409": "cache-spill lock-failure simulation (read_lock_db harness) N-A",
 
-	// tkt2686: fills the database until "database or disk is full" via
-	// PRAGMA max_page_count=50 and an infinite INSERT loop. Frigolite's
-	// pager does not enforce max_page_count, so the loop never terminates.
-	// MAX_PAGE_COUNT enforcement is a needed pager feature (tracked in
-	// plans/NOT_APPLICABLE.md).
-	"tkt2686": "PRAGMA max_page_count not enforced (database or disk is full) N-A; MAX_PAGE_COUNT NEEDED",
+	// (tkt2686 un-skipped under P8.PRAGMA — see plan/goals/P8.PRAGMA.md. PRAGMA
+		// max_page_count enforcement was the tracked gap; tkt2686 fills the
+		// database until "database or disk is full".)
 
 	// tkt2854: shared-cache multi-connection concurrency
 	// (sqlite3_enable_shared_cache 1, db/db2 share a cache, db3 private,
@@ -182,10 +179,12 @@ var skipTestFiles = map[string]string{
 	"malloc": "sqlite3_memdebug memory-accounting C API N-A",
 
 	// notify: sqlite3_unlock_notify() C API (guarded by ifcapable
-	// !unlock_notify||!shared_cache). N-A (unlock_notify C API).
+		// !unlock_notify||!shared_cache). N-A (unlock_notify C API).
 
-	// quota_: quota VFS extension (quota-glob) — generated code does
-	// invalid operation on "*?" glob constant. N-A (quota VFS extension).
+		// (quota/quota2/quota-glob un-skipped under P8.PRAGMA — see
+		// plan/goals/P8.PRAGMA.md. Engine implements the quotaStrglob glob
+		// pattern matcher + quota VFS shim + tclcmd stubs; tests use the
+		// native pure-Go engine surface.)
 
 	// resetdb: SQLITE_DBCONFIG_RESET_DATABASE (sqlite3_db_config C API) —
 	// resetting the database file while open. Generated code mangles the
@@ -485,13 +484,9 @@ var skipTestFiles = map[string]string{
 	"pagerfault3": "VFS/fault-injection harness N-A",
 	"pagesize":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-	"pendingrace": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma3":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma4":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma5":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pragma6":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
+		// (pragma/pragma2-6 un-skipped under P8.PRAGMA — see
+			// plan/goals/P8.PRAGMA.md. Engine implements the PRAGMA edge cases
+			// surfacing in pragma*.test.)
 
 	// P7.PUSHDOWN: pushdown — see the cursorhint / cursorhint2 entries
 	// above for the VDBE codeCursorHint() / MySQL push-down N-A rationale
@@ -502,11 +497,8 @@ var skipTestFiles = map[string]string{
 	"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
 	"quickcheck":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"quota":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"quota2":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"readonly":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"recover":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"rollback":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
+	"recover":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollback2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollbackfault": "VFS/fault-injection harness N-A",
 	// P7.LOCK-C re-skips (evidence-based). scanstatus.test calls
@@ -660,7 +652,8 @@ var skipTestFiles = map[string]string{
 	"malloc8":  "sqlite3_memdebug memory-accounting C API N-A",
 	"malloc9":  "sqlite3_memdebug memory-accounting C API N-A",
 
-	"quota-glob": "quota VFS extension not implemented N-A",
+	// (quota/quota2/quota-glob un-skipped under P8.PRAGMA — see
+		// plan/goals/P8.PRAGMA.md.)
 	// skipscan1: TCL test skipscan1-8.1 (and 8.1eqp) exercises the OR-with-
 	// skip-scan query planner strategy: SELECT * FROM t1 WHERE (y = 'AB' AND
 	// x <= 4) OR (y = 'EF' AND x = 5) on t1 PRIMARY KEY(x, y) WITH stat

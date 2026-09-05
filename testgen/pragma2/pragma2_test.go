@@ -5,8 +5,301 @@
 package pragma2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_pragma2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pragma2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test3.db")
+	os.Remove("test3.db-journal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	DB = "db"
+	_ = DB // suppress unused warning
+	_res = db.Exec("PRAGMA auto_vacuum=0")
+	{ // do_test "pragma2-1.1"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "pragma2-1.2"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "pragma2-1.3"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "pragma2-1.4"
+		r = db.Query("\n    PRAGMA main.freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.freelist_count;\n  ")
+		}
+	}
+	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
+	{ // do_test "pragma2-2.1"
+		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-2.2"
+		r = db.Query("\n      CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-2.3"
+		vtab.TclVarSet("val", "", tclStringRepeat("0123456789", "1000"))
+		val = tclStringRepeat("0123456789", "1000") // TCL namespace variable
+		_ = val // suppress unused warning
+		r = db.Query("\n      INSERT INTO aux.abc VALUES(1, 2, " + sqlLiteral(val) + ");\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO aux.abc VALUES(1, 2, " + sqlLiteral(val) + ");\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-2.4"
+		// expr [file size test2.db] / 1024 (not evaluated)
+	}
+	{ // do_test "pragma2-2.5"
+		r = db.Query("\n      DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-3.1"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "pragma2-3.2"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "pragma2-3.3"
+		r = db.Query("\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test2.db")
+	os.Remove("test2.db-journal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "pragma2-4.1"
+		r = db.Query("\n  PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2000 2000 2000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma2-4.2"
+		r = db.Query("\n  PRAGMA cache_spill=OFF;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_spill=OFF;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma2-4.3"
+		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;\n")
+		}
+	}
+	// sqlite3_release_memory (unsupported command, not transpiled)
+	{ // do_test "pragma2-4.4"
+		r = db.Query("\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "main exclusive temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma2-4.5.1"
+		r = db.Query("\n    ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 main reserved temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma2-4.5.2"
+		r = db.Query("\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "100000 main reserved temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma2-4.5.3"
+		r = db.Query("\n      ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "50 main exclusive temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "pragma2-4.5.4"
+		r = db.Query("\n      ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "50 main exclusive temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma2-4.6"
+		r = db.Query("\n  ROLLBACK;\n  PRAGMA cache_spill=OFF;\n  ATTACH 'test2.db' AS aux1;\n  PRAGMA aux1.cache_size=50;\n  BEGIN;\n  UPDATE t2 SET c=c+1;\n  PRAGMA lock_status;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ROLLBACK;\n  PRAGMA cache_spill=OFF;\n  ATTACH 'test2.db' AS aux1;\n  PRAGMA aux1.cache_size=50;\n  BEGIN;\n  UPDATE t2 SET c=c+1;\n  PRAGMA lock_status;\n")
+			return
+		}
+		got := flatten(r)
+		want := "main unlocked temp unknown aux1 reserved"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma2-4.7"
+		_res = db.Exec("\n  COMMIT;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+		}
+	}
+	// sqlite3_release_memory (unsupported command, not transpiled)
+	{ // "pragma2-4.8"
+		r = db.Query("\n  PRAGMA cache_spill=ON; -- Applies to all databases\n  BEGIN;\n  UPDATE t2 SET c=c-1;\n  PRAGMA lock_status;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_spill=ON; -- Applies to all databases\n  BEGIN;\n  UPDATE t2 SET c=c-1;\n  PRAGMA lock_status;\n")
+			return
+		}
+		got := flatten(r)
+		want := "main unlocked temp unknown aux1 exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "pragma2-5.1"
+		r = db.Query("\n  PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma2-5.2"
+		r = db.Query("\n  PRAGMA cache_spill=NO;\n  PRAGMA cache_spill;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_spill=NO;\n  PRAGMA cache_spill;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pragma2-5.3"
+		r = db.Query("\n  PRAGMA cache_spill(-51);\n  PRAGMA cache_spill;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_spill(-51);\n  PRAGMA cache_spill;\n")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// test_restore_config_pagecache (unsupported command, not transpiled)
+}
