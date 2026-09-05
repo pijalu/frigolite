@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -31,19 +32,19 @@ const defaultConcurrency = 8
 const defaultTimeout = 60 * time.Second
 
 type options struct {
-	subcommand         string
-	skipRun            bool
-	audit              bool
-	format             string
-	concurrency        int
-	timeout            time.Duration
-	repo               string
-	out                string
-	ledgerOut          string
-	check              bool
-	checkAllowNew      bool
-	checkAgainstCache  bool
-	checkLedger        string
+	subcommand        string
+	skipRun           bool
+	audit             bool
+	format            string
+	concurrency       int
+	timeout           time.Duration
+	repo              string
+	out               string
+	ledgerOut         string
+	check             bool
+	checkAllowNew     bool
+	checkAgainstCache bool
+	checkLedger       string
 }
 
 func main() {
@@ -73,8 +74,26 @@ func main() {
 	}
 }
 
+// subcommandAliases is the set of bare first-arg tokens that should be parsed
+// as a subcommand instead of being swallowed by the flag package (which
+// would otherwise stop parsing flags at the first non-flag token, breaking
+// forms like `tools/status check --check-against-cache`).
+var subcommandAliases = map[string]bool{
+	"check":  true,
+	"ledger": true,
+}
+
 func parseFlags() options {
 	var o options
+	// Peek at os.Args to detect a subcommand at the first position. If
+	// found, strip it so the flag parser sees the remaining tokens. This
+	// lets users write `tools/status check --check-against-cache` instead
+	// of being forced to put flags first.
+	rest := os.Args[1:]
+	if len(rest) > 0 && !strings.HasPrefix(rest[0], "-") && subcommandAliases[rest[0]] {
+		o.subcommand = rest[0]
+		rest = rest[1:]
+	}
 	fs := flag.NewFlagSet("status", flag.ContinueOnError)
 	fs.BoolVar(&o.skipRun, "skip-run", false, "report cached results from tools/status/last_run.json instead of running go test")
 	fs.BoolVar(&o.audit, "audit", false, "fail (exit 1) if any whole-file skip lacks a portplan/NA_EVIDENCE.md entry")
@@ -90,11 +109,8 @@ func parseFlags() options {
 	fs.StringVar(&o.checkLedger, "check-ledger", "", "path to ledger.json (default: tools/status/ledger.json)")
 	// Ledger subcommand modifier.
 	fs.StringVar(&o.ledgerOut, "ledger-out", "", "path to ledger.json output (default: tools/status/ledger.json)")
-	if err := fs.Parse(os.Args[1:]); err != nil {
+	if err := fs.Parse(rest); err != nil {
 		os.Exit(2)
-	}
-	if rest := fs.Args(); len(rest) > 0 {
-		o.subcommand = rest[0]
 	}
 	return o
 }
