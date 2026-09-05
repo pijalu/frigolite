@@ -431,22 +431,24 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 
 func (c *Cursor) seekInInteriorTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
 	// Binary search on row IDs in interior page. Each interior table cell is
-	// (left child, key); the engine's split (addInteriorCell) routes keys < key
-	// to that cell's left child and keys >= key to the NEXT cell's left child
+	// (left child, key); SQLite's leafData separator convention (btree.c:8813
+	// paired with sqlite3BtreeTableMoveto at btree.c:5877) routes keys <= key
+	// to that cell's left child and keys > key to the next cell's left child
 	// (or the rightmost pointer for the last cell). So the child holding rowID
-	// is the first cell whose key is STRICTLY greater than rowID — when
-	// rowID == an interior key, the row lives in the following cell's range
-	// (the previous code descended into the equal-key cell's left child, which
-	// only holds keys strictly less than it, missing the boundary row;
-	// fts4merge/seek: rowid 113 — an interior split key — was unfindable).
+	// is the first cell whose key is >= rowID — descend into that cell's left
+	// child. (The engine's pre-fix convention used MIN(right) as the divider
+	// and < key for the left routing, which kept reads consistent with the
+	// engine's own writes but produced files that sqlite3 integrity_check
+	// rejected with "right child Rowid N out of order" on every table btree
+	// split, see incrvacuum2 4.1.)
 	lo, hi := 0, int(page.CellCount)-1
-	childPage := page.RightmostPtr // default: rowID >= all keys -> rightmost
+	childPage := page.RightmostPtr // default: rowID > all keys -> rightmost
 	for lo <= hi {
 		mid := (lo + hi) / 2
 		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid, int(c.tx.pageSize)))
 		// Interior table cells: 4-byte left child + rowID varint
 		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
-		if int64(midRowID) <= rowID {
+		if int64(midRowID) < rowID {
 			lo = mid + 1
 		} else {
 			childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])

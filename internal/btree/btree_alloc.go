@@ -118,9 +118,17 @@ func (t *BTree) reparentPageOverflowChains(pgno uint32) error {
 	if err != nil {
 		return err
 	}
-	cellType := storage.CellTableLeaf
-	if page.PageType == storage.PageTypeLeafIndex {
+	// Interior pages have no overflow chains (the page-level Overflow field is
+	// only meaningful on leaf cells). Skip them: decoding interior cells as
+	// leaf cells would read garbage into c.Overflow and corrupt the ptrmap.
+	var cellType storage.CellType = storage.CellTableLeaf
+	switch page.PageType {
+	case storage.PageTypeLeafTable:
+		// cellType already CellTableLeaf
+	case storage.PageTypeLeafIndex:
 		cellType = storage.CellIndexLeaf
+	default:
+		return nil
 	}
 	for i := 0; i < int(page.CellCount); i++ {
 		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))

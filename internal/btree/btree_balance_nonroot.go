@@ -347,21 +347,24 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 			}
 			children = append(children, sp.PageNum)
 		}
-		// Separator convention of this engine's splits: the divider key
-		// is the FIRST rowid of the RIGHT subtree — seekInInteriorTable
-		// routes keys < K to the divider's left child and keys >= K to
-		// the following subtree. (SQLite's leafData branch uses the LEFT
-		// page's last rowid because its OP_Seek/MoveToChild convention
-		// is key <= K routes left; the boundary must match the seek code
-		// it serves, here the right-page minimum.) The keys are read in
-		// a SECOND loop, after every survivor has been rebuilt: reading
-		// siblings[i+1] during the rebuild loop picked up the PRE-rebuild
-		// page state (an emptied leaf yielded separator 0), producing
-		// out-of-order dividers that then scrambled the parent rewrite
-		// (rows dropped from the tree — BUG C).
+		// Separator convention of this engine's splits: the divider key is the
+		// LAST rowid of the LEFT subtree (sqlite3BtreeTableMoveto at
+		// btree.c:5877 + leafData splitter at btree.c:8813). seekInInteriorTable
+		// routes keys <= K to the divider's left child and keys > K to the
+		// following subtree, which is exactly the boundary the seek code
+		// expects. (Earlier the engine used the RIGHT subtree's first rowid
+		// and routed keys < K left, which kept the engine self-consistent
+		// but produced files that sqlite3 integrity_check rejected with
+		// "right child Rowid N out of order" on every table btree split;
+		// see incrvacuum2 4.1.) The keys are read in a SECOND loop, after
+		// every survivor has been rebuilt: reading siblings[i+1] during
+		// the rebuild loop picked up the PRE-rebuild page state (an emptied
+		// leaf yielded separator 0), producing out-of-order dividers that
+		// then scrambled the parent rewrite (rows dropped from the tree —
+		// BUG C).
 		seps := make([]uint64, 0, nNewFull)
 		for i := 0; i < nNewFull-1; i++ {
-			seps = append(seps, uint64(readFirstRowID(siblings[i+1].Data, contentOffset(siblings[i+1].PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize))))
+			seps = append(seps, uint64(readLastRowID(siblings[i].Data, contentOffset(siblings[i].PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize))))
 		}
 		// Uniform parent rebuild (balance_nonroot tail): one divider
 		// per survivor boundary, last survivor is the rightmost child.
@@ -421,10 +424,12 @@ func (t *BTree) balanceNonroot(ctx *balanceNonrootContext) (*pager.Page, error) 
 		return nil, err
 	}
 	for i := 0; i < nNewFull-1; i++ {
-		// Separator = first rowid of the RIGHT survivor (the engine's
-		// strict-< seek convention — see the coversParent branch above).
-		right := siblings[i+1]
-		key := uint64(readFirstRowID(right.Data, contentOffset(right.PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize)))
+		// Separator = LAST rowid of the LEFT survivor (SQLite's leafData
+		// boundary convention — paired with seekInInteriorTable's <= K
+		// routes-left rule). The coversParent branch above uses the same
+		// convention for the multi-sibling write.
+		left := siblings[i]
+		key := uint64(readLastRowID(left.Data, contentOffset(left.PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize)))
 		if err := t.insertInteriorDividerAt(ctx.parent, parent, c0+i, siblings[i].PageNum, key); err != nil {
 			return nil, err
 		}
@@ -581,6 +586,24 @@ func readFirstRowID(data []byte, coff int, cellType storage.CellType, usableSize
 		return 0
 	}
 	cp := storage.CellPointer(data, coff, 0, usableSize)
+	c, err := storage.DecodeCell(data, int(cp), cellType, usableSize)
+	if err != nil {
+		return 0
+	}
+	return c.RowID
+}
+
+// readLastRowID returns the rowid of the LAST cell of a table-leaf page.
+// Used by balanceNonroot's divider convention: each separator between
+// sibling i and sibling i+1 is the LAST rowid of sibling i (sqlite3
+// BTreeTableMoveto routes keys <= K to the left subtree, so K must be
+// the inclusive upper bound of that left subtree).
+func readLastRowID(data []byte, coff int, cellType storage.CellType, usableSize, pageSize int) int64 {
+	page, err := storage.ParsePage(data, pageSize, coff)
+	if err != nil || page.CellCount == 0 {
+		return 0
+	}
+	cp := storage.CellPointer(data, coff, int(page.CellCount)-1, usableSize)
 	c, err := storage.DecodeCell(data, int(cp), cellType, usableSize)
 	if err != nil {
 		return 0

@@ -817,8 +817,24 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 		}
 		var medianKey uint64
 		if t.isTable {
-			medianKey = uint64(partitions[pi][0].cell.RowID)
+			// SQLite's leafData separator convention (btree.c:8813): the
+			// divider cell between two sibling leaves carries the LAST
+			// rowid of the LEFT sibling (left subtree holds keys <= key,
+			// right subtree holds keys > key — sqlite3BtreeTableMoveto
+			// descends into the separator's left child on key==rowid).
+			// Using MIN(right) instead (the engine's pre-fix convention)
+			// made the right subtree overlap the boundary row, breaking
+			// sqlite3 integrity_check on every table btree split
+			// (incrvacuum2 4.1: doubling leaves produced "right child
+			// Rowid N out of order" starting at iter 1).
+			left := partitions[pi-1]
+			medianKey = uint64(left[len(left)-1].cell.RowID)
 		} else {
+			// Index btrees (non-leafData): the divider is the FIRST cell of
+			// the RIGHT sibling (btree.c:8820, pCell -= 4 branch) — the left
+			// subtree holds keys < medianKey and the right subtree holds
+			// keys >= medianKey (sqlite3BtreeIndexMoveto: equal keys go
+			// right).
 			medianKey = uint64(len(partitions[pi][0].cellData))
 		}
 		results = append(results, leafSplitResult{pageNum: newPg.PageNum, medianKey: medianKey})
@@ -1247,19 +1263,21 @@ func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, 
 	// Binary search on row IDs in interior page. CellPointer adds 8 internally,
 	// so passing coff+4 yields coff+12, the interior cell-pointer array offset
 	// (header 8 + 4-byte rightmost pointer).
+	//
+	// Convention matches SQLite's leafData splitter (btree.c:8813, paired
+	// with seekInInteriorTable): the divider cell between two sibling leaves
+	// holds the LAST rowid of the LEFT sibling. A new row with rowID <=
+	// divider belongs to the LEFT child (this cell's child); a row with
+	// rowID > divider belongs to the RIGHT subtree (next cell's left child,
+	// or rightmost). The pre-fix engine used MIN(right) and <=, which kept
+	// the engine self-consistent but produced files that sqlite3 integrity_check
+	// rejected.
 	lo, hi := 0, int(page.CellCount)-1
 	for lo <= hi {
 		mid := (lo + hi) / 2
 		cellOff := int(storage.CellPointer(pg.Data, coff+4, mid, int(t.pageSize)))
 		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
-		if int64(midRowID) <= cell.RowID {
-			// SQLite routes a key equal to an interior separator to the
-			// RIGHT (the separator's left child holds keys < key; the next
-			// cell's left child, or the rightmost pointer, holds keys >= key).
-			// Using < here sent a same-rowid re-insert (repack rewrite, merge
-			// output at an existing rowid) into the WRONG leaf, creating a
-			// duplicate rowid (fts4merge4: %_segdir rowid 21 and 26 each
-			// appeared twice).
+		if int64(midRowID) < cell.RowID {
 			lo = mid + 1
 		} else {
 			hi = mid - 1
