@@ -64,8 +64,10 @@ func Test_walshared(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walshared-1.0"
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")

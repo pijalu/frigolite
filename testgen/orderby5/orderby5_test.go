@@ -199,6 +199,7 @@ func Test_orderby5(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "4.3.2"
 		_res = db.Exec("\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")

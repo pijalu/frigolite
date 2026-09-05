@@ -64,6 +64,7 @@ func Test_tkt2643(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE INDEX i1 ON t1(c);\n    SELECT count(*) FROM t1 WHERE c IS NOT NULL\n  ")
 		if r.Error != nil {

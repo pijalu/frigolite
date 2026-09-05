@@ -96,6 +96,7 @@ func Test_corruptI(t *testing.T) {
 		_ = off // suppress unused warning
 		tclHexioWrite("test.db", int64(toInt(off)), "7f06")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 WHERE a = 10 ")
 		_ = _res // catchsql
@@ -108,6 +109,7 @@ func Test_corruptI(t *testing.T) {
 		_ = off // suppress unused warning
 		tclHexioWrite("test.db", int64(toInt(off)), "FFFF7f02")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 WHERE a = 10 ")
 		_ = _res // catchsql
@@ -134,6 +136,7 @@ func Test_corruptI(t *testing.T) {
 		_ = off // suppress unused warning
 		tclHexioWrite("test.db", int64(toInt(off)), "FFFF0004")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM r WHERE x >= 10.0 ")
 		_ = _res // catchsql
@@ -161,6 +164,7 @@ func Test_corruptI(t *testing.T) {
 			tclHexioWrite("test.db", int64(512+3), "0054")
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" INSERT INTO t1 VALUES(5, 'klmnopqrst') ")
 			if _res.Error != nil {
@@ -173,6 +177,7 @@ func Test_corruptI(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "3.3"
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(9, 'klmnopqrst');\n   ")
@@ -202,6 +207,7 @@ func Test_corruptI(t *testing.T) {
 		tclHexioWrite("test.db", int64(toInt(offset) + 8 + 2), "0000")
 		tclHexioWrite("test.db", int64(toInt(offset) + 5), "0000")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 WHERE a=0 ")
 		_ = _res // catchsql
@@ -261,6 +267,7 @@ func Test_corruptI(t *testing.T) {
 	}
 	{ // do_test "5.3"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE tx(x); ")
 		_ = _res // catchsql
@@ -280,6 +287,7 @@ func Test_corruptI(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(616), "8FFFFFFF7F02")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid=2 ")
 		if _res.Error != nil {
@@ -313,6 +321,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "7.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" UPDATE t1 SET x='d' AND y='D' WHERE rowid = 2 ")
 		_ = _res // catchsql
@@ -332,6 +341,7 @@ func Test_corruptI(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1024 + 8), "00000001")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 ")
 		_ = _res // catchsql
@@ -339,6 +349,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "8.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {

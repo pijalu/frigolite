@@ -315,6 +315,7 @@ func Test_schema(t *testing.T) {
 	}
 	{ // do_test "schema-9.1"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    DROP TABLE abc;\n  ")
 		if _res.Error != nil {
@@ -334,6 +335,7 @@ func Test_schema(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW abcview AS SELECT * FROM abc;\n    ")
 		}
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n      DROP VIEW abcview;\n    ")
 		if _res.Error != nil {
@@ -372,6 +374,7 @@ func Test_schema(t *testing.T) {
 	}
 	{ // do_test "schema-10.4"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    SELECT * FROM abc\n  ")
 		if r.Error != nil {

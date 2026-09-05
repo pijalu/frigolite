@@ -102,6 +102,7 @@ func Test_func3(t *testing.T) {
 		}
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "func3-4.1"
 		vtab.TclVarSet("destroyed", "", "0")

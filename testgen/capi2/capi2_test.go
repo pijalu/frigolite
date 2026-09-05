@@ -586,6 +586,7 @@ func Test_capi2(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM1 // prepared statement handle
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
@@ -882,6 +883,7 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-12.10"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -921,6 +923,7 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-13.10"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable

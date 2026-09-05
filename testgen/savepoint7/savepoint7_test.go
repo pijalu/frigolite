@@ -245,6 +245,7 @@ func Test_savepoint7(t *testing.T) {
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA page_size=1024;\n      PRAGMA temp_store=MEMORY;\n      BEGIN;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n      WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<" + sqlLiteral(i) + ")\n      INSERT INTO t1(x,y) SELECT x*10, printf('%04d%.800c',x,'*') FROM c;\n      SAVEPOINT one;\n        SELECT count(*) FROM t1;\n        WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<" + sqlLiteral(i) + ")\n        INSERT INTO t1(x,y) SELECT x*10+1, printf('%04d%.800c',x,'*') FROM c;\n      ROLLBACK TO one;\n        SELECT count(*) FROM t1;\n        SAVEPOINT twoB;\n          WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n          INSERT INTO t1(x,y) SELECT x*10+2, printf('%04d%.800c',x,'*') FROM c;\n        ROLLBACK TO twoB;\n      RELEASE one;\n      COMMIT;\n    ")
 		}

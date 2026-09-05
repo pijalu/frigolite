@@ -118,6 +118,7 @@ func Test_attach4(t *testing.T) {
 				os.Remove(f)
 			}
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// foreach {name f} files
 			_items1 := tclSplitList(files)

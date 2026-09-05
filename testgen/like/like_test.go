@@ -698,6 +698,7 @@ func Test_like(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "like-9.1"
@@ -762,6 +763,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-10.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE TABLE t10(\n        a INTEGER PRIMARY KEY,\n        b INTEGER COLLATE nocase UNIQUE,\n        c NUMBER COLLATE nocase UNIQUE,\n        d BLOB COLLATE nocase UNIQUE,\n        e COLLATE nocase UNIQUE,\n        f TEXT COLLATE nocase UNIQUE\n      );\n      INSERT INTO t10 VALUES(1,1,1,1,1,1);\n      INSERT INTO t10 VALUES(12,12,12,12,12,12);\n      INSERT INTO t10 VALUES(123,123,123,123,123,123);\n      INSERT INTO t10 VALUES(234,234,234,234,234,234);\n      INSERT INTO t10 VALUES(345,345,345,345,345,345);\n      INSERT INTO t10 VALUES(45,45,45,45,45,45);\n    ")
 		if _res.Error != nil {
@@ -1063,6 +1065,7 @@ func Test_like(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "like-15.100"
 		r = db.Query("\n  CREATE TABLE t15(x TEXT COLLATE nocase, y, PRIMARY KEY(x));\n  INSERT INTO t15(x,y) VALUES\n    ('abcde',1), ('ab%de',2), ('a_cde',3),\n    ('uvwxy',11),('uvwx%',12),('uvwx_',13),\n    ('_bcde',21),('%bcde',22),\n    ('abcd_',31),('abcd%',32),\n    ('ab%xy',41);\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '/';\n")

@@ -82,6 +82,7 @@ func Test_corruptE(t *testing.T) {
 	db.Close()
 	tclFileCopy("test.db", "test.bu")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	fsize = strconv.Itoa(tclFileSize("test.db"))
 	_ = fsize // suppress unused warning
@@ -90,6 +91,7 @@ func Test_corruptE(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(2041), tclFormat("%02x", "0x2e"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -99,6 +101,7 @@ func Test_corruptE(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(2047), tclFormat("%02x", "0x84"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -109,6 +112,7 @@ func Test_corruptE(t *testing.T) {
 		tclHexioWrite("test.db", int64(7420), tclFormat("%02x", "0xa8"))
 		tclHexioWrite("test.db", int64(10459), tclFormat("%02x", "0x8d"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -118,6 +122,7 @@ func Test_corruptE(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(10233), tclFormat("%02x", "0xd0"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -134,6 +139,7 @@ func Test_corruptE(t *testing.T) {
 			tclFileCopy("test.bu", "test.db")
 			// hexio_write test.db [lindex $test 0] [format %02x [lindex $test 1]] (unsupported arguments)
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA integrity_check")
 			_ = _res // catchsql

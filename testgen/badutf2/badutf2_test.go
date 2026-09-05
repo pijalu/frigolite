@@ -92,6 +92,7 @@ func Test_badutf2(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
 	}

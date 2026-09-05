@@ -98,6 +98,7 @@ func Test_attach(t *testing.T) {
 	}
 	{ // do_test "attach-1.2"
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -385,6 +386,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-2.16"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
 		if r.Error != nil {
@@ -395,8 +397,10 @@ func Test_attach(t *testing.T) {
 		db.Close()
 		if db2 != nil { db2.Close() }
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
@@ -522,6 +526,7 @@ func Test_attach(t *testing.T) {
 		}
 		if db2 != nil { db2.Close() }
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
@@ -611,10 +616,12 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-5.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		if db2 != nil { db2.Close() }
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    ATTACH DATABASE 'test.db' AS orig;\n    CREATE TRIGGER r1 AFTER INSERT ON orig.t1 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
 		_ = _res // catchsql
@@ -683,6 +690,7 @@ func Test_attach(t *testing.T) {
 		{ // do_test "attach-6.2"
 			dbx, err = frigolite.Open("cannot-read")
 			if err != nil { t.Fatal(err) }
+			tclConnRegister("dbx", dbx)
 			if err != nil { t.Fatal(err) }
 			// dbx eval {CREATE TABLE t1(a,b,c)} (unsupported command, not transpiled)
 			// dbx close (unsupported command, not transpiled)
@@ -728,6 +736,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-7.1"
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      DETACH RAISE ( IGNORE ) IN ( SELECT \"AAAAAA\" . * ORDER BY \n      REGISTER LIMIT \"AAAAAA\" . \"AAAAAA\" OFFSET RAISE ( IGNORE ) NOT NULL )\n    ")
 		_ = _res // catchsql
@@ -746,6 +755,7 @@ func Test_attach(t *testing.T) {
 	os.Remove("test2.db")
 	{ // do_test "attach-8.3"
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("CREATE TABLE t1(x); BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -786,6 +796,7 @@ func Test_attach(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "attach-11.1"
 		r = db.Query("\n  ATTACH printf('file:%09000x/x.db?mode=memory&cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;\n")
@@ -801,6 +812,7 @@ func Test_attach(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "attach-12.1"
 		r = db.Query("\n  CREATE TABLE Table1 (col TEXT NOT NULL PRIMARY KEY);\n  ATTACH ':memory:' AS db2;\n  CREATE TABLE db2.Table2(col1 INTEGER, col2 INTEGER, col3 INTEGER, col4);\n  CREATE UNIQUE INDEX db2.idx_col1_unique ON Table2 (col1);\n  CREATE UNIQUE INDEX db2.idx_col23_unique ON Table2 (col2, col3);\n  CREATE INDEX db2.idx_col2 ON Table2 (col2);\n  INSERT INTO Table2 VALUES(1,2,3,4);\n  PRAGMA integrity_check;\n")
@@ -821,6 +833,7 @@ func Test_attach(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "attach-13.1"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE base(x);")
 		vtab.TclVarSet("i", "", "0")

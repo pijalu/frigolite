@@ -79,6 +79,7 @@ func Test_walpersist(t *testing.T) {
 	}
 	{ // do_test "walpersist-1.3"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT length(a) FROM t1")
 	}
@@ -114,6 +115,7 @@ func Test_walpersist(t *testing.T) {
 	os.Remove("test.db")
 	{ // do_test "walpersist-2.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=OFF;\n    PRAGMA journal_size_limit=12000;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(50000));\n    UPDATE t1 SET x=randomblob(50000);\n  ")
 		// expr [file size test.db-wal]>100000 → runtime compare
@@ -130,6 +132,7 @@ func Test_walpersist(t *testing.T) {
 	}
 	{ // do_test "walpersist-2.3"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
@@ -144,6 +147,7 @@ func Test_walpersist(t *testing.T) {
 		}
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint=128;\n    PRAGMA journal_size_limit=16384;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n  ")
 		if r.Error != nil {
@@ -178,6 +182,7 @@ func Test_walpersist(t *testing.T) {
 	}
 	{ // do_test "walpersist-3.4"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {

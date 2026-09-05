@@ -69,8 +69,10 @@ func Test_rtreeconnect(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1"
 		_res = db.Exec(" INSERT INTO log VALUES('startup'); ")

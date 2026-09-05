@@ -418,6 +418,7 @@ func Test_e_blobclose(t *testing.T) {
 	}
 	{ // do_test "3.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query(" BEGIN ; SELECT * FROM x1 ")
 		if r.Error != nil {

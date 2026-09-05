@@ -210,6 +210,7 @@ func Test_whereJ(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);\n")

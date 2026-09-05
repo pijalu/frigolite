@@ -173,6 +173,7 @@ func Test_mutex1(t *testing.T) {
 				// sqlite3_initialize (unsupported command, not transpiled)
 				// clear_mutex_counters (unsupported command, not transpiled)
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" CREATE TABLE abc(a, b, c) ")
 				_ = _res // catchsql
@@ -223,6 +224,7 @@ func Test_mutex1(t *testing.T) {
 					db.Close()
 				}
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")
@@ -238,6 +240,7 @@ func Test_mutex1(t *testing.T) {
 					db.Close()
 				}
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")

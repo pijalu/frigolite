@@ -183,6 +183,7 @@ func Test_misc4(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDefensive(false)
 	{ // "misc4-7.1" — skipped: writable_schema corruption re-parse during VACUUM not implemented

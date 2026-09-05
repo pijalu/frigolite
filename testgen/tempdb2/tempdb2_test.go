@@ -68,6 +68,7 @@ func Test_tempdb2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	vtab.TclVarSet("unlocked", "", "unlocked")
 	unlocked = "unlocked"
@@ -106,6 +107,7 @@ func Test_tempdb2(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.RegisterFunction("int2str", func(args []interface{}) (interface{}, error) {
 		if len(args) < 1 || args[0] == nil { return nil, nil }

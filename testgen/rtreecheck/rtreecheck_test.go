@@ -371,6 +371,7 @@ func Test_rtreecheck(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	if "" == "inmemory_journal" {
 		{ // "6.1.inmemory_journal"

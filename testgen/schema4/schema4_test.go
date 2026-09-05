@@ -94,6 +94,7 @@ func Test_schema4(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-1.5"
 		r = db.Query("\n  DELETE FROM log;\n  INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n  SELECT x, a, b FROM log;\n")
@@ -181,6 +182,7 @@ func Test_schema4(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-2.5"
 		r = db.Query(" \n    DELETE FROM log;\n    INSERT INTO tbl VALUES('c', 'd');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")

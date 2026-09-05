@@ -93,6 +93,7 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-1.1c"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'")
 		if r.Error != nil {
@@ -102,6 +103,7 @@ func Test_index(t *testing.T) {
 	{ // do_test "index-1.1d"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {

@@ -75,6 +75,7 @@ func Test_walsetlk_snapshot(t *testing.T) {
 	db.Close()
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// tvfs script sleep_callback (unsupported command, not transpiled)
 	// tvfs filter xSleep (unsupported command, not transpiled)

@@ -183,6 +183,7 @@ func Test_check(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDQS(true, true)
 	db.SetDQS(true, true)
@@ -495,6 +496,7 @@ func Test_check(t *testing.T) {
 	}
 	{ // do_test "7.4"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query(" SELECT * FROM t6 ")
 		if r.Error != nil {
@@ -563,6 +565,7 @@ func Test_check(t *testing.T) {
 	if db2 != nil { db2.Close() }
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE VIEW v1(y) AS SELECT x FROM t1;\n  PRAGMA integrity_check;\n")

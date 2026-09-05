@@ -86,6 +86,7 @@ func Test_corrupt7(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1062), "FF")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check(1)")
 	}
@@ -93,6 +94,7 @@ func Test_corrupt7(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1062), "04")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check(1)")
 	}

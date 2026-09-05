@@ -174,6 +174,7 @@ func Test_reindex(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "reindex-3.1"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql

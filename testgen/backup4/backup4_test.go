@@ -77,11 +77,13 @@ func Test_backup4(t *testing.T) {
 	}
 	{ // do_test "1.1"
 		db1, err = frigolite.Open(":memory:")
+		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }
 		var _catchErr error
 		_catchErr = tclDBBackupRestore(db1, "backup", "main", "test.db")
 		if _catchErr != nil { _r = "" }
 		db1, err = frigolite.Open("test.db")
+		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }
 		_res = db1.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('one', 'two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -103,6 +105,7 @@ func Test_backup4(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db2")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -118,6 +121,7 @@ func Test_backup4(t *testing.T) {
 	}
 	{ // do_test "2.3"
 		db1, err = frigolite.Open("test.db2")
+		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }
 		var _catchErr error
 		_catchErr = tclDBBackupRestore(db1, "backup", "main", "test.db")
@@ -138,6 +142,7 @@ func Test_backup4(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db2")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA page_size = 4096;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -153,6 +158,7 @@ func Test_backup4(t *testing.T) {
 	}
 	{ // do_test "3.3"
 		db1, err = frigolite.Open("test.db2")
+		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }
 		var _catchErr error
 		_catchErr = tclDBBackupRestore(db1, "backup", "main", "test.db")

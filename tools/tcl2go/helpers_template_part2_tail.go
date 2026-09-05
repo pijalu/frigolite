@@ -1095,11 +1095,35 @@ func blobPuts(b *frigolite.Blob, pos int, data []byte, nonewline bool) int {
 	return pos + len(data)
 }
 
+// tclConnRegistry tracks secondary connection handles by their TCL
+// connection-name string (e.g. "db1a", "db2b") so the runtime dispatch
+// can route through arbitrary names without a fixed-arity signature.
+// Populated by tclConnRegister at every sqlite3 NAME FILE call site;
+// tested by tclConnByName (used by the foreach db {db1a db2a} {execsql
+// {SQL} $db} runtime dispatch idiom).
+var tclConnRegistry = map[string]*frigolite.DB{}
+
+// tclConnRegister stores the (name, handle) pair. Called from the
+// transpiler at every "sqlite3 NAME FILE" (and at every frigolite.Open
+// re-bind) so tclConnByName can look up arbitrary names like "db1a"
+// or "db_tmp_5" at execsql time.
+func tclConnRegister(name string, db *frigolite.DB) {
+	tclConnRegistry[strings.TrimSpace(name)] = db
+}
+
 // tclConnByName returns the open *frigolite.DB connection named by a TCL
-// connection-name string ("db", "db2", ...) for execsql's runtime
-// connection dispatch (foreach db {db db2} { execsql {...} $db }).
+// connection-name string ("db", "db2", "db1a", ...) for execsql's runtime
+// connection dispatch (foreach db {db1a db2a} { execsql {...} $db }). It
+// first checks the global registry populated by tclConnRegister (covers
+// arbitrary secondary connection names like "db1a"/"db2a") and falls
+// back to the fixed db..db9 placeholders for the legacy pre-declared
+// names.
 func tclConnByName(name string, db, db1, db2, db3, db4, db5, db6, db7, db8, db9 *frigolite.DB) *frigolite.DB {
-	switch strings.TrimSpace(name) {
+	name = strings.TrimSpace(name)
+	if h, ok := tclConnRegistry[name]; ok && h != nil {
+		return h
+	}
+	switch name {
 	case "db":
 		return db
 	case "db1":

@@ -117,6 +117,7 @@ func Test_corrupt4(t *testing.T) {
 		// hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000] (unsupported arguments)
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DROP TABLE t2\n  ")
 		_ = _res // catchsql
@@ -177,6 +178,7 @@ func Test_corrupt4(t *testing.T) {
 	// close $fd
 	if tclBool("!" + tclBool01(GMap[perm:presql] != "")) {
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "2.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")

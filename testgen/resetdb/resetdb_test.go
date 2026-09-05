@@ -87,6 +87,7 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "110"
 		r = db2.Query("\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_count;\n  ")
@@ -120,6 +121,7 @@ func Test_resetdb(t *testing.T) {
 	if db2 != nil { db2.Close() }
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=8192;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1300) FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  SELECT sum(a), sum(length(b)) FROM t1;\n  PRAGMA integrity_check;\n  PRAGMA journal_mode;\n  PRAGMA page_size;\n  PRAGMA page_count;\n")
@@ -134,6 +136,7 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "310"
 		r = db2.Query("\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
@@ -164,6 +167,7 @@ func Test_resetdb(t *testing.T) {
 	if db2 != nil { db2.Close() }
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "500" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("______sqlite3_prepare_db__SELECT_1_FROM_sqlite_master_LIMIT_1___1_tail____")
@@ -172,6 +176,7 @@ func Test_resetdb(t *testing.T) {
 		// db eval skipped: VACUUM not implemented (P8.VACUUM)
 		// sqlite3_db_config RESET_DB (unhandled flag)
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
@@ -183,6 +188,7 @@ func Test_resetdb(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // "600"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4);\n")

@@ -107,6 +107,7 @@ func Test_rtreeC(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM r_tree, t \n  WHERE t.x>=min_x AND t.x<=max_x AND t.y>=min_y AND t.x<=max_y\n")
@@ -223,6 +224,7 @@ func Test_rtreeC(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "5.4"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, rt WHERE x==id;\n")
@@ -238,6 +240,7 @@ func Test_rtreeC(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "5.6"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, rt WHERE x==id;\n")
@@ -250,12 +253,14 @@ func Test_rtreeC(t *testing.T) {
 		_catchErr = tclDBBackupRestore(db, "backup", "main", "test.db2")
 		if _catchErr != nil { _r = "" }
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    ANALYZE;\n    DELETE FROM sqlite_stat1 WHERE tbl='t1';\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		if db2 != nil { db2.Close() }
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test.db2' AS aux; ")
 		if _res.Error != nil {
@@ -281,6 +286,7 @@ func Test_rtreeC(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "6.2"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -296,6 +302,7 @@ func Test_rtreeC(t *testing.T) {
 	}
 	{ // do_test "6.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" DROP TABLE sqlite_stat1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

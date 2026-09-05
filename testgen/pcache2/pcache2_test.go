@@ -72,6 +72,7 @@ func Test_pcache2(t *testing.T) {
 	{ // do_test "pcache2-1.2"
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
 		_r = tclLIndex(tclStatus(db, "0"), "1") // lindex result
@@ -82,6 +83,7 @@ func Test_pcache2(t *testing.T) {
 	{ // do_test "pcache2-1.3"
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("PRAGMA cache_size=50; SELECT 1 FROM sqlite_master;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

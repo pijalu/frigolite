@@ -118,6 +118,7 @@ func Test_journal3(t *testing.T) {
 				}
 				{ // do_test "journal3-1.2." + tn + ".3"
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
 					if _res.Error != nil {

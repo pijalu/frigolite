@@ -98,6 +98,7 @@ func Test_subjournal(t *testing.T) {
 	{ // do_test "2.1"
 		os.Remove("test.db2")
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		B, _berr = tclBackupInit(db2, "main", db, "main")
 		if _berr != nil {

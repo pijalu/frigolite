@@ -452,6 +452,7 @@ func Test_rtree8(t *testing.T) {
 	{ // do_test "rtree8-6.1"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=512;\n    CREATE VIRTUAL TABLE t1 USING rtree(id,x1,x2,y1,y2);\n    WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1 SELECT x, x, x+1, x, x+1 FROM c;\n  ")
 	_ = rc // suppress unused warning

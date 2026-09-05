@@ -93,6 +93,7 @@ func Test_journal2(t *testing.T) {
 		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {
@@ -146,6 +147,7 @@ func Test_journal2(t *testing.T) {
 		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query(" PRAGMA journal_mode = delete ")
 		if r.Error != nil {
@@ -198,6 +200,7 @@ func Test_journal2(t *testing.T) {
 	}
 	{ // do_test "journal2-1.12"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
 		if r.Error != nil {
@@ -234,6 +237,7 @@ func Test_journal2(t *testing.T) {
 	}
 	{ // do_test "journal2-1.20"
 		db2, err = frigolite.Open("testX.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		// expr [catchsql { PRAGMA integrity_check } db2] == "0 ok" → runtime compare
 		_r = tclBool01(tclCatchsqlStr(db, "{ PRAGMA integrity_check } db2")  ==  "0 ok")

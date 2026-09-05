@@ -181,6 +181,7 @@ func Test_incrvacuum2(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 SELECT * FROM t1;            --    2\n    INSERT INTO t1 SELECT * FROM t1;            --    4\n    INSERT INTO t1 SELECT * FROM t1;            --    8\n    INSERT INTO t1 SELECT * FROM t1;            --   16\n    INSERT INTO t1 SELECT * FROM t1;            --   32\n    INSERT INTO t1 SELECT * FROM t1;            --  128\n    INSERT INTO t1 SELECT * FROM t1;            --  256\n    INSERT INTO t1 SELECT * FROM t1;            --  512\n    INSERT INTO t1 SELECT * FROM t1;            -- 1024\n    INSERT INTO t1 SELECT * FROM t1;            -- 2048\n    INSERT INTO t1 SELECT * FROM t1;            -- 4096\n    INSERT INTO t1 SELECT * FROM t1;            -- 8192\n    DELETE FROM t1 WHERE oid>512;\n    DELETE FROM t1;\n  ")
@@ -207,6 +208,7 @@ func Test_incrvacuum2(t *testing.T) {
 		{ // "4.3" (prepare-step internals; SQL side effects only)
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			vtab.TclVarSet("maxsz", "", "0")
 			maxsz = "0"

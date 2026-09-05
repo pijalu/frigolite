@@ -63,6 +63,7 @@ func Test_pragmafault(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "1.0"

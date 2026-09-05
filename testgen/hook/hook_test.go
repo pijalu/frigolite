@@ -186,6 +186,7 @@ func Test_hook(t *testing.T) {
 	{ // do_test "hook-3.10"
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("CREATE TABLE t3(x,y)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -469,6 +470,7 @@ func Test_hook(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetPreupdateHook(func() {
 		var _ptype = db.PreupdateType()
@@ -721,6 +723,7 @@ func Test_hook(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetPreupdateHook(func() {
 		var _ptype = db.PreupdateType()

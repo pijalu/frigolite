@@ -462,6 +462,7 @@ func Test_alterdropcol(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
 				_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN b;                \n")

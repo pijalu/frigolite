@@ -101,6 +101,7 @@ func Test_waloverwrite(t *testing.T) {
 			{ // do_test "1." + tn + ".2"
 				db.Close()
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				r = db.Query("PRAGMA journal_mode = wal")
 				if r.Error != nil {
@@ -159,6 +160,7 @@ func Test_waloverwrite(t *testing.T) {
 				os.Remove("test.db2")
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
@@ -170,6 +172,7 @@ func Test_waloverwrite(t *testing.T) {
 				tclFileCopy("test.db", "test.db2")
 				tclFileCopy("test.db-wal", "test.db2-wal")
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
@@ -258,6 +261,7 @@ func Test_waloverwrite(t *testing.T) {
 				os.Remove("test.db2")
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
@@ -268,6 +272,7 @@ func Test_waloverwrite(t *testing.T) {
 				if db2 != nil { db2.Close() }
 				tclFileCopy("test.db-wal", "test.db2-wal")
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {

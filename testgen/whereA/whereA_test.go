@@ -88,12 +88,14 @@ func Test_whereA(t *testing.T) {
 	{ // do_test "whereA-1.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
 	}
 	{ // do_test "whereA-1.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
 	}
@@ -124,6 +126,7 @@ func Test_whereA(t *testing.T) {
 	{ // do_test "whereA-1.7"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db eval skipped: VACUUM not implemented (P8.VACUUM)
 	}

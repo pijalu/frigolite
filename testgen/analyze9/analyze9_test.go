@@ -147,12 +147,12 @@ func Test_analyze9(t *testing.T) {
 	_ = seen // pre-declared from TCL source
 	var op string
 	_ = op // pre-declared from TCL source
-	AMap := map[string]string{}
-	_ = AMap // dynamic-key array from TCL source
 	expectMap := map[string]string{}
 	_ = expectMap // dynamic-key array from TCL source
 	possibleMap := map[string]string{}
 	_ = possibleMap // dynamic-key array from TCL source
+	AMap := map[string]string{}
+	_ = AMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "analyze9")
@@ -1270,6 +1270,7 @@ func Test_analyze9(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "15.2"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1291,6 +1292,7 @@ func Test_analyze9(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "15.4"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1312,6 +1314,7 @@ func Test_analyze9(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "15.6"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1333,6 +1336,7 @@ func Test_analyze9(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "15.8"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1354,6 +1358,7 @@ func Test_analyze9(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "15.10"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1375,6 +1380,7 @@ func Test_analyze9(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "15.12"
 				r = db.Query(" SELECT * FROM x1 ")

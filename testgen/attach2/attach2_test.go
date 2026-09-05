@@ -96,6 +96,7 @@ func Test_attach2(t *testing.T) {
 		os.Remove("test2.db")
 		os.Remove("test2.db-journal")
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -241,8 +242,10 @@ func Test_attach2(t *testing.T) {
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("ATTACH 'test2.db' as file2")
 		if _res.Error != nil {
@@ -392,6 +395,7 @@ func Test_attach2(t *testing.T) {
 	}
 	{ // do_test "attach2-5.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n  ")
 		if _res.Error != nil {

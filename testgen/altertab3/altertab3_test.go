@@ -323,6 +323,7 @@ func Test_altertab3(t *testing.T) {
 	}
 	{ // do_test "8.2.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" INSERT INTO t2 VALUES (1), (2), (3) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -533,6 +534,7 @@ func Test_altertab3(t *testing.T) {
 			}
 		}
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "altertab3-20.10" — skipped: CTE in index expression rename validation not supported
 		}
@@ -624,6 +626,7 @@ func Test_altertab3(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "23.3"
 			_res = db.Exec("\n  ALTER TABLE v0 RENAME TO t3 ;\n")

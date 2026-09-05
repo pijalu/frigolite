@@ -225,6 +225,7 @@ func Test_syscall(t *testing.T) {
 				}
 				db.Close()
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" ATTACH 'test.db2' AS aux ")
 				if _res.Error != nil {
@@ -258,13 +259,17 @@ func Test_syscall(t *testing.T) {
 	}
 	{ // do_test "6.1"
 		db1, err = frigolite.Open("test.db1")
+		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		db3, err = frigolite.Open("test.db3")
+		tclConnRegister("db3", db3)
 		if err != nil { t.Fatal(err) }
 		dbM, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
+		tclConnRegister("dbM", dbM)
 		if err != nil { t.Fatal(err) }
 		if db2 != nil { db2.Close() }
 		if db3 != nil { db3.Close() }
@@ -273,6 +278,7 @@ func Test_syscall(t *testing.T) {
 	}
 	{ // do_test "6.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA temp_store = file;\n\n    PRAGMA main.cache_size = 10;\n    PRAGMA temp.cache_size = 10;\n    CREATE TABLE temp.tt(a, b);\n    INSERT INTO tt VALUES(randomblob(500), randomblob(600));\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n  ")
 		if r.Error != nil {
@@ -331,6 +337,7 @@ func Test_syscall(t *testing.T) {
 		os.Remove("test.db")
 		{ // do_test "8.1"
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// file_control_chunksize_test db main 4096 (unsupported command, not transpiled)
 			_r = strconv.Itoa(tclFileSize("test.db"))
@@ -360,6 +367,7 @@ func Test_syscall(t *testing.T) {
 				db.Close()
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				// file_control_chunksize_test db main 16 (unsupported command, not transpiled)
 				_r = strconv.Itoa(tclFileSize("test.db"))

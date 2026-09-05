@@ -79,6 +79,7 @@ func Test_tkt35xx(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	big = tclStringRepeat("abcdefghij", "22")
 	_ = big // suppress unused warning

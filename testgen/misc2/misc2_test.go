@@ -167,6 +167,7 @@ func Test_misc2(t *testing.T) {
 	{ // do_test "misc2-6.1"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -177,6 +178,7 @@ func Test_misc2(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
@@ -391,6 +393,7 @@ func Test_misc2(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
@@ -604,6 +607,7 @@ func Test_misc2(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql

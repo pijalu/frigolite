@@ -111,6 +111,7 @@ func Test_capi3e(t *testing.T) {
 	}
 	{ // do_test "capi3e-3.1"
 		db2, err = frigolite.Open("base.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 	}
 	vtab.TclVarSet("i", "", "0")

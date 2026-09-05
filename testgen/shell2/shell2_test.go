@@ -81,6 +81,7 @@ func Test_shell2(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "shell2-1.1.1" (CLI shell subprocess harness, not transpiled)
 		// forcedelete foo.db

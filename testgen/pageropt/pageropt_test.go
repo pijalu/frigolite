@@ -93,6 +93,7 @@ func Test_pageropt(t *testing.T) {
 		// pagercount_sql {\n    SELECT length(x) FROM t1\n  } (unsupported command, not transpiled)
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	blobcontent = "db2 one {SELECT hex(x) FROM t1}"
 	_ = blobcontent // suppress unused warning
@@ -112,12 +113,14 @@ func Test_pageropt(t *testing.T) {
 	{ // do_test "pageropt-2.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    DELETE FROM t1 WHERE rowid=1\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "pageropt-2.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  } (unsupported command, not transpiled)
 	}
@@ -139,12 +142,14 @@ func Test_pageropt(t *testing.T) {
 	{ // do_test "pageropt-4.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(11300))\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "pageropt-4.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    DELETE FROM t1\n  } (unsupported command, not transpiled)
 	}

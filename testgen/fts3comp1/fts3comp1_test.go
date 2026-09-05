@@ -106,6 +106,7 @@ func Test_fts3comp1(t *testing.T) {
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// db func $zip zip (zip harness: counter + map)
 			db.RegisterFunction(zip, func(args []interface{}) (interface{}, error) {
@@ -340,6 +341,7 @@ func Test_fts3comp1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db.RegisterFunction("comp", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		{ // "4.2"

@@ -87,6 +87,7 @@ func Test_thread004(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "thread004-1.1"
 		_res = db.Exec(" CREATE TABLE t1(a, b, c) ")

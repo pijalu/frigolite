@@ -215,6 +215,7 @@ func Test_dbstatus2(t *testing.T) {
 	{ // do_test "1.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA mmap_size = 0 ")
 		if r.Error != nil {

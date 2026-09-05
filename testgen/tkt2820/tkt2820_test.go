@@ -78,6 +78,7 @@ func Test_tkt2820(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n  ")
 		_dbevalRows0 := db.Query("SELECT name FROM sqlite_master")

@@ -63,8 +63,10 @@ func Test_lock7(t *testing.T) {
 		}
 		db.Close()
 		db1, err = frigolite.Open("test.db")
+		tclConnRegister("db1", db1)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db1.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

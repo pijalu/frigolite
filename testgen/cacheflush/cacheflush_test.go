@@ -147,6 +147,7 @@ func Test_cacheflush(t *testing.T) {
 	}
 	{ // do_test "1.4.1"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -219,6 +220,7 @@ func Test_cacheflush(t *testing.T) {
 	}
 	{ // do_test "2.2.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -255,6 +257,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // do_test "3.0"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n  ")
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)

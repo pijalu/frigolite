@@ -1651,6 +1651,7 @@ func Test_func(t *testing.T) {
 			_res = db.Exec("\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
@@ -1672,6 +1673,7 @@ func Test_func(t *testing.T) {
 		{ // "func-29.3" (prepare-step internals; SQL side effects only)
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
@@ -1681,6 +1683,7 @@ func Test_func(t *testing.T) {
 		{ // "func-29.5" (prepare-step internals; SQL side effects only)
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT sum(length(x)) FROM t29")

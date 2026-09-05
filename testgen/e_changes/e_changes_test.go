@@ -149,6 +149,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".5"
 				db2, err = frigolite.Open("test.db")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				_res = db2.Exec(" INSERT INTO t1 VALUES(-1, -1) ")
 				if _res.Error != nil {

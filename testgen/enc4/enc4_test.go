@@ -98,6 +98,7 @@ func Test_enc4(t *testing.T) {
 	_ = enc // suppress unused warning
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
 		{ // do_test "enc4-" + i + ".1"
@@ -192,6 +193,7 @@ func Test_enc4(t *testing.T) {
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc4-4.1"
 		r = db.Query("select 1+1.")

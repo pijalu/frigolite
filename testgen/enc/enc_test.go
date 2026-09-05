@@ -163,6 +163,7 @@ func Test_enc(t *testing.T) {
 	}
 	{ // do_test "enc-12.1"
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t2 VALUES('d', 'e', 'f');\n    PRAGMA encoding;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -181,6 +182,7 @@ func Test_enc(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db3")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.4"
 		r = db.Query("\n  SELECT * FROM t3;\n  PRAGMA encoding = 'UTF-16le';\n  SELECT * FROM t3;\n")
@@ -196,6 +198,7 @@ func Test_enc(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db3")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.5"
 		r = db.Query("\n  PRAGMA encoding = 'UTF-16le';\n  PRAGMA encoding;\n")
@@ -222,6 +225,7 @@ func Test_enc(t *testing.T) {
 	}
 	{ // do_test "enc-12.7"
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		var _catchErr error
 		_catchErr = tclDBBackupRestore(db2, "backup", "main", "test.db")
@@ -237,6 +241,7 @@ func Test_enc(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.9"
 		_res = db.Exec("\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
@@ -259,10 +264,12 @@ func Test_enc(t *testing.T) {
 	db.Close()
 	os.Remove("utf16.db")
 	db, err = frigolite.Open("utf16.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
 	db.Close()
 	db, err = frigolite.Open("utf16.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc-13.1"
 		r = db.Query("PRAGMA function_list")
@@ -273,6 +280,7 @@ func Test_enc(t *testing.T) {
 	_res = db.Exec("CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
 	db.Close()
 	db, err = frigolite.Open("utf16.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "enc-13.2"
 		_res = db.Exec("\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")

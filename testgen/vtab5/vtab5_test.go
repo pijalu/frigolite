@@ -74,6 +74,7 @@ func Test_vtab5(t *testing.T) {
 	{ // do_test "vtab5.1.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO techo VALUES('c', 'd', 'e');\n    SELECT * FROM techo;\n  ")
@@ -84,6 +85,7 @@ func Test_vtab5(t *testing.T) {
 	{ // do_test "vtab5.1.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		r = db.Query("\n    UPDATE techo SET a = 10;\n    SELECT * FROM techo;\n  ")
@@ -94,6 +96,7 @@ func Test_vtab5(t *testing.T) {
 	{ // do_test "vtab5.1.5"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		r = db.Query("\n    DELETE FROM techo WHERE b > 'c';\n    SELECT * FROM techo;\n  ")

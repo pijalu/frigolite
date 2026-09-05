@@ -81,8 +81,10 @@ func Test_vtab_shared(t *testing.T) {
 	db.Close()
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "vtab_shared-1.1"
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)

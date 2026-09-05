@@ -152,6 +152,7 @@ func Test_altertab(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "altertab-2.2" — skipped: echo virtual table module (register_echo_module) not implemented
 	}
@@ -849,6 +850,7 @@ func Test_altertab(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "23.2"
 		_res = db.Exec("\n  alter table gigo rename to ggiiggoo;\n  alter table idx rename to idx2;\n")

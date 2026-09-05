@@ -95,6 +95,7 @@ func Test_nockpt(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.5"
 		_res = db.Exec("\n  INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);\n")
@@ -127,6 +128,7 @@ func Test_nockpt(t *testing.T) {
 		}
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.12"
 		r = db.Query("\n  SELECT * FROM c1\n")
@@ -204,8 +206,10 @@ func Test_nockpt(t *testing.T) {
 			os.Remove("test.db-shm")
 		}
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		{ // "2.1"
 			r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
@@ -253,6 +257,7 @@ func Test_nockpt(t *testing.T) {
 			tclFinalizePrepared("stmt")
 			// sqlite3_finalize $stmt
 			db3, err = frigolite.Open("test.db")
+			tclConnRegister("db3", db3)
 			if err != nil { t.Fatal(err) }
 			r = db3.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
 			if r.Error != nil {

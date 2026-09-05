@@ -127,6 +127,7 @@ func Test_default(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDefensive(false)
 	{ // "default-4.0"
@@ -137,6 +138,7 @@ func Test_default(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "default-4.1"
 		r = db.Query("\n  INSERT INTO t1(a) VALUES('xyzzy');\n  SELECT a, quote(b) FROM t1;\n")

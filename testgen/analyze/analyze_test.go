@@ -246,12 +246,14 @@ func Test_analyze(t *testing.T) {
 	}
 	{ // do_test "analyze-4.0"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    CREATE TABLE t4(x,y,z);\n    CREATE INDEX t4i1 ON t4(x);\n    CREATE INDEX t4i2 ON t4(y);\n    INSERT INTO t4 SELECT a,b,c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		if db2 != nil { db2.Close() }
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
@@ -265,6 +267,7 @@ func Test_analyze(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -278,6 +281,7 @@ func Test_analyze(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -291,6 +295,7 @@ func Test_analyze(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -326,6 +331,7 @@ func Test_analyze(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec("\n    ANALYZE\n  ")
@@ -333,6 +339,7 @@ func Test_analyze(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "analyze-6.1"
 		r = db.Query("\n  CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tbl FROM sqlite_stat1 WHERE idx IS NULL ORDER BY tbl;\n")

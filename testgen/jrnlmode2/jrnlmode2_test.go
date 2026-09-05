@@ -70,6 +70,7 @@ func Test_jrnlmode2(t *testing.T) {
 	}
 	{ // do_test "jrnlmode2-1.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -129,6 +130,7 @@ func Test_jrnlmode2(t *testing.T) {
 	}
 	{ // do_test "jrnlmode2-2.4"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -139,6 +141,7 @@ func Test_jrnlmode2(t *testing.T) {
 	}
 	{ // do_test "jrnlmode2-2.6"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql

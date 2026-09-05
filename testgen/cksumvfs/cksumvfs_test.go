@@ -76,6 +76,7 @@ func Test_cksumvfs(t *testing.T) {
 	// proc definition (not transpiled)
 	// sqlite3_register_cksumvfs (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// file_control_reservebytes db 8 (unsupported command, not transpiled)
 	r = db.Query("\n  PRAGMA page_size = 4096;\n")
@@ -214,6 +215,7 @@ func Test_cksumvfs(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.9"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")

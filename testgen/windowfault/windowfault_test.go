@@ -119,6 +119,7 @@ func Test_windowfault(t *testing.T) {
 	// tvfs script vfs_callback (unsupported command, not transpiled)
 	// tvfs filter xRead (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	vtab.TclVarSet("FAULTSIM", "tmpread", "-injectstart"+" "+"tmpread_injectstart"+" "+"-injectstop"+" "+"tmpread_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"\\")

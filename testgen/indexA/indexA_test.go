@@ -550,6 +550,7 @@ func Test_indexA(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "indexA-5.3" — skipped: depends on 5.0 PRIMQRY table creation (reopen select) (SQL side effects only)
 				_res = db.Exec("\n  SELECT * FROM t1\n")

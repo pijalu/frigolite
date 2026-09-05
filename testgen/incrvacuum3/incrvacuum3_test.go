@@ -106,6 +106,7 @@ func Test_incrvacuum3(t *testing.T) {
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA cache_size = 5;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n  ")
 			_res = db.Exec("PRAGMA journal_mode = " + jrnl_mode)

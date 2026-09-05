@@ -69,6 +69,7 @@ func Test_strict2(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "strict2-1.2"
 		r = db.Query("\n  PRAGMA quick_check('t1');\n")

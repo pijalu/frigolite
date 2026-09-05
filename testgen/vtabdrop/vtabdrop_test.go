@@ -111,6 +111,7 @@ func Test_vtabdrop(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
@@ -145,6 +146,7 @@ func Test_vtabdrop(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "vtabdrop-2.3" — skipped: depends on vtabdrop-2.1 drop semantics N-A (P7) (SQL side effects only)
 		_res = db.Exec("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
@@ -171,6 +173,7 @@ func Test_vtabdrop(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "vtabdrop-2.3" — skipped: depends on vtabdrop-2.1 drop semantics N-A (P7) (SQL side effects only)
 		_res = db.Exec("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")

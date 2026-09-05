@@ -65,6 +65,7 @@ func Test_pragma6(t *testing.T) {
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")

@@ -241,6 +241,7 @@ func Test_nan(t *testing.T) {
 			db.Close()
 			tclHexioWrite("test.db", int64(2040), "FFF8000000000000")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
@@ -248,6 +249,7 @@ func Test_nan(t *testing.T) {
 			db.Close()
 			tclHexioWrite("test.db", int64(2040), "7FF8000000000000")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
@@ -255,6 +257,7 @@ func Test_nan(t *testing.T) {
 			db.Close()
 			tclHexioWrite("test.db", int64(2040), "FFFFFFFFFFFFFFFF")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}
@@ -262,6 +265,7 @@ func Test_nan(t *testing.T) {
 			db.Close()
 			tclHexioWrite("test.db", int64(2040), "7FFFFFFFFFFFFFFF")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		}

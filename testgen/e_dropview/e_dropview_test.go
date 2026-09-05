@@ -86,6 +86,7 @@ func Test_e_dropview(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;")
 	{ // "2.1"

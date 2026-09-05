@@ -93,6 +93,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -17951,6 +17952,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "2.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -19009,6 +19011,7 @@ func Test_corruptL(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  INSERT INTO t1 SELECT * FROM t2;\n")
@@ -19023,6 +19026,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "4.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -19256,6 +19260,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "5.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -28916,6 +28921,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "6.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -29962,6 +29968,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "7.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -31008,6 +31015,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "8.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -31147,6 +31155,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "9.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -31591,6 +31600,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "10.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -40625,6 +40635,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "11.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -40677,6 +40688,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "12.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -41314,6 +41326,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "13.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -41746,6 +41759,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "14.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -41802,6 +41816,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "15.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -43280,6 +43295,7 @@ func Test_corruptL(t *testing.T) {
 	// extra_schema_checks 0 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// extra_schema_checks 1 (unsupported command, not transpiled)
 	{ // "16.1"
@@ -43332,6 +43348,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "18.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -43963,6 +43980,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "19.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -45021,6 +45039,7 @@ func Test_corruptL(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "19.4"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
@@ -45035,6 +45054,7 @@ func Test_corruptL(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "18.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")

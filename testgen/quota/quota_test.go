@@ -127,6 +127,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-2.1.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;\n  ")
 		if r.Error != nil {
@@ -197,6 +198,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-2.3.1"
 		db2, err = frigolite.Open("bak.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		if db2 != nil { db2.Close() }
 	}
@@ -238,6 +240,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-3.1.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
 		if r.Error != nil {
@@ -250,6 +253,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-3.1.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("quota", "", "")
 		quota = "" // TCL namespace variable
@@ -292,9 +296,11 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet("*", 4096, "")
 		db1a, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tclConnRegister("db1a", db1a)
 		if err != nil { t.Fatal(err) }
 		db2a, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
+		tclConnRegister("db2a", db2a)
 		if err != nil { t.Fatal(err) }
 		for _, db_iter := range tclSplitList("db1a db2a") {
 		_ = db_iter // suppress unused warning
@@ -305,9 +311,11 @@ func Test_quota(t *testing.T) {
 		}
 		db1b, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tclConnRegister("db1b", db1b)
 		if err != nil { t.Fatal(err) }
 		db2b, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
+		tclConnRegister("db2b", db2b)
 		if err != nil { t.Fatal(err) }
 		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
 		_ = _list
@@ -430,6 +438,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.1.6"
 		os.Remove("test2.db")
 		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');")
 		// quota_list (unsupported command, not transpiled)
@@ -442,6 +451,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.1.8"
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -500,6 +510,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.3.1"
 		_r = tclQuotaSet("A", 1000, "quota_callback")
 		db, err = frigolite.Open("A")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_r = tclQuotaSet("A", 0, "quota_callback")
 		db.Close()
@@ -525,6 +536,7 @@ func Test_quota(t *testing.T) {
 		_r = tclQuotaSet(quotagroup, 10000, "quota_callback")
 		os.Remove("./quota-test-A1.db")
 		db, err = frigolite.Open("./quota-test-A1.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		// quota_list (unsupported command, not transpiled)
@@ -538,6 +550,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.4.3"
 		db.Close()
 		db, err = frigolite.Open("./quota-test-A2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		// quota_list (unsupported command, not transpiled)
@@ -556,6 +569,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.4.6"
 		_r = tclQuotaSet(quotagroup, 10000, "quota_callback")
 		db, err = frigolite.Open("quota-test-A1.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master")
 		// quota_size $quotagroup (unsupported command, not transpiled)
@@ -640,6 +654,7 @@ func Test_quota(t *testing.T) {
 	os.Remove("test.db")
 	{ // do_test "quota-5.3.prep"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		if r.Error != nil {
@@ -667,6 +682,7 @@ func Test_quota(t *testing.T) {
 		{
 			var _catchErr error
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }

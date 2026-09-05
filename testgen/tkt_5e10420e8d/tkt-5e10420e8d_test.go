@@ -81,6 +81,7 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "tkt-5e10420e8d.5"
 		r = db.Query("\n  PRAGMA integrity_check;\n")

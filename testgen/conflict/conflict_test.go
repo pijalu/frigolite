@@ -429,6 +429,7 @@ func Test_conflict(t *testing.T) {
 								{ // do_test "conflict-6." + i
 									db.Close()
 									db, err = frigolite.Open("test.db")
+									tclConnRegister("db", db)
 									if err != nil { t.Fatal(err) }
 									if conf1 != "" {
 										vtab.TclVarSet("conf1", "", "ON CONFLICT " + conf1)

@@ -624,6 +624,7 @@ func Test_date(t *testing.T) {
 			db.Close()
 			tclHexioWrite("test.db", int64(2040), "4142ba32bffffff9")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT * FROM t1")
 		}
@@ -634,6 +635,7 @@ func Test_date(t *testing.T) {
 			db.Close()
 			tclHexioWrite("test.db", int64(2047), tclFormat("%02x", i))
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "date-14.2." + i
 				_dbone0 := tclExecSQL(db, "{SELECT datetime(x) FROM t1}")

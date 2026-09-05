@@ -110,6 +110,7 @@ func Test_thread002(t *testing.T) {
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 3 }() {
 			os.Remove("test" + ii + ".db")
 			db, err = frigolite.Open("test" + ii + ".db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);\n    ")
 			if _res.Error != nil {

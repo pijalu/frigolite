@@ -139,6 +139,7 @@ func Test_index3(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec(" DROP INDEX t1c ")

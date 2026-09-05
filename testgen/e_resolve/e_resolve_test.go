@@ -71,6 +71,7 @@ func Test_e_resolve(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(schema)
 	{ // "1.1"
@@ -124,6 +125,7 @@ func Test_e_resolve(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(schema)
 	{ // "2.1.1"
@@ -183,6 +185,7 @@ func Test_e_resolve(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(schema)
 	{ // "3.1"
@@ -284,6 +287,7 @@ func Test_e_resolve(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
 		_res = db.Exec("\n  ATTACH 'file.db' AS aux;\n  CREATE TABLE t1(x, y);\n  CREATE TEMP TABLE t1(x, y);\n  CREATE TABLE aux.t1(x, y);\n")

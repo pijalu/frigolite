@@ -74,6 +74,7 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	if "" == "prepare" {
 	}

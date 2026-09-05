@@ -137,6 +137,7 @@ func Test_triggerupfrom(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "2.4"
 		_res = db.Exec("\n  ATTACH 'test.db' AS yyy;\n  SELECT * FROM t1;\n")

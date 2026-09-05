@@ -146,6 +146,7 @@ func Test_alterlegacy(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "alterlegacy-2.2" — skipped: echo virtual table module (register_echo_module) not implemented
 	}

@@ -671,6 +671,7 @@ func Test_in4(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  SELECT t1.x FROM t2 CROSS JOIN t1 WHERE t2.z = t1.y;\n")

@@ -70,6 +70,7 @@ func Test_sort2(t *testing.T) {
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// skip: foreach over unresolved TCL command
 }

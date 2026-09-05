@@ -226,6 +226,7 @@ func Test_corruptK(t *testing.T) {
 		tclHexioWrite("test.db", int64(1024 + 0x360), "21")
 		tclHexioWrite("test.db", int64(1024 + 0x363), tclFormat("%x", "74"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		fd = "incrblob_1"
 		incrblob_1, _berr = db.OpenBlob("main", "t1", "x", tclRowID(3), true)
@@ -277,6 +278,7 @@ func Test_corruptK(t *testing.T) {
 		tclHexioWrite("test.db", int64(1024 + 0x388), "53")
 		tclHexioWrite("test.db", int64(1024 + 0x38A), "03812C")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		fd = "incrblob_2"
 		incrblob_2, _berr = db.OpenBlob("main", "t1", "x", tclRowID(5), true)
@@ -321,6 +323,7 @@ func Test_corruptK(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "3.3"
 			_res = db.Exec("\n    PRAGMA integrity_check;\n  ")

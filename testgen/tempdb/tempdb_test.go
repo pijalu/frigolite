@@ -68,6 +68,7 @@ func Test_tempdb(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tempdb-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('hello');\n    INSERT INTO t2 VALUES(NULL);\n  ")
@@ -90,6 +91,7 @@ func Test_tempdb(t *testing.T) {
 		_ = subj_in_memory // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "tempdb-2.2"

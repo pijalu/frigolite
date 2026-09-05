@@ -89,6 +89,7 @@ func Test_corrupt6(t *testing.T) {
 	{ // do_test "corrupt6-1.6"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -99,6 +100,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "8105")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -107,6 +109,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "8101")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -115,6 +118,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "8103")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -125,6 +129,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1987), "8105")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -133,6 +138,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1987), "8101")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -141,6 +147,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1987), "8103")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -151,6 +158,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -159,6 +167,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -167,6 +176,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -175,6 +185,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -183,6 +194,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -191,6 +203,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -199,6 +212,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -207,6 +221,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -215,6 +230,7 @@ func Test_corrupt6(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(1923), "FFFFFFFFFFFFFFFFFF7F")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql

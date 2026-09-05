@@ -80,6 +80,7 @@ func Test_backup5(t *testing.T) {
 	}
 	{ // "1.2" (prepare-step internals; SQL side effects only)
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		// prepared stmt: SELECT * FROM t2 (bind/step emulation)
 		tclPrepareStep(db2, "SELECT * FROM t2", "stmt")
@@ -157,6 +158,7 @@ func Test_backup5(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test2.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1"
 		B, _berr = tclBackupInit(db2, "main", db, "main")
@@ -186,6 +188,7 @@ func Test_backup5(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test2.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.3"
 		B, _berr = tclBackupInit(db2, "main", db, "aux7")
@@ -236,6 +239,7 @@ func Test_backup5(t *testing.T) {
 	os.Remove("test.db2")
 	os.Remove("test.db3")
 	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db2.Exec("\n  ATTACH 'test.db3' AS aux;\n")

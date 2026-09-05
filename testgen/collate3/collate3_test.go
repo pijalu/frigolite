@@ -123,6 +123,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.5"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY a ")
 		_ = _res // catchsql
@@ -141,6 +142,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.6.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY a ")
 		_ = _res // catchsql
@@ -148,6 +150,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.6.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
@@ -155,6 +158,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.6.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" REINDEX ")
 		_ = _res // catchsql
@@ -169,6 +173,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.7.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY a COLLATE caseless")
 		_ = _res // catchsql
@@ -176,6 +181,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.7.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" REINDEX ")
 		_ = _res // catchsql
@@ -183,6 +189,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.7.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
@@ -190,6 +197,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.7.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" REINDEX ")
 		_ = _res // catchsql
@@ -197,6 +205,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.7.5"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db.RegisterCollation("caseless", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_res = db.Exec(" PRAGMA integrity_check ")
@@ -206,6 +215,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-1.7.6"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
@@ -224,6 +234,7 @@ func Test_collate3(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// expr 0 → "0"
 	}
@@ -343,6 +354,7 @@ func Test_collate3(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// expr 0 → "0"
 	}
@@ -441,6 +453,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-4.7"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;\n  ")
 		_ = _res // catchsql
@@ -480,6 +493,7 @@ func Test_collate3(t *testing.T) {
 	{ // do_test "collate3-4.10"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM collate3v1;\n  ")
 		_ = _res // catchsql
@@ -557,6 +571,7 @@ func Test_collate3(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1;\n  ")
 		_ = _res // catchsql

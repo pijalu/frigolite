@@ -117,6 +117,7 @@ func Test_corruptH(t *testing.T) {
 		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)] (unsupported arguments)
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.3"
@@ -191,6 +192,7 @@ func Test_corruptH(t *testing.T) {
 		// hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)] (unsupported arguments)
 		tclHexioWrite("test.db", int64(36), "00000002")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	vtab.TclVarSet("res23", "", "1 {database disk image is malformed}")
@@ -270,6 +272,7 @@ func Test_corruptH(t *testing.T) {
 		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002 (unsupported arguments)
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "3.3"

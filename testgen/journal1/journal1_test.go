@@ -80,6 +80,7 @@ func Test_journal1(t *testing.T) {
 		os.Remove("test.db")
 		tclFileCopy("test.db-journal-bu", "test.db-journal")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM sqlite_master\n  ")
 		_ = _res // catchsql

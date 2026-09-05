@@ -68,6 +68,7 @@ func Test_mallocD(t *testing.T) {
 	db.Close()
 	// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	vtab.TclVarSet("PREP", "", " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n")
 	PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n"

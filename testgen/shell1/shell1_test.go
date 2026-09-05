@@ -91,6 +91,7 @@ func Test_shell1(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "shell1-1.1.1" (CLI shell subprocess harness, not transpiled)
 		// set res [catchcmd "-bad test.db" ""]
@@ -734,6 +735,7 @@ func Test_shell1(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-7.1.1"
 		_res = db.Exec("\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")

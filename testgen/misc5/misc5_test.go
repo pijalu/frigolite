@@ -152,6 +152,7 @@ func Test_misc5(t *testing.T) {
 			tclChannelAppendAt("test.db", "This is not really a database"+"\n", fileChannelSeek["fd"])
 			// close $fd
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(a,b,c);\n    ")
 			_ = _res // catchsql
@@ -189,6 +190,7 @@ func Test_misc5(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc5-6.1"
 		_res = db.Exec("\n      SELECT * FROM sqlite_master \n      UNION ALL \n      SELECT * FROM sqlite_master\n      LIMIT (SELECT count(*) FROM blah);\n    ")
@@ -264,6 +266,7 @@ func Test_misc5(t *testing.T) {
 	}
 	{ // do_test "misc5-7.2"
 		db2, err = frigolite.Open(":memory:")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		db2.SetDefensive(false)
 		_res = db2.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE table t(o CHECK(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((;VALUES(o)';\n    BEGIN;\n    CREATE TABLE t2(y);\n    ROLLBACK;\n    DROP TABLE IF EXISTS D;\n  ")

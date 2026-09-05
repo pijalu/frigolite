@@ -91,6 +91,7 @@ func Test_corrupt9(t *testing.T) {
 	tclFileCopy("test.db", "test.db-template")
 	// corrupt_freelist test.db 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-2.1"
 		_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
@@ -108,6 +109,7 @@ func Test_corrupt9(t *testing.T) {
 	tclFileCopy("test.db-template", "test.db")
 	// corrupt_freelist test.db 2 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-3.1"
 		_dbeval1 := tclExecSQL(db, "PRAGMA integrity_check")
@@ -125,6 +127,7 @@ func Test_corrupt9(t *testing.T) {
 	tclFileCopy("test.db-template", "test.db")
 	// corrupt_freelist test.db 3 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-4.1"
 		_dbeval2 := tclExecSQL(db, "PRAGMA integrity_check")

@@ -136,6 +136,7 @@ func Test_corrupt(t *testing.T) {
 		// close $fd
 		{ // do_test "corrupt-2." + tn + ".1"
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT count(*) FROM sqlite_master")
 			_ = _res // catchsql
@@ -245,6 +246,7 @@ func Test_corrupt(t *testing.T) {
 		db.Close()
 		tclFileCopy("test.bu", "test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "corrupt-3.2"
@@ -263,6 +265,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-3.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('abc');\n  ")
 		_ = _res // catchsql
@@ -270,6 +273,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-3.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
@@ -277,6 +281,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-3.5"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1 WHERE oid = 10;\n  ")
 		_ = _res // catchsql
@@ -284,6 +289,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-3.6"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1 WHERE x = 'abcde';\n  ")
 		_ = _res // catchsql
@@ -292,6 +298,7 @@ func Test_corrupt(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
 		if r.Error != nil {
@@ -331,6 +338,7 @@ func Test_corrupt(t *testing.T) {
 		tclHexioWrite("test.db", int64((toInt(iRoot)-1)*1024 + toInt(iOffset)), data)
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 3 ")
 		_ = _res // catchsql
@@ -339,6 +347,7 @@ func Test_corrupt(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA page_size = 1024 ")
 		if r.Error != nil {
@@ -363,6 +372,7 @@ func Test_corrupt(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(108), "00000000")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
 		_ = _res // catchsql
@@ -371,6 +381,7 @@ func Test_corrupt(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 		if r.Error != nil {
@@ -404,6 +415,7 @@ func Test_corrupt(t *testing.T) {
 		_ = offset // suppress unused warning
 		tclHexioWrite("test.db", int64(toInt(offset)), "00FF")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES( randomblob(10) ) ")
 		_ = _res // catchsql
@@ -411,6 +423,7 @@ func Test_corrupt(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 	if r.Error != nil {
@@ -441,6 +454,7 @@ func Test_corrupt(t *testing.T) {
 	tclChannelAppendAt("test.db", "\x03\x14", fileChannelSeek["fd"])
 	// close $fd
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt-7.2"
 		_res = db.Exec(" \n      UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;\n    ")
@@ -458,6 +472,7 @@ func Test_corrupt(t *testing.T) {
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		if r.Error != nil {
@@ -472,6 +487,7 @@ func Test_corrupt(t *testing.T) {
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		if r.Error != nil {

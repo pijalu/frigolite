@@ -124,10 +124,12 @@ func Test_dbstatus(t *testing.T) {
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dbstatus-1.1"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		sz1 = tclLIndex(tclDbStatus(db, "SQLITE_DBSTATUS_CACHE_USED"), "1")
@@ -165,6 +167,7 @@ func Test_dbstatus(t *testing.T) {
 				db.Close()
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 				{
@@ -301,6 +304,7 @@ func Test_dbstatus(t *testing.T) {
 					db.Close()
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 					{

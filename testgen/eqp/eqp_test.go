@@ -409,6 +409,7 @@ func Test_eqp(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// det 7.4 SELECT count(*) FROM t1 {\n  QUERY PLAN\n  `--SCAN t1\n} (unsupported command, not transpiled)
 	// det 7.5 SELECT count(*) FROM t2 {\n  QUERY PLAN\n  `--SCAN t2 USING COVERING INDEX .... (unsupported command, not transpiled)

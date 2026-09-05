@@ -1471,6 +1471,7 @@ func Test_rowvalue(t *testing.T) {
 											}
 											db.Close()
 											db, err = frigolite.Open("")
+											tclConnRegister("db", db)
 											if err != nil { t.Fatal(err) }
 											{ // "26.10"
 												r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1);\n  INSERT INTO t1(c1) VALUES (0);\n  SELECT (c0, x'') != (NULL, 0) FROM t1 LEFT JOIN t0;\n")

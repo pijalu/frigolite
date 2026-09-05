@@ -253,6 +253,7 @@ func Test_indexexpr2(t *testing.T) {
 	// proc definition (not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.RegisterFunction("refcnt", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "indexexpr2-4.100" — skipped: authorizer not implemented (db auth C callback harness N-A; deterministic refcnt function not implemented) (SQL side effects only)

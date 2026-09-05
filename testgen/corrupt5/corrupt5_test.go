@@ -66,6 +66,7 @@ func Test_corrupt5(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		_ = _res // catchsql

@@ -148,6 +148,7 @@ func Test_e_reindex(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDefensive(false)
 	{ // "e_reindex-1.2"
@@ -158,6 +159,7 @@ func Test_e_reindex(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "e_reindex-1.3" — skipped: integrity_check index-corruption detection not implemented (P8.CORRUPT) (SQL side effects only)
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
@@ -179,6 +181,7 @@ func Test_e_reindex(t *testing.T) {
 	os.Remove("test.db2")
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// proc sort_by_length collation (registered via db collate)
 	VMap["one"] = "1"

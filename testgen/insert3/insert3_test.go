@@ -173,6 +173,7 @@ func Test_insert3(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "insert3-4.1"
 		_res = db.Exec(" \n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n  ")

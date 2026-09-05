@@ -90,6 +90,7 @@ func Test_backup2(t *testing.T) {
 		_catchErr = tclDBBackupRestore(db, "backup", "main", "bu1.db")
 		if _catchErr != nil { _r = "" }
 		db2, err = frigolite.Open("bu1.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_r = tclDBCksum(db2, "main")
 		if _r != cksum {
@@ -100,6 +101,7 @@ func Test_backup2(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -130,6 +132,7 @@ func Test_backup2(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		var _catchErr error
 		_catchErr = tclDBBackupRestore(db, "restore", "main", "bu1.db")
@@ -155,6 +158,7 @@ func Test_backup2(t *testing.T) {
 		_catchErr = tclDBBackupRestore(db, "backup", "temp", "bu2.db")
 		if _catchErr != nil { _r = "" }
 		db2, err = frigolite.Open("bu2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_r = tclDBCksum(db2, "main")
 		if _r != cksum {

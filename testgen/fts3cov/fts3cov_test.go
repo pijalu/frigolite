@@ -216,6 +216,7 @@ func Test_fts3cov(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// do_write_test fts3cov-6.2 t5_content {\n  INSERT INTO t5 VALUES('segment number 16!');\n} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-6.3"

@@ -336,6 +336,7 @@ func Test_collateA(t *testing.T) {
 	{ // do_test "collateA-3.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    REINDEX;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {

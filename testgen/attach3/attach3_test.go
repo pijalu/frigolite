@@ -77,6 +77,7 @@ func Test_attach3(t *testing.T) {
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
 	db2, err = frigolite.Open("test2.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
 	if _res.Error != nil {

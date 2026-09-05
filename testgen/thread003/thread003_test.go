@@ -113,6 +113,7 @@ func Test_thread003(t *testing.T) {
 		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "thread003.1.4"

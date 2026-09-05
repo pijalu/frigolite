@@ -68,8 +68,10 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	db1, err = frigolite.Open("test.db")
+	tclConnRegister("db1", db1)
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	vtab.TclVarSet("HOOKS", "", "")
 	HOOKS = ""

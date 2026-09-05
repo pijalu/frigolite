@@ -69,6 +69,7 @@ func Test_pragma2(t *testing.T) {
 	os.Remove("test3.db")
 	os.Remove("test3.db-journal")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	DB = "db"
 	_ = DB // suppress unused warning
@@ -138,6 +139,7 @@ func Test_pragma2(t *testing.T) {
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-4.1"
 		r = db.Query("\n  PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
@@ -264,6 +266,7 @@ func Test_pragma2(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-5.1"
 		r = db.Query("\n  PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;\n")

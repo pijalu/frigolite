@@ -67,6 +67,7 @@ func Test_existsfault(t *testing.T) {
 	// sqlite3_initialize (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")

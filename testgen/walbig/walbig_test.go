@@ -80,6 +80,7 @@ func Test_walbig(t *testing.T) {
 	}
 	tclHexioWrite("test.db", int64(28), "00000000")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // do_test "walbig-1.1"
@@ -90,6 +91,7 @@ func Test_walbig(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.2"
 		r = db.Query(" SELECT a FROM t1 ORDER BY a ")

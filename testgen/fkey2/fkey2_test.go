@@ -3043,6 +3043,7 @@ func Test_fkey2(t *testing.T) {
 									{ // do_test "fkey2-20150416-100"
 										db.Close()
 										db, err = frigolite.Open("")
+										tclConnRegister("db", db)
 										if err != nil { t.Fatal(err) }
 										_res = db.Exec("\n    PRAGMA foreign_keys=1;\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t(y REFERENCES t0(x)ON DELETE SET DEFAULT);\n    CREATE TABLE t0(y REFERENCES t1 ON DELETE SET NULL);\n    REPLACE INTO t1 SELECT(0);CREATE TABLE t2(x);CREATE TABLE t3;\n  ")
 										_ = _res // catchsql

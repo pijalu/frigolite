@@ -95,6 +95,7 @@ func Test_sort(t *testing.T) {
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sort-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INTO t1 VALUES(4,'four',2,'IV',-0.0013442);\n    INSERT INTO t1 VALUES(5,'five',2,'V',-11);\n    INSERT INTO t1 VALUES(6,'six',2,'VI',0.123);\n    INSERT INTO t1 VALUES(7,'seven',2,'VII',123.0);\n    INSERT INTO t1 VALUES(8,'eight',3,'VIII',-1.6);\n  ")

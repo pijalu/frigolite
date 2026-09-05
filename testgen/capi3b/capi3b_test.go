@@ -75,6 +75,7 @@ func Test_capi3b(t *testing.T) {
 	DB = "db"
 	_ = DB // suppress unused warning
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	DB2 = "db2"
 	_ = DB2 // suppress unused warning

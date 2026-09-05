@@ -163,6 +163,7 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		{ // "2.1"
 			r = db2.Query(" SELECT b FROM t3 ")
@@ -581,6 +582,7 @@ func Test_altercol(t *testing.T) {
 				}
 				db.Close()
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				{ // "11.1"
 					r = db.Query("\n    ALTER TABLE x1 RENAME b TO bbb;\n    SELECT sql FROM sqlite_master;\n  ")
@@ -987,6 +989,7 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db, err = frigolite.Open("")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					{ // "20.100"
 						r = db.Query("\n  CREATE TABLE t1(aaa,b,c,UNIQUE(aaA),PRIMARY KEY(aAa),UNIQUE(aAA));\n  ALTER TABLE t1 RENAME aaa TO bbb;\n  SELECT sql FROM sqlite_master WHERE name='t1';\n")

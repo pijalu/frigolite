@@ -287,6 +287,7 @@ func Test_colname(t *testing.T) {
 	{ // do_test "colname-6.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
 		r = db.Query("SELECT * FROM t6")
@@ -387,6 +388,7 @@ func Test_colname(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "colname-9.100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;\n  ")

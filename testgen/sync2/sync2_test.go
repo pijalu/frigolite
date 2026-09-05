@@ -201,6 +201,7 @@ func Test_sync2(t *testing.T) {
 	if tclBool(SQLITE_DEFAULT_SYNCHRONOUS + "==2 && " + SQLITE_DEFAULT_WAL_SYNCHRONOUS + "==1") {
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } 2 (unsupported command, not transpiled)
 		// do_execsql_sync_test 1.11.2 { INSERT INTO t1 VALUES(21, 22) } 0 (unsupported command, not transpiled)
@@ -305,6 +306,7 @@ func Test_sync2(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } 4 (unsupported command, not transpiled)
 		// do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } 4 (unsupported command, not transpiled)

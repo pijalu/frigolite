@@ -344,6 +344,7 @@ func Test_fkey6(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "6.1"
 			r = db.Query("\n    PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;\n  ")

@@ -79,8 +79,10 @@ func Test_temptrigger(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "temptrigger-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
@@ -150,6 +152,7 @@ func Test_temptrigger(t *testing.T) {
 	}
 	{ // do_test "temptrigger-2.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
 		if _res.Error != nil {
@@ -164,6 +167,7 @@ func Test_temptrigger(t *testing.T) {
 	}
 	{ // do_test "temptrigger-2.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		if db2 != nil { db2.Close() }
 	}
@@ -198,8 +202,10 @@ func Test_temptrigger(t *testing.T) {
 			os.Remove("test.db")
 		}
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
@@ -280,6 +286,7 @@ func Test_temptrigger(t *testing.T) {
 	}
 	{ // do_test "5.1"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
@@ -313,6 +320,7 @@ func Test_temptrigger(t *testing.T) {
 	}
 	{ // do_test "6.1"
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" CREATE TABLE t1(a, b, c); ")
 		if _res.Error != nil {

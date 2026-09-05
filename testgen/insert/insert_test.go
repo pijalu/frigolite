@@ -626,6 +626,7 @@ func Test_insert(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "insert-16.1"
 		_res = db.Exec("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(c0,c1);\n  CREATE UNIQUE INDEX i0 ON t0(c0);\n  INSERT INTO t0(c0,c1) VALUES(123,1);\n  CREATE TRIGGER tr0 AFTER DELETE ON t0\n  BEGIN\n    INSERT INTO t0 VALUES(123,2);\n  END;\n  REPLACE INTO t0(c0,c1) VALUES(123,3);\n")

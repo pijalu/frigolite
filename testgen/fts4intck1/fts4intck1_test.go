@@ -110,6 +110,7 @@ func Test_fts4intck1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA integrity_check(t2);\n")
@@ -172,6 +173,7 @@ func Test_fts4intck1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA integrity_check;\n")

@@ -209,6 +209,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA cache_size=" + ii)
 			_res = db.Exec("\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;\n    ")
@@ -224,6 +225,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db wholenumber (unsupported command, not transpiled)
 	_res = db.Exec("\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;\n")
@@ -245,6 +247,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);\n")
@@ -315,6 +318,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		tclFileCopy("test.db-wal", "test.db2-wal")
 		tclFileCopy("test.db", "test.db2")
 		db2, err = frigolite.Open("test.db2")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query(" SELECT * FROM t4 WHERE a = 'xyz' ")
 		if r.Error != nil {

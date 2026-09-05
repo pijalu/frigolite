@@ -279,6 +279,7 @@ func Test_triggerA(t *testing.T) {
 	os.Remove("test.db-triggerA")
 	tclFileCopy("test.db", "test.db-triggerA")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// do_malloc_test triggerA-3 -tclprep {\n  db close\n  forcedelete test.db test.db-journa...} -sql... (unsupported command, not transpiled)
 	os.Remove("test.db-triggerA")

@@ -119,6 +119,7 @@ func Test_thread001(t *testing.T) {
 				}
 			}
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			vtab.TclVarSet("dbconfig", "", "")
 			dbconfig = ""

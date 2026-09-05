@@ -970,8 +970,10 @@ func Test_returning1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		{ // "24.1"
 			r = db.Query("\n    SELECT * FROM t1\n  ")

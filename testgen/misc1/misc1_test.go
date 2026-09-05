@@ -469,6 +469,7 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=0 WHERE 0")
 		}
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -788,6 +789,7 @@ func Test_misc1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDefensive(false)
 	{ // "misc1-23.1"
@@ -799,6 +801,7 @@ func Test_misc1(t *testing.T) {
 	db.Close()
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDefensive(false)
 	{ // "misc1-23.2"
@@ -809,6 +812,7 @@ func Test_misc1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.SetDefensive(false)
 	{ // "misc1-23.3"
@@ -862,6 +866,7 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "misc1-28.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE UNIQUE INDEX t1x ON t1(x) WHERE x=1;\n  INSERT OR ABORT INTO t1 DEFAULT VALUES;\n  UPDATE OR REPLACE t1 SET x = 1;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")

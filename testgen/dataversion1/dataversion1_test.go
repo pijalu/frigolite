@@ -106,6 +106,7 @@ func Test_dataversion1(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dataversion1-130"
 		_res = db2.Exec("\n    SELECT * FROM t1\n  ")

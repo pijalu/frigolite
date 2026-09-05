@@ -125,6 +125,7 @@ func Test_misc7(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			db2, err = frigolite.Open("./mydir")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -143,6 +144,7 @@ func Test_misc7(t *testing.T) {
 			os.Remove("mydir")
 			os.MkdirAll("mydir-journal", 0755)
 			db2, err = frigolite.Open("./mydir")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			_res = db2.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
 			_ = _res // catchsql
@@ -161,6 +163,7 @@ func Test_misc7(t *testing.T) {
 		// do_fileopen_test misc7-6.2 {\n    PRAGMA temp.cache_size = 1000;\n  } (unsupported command, not transpiled)
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n  DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;\n")
 	if _res.Error != nil {
@@ -168,6 +171,7 @@ func Test_misc7(t *testing.T) {
 	}
 	{ // do_test "misc7-7.0"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		// sqlite3_busy_timeout [sqlite3_connection_pointer db] 2000 (unsupported command, not transpiled)
 		_res = db2.Exec("\n    BEGIN EXCLUSIVE;\n  ")
@@ -200,6 +204,7 @@ func Test_misc7(t *testing.T) {
 	{ // do_test "misc7-7.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;\n  ")
 		if r.Error != nil {
@@ -209,6 +214,7 @@ func Test_misc7(t *testing.T) {
 	{ // do_test "misc7-7.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -262,6 +268,7 @@ func Test_misc7(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "misc7-14.0"
 		_res = db.Exec("\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
@@ -291,6 +298,7 @@ func Test_misc7(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-15.1"
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
@@ -310,9 +318,11 @@ func Test_misc7(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// do_ioerr_test misc7-16 -sqlprep {\n   PRAGMA cache_size = 10;\n   PRAGMA default_ca...} -tclbo... (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "misc7-16.X" — skipped: do_ioerr_test fault-injection harness setup N-A
 	}
@@ -380,6 +390,7 @@ func Test_misc7(t *testing.T) {
 		{ // "misc7-23.1" — skipped: readonly-directory open via file attributes VFS N-A
 		}
 		db, err = frigolite.Open("tst/test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "misc7-23.2" — skipped: readonly-directory open via file attributes VFS N-A (SQL side effects only)
 			_res = db.Exec("\n    SELECT * FROM t1;\n  ")

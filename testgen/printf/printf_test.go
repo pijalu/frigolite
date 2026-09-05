@@ -3866,6 +3866,7 @@ func Test_printf(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "printf-18.1"

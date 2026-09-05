@@ -273,6 +273,7 @@ func Test_fts3defer(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "6.3"
 			r = db.Query("\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")

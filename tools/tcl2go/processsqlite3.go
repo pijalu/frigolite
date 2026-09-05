@@ -178,11 +178,29 @@ func (tp *transpiler) clearSecondaryAlias(goName string) {
 	}
 }
 
+// connReg is a pending (dbName, goName) pair queued for tclConnRegister
+// emission after the current sqlite3 NAME FILE call site.
+type connReg struct {
+	dbName string
+	goName string
+}
+
 // emitSqlite3Open emits the frigolite.Open call for a sqlite3 connection,
 // dispatching on the connection kind (predeclared dbN, main db reset modes,
 // new variable, closed-then-reopen, or already-declared). Returns true when
 // the caller should emit the trailing t.Fatal(err) check.
+//
+// Every Open call is followed by a tclConnRegister(dbName, X) so the runtime
+// dispatch (tclConnByName) can resolve arbitrary connection names like
+// "db1a"/"db2a" used in foreach dispatch (quota-3.2.1's
+// "foreach db {db1a db2a} { execsql {...} $db }").
 func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename string, args []tcl.RawWord) bool {
+	defer func() {
+		for _, r := range tp.pendingConnRegister {
+			tp.emitLine("tclConnRegister(%q, %s)", r.dbName, r.goName)
+		}
+		tp.pendingConnRegister = nil
+	}()
 	// Record that goName holds a *frigolite.DB connection so execsql/db
 	// dispatch resolves it as a connection rather than a string variable.
 	wasOpened := tp.dbConnVars[goName]
@@ -193,6 +211,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 	// db1-db9 are pre-declared at function level; always use = for them
 	if isPreDeclaredDB(goName) {
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
 	if goName == "db" && (filename == `""` || filename == `":memory:"` || filename == `"'':memory:''"`) {
@@ -202,6 +221,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 		tp.emitLine("db, err = frigolite.Open(\"\")")
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
 	if goName == "db" && len(args) >= 2 && tp.pendingFileReset[args[1].Text] {
@@ -215,6 +235,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 		tp.emitLine("db, err = frigolite.Open(%s)", filename)
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
 	if !tp.isVarDeclared(goName) {
@@ -222,6 +243,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)
 		tp.emitLine("defer %s.Close()", goName)
 		tp.vars = append(tp.vars, goName)
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
 	// A named connection pre-declared in the preamble (sqlite3 tmp "") that
@@ -230,6 +252,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 	if goName != "db" && !isPreDeclaredDB(goName) && tp.isVarDeclared(goName) && !wasOpened {
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
 		tp.emitLine("if err != nil { t.Fatal(err) }")
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
 	if goName == "db" && tp.dbClosed {
@@ -241,6 +264,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
 		tp.dbClosed = false
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
 	// Variable already declared (possibly as string from set) —
@@ -258,6 +282,7 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 		tp.emitLine("if err != nil { t.Fatal(err) }")
 		tp.dqsDDL = true
 		tp.dqsDML = true
+		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return false
 	}
 	tmpVar := fmt.Sprintf("_dbtmp%d", tp.varCount)

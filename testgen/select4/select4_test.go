@@ -835,6 +835,7 @@ func Test_select4(t *testing.T) {
 	}
 	{ // do_test "select4-12.1"
 		db2, err = frigolite.Open(":memory:")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    SELECT 1 UNION SELECT 2,3 UNION SELECT 4,5 ORDER BY 1;\n  ")
 		_ = _res // catchsql

@@ -125,6 +125,7 @@ func Test_collate7(t *testing.T) {
 	{ // do_test "collate7-2.1"
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db.RegisterCollation("CASELESS", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		r = db.Query("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")

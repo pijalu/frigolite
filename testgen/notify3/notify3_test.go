@@ -95,6 +95,7 @@ func Test_notify3(t *testing.T) {
 	db.ResetChangesCounters()
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "notify3-1.1"
 		_res = db.Exec(" \n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('t1 A', 't1 B');\n  ")
@@ -220,8 +221,10 @@ func Test_notify3(t *testing.T) {
 						if db2 != nil { db2.Close() }
 					}
 					db1, err = frigolite.Open("test.db")
+					tclConnRegister("db1", db1)
 					if err != nil { t.Fatal(err) }
 					db2, err = frigolite.Open("test.db2")
+					tclConnRegister("db2", db2)
 					if err != nil { t.Fatal(err) }
 					// sqlite3_extended_result_codes db1 $enable_extended_errors (unsupported command, not transpiled)
 					// sqlite3_extended_result_codes db2 $enable_extended_errors (unsupported command, not transpiled)

@@ -88,6 +88,7 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt-d82e3-2.1"
 		_res = db.Exec("\n    CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")

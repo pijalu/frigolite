@@ -109,6 +109,7 @@ func Test_stat(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	// register_dbstat_vtab db (unsupported command, not transpiled)
@@ -233,6 +234,7 @@ func Test_stat(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-5.1"

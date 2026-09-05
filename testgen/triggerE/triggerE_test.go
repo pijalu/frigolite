@@ -111,6 +111,7 @@ func Test_triggerE(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "2.2.1"
 			r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")

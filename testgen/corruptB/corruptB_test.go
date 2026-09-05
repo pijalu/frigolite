@@ -120,6 +120,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-1.4.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -128,6 +129,7 @@ func Test_corruptB(t *testing.T) {
 		db.Close()
 		tclFileCopy("bak.db", "test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
 		if _res.Error != nil {
@@ -145,6 +147,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-1.6.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -158,6 +161,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-1.7.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -174,6 +178,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-1.8.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -187,6 +192,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-1.9.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -198,6 +204,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-2.1.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -206,6 +213,7 @@ func Test_corruptB(t *testing.T) {
 		db.Close()
 		tclFileCopy("bak.db", "test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		v = tclStringRepeat("abcdefghij", "200")
 		_ = v // suppress unused warning
@@ -226,6 +234,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-3.1.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql

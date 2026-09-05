@@ -223,6 +223,7 @@ func Test_dbpage(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  SELECT * FROM sqlite_temp_schema, sqlite_dbpage;\n")
@@ -248,6 +249,7 @@ func Test_dbpage(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(x, y);\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -275,6 +277,7 @@ func Test_dbpage(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "dbpage-520" — skipped: depends on dbpage-510 page copy N-A (multi-connection pager) (SQL side effects only)
 		_res = db.Exec("\n  PRAGMA page_count;\n  SELECT * FROM t1;\n")
@@ -297,6 +300,7 @@ func Test_dbpage(t *testing.T) {
 	pgno = _dbone0
 	_ = pgno // suppress unused warning
 	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("\n  BEGIN;\n    SELECT * FROM x1;\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -312,6 +316,7 @@ func Test_dbpage(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "640"
 		r = db.Query("\n  SELECT * FROM t2;\n")
@@ -339,6 +344,7 @@ func Test_dbpage(t *testing.T) {
 	}
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("\n  CREATE TABLE y1(y);\n  INSERT INTO y1 VALUES( hex(randomblob(1000)) );\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -348,6 +354,7 @@ func Test_dbpage(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "720"
 		r = db.Query("\n  PRAGMA integrity_check\n")

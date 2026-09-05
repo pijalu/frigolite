@@ -133,6 +133,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-1.3.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -166,6 +167,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-1.8"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -419,6 +421,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-7.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -434,6 +437,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-7.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -449,6 +453,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-7.6"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -464,6 +469,7 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-8.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v6 ORDER BY xyz;\n  ")
 		if r.Error != nil {
@@ -681,6 +687,7 @@ func Test_view(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "view-22.1"
 		r = db.Query("\n  CREATE VIEW x1 AS SELECT 123 AS '', 234 AS '', 345 AS '';\n  SELECT * FROM x1;\n")

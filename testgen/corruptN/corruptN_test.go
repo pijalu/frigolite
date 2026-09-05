@@ -79,6 +79,7 @@ func Test_corruptN(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -299,6 +300,7 @@ func Test_corruptN(t *testing.T) {
 	}
 	{ // do_test "2.0"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -1142,6 +1144,7 @@ func Test_corruptN(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "3.1"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');\n  ")
@@ -1160,6 +1163,7 @@ func Test_corruptN(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "4.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")

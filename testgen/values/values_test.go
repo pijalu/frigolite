@@ -606,6 +606,7 @@ func Test_values(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "14.2"
 				_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")

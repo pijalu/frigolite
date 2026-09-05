@@ -1143,6 +1143,7 @@ func Test_where(t *testing.T) {
 		}
 	}
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "where-22.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1(a) VALUES(NULL),(NULL),(42),(NULL),(NULL);\n  CREATE TABLE t2(dummy INT);\n  SELECT count(*) FROM t1 LEFT JOIN t2 ON a IS NOT NULL;\n")
@@ -1234,6 +1235,7 @@ func Test_where(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.1" — skipped: corruption detection not implemented
 		}
@@ -1252,6 +1254,7 @@ func Test_where(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
@@ -1263,6 +1266,7 @@ func Test_where(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "where-26.1"
 			r = db.Query("\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")

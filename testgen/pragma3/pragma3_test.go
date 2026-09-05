@@ -115,6 +115,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "pragma3-120"
 		_res = db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
@@ -171,9 +172,11 @@ func Test_pragma3(t *testing.T) {
 	if tclBool("wal_is_capable") {
 		if "" != "inmemory_journal" {
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA journal_mode=WAL")
 			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			{ // "pragma3-400" — skipped: WAL-mode data_version reopen not supported (SQL side effects only)
 				_res = db.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")

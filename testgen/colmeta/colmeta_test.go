@@ -122,6 +122,7 @@ func Test_colmeta(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 			DB = "sqlite3_connection_pointer db" // TCL namespace variable

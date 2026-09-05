@@ -118,6 +118,7 @@ func Test_trans(t *testing.T) {
 	{ // do_test "trans-1.9"
 		altdb, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tclConnRegister("altdb", altdb)
 		if err != nil { t.Fatal(err) }
 		r = altdb.Query("SELECT b FROM one ORDER BY a")
 		if r.Error != nil {
@@ -1150,6 +1151,7 @@ func Test_trans(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {

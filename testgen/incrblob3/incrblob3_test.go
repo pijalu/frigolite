@@ -757,6 +757,7 @@ func Test_incrblob3(t *testing.T) {
 		}
 		{ // do_test "incrblob3-7.1"
 			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db2 0 0 0 (unsupported command, not transpiled)
 			_res = db2.Exec(" CREATE TABLE t2(x) ")

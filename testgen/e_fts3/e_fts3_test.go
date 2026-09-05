@@ -141,6 +141,7 @@ func Test_e_fts3(t *testing.T) {
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			if tclBool(DO_MALLOC_TEST) {
 				// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
@@ -1353,6 +1354,7 @@ func Test_e_fts3(t *testing.T) {
 						db.Close()
 						os.Remove("test.db")
 						db, err = frigolite.Open("test.db")
+						tclConnRegister("db", db)
 						if err != nil { t.Fatal(err) }
 						if tclBool(DO_MALLOC_TEST) {
 							// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)

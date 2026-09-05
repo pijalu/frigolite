@@ -703,6 +703,7 @@ func Test_fts4content(t *testing.T) {
 								}
 								db.Close()
 								db, err = frigolite.Open("test.db")
+								tclConnRegister("db", db)
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.3"
 									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
@@ -766,6 +767,7 @@ func Test_fts4content(t *testing.T) {
 								}
 								db.Close()
 								db, err = frigolite.Open("test.db")
+								tclConnRegister("db", db)
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.10"
 									_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")

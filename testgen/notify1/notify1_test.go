@@ -93,8 +93,10 @@ func Test_notify1(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "notify1-1.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {

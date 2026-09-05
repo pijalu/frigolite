@@ -111,6 +111,7 @@ func Test_corruptC(t *testing.T) {
 	db.Close()
 	tclFileCopy("test.db", "test.bu")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	fsize = strconv.Itoa(tclFileSize("test.db"))
 	_ = fsize // suppress unused warning
@@ -128,6 +129,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(2053), tclFormat("%02x", "0x04"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -146,6 +148,7 @@ func Test_corruptC(t *testing.T) {
 		tclHexioWrite("test.db", int64(3714), tclFormat("%02x", "0x58"))
 		tclHexioWrite("test.db", int64(3746), tclFormat("%02x", "0x9a"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t1 SET y=1")
 		_res = db.Exec("PRAGMA integrity_check")
@@ -155,6 +158,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(1094), tclFormat("%02x", "0x76"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t1 SET y=1")
 		_ = _res // catchsql
@@ -164,6 +168,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(3119), tclFormat("%02x", "0xdf"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t2 SET y='abcdef-uvwxyz'")
 		_ = _res // catchsql
@@ -174,6 +179,7 @@ func Test_corruptC(t *testing.T) {
 		tclHexioWrite("test.db", int64(3119), tclFormat("%02x", "0xdf"))
 		tclHexioWrite("test.db", int64(4073), tclFormat("%02x", "0xbf"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -186,6 +192,7 @@ func Test_corruptC(t *testing.T) {
 		tclHexioWrite("test.db", int64(619), tclFormat("%02x", "0xe2"))
 		tclHexioWrite("test.db", int64(3150), tclFormat("%02x", "0xa8"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -195,6 +202,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(3074), tclFormat("%02x", "0xa0"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -209,6 +217,7 @@ func Test_corruptC(t *testing.T) {
 			tclHexioWrite("test.db", int64(2564), tclFormat("%02x", "0xed"))
 			tclHexioWrite("test.db", int64(2139), tclFormat("%02x", "0x55"))
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
 			_ = _res // catchsql
@@ -219,6 +228,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(2095), tclFormat("%02x", "0xd6"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
 		_ = _res // catchsql
@@ -228,6 +238,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(3130), tclFormat("%02x", "0x02"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -237,6 +248,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(55), tclFormat("%02x", "0xa7"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
 		_ = _res // catchsql
@@ -246,6 +258,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(974), tclFormat("%02x", "0x2e"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master;")
 		_ = _res // catchsql
@@ -255,6 +268,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(102), tclFormat("%02x", "0x12"))
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
 		_ = _res // catchsql
@@ -263,6 +277,7 @@ func Test_corruptC(t *testing.T) {
 		db.Close()
 		tclFileCopy("test.bu", "test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		blob = tclStringRepeat("abcdefghij", "10000")
 		_ = blob // suppress unused warning
@@ -286,6 +301,7 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		tclHexioWrite("test.db", int64(986), "b9")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master;")
 		_ = _res // catchsql
@@ -297,6 +313,7 @@ func Test_corruptC(t *testing.T) {
 		db.Close()
 		tclFileCopy("test.bu", "test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("last", "", "0")
 		last = "0"
@@ -318,6 +335,7 @@ func Test_corruptC(t *testing.T) {
 			_ = rbyte // suppress unused warning
 			tclHexioWrite("test.db", int64(toInt(roffset)), rbyte)
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".1"
 				_res = db.Exec("SELECT count(*) FROM sqlite_master")

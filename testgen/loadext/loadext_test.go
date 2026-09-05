@@ -170,6 +170,7 @@ func Test_loadext(t *testing.T) {
 	}
 	{ // do_test "loadext-1.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION (unhandled flag)
 		_res = db2.Exec("\n    SELECT half(1.0);\n  ")
@@ -187,6 +188,7 @@ func Test_loadext(t *testing.T) {
 	}
 	if db2 != nil { db2.Close() }
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-2.1"
@@ -278,6 +280,7 @@ func Test_loadext(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-3.1"
@@ -337,6 +340,7 @@ func Test_loadext(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "loadext-4.1"
 		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")

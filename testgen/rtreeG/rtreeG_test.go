@@ -65,6 +65,7 @@ func Test_rtreeG(t *testing.T) {
 	log = "" // TCL namespace variable
 	_ = log // suppress unused warning
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	vtab.TclVarSet("log", "", "")
 	log = "" // TCL namespace variable
@@ -106,6 +107,7 @@ func Test_rtreeG(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "rtreeG-1.3"
 		r = db.Query("\n  SELECT id from t1 WHERE x0>8 AND x1<16 AND y0>2 AND y1<25;\n")
@@ -147,5 +149,6 @@ func Test_rtreeG(t *testing.T) {
 	// test_sqlite3_log (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 }

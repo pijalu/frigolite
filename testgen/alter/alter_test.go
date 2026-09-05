@@ -148,6 +148,7 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-1.6"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		DB = "db"
 		_ = DB // suppress unused warning
@@ -552,6 +553,7 @@ func Test_alter(t *testing.T) {
 	}
 	{ // do_test "alter-5.2"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
 		if r.Error != nil {
@@ -633,6 +635,7 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-6.6"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name2 + "\n  ")
 		if _res.Error != nil {
@@ -773,6 +776,7 @@ func Test_alter(t *testing.T) {
 		{ // do_test "alter-12.4"
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT * FROM v1; ")
 			if r.Error != nil {
@@ -868,6 +872,7 @@ func Test_alter(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "alter-17.100"
 				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE VIRTUAL TABLE t2 USING rtree(id,x0,x1);\n    INSERT INTO t1 VALUES(1,'apple'),(2,'fig'),(3,'pear');\n    INSERT INTO t2 VALUES(1,1.0,2.0),(2,2.0,3.0),(3,1.5,3.5);\n    CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN\n      DELETE FROM t2 WHERE id = OLD.a;\n    END;\n    ALTER TABLE t1 RENAME TO t3;\n    UPDATE t3 SET b='peach' WHERE a=2;\n    SELECT * FROM t2 ORDER BY 1;\n  ")

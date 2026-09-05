@@ -510,6 +510,7 @@ func Test_vtab6(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab6-11.3.1"

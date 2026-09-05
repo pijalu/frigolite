@@ -247,6 +247,7 @@ func Test_blob(t *testing.T) {
 	}
 	{ // "blob-3.0" (prepare-step internals; SQL side effects only)
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		DB = "db2"
 		_ = DB // suppress unused warning

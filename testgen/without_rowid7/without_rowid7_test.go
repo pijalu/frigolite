@@ -153,6 +153,7 @@ func Test_without_rowid7(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.1.1"
 		_res = db.Exec("\n  SELECT * FROM t1 WHERE a=1;\n")
@@ -175,6 +176,7 @@ func Test_without_rowid7(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "3.3.1"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i1 ON t1(1);\n")

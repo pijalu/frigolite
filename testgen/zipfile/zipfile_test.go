@@ -912,6 +912,7 @@ func Test_zipfile(t *testing.T) {
 			}
 			os.Remove("test.zip")
 			db, err = frigolite.Open("")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			// load_static_extension db zipfile (unsupported command, not transpiled)
 			// load_static_extension db fileio (unsupported command, not transpiled)
@@ -1211,12 +1212,14 @@ func Test_zipfile(t *testing.T) {
 				}
 				{ // do_test "19.1"
 					db, err = frigolite.Open("")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					// load_static_extension db zipfile (unsupported command, not transpiled)
 					os.Remove("zipfile19.zip")
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;\n  ")
 					db.Close()
 					db, err = frigolite.Open("")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					// load_static_extension db zipfile (unsupported command, not transpiled)
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
@@ -1224,6 +1227,7 @@ func Test_zipfile(t *testing.T) {
 				db.Close()
 				os.Remove("zipfile19.zip")
 				db, err = frigolite.Open("")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				// load_static_extension db zipfile (unsupported command, not transpiled)
 				{ // "20.0"

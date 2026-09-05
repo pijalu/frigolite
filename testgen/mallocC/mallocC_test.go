@@ -91,6 +91,7 @@ func Test_mallocC(t *testing.T) {
 		// sqlite3_initialize (unsupported command, not transpiled)
 		// autoinstall_test_functions (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	// do_mallocC_test 1 -sql {\n  BEGIN;\n  -- Allocate 32 new root pages. This ...} (unsupported command, not transpiled)

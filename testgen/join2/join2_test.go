@@ -345,6 +345,7 @@ func Test_join2(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b);  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t2(c,d);  INSERT INTO t2 VALUES(2,4),(3,6);\n  CREATE TABLE t3(x);    INSERT INTO t3 VALUES(9);\n  CREATE VIEW test AS\n    SELECT *, 'x'\n      FROM t1 LEFT JOIN (SELECT * FROM t2, t3) ON (c=b AND x=9)\n      WHERE c IS NULL;\n  SELECT * FROM test;\n")

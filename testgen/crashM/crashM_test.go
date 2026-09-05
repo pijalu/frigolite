@@ -75,6 +75,7 @@ func Test_crashM(t *testing.T) {
 	}
 	// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("file:test1.db?8_3_names=1")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size [expr 64*1024] (unsupported command, not transpiled)
 	{ // "1.0"

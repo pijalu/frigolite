@@ -123,6 +123,7 @@ func Test_index5(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("write_list", "", "")
 		write_list = "" // TCL namespace variable

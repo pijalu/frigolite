@@ -332,6 +332,7 @@ func Test_capi3c(t *testing.T) {
 	db.Close()
 	{ // "capi3c-6.0" (prepare-step internals; SQL side effects only)
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		DB = "db"
 		_ = DB // suppress unused warning
@@ -385,6 +386,7 @@ func Test_capi3c(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
@@ -396,6 +398,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-8.1"
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(a);\n    ")
 			if _res.Error != nil {
@@ -405,6 +408,7 @@ func Test_capi3c(t *testing.T) {
 		}
 		{ // do_test "capi3c-8.2"
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			db.SetDefensive(false)
 			r = db.Query("\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);\n    ")
@@ -418,6 +422,7 @@ func Test_capi3c(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
@@ -427,6 +432,7 @@ func Test_capi3c(t *testing.T) {
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			db.SetDefensive(false)
 			r = db.Query("\n      CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);\n    ")
@@ -440,6 +446,7 @@ func Test_capi3c(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
@@ -476,6 +483,7 @@ func Test_capi3c(t *testing.T) {
 		if "" != "nofaultsim" {
 			{ // do_test "capi3c-10-1"
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				DB = "db"
 				_ = DB // suppress unused warning
@@ -489,6 +497,7 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 		}
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		DB = "db"
 		_ = DB // suppress unused warning
@@ -878,6 +887,7 @@ func Test_capi3c(t *testing.T) {
 		}
 		{ // "capi3c-18.1" (prepare-step internals; SQL side effects only)
 			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			_r = tclPrepareStmt(db, "STMT", "SELECT max(a) FROM t1", -1)
 			// prepared STMT: SELECT max(a) FROM t1 (bind/step emulation)
@@ -954,6 +964,7 @@ func Test_capi3c(t *testing.T) {
 			_ = TAIL // suppress unused warning
 			_ = STMT // prepared statement handle
 			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			_res = db2.Exec("CREATE TABLE t4(x)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

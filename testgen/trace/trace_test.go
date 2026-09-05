@@ -148,6 +148,7 @@ func Test_trace(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	DB = "db"
 	_ = DB // suppress unused warning
@@ -253,6 +254,7 @@ func Test_trace(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	DB = "db"
 	_ = DB // suppress unused warning
@@ -432,6 +434,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.100"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([" + sqlLiteral(t6str) + "],\"" + sqlLiteral(t6str) + "\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		vtab.TclVarSet("TRACE_OUT", "", "")
@@ -452,6 +455,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.200"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([" + sqlLiteral(t6str) + "],\"" + sqlLiteral(t6str) + "\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		vtab.TclVarSet("TRACE_OUT", "", "")

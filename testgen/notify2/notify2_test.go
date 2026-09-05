@@ -228,6 +228,7 @@ func Test_notify2(t *testing.T) {
 			}
 			{ // do_test "notify2-" + iTest + ".3.1"
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;\n    ")
 				if _res.Error != nil {

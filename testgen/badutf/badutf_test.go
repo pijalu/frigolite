@@ -101,6 +101,7 @@ func Test_badutf(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "badutf-2.1"
 		_r = tclExec(db, "SELECT '%80'=CAST(x'80' AS text) AS x")

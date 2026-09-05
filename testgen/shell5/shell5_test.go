@@ -307,6 +307,7 @@ func Test_shell5(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "shell5-2.1" (CLI shell subprocess harness, not transpiled)
 		// set fd [open shell5.csv w]

@@ -154,6 +154,7 @@ func Test_corrupt2(t *testing.T) {
 		tclChannelAppendAt("corrupt.db", "blah"+"\n", fileChannelSeek["f"])
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
@@ -169,6 +170,7 @@ func Test_corrupt2(t *testing.T) {
 		tclChannelAppendAt("corrupt.db", "\x00\xff", fileChannelSeek["f"])
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
@@ -184,6 +186,7 @@ func Test_corrupt2(t *testing.T) {
 		tclChannelAppendAt("corrupt.db", "\xff\xff", fileChannelSeek["f"])
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("PRAGMA quick_check")
 		_ = _res // catchsql
@@ -202,6 +205,7 @@ func Test_corrupt2(t *testing.T) {
 		tclChannelAppendAt("corrupt.db", "\x10\x00", fileChannelSeek["f"])
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("PRAGMA quick_check")
 		_ = _res // catchsql
@@ -212,6 +216,7 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		tclFileCopy("test.db", "corrupt.db")
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		db2.SetDefensive(false)
 		r = db2.Query("\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
@@ -220,6 +225,7 @@ func Test_corrupt2(t *testing.T) {
 		}
 		if db2 != nil { db2.Close() }
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
@@ -229,6 +235,7 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db")
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -246,6 +253,7 @@ func Test_corrupt2(t *testing.T) {
 		tclChannelAppendAt("corrupt.db", "\x00\x00\x00\x00", fileChannelSeek["fd"])
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    " + presql + "\n    DROP TABLE t1;\n  ")
 		_ = _res // catchsql
@@ -261,6 +269,7 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db")
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -286,6 +295,7 @@ func Test_corrupt2(t *testing.T) {
 		tclChannelAppendAt("corrupt.db", zChildPage, fileChannelSeek["fd"])
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(presql)
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -354,6 +364,7 @@ func Test_corrupt2(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(36), "hexio_render_int32 2")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
 	}

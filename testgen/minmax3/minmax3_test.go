@@ -76,6 +76,7 @@ func Test_minmax3(t *testing.T) {
 		db.Close()
 		// set_file_format 4 (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES('1', 'I',   'one');\n    INSERT INTO t1 VALUES('2', 'IV',  'four');\n    INSERT INTO t1 VALUES('2', NULL,  'three');\n    INSERT INTO t1 VALUES('2', 'II',  'two');\n    INSERT INTO t1 VALUES('2', 'V',   'five');\n    INSERT INTO t1 VALUES('3', 'VI',  'six');\n    COMMIT;\n    PRAGMA automatic_index=OFF;\n  ")
 		if r.Error != nil {

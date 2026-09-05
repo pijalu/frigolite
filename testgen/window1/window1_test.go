@@ -500,6 +500,7 @@ func Test_window1(t *testing.T) {
 			}
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "8.2.1"
 				r = db.Query("\n  SELECT * FROM v1\n")
@@ -814,6 +815,7 @@ func Test_window1(t *testing.T) {
 				}
 			}
 			db, err = frigolite.Open("")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // "14.0"
 				r = db.Query("\n  SELECT * FROM(\n    SELECT * FROM (SELECT 1 AS c) WHERE c IN (\n        SELECT (row_number() OVER()) FROM (VALUES (0))\n    )\n  );\n")
@@ -1511,6 +1513,7 @@ func Test_window1(t *testing.T) {
 						}
 						db.Close()
 						db, err = frigolite.Open("")
+						tclConnRegister("db", db)
 						if err != nil { t.Fatal(err) }
 						{ // "window1-32.10" — skipped: stale expectation: ALTER TABLE RENAME TO no longer re-validates views (matches sqlite3 3.51)
 						}

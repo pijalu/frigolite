@@ -74,17 +74,20 @@ func Test_filectrl(t *testing.T) {
 	{ // do_test "filectrl-1.3"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.4"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// file_control_lasterrno_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.5"
 		db.Close()
 		db, err = frigolite.Open("test_control_lockproxy.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// file_control_lockproxy_test db [get_pwd] (unsupported command, not transpiled)
 	}
@@ -108,6 +111,7 @@ func Test_filectrl(t *testing.T) {
 	if tcl_platform_platform == "windows" {
 		{ // do_test "filectrl-2.1"
 			db, err = frigolite.Open("test2.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			size = strconv.Itoa(tclFileSize("test2.db"))
 			_ = size // suppress unused warning
@@ -121,6 +125,7 @@ func Test_filectrl(t *testing.T) {
 		}
 		{ // do_test "filectrl-2.2"
 			db, err = frigolite.Open("test2.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));\n    ")
 			if _res.Error != nil {

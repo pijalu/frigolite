@@ -73,6 +73,7 @@ func Test_numcast(t *testing.T) {
 		{ // do_test "numcast-" + enc + ".0"
 			db.Close()
 			db, err = frigolite.Open("")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA encoding='" + enc + "'")
 			_dbeval0 := tclExecSQL(db, "PRAGMA encoding")

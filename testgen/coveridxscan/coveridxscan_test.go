@@ -121,6 +121,7 @@ func Test_coveridxscan(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_cis 0 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "3.1"
 		r = db.Query("SELECT a FROM t1")
@@ -162,6 +163,7 @@ func Test_coveridxscan(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_cis 1 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "coveridxscan-4.1" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL side effects only)
 		_res = db.Exec("SELECT a FROM t1")

@@ -3009,6 +3009,7 @@ func Test_without_rowid3(t *testing.T) {
 									}
 									db.Close()
 									db, err = frigolite.Open("")
+									tclConnRegister("db", db)
 									if err != nil { t.Fatal(err) }
 									{ // "without_rowid3-30.1"
 										r = db.Query("\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")

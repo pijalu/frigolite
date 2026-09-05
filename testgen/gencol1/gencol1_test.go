@@ -98,6 +98,7 @@ func Test_gencol1(t *testing.T) {
 				db.Close()
 			}
 			db, err = frigolite.Open("")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
 			{ // "gencol1-2." + tn + ".100"
@@ -227,6 +228,7 @@ func Test_gencol1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-3.100"
 			r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 AS (c0+c1-c3) REFERENCES t0, c3);\n  INSERT INTO t0 VALUES (0, 0, 0), (11, 5, 5);\n  UPDATE t0 SET c1 = c0, c3 = c0;\n  SELECT *, '|' FROM t0 ORDER BY +c0;\n")
@@ -248,6 +250,7 @@ func Test_gencol1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-4.100"
 			r = db.Query("\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
@@ -259,6 +262,7 @@ func Test_gencol1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-5.100"
 			r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(\n    gcb AS (b*1),\n    a INTEGER PRIMARY KEY,\n    gcc AS (c+0),\n    b UNIQUE,\n    gca AS (1*a+0),\n    c UNIQUE\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(4,5,6);\n  INSERT INTO t1 VALUES(7,8,9);\n  CREATE TABLE t1a(\n    gcx AS (x+0) REFERENCES t1(a) ON DELETE CASCADE,\n    id,\n    x,\n    gcid AS (1*id)\n  );\n  INSERT INTO t1a VALUES(1, 1);\n  INSERT INTO t1a VALUES(2, 4);\n  INSERT INTO t1a VALUES(3, 7);\n  DELETE FROM t1 WHERE b=5;\n  SELECT id,x,'|' FROM t1a ORDER BY id;\n")
@@ -463,6 +467,7 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-10.10"
 			r = db.Query("\n  CREATE TABLE t1(aa,bb);\n  CREATE TABLE IF NOT EXISTS t1(aa, bb AS (aa+1));\n  PRAGMA integrity_check;\n")
@@ -477,6 +482,7 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-11.10"
 			r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
@@ -527,6 +533,7 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-12.10"
 			r = db.Query("\n  CREATE TABLE t0 (c0, c1 NOT NULL AS (c0==0));\n  INSERT INTO t0(c0) VALUES (0);\n  PRAGMA integrity_check;\n")
@@ -613,6 +620,7 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-14.10"
 			r = db.Query("\n  CREATE TABLE t0(c0 AS(1 >= 1), c1 UNIQUE AS(TYPEOF(c0)), c2);\n  INSERT INTO t0 VALUES(0);\n  REINDEX;\n  SELECT * FROM t0;\n")

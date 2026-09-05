@@ -351,6 +351,7 @@ func Test_upsert1(t *testing.T) {
 		}
 	}
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "upsert1-900"
 		_res = db.Exec("\n  CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;\n")

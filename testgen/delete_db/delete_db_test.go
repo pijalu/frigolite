@@ -81,6 +81,7 @@ func Test_delete_db(t *testing.T) {
 		os.Remove(f)
 	}
 	db, err = frigolite.Open("test2.database")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n  ")
@@ -117,6 +118,7 @@ func Test_delete_db(t *testing.T) {
 	}
 	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test2.database")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size 32768 (unsupported command, not transpiled)
 	{ // do_test "1.3.0"
@@ -150,6 +152,7 @@ func Test_delete_db(t *testing.T) {
 	db.Close()
 	// delete_all (unsupported command, not transpiled)
 	db, err = frigolite.Open("file:test2.db?8_3_names=1")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1.0"
 		_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      BEGIN;\n        INSERT INTO t1 VALUES(1, 2);\n    ")
@@ -179,6 +182,7 @@ func Test_delete_db(t *testing.T) {
 	// delete_all (unsupported command, not transpiled)
 	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
 	db, err = frigolite.Open("file:test2.db?8_3_names=1")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size 32768 (unsupported command, not transpiled)
 	{ // do_test "2.3.0"

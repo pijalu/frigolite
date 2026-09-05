@@ -531,6 +531,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-3.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -547,6 +548,7 @@ func Test_autovacuum(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -582,6 +584,7 @@ func Test_autovacuum(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -639,12 +642,14 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-5.1"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
 	}
 	{ // do_test "autovacuum-6.1"
 		db.Close()
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
 	}
@@ -653,6 +658,7 @@ func Test_autovacuum(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test.db-journal")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		if r.Error != nil {
@@ -670,6 +676,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-7.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
@@ -680,8 +687,10 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-8.1"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA auto_vacuum")
 	}

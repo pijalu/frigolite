@@ -94,6 +94,7 @@ func Test_corrupt8(t *testing.T) {
 		{ // do_test "corrupt8-2." + i + ".0"
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
 			x = _dbeval0
@@ -118,6 +119,7 @@ func Test_corrupt8(t *testing.T) {
 			{ // do_test "corrupt8-2." + i + "." + k
 				db.Close()
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				_dbeval1 := tclExecSQL(db, "PRAGMA integrity_check")
 				x = _dbeval1
@@ -136,6 +138,7 @@ func Test_corrupt8(t *testing.T) {
 		{ // do_test "corrupt8-2." + i + ".6"
 			db.Close()
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_dbeval2 := tclExecSQL(db, "PRAGMA integrity_check")
 			x = _dbeval2
@@ -152,6 +155,7 @@ func Test_corrupt8(t *testing.T) {
 			{ // do_test "corrupt8-2." + i + ".7"
 				db.Close()
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
 				x = _dbeval0

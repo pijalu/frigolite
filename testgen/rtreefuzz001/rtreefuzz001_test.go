@@ -64,6 +64,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "rtreefuzz001-100"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -1606,6 +1607,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-200"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -2445,6 +2447,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-300"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -3284,6 +3287,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-400"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -4117,6 +4121,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-500"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")
@@ -4959,6 +4964,7 @@ func Test_rtreefuzz001(t *testing.T) {
 	}
 	{ // do_test "rtreefuzz001-600"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// db deserialize [decode_hexdb {...}]
 		deserPath := filepath.Join(t.TempDir(), "deser.db")

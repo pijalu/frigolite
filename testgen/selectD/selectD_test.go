@@ -68,6 +68,7 @@ func Test_selectD(t *testing.T) {
 		db.Close()
 		os.Remove("test" + i + ".db")
 		db, err = frigolite.Open("test" + i + ".db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 2 }() {
 			// optimization_control query-flattener off (no PRAGMA equivalent; ignored)

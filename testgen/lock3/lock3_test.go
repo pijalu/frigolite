@@ -61,6 +61,7 @@ func Test_lock3(t *testing.T) {
 	{ // do_test "lock3-1.1"
 		os.MkdirAll("tempdir/t1/t2/t3", 0755)
 		db2, err = frigolite.Open("./tempdir/t1//t2/./t3//./../..//./../../tempdir/..//test.db//")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n  ")
 		if _res.Error != nil {

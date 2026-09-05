@@ -2031,6 +2031,7 @@ func Test_select1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "select1-14.1"
 		r = db.Query(" \n    SELECT * FROM sqlite_master WHERE rowid>10; \n    SELECT * FROM sqlite_master WHERE rowid=10;\n    SELECT * FROM sqlite_master WHERE rowid<10;\n    SELECT * FROM sqlite_master WHERE rowid<=10;\n    SELECT * FROM sqlite_master WHERE rowid>=10;\n    SELECT * FROM sqlite_master;\n  ")
@@ -2053,6 +2054,7 @@ func Test_select1(t *testing.T) {
 		}
 		{ // do_test "select1-15.2"
 			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			_res = db2.Exec(" DROP INDEX i1 ")
 			if _res.Error != nil {

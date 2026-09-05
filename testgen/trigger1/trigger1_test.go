@@ -228,6 +228,7 @@ func Test_trigger1(t *testing.T) {
 		{ // catch block
 			var _catchErr error
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -280,6 +281,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-3.9"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 		if r.Error != nil {
@@ -294,6 +296,7 @@ func Test_trigger1(t *testing.T) {
 	}
 	{ // do_test "trigger1-4.2"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n      INSERT INTO t1 VALUES(9,10);\n    ")
 		if _res.Error != nil {
@@ -314,6 +317,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-4.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
@@ -356,6 +360,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-6.5"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT type, name FROM sqlite_master")
 		if r.Error != nil {
@@ -377,6 +382,7 @@ func Test_trigger1(t *testing.T) {
 	{ // do_test "trigger1-6.8"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
@@ -634,6 +640,7 @@ func Test_trigger1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-20.1"
 		_res = db.Exec("\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
@@ -643,6 +650,7 @@ func Test_trigger1(t *testing.T) {
 	}
 	db.Close()
 	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-21.1"
 		r = db.Query("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(a, b, c UNIQUE);\n  CREATE UNIQUE INDEX i0 ON t0(b) WHERE a;\n  CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN\n    DELETE FROM t0;\n  END;\n  INSERT INTO t0(a,b,c) VALUES(0,0,9),(1,1,1);\n  REPLACE INTO t0(a,b,c) VALUES(2,0,9);\n  SELECT * FROM t0;\n")

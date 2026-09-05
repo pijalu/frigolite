@@ -82,6 +82,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-1.0"
 		os.MkdirAll("tempdir/t1/t2", 0755)
 		db2, err = frigolite.Open("./tempdir/../tempdir/t1/.//t2/../../..//test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("dummy", "", "")
 		dummy = ""
@@ -660,6 +661,7 @@ func Test_lock(t *testing.T) {
 		_res = db.Exec("BEGIN")
 		_res = db.Exec("UPDATE t1 SET a=0 WHERE 0")
 		db2, err = frigolite.Open("./test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("UPDATE t1 SET a=0")
 		_ = _res // catchsql

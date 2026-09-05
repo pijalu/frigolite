@@ -228,6 +228,7 @@ func Test_rtree1(t *testing.T) {
 	{ // do_test "rtree-1.4.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t1 ORDER BY ii ")
 		if r.Error != nil {
@@ -439,6 +440,7 @@ func Test_rtree1(t *testing.T) {
 	{ // do_test "rtree-7.1.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t5 ")
 		if r.Error != nil {
@@ -474,6 +476,7 @@ func Test_rtree1(t *testing.T) {
 	{ // do_test "rtree-7.1.7"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM \"abc 123\" ")
 		if r.Error != nil {
@@ -505,6 +508,7 @@ func Test_rtree1(t *testing.T) {
 	{ // do_test "rtree-7.2.4"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM \"abc 123\" ")
 		if r.Error != nil {

@@ -97,6 +97,7 @@ func Test_interrupt2(t *testing.T) {
 	_ = dbpointer // suppress unused warning
 	// proc definition (not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  PRAGMA journal_mode = wal;\n\n  WITH ii(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM ii WHERE i<1000 )\n  INSERT INTO t1 SELECT i, i FROM ii;\n")

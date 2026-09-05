@@ -77,6 +77,7 @@ func Test_createtab(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		{ // do_test "createtab-" + av + ".1"
 			r = db.Query("PRAGMA auto_vacuum=" + av)

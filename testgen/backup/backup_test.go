@@ -144,6 +144,7 @@ func Test_backup(t *testing.T) {
 	{ // do_test "backup-1.3.1"
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		B, _berr = tclBackupInit(db2, "main", db, "main")
 		if _berr != nil {
@@ -226,7 +227,9 @@ func Test_backup(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open(zSrcFile)
 								if err != nil { t.Fatal(err) }
+								tclConnRegister("db", db)
 								db2, err = frigolite.Open(zSrcFile)
+								tclConnRegister("db2", db2)
 								if err != nil { t.Fatal(err) }
 								_res = db2.Exec("ATTACH '" + zDestFile + "' AS bak")
 								if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -240,7 +243,9 @@ func Test_backup(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open(zSrcFile)
 								if err != nil { t.Fatal(err) }
+								tclConnRegister("db", db)
 								db2, err = frigolite.Open(zDestFile)
+								tclConnRegister("db2", db2)
 								if err != nil { t.Fatal(err) }
 								vtab.TclVarSet("db_dest", "", "db2")
 								db_dest = "db2"
@@ -252,7 +257,9 @@ func Test_backup(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open(zSrcFile)
 								if err != nil { t.Fatal(err) }
+								tclConnRegister("db", db)
 								db2, err = frigolite.Open(zDestFile)
+								tclConnRegister("db2", db2)
 								if err != nil { t.Fatal(err) }
 								vtab.TclVarSet("db_dest", "", "db2")
 								db_dest = "db2"
@@ -371,8 +378,10 @@ func Test_backup(t *testing.T) {
 					os.Remove("test2.db")
 				}
 				db, err = frigolite.Open("test.db")
+				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test2.db")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" PRAGMA page_size = 1024 ")
 				if r.Error != nil {
@@ -458,6 +467,7 @@ func Test_backup(t *testing.T) {
 			os.Remove("test2.db")
 		}
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("iTab", "", "1")
 		iTab = "1"
@@ -474,6 +484,7 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		db2, err = frigolite.Open("test2.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec(" PRAGMA page_size = 4096 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -508,8 +519,10 @@ func Test_backup(t *testing.T) {
 		}
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test2.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "backup-4.1.1"
 		{
@@ -672,8 +685,10 @@ func Test_backup(t *testing.T) {
 			os.Remove("test.db")
 		}
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open(":memory:")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -734,6 +749,7 @@ func Test_backup(t *testing.T) {
 				os.Remove("bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
@@ -741,8 +757,10 @@ func Test_backup(t *testing.T) {
 				os.Remove(file)
 			}
 			db, err = frigolite.Open(file)
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open(file)
+			tclConnRegister("db3", db3)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "backup-5." + iTest + ".1.1"
 				_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
@@ -917,6 +935,7 @@ func Test_backup(t *testing.T) {
 				os.Remove("bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
@@ -924,8 +943,10 @@ func Test_backup(t *testing.T) {
 				os.Remove(file)
 			}
 			db, err = frigolite.Open(file)
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open(file)
+			tclConnRegister("db3", db3)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "backup-5." + iTest + ".5.1"
 				r = db.Query("\n      PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
@@ -994,8 +1015,10 @@ func Test_backup(t *testing.T) {
 				os.Remove("test2.db")
 			}
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test2.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    COMMIT;\n  ")
 			if _res.Error != nil {
@@ -1074,8 +1097,10 @@ func Test_backup(t *testing.T) {
 				os.Remove("test2.db")
 			}
 			db2, err = frigolite.Open("test2.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 SELECT a+ 1, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 2, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 4, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 8, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+16, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+32, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+64, randstr(1000,1000) FROM t1;\n  ")
 			if _res.Error != nil {
@@ -1098,6 +1123,7 @@ func Test_backup(t *testing.T) {
 		}
 		{ // do_test "backup-7.1.2"
 			db3, err = frigolite.Open("test.db")
+			tclConnRegister("db3", db3)
 			if err != nil { t.Fatal(err) }
 			_res = db3.Exec(" BEGIN EXCLUSIVE ")
 			if _res.Error != nil {
@@ -1154,8 +1180,10 @@ func Test_backup(t *testing.T) {
 			if db3 != nil { db3.Close() }
 			os.Remove("test2.db")
 			db2, err = frigolite.Open("test2.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open("test2.db")
+			tclConnRegister("db3", db3)
 			if err != nil { t.Fatal(err) }
 			B, _berr = tclBackupInit(db2, "main", db, "main")
 			if _berr != nil {
@@ -1215,8 +1243,10 @@ func Test_backup(t *testing.T) {
 				os.Remove("test3.db")
 			}
 			db2, err = frigolite.Open("test2.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open("test3.db")
+			tclConnRegister("db3", db3)
 			if err != nil { t.Fatal(err) }
 			B2, _berr = tclBackupInit(db2, "main", db, "main")
 			if _berr != nil {
@@ -1327,6 +1357,7 @@ func Test_backup(t *testing.T) {
 		}
 		{ // do_test "backup-9.1.1"
 			db2, err = frigolite.Open("test2.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			B, _berr = tclBackupInit(db2, "main", db, "main")
 			if _berr != nil {
@@ -1397,6 +1428,7 @@ func Test_backup(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open(file)
 					if err != nil { t.Fatal(err) }
+					tclConnRegister("db", db)
 					r = db.Query(" \n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n      BEGIN;\n        INSERT INTO t1 VALUES(NULL, randomblob(200));\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n      BEGIN;\n        INSERT INTO t1 VALUES(NULL, randomblob(200));\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
@@ -1410,6 +1442,7 @@ func Test_backup(t *testing.T) {
 				{ // do_test "backup-10." + tn + ".3"
 					os.Remove("bak.db")
 					db2, err = frigolite.Open("bak.db")
+					tclConnRegister("db2", db2)
 					if err != nil { t.Fatal(err) }
 					B, _berr = tclBackupInit(db2, "main", db, "main")
 					if _berr != nil {
@@ -1446,8 +1479,10 @@ func Test_backup(t *testing.T) {
 			}
 			{ // do_test "backup-11.1"
 				db1, err = frigolite.Open(":memory:")
+				tclConnRegister("db1", db1)
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open(":memory:")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				B, _berr = tclBackupInit(db1, "main", db2, "temp")
 				if _berr != nil {
@@ -1466,8 +1501,10 @@ func Test_backup(t *testing.T) {
 			if db2 != nil { db2.Close() }
 			{ // do_test "backup-12.1"
 				db1, err = frigolite.Open(":memory:")
+				tclConnRegister("db1", db1)
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open(":memory:")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				_res = db1.Exec("\n    PRAGMA page_size = 8192;\n    CREATE TABLE t1(x);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

@@ -70,6 +70,7 @@ func Test_fts3integrity(t *testing.T) {
 		}
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db2.Exec("\n  CREATE TABLE t3(x, y);\n")

@@ -93,6 +93,7 @@ func Test_descidx2(t *testing.T) {
 		// set_file_format 3 (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// get_file_format (unsupported command, not transpiled)
 	}

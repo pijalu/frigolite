@@ -64,6 +64,7 @@ func Test_pcache(t *testing.T) {
 	}
 	{ // do_test "pcache-1.2"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA cache_size=12;\n    PRAGMA auto_vacuum=0;\n    PRAGMA mmap_size=0;\n  ")
 		if r.Error != nil {
@@ -87,6 +88,7 @@ func Test_pcache(t *testing.T) {
 	}
 	{ // do_test "pcache-1.5"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("PRAGMA cache_size; PRAGMA cache_size=10")
 		if r.Error != nil {

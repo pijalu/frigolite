@@ -280,6 +280,7 @@ func Test_vtab1(t *testing.T) {
 		echo_module = ""
 		_ = echo_module // suppress unused warning
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "vtab1.2.6"
@@ -510,6 +511,7 @@ func Test_vtab1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		vtab.TclVarSet("echo_module", "", "")
@@ -667,6 +669,7 @@ func Test_vtab1(t *testing.T) {
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
 	db2, err = frigolite.Open("test2.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	_res = db2.Exec("\n  CREATE TABLE techo(a PRIMARY KEY, b, c);\n")
 	if _res.Error != nil {
@@ -821,6 +824,7 @@ func Test_vtab1(t *testing.T) {
 		}
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		_res = db.Exec("\n    DROP TABLE del;\n  ")
@@ -1469,6 +1473,7 @@ func Test_vtab1(t *testing.T) {
 			}
 			{ // do_test "26.2"
 				db2, err = frigolite.Open("test.db")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				_res = db2.Exec(" CREATE TABLE ty(x, y) ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

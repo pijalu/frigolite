@@ -64,6 +64,7 @@ func Test_tkt_c694113d5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-c694113d5.100"
 		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);\n  ")
 		vtab.TclVarSet("answer", "", "")

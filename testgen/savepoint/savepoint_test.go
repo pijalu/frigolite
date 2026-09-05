@@ -226,6 +226,7 @@ func Test_savepoint(t *testing.T) {
 		db.Close()
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-1.4.1" (prepare-step internals; SQL side effects only)
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp1;\n  ")
@@ -651,6 +652,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	{ // do_test "savepoint-5.4.2"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query(" BEGIN ; SELECT count(*) FROM blobs ")
 		if r.Error != nil {
@@ -696,6 +698,7 @@ func Test_savepoint(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-6.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -745,6 +748,7 @@ func Test_savepoint(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-7.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -795,6 +799,7 @@ func Test_savepoint(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
 		if r.Error != nil {
@@ -1082,6 +1087,7 @@ func Test_savepoint(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = full; ")
 		if r.Error != nil {
@@ -1191,6 +1197,7 @@ func Test_savepoint(t *testing.T) {
 				os.Remove("test.db")
 			}
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n      BEGIN;\n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 2);\n      COMMIT;\n      PRAGMA journal_mode = off;\n    ")
 			if r.Error != nil {
@@ -1222,6 +1229,7 @@ func Test_savepoint(t *testing.T) {
 	// do_multiclient_test tn {\n  do_test savepoint-15.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-16.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-17.1"
 		r = db.Query("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")

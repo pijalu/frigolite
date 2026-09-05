@@ -90,6 +90,7 @@ func Test_misuse(t *testing.T) {
 			os.Remove("test2.db-journal")
 		}
 		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -119,6 +120,7 @@ func Test_misuse(t *testing.T) {
 	{ // do_test "misuse-2.1"
 		db.Close()
 		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -175,6 +177,7 @@ func Test_misuse(t *testing.T) {
 	{ // do_test "misuse-3.1"
 		db.Close()
 		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -231,6 +234,7 @@ func Test_misuse(t *testing.T) {
 	{ // do_test "misuse-4.1"
 		db.Close()
 		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -289,6 +293,7 @@ func Test_misuse(t *testing.T) {
 		{ // do_test "misuse-5.1"
 			db.Close()
 			db, err = frigolite.Open("test2.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
 			DB = "sqlite3_connection_pointer db" // TCL namespace variable

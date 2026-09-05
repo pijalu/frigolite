@@ -63,6 +63,7 @@ func Test_temptable(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "temptable-1.0"
 		db2, err = frigolite.Open("./test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		vtab.TclVarSet("dummy", "", "")
 		dummy = ""
@@ -260,6 +261,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.6"
 		if db2 != nil { db2.Close() }
 		db2, err = frigolite.Open("./test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
@@ -273,6 +275,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.8"
 		if db2 != nil { db2.Close() }
 		db2, err = frigolite.Open("./test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -324,6 +327,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-4.15"
 		if db2 != nil { db2.Close() }
 		db2, err = frigolite.Open("./test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		r = db2.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -418,6 +422,7 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-6.8"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t8,t9;\n  ")
 		_ = _res // catchsql
@@ -442,6 +447,7 @@ func Test_temptable(t *testing.T) {
 			os.Remove("test.db")
 		}
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "temptable-8.1"

@@ -71,6 +71,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-1.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    insert into test values(4,5,6);\n    select * from test1;\n  ")
 		if r.Error != nil {
@@ -98,6 +99,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-2.3"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    update test set b=66 where id=4;\n    select * from test1;\n  ")
 		if r.Error != nil {
@@ -119,6 +121,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-3.2"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    insert into test values(7,8,9);\n  ")
 		_ = _res // catchsql
@@ -150,6 +153,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-3.7"
 		db.Close()
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    update test set b=99 where id=7;\n    select * from test2;\n  ")
 		if r.Error != nil {
@@ -161,6 +165,7 @@ func Test_trigger4(t *testing.T) {
 		os.Remove("trigtest.db")
 		os.Remove("trigtest.db-journal")
 		db, err = frigolite.Open("trigtest.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("drop table tbl; drop view vw")
 		_ = _res // catchsql

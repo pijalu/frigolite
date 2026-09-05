@@ -90,6 +90,7 @@ func Test_shell9(t *testing.T) {
 		// catchcmd test.db .read testdump.txt
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.2"
 		r = db.Query("\n  SELECT * FROM t1;\n")

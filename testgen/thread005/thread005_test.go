@@ -103,6 +103,7 @@ func Test_thread005(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "thread005-1.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		db.Close()
@@ -135,6 +136,7 @@ func Test_thread005(t *testing.T) {
 	os.Remove("test.db")
 	{ // do_test "thread005-2.1"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {
@@ -150,8 +152,10 @@ func Test_thread005(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	defer ThreadProgram.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db, err = frigolite.Open("test2.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	_putsMsg := "Running thread-tests for ~20 seconds"
 	_ = _putsMsg
@@ -178,6 +182,7 @@ func Test_thread005(t *testing.T) {
 	}
 	{ // do_test "thread005-2.3"
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {

@@ -350,6 +350,7 @@ func Test_fts4check(t *testing.T) {
 				{ // do_test "4.2"
 					db.Close()
 					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    INSERT INTO t4(t4) VALUES('integrity-check');\n  ")
 					_ = _res // catchsql

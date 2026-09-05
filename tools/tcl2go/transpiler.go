@@ -82,6 +82,7 @@ type transpiler struct {
 	sqlVarValues        map[string]string       // braced set var → SQL text (for sqlite3_prepare $var classification; kept separate from varConstValues so concat/list accumulation is unaffected)
 	connFailedOpen      map[string]string       // connection → sqlite3_open error message (bad-path open emulation)
 	connClosed          map[string]bool         // connection closed via sqlite3_close (double-close misuse)
+	pendingConnRegister []connReg               // queued tclConnRegister pairs emitted after the current sqlite3 open
 	authTypeName        string                  // Go type name of the last registered TCL authorizer proc (db authorizer ::name)
 	authProcCount       int                     // counter for unique generated authorizer type names
 	authProcGo          map[string]string       // TCL authorizer proc name → emitted Go type name

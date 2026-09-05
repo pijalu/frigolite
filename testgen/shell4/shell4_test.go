@@ -70,6 +70,7 @@ func Test_shell4(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "shell4-1.1.1" (CLI shell subprocess harness, not transpiled)
 		// set res [catchcmd "test.db" ".show"]

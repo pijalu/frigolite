@@ -190,6 +190,7 @@ func Test_rollback(t *testing.T) {
 		// close $fd
 		{ // do_test "rollback-2.2"
 			db2, err = frigolite.Open("testA.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			r = db2.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
 			if r.Error != nil {

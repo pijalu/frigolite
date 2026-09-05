@@ -75,6 +75,7 @@ func Test_pendingrace(t *testing.T) {
 	// testvfs tvfs (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;\n")
@@ -89,6 +90,7 @@ func Test_pendingrace(t *testing.T) {
 		// expr ($nPg==20 (not evaluated)
 	}
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		r = db2.Query("\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
@@ -124,6 +126,7 @@ func Test_pendingrace(t *testing.T) {
 	_ = seen_unlock // suppress unused warning
 	// proc definition (not transpiled)
 	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
 	// tvfs filter xAccess (unsupported command, not transpiled)
 	// tvfs script xAccess (unsupported command, not transpiled)

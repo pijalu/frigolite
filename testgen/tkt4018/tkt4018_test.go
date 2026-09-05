@@ -79,6 +79,7 @@ func Test_tkt4018(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			if db2 != nil { db2.Close() }
 			// incr i 1
@@ -99,6 +100,7 @@ func Test_tkt4018(t *testing.T) {
 	}
 	{ // do_test "tkt4018-2.1"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("INSERT INTO t1 VALUES(1, 2)")
 		if _res.Error != nil {
@@ -114,6 +116,7 @@ func Test_tkt4018(t *testing.T) {
 	{ // do_test "tkt4018-2.3"
 		if db2 != nil { db2.Close() }
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {

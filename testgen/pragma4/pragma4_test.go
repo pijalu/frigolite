@@ -106,6 +106,7 @@ func Test_pragma4(t *testing.T) {
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "pragma4-2.100"
 				_res = db.Exec("\n    PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;\n  ")
@@ -149,8 +150,10 @@ func Test_pragma4(t *testing.T) {
 			}
 			{ // do_test "4.1.4"
 				db3, err = frigolite.Open("test.db")
+				tclConnRegister("db3", db3)
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				_res = db3.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
@@ -221,8 +224,10 @@ func Test_pragma4(t *testing.T) {
 			}
 			{ // do_test "4.2.4"
 				db3, err = frigolite.Open("test.db")
+				tclConnRegister("db3", db3)
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				_res = db3.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
@@ -285,8 +290,10 @@ func Test_pragma4(t *testing.T) {
 			}
 			{ // do_test "4.3.4"
 				db3, err = frigolite.Open("test.db")
+				tclConnRegister("db3", db3)
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db2")
+				tclConnRegister("db2", db2)
 				if err != nil { t.Fatal(err) }
 				_res = db3.Exec(" DROP INDEX i1 ")
 				if _res.Error != nil {

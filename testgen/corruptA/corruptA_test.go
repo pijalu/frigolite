@@ -85,6 +85,7 @@ func Test_corruptA(t *testing.T) {
 		tclFileCopy("test.db-template", "test.db")
 		tclHexioWrite("test.db", int64(19), unreadable_version)
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
@@ -94,6 +95,7 @@ func Test_corruptA(t *testing.T) {
 		tclFileCopy("test.db-template", "test.db")
 		tclHexioWrite("test.db", int64(21), "41")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
@@ -103,6 +105,7 @@ func Test_corruptA(t *testing.T) {
 		tclFileCopy("test.db-template", "test.db")
 		tclHexioWrite("test.db", int64(22), "1f")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
@@ -112,6 +115,7 @@ func Test_corruptA(t *testing.T) {
 		tclFileCopy("test.db-template", "test.db")
 		tclHexioWrite("test.db", int64(23), "21")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql

@@ -71,6 +71,7 @@ func Test_exec(t *testing.T) {
 	}
 	{ // do_test "exec-1.3"
 		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("CREATE TABLE t2(x, y);")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

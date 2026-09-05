@@ -78,6 +78,7 @@ func Test_rdonly(t *testing.T) {
 	{ // do_test "rdonly-1.3"
 		tclHexioWrite("test.db", int64(18), "03")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -97,6 +98,7 @@ func Test_rdonly(t *testing.T) {
 		db.Close()
 		tclHexioWrite("test.db", int64(18), "01")
 		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql

@@ -84,6 +84,7 @@ func Test_walblock(t *testing.T) {
 		os.Remove(f)
 	}
 	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.0"
 		r = db.Query("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(7, 8);\n")
