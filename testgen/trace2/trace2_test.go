@@ -6,8 +6,10 @@ package trace2
 
 import (
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strings"
 "testing"
 )
 
@@ -79,7 +81,32 @@ func Test_trace2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	db.RegisterFunction("sql", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func sql sql (test-harness conditional SQL-execute UDF — P8.MISC tkt3718)
+	db.RegisterFunction("sql", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 || args[0] == nil || args[1] == nil { return nil, nil }
+		doit := function.ValueText(args[0])
+		if doit == "" || doit == "0" { return nil, nil }
+		zSql := function.ValueText(args[1])
+		if zSql == "" { return nil, nil }
+		// Mark the calling SELECT as an active read statement so
+		// DDL/DML inside the recursive SQL triggers the OP_Destroy
+		// interlock (tkt3718-* nesting case).
+		db.BeginActiveStatement()
+		defer db.EndActiveStatement()
+		// Detect SELECT prefix and route through EvalExecSQL so the
+		// joined cells come back as a string (matching TCL catchsql).
+		upper := strings.TrimSpace(strings.ToUpper(zSql))
+		if strings.HasPrefix(upper, "SELECT") || strings.HasPrefix(upper, "WITH") {
+			out, err := db.EvalExecSQL(zSql, " ")
+			if err != nil { return nil, nil }
+			if out == "" { return nil, nil }
+			return out, nil
+		}
+		// TCL's catchsql swallows errors and returns the result; mimic
+		// by ignoring db.Exec error here so the calling INSERT survives.
+		db.Exec(zSql)
+		return nil, nil
+	}, 2, 2)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// do_trace_select_test 1.1 {\n  SELECT 1, 2, 3;\n} {\n  "SELECT 1, 2, 3;"\n} (unsupported command, not transpiled)

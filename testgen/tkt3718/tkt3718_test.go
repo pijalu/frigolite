@@ -9,4 +9,4 @@ import (
 )
 
 func Test_tkt3718(t *testing.T) {}
-// skipped: test-harness SQL-executing UDFs f1/f2 not implemented N-A
+// skipped: nested-statement-journal across UDF-driven recursive SQL not implemented (evidence frigolite_misc_native_test.go::TestNativeMiscUDFF1F2)

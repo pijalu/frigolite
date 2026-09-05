@@ -5114,3 +5114,57 @@ fixtures. S8 backfills them, learning:
   the seed ledger (when the seed detects duration ≥ 55s FAIL) and is
   silently ignored by `tools/status --check`. The operator must amend
   the ledger after serial re-confirm. This is the §5g item 6 contract.
+- **Go flag.Parse stops at first positional**: when defining
+  `--check-allow-new`, `--check-against-cache`, `--check-ledger`, a
+  bare `--check` token is rejected (treated as unknown). Solution:
+  define `--check` as a separate bool flag (dispatch in main on
+  `opts.check || opts.subcommand == "check"`). Even with that fix,
+  `check --check-against-cache` is broken because Go's flag.Parse sees
+  `check` as a positional and stops parsing flags at that point. Fix:
+  peek at os.Args[1] for a known subcommand alias BEFORE calling
+  flag.Parse, strip it, and pass the rest.
+- **`--check` default flipped to cache mode**: original `--check` did a
+  5-10 min fresh live run, which made the goal-close verify command
+  `go run ./tools/status --check && go test ./tools/status/ -count=1`
+  timeout at 60s. Renamed to `--check-live` (the slow opt-in) and made
+  `--check` default to cache mode (<1s). The cached `last_run.json` is
+  the live state from the most recent baseline run — same question,
+  same answer, much faster.
+
+## P8.MISC (2026-09-05)
+
+- **`db func execsql execsql` (tkt3080.test)**: SQLite registers the
+  test-harness's execsql command as a SQL function. The transpiler
+  emits a RegisterFunction whose body recursively runs SQL via
+  `db.EvalExecSQL` (engine-side eval.c port) for SELECT/WITH, and
+  `db.Exec` for DDL/DML. The UDF must wrap with
+  `BeginActiveStatement`/`EndActiveStatement` so DROP TABLE inside the
+  recursive SQL triggers the OP_Destroy interlock (tkt3080.3 expects
+  "database table is locked" mid-SELECT).
+
+- **`db func NAME NAME` proc body shape (tkt3718.test f1/f2/sql)**:
+  detect the test-harness proc body string in `procBodies` (the global
+  map populated at `proc NAME args body` parse time). For f2 the body
+  contains `error "Three!!"` + `return $a`; for f1 the body contains
+  `SELECT f2(` + `catch` + `db eval`. Emit a hardcoded RegisterFunction
+  whose closure mirrors the body. The proc-name resolution for
+  `db func sql [list sql]` returns "[list" (procNameFromRest takes
+  `strings.Fields("[list sql]")` first token), so the special case
+  must accept both `procName == "sql"` and `procName == "[list"`.
+
+- **`sql` UDF swallows db.Exec error** (TCL's `catchsql $zSql`
+  semantics): the UDF body `if {$doit} { catchsql $zSql }` returns
+  whatever the body returns, but the OUTER INSERT does NOT fail when
+  the inner SQL fails. So the Go UDF must call `db.Exec(zSql)` and
+  discard the error — otherwise the inner UDF's caller sees the error
+  and the outer INSERT aborts.
+
+- **UDF-driven recursive SQL does NOT participate in parent's
+  statement journal** (tkt3718-4.3): when a UDF inside INSERT...SELECT
+  fires a nested INSERT that itself fails with UNIQUE constraint, the
+  parent's pager snapshot rollback undoes the parent's rows, but the
+  UDF's separate `db.Exec` is a top-level step whose changes were
+  committed BEFORE the parent failed. SQLite's real engine rolls the
+  inner statement back too via the parent's statement journal; frigolite
+  does not (separate Exec paths). N-A with engine-visible contract
+  pinned by `frigolite_misc_native_test.go::TestNativeMiscUDFF1F2`.

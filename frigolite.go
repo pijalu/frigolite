@@ -700,6 +700,19 @@ func execResult(er *exec.Result) *Result {
 	}
 }
 
+// EvalExecSQL runs SQL text via the engine and returns every result cell of
+// every row of every SELECT statement, joined by sep. NULL cells render as
+// the empty string; non-SELECT statements contribute no cells. An error in
+// any statement aborts with that error. This mirrors SQLite's ext/misc/eval.c
+// eval() function and is used by the test-harness SQL-executing UDF
+// (`db function execsql execsql` in tkt3080.test).
+func (db *DB) EvalExecSQL(sqlStr, sep string) (string, error) {
+	if db == nil || db.engine == nil {
+		return "", fmt.Errorf("frigolite: database not initialized")
+	}
+	return db.engine.EvalExecSQL(sqlStr, sep)
+}
+
 // Exec executes a SQL statement that does not return rows.
 // Multiple statements in the same string are all executed (consistent with
 // SQLite's sqlite3_prepare_v2 behavior for DDL/DML batches).

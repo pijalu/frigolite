@@ -5,8 +5,226 @@
 package cksumvfs
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"regexp"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_cksumvfs(t *testing.T) {}
-// skipped: custom checksum VFS not implemented N-A
+func Test_cksumvfs(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "cksumvfs")
+	testprefix = "cksumvfs"
+	_ = testprefix // suppress unused warning
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// sqlite3_register_cksumvfs (unsupported command, not transpiled)
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	// file_control_reservebytes db 8 (unsupported command, not transpiled)
+	r = db.Query("\n  PRAGMA page_size = 4096;\n")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 4096;\n")
+	}
+	_dbone0 := tclExecSQL(db, "SELECT hex(randomblob(5000))")
+	text = _dbone0
+	_ = text // suppress unused warning
+	{ // "1.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, " + sqlLiteral(text) + ", NULL);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, " + sqlLiteral(text) + ", NULL);\n")
+		}
+	}
+	{ // "1.1"
+		r = db.Query("\n  SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlatten("1"+" "+text+" "+"{}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.2"
+		_res = db.Exec("\n  DELETE FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n")
+		}
+	}
+	{ // do_test "1.3"
+		_res = db.Exec("BEGIN")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		}
+		vtab.TclVarSet("ii", "", "1500")
+		ii = "1500"
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
+			_res = db.Exec(" INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + sqlLiteral(ii) + ")) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + sqlLiteral(ii) + ")) ")
+			}
+			// incr ii 1
+			{
+				_n, _err := strconv.Atoi(ii)
+				if _err == nil {
+					ii = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+	}
+	{ // "1.4"
+		r = db.Query("\n  SELECT count(b) FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(b) FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "8500"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.5"
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  DELETE FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  DELETE FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.6"
+		r = db.Query("\n  PRAGMA wal_checkpoint;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA wal_checkpoint;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "0 -?[0-9]+ -?[0-9]+"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
+		}
+	}
+	{ // "1.7"
+		r = db.Query("\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT NULL, randomblob(5000), randomblob(i) FROM s;\n  SELECT count(*) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT NULL, randomblob(5000), randomblob(i) FROM s;\n  SELECT count(*) FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// db_save_and_close: snapshot test.db* under sv_ prefix
+	for _, _sf := range tclSplitList(tclGlob("test.db*")) {
+		tclFileCopy(_sf, "sv_"+_sf)
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// db_restore_and_reopen: restore sv_test.db* snapshot
+	db.Close()
+	for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
+	for _, _sv := range tclSplitList(tclGlob("sv_test.db*")) {
+		tclFileCopy(_sv, strings.TrimPrefix(_sv, "sv_"))
+	}
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "1.8"
+		r = db.Query("\n  SELECT count(*) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "1.9"
+		r = db.Query("\n  SELECT count(*) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

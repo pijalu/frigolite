@@ -5,8 +5,134 @@
 package tkt3080
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strings"
 "testing"
 )
 
-func Test_tkt3080(t *testing.T) {}
-// skipped: test-harness execsql UDF (runs SQL from within a query) not implemented N-A
+func Test_tkt3080(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "tkt3080.1"
+		// db function execsql execsql (test-harness SQL-executing UDF — P8.MISC)
+		db.RegisterFunction("execsql", func(args []interface{}) (interface{}, error) {
+			if len(args) < 1 || args[0] == nil { return nil, nil }
+			sqlStr := function.ValueText(args[0])
+			if sqlStr == "" { return nil, nil }
+			// Mark the calling SELECT as an active read statement so
+			// DROP TABLE inside the recursive SQL triggers the
+			// OP_Destroy interlock (tkt3080.3 expects 'database table is locked').
+			db.BeginActiveStatement()
+			defer db.EndActiveStatement()
+			upper := strings.TrimSpace(strings.ToUpper(sqlStr))
+			isSelect := strings.HasPrefix(upper, "SELECT") || strings.HasPrefix(upper, "WITH")
+			if isSelect {
+				out, err := db.EvalExecSQL(sqlStr, " ")
+				if err != nil { return nil, err }
+				if out == "" { return nil, nil }
+				return out, nil
+			}
+			if r := db.Exec(sqlStr); r.Error != nil { return nil, r.Error }
+			return nil, nil
+		}, 1, -1)
+		_res = db.Exec("\n    SELECT execsql('CREATE TABLE t1(x)');\n  ")
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "tkt3080.2"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES('CREATE TABLE t2(y);');\n    SELECT execsql(x) FROM t1;\n  ")
+		_res = db.Exec("\n    SELECT name FROM sqlite_master;\n  ")
+	}
+	{ // do_test "tkt3080.3"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');\n  ")
+		}
+		_res = db.Exec("\n    SELECT execsql(x) FROM t1 WHERE rowid=2;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "tkt3080.4"
+		r = db.Query("\n    SELECT name FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t2 t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	{ // do_test "tkt3080.10"
+		vtab.TclVarSet("sql", "", "\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     ")
+		sql = "\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     "
+		_ = sql // suppress unused warning
+		_res = db.Exec("\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES(" + sqlLiteral(sql) + ");\n     ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES(" + sqlLiteral(sql) + ");\n     ")
+		}
+		_res = db.Exec("\n       SELECT execsql(x) FROM t1\n     ")
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "tkt3080.11"
+		r = db.Query("SELECT * FROM t2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+		}
+	}
+}

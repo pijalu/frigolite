@@ -535,18 +535,18 @@ func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-		if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
-			// A ROLLBACK executed inside a db eval callback aborts the
-			// enclosing row iteration (SQLite "abort due to ROLLBACK").
-			tp.emitLine("%s = true", tp.rollbackFlag)
-		}
-		// db eval silently consumes Exec errors (TCL's `db eval` runs the
-		// body for each row and the body itself executes the SQL; errors
-		// inside the body are reported via the result code, not as a hard
-		// test failure). The transpiler must NOT promote them to t.Errorf
-		// here — a per-iteration error path on a 1000-row loop prints ~30s
-		// of failure traffic and times out the suite (incrvacuum-6/7).
-		_ = tp.catchMode // unused for the no-callback path
+	if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
+		// A ROLLBACK executed inside a db eval callback aborts the
+		// enclosing row iteration (SQLite "abort due to ROLLBACK").
+		tp.emitLine("%s = true", tp.rollbackFlag)
+	}
+	// db eval silently consumes Exec errors (TCL's `db eval` runs the
+	// body for each row and the body itself executes the SQL; errors
+	// inside the body are reported via the result code, not as a hard
+	// test failure). The transpiler must NOT promote them to t.Errorf
+	// here — a per-iteration error path on a 1000-row loop prints ~30s
+	// of failure traffic and times out the suite (incrvacuum-6/7).
+	_ = tp.catchMode // unused for the no-callback path
 }
 
 // processDBOnecolumn handles `db onecolumn {SQL}`.
@@ -605,6 +605,75 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 	// shadow the real eval and break DELETE/SELECT execution.
 	if strings.EqualFold(name, "eval") {
 		tp.emitLine("// db func eval %s (db-eval passthrough — built-in eval used)", procName)
+		return
+	}
+	// `db function execsql execsql` — the test-harness's execsql command
+	// (tkt3080.test) is registered as a SQL function. The body recursively
+	// runs its first argument as SQL and returns the joined cell result
+	// (or NULL for DDL/DML). This is a generic SQL-executing UDF — emit
+	// the same RegisterFunction that the native UCL test uses
+	// (frigolite_misc_native_test.go::TestNativeMiscUDFFromHarnessExecutesSQL).
+	if strings.EqualFold(name, "execsql") && strings.EqualFold(name, procName) {
+		tp.emitLine("// db function execsql execsql (test-harness SQL-executing UDF — P8.MISC)")
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
+		tp.emitLine("\tsqlStr := function.ValueText(args[0])")
+		tp.emitLine("\tif sqlStr == \"\" { return nil, nil }")
+		tp.emitLine("\t// Mark the calling SELECT as an active read statement so")
+		tp.emitLine("\t// DROP TABLE inside the recursive SQL triggers the")
+		tp.emitLine("\t// OP_Destroy interlock (tkt3080.3 expects 'database table is locked').")
+		tp.emitLine("\tdb.BeginActiveStatement()")
+		tp.emitLine("\tdefer db.EndActiveStatement()")
+		tp.emitLine("\tupper := strings.TrimSpace(strings.ToUpper(sqlStr))")
+		tp.emitLine("\tisSelect := strings.HasPrefix(upper, \"SELECT\") || strings.HasPrefix(upper, \"WITH\")")
+		tp.emitLine("\tif isSelect {")
+		tp.emitLine("\t\tout, err := db.EvalExecSQL(sqlStr, \" \")")
+		tp.emitLine("\t\tif err != nil { return nil, err }")
+		tp.emitLine("\t\tif out == \"\" { return nil, nil }")
+		tp.emitLine("\t\treturn out, nil")
+		tp.emitLine("\t}")
+		tp.emitLine("\tif r := db.Exec(sqlStr); r.Error != nil { return nil, r.Error }")
+		tp.emitLine("\treturn nil, nil")
+		tp.emitLine("}, 1, -1)")
+		return
+	}
+	// `db func f1 f1` / `db func f2 f2` (tkt3718.test) — the proc body
+	// recursively runs SQL via `db eval` or raises an error. Detect the
+	// tkt3718 proc body shapes and emit the equivalent Go UDF.
+	if tp.emitMiscRecurseSQLUDF(name, procName) {
+		return
+	}
+	// `db func sql [list sql]` (tkt3718-2.1+) — the proc body executes its
+	// second argument as SQL when the first is truthy. The transpiler
+	// tokenizes `[list sql]` as the literal word "[list sql]", so the
+	// procNameFromRest returns "[list"; detect either form.
+	if strings.EqualFold(name, "sql") && (strings.EqualFold(procName, "sql") || strings.EqualFold(procName, "[list")) {
+		tp.emitLine("// db func sql sql (test-harness conditional SQL-execute UDF — P8.MISC tkt3718)")
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 2 || args[0] == nil || args[1] == nil { return nil, nil }")
+		tp.emitLine("\tdoit := function.ValueText(args[0])")
+		tp.emitLine("\tif doit == \"\" || doit == \"0\" { return nil, nil }")
+		tp.emitLine("\tzSql := function.ValueText(args[1])")
+		tp.emitLine("\tif zSql == \"\" { return nil, nil }")
+		tp.emitLine("\t// Mark the calling SELECT as an active read statement so")
+		tp.emitLine("\t// DDL/DML inside the recursive SQL triggers the OP_Destroy")
+		tp.emitLine("\t// interlock (tkt3718-* nesting case).")
+		tp.emitLine("\tdb.BeginActiveStatement()")
+		tp.emitLine("\tdefer db.EndActiveStatement()")
+		tp.emitLine("\t// Detect SELECT prefix and route through EvalExecSQL so the")
+		tp.emitLine("\t// joined cells come back as a string (matching TCL catchsql).")
+		tp.emitLine("\tupper := strings.TrimSpace(strings.ToUpper(zSql))")
+		tp.emitLine("\tif strings.HasPrefix(upper, \"SELECT\") || strings.HasPrefix(upper, \"WITH\") {")
+		tp.emitLine("\t\tout, err := db.EvalExecSQL(zSql, \" \")")
+		tp.emitLine("\t\tif err != nil { return nil, nil }")
+		tp.emitLine("\t\tif out == \"\" { return nil, nil }")
+		tp.emitLine("\t\treturn out, nil")
+		tp.emitLine("\t}")
+		tp.emitLine("\t// TCL's catchsql swallows errors and returns the result; mimic")
+		tp.emitLine("\t// by ignoring db.Exec error here so the calling INSERT survives.")
+		tp.emitLine("\tdb.Exec(zSql)")
+		tp.emitLine("\treturn nil, nil")
+		tp.emitLine("}, 2, 2)")
 		return
 	}
 	if tp.emitRegisteredFunction(name, procName, rest) {
@@ -721,6 +790,60 @@ func procNameFromRest(rest []tcl.RawWord) string {
 		return fields[0]
 	}
 	return ""
+}
+
+// emitMiscRecurseSQLUDF detects the tkt3718.test proc body shapes (f1/f2)
+// and emits an equivalent RegisterFunction:
+//
+//	f2: {set a [lindex $args 0]; if {$a == "three"} { error "Three!!" };
+//	    return $a}  →  identity UDF with "three" → error("Three!!")
+//	f1: {set a [lindex $args 0]; catch { db eval {SELECT f2($a)} } msg;
+//	    set msg}     →  recurse-and-return UDF (DB->Query SELECT f2($a),
+//	                     return first row cell or error message)
+//
+// Returns true when a recognized body matched and an emission was emitted.
+func (tp *transpiler) emitMiscRecurseSQLUDF(name, procName string) bool {
+	if tp.procBodies == nil {
+		return false
+	}
+	body, ok := tp.procBodies[procName]
+	if !ok {
+		return false
+	}
+	body = strings.TrimSpace(body)
+	// Strip the outer braces if present.
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	// f2 shape: ... if {$a == "three"} { error "Three!!" } ... return $a
+	if strings.EqualFold(name, "f2") && strings.EqualFold(procName, "f2") &&
+		strings.Contains(body, `error "Three!!"`) && strings.Contains(body, "return $a") {
+		tp.emitLine("// db func f2 f2 (tkt3718 — identity with 'three' → error(\"Three!!\"))")
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
+		tp.emitLine("\ta := function.ValueText(args[0])")
+		tp.emitLine("\tif a == \"three\" { return nil, fmt.Errorf(\"Three!!\") }")
+		tp.emitLine("\treturn a, nil")
+		tp.emitLine("}, 1, 1)")
+		return true
+	}
+	// f1 shape: ... catch { db eval {SELECT f2($a)} } msg; set msg
+	if strings.EqualFold(name, "f1") && strings.EqualFold(procName, "f1") &&
+		strings.Contains(body, "SELECT f2(") && strings.Contains(body, "catch") &&
+		strings.Contains(body, "db eval") {
+		tp.emitLine("// db func f1 f1 (tkt3718 — recursive db eval SELECT f2($a), returns row cell or error msg)")
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
+		tp.emitLine("\ta := function.ValueText(args[0])")
+		tp.emitLine("\tq := fmt.Sprintf(\"SELECT f2(%%s)\", sqlLiteral(a))")
+		tp.emitLine("\tr := db.Query(q)")
+		tp.emitLine("\tif r.Error != nil { return r.Error.Error(), nil }")
+		tp.emitLine("\tif len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return nil, nil }")
+		tp.emitLine("\treturn r.Rows[0][0], nil")
+		tp.emitLine("}, 1, 1)")
+		return true
+	}
+	return false
 }
 
 // emitRegisteredFunction emits a RegisterFunction call for a recognized

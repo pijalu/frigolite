@@ -91,13 +91,6 @@ var skipTestFiles = map[string]string{
 	// package; see plans/DEFERRED.md).
 	"tkt2854": "shared-cache multi-connection concurrency not implemented DEFERRED",
 
-	// tkt3080: the tester.tcl execsql test-harness UDF — a scalar function
-	// that recursively executes its string argument as SQL (SELECT
-	// execsql('CREATE TABLE t1(x)'), and execsql(x) where x is a column
-	// holding SQL text). Frigolite's RegisterFunction callbacks have no
-	// engine access to run SQL, so the UDF cannot be implemented; this is a
-	// test-harness function, not core SQL.
-	"tkt3080": "test-harness execsql UDF (runs SQL from within a query) not implemented N-A",
 
 	// tkt3093: multi-connection locking with busy handlers (db2 on the same
 	// file, a busy callback commits db's transaction to clear a reserved
@@ -110,11 +103,16 @@ var skipTestFiles = map[string]string{
 	// stale schema). DEFERRED — needs multi-connection shared state.
 	"tkt3810": "multi-connection schema staleness not implemented DEFERRED",
 
-	// tkt3718: test-harness SQL-executing UDFs f1/f2 (db function f1 f1)
-	// that run SQL from within a query and raise exceptions mid-statement
-	// (f2 throws on 'three', aborting an INSERT SELECT partway). Same
-	// category as tkt3080: RegisterFunction callbacks have no engine access.
-	"tkt3718": "test-harness SQL-executing UDFs f1/f2 not implemented N-A",
+		// tkt3718: nested-statement-transaction rollback across UDF-initiated
+		// recursive SQL — tkt3718-4.3 fails because a UDF-driven INSERT inside
+		// the calling INSERT's row loop is a separate sqlite3_step, so its rows
+		// are not part of the parent's statement journal and don't roll back
+		// when the parent's UNIQUE conflict fires. Engine-visible contract is
+		// pinned by frigolite_misc_native_test.go::TestNativeMiscUDFF1F2 (the
+		// simpler f1/f2 case passes via the harness). N-A pending a recursive
+		// statement-journal implementation.
+		"tkt3718": "nested-statement-journal across UDF-driven recursive SQL not implemented (evidence frigolite_misc_native_test.go::TestNativeMiscUDFF1F2)",
+
 
 	// tkt3793: shared-cache multi-connection (sqlite3_enable_shared_cache 1,
 	// cache=shared/private connections, cross-connection busy handlers).
@@ -225,9 +223,6 @@ var skipTestFiles = map[string]string{
 
 	// (basexx1 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 
-	// cksumvfs: custom checksum VFS (sqlite3_register_cksumvfs) — a test VFS
-	// that stores/validates per-page checksums. Custom VFS not implemented. N-A.
-	"cksumvfs": "custom checksum VFS not implemented N-A",
 
 	// P7.LOCK-C re-skips (evidence-based). busy/busy2 exercise the SQLite
 	// busy-handler (sqlite3_busy_handler via `db busy <cb>`). Frigolite's
