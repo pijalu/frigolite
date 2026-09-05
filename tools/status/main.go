@@ -32,19 +32,19 @@ const defaultConcurrency = 8
 const defaultTimeout = 60 * time.Second
 
 type options struct {
-	subcommand        string
-	skipRun           bool
-	audit             bool
-	format            string
-	concurrency       int
-	timeout           time.Duration
-	repo              string
-	out               string
-	ledgerOut         string
-	check             bool
-	checkAllowNew     bool
-	checkAgainstCache bool
-	checkLedger       string
+	subcommand    string
+	skipRun       bool
+	audit         bool
+	format        string
+	concurrency   int
+	timeout       time.Duration
+	repo          string
+	out           string
+	ledgerOut     string
+	check         bool
+	checkAllowNew bool
+	checkLive     bool
+	checkLedger   string
 }
 
 func main() {
@@ -105,7 +105,7 @@ func parseFlags() options {
 	// Check mode flags. `--check` is the primary trigger; the rest are modifiers.
 	fs.BoolVar(&o.check, "check", false, "diff a live run (or cached last_run.json) against tools/status/ledger.json; exit non-zero on unexpected flip")
 	fs.BoolVar(&o.checkAllowNew, "check-allow-new", false, "do not exit non-zero on packages missing from the ledger")
-	fs.BoolVar(&o.checkAgainstCache, "check-against-cache", false, "diff against cached last_run.json instead of running a fresh live run")
+	fs.BoolVar(&o.checkLive, "check-live", false, "force a fresh `tools/status` suite instead of using the cached last_run.json (5-10 min)")
 	fs.StringVar(&o.checkLedger, "check-ledger", "", "path to ledger.json (default: tools/status/ledger.json)")
 	// Ledger subcommand modifier.
 	fs.StringVar(&o.ledgerOut, "ledger-out", "", "path to ledger.json output (default: tools/status/ledger.json)")

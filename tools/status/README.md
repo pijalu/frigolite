@@ -43,21 +43,23 @@ the ledger is trusted.
 ### `--check` — diff live run vs ledger
 
 ```
-go run ./tools/status --check [--check-against-cache]
-                        [--check-allow-new] [--check-ledger PATH]
+go run ./tools/status --check [--check-live]
+                         [--check-allow-new] [--check-ledger PATH]
 ```
 
-The anti-regression gate. Runs a fresh `tools/status` suite (or reads
-the cached `last_run.json` with `--check-against-cache` for fast CI),
-compares every package's state to the ledger, and exits non-zero on any
-unexpected flip (pass→fail, skipped→fail, fail→pass, or any missing
-package in the live run). The flipped package name + states + owning
-goal are written to stderr.
+The anti-regression gate. By default, reads the cached `last_run.json` and
+diffs it against `tools/status/ledger.json` (fast: <1s). Pass `--check-live`
+to force a fresh `tools/status` suite (5–10 min) — useful at goal close when
+the operator wants to confirm no flips since the last baseline.
+
+In either mode, `--check` exits non-zero on any unexpected flip (pass→fail,
+skipped→fail, fail→pass, or any missing package in the live run). The
+flipped package name + states + owning goal are written to stderr.
 
 Flags:
 
-- `--check-against-cache`: diff against `tools/status/last_run.json`
-  instead of running fresh (~1s vs 5–10 min).
+- `--check-live`: force a fresh `tools/status` suite instead of using the
+  cached `last_run.json` (default: cache, fast).
 - `--check-allow-new`: silently accept packages missing from the ledger
   (use after `go run ./tools/tcl2go` regenerates new test files; then
   re-seed the ledger with `tools/status ledger` to attribute them).
@@ -74,11 +76,12 @@ Exit codes:
 ```bash
 # After a fresh `tools/status` run (regenerated last_run.json):
 go run ./tools/status ledger                            # seed ledger.json
-go run ./tools/status --check --check-against-cache     # PASS expected
+go run ./tools/status --check                            # fast cache-mode diff (PASS expected)
 
 # At every goal close (§5e item 4, §5g items 1, 2, 4, 7):
-go run ./tools/status --check --check-against-cache && \
+go run ./tools/status --check && \
   go test ./tools/status/ -count=1
+# (Both default to <1s. The verify command above is the goal-close gate.)
 ```
 
 ## Files

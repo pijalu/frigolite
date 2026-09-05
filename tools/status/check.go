@@ -77,15 +77,18 @@ func runCheck(opts options) error {
 		return fmt.Errorf("load ledger %s: %w (run `go run ./tools/status ledger` to seed)", ledgerPath, err)
 	}
 
-	// 2. Force a live run unless the user explicitly wants to check against
-	// the cached last_run.json. We do this by reusing the existing loadStaticInfo
-	// machinery: pass skipRun=true when the user passes --check-against-cache,
-	// else run a fresh suite.
+	// 2. Compute the live states. We default to cache mode (fast, <1s)
+	// because the live run of 1219 packages takes 5–10 minutes and the
+	// operator almost always wants to ask "did anything change since the
+	// last baseline?" — answerable from the cached last_run.json. Pass
+	// `--check-live` to force a fresh `tools/status` suite (the cost: the
+	// same 5–10 min live run; the benefit: detects flips introduced by
+	// engine work since the last full run).
 	runOpts := opts
-	if !opts.checkAgainstCache {
+	if opts.checkLive {
 		runOpts.skipRun = false
 	} else {
-		runOpts.skipRun = true
+		runOpts.skipRun = true // cache mode default
 	}
 	pkgs, liveStamp, err := loadStaticInfo(repo, runOpts)
 	if err != nil {
