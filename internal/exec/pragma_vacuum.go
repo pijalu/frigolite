@@ -211,7 +211,11 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	ps := ctx.Pager.PageSize()
 	nOrig := ctx.Pager.NumPages()
 	if isPtrmapPageFor(nOrig, ps) || nOrig == pendingBytePageFor(ps) {
-		return 0, fmt.Errorf("btree: autoVacuumCommit: page count %d ends on a pointer-map or pending-byte page", nOrig)
+		// btree.c autoVacuumCommit (line 4197): "It is not possible to
+		// create a database for which the final page is either a
+		// pointer-map page or the pending-byte page. If one is
+		// encountered, this indicates corruption." → SQLITE_CORRUPT_BKPT.
+		return 0, fmt.Errorf("database disk image is malformed")
 	}
 	nFree := ctx.Pager.FreelistCount()
 	if nFree == 0 {
@@ -220,7 +224,13 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	nVac := e.autovacuumBatchSize(schema, nOrig, nFree, ps)
 	nFin := finalDbSize(nOrig, nVac, ps)
 	if nFin > nOrig {
-		return 0, fmt.Errorf("btree: autoVacuumCommit: final size %d exceeds current size %d", nFin, nOrig)
+		// btree.c autoVacuumCommit (line 4224): "if( nFin>nOrig ) return
+		// SQLITE_CORRUPT_BKPT". A corrupt header freelist count (e.g. the
+		// altercorrupt hexdb images whose header advertises ~389120 free
+		// pages on a 6-page file) makes nVac=headerCount and the u32
+		// wrap of nOrig-nVac exceed nOrig — exactly the corruption signal
+		// the guard exists for.
+		return 0, fmt.Errorf("database disk image is malformed")
 	}
 	totalSteps := 0
 	// btree.c:4243-4245 passes bCommit=(nVac==nFree) to every

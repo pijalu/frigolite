@@ -526,11 +526,18 @@ func (p *Pager) PageSize() uint32 { return p.pageSize }
 // distribution formulas are defined over this value, not the raw page size.
 func (p *Pager) UsableSize() uint32 { return p.pageSize - p.reserved }
 
-// ValidateHeader checks the database header's freelist and root-page fields
-// against the actual page count. A freelist trunk page, freelist count, or
-// largest root btree page beyond the file's page count indicates a corrupt
-// database (SQLite reports "database disk image is malformed"; the altercorrupt
-// suite loads images whose header advertises a freelist far beyond the file).
+// ValidateHeader checks the database header fields SQLite validates at
+// open/lockBtree time. A truncated file whose header still advertises more
+// pages indicates a corrupt database ("database disk image is malformed").
+//
+// The freelist trunk/count and largest-root header fields are deliberately
+// NOT validated here: SQLite reads them lazily at the point of use —
+// allocateBtreePage (getAndInitPage on the head trunk → SQLITE_CORRUPT)
+// and integrity_check's checkList ("Freelist: invalid page number N") —
+// and never during schema reads (sqlite3InitOne). Schema loading must
+// succeed on an image with a corrupt freelist pointer so integrity_check
+// can REPORT the corruption (pragma6-1.2 loads a DB whose header trunk is
+// 12255232; integrity_check returns the freelist message as a row).
 func (p *Pager) ValidateHeader() error {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -543,15 +550,6 @@ func (p *Pager) ValidateHeader() error {
 	// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
 	// returns the error).
 	if p.headerCorrupt {
-		return fmt.Errorf("database disk image is malformed")
-	}
-	freelistTrunk := binary.BigEndian.Uint32(p.header[32:36])
-	freelistCount := binary.BigEndian.Uint32(p.header[36:40])
-	largestRoot := binary.BigEndian.Uint32(p.header[52:56])
-	// A nonzero freelist trunk/count or largest-root page that exceeds the
-	// file's page count is malformed. Zero freelist fields are valid (no
-	// free pages).
-	if freelistTrunk > p.numPages || freelistCount > p.numPages || largestRoot > p.numPages {
 		return fmt.Errorf("database disk image is malformed")
 	}
 	// lockBtree (btree.c:3401): a header page count (offset 28, trusted

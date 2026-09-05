@@ -617,10 +617,23 @@ func (e *Engine) hasTempTables() bool {
 // checkFreelistCount validates the on-disk freelist: counts pages reachable
 // from the header-declared trunk chain and compares against the header-
 // declared count. A mismatch is reported as "Freelist: size is N but
-// should be M" (mirrors btree.c checkerWalkFreelist / btreeIntegrityCheckpoint).
-// corrupt2.test 14.2/14.3/14.5: write "size=2" to header byte 36 while the
-// chain still carries 3 free pages; the integrity_check must surface the
-// mismatch.
+// should be M" (mirrors btree.c checkList's trailing "size is %u but
+// should be %u"). corrupt2.test 14.2/14.3/14.5: write "size=2" to header
+// byte 36 while the chain still carries 3 free pages; integrity_check
+// must surface the mismatch.
+//
+// Per-problem messages mirror btree.c checkList + checkRef (run with
+// zPfx="Freelist: ") exactly:
+//
+//	"Freelist: invalid page number N"              — checkRef: page 0 or beyond the file
+//	"Freelist: 2nd reference to page N"            — checkRef: page revisited
+//	"Freelist: failed to get page N"               — sqlite3PagerGet failed
+//	"Freelist: freelist leaf count too big on page N" — k > usableSize/4-2
+//
+// Unlike SQLite's single accumulator row, each message is emitted as its
+// own row; the TCL flatten comparison renders the two forms identically.
+// The walk stops at the first invalid trunk (checkRef → break) but keeps
+// scanning leaves after a bad leaf, exactly like the C loop.
 func (e *Engine) checkFreelistCount(emit func(string)) string {
 	if len(e.dbList) == 0 {
 		return ""
@@ -633,69 +646,87 @@ func (e *Engine) checkFreelistCount(emit func(string)) string {
 	if len(hdr) < 40 {
 		return ""
 	}
-	trunk := binary.BigEndian.Uint32(hdr[32:36])
-	headerCount := int(binary.BigEndian.Uint32(hdr[36:40]))
-	if trunk == 0 && headerCount == 0 {
+	iPage := binary.BigEndian.Uint32(hdr[32:36])
+	headerCount := binary.BigEndian.Uint32(hdr[36:40])
+	if iPage == 0 && headerCount == 0 {
 		return ""
 	}
-	actual := 0
-	const maxIter = 100000
-	seen := make(map[uint32]bool)
-	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
-		if seen[trunk] {
-			return "database disk image is malformed"
+	numPages := ctx.Pager.NumPages()
+	// checkRef (btree.c:10633): out-of-range or duplicate page reference.
+	refCheck := func(pgno uint32) bool {
+		if pgno == 0 || pgno > numPages {
+			emit(fmt.Sprintf("Freelist: invalid page number %d", pgno))
+			return true
 		}
-		seen[trunk] = true
-		actual++
-		pg, err := ctx.Pager.ReadPage(trunk)
+		return false
+	}
+	consumed := uint32(0)
+	errored := false
+	used := make(map[uint32]bool)
+	for iter := 0; iPage != 0 && iter < 100000; iter++ {
+		if used[iPage] {
+			emit(fmt.Sprintf("Freelist: 2nd reference to page %d", iPage))
+			errored = true
+			break
+		}
+		if refCheck(iPage) {
+			errored = true
+			break
+		}
+		used[iPage] = true
+		consumed++
+		pg, err := ctx.Pager.ReadPage(iPage)
 		if err != nil {
-			return "database disk image is malformed"
-		}
-		coff := 0
-		if trunk == 1 {
-			coff = 100
+			emit(fmt.Sprintf("Freelist: failed to get page %d", iPage))
+			errored = true
+			break
 		}
 		data := pg.Data
-		if coff+4 > len(data) {
-			return "database disk image is malformed"
+		if len(data) < 8 {
+			emit(fmt.Sprintf("Freelist: failed to get page %d", iPage))
+			errored = true
+			break
 		}
-		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
 		// SQLite freelist trunk format (btree.c:10701):
 		//   offset 0-3: next trunk page number
 		//   offset 4-7: leaf count (4 bytes, not 2!)
 		//   offset 8+: leaf page numbers (4 bytes each)
-		leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
-		// Defensive guard: SQLite's back-compat margin caps a trunk at
-		// (usableSize/4) - 8 leaves. If we read a leafCount larger than
-		// that, the chain was written by an older or buggy version, or
-		// the on-disk bytes are corrupt. Bail out cleanly instead of
-		// panicking on `data[off:off+4]` below.
-		maxLeaves := uint32(ctx.Pager.PageSize()/4) - 8
-		if leafCount > maxLeaves {
-			return fmt.Sprintf("database disk image is malformed (trunk %d leafCount=%d exceeds maxLeaves=%d)", trunk, leafCount, maxLeaves)
-		}
-		for i := uint32(0); i < leafCount; i++ {
-			off := coff + 8 + int(i)*4
-			leaf := binary.BigEndian.Uint32(data[off : off+4])
-			if leaf == 0 {
-				// Zero slots can appear when a leaf was popped and
-				// the trunk's leaf array was not compacted (e.g. a
-				// chain-popped leaf that was later relocated). Skip
-				// the slot rather than breaking so trailing leaves
-				// (whose slot was filled after the pop) are still
-				// counted.
-				continue
+		nextTrunk := binary.BigEndian.Uint32(data[0:4])
+		leafCount := binary.BigEndian.Uint32(data[4:8])
+		// btree.c checkList: "freelist leaf count too big on page %u"
+		// when k > usableSize/4 - 2. usableSize == pageSize (no reserved
+		// bytes), matching maxTrunkLeaves + 2.
+		if leafCount > uint32(ctx.Pager.PageSize())/4-2 {
+			emit(fmt.Sprintf("Freelist: freelist leaf count too big on page %d", iPage))
+			errored = true
+		} else {
+			for i := uint32(0); i < leafCount; i++ {
+				off := 8 + i*4
+				if int(off)+4 > len(data) {
+					break
+				}
+				leaf := binary.BigEndian.Uint32(data[off : off+4])
+				// checkRef per leaf: a zero slot or an out-of-range
+				// leaf is "invalid page number N" (C does not skip
+				// zero slots); a revisited leaf is "2nd reference".
+				// Neither breaks the leaf loop.
+				if used[leaf] && leaf != 0 && leaf <= numPages {
+					emit(fmt.Sprintf("Freelist: 2nd reference to page %d", leaf))
+					errored = true
+					continue
+				}
+				if refCheck(leaf) {
+					errored = true
+					continue
+				}
+				used[leaf] = true
+				consumed++
 			}
-			if seen[leaf] {
-				return fmt.Sprintf("database disk image is malformed (cycle at leaf=%d trunk=%d)", leaf, trunk)
-			}
-			seen[leaf] = true
-			actual++
 		}
-		trunk = nextTrunk
+		iPage = nextTrunk
 	}
-	if actual != headerCount {
-		return fmt.Sprintf("*** in database main ***\nFreelist: size is %d but should be %d", actual, headerCount)
+	if consumed != headerCount && !errored {
+		return fmt.Sprintf("*** in database main ***\nFreelist: size is %d but should be %d", consumed, headerCount)
 	}
 	return ""
 }
