@@ -4845,3 +4845,99 @@ Final testgen status (after this session's T6 work):
   { return 0, nil }` (C's btree.c autoVacuumCommit bails with rc!=OK on
   the same input, the engine should not panic with a 4-billion nFin).
 
+---
+
+## P8.INCRVACUUM.S6 session (2026-09-04) — pager cleanup + IncrVacuumStep nFin threading
+
+**Live state of the 5 packages after S6:**
+- autovacuum: PASS (3.5s) — `nFree<nOrig` uint32 wrap fixed by S6
+  persisting `LargestBTreePage=1` in the on-disk header when
+  `SetAutoVacuum(true)` runs on an empty file, so the file reports
+  `auto_vacuum=1` and the drain enters the FREELIST/LE branch.
+- autovacuum2: PASS (0.5s) — held.
+- incrvacuum: PASS (1.7s) — 5.2.5 infinite-loop fixed.
+- incrvacuum2: FAIL (timeout) — pre-existing WAL/overflow bugs.
+- incrvacuum3: PASS (0.5s) — held.
+
+**Findings (validated against `/usr/bin/sqlite3` and the C source):**
+- `incrVacuumStep` btree.c:4017 wraps the work in
+  `if (!PTRMAP_ISPAGE(pBt, iLastPg) && iLastPg != PENDING_BYTE_PAGE(pBt))`.
+  The Go engine's bCommit=0 path was doing `continue` (re-check the
+  same lastPg) instead of letting the post-block do-while (btree.c:4098
+  `do { iLastPg--; } while (PTRMAP_ISPAGE || iLastPg==PENDING_BYTE)`)
+  decrement past the skip page. With a 1024-byte page size, page 2 is
+  a ptrmap page covering page 1; after 4 successful truncates from
+  numPages=6 to numPages=2, the next call hit the ptrmap-page branch
+  with `lastPg=2`, the `continue` re-checked lastPg=2 again, and the
+  IncrementalVacuum loop never broke (visible as
+  `DBG_TRUNC: IncrVacuumStep RETURN steps=1 numPages=2` repeating
+  forever). Fix: replace the `continue` with a `vacuumSkipPages(n)`-
+  based truncate to a post-skip page (e.g. for lastPg=2, newLastPg=1,
+  so the file ends at 1 page and the caller's `iLastPg <= nFin`
+  guard fires).
+- btree.c:3537 `put4byte(&data[36+4*4], pBt->autoVacuum)` in
+  `newDatabase` writes the auto-vacuum flag at header[52:56] (the
+  `LargestBTreePage` slot) when initializing a fresh DB. The Go
+  engine's `schema.Init` built the default header without this field
+  set, so a fresh DB created with `PRAGMA auto_vacuum=1` lost the
+  flag on close/reopen (`incrvacuum-12.4` expected 1, got 0). Fix:
+  `schema.Init` sets `dh.LargestBTreePage = 1` when the pager's
+  `autoVacuum` flag is on, and `pager.SetAutoVacuum(true)` writes
+  `header[52:56] = 1` + `header[64:68] = 0` to the in-memory header
+  (page 1 marked dirty) so the commit flushes the change.
+- The pre-T6 `pragma_state.go` had a similar fix using
+  `updateDBHeaderField`, but the code was reverted (presumably as
+  part of the T6 pager revert `3b2d74ef` to free the freelist.go
+  rewrite). The S6 fix in pager.go + schema.go reproduces the same
+  on-disk state without depending on the higher-level
+  `updateDBHeaderField` plumbing (which has its own callers and
+  cross-cutting concerns to audit).
+- btree.c freePage2 zeroes a leaf slot when the leaf is consumed by
+  `allocateBtreePage` (src/btree.c:6850). The Go engine's
+  `writeFreelistTrunkLocked` only wrote the first `len(t.leaves)`
+  slots and left the rest of the page buffer unchanged, so a popped
+  leaf's number survived in the page bytes and confused
+  `integrity_check` (`Tree 4 page N cell 0: invalid page number
+  808464432` — `0x30303030` is ASCII "0000", a partial decimal
+  representation of a stale leaf number). Fix: zero the slots past
+  `len(t.leaves)` up to the page capacity.
+
+**Verified against oracle:** ran `/usr/bin/sqlite3 test.db "SELECT
+* FROM sqlite_master; PRAGMA auto_vacuum;"` on a fresh DB after
+`PRAGMA auto_vacuum=1; CLOSE; OPEN; PRAGMA auto_vacuum` and got
+`1` (matches the S6 engine's behavior). For incrvacuum 5.2.5 the
+oracle passes; the S6 engine passes.
+
+**What did NOT change (anti-drift):**
+- The pre-S6 `MaxLocalPayload = pageSize-35` reversion in
+  `internal/storage/storage.go` is preserved; the C formula switch
+  is still deferred (the overflow handling for cells > 231 bytes is
+  still the pre-existing engine bug).
+- The 3 incrvacuum2 bugs (4.1 overflow-page chain, 4.2.1 WAL
+  checkpoint corruption, 4.3 WAL+checkpoint+vacuum loop) are
+  out of S6 scope and remain in the residual-risk register.
+- All `DBG_*` debug prints added during S6 are removed (the
+  pre-commit hook would have caught them anyway; verified clean
+  with `grep -rn 'fmt\.Fprintf(os\.Stderr' --include='*.go'`).
+
+**Reusable test infra landed:**
+- `internal/pager/pager_test.go` (5 chain behavior tests):
+  TestChainTrunkPopAdvancesHeader, TestChainLeafPopDecrements,
+  TestChainFreeAllocFreeIdempotent, TestChain300PageMultiTrunk,
+  TestChainAllocatePageLEPrefersLowPage. All pass; the
+  300-page test exercises the multi-trunk cap invariant
+  (`leafCount <= maxTrunkLeaves = pageSize/4 - 8`, no cycles in
+  the chain walk, `trunk+leaf = header.count`).
+
+**Source reference:**
+- `src/btree.c:4010-4104` — incrVacuumStep (the function we
+  rewrote).
+- `src/btree.c:3506-3543` — newDatabase (the schema-init header
+  writes that we mirror in `schema.Init`).
+- `src/btree.c:6840-6860` — freePage2 (the leaf-slot zeroing
+  that we mirror in `writeFreelistTrunkLocked`).
+- `src/btree.c:3198-3216` — sqlite3BtreeSetAutoVacuum (the
+  in-memory flag that we mirror in `pager.SetAutoVacuum`).
+- `src/wal.c` — the WAL machinery that the residual incrvacuum2
+  4.2.1/4.3 bugs depend on (out of S6 scope).
+

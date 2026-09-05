@@ -126,6 +126,17 @@ func (m *Manager) Init() error {
 	// Ensure database header is set
 	if m.pager.Header() == nil {
 		dh := storage.DefaultHeader(m.pager.PageSize())
+		// S6 P8.INCRVACUUM: when auto-vacuum is enabled, the schema
+		// btree at page 1 is the largest root page. SQLite's
+		// btree.c::newDatabase line 3537 writes 1 to header[52:56] in
+		// this case; without it, a fresh DB created with
+		// `PRAGMA auto_vacuum=1` loses the auto-vacuum flag on
+		// reopen (incrvacuum-12.4 expected 1, got 0). Mirror that
+		// here so the in-memory default header has the right value
+		// before page 1 is allocated and the header is written.
+		if m.pager.AutoVacuum() {
+			dh.LargestBTreePage = 1
+		}
 		m.pager.SetHeader(dh.Encode())
 	}
 

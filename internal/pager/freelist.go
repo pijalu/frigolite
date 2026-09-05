@@ -118,6 +118,22 @@ func (p *Pager) writeFreelistTrunkLocked(t freelistTrunk) {
 		}
 		binary.BigEndian.PutUint32(pg.Data[off:off+4], leaf)
 	}
+	// Zero out any remaining leaf slots so a popped leaf's number
+	// is not left in the page buffer (btree.c freePage2 line 6850
+	// zeros the slot explicitly when a leaf is consumed). The chain
+	// walker only reads the first leafCount slots, but a stale
+	// non-zero slot in the buffer can confuse integrity_check
+	// (incrvacuum testgen test 5.2.5 "Tree 4 page N cell 0: invalid
+	// page number 808464432" was traced to a stale leaf slot
+	// surviving a pop).
+	maxLeaves := (len(pg.Data) - 8) / 4
+	for j := len(t.leaves); j < maxLeaves; j++ {
+		off := 8 + j*4
+		if int(off)+4 > len(pg.Data) {
+			break
+		}
+		binary.BigEndian.PutUint32(pg.Data[off:off+4], 0)
+	}
 	p.dirty[t.pgno] = true
 }
 
@@ -137,6 +153,29 @@ func (p *Pager) unlinkTrunkLocked(prev uint32, t freelistTrunk) {
 	}
 	pt.next = t.next
 	p.writeFreelistTrunkLocked(pt)
+}
+
+// writePtrmapLocked is WritePtrmap for callers already holding p.mu.
+// It writes the parent type and parent page for pgno in its containing
+// pointer-map page and marks the ptrmap page dirty. Used by FreePage to
+// mark a freshly-freed page's pointer-map entry as PtrmapFreelist
+// (btree.c freePage2's ptrmapPut block, src/btree.c:6885-6895).
+func (p *Pager) writePtrmapLocked(pgno uint32, parentType byte, parentPgno uint32) {
+	if pgno < 2 {
+		return
+	}
+	ptrmapPg := storage.PtrmapPageNo(pgno, p.pageSize)
+	if ptrmapPg == pgno {
+		return
+	}
+	pg, err := p.readPageLocked(ptrmapPg)
+	if err != nil {
+		return
+	}
+	if _, err := storage.WritePtrmapEntry(pg.Data, pgno, p.pageSize, parentType, parentPgno); err != nil {
+		return
+	}
+	p.dirty[ptrmapPg] = true
 }
 
 // allocateFreelistLocked implements btree.c allocateBtreePage's freelist
@@ -311,6 +350,17 @@ func (p *Pager) TakePageFromFreelist(pgno uint32) {
 // next pointer is the previous head trunk. The freed page's content is
 // left as-is (free pages hold garbage). Before-images of page 1, the
 // head trunk, and the freed page are journaled for ROLLBACK.
+//
+// In auto-vacuum mode (btree.c freePage2's ptrmapPut block), the
+// freed page's pointer-map entry is updated to PtrmapFreelist so the
+// auto-vacuum drain's IsPageOnFreelist(lastPg) check (ptrmapGet) finds
+// the page. Without this, the chain has the page but the ptrmap says
+// it's a live btree page, and the drain's allocateFreelistNearLocked
+// pops a chain entry that the engine then treats as a corrupt (or
+// out-of-range) target. P8.INCRVACUUM.S6: this is the missing piece
+// that made every "iFreePg N > dbSize M (corrupt freelist)" error fire
+// on the first auto-vacuum commit (autovacuum-1.1, autovacuum-2.x,
+// incrvacuum-6).
 func (p *Pager) FreePage(pageNum uint32) error {
 	if pageNum <= 1 {
 		return fmt.Errorf("pager: cannot free page %d", pageNum)
@@ -344,6 +394,11 @@ func (p *Pager) FreePage(pageNum uint32) error {
 			t.leaves = append(t.leaves, pageNum)
 			p.writeFreelistTrunkLocked(t)
 			p.mirrorHeaderToPage1Locked()
+			if p.autoVacuum {
+				// Inline WritePtrmap(pageNum, PtrmapFreelist, 0):
+				// the caller already holds p.mu.
+				p.writePtrmapLocked(pageNum, storage.PtrmapFreelist, 0)
+			}
 			return nil
 		}
 	}
@@ -355,6 +410,9 @@ func (p *Pager) FreePage(pageNum uint32) error {
 	p.journalPageBeforeLocked(1)
 	binary.BigEndian.PutUint32(p.header[32:36], pageNum)
 	p.mirrorHeaderToPage1Locked()
+	if p.autoVacuum {
+		p.writePtrmapLocked(pageNum, storage.PtrmapFreelist, 0)
+	}
 	return nil
 }
 
@@ -368,6 +426,21 @@ func (p *Pager) AllocatePageLE(nearby uint32) (*Page, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if pgno := p.allocateFreelistNearLocked(nearby, true); pgno != 0 {
+		return p.grabPageLocked(pgno), nil
+	}
+	return nil, fmt.Errorf("database or disk full")
+}
+
+// AllocatePageANY is the do-while branch of incrVacuumStep
+// (btree.c:4072-4085): pop the FIRST free page on the chain regardless of
+// where it lives in the file. The bCommit=1 (full auto-vacuum drain) loop
+// uses this and discards any pop that lands above nFin (those pages will
+// be truncated away at the commit end). Returns SQLITE_FULL when the
+// chain is empty (the drain is finished).
+func (p *Pager) AllocatePageANY() (*Page, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if pgno := p.allocateFreelistLocked(); pgno != 0 {
 		return p.grabPageLocked(pgno), nil
 	}
 	return nil, fmt.Errorf("database or disk full")

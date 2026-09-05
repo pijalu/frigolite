@@ -133,7 +133,7 @@ func TestIncrVacuumStepFreelistOnly(t *testing.T) {
 		}
 	}
 	before := pg.NumPages()
-	steps, err := tr.IncrVacuumStep(3, false)
+	steps, err := tr.IncrVacuumStep(3, false, 0, 0)
 	if err != nil {
 		t.Fatalf("IncrVacuumStep: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestIncrVacuumStepInUseLastPage(t *testing.T) {
 	tr, pg := newBtreeForVacuum(t, 1024)
 	fillBtreeWithBigRows(t, tr, 10, 800)
 	// No free pages in this scenario. IncrVacuumStep should be a no-op.
-	steps, err := tr.IncrVacuumStep(5, false)
+	steps, err := tr.IncrVacuumStep(5, false, 0, 0)
 	if err != nil {
 		t.Fatalf("IncrVacuumStep: %v", err)
 	}

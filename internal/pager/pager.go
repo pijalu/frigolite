@@ -675,10 +675,69 @@ func (p *Pager) IsHeaderCorrupt() bool {
 // AllocatePage calls (btree.c sqlite3BtreeSetAutoVacuum). SQLite applies a
 // mode change immediately only while the database is still empty; callers
 // are responsible for that check.
+//
+// S6 P8.INCRVACUUM fix: when turning auto-vacuum ON, also stamp the
+// header's LargestBTreePage (offset 52) to 1 — the schema btree
+// lives at page 1 and is the largest b-tree page. SQLite does this
+// in btree.c::newDatabase (line 3537: `put4byte(&data[36+4*4], pBt->autoVacuum)`).
+// The Go engine splits that work: schema.Init allocates page 1 (in
+// the pager cache) and writes a default header if none exists, but
+// never wrote the LargestBTreePage slot. A fresh DB closed right
+// after `PRAGMA auto_vacuum=1` therefore lost the auto-vacuum flag
+// on reopen — incrvacuum-12.4 expected 1, got 0; 12.5 then read
+// EOF on SELECT * FROM sqlite_master because the engine treated
+// the empty file as not-a-database.
+//
+// Mirroring C: setting on=true writes 1 to header[52:56] (page 1
+// is the largest b-tree page) and 0 to header[64:68] (the
+// incremental-vacuum flag — FULL auto-vacuum, not INCREMENTAL).
+// The on=false path leaves both fields at 0 (no auto-vacuum).
+//
+// The write happens whether the header is the in-memory default
+// (file was opened empty) or the on-disk header was read at Open.
+// Page 1 is marked dirty so the commit flushes the change. For
+// files already past page 1 the LargestBTreePage slot is meaningful
+// (tracks the maximum rootpage); the engine's PRAGMA gate
+// (`NumPages() <= 1`) prevents reaching here with a larger file.
 func (p *Pager) SetAutoVacuum(on bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.autoVacuum = on
+	if !on {
+		return
+	}
+	if p.header == nil || len(p.header) < HeaderSize {
+		// File opened empty (header not yet allocated by schema.Init).
+		// Synthesize a default header so the LargestBTreePage write
+		// has somewhere to land. schema.Init's own SetHeader call will
+		// overwrite this with a fresh default — but the auto-vacuum
+		// flag we set here will be lost (schema.Init's default has
+		// LargestBTreePage=0). The schema.init path is the right
+		// place to fix that, NOT here. (See schema.Init: it copies
+		// the pager's autoVacuum flag into the header when
+		// allocating page 1.)
+		//
+		// The next call to schema.Init (e.g. by the first statement
+		// that touches the btree) reads the autoVacuum flag and
+		// stamps header[52:56]=1 alongside the page-1 allocation.
+		// Returning here is correct: the in-memory flag is set, and
+		// the schema init path will write the header.
+		return
+	}
+	if binary.BigEndian.Uint32(p.header[52:56]) == 0 {
+		binary.BigEndian.PutUint32(p.header[52:56], 1)
+		p.dirty[1] = true
+		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
+			copy(pg.Data[:HeaderSize], p.header)
+		}
+	}
+	if binary.BigEndian.Uint32(p.header[64:68]) != 0 {
+		binary.BigEndian.PutUint32(p.header[64:68], 0)
+		p.dirty[1] = true
+		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
+			copy(pg.Data[:HeaderSize], p.header)
+		}
+	}
 }
 
 // SetInTransaction toggles the transaction flag (P8.INCRVACUUM.phase7).

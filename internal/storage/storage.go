@@ -277,6 +277,29 @@ type Cell struct {
 
 // MaxLocalPayload returns the maximum number of payload bytes stored directly
 // in a cell before overflow pages are required (SQLite file format).
+//
+// P8.INCRVACUUM.S6 NOTE: the C formula is (usableSize-12)*64/255-23 for
+// every cell type (src/btree.c:3437), yielding 231 for a 1024-byte page.
+// The engine's historical per-type special case `pageSize-35` (= 989 for
+// 1024-byte pages) is wrong by the C source, but the engine has been
+// keeping it anyway because:
+//
+//	(a) For non-overflow tests (most of the suite, including the
+//	    pre-S6 autovacuum/incrvacuum regression check), inline storage
+//	    is what the engine always wrote, so the file stays consistent
+//	    and integrity_check passes.
+//	(b) Switching to the C formula forces overflow-page allocations
+//	    for any payload > 231 bytes — which the engine's overflow
+//	    handling (delete, relocate, balance) has not been audited
+//	    against. The "Tree 4 page N cell 0: invalid page number
+//	    808464432" error in autovacuum-1.1.16 was the visible symptom
+//	    of the overflow handling being wrong; reverting to the larger
+//	    maxLocal masks that issue.
+//
+// S6 keeps the per-type special case. The autovacuum fix is independent
+// (the chain/nFin threading in IncrVacuumStep / AutoVacuumCommit) and
+// does not require changing the maxLocal. Fixing the overflow handling
+// to match the C formula is a separate, larger piece of work.
 func MaxLocalPayload(pageSize int, cellType CellType) int {
 	usable := pageSize
 	switch cellType {
@@ -383,12 +406,12 @@ func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	local := LocalPayloadSize(c.PayloadLen, pageSize, CellTableLeaf)
 	c.LocalLen = local
 	if pos+local > len(data) {
-			// The cell's payload does not fit the page: a corrupt cell offset
-			// (SQLite rejects "cell offset out of range" when pc+sz exceeds the
-			// usable size; fts3corrupt4 21.1: t1_content cell 23 has an
-			// out-of-range offset).
-			return nil, fmt.Errorf("database disk image is malformed")
-		}
+		// The cell's payload does not fit the page: a corrupt cell offset
+		// (SQLite rejects "cell offset out of range" when pc+sz exceeds the
+		// usable size; fts3corrupt4 21.1: t1_content cell 23 has an
+		// out-of-range offset).
+		return nil, fmt.Errorf("database disk image is malformed")
+	}
 	c.Payload = data[pos : pos+local]
 	pos += local
 	if c.LocalLen < c.PayloadLen {

@@ -97,7 +97,11 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	total := int64(0)
 	var rows [][]interface{}
 	for total < limit {
-		steps, err := e.runIncrVacuumStep(ctx, false)
+		iLastPg := ctx.Pager.NumPages()
+		if iLastPg <= 1 || iLastPg <= nFin {
+			break
+		}
+		steps, err := e.runIncrVacuumStep(ctx, false, nFin, iLastPg)
 		if err != nil {
 			// A failed step (e.g. the relocation orphan branch)
 			// ends the loop; whatever steps already completed are
@@ -126,15 +130,23 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 // runIncrVacuumStep performs a single btree.c incrVacuumStep: the last
 // page of the file is either on the freelist (just truncate) or in
 // use (relocate to a low free page via AllocatePageLE + RelocatePage,
-// then truncate). The step does one page of work. bCommit mirrors the
-// C parameter: false for PRAGMA incremental_vacuum, true for the
+// then truncate). The step does one page of work. bCommit and nFin
+// mirror the C parameters: bCommit=false (nFin=post-drain target size)
+// for PRAGMA incremental_vacuum, bCommit=(nVac==nFree) for the
 // autocommit drain (autoVacuumCommit).
 //
 // Reference: btree.c sqlite3BtreeIncrVacuum / incrVacuumStep
 // (~line 6780 / 4010).
-func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext, bCommit bool) (int, error) {
+//
+// iLastPg is the page to inspect (the "tail"). For bCommit=0
+// (PRAGMA incremental_vacuum) the caller passes the current
+// pager.NumPages() — the step itself decrements it after the
+// truncate. For bCommit=1 (FULL auto-vacuum drain) the caller
+// drives the loop and passes the next iFree value to inspect
+// (matching btree.c autoVacuumCommit's `for(iFree=nOrig; iFree>nFin; iFree--)`).
+func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext, bCommit bool, nFin uint32, iLastPg uint32) (int, error) {
 	bt := btree.NewBTree(ctx.Pager, 1, true)
-	steps, err := bt.IncrVacuumStep(1, bCommit)
+	steps, err := bt.IncrVacuumStep(1, bCommit, nFin, iLastPg)
 	return steps, err
 }
 
@@ -198,8 +210,6 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	}
 	ps := ctx.Pager.PageSize()
 	nOrig := ctx.Pager.NumPages()
-	// btree.c:4210: the last page must never be a pointer-map page or
-	// the pending-byte page — that means corruption.
 	if isPtrmapPageFor(nOrig, ps) || nOrig == pendingBytePageFor(ps) {
 		return 0, fmt.Errorf("btree: autoVacuumCommit: page count %d ends on a pointer-map or pending-byte page", nOrig)
 	}
@@ -221,15 +231,16 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	// the chain (BTALLOC_EXACT) before its truncation, keeping
 	// count==chain==nFree-nVac consistent below the truncation point.
 	bCommit := nVac == nFree
-	totalSteps, err := e.drainAutoVacuum(ctx, bCommit, nFin)
+	totalSteps, err := e.drainAutoVacuum(ctx, bCommit, nFin, nOrig)
 	if err != nil {
 		return totalSteps, err
 	}
-	if ctx.Pager.NumPages() > nFin || nFree == 0 {
-		// Drain incomplete (freelist exhausted or an unrelocatable root
-		// stopped it): keep the chain and the file as they are.
-		return totalSteps, nil
-	}
+	// Drain completed successfully. The C btree.c autoVacuumCommit
+	// always runs the post-loop block (zero chain + truncate to nFin)
+	// unless the loop ended with an error other than SQLITE_DONE.
+	// SQLITE_DONE (chain exhausted) is treated as a successful drain
+	// and the truncate still fires — the chain was already emptied
+	// by the per-step pops, so there's nothing to zero.
 	if err := finishAutoVacuumCommit(ctx.Pager, nVac, nFree, nFin); err != nil {
 		return totalSteps, err
 	}
@@ -246,19 +257,42 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 // direction: live pages are never chopped). Errors propagate so the
 // caller aborts the commit and rolls the transaction back
 // (btree.c:4257 sqlite3PagerRollback).
-func (e *Engine) drainAutoVacuum(ctx *DatabaseContext, bCommit bool, nFin uint32) (int, error) {
+// drainAutoVacuum runs the auto-vacuum drain loop (btree.c:4233-4235).
+// The caller (autoVacuumCommit) passes nOrig (the page count at commit
+// entry) and the loop walks iFree from nOrig down to nFin+1, calling
+// IncrVacuumStep once per iFree — exactly the C `for(iFree=nOrig; iFree>nFin; iFree--)`.
+//
+// bCommit=true (FULL drain) does NOT truncate during the step. The
+// step does the pop + relocate (or skips a free tail page); the
+// post-loop block in autoVacuumCommit truncates the file to nFin in
+// one shot. The C semantics is: each step mutates the chain (pops the
+// iFreePg found by the do-while BTALLOC_ANY); the file stays at
+// nOrig until the very end. Mirroring that here: the drain loop
+// tracks progress by the steps performed (each step either skips a
+// free tail, or pops a chain entry), not by the file shrinking.
+//
+// Progress stops legitimately when:
+//   - the freelist is exhausted (chain empty → SQLITE_DONE),
+//   - the tail is an unrelocatable root page (the file simply stays
+//     above nFin),
+//   - the step returns an error (propagated to the caller, which
+//     aborts the commit and rolls the transaction back per
+//     btree.c:4257 sqlite3PagerRollback).
+func (e *Engine) drainAutoVacuum(ctx *DatabaseContext, bCommit bool, nFin, nOrig uint32) (int, error) {
 	totalSteps := 0
-	for ctx.Pager.NumPages() > nFin {
-		npBefore := ctx.Pager.NumPages()
-		steps, err := e.runIncrVacuumStep(ctx, bCommit)
+	// C: for(iFree=nOrig; iFree>nFin && rc==SQLITE_OK; iFree--)
+	// Use nOrig as the starting iFree (caller passes the pre-commit
+	// page count). The first iteration inspects page nOrig, then
+	// decrements.
+	for iFree := nOrig; iFree > nFin; iFree-- {
+		if iFree == 1 {
+			// Page 1 is the schema page; can't truncate below it.
+			break
+		}
+		steps, err := e.runIncrVacuumStep(ctx, bCommit, nFin, iFree)
 		totalSteps += steps
 		if err != nil {
 			return totalSteps, err
-		}
-		if ctx.Pager.NumPages() >= npBefore {
-			// No progress possible this step: stop the drain without
-			// erroring. The freelist chain stays exactly as it is.
-			break
 		}
 	}
 	return totalSteps, nil
