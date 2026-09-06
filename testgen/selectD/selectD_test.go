@@ -16,6 +16,7 @@ import (
 
 func Test_selectD(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test$i.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -66,7 +67,6 @@ func Test_selectD(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2 }() {
 		db.Close()
-		os.Remove("test" + i + ".db")
 		db, err = frigolite.Open("test" + i + ".db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

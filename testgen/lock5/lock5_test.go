@@ -15,6 +15,7 @@ import (
 
 func Test_lock5(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db.lock")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -92,7 +93,6 @@ func Test_lock5(t *testing.T) {
 		return
 	}
 	db.Close()
-	os.Remove("test.db.lock")
 	{ // do_test "lock5-dotfile.1"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)

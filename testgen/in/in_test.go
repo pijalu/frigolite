@@ -198,7 +198,7 @@ func Test_in(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)

@@ -15,6 +15,7 @@ import (
 
 func Test_unionvtab(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db2")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +87,6 @@ func Test_unionvtab(t *testing.T) {
 	testprefix = "unionvtab"
 	_ = testprefix // suppress unused warning
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
-	os.Remove("test.db2")
 	{ // "1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
 		if _res.Error != nil {

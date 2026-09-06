@@ -15,6 +15,9 @@ import (
 
 func Test_avfs(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("$::fa")
+	_ = os.Remove("$::fza")
+	_ = os.Remove("$shdo")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -161,7 +164,6 @@ func Test_avfs(t *testing.T) {
 	vtab.TclVarSet("fza", "", "avfs.sdb")
 	fza = "avfs.sdb" // TCL namespace variable
 	_ = fza // suppress unused warning
-	os.Remove(fa)
 	vtab.TclVarSet("result", "", "")
 	result = "" // TCL namespace variable
 	_ = result // suppress unused warning

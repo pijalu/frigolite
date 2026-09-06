@@ -373,7 +373,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -395,7 +395,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -417,7 +417,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -439,7 +439,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -566,7 +566,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -588,7 +588,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -684,7 +684,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -784,7 +784,7 @@ func Test_trans(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				_r = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		_r = tclListAppend(_r, msg)

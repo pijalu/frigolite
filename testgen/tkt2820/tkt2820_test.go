@@ -13,6 +13,8 @@ import (
 
 func Test_tkt2820(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -76,7 +78,6 @@ func Test_tkt2820(t *testing.T) {
 	// test_schema_change 3 {\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a...} {\n  DROP INDEX i1\n} ... (unsupported command, not transpiled)
 	{ // do_test "tkt2820-4.1"
 		db.Close()
-		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

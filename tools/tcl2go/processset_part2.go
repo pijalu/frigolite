@@ -1150,6 +1150,18 @@ func singleDbEvalSelectRows(body string) bool {
 	return strings.HasPrefix(sql, "SELECT") || strings.HasPrefix(sql, "WITH") || strings.HasPrefix(sql, "VALUES")
 }
 
+// bodyEndsWithExecsqlSelect reports whether the catch body is exactly one
+// `execsql {SELECT ...}` statement: its row values are the TCL result the
+// `catch` stores in the message var on success (quote-1.3.4: msg = "hello 10").
+func bodyEndsWithExecsqlSelect(body string) bool {
+	cmds := parseCommands(body)
+	if len(cmds) != 1 || len(cmds[0]) < 2 || cmds[0][0].Text != "execsql" {
+		return false
+	}
+	sql := strings.ToUpper(strings.TrimSpace(cmds[0][1].Text))
+	return strings.HasPrefix(sql, "SELECT") || strings.HasPrefix(sql, "WITH") || strings.HasPrefix(sql, "VALUES")
+}
+
 // scope, assigning the TCL result code (1/0) to varName and the error message
 // to errVar.
 func (tp *transpiler) emitCatchBlock(varName, errVar, bodyStr string) {
@@ -1204,9 +1216,13 @@ func (tp *transpiler) emitCatchBlock(varName, errVar, bodyStr string) {
 	// TCL `catch {db eval {SELECT...}} msg` assigns the query RESULT (the
 	// flattened row values) to msg on success (tclsqlite.c: the command
 	// result is the row list). When the body is exactly one db-eval SELECT,
-	// bind errVar from the captured rows (lock.test 1.21/1.22).
+	// bind errVar from the captured rows (lock.test 1.21/1.22); the
+	// `execsql {SELECT ...}` form routes through the standard query var r
+	// (quote-1.3.4).
 	if singleDbEvalSelectRows(bodyStr) {
 		tp.emitLine("%s = tclRowValuesFlat(_res)", errVar)
+	} else if bodyEndsWithExecsqlSelect(bodyStr) {
+		tp.emitLine("%s = tclRowValuesFlat(r)", errVar)
 	} else {
 		tp.emitLine("%s = \"\"", errVar)
 	}

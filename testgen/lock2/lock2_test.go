@@ -125,7 +125,7 @@ func Test_lock2(t *testing.T) {
 				if _catchErr != nil {
 					msg = _catchErr.Error()
 				} else {
-					msg = ""
+					msg = tclCatchStmtResult(_r)
 				}
 			}
 			_ = db
@@ -168,7 +168,7 @@ func Test_lock2(t *testing.T) {
 				if _catchErr != nil {
 					msg = _catchErr.Error()
 				} else {
-					msg = ""
+					msg = tclCatchStmtResult(_r)
 				}
 			}
 			_ = db

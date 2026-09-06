@@ -13,6 +13,8 @@ import (
 
 func Test_openv2(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +63,6 @@ func Test_openv2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	db.Close()
-	os.Remove("test.db")
 	{ // "openv2-1.1" (prepare-step internals; SQL side effects only)
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning

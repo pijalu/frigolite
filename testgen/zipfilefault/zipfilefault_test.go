@@ -13,6 +13,11 @@ import (
 
 func Test_zipfilefault(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.zip")
+	_ = os.Remove("test.zip")
+	_ = os.Remove("test.zip")
+	_ = os.Remove("test.zip")
+	_ = os.Remove("test.zip")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -89,7 +94,6 @@ func Test_zipfilefault(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execs... (unsupported command, not transpiled)
-	os.Remove("test.zip")
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }

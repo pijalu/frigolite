@@ -161,7 +161,7 @@ func Test_memdb1(t *testing.T) {
 			if _catchErr != nil {
 				msg = _catchErr.Error()
 			} else {
-				msg = ""
+				msg = tclCatchStmtResult(_r)
 			}
 		}
 		got := tclListFlatten(msg)

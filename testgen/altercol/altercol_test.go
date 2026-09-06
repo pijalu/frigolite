@@ -15,6 +15,7 @@ import (
 
 func Test_altercol(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db2")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -967,7 +968,6 @@ func Test_altercol(t *testing.T) {
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					os.Remove("test.db2")
 					{ // "18.0"
 						r = db.Query("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a);\n  CREATE TABLE aux.log(v);\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log VALUES(new.a);\n  END;\n  INSERT INTO t1 VALUES(111);\n  SELECT v FROM log;\n")
 						if r.Error != nil {

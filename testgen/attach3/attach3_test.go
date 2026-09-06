@@ -13,6 +13,8 @@ import (
 
 func Test_attach3(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test2.db")
+	_ = os.Remove("test2.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -74,8 +76,6 @@ func Test_attach3(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
 	}
-	os.Remove("test2.db")
-	os.Remove("test2.db-journal")
 	db2, err = frigolite.Open("test2.db")
 	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }

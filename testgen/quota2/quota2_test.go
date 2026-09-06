@@ -15,6 +15,7 @@ import (
 
 func Test_quota2(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("$dir")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -92,7 +93,6 @@ func Test_quota2(t *testing.T) {
 	_r = tclQuotaInitialize("", 1)
 	for _, dir := range tclSplitList("quota2a/x1 quota2a/x2 quota2a quota2b quota2c") {
 	_ = dir // suppress unused warning
-		os.Remove(dir)
 	}
 	for _, dir := range tclSplitList("quota2a quota2a/x1 quota2a/x2 quota2b quota2c") {
 	_ = dir // suppress unused warning

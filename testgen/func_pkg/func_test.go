@@ -165,7 +165,7 @@ func Test_func(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				_r = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		_r = tclListAppend(_r, msg)
@@ -187,7 +187,7 @@ func Test_func(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				_r = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		_r = tclListAppend(_r, msg)

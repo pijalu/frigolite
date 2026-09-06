@@ -13,6 +13,8 @@ import (
 
 func Test_sqldiff1(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test2.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -65,7 +67,6 @@ func Test_sqldiff1(t *testing.T) {
 	PROG = "test_find_sqldiff"
 	_ = PROG // suppress unused warning
 	db.Close()
-	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

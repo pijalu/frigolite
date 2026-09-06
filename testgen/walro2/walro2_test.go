@@ -14,6 +14,8 @@ import (
 
 func Test_walro2(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db2-shm")
+	_ = os.Remove("test.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)

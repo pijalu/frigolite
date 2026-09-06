@@ -15,6 +15,8 @@ import (
 
 func Test_filefmt(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -72,7 +74,6 @@ func Test_filefmt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
 	db.Close()
-	os.Remove("test.db")
 	{ // do_test "filefmt-1.1"
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)

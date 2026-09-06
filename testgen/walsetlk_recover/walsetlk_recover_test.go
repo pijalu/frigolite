@@ -127,7 +127,7 @@ func Test_walsetlk_recover(t *testing.T) {
 		if _catchErr != nil {
 			msg = _catchErr.Error()
 		} else {
-			msg = ""
+			msg = tclCatchStmtResult(_r)
 		}
 	}
 	tm = "0"

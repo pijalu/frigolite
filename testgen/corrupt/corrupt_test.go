@@ -15,6 +15,9 @@ import (
 
 func Test_corrupt(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db-journal")
+	_ = os.Remove("test.bu")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -99,7 +102,6 @@ func Test_corrupt(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		_r = ""
-		os.Remove("test.db")
 	}
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)

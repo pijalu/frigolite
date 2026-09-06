@@ -14,6 +14,8 @@ import (
 
 func Test_createtab(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -75,7 +77,6 @@ func Test_createtab(t *testing.T) {
 	_ = av // suppress unused warning
 	for func() bool { av_n, _av_e := strconv.Atoi(av); if _av_e != nil { return false }; upperBound_n, _upperBound_e := strconv.Atoi(upperBound); if _upperBound_e != nil { return false }; return av_n <= upperBound_n }() {
 		db.Close()
-		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }

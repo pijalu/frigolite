@@ -13,6 +13,9 @@ import (
 
 func Test_swarmvtabfault(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("$file")
+	_ = os.Remove("test.db1")
+	_ = os.Remove("test.db2")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -70,8 +73,6 @@ func Test_swarmvtabfault(t *testing.T) {
 	testprefix = "swarmvtabfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	os.Remove("test.db1")
-	os.Remove("test.db2")
 	{ // "1.0"
 		_res = db.Exec("\n  ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n")
 		if _res.Error != nil {

@@ -14,6 +14,9 @@ import (
 
 func Test_notify3(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db2")
+	_ = os.Remove("test.db2-journal")
+	_ = os.Remove("test.db2-wal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -93,7 +96,6 @@ func Test_notify3(t *testing.T) {
 	if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 	_ = err
 	db.ResetChangesCounters()
-	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
 	tclConnRegister("db2", db2)
 	if err != nil { t.Fatal(err) }
@@ -149,7 +151,7 @@ func Test_notify3(t *testing.T) {
 			if _catchErr != nil {
 				msg = _catchErr.Error()
 			} else {
-				msg = ""
+				msg = tclCatchStmtResult(_r)
 			}
 		}
 		got := tclListFlattenCollapse(msg)

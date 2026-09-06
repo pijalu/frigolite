@@ -14,6 +14,8 @@ import (
 
 func Test_e_dropview(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db2")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -84,7 +86,6 @@ func Test_e_dropview(t *testing.T) {
 	// proc definition (not transpiled)
 	// do_dropview_tests 1 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n} {\n  1   "... (unsupported command, not transpiled)
 	db.Close()
-	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

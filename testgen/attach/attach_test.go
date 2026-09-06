@@ -15,6 +15,8 @@ import (
 
 func Test_attach(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test$i.db")
+	_ = os.Remove("test$i.db-journal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -80,8 +82,6 @@ func Test_attach(t *testing.T) {
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
-		os.Remove("test" + i + ".db")
-		os.Remove("test" + i + ".db-journal")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

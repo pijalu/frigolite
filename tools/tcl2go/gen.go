@@ -65,6 +65,18 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 		return outFile, []byte(buildSkippedTestFile(pkg, base, reason))
 	}
 
+	// Leading `forcedelete test.db ...` commands (before the first do_test /
+	// explicit sqlite3 open) belong BEFORE the preamble Open: the TCL harness
+	// opens the connection when tester.tcl is sourced, after those deletes.
+	// Emit them pre-Open and consume them (genPreDeleted) so the original
+	// site does not delete the freshly opened file a second time
+	// (corrupt.test 1.1 wrote into a file deleted behind the open handle).
+	genPreDeleted = map[string]bool{}
+	genPreDeletedList = sourceLeadingDeletes(src)
+	for _, p := range genPreDeletedList {
+		genPreDeleted[p] = true
+	}
+
 	// Parse TCL into commands
 	cmds := parseCommands(src)
 
@@ -330,6 +342,9 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	// data (matching `db close; sqlite3 db test.db`), while connection state
 	// (collations, user functions) is NOT preserved across reopen.
 	body.WriteString("\tif err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }\n")
+	for _, p := range genPreDeletedList {
+		body.WriteString(fmt.Sprintf("\t_ = os.Remove(%q)\n", p))
+	}
 	body.WriteString("\tdb, err := frigolite.Open(\"test.db\")\n")
 	body.WriteString("\tif err != nil {\n")
 	body.WriteString("\t\tt.Fatal(err)\n")
@@ -832,3 +847,39 @@ func knownGlobalVars() map[string]bool {
 // collectSqlite3Targets recursively walks TCL commands and returns a set of
 // variable names that are targets of sqlite3 commands (these are *frigolite.DB,
 // not string, so must NOT be pre-declared as string).
+
+
+// genPreDeleted holds the paths of leading forcedelete/file-delete commands
+// already emitted before the preamble Open for the file being generated
+// (single-threaded generation; reset per file in generateTestFile).
+var genPreDeleted map[string]bool
+var genPreDeletedList []string
+
+// sourceLeadingDeletes scans the source region before the first do_test /
+// sqlite3 open for forcedelete / file delete / delete_file commands and
+// returns their literal path arguments.
+func sourceLeadingDeletes(src string) []string {
+	head := src
+	if i := strings.Index(src, "\ndo_test "); i >= 0 {
+		head = src[:i]
+	}
+	var paths []string
+	for _, line := range strings.Split(head, "\n") {
+		t := strings.TrimSpace(line)
+		t = strings.TrimPrefix(t, "catch {")
+		for _, kw := range []string{"forcedelete ", "delete_file ", "file delete "} {
+			if strings.HasPrefix(t, kw) {
+				t = strings.TrimPrefix(t, kw)
+				for _, f := range strings.Fields(strings.TrimSuffix(t, "}")) {
+					f = strings.Trim(f, "{}")
+					if f == "" || f == "-force" || f == "--" {
+						continue
+					}
+					paths = append(paths, f)
+				}
+				break
+			}
+		}
+	}
+	return paths
+}

@@ -16,6 +16,7 @@ import (
 
 func Test_quota(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("bak.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -93,7 +94,6 @@ func Test_quota(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	os.Remove("bak.db")
 	defaultVfs = "file_control_vfsname db"
 	_ = defaultVfs // suppress unused warning
 	db.Close()

@@ -17,6 +17,17 @@ import (
 
 func Test_zipfile(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test_unzip")
+	_ = os.Remove("test.zip")
+	_ = os.Remove("test.zip")
+	_ = os.Remove("dirname")
+	_ = os.Remove("dirname2")
+	_ = os.Remove("test.zip")
+	_ = os.Remove("test1.zip")
+	_ = os.Remove("test2.zip")
+	_ = os.Remove("test_unzip")
+	_ = os.Remove("test_unzip")
+	_ = os.Remove("test.zip")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -172,7 +183,6 @@ func Test_zipfile(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	os.Remove("test.zip")
 	{ // "1.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE temp.zz USING zipfile('test.zip');\n  PRAGMA table_info(zz);\n")
 		if r.Error != nil {
@@ -516,8 +526,6 @@ func Test_zipfile(t *testing.T) {
 	// do_zip_tests 2.4a test.zip (unsupported command, not transpiled)
 	if tclBool(tclBool01(vtab.TclVarExists("UNZIP", ""))) {
 		{ // do_test "2.5.1"
-			os.Remove("dirname")
-			os.Remove("dirname2")
 			if tcl_platform_platform == "unix" {
 				vtab.TclVarSet("null", "", "/dev/null")
 				null = "/dev/null"
@@ -697,13 +705,11 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			if tclBool(tclBool01(vtab.TclVarExists("UNZIP", ""))) {
-				os.Remove("test1.zip")
 				{ // do_test "6.0"
 					r = db.Query("\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
 					}
-					os.Remove("test_unzip")
 					os.MkdirAll("test_unzip", 0755)
 					// exec $::UNZIP -d test_unzip test1.zip (unsupported command, not transpiled)
 					_res = db.Exec("\n      SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")

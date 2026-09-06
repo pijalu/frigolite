@@ -15,6 +15,7 @@ import (
 
 func Test_fkey8(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db2")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -262,7 +263,6 @@ func Test_fkey8(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
-		os.Remove("test.db2")
 		{ // "6.1"
 			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
 			if r.Error != nil {

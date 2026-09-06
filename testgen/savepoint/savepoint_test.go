@@ -15,6 +15,7 @@ import (
 
 func Test_savepoint(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test2.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -204,7 +205,6 @@ func Test_savepoint(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	os.Remove("test2.db")
 	{ // do_test "savepoint-1.1"
 		// wal_set_journal_mode (unsupported command, not transpiled)
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    RELEASE sp1;\n  ")

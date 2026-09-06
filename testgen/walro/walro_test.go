@@ -13,6 +13,12 @@ import (
 
 func Test_walro(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("walro")
+	_ = os.Remove("test.db-shm")
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db")
+	_ = os.Remove("walro")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -73,6 +79,5 @@ func Test_walro(t *testing.T) {
 		return
 	}
 	// do_multiclient_test tn {\n  \n  # Close all connections and delete the dat...} (unsupported command, not transpiled)
-	os.Remove("test.db")
 	// do_multiclient_test tn {\n  \n  # Close all connections and delete the dat...} (unsupported command, not transpiled)
 }

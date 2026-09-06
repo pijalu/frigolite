@@ -14,6 +14,11 @@ import (
 
 func Test_e_resolve(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db2")
+	_ = os.Remove("test.db3")
+	_ = os.Remove("test.db")
+	_ = os.Remove("file.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -69,7 +74,6 @@ func Test_e_resolve(t *testing.T) {
 	_ = schema // suppress unused warning
 	// proc definition (not transpiled)
 	db.Close()
-	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

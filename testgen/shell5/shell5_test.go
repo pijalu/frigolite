@@ -13,6 +13,9 @@ import (
 
 func Test_shell5(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
+	_ = os.Remove("test.db-journal")
+	_ = os.Remove("test.db-wal")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -83,7 +86,6 @@ func Test_shell5(t *testing.T) {
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	db.Close()
-	os.Remove("test.db")
 	{ // "shell5-1.1.1" (CLI shell subprocess harness, not transpiled)
 		// catchcmd test.db .import
 	}

@@ -13,6 +13,7 @@ import (
 
 func Test_mallocA(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db.bu")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -72,7 +73,6 @@ func Test_mallocA(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	os.Remove("test.db.bu")
 	_res = db.Exec("\n  CREATE TABLE t1(a COLLATE NOCASE,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(1,2,4);\n  INSERT INTO t1 VALUES(2,3,4);\n  CREATE INDEX t1i1 ON t1(a);\n  CREATE INDEX t1i2 ON t1(b,c);\n  CREATE TABLE t2(x,y,z);\n")
 	db.Close()
 	tclFileCopy("test.db", "test.db.bu")

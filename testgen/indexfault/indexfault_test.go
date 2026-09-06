@@ -13,6 +13,7 @@ import (
 
 func Test_indexfault(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -174,8 +175,8 @@ func Test_indexfault(t *testing.T) {
 	custom_ifail = "-1" // TCL namespace variable
 	_ = custom_ifail // suppress unused warning
 	vtab.TclVarSet("custom_nfail", "", "-1")
-	vtab.TclVarSet("custom_injectstop", "", "-1")
 	vtab.TclVarSet("install_custom_faultsim", "", "-1")
+	vtab.TclVarSet("custom_injectstop", "", "-1")
 	custom_nfail = "-1" // TCL namespace variable
 	_ = custom_nfail // suppress unused warning
 	// proc definition (not transpiled)
@@ -186,7 +187,6 @@ func Test_indexfault(t *testing.T) {
 		_r = ""
 		db.Close()
 	}
-	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
@@ -212,9 +212,11 @@ func Test_indexfault(t *testing.T) {
 	_ = nRead // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "4.1"
-		db, err = frigolite.Open("test.db")
-		tclConnRegister("db", db)
-		if err != nil { t.Fatal(err) }
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")

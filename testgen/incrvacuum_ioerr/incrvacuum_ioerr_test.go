@@ -12,6 +12,7 @@ import (
 
 func Test_incrvacuum_ioerr(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)

@@ -172,7 +172,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -212,7 +212,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -234,7 +234,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -300,7 +300,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -360,7 +360,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -388,7 +388,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -410,7 +410,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -432,7 +432,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -454,7 +454,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -476,7 +476,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -498,7 +498,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -556,7 +556,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)
@@ -584,7 +584,7 @@ func Test_select4(t *testing.T) {
 				msg = _catchErr.Error()
 			} else {
 				v = "0"
-				msg = ""
+				msg = tclRowValuesFlat(r)
 			}
 		}
 		v = tclListAppend(v, msg)

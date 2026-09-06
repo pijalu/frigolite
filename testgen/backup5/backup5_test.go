@@ -13,6 +13,7 @@ import (
 
 func Test_backup5(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("test2.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +68,6 @@ func Test_backup5(t *testing.T) {
 	vtab.TclVarSet("testprefix", "", "backup5")
 	testprefix = "backup5"
 	_ = testprefix // suppress unused warning
-	os.Remove("test2.db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n")
 		if _res.Error != nil {

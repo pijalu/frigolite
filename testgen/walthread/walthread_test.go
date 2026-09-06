@@ -13,6 +13,15 @@ import (
 
 func Test_walthread(t *testing.T) {
 	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	_ = os.Remove("$::DBNAME")
+	_ = os.Remove("$::DBNAME-journal")
+	_ = os.Remove("$::DBNAME-wal")
+	_ = os.Remove("$::DBNAME")
+	_ = os.Remove("$::DBNAME-journal")
+	_ = os.Remove("$::DBNAME-wal")
+	_ = os.Remove("$::DBNAME-shm")
+	_ = os.Remove("$::DBNAME-bak.db-wal")
+	_ = os.Remove("$::DBNAME-bak.db")
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -203,6 +212,4 @@ func Test_walthread(t *testing.T) {
 		_r = ""
 		db.Close()
 	}
-	os.Remove(DBNAME)
-	os.Remove(DBNAME + "-bak.db-wal")
 }

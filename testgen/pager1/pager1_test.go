@@ -1249,7 +1249,7 @@ func Test_pager1(t *testing.T) {
 							if _catchErr != nil {
 								msg = _catchErr.Error()
 							} else {
-								msg = ""
+								msg = tclCatchStmtResult(_r)
 							}
 						}
 						db, err = frigolite.Open("test.db")

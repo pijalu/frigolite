@@ -453,7 +453,10 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 			tp.indent--
 			tp.emitLine("} else {")
 			tp.indent++
-			tp.emitLine("%s = \"\"", resultVar)
+			// On success TCL sets the var to the body RESULT (quote-1.3.4:
+			// `catch {execsql {...}} msg` leaves the query result "hello 10"
+			// in msg), not an unconditional empty string.
+			tp.emitLine("%s = tclCatchStmtResult(_r)", resultVar)
 			tp.indent--
 			tp.emitLine("}")
 		} else {
