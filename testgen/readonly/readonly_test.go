@@ -5,8 +5,115 @@
 package readonly
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_readonly(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_readonly(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tcl_platform_platform == "windows" {
+		return
+	}
+	vtab.TclVarSet("testprefix", "", "readonly")
+	testprefix = "readonly" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	{ // "1.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
+		}
+	}
+	db.Close()
+	if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // "1.1"
+		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  INSERT INTO t1 VALUES(7, 8);\n")
+		}
+	}
+	{ // "1.2"
+		r = db.Query("\n  BEGIN;\n    SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "1.3"
+		vtab.TclVarSet("ii", "", "0")
+		ii = "0"
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
+			db2, err = frigolite.Open("test.db")
+			tclConnRegister("db2", db2)
+			if err != nil { t.Fatal(err) }
+			if db2 != nil { db2.Close() }
+			// incr ii 1
+			{
+				_n, _err := strconv.Atoi(ii)
+				if _err == nil {
+					ii = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		// set  (invalid identifier, skipped)
+	}
+}

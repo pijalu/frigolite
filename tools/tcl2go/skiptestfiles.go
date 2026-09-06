@@ -162,7 +162,6 @@ var skipTestFiles = map[string]string{
 	// commands), platform-guarded (skips on Darwin). Generated code also
 	// redeclares msg in both bigfile_test.go and bigfile2_test.go (transpiler
 	// per-file var bug). N-A (platform-specific large-file harness).
-	"bigfile": ">4GB large-file TCL harness + msg redeclare transpiler bug N-A",
 
 	// (decimal extension un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 
@@ -251,7 +250,6 @@ var skipTestFiles = map[string]string{
 	// cache: pager/btree cache behavior (page cache eviction, spill) — the
 	// generated test crashes the engine (btree page parse loop). DEFERRED —
 	// pager/btree internals.
-	"cache": "pager/btree cache internals DEFERRED",
 
 	// (percentile un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 
@@ -332,9 +330,6 @@ var skipTestFiles = map[string]string{
 	"bestindexF": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"bestindexG": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
-	"bitvec":  "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"btree01": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"btree02": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	// P7.PUSHDOWN: cursorhint / cursorhint2 / pushdown — all three packages
 	// are VDBE-internal codeCursorHint() / MySQL push-down contract tests.
@@ -399,7 +394,6 @@ var skipTestFiles = map[string]string{
 	"exclusive2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// (extension01 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
 	"fallocate": "VFS/fault-injection harness N-A",
-	"filefmt":   "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	"fts-9fd058691": "FTS3/4/5 beyond basic module N-A",
 	"fts3atoken2":   "FTS3/4/5 beyond basic module N-A",
@@ -451,11 +445,6 @@ var skipTestFiles = map[string]string{
 	"mallocI":    "VFS/fault-injection harness N-A",
 	"mallocK":    "VFS/fault-injection harness N-A",
 	"manydb":     "TCL `file channels`/`ulimit` file-descriptor leak harness introspection not implemented N-A (evidence frigolite_lockc_test.go)",
-	"memdb":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"memdb1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"memdb2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"memsubsys1": "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"memsubsys2": "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 	// P7.WAL-E: mjournal re-skipped (test 4.x — master-journal pointer
 	// validation in hot-journal recovery is out of P7.WAL-E scope; see
@@ -486,15 +475,9 @@ var skipTestFiles = map[string]string{
 	"multiplex3":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
 	"multiplex4":  "custom multiplex VFS (sqlite3_multiplex_initialize file sharding) not implemented N-A (evidence frigolite_lockc_test.go)",
 	"offset1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"oserror":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pager1":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pager2":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pager3":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"pager4":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"pagerfault":  "VFS/fault-injection harness N-A",
 	"pagerfault2": "VFS/fault-injection harness N-A",
 	"pagerfault3": "VFS/fault-injection harness N-A",
-	"pagesize":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
 
 		// (pragma/pragma2-6 un-skipped under P8.PRAGMA — see
 			// plan/goals/P8.PRAGMA.md. Engine implements the PRAGMA edge cases
@@ -508,8 +491,6 @@ var skipTestFiles = map[string]string{
 	// (3.x/4.x/5.x/7.x) the transpiler emits pass natively.
 	"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
-	"quickcheck":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"readonly":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"recover":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollback2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollbackfault": "VFS/fault-injection harness N-A",
@@ -555,10 +536,7 @@ var skipTestFiles = map[string]string{
 	"speed1p":        "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"speed2":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"speed3":         "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"sqldiff1":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"sqllimits1":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"starschema1":    "deep-engine applicable gap DEFERRED (tracked for later phase)",
-	"stmtrand":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// symlink: superseded via Pure-Go supersession — test/symlink.test exercises
 	// unix-none VFS path truncation (1.4/1.5: PATH_MAX overflow), the
 	// sqlite3_open_v2 -nofollow flag (1.1.4 ATTACH of a symlink with no-follow),
@@ -655,7 +633,6 @@ var skipTestFiles = map[string]string{
 	"atof1":   "TCL expr rand/pow/format %.32e random float stress harness N-A",
 	"atof2":   "TCL expr rand/pow/format %.32e random float stress harness N-A",
 
-	"bigfile2": ">4GB large-file TCL harness + msg redeclare transpiler bug N-A",
 	"malloc3":  "sqlite3_memdebug memory-accounting C API N-A",
 	"malloc4":  "sqlite3_memdebug memory-accounting C API N-A",
 	"malloc5":  "sqlite3_memdebug memory-accounting C API N-A",

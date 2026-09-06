@@ -5,8 +5,148 @@
 package memdb2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_memdb2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_memdb2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "memdb2")
+	testprefix = "memdb2"
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
+	db.Close()
+	// foreach {tn fname} "1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb"
+	_items0 := tclSplitList("1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
+		_ = tn // suppress unused warning
+		fname := _items0[_idx0+1]
+		_ = fname // suppress unused warning
+		_ = _idx0
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
+			}
+			db.Close()
+			db, err = frigolite.Open(fname)
+			if err != nil { t.Fatal(err) }
+			tclConnRegister("db", db)
+			db2, err = frigolite.Open(fname)
+			tclConnRegister("db2", db2)
+			if err != nil { t.Fatal(err) }
+			{ // "1." + tn + ".1"
+				_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db2.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".3"
+				_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+				}
+			}
+			{ // "1." + tn + ".4"
+				_res = db.Exec("\n    COMMIT\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    COMMIT\n  ")
+				}
+			}
+			{ // "1." + tn + ".5"
+				r = db2.Query("\n      SELECT * FROM t1;\n    END;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    END;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".6"
+				_res = db.Exec("\n    COMMIT\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
+				}
+			}
+			{ // "1." + tn + ".7"
+				r = db2.Query("\n    SELECT * FROM t1\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			if db2 != nil { db2.Close() }
+		}
+}

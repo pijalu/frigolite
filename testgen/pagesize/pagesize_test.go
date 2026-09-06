@@ -5,8 +5,340 @@
 package pagesize
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_pagesize(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pagesize(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var PGSZ string
+	_ = PGSZ // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "pagesize-1.1"
+		r = db.Query("PRAGMA page_size")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+		}
+	}
+	{ // do_test "pagesize-1.2"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			r = db.Query("EXPLAIN PRAGMA page_size")
+			if r.Error != nil { _catchErr = r.Error }
+		}
+	}
+	{ // do_test "pagesize-1.3"
+		r = db.Query("\n    CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;\n  ")
+		}
+	}
+	{ // do_test "pagesize-1.4"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    PRAGMA page_size=511;\n    PRAGMA page_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=511;\n    PRAGMA page_size;\n  ")
+		}
+	}
+	{ // do_test "pagesize-1.5"
+		r = db.Query("\n    PRAGMA page_size=512;\n    PRAGMA page_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=512;\n    PRAGMA page_size;\n  ")
+		}
+	}
+	if tclBool("!" + tclBool01(vtab.TclVarExists("SQLITE_MAX_PAGE_SIZE", "")) + " || " + SQLITE_MAX_PAGE_SIZE + ">=8192") {
+		{ // do_test "pagesize-1.6"
+			r = db.Query("\n      PRAGMA page_size=8192;\n      PRAGMA page_size;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=8192;\n      PRAGMA page_size;\n    ")
+			}
+		}
+		{ // do_test "pagesize-1.7"
+			r = db.Query("\n      PRAGMA page_size=65537;\n      PRAGMA page_size;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=65537;\n      PRAGMA page_size;\n    ")
+			}
+		}
+		{ // do_test "pagesize-1.8"
+			r = db.Query("\n      PRAGMA page_size=1234;\n      PRAGMA page_size\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=1234;\n      PRAGMA page_size\n    ")
+			}
+		}
+	}
+	for _, PGSZ := range tclSplitList("512 2048 4096 8192") {
+	_ = PGSZ // suppress unused warning
+		if tclBool(tclBool01(vtab.TclVarExists("SQLITE_MAX_PAGE_SIZE", "")) + "\n           && " + SQLITE_MAX_PAGE_SIZE + "<" + PGSZ) {
+			continue
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".0.1"
+			db.Close()
+			db, err = frigolite.Open("")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			r = db.Query("PRAGMA page_size=" + PGSZ + ";")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size=" + PGSZ + ";")
+			}
+			r = db.Query("PRAGMA page_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if flatten(r) != tclListFlatten(PGSZ) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(PGSZ), "pagesize-2." + PGSZ + ".0.1")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".0.2"
+			_res = db.Exec("CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)")
+			}
+			r = db.Query("PRAGMA page_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if flatten(r) != tclListFlatten(PGSZ) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(PGSZ), "pagesize-2." + PGSZ + ".0.2")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".0.3"
+			r = db.Query("\n        INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;\n      ")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".1"
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			r = db.Query("PRAGMA page_size=" + PGSZ)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size=" + PGSZ)
+			}
+			r = db.Query("\n      CREATE TABLE t1(x);\n      PRAGMA page_size;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      PRAGMA page_size;\n    ")
+			}
+			if flatten(r) != tclListFlatten(PGSZ) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(PGSZ), "pagesize-2." + PGSZ + ".1")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".2"
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			r = db.Query("\n      PRAGMA page_size\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size\n    ")
+			}
+			if flatten(r) != tclListFlatten(PGSZ) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(PGSZ), "pagesize-2." + PGSZ + ".2")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".3" (file size test.db)
+			got := strconv.Itoa(tclFileSize("test.db"))
+			if got != tclExprWith("$PGSZ*($AUTOVACUUM?3:2)", map[string]string{"PGSZ": PGSZ, "AUTOVACUUM": AUTOVACUUM}) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, tclExprWith("$PGSZ*($AUTOVACUUM?3:2)", map[string]string{"PGSZ": PGSZ, "AUTOVACUUM": AUTOVACUUM}), "pagesize-2." + PGSZ + ".3")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".4"
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		{ // do_test "pagesize-2." + PGSZ + ".6"
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			r = db.Query("PRAGMA page_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if flatten(r) != tclListFlatten(PGSZ) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(PGSZ), "pagesize-2." + PGSZ + ".6")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".7"
+			r = db.Query("\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".8"
+			r = db.Query("\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
+			}
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		{ // do_test "pagesize-2." + PGSZ + ".10"
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			r = db.Query("PRAGMA page_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if flatten(r) != tclListFlatten(PGSZ) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(PGSZ), "pagesize-2." + PGSZ + ".10")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".11"
+			r = db.Query("\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;\n    ")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".12"
+			r = db.Query("\n      BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;\n    ")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".13"
+			r = db.Query("\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ROLLBACK;\n      SELECT count(*) FROM t1;\n    ")
+			}
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		{ // do_test "pagesize-2." + PGSZ + ".15"
+			_res = db.Exec("DELETE FROM t1 WHERE rowid%5!=0")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid%5!=0")
+			}
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
+			r = db.Query("SELECT count(*) FROM t1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+			}
+		}
+		{ // do_test "pagesize-2." + PGSZ + ".16"
+			_res = db.Exec("DROP TABLE t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
+			}
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		{ // do_test "pagesize-2." + PGSZ + ".30"
+			r = db.Query("\n      CREATE TABLE t1(x);\n      PRAGMA temp.page_size=" + PGSZ + ";\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      PRAGMA temp.page_size=" + PGSZ + ";\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
+			}
+		}
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		{ // do_test "pagesize-2." + PGSZ + ".40"
+			r = db.Query("\n      PRAGMA page_size=" + PGSZ + ";\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=" + PGSZ + ";\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
+			}
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "pagesize-3.1"
+		r = db.Query("\n  BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "pagesize-3.2"
+		_res = db.Exec("\n  CREATE TABLE t1(x);\n  COMMIT;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  COMMIT;\n")
+		}
+	}
+	{ // "pagesize-3.3"
+		r = db.Query("\n  BEGIN;\n    PRAGMA page_size = 2048;\n  COMMIT;\n  PRAGMA main.page_size;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    PRAGMA page_size = 2048;\n  COMMIT;\n  PRAGMA main.page_size;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1024"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

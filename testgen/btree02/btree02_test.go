@@ -5,8 +5,133 @@
 package btree02
 
 import (
+"errors"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_btree02(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_btree02(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var bx string
+	_ = bx // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// load_static_extension db eval (unsupported command, not transpiled)
+	{ // "btree02-100"
+		r = db.Query("\n  CREATE TABLE t1(a TEXT, ax INTEGER, b INT, PRIMARY KEY(a,ax)) WITHOUT ROWID;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,ax,b) SELECT printf('%02x',i+160), random(), i FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(cnt);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<4)\n    INSERT INTO t3(cnt) SELECT i FROM c;\n  SELECT count(*) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a TEXT, ax INTEGER, b INT, PRIMARY KEY(a,ax)) WITHOUT ROWID;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,ax,b) SELECT printf('%02x',i+160), random(), i FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(cnt);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<4)\n    INSERT INTO t3(cnt) SELECT i FROM c;\n  SELECT count(*) FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "btree02-110"
+		_res = db.Exec("BEGIN")
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		_dbevalRows0 := db.Query("SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		var _dbevalInt3 bool
+		db.BeginActiveStatement()
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "a":
+						a = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "b":
+						b = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "cnt":
+						cnt = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "i":
+						i = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "bx":
+						bx = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
+			if a == "" {
+				continue
+			}
+			_res = db.Exec("INSERT INTO t2(x,y) VALUES(" + sqlLiteral(b) + "," + sqlLiteral(cnt) + ")")
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 1 }() {
+				bx = tclExprWith("$b+1000", map[string]string{"b": b})
+				_ = bx // suppress unused warning
+				_res = db.Exec("INSERT INTO t1(a,ax,b) VALUES(printf('(%s)'," + sqlLiteral(a) + "),random()," + sqlLiteral(bx) + ")")
+			} else {
+				_res = db.Exec("DELETE FROM t1 WHERE a=" + sqlLiteral(a))
+			}
+			_res = db.Exec("COMMIT; BEGIN")
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
+		}
+		db.EndActiveStatement()
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
+		}
+	}
+}

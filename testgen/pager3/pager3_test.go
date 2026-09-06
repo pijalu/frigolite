@@ -5,8 +5,91 @@
 package pager3
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strings"
 "testing"
 )
 
-func Test_pager3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pager3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool("atomic_batch_write test.db") {
+		return
+	}
+	// foreach {tn sql res j} "1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0"
+	_items0 := tclSplitList("1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
+		_ = tn // suppress unused warning
+		sql := _items0[_idx0+1]
+		_ = sql // suppress unused warning
+		res := _items0[_idx0+2]
+		_ = res // suppress unused warning
+		j := _items0[_idx0+3]
+		_ = j // suppress unused warning
+		_ = _idx0
+			{ // "pager3-1." + tn + ".1"
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+			}
+			{ // do_test "pager3-1." + tn + ".2"
+				// file exists "test.db-journal"
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), j) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", j, _res.Error, "pager3-1." + tn + ".2")
+				}
+			}
+		}
+}

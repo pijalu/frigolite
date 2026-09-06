@@ -5,8 +5,282 @@
 package memsubsys1
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_memsubsys1(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_memsubsys1(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var xtra_size string
+	_ = xtra_size // pre-declared from TCL source
+	var pg_used string
+	_ = pg_used // pre-declared from TCL source
+	var s_used string
+	_ = s_used // pre-declared from TCL source
+	var max_pagecache string
+	_ = max_pagecache // pre-declared from TCL source
+	var MEMORY_MANAGEMENT string
+	_ = MEMORY_MANAGEMENT // pre-declared from TCL source
+	var pg_ovfl string
+	_ = pg_ovfl // pre-declared from TCL source
+	var overflow string
+	_ = overflow // pre-declared from TCL source
+	var maxreq string
+	_ = maxreq // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pragmas string
+	_ = pragmas // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var sqlite_options_memorymanage string
+	_ = sqlite_options_memorymanage // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+	if "" == "memsubsys1" {
+		return
+	}
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	vtab.TclVarSet("xtra_size", "", "290")
+	xtra_size = "290"
+	_ = xtra_size // suppress unused warning
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+	// sqlite3_config_pagecache 0 0 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	// build_test_db memsubsys1-1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
+	{ // do_test "memsubsys1-1.3"
+		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = pg_used // suppress unused warning
+		got := tclListFlatten(pg_used)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-1.3")
+		}
+	}
+	{ // do_test "memsubsys1-1.4"
+		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = s_used // suppress unused warning
+		got := tclListFlatten(s_used)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-1.4")
+		}
+	}
+	max_pagecache = tclLIndex(tclStatus(db, "0"), "2")
+	_ = max_pagecache // suppress unused warning
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 1024+$xtra_size] 20 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	// build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0} (unsupported command, not transpiled)
+	vtab.TclVarSet("MEMORY_MANAGEMENT", "", sqlite_options_memorymanage)
+	MEMORY_MANAGEMENT = sqlite_options_memorymanage
+	_ = MEMORY_MANAGEMENT // suppress unused warning
+	{ // do_test "memsubsys1-2.4"
+		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = pg_used // suppress unused warning
+		got := tclListFlatten(pg_used)
+		want := tclListFlatten("20")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-2.4")
+		}
+	}
+	{ // do_test "memsubsys1-2.5"
+		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = s_used // suppress unused warning
+		got := tclListFlatten(s_used)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-2.5")
+		}
+	}
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 512+$xtra_size] 20 (unsupported command, not transpiled)
+	// sqlite3_config singlethread (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	// build_test_db memsubsys1-3.1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
+	{ // do_test "memsubsys1-3.1.3"
+		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = pg_used // suppress unused warning
+		got := tclListFlatten(pg_used)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-3.1.3")
+		}
+	}
+	{ // do_test "memsubsys1-3.1.4"
+		overflow = tclLIndex(tclStatus(db, "0"), "2")
+		_ = overflow // suppress unused warning
+		// expr $overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05 (not evaluated)
+	}
+	{ // do_test "memsubsys1-3.1.5"
+		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = s_used // suppress unused warning
+		got := tclListFlatten(s_used)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-3.1.5")
+		}
+	}
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 2048+$xtra_size] 20 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	// build_test_db memsubsys1-3.2 {PRAGMA page_size=2048} (unsupported command, not transpiled)
+	{ // do_test "memsubsys1-3.2.3"
+		r = db.Query("PRAGMA page_size")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "memsubsys1-3.2.4"
+		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = pg_used // suppress unused warning
+		got := tclListFlatten(pg_used)
+		want := tclListFlatten("20")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-3.2.4")
+		}
+	}
+	{ // do_test "memsubsys1-3.2.5"
+		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = s_used // suppress unused warning
+		got := tclListFlatten(s_used)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-3.2.5")
+		}
+	}
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 1024+$xtra_size] 50 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	// build_test_db memsubsys1-4 {PRAGMA page_size=1024} (unsupported command, not transpiled)
+	{ // do_test "memsubsys1-4.3"
+		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		_ = pg_used // suppress unused warning
+		// expr $pg_used>=45 && $pg_used<=50 (not evaluated)
+	}
+	{ // do_test "memsubsys1-4.4"
+		pg_ovfl = tclLIndex(tclStatus(db, "0"), "2")
+		_ = pg_ovfl // suppress unused warning
+		got := tclListFlatten(pg_ovfl)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-4.4")
+		}
+	}
+	{ // do_test "memsubsys1-4.5"
+		maxreq = tclLIndex(tclStatus(db, "0"), "2")
+		_ = maxreq // suppress unused warning
+		// expr $maxreq<9000 (not evaluated)
+	}
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
+	// sqlite3_config_lookaside 100 500 (unsupported command, not transpiled)
+	// sqlite3_config serialized (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
+	// test_restore_config_pagecache (unsupported command, not transpiled)
+}

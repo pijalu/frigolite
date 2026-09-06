@@ -5,8 +5,139 @@
 package sqldiff1
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_sqldiff1(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_sqldiff1(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var PROG string
+	_ = PROG // pre-declared from TCL source
+	var line string
+	_ = line // pre-declared from TCL source
+	var MSG string
+	_ = MSG // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	PROG = "test_find_sqldiff"
+	_ = PROG // suppress unused warning
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // do_test "sqldiff-1.0"
+		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")
+		var _catchErr error
+		_catchErr = tclDBBackupRestore(db, "backup", "main", "test2.db")
+		if _catchErr != nil { _r = "" }
+		_res = db.Exec("\n    ATTACH 'test2.db' AS x2;\n    DELETE FROM x2.t1 WHERE a=49;\n    DELETE FROM x2.t2 WHERE a=48;\n    INSERT INTO x2.t1(a,b) VALUES(1234,'hello');\n    INSERT INTO x2.t2(a,b) VALUES(50.5,'xyzzy');\n    INSERT INTO x2.t2(a,b) VALUES(51.5,'');\n    INSERT INTO x2.t2(a,b) VALUES(52.5,''||X'0d0a');\n    INSERT INTO x2.t2(a,b) VALUES(53.5,'one'||X'0a0d');\n    INSERT INTO x2.t2(a,b) VALUES(54.5,'one'||X'0a'||'two');\n    CREATE TABLE x2.t3(a,b,c);\n    INSERT INTO x2.t3 VALUES(111,222,333);\n    CREATE TABLE main.t4(x,y,z);\n    INSERT INTO t4 SELECT * FROM t3;\n  ")
+		vtab.TclVarSet("line", "", "exec " + PROG + " test.db test2.db")
+		line = "exec " + PROG + " test.db test2.db"
+		_ = line // suppress unused warning
+		{
+			var _catchErrMsg string // catch error message
+			_ = MSG // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			// eval $line (dynamic, not transpiled)
+			if _catchErr != nil {
+				MSG = "1"
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				MSG = "0"
+				_catchErrMsg = ""
+			}
+		}
+	}
+	{ // do_test "sqldiff-1.1"
+		_ = MSG // TCL namespace variable (query)
+		got := tclListFlatten(MSG)
+		want := tclListFlatten("DELETE FROM t1 WHERE a=49;\nINSERT INTO t1(a,b) VALUES(1234,'hello');\nDELETE FROM t2 WHERE a=48;\nINSERT INTO t2(a,b) VALUES(50.5,'xyzzy');\nINSERT INTO t2(a,b) VALUES(51.5,'');\nINSERT INTO t2(a,b) VALUES(52.5,''||X'0d0a');\nINSERT INTO t2(a,b) VALUES(53.5,'one'||X'0a0d');\nINSERT INTO t2(a,b) VALUES(54.5,'one'||X'0a'\n||'two');\nCREATE TABLE t3(a,b,c);\nINSERT INTO t3(rowid,a,b,c) VALUES(1,111,222,333);\nDROP TABLE t4;")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqldiff-1.1")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // do_test "sqldiff-2.0"
+		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")
+		db.Close()
+		db, err = frigolite.Open("test2.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
+		db.Close()
+		vtab.TclVarSet("line", "", "exec " + PROG + " test.db test2.db")
+		line = "exec " + PROG + " test.db test2.db"
+		_ = line // suppress unused warning
+		{
+			var _catchErrMsg string // catch error message
+			_ = MSG // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			// eval $line (dynamic, not transpiled)
+			if _catchErr != nil {
+				MSG = "1"
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				MSG = "0"
+				_catchErrMsg = ""
+			}
+		}
+	}
+	{ // do_test "sqldiff-2.1"
+		_ = MSG // TCL namespace variable (query)
+		got := tclListFlatten(MSG)
+		want := tclListFlatten("ALTER TABLE t1 ADD COLUMN b;")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqldiff-2.1")
+		}
+	}
+}

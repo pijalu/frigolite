@@ -5,8 +5,315 @@
 package filefmt
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_filefmt(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_filefmt(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var pagesize string
+	_ = pagesize // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _err_tcl string
+	_ = _err_tcl // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	db.Close()
+	os.Remove("test.db")
+	{ // do_test "filefmt-1.1"
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("CREATE TABLE t1(x)")
+		db.Close()
+		// hexio_read test.db 0 16 (unsupported command, not transpiled)
+	}
+	{ // "filefmt-1.2" (prepare-step internals; SQL side effects only)
+		tclHexioWrite("test.db", int64(0), "54")
+	_ = x // suppress unused warning
+	_ = _err_tcl // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
+			if err != nil {
+				_catchErr = err
+				db = nil
+			} else {
+				tclConnRegister("db", db)
+			}
+			if _catchErr != nil {
+				x = "1"
+				_err_tcl = _catchErr.Error()
+			} else {
+				x = "0"
+				_err_tcl = ""
+			}
+		}
+		x = tclListAppend(x, _err_tcl)
+	}
+	{ // do_test "filefmt-1.3"
+		_res = db.Exec("\n    SELECT count(*) FROM sqlite_master\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "file is not a database", _res.Error, "\n    SELECT count(*) FROM sqlite_master\n  ")
+		}
+	}
+	{ // do_test "filefmt-1.4"
+		db.Close()
+		tclHexioWrite("test.db", int64(0), "53")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT count(*) FROM sqlite_master\n  ")
+		_ = _res // catchsql
+	}
+	for _, pagesize := range tclSplitList("512 1024 2048 4096 8192 16384 32768") {
+	_ = pagesize // suppress unused warning
+		if tclBool(tclBool01(vtab.TclVarExists("SQLITE_MAX_PAGE_SIZE", "")) + "\n          && " + pagesize + ">" + SQLITE_MAX_PAGE_SIZE) {
+			continue
+		}
+		{ // do_test "filefmt-1.5." + pagesize + ".1"
+			db.Close()
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
+			tclConnRegister("db", db)
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("PRAGMA auto_vacuum=OFF")
+			_res = db.Exec("PRAGMA page_size=" + pagesize)
+			_res = db.Exec("CREATE TABLE t1(x)")
+			_r = strconv.Itoa(tclFileSize("test.db"))
+			if _r != tclExprWith("$pagesize*2", map[string]string{"pagesize": pagesize}) {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, tclExprWith("$pagesize*2", map[string]string{"pagesize": pagesize}), "filefmt-1.5." + pagesize + ".1")
+			}
+		}
+		{ // do_test "filefmt-1.5." + pagesize + ".2"
+			// hexio_get_int [hexio_read test.db 16 2] (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), pagesize) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", pagesize, _res.Error, "filefmt-1.5." + pagesize + ".2")
+			}
+		}
+	}
+	{ // do_test "filefmt-1.6"
+		db.Close()
+		tclHexioWrite("test.db", int64(16), "hexio_render_int16 1025")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n     SELECT count(*) FROM sqlite_master\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "filefmt-1.7"
+		db.Close()
+		tclHexioWrite("test.db", int64(16), "hexio_render_int16 256")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n     SELECT count(*) FROM sqlite_master\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "filefmt-1.8"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("PRAGMA page_size=512; CREATE TABLE t1(x)")
+		db.Close()
+		tclHexioWrite("test.db", int64(20), "21")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n       SELECT count(*) FROM sqlite_master\n    ")
+		_ = _res // catchsql
+	}
+	db.Close()
+	os.Remove("test.db")
+	vtab.TclVarSet("a_string_counter", "", "1")
+	a_string_counter = "1"
+	_ = a_string_counter // suppress unused warning
+	// proc definition (not transpiled)
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	{ // "filefmt-2.1.1"
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		}
+	}
+	if tclBool("!" + "nonzero_reserved_bytes") {
+		{ // do_test "filefmt-2.1.2"
+			// hexio_read test.db 28 4 (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "filefmt-2.1.3"
+		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
+	}
+	{ // "filefmt-2.1.4"
+		_res = db.Exec(" INSERT INTO t2 VALUES(2) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(2) ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "filefmt-2.1.6"
+		// hexio_read test.db 28 4 (unsupported command, not transpiled)
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	{ // "filefmt-2.2.1"
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		}
+	}
+	if tclBool("!" + "nonzero_reserved_bytes") {
+		{ // do_test "filefmt-2.2.2"
+			// hexio_read test.db 28 4 (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "filefmt-2.2.3"
+		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
+	}
+	{ // "filefmt-2.2.4"
+		r = db.Query(" \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // "filefmt-2.2.6"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // "filefmt-3.1"
+		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")
+		}
+	}
+	{ // do_test "filefmt-3.2"
+		// sql36231 { DROP TABLE t1 } (unsupported command, not transpiled)
+	}
+	{ // "filefmt-3.3"
+		r = db.Query("\n  SELECT * FROM sqlite_master;\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sqlite_master;\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "filefmt-4.1"
+		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
+		}
+	}
+	{ // do_test "filefmt-4.2"
+		// sql36231 { INSERT INTO t2 SELECT * FROM t1 } (unsupported command, not transpiled)
+	}
+	{ // do_test "filefmt-4.3"
+		os.Remove("bak.db")
+		var _catchErr error
+		_catchErr = tclDBBackupRestore(db, "backup", "main", "bak.db")
+		if _catchErr != nil { _r = "" }
+	}
+	{ // do_test "filefmt-4.4"
+		db2, err = frigolite.Open("bak.db")
+		tclConnRegister("db2", db2)
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec(" PRAGMA integrity_check ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	if db2 != nil { db2.Close() }
+}

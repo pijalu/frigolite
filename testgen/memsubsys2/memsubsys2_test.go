@@ -5,8 +5,203 @@
 package memsubsys2
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strings"
 "testing"
 )
 
-func Test_memsubsys2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_memsubsys2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var highwater string
+	_ = highwater // pre-declared from TCL source
+	var allocation string
+	_ = allocation // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pragmas string
+	_ = pragmas // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	highwater = "sqlite3_memory_highwater 0"
+	_ = highwater // suppress unused warning
+	{ // do_test "memsubsys2-1.1"
+		// sqlite3_malloc 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-1.2"
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), highwater) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", highwater, _res.Error, "memsubsys2-1.2")
+		}
+	}
+	if tclBool("sqlite3_memory_used" + "!=0") {
+		// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
+		highwater = "sqlite3_memory_highwater 0"
+		_ = highwater // suppress unused warning
+		{ // do_test "memsubsys2-2.1"
+			// sqlite3_free [set x [sqlite3_malloc 100000]] (unsupported command, not transpiled)
+			// expr $x!="0" (not evaluated)
+		}
+		{ // do_test "memsubsys2-2.2.1"
+			// expr [sqlite3_memory_highwater 0]>=[sqlite3_memory_used]+100000 (not evaluated)
+		}
+		{ // do_test "memsubsys2-2.2.2"
+			// expr [sqlite3_memory_highwater 0]>=$highwater+50000 (not evaluated)
+		}
+	}
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 0 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	highwater = "sqlite3_memory_highwater 0"
+	_ = highwater // suppress unused warning
+	{ // do_test "memsubsys2-3.1"
+		got := tclListFlatten(highwater)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys2-3.1")
+		}
+	}
+	{ // do_test "memsubsys2-3.2"
+		// sqlite3_malloc 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-3.3"
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-3.4"
+		// sqlite3_memory_used (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-3.5"
+		vtab.TclVarSet("allocation", "", "sqlite3_malloc 100000")
+		allocation = "sqlite3_malloc 100000" // TCL namespace variable
+		_ = allocation // suppress unused warning
+		// expr $::allocation!="0" (not evaluated)
+	}
+	{ // do_test "memsubsys2-3.6"
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-3.7"
+		// sqlite3_memory_used (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-3.8"
+		// sqlite3_free $::allocation (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-3.9"
+		// sqlite3_free 0 (unsupported command, not transpiled)
+	}
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MEMORY_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_MALLOC_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PAGECACHE_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_USED 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_OVERFLOW 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_SCRATCH_SIZE 1 (unsupported command, not transpiled)
+	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
+	highwater = "sqlite3_memory_highwater 0"
+	_ = highwater // suppress unused warning
+	{ // do_test "memsubsys2-4.1"
+		got := tclListFlatten(highwater)
+		want := tclListFlatten("0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys2-4.1")
+		}
+	}
+	{ // do_test "memsubsys2-4.2"
+		// sqlite3_malloc 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-4.3"
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-4.4"
+		// sqlite3_memory_used (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-4.5"
+		vtab.TclVarSet("allocation", "", "sqlite3_malloc 100000")
+		allocation = "sqlite3_malloc 100000" // TCL namespace variable
+		_ = allocation // suppress unused warning
+		// expr $::allocation!="0" (not evaluated)
+	}
+	{ // do_test "memsubsys2-4.6"
+		// expr [sqlite3_memory_highwater 0]>=100000 (not evaluated)
+	}
+	{ // do_test "memsubsys2-4.7"
+		// expr [sqlite3_memory_used]>=100000 (not evaluated)
+	}
+	{ // do_test "memsubsys2-4.8"
+		// sqlite3_free $::allocation (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-4.9"
+		// sqlite3_free 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "memsubsys2-4.10"
+		// expr [sqlite3_memory_highwater 0]>=100000 (not evaluated)
+	}
+	{ // do_test "memsubsys2-4.11"
+		// sqlite3_memory_used (unsupported command, not transpiled)
+	}
+	// autoinstall_test_functions (unsupported command, not transpiled)
+}

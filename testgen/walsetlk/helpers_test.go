@@ -3031,7 +3031,6 @@ func tclFileDumpName(p string) string { return p }
 func tclQuotaList() string {
 	var pats []string
 	for _, g := range quota.Dump() {
-		fmt.Println("QLDBG", g.Pattern, g.Limit, g.Size, g.Files)
 		pats = append(pats, g.Pattern)
 	}
 	sort.Strings(pats)

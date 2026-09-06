@@ -5,8 +5,251 @@
 package oserror
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_oserror(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_oserror(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var dbh *frigolite.DB
+	_ = dbh
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var nOpen string
+	_ = nOpen // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var expression string
+	_ = expression // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info commands test_syscall"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
+		return
+	}
+	vtab.TclVarSet("testprefix", "", "oserror")
+	testprefix = "oserror" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	db.Close()
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// test_sqlite3_log xLog (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	if tclBool("!" + "0") {
+		vtab.TclVarSet("nOpen", "", "20000")
+		nOpen = "20000"
+		_ = nOpen // suppress unused warning
+		{ // "1.1.1" (prepare-step internals; SQL side effects only)
+			vtab.TclVarSet("log", "", "")
+			log = "" // TCL namespace variable
+			_ = log // suppress unused warning
+			vtab.TclVarSet("rc", "", "0")
+			rc = "0" // TCL namespace variable
+			_ = rc // suppress unused warning
+			if func() bool { rc_n, _rc_e := strconv.Atoi(rc); if _rc_e != nil { return false }; return rc_n == 0 }() {
+				vtab.TclVarSet("x", "", "ok")
+				x = "ok"
+				_ = x // suppress unused warning
+			} else if tclBool(rc + "==1 && " + msg + "==\"unable to open database file\"") {
+				vtab.TclVarSet("x", "", "ok")
+				x = "ok"
+				_ = x // suppress unused warning
+			} else {
+				x = rc + " " + msg
+				_ = x // suppress unused warning
+			}
+		}
+		{ // do_test "1.1.2"
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+				vtab.TclVarSet("i", "", "0")
+				i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nOpen_n, _nOpen_e := strconv.Atoi(nOpen); if _nOpen_e != nil { return false }; return i_n < nOpen_n }() {
+					// dbh_$i close (unsupported command, not transpiled)
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "1.1.2")
+			}
+		}
+		if tclBool(rc) {
+			// do_re_test 1.1.3 { \n      lindex $::log 0 \n    } {^os_unix.c:\d+: \(\d+\) (open|getcwd)\(... (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "1.2.1"
+		os.MkdirAll("dir.db", 0755)
+		vtab.TclVarSet("log", "", "")
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
+		_rc := "0"
+		{
+			var _catchErr error
+			dbh, err = frigolite.Open("dir.db")
+			if err != nil { _catchErr = err; dbh = nil } else { tclConnRegister("dbh", dbh) }
+			tclConnRegister("dbh", dbh)
+			if err != nil {
+				_catchErr = err
+				dbh = nil
+			} else {
+				tclConnRegister("dbh", dbh)
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+	}
+	// do_re_test 1.2.2 { lindex $::log 0 } {^os_unix.c:\d+: \(\d+\) open\(.*dir.db\) - } (unsupported command, not transpiled)
+	{ // do_test "1.3.1"
+		vtab.TclVarSet("log", "", "")
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
+		_rc := "0"
+		{
+			var _catchErr error
+			dbh, err = frigolite.Open("/x/y/z/test.db")
+			if err != nil { _catchErr = err; dbh = nil } else { tclConnRegister("dbh", dbh) }
+			tclConnRegister("dbh", dbh)
+			if err != nil {
+				_catchErr = err
+				dbh = nil
+			} else {
+				tclConnRegister("dbh", dbh)
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+	}
+	// do_re_test 1.3.2 { lindex $::log 0 } {^os_unix.c:\d+: \(\d+\) open\(.*test.db\) - } (unsupported command, not transpiled)
+	{ // do_test "1.4.1"
+		vtab.TclVarSet("log", "", "")
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
+		_rc := "0"
+		{
+			var _catchErr error
+			dbh, err = frigolite.Open("/root/test.db")
+			if err != nil { _catchErr = err; dbh = nil } else { tclConnRegister("dbh", dbh) }
+			tclConnRegister("dbh", dbh)
+			if err != nil {
+				_catchErr = err
+				dbh = nil
+			} else {
+				tclConnRegister("dbh", dbh)
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+	}
+	// do_re_test 1.4.2 { \n  lindex $::log 0\n} {^os_unix.c:\d*: \(\d+\) (open|readlink|lstat)\(.... (unsupported command, not transpiled)
+	{ // do_test "2.1.1"
+		vtab.TclVarSet("log", "", "")
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
+		os.MkdirAll("test.db-wal", 0755)
+		os.Remove("test.db")
+		_rc := "0"
+		{
+			var _catchErr error
+			dbh, err = frigolite.Open("test.db")
+			if err != nil { _catchErr = err; dbh = nil } else { tclConnRegister("dbh", dbh) }
+			tclConnRegister("dbh", dbh)
+			if err != nil {
+				_catchErr = err
+				dbh = nil
+			} else {
+				tclConnRegister("dbh", dbh)
+			}
+			r = dbh.Query(" SELECT * FROM sqlite_master ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+	}
+	// do_re_test 2.1.2 { \n    lindex $::log 0 \n  } {^os_unix.c:\d+: \(\d+\) unlink\(.*test.db-w... (unsupported command, not transpiled)
+	{ // do_test "2.1.3"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			// dbh close (unsupported command, not transpiled)
+		}
+		os.Remove("test.db-wal")
+	}
+	// test_syscall reset (unsupported command, not transpiled)
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// test_sqlite3_log (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+}

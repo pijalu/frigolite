@@ -5,8 +5,344 @@
 package cache
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_cache(t *testing.T) {}
-// skipped: pager/btree cache internals DEFERRED
+func Test_cache(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var cache_size string
+	_ = cache_size // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stats_page string
+	_ = stats_page // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	if "" == "" {
+		{ // do_test "cache-1.1"
+			// pager_cache_size db (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "cache-1.2"
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+		}
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	cache_size = "pager_cache_size db"
+	_ = cache_size // suppress unused warning
+	vtab.TclVarSet("ii", "", "0")
+	ii = "0"
+	_ = ii // suppress unused warning
+	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
+		{ // do_test "cache-1.3." + ii
+			r = db.Query("SELECT * FROM abc")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
+			}
+			// pager_cache_size db (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), cache_size) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cache_size, _res.Error, "cache-1.3." + ii)
+			}
+		}
+		// incr ii 1
+		{
+			_n, _err := strconv.Atoi(ii)
+			if _err == nil {
+				ii = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	// db_delete_and_reopen: delete test.db* and reopen
+	db.Close()
+	for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "cache-2.0"
+		r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
+			return
+		}
+		got := flatten(r)
+		want := "delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
+		{ // "cache-2.1." + i + ".1"
+			r = db.Query("PRAGMA cache_size = " + i)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + i)
+			}
+		}
+		{ // "cache-2.1." + i + ".2"
+			r = db.Query("PRAGMA cache_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(i)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "cache-2.1." + i + ".3"
+			r = db.Query("SELECT * FROM t1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+				return
+			}
+			got := flatten(r)
+			want := "x y"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "cache-2.1." + i + ".4"
+			r = db.Query("PRAGMA cache_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(i)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "0")
+	i = "0"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
+		{ // "cache-2.2." + i + ".1"
+			r = db.Query("PRAGMA main.cache_size = " + i)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA main.cache_size = " + i)
+			}
+		}
+		{ // "cache-2.2." + i + ".2"
+			r = db.Query("PRAGMA main.cache_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA main.cache_size")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(i)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "cache-2.2." + i + ".3"
+			r = db.Query("SELECT * FROM t1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+				return
+			}
+			got := flatten(r)
+			want := "x y"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "cache-2.2." + i + ".4"
+			r = db.Query("PRAGMA main.cache_size")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA main.cache_size")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(i)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	{ // "cache-2.3.1"
+		r = db.Query("\n  PRAGMA cache_size = 1;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 1;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+			return
+		}
+		got := flatten(r)
+		want := "main reserved temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "cache-2.3.2"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.3.3"
+		r = db.Query("\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+			return
+		}
+		got := flatten(r)
+		want := "main exclusive temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "cache-2.3.4"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.3.5"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+	}
+	{ // do_test "cache-2.3.6"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.3.7"
+		r = db.Query("\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 i j x y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "cache-2.3.8"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.4.1"
+		r = db.Query("\n  PRAGMA cache_size = 0;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 0;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+			return
+		}
+		got := flatten(r)
+		want := "main reserved temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "cache-2.4.2"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.4.3"
+		r = db.Query("\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
+			return
+		}
+		got := flatten(r)
+		want := "main exclusive temp closed"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "cache-2.4.4"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.4.5"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+	}
+	{ // do_test "cache-2.4.6"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	{ // "cache-2.4.7"
+		r = db.Query("\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 i j x y"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "cache-2.4.8"
+		// pager_cache_size db (unsupported command, not transpiled)
+	}
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
+}

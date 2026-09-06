@@ -5,8 +5,144 @@
 package pager4
 
 import (
+"github.com/pijalu/frigolite"
+"os"
+"strings"
 "testing"
 )
 
-func Test_pager4(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_pager4(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	if tcl_platform_os == "Windows NT" {
+		return
+	}
+	// set testdir: test directory (not used in Go test context)
+	if "" == "inmemory_journal" {
+		return
+	}
+	{ // "pager4-1.1"
+		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(673,'stone','philips');\n  SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(673,'stone','philips');\n  SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "673 stone philips"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	os.Remove("-force")
+	// file rename test.db test-xyz.db
+	{ // "pager4-1.2"
+		_res = db.Exec("\n  SELECT * FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1;\n")
+		}
+	}
+	{ // "pager4-1.3"
+		_res = db.Exec("\n  UPDATE t1 SET a=537;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  UPDATE t1 SET a=537;\n")
+		}
+	}
+	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
+	if err != nil { t.Fatal(err) }
+	_res = db2.Exec("CREATE TABLE t2(x,y,z)")
+	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	{ // "pager4-1.4"
+		_res = db.Exec("\n  UPDATE t1 SET a=948;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  UPDATE t1 SET a=948;\n")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	os.Remove("-force")
+	// file rename test-xyz.db test.db
+	{ // "pager4-1.5"
+		_res = db.Exec("\n  SELECT * FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1;\n")
+		}
+	}
+	{ // "pager4-1.6"
+		_res = db.Exec("\n  UPDATE t1 SET a=537;\n  SELECT * FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET a=537;\n  SELECT * FROM t1;\n")
+		}
+	}
+	// file rename test.db test-xyz.db
+	{ // "pager4-1.7"
+		_res = db.Exec("\n  PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;\n")
+		}
+	}
+	{ // "pager4-1.8"
+		_res = db.Exec("\n  PRAGMA journal_mode=MEMORY;\n  UPDATE t1 SET b='magpie';\n  SELECT * FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=MEMORY;\n  UPDATE t1 SET b='magpie';\n  SELECT * FROM t1;\n")
+		}
+	}
+	{ // "pager4-1.9"
+		_res = db.Exec("\n  PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';\n")
+		}
+	}
+	{ // "pager4-1.10"
+		_res = db.Exec("\n  PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';\n")
+		}
+	}
+	{ // "pager4-1.11"
+		_res = db.Exec("\n  PRAGMA journal_mode=PERSIST;\n  UPDATE t1 SET c='jaguar';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  PRAGMA journal_mode=PERSIST;\n  UPDATE t1 SET c='jaguar';\n")
+		}
+	}
+}

@@ -5,8 +5,271 @@
 package btree01
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_btree01(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_btree01(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "btree01")
+	testprefix = "btree01"
+	_ = testprefix // suppress unused warning
+	{ // "btree01-1.1"
+		r = db.Query("\n  PRAGMA page_size=65536;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n  WITH RECURSIVE\n     c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n  INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n  UPDATE t1 SET b=zeroblob(3000);\n  UPDATE t1 SET b=zeroblob(64000) WHERE a=2;\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=65536;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n  WITH RECURSIVE\n     c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n  INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n  UPDATE t1 SET b=zeroblob(3000);\n  UPDATE t1 SET b=zeroblob(64000) WHERE a=2;\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
+		{ // do_test "btree01-1.2." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
+		{ // do_test "btree01-1.3." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
+		{ // do_test "btree01-1.4." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
+		{ // do_test "btree01-1.5." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
+		{ // do_test "btree01-1.6." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
+		{ // do_test "btree01-1.7." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 31 }() {
+		{ // do_test "btree01-1.8." + i
+			r = db.Query("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + sqlLiteral(i) + ";\n      PRAGMA integrity_check;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // "btree01-2.1"
+		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INT PRIMARY KEY, b BLOB, c INT) WITHOUT ROWID;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x*2, zeroblob(100), x FROM c;\n  UPDATE t1 SET b=zeroblob(1000) WHERE a=198;\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INT);\n  INSERT INTO t2(y) VALUES(198),(187),(100);\n  SELECT y, c FROM t2 LEFT JOIN t1 ON y=a ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INT PRIMARY KEY, b BLOB, c INT) WITHOUT ROWID;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x*2, zeroblob(100), x FROM c;\n  UPDATE t1 SET b=zeroblob(1000) WHERE a=198;\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INT);\n  INSERT INTO t2(y) VALUES(198),(187),(100);\n  SELECT y, c FROM t2 LEFT JOIN t1 ON y=a ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "198 99 187 {} 100 50"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "btree01-2.2"
+		r = db.Query("\n  SELECT y, c FROM t1 RIGHT JOIN t2 ON y=a ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y, c FROM t1 RIGHT JOIN t2 ON y=a ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "198 99 187 {} 100 50"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+}

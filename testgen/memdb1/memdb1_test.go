@@ -5,8 +5,605 @@
 package memdb1
 
 import (
+"errors"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_memdb1(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_memdb1(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var B *frigolite.Backup
+	_ = B
+	var dbempty *frigolite.DB
+	_ = dbempty
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var sz1 string
+	_ = sz1 // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var direct string
+	_ = direct // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var ser string
+	_ = ser // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var seen string
+	_ = seen // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "memdb1")
+	testprefix = "memdb1"
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
+	{ // do_test "100"
+		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
+		_dbone0 := tclExecSQL(db, "{PRAGMA page_size}")
+		pgsz = _dbone0
+		_ = pgsz // suppress unused warning
+		sz1 = tclExprWith("$::pgsz*[db one {PRAGMA page_count}]", map[string]string{"::pgsz": pgsz})
+		_ = sz1 // suppress unused warning
+		// set ::db1 (skipped, DB connection)
+		// expr [string length $::db1]==$::sz1 → runtime compare
+		_r = tclBool01(toInt(strconv.Itoa(len(db1)))  ==  toInt(sz1))
+	}
+	_ = os.WriteFile("db1.db", nil, 0644)
+	fd = "db1.db"
+	_ = fd // suppress unused warning
+	tclChannelAppendAt("db1.db", db1, fileChannelSeek["fd"])
+	// close $fd
+	db.Close()
+	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	// db deserialize (no hexdb block)
+	{ // "110"
+		r = db.Query("\n  SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "120" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
+		_ = _res
+	}
+	{ // "130"
+		r = db.Query("\n  CREATE TABLE t2(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t2(x, y) SELECT x, randomblob(1000) FROM c;\n  DROP TABLE t2;\n  PRAGMA page_count;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t2(x, y) SELECT x, randomblob(1000) FROM c;\n  DROP TABLE t2;\n  PRAGMA page_count;\n")
+			return
+		}
+		got := flatten(r)
+		want := "116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "140" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  VACUUM;\n  PRAGMA page_count;\n")
+		_ = _res
+	}
+	{ // do_test "150"
+		{
+			var _catchErrMsg string // catch error message
+			_ = msg // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			// db deserialize (no hexdb block)
+			if _catchErr != nil {
+				msg = "1"
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				msg = "0"
+				_catchErrMsg = ""
+			}
+		}
+		got := tclListFlatten(msg)
+		want := tclListFlatten("unknown option: -unknown")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "150")
+		}
+	}
+	{ // do_test "151"
+		// db deserialize (no hexdb block)
+		_res = db.Exec("SELECT * FROM t1")
+	}
+	{ // do_test "152"
+		_res = db.Exec("INSERT INTO t1 VALUES(3,4);")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "INSERT INTO t1 VALUES(3,4);")
+		}
+	}
+	{ // do_test "160"
+		// db deserialize (no hexdb block)
+		_res = db.Exec("SELECT * FROM t1")
+	}
+	{ // do_test "161"
+		r = db.Query("INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "162"
+		_res = db.Exec("INSERT INTO t1 VALUES(5,randomblob(100000))")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database or disk is full") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database or disk is full", _res.Error, "INSERT INTO t1 VALUES(5,randomblob(100000))")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // "200"
+		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	fd = "test.db"
+	_ = fd // suppress unused warning
+	direct = tclReadFile(fd)
+	_ = direct // suppress unused warning
+	// close $fd
+	{ // do_test "210"
+		_r = strconv.Itoa(len(tclDbOne(db, "db serialize"))) // string length result
+	}
+	{ // do_test "220"
+		_res = db.Exec("ATTACH ':memory:' AS aux1")
+		// db deserialize (no hexdb block)
+		_res = db.Exec("\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // "300"
+		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "310"
+		_res = db.Exec("ATTACH ':memory:' AS aux1")
+		// db deserialize (no hexdb block)
+		_res = db.Exec("\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	// db deserialize (no hexdb block)
+	{ // "400"
+		r = db.Query("\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "410"
+		r = db.Query("\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES('hello','world!');\n  PRAGMA integrity_check;\n  SELECT * FROM t4;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES('hello','world!');\n  PRAGMA integrity_check;\n  SELECT * FROM t4;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok hello world!"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "420"
+		r = db.Query("\n  PRAGMA journal_mode=TRUNCATE;\n  PRAGMA journal_mode=OFF;\n  PRAGMA journal_mode=DELETE;\n  PRAGMA journal_mode=WAL;\n  PRAGMA journal_mode=PERSIST;\n  PRAGMA journal_mode=MEMORY;\n  PRAGMA journal_mode=OFF;\n  PRAGMA journal_mode=DELETE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode=TRUNCATE;\n  PRAGMA journal_mode=OFF;\n  PRAGMA journal_mode=DELETE;\n  PRAGMA journal_mode=WAL;\n  PRAGMA journal_mode=PERSIST;\n  PRAGMA journal_mode=MEMORY;\n  PRAGMA journal_mode=OFF;\n  PRAGMA journal_mode=DELETE;\n")
+			return
+		}
+		got := flatten(r)
+		want := "truncate off delete delete persist memory off delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // do_test "500"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// db deserialize (no hexdb block)
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // "510"
+		_res = db.Exec("\n  PRAGMA integrity_check;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "file is not a database", _res.Error, "\n  PRAGMA integrity_check;\n")
+		}
+	}
+	{ // do_test "600"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "610"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// db deserialize (no hexdb block)
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "620"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // do_test "650"
+		_res = db.Exec("\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
+	_ = rc // suppress unused warning
+	var _err_tcl string
+	_ = _err_tcl // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// db deserialize (no hexdb block)
+			if _catchErr != nil {
+				rc = "1"
+				_err_tcl = _catchErr.Error()
+			} else {
+				rc = "0"
+				_err_tcl = ""
+			}
+		}
+		rc = tclListAppend(rc, "err")
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "700"
+		r = db.Query("\n    CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;\n  ")
+		}
+	}
+	{ // do_test "710"
+		ser = tclDbOne(db, "db serialize main")
+		_ = ser // suppress unused warning
+		db.Close()
+		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		// db deserialize (no hexdb block)
+		_res = db.Exec("\n      CREATE VIRTUAL TABLE t1 USING rtree(id, a, b, c, d);\n    ")
+		_ = _res // catchsql
+	}
+	if tclBool("wal_is_capable") {
+		db.Close()
+		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		{ // "800"
+			r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "wal"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		db.Close()
+		fd = "test.db"
+		_ = fd // suppress unused warning
+		data = tclReadFileWithLen(fd, [expr)
+		_ = data // suppress unused warning
+		// close $fd
+		db, err = frigolite.Open("")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		// db deserialize (no hexdb block)
+		{ // "810"
+			r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "exclusive 1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "820"
+			r = db.Query("\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "830"
+			_res = db.Exec("\n    PRAGMA wal_checkpoint;\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    PRAGMA wal_checkpoint;\n  ")
+			}
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	dbempty, err = frigolite.Open(":memory:")
+	if err != nil { t.Fatal(err) }
+	tclConnRegister("dbempty", dbempty)
+	if err != nil { t.Fatal(err) }
+	{ // do_test "900"
+		_len = strconv.Itoa(len("dbempty serialize"))
+		_ = _len // suppress unused warning
+		// expr $len>0 (not evaluated)
+	}
+	// dbempty close (unsupported command, not transpiled)
+	{ // "1000"
+		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
+		}
+	}
+	blob = tclDbOne(db, "db serialize main")
+	_ = blob // suppress unused warning
+	{ // do_test "1010"
+		vtab.TclVarSet("seen", "", "0")
+		seen = "0"
+		_ = seen // suppress unused warning
+		_rc := "0"
+		{
+			var _catchErr error
+			_dbevalRows1 := db.Query("SELECT x FROM t")
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			var _dbevalInt4 bool
+			db.BeginActiveStatement()
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+					switch _dbevalRows1.Columns[_ci] {
+						case "seen":
+							seen = tclStr(_dbevalRows1.Rows[_ri][_ci])
+						case "blob":
+							blob = tclStr(_dbevalRows1.Rows[_ri][_ci])
+					}
+				}
+				// incr seen 1
+				{
+					_n, _err := strconv.Atoi(seen)
+					if _err == nil {
+						seen = strconv.Itoa(_n + 1)
+					}
+				}
+				if func() bool { seen_n, _seen_e := strconv.Atoi(seen); if _seen_e != nil { return false }; return seen_n == 1 }() {
+					// db deserialize (no hexdb block)
+				}
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); db.ClearInterrupt() }
+			}
+			db.EndActiveStatement()
+			if _dbevalErr3 != nil {
+				_catchErr = _dbevalErr3
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+	}
+	os.Remove("test.db2")
+	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
+	if err != nil { t.Fatal(err) }
+	{ // do_test "1020"
+		vtab.TclVarSet("seen", "", "0")
+		seen = "0"
+		_ = seen // suppress unused warning
+		B, _berr = tclBackupInit(db2, "main", db, "main")
+		if _berr != nil {
+			// sqlite3_backup_init failed; the error message is on the source connection
+			B = nil
+			_ = B
+		} else {
+			_r = "B"
+		}
+		_r = tclBackupStep(B, "2")
+		res = "0" + " " + msg
+		_ = res // suppress unused warning
+		_r = tclBackupFinish(B)
+		got := tclListFlatten(res)
+		want := tclListFlatten("1 unable to set MEMDB content")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1020")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "1100"
+		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
+		}
+	}
+	blob = tclDbOne(db, "db serialize main")
+	_ = blob // suppress unused warning
+	os.Remove("test.db2")
+	db2, err = frigolite.Open("test.db2")
+	tclConnRegister("db2", db2)
+	if err != nil { t.Fatal(err) }
+	{ // do_test "1110"
+		vtab.TclVarSet("seen", "", "0")
+		seen = "0"
+		_ = seen // suppress unused warning
+		B, _berr = tclBackupInit(db2, "main", db, "main")
+		if _berr != nil {
+			// sqlite3_backup_init failed; the error message is on the source connection
+			B = nil
+			_ = B
+		} else {
+			_r = "B"
+		}
+		// db2.deserialize (db command)
+		_r = tclBackupStep(B, "2")
+		_r = tclBackupFinish(B)
+		if _r != "SQLITE_OK" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "SQLITE_OK", "1110")
+		}
+	}
+}

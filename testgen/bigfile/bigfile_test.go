@@ -5,8 +5,300 @@
 package bigfile
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_bigfile(t *testing.T) {}
-// skipped: >4GB large-file TCL harness + msg redeclare transpiler bug N-A
+func Test_bigfile(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var MAGIC_SUM string
+	_ = MAGIC_SUM // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var vx string
+	_ = vx // pre-declared from TCL source
+
+	if tclBool("file exists skip-big-file") {
+		return
+	}
+	if tcl_platform_os == "Darwin" {
+		return
+	}
+	// set testdir: test directory (not used in Go test context)
+	// do_not_use_codec (unsupported command, not transpiled)
+	// scan $::tcl_version %f vx (unsupported command, not transpiled)
+	if vx < "8.4" {
+		return
+	}
+	if tcl_platform_os == "Darwin" {
+		return
+	}
+	vtab.TclVarSet("MAGIC_SUM", "", "593f1efcfdbe698c28b4b1b693f7e4cf")
+	MAGIC_SUM = "593f1efcfdbe698c28b4b1b693f7e4cf"
+	_ = MAGIC_SUM // suppress unused warning
+	{ // do_test "bigfile-1.1"
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyz');\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyz');\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    COMMIT;\n  ")
+		}
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.1")
+		}
+	}
+	db.Close()
+	{
+		var _catchErr error
+		// fake_big_file 4096 [get_pwd]/test.db (unsupported command, not transpiled)
+		if _catchErr != nil {
+			msg = "1"
+			msg = _catchErr.Error()
+		} else {
+			msg = "0"
+			msg = ""
+		}
+	}
+	if msg == "1" {
+		_putsMsg := "**** Unable to create a file larger than 4096 MB. *****"
+		_ = _putsMsg
+		return
+	}
+	tclHexioWrite("test.db", int64(28), "00000000")
+	{ // do_test "bigfile-1.2"
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.2")
+		}
+	}
+	if func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(tclLLength("info command db"))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n <= r_n }() {
+		_putsMsg := "**** Large file support appears to be broken. *****"
+		_ = _putsMsg
+		return
+	}
+	{ // do_test "bigfile-1.3"
+		r = db.Query("\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.3")
+		}
+	}
+	{ // do_test "bigfile-1.4"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.4")
+		}
+	}
+	db.Close()
+	if false {
+		_putsMsg := "**** Unable to create a file larger than 8192 MB. *****"
+		_ = _putsMsg
+		return
+	}
+	tclHexioWrite("test.db", int64(28), "00000000")
+	{ // do_test "bigfile-1.5"
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.5")
+		}
+	}
+	{ // do_test "bigfile-1.6"
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.6")
+		}
+	}
+	{ // do_test "bigfile-1.7"
+		r = db.Query("\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.7")
+		}
+	}
+	{ // do_test "bigfile-1.8"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.8")
+		}
+	}
+	{ // do_test "bigfile-1.9"
+		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.9")
+		}
+	}
+	db.Close()
+	if false {
+		_putsMsg := "**** Unable to create a file larger than 16384 MB. *****"
+		_ = _putsMsg
+		return
+	}
+	tclHexioWrite("test.db", int64(28), "00000000")
+	{ // do_test "bigfile-1.10"
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.10")
+		}
+	}
+	{ // do_test "bigfile-1.11"
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.11")
+		}
+	}
+	{ // do_test "bigfile-1.12"
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
+		_ = err
+		db.ResetChangesCounters()
+		r = db.Query("\n    SELECT md5sum(x) FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t3;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.12")
+		}
+	}
+	{ // do_test "bigfile-1.13"
+		r = db.Query("\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.13")
+		}
+	}
+	{ // do_test "bigfile-1.14"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.14")
+		}
+	}
+	{ // do_test "bigfile-1.15"
+		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.15")
+		}
+	}
+	{ // do_test "bigfile-1.16"
+		r = db.Query("\n    SELECT md5sum(x) FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t3;\n  ")
+		}
+		if flatten(r) != tclListFlatten(MAGIC_SUM) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(MAGIC_SUM), "bigfile-1.16")
+		}
+	}
+}
