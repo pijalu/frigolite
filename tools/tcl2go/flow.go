@@ -250,6 +250,12 @@ func bodyEndsWithBackupResult(bodyCmds [][]tcl.RawWord) bool {
 	if len(last) >= 3 && last[0].Text == "file" && last[1].Text == "size" {
 		return true
 	}
+	// `hexio_read` / `hexio_get_int` bodies (filefmt-1.5.x.2 reads the
+	// page-size field; filefmt-2.x reads the db-size header word): the
+	// transpiled handler leaves the value in `_r`.
+	if last[0].Text == "hexio_read" || last[0].Text == "hexio_get_int" {
+		return true
+	}
 	return false
 }
 

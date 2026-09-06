@@ -388,6 +388,8 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 			pr.headerCorrupt = true
 		} else {
 			pr.pageSize = hdr.PageSize
+			pr.header = make([]byte, HeaderSize)
+			copy(pr.header, headerBuf)
 			// Header byte 20: bytes reserved at the end of every page (used by
 			// e.g. codec/checksum extensions). Payload distribution math must use
 			// the USABLE size (pageSize - reserved), not the raw page size —
@@ -573,6 +575,35 @@ func (p *Pager) UsableSize() uint32 { return p.pageSize - p.reserved }
 // succeed on an image with a corrupt freelist pointer so integrity_check
 // can REPORT the corruption (pragma6-1.2 loads a DB whose header trunk is
 // 12255232; integrity_check returns the freelist message as a row).
+// validateLockBtreeHeader mirrors btree.c lockBtree's page-1 header checks
+// (SQLITE_NOTADB surface as "file is not a database"): magic prefix,
+// payload fractions at offsets 21-23 (must be 64/32/32), page size at
+// offset 16-17 (power of 2 in [512, 65536]; value 1 means 65536), and
+// usable size (pageSize - reserved byte 20) >= 480. filefmt-1.2/1.6/1.7/1.8.
+func validateLockBtreeHeader(hdr []byte) error {
+	notadb := func() error { return fmt.Errorf("file is not a database") }
+	if len(hdr) < HeaderSize {
+		return notadb()
+	}
+	if string(hdr[:16]) != storage.HeaderMagic {
+		return notadb()
+	}
+	if hdr[21] != 64 || hdr[22] != 32 || hdr[23] != 32 {
+		return notadb()
+	}
+	ps := uint32(hdr[16])<<8 | uint32(hdr[17])
+	if ps == 1 {
+		ps = 65536
+	}
+	if ps < 512 || ps > 65536 || (ps&(ps-1)) != 0 {
+		return notadb()
+	}
+	if ps-uint32(hdr[20]) < 480 {
+		return notadb()
+	}
+	return nil
+}
+
 func (p *Pager) ValidateHeader() error {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -585,7 +616,15 @@ func (p *Pager) ValidateHeader() error {
 	// rely on this (Open succeeds, the next SELECT * FROM sqlite_master
 	// returns the error).
 	if p.headerCorrupt {
-		return fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("file is not a database")
+	}
+	// lockBtree field checks (btree.c): magic, payload fractions
+	// (offsets 21-23 must be 64/32/32), page size (offset 16-17: power of
+	// 2 in [512, maxPageSize]), and usable size >= 480. filefmt-1.2/1.6/1.7
+	// (bad magic, page size 1025/256) and filefmt-1.8 (usable 512-33<480)
+	// expect SQLITE_NOTADB ("file is not a database") at prepare time.
+	if err := validateLockBtreeHeader(p.header); err != nil {
+		return err
 	}
 	// lockBtree (btree.c:3401): a header page count (offset 28, trusted
 	// only when the change counter matches version-valid-for) that
@@ -1183,7 +1222,13 @@ func (p *Pager) InvalidateCache() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.pages = make(map[uint32]*Page)
-	p.header = nil
+	// Preserve the headerCorrupt deferral across cache invalidation (do NOT
+	// clear p.header here either): the on-disk image is still corrupt
+	// (filefmt-1.2 patches the magic then reopens; the new connection's
+	// external-mod check drops the page cache before the first schema
+	// read). Clearing the header would let ValidateHeader see a nil header
+	// and pass, serving stale rows. The next ReadPage re-reads page 1 from
+	// disk including the corrupt header bytes.
 	if p.wal != nil {
 		// Rebuild the cache from the WAL's committed frames; this restores
 		// numPages/header that the stale main file no longer reflects. The

@@ -802,7 +802,8 @@ func procNameFromRest(rest []tcl.RawWord) string {
 }
 
 // emitMiscRecurseSQLUDF detects the tkt3718.test proc body shapes (f1/f2)
-// and emits an equivalent RegisterFunction:
+// and the filefmt.test a_string shape, and emits an equivalent
+// RegisterFunction:
 //
 //	f2: {set a [lindex $args 0]; if {$a == "three"} { error "Three!!" };
 //	    return $a}  →  identity UDF with "three" → error("Three!!")
@@ -849,6 +850,19 @@ func (tp *transpiler) emitMiscRecurseSQLUDF(name, procName string) bool {
 		tp.emitLine("\tif r.Error != nil { return r.Error.Error(), nil }")
 		tp.emitLine("\tif len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return nil, nil }")
 		tp.emitLine("\treturn r.Rows[0][0], nil")
+		tp.emitLine("}, 1, 1)")
+		return true
+	}
+	// a_string shape (filefmt.test): {incr ::a_string_counter; string range
+	// [string repeat "${::a_string_counter}." $n] 1 $n} → counter-suffixed
+	// string of length n (tclAString implements the counter + repeat/range).
+	if strings.EqualFold(procName, "a_string") &&
+		strings.Contains(body, "a_string_counter") && strings.Contains(body, "string repeat") {
+		tp.emitLine("// db func a_string a_string (filefmt — counter-suffixed string)")
+		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return \"\", nil }")
+		tp.emitLine("\tn := tclToInt(tclStr(args[0]))")
+		tp.emitLine("\treturn tclAString(&a_string_counter, n), nil")
 		tp.emitLine("}, 1, 1)")
 		return true
 	}

@@ -379,6 +379,8 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"open":              (*transpiler).processOpen,
 		"fconfigure":        (*transpiler).processFConfigure,
 		"hexio_write":       (*transpiler).processHexioWrite,
+		"hexio_read":        (*transpiler).processHexioRead,
+		"hexio_get_int":     (*transpiler).processHexioGetInt,
 		"chan":              (*transpiler).processChanSubcommand,
 		"sqlite3_normalize": func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("sqlite3_normalize", args) },
 		"verify_db":         func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("verify_db", args) },
@@ -507,6 +509,29 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 	}
 	// Bare query-proc / eqp / reopen-db procs (all inline a value or setup).
 	if tp.inlineDefaultQueryProc(cmdName, args) {
+		return
+	}
+	// sql36231 (tester.tcl): runs SQL on a second connection then restores
+	// the db-size header words (offsets 28 + 92), hiding the page-count
+	// growth from the filefmt-2.x assertions. Mirror it: snapshot the two
+	// header words, exec the SQL on a second connection, restore them.
+	if cmdName == "sql36231" && len(args) >= 1 {
+		sqlExpr := tp.collectSQLExpression(args)
+		tp.emitLine("_r36231A := tclHexioRead(\"test.db\", 28, 4)")
+		tp.emitLine("_r36231B := tclHexioRead(\"test.db\", 92, 8)")
+		tp.emitLine("db36231, _err36231 := frigolite.Open(\"test.db\")")
+		tp.emitLine("if _err36231 == nil {")
+		tp.emitLine("\tdb36231.RegisterFunction(\"a_string\", func(args []interface{}) (interface{}, error) {")
+		tp.emitLine("\t\tif len(args) < 1 || args[0] == nil { return \"\", nil }")
+		tp.emitLine("\t\treturn tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil")
+		tp.emitLine("\t}, 1, 1)")
+		tp.emitLine("\t_res36231 := db36231.Exec(%s)", sqlExpr)
+		tp.emitLine("\t_ = _res36231")
+		tp.emitLine("\tdb36231.Close()")
+		tp.emitLine("}")
+		tp.emitLine("tclHexioWrite(\"test.db\", 28, _r36231A)")
+		tp.emitLine("tclHexioWrite(\"test.db\", 92, _r36231B)")
+		tp.emitLine("_r = \"\"")
 		return
 	}
 

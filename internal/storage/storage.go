@@ -303,8 +303,13 @@ type Cell struct {
 func MaxLocalPayload(pageSize int, cellType CellType) int {
 	usable := pageSize
 	switch cellType {
-	case CellTableLeaf, CellIndexLeaf:
+	case CellTableLeaf:
 		return usable - 35
+	case CellIndexLeaf:
+		// btree.c btreeInitPage: index leaves use maxLocal, table leaves
+		// use maxLeaf (filefmt-2.1.1: the i1 index entry for the 3000-byte
+		// value spills to 3 overflow pages, not 2).
+		return (usable-12)*64/255 - 23
 	default:
 		return (usable-12)*64/255 - 23
 	}

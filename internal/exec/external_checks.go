@@ -74,11 +74,22 @@ func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool) (changed bool, er
 	if upper == "TEMP" || upper == "TEMPORARY" {
 		return false, nil
 	}
+	// lockBtree header validation runs on every statement (filefmt-1.2/1.6/1.7:
+	// an externally patched magic/page-size must fail the NEXT statement with
+	// "file is not a database"). The external-change check runs FIRST so a
+	// second connection's writes (sql36231's DROP TABLE + header-word restore
+	// in filefmt-3.2) refresh the pager's header cache before validation;
+	// validating the stale pre-drop header against the truncated file would
+	// mis-report "malformed" (HeaderBeyondFile) instead of running on the
+	// new image (SQLite's shared-lock re-reads page 1 before lockBtree).
 	if ctx.Pager.CheckExternalFile() {
 		if ctx.Schema != nil {
 			ctx.Schema.InvalidateCache()
 		}
 		changed = true
+	}
+	if verr := ctx.Pager.ValidateHeader(); verr != nil {
+		return changed, verr
 	}
 	if !writableSchema && ctx.Pager.HeaderBeyondFile() {
 		return changed, fmt.Errorf("database disk image is malformed")

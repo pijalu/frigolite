@@ -198,6 +198,26 @@ func tclToInt(s string) int {
 	return n
 }
 
+// tclAString implements filefmt.test's a_string proc: increment the shared
+// counter and return the 1..n slice of ("<counter>." repeated n times).
+// The counter Go variable is passed by pointer because the helper template
+// cannot see the test-local variable name scope; call sites pass
+// &a_string_counter.
+func tclAString(counter *string, n int) string {
+	c, _ := strconv.Atoi(strings.TrimSpace(*counter))
+	c++
+	*counter = strconv.Itoa(c)
+	if n <= 0 {
+		return ""
+	}
+	unit := strconv.Itoa(c) + "."
+	s := strings.Repeat(unit, n)
+	if len(s) < n+1 {
+		return s
+	}
+	return s[1 : n+1]
+}
+
 // tclFilePages returns the page count of the test database by reading the
 // in-header db size (offset 28) and dividing by the page size. The page size
 // is the user-configured one (1024 in autovacuum.test, 4096 in
@@ -384,6 +404,50 @@ func tclFileCopy(src, dst string) {
 	data, err := os.ReadFile(src)
 	if err != nil { return }
 	os.WriteFile(dst, data, 0644)
+}
+
+// tclHexioRead implements hexio_read (test_hexio.c): read amt bytes at
+// offset and return them as an uppercase hex string.
+func tclHexioRead(file string, offset, amt int64) string {
+	f, err := os.Open(file)
+	if err != nil { return "" }
+	defer f.Close()
+	buf := make([]byte, amt)
+	n, _ := f.ReadAt(buf, offset)
+	return strings.ToUpper(hex.EncodeToString(buf[:n]))
+}
+
+// tclHexioReadInt reads amt bytes at offset as a big-endian integer
+// (hexio_get_int [hexio_read file off amt]).
+func tclHexioReadInt(file string, offset, amt int64) int64 {
+	f, err := os.Open(file)
+	if err != nil { return 0 }
+	defer f.Close()
+	buf := make([]byte, amt)
+	n, _ := f.ReadAt(buf, offset)
+	buf = buf[:n]
+	// Pad short reads on the left like test_hexio.c (nOut<4 zero-pads).
+	if len(buf) < 4 {
+		pad := make([]byte, 4-len(buf))
+		buf = append(pad, buf...)
+	} else if len(buf) > 4 {
+		buf = buf[len(buf)-4:]
+	}
+	return int64(binary.BigEndian.Uint32(buf))
+}
+
+// tclHexioGetInt interprets a hex string as a big-endian integer
+// (hexio_get_int HEXDATA).
+func tclHexioGetInt(hexStr string) int64 {
+	data, err := hex.DecodeString(strings.TrimSpace(hexStr))
+	if err != nil || len(data) == 0 { return 0 }
+	if len(data) < 4 {
+		pad := make([]byte, 4-len(data))
+		data = append(pad, data...)
+	} else if len(data) > 4 {
+		data = data[len(data)-4:]
+	}
+	return int64(binary.BigEndian.Uint32(data))
 }
 
 // tclHexioWrite implements the test framework's hexio_write: decode hexStr

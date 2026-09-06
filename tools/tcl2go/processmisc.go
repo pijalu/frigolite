@@ -411,6 +411,58 @@ func evalInt2strExpected(text string) (string, bool) {
 	return result, true
 }
 
+// processHexioRead handles: hexio_read file offset amount — read bytes from
+// the database file and return them as an uppercase hex string (test_hexio.c).
+// filefmt-1.5.x.2 reads the page-size field (offset 16, 2 bytes) and expects
+// the decimal page size via hexio_get_int; other suites read header words.
+func (tp *transpiler) processHexioRead(args []tcl.RawWord) {
+	if len(args) < 3 {
+		return
+	}
+	fileExpr := tp.corruptFileArgExpr(args[0])
+	offExpr := tp.corruptIntArgExpr(args[1])
+	amtExpr := tp.corruptIntArgExpr(args[2])
+	if fileExpr == "" || offExpr == "" || amtExpr == "" {
+		tp.emitLine("// hexio_read %s (unsupported arguments)", sanitizeTCLComment(describeArgsShort(args)))
+		return
+	}
+	tp.emitLine("_r = tclHexioRead(%s, int64(%s), int64(%s))", fileExpr, offExpr, amtExpr)
+}
+
+// processHexioGetInt handles: hexio_get_int [-littleendian] HEXDATA —
+// interpret hex bytes as a big-endian integer (test_hexio.c). The common
+// form is nested (hexio_get_int [hexio_read file off amt]); when the inner
+// word is a hexio_read substitution, emit a direct integer read.
+func (tp *transpiler) processHexioGetInt(args []tcl.RawWord) {
+	if len(args) < 1 {
+		return
+	}
+	inner := args[0]
+	if len(args) >= 2 && strings.TrimSpace(args[0].Text) == "-littleendian" {
+		inner = args[1]
+	}
+	text := strings.TrimSpace(inner.Text)
+	if strings.HasPrefix(text, "hexio_read ") || strings.HasPrefix(text, "[hexio_read ") {
+		innerText := strings.Trim(strings.TrimSpace(strings.TrimPrefix(strings.TrimPrefix(text, "["), "hexio_read")), " ]")
+		parts := strings.Fields(innerText)
+		if len(parts) >= 3 {
+			fileExpr := tp.corruptFileArgExpr(tcl.RawWord{Text: parts[0]})
+			offExpr := tp.corruptIntArgExpr(tcl.RawWord{Text: parts[1]})
+			amtExpr := tp.corruptIntArgExpr(tcl.RawWord{Text: parts[2]})
+			if fileExpr != "" && offExpr != "" && amtExpr != "" {
+				tp.emitLine("_r = strconv.FormatInt(tclHexioReadInt(%s, int64(%s), int64(%s)), 10)", fileExpr, offExpr, amtExpr)
+				return
+			}
+		}
+	}
+	hexExpr := tp.corruptStringArgExpr(inner)
+	if hexExpr == "" {
+		tp.emitLine("// hexio_get_int %s (unsupported arguments)", sanitizeTCLComment(describeArgsShort(args)))
+		return
+	}
+	tp.emitLine("_r = strconv.FormatInt(tclHexioGetInt(%s), 10)", hexExpr)
+}
+
 // processHexioWrite handles: hexio_write file offset hexdata — patch the
 // database file in place with hex-decoded bytes (corruption tests).
 func (tp *transpiler) processHexioWrite(args []tcl.RawWord) {

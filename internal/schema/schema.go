@@ -288,6 +288,12 @@ func (m *Manager) ConsumeExternalInvalidation() bool {
 // cache; commits by other connections (a NEWER counter) do.
 func (m *Manager) checkExternalMod() {
 	if m.pager == nil || !m.trackExternalMod {
+		// Even without tracking, a deferred header-corruption flag means the
+		// on-disk image failed to parse at Open (filefmt-1.2: magic patched
+		// before reopen). The pager cache still holds the good page-1 image
+		// from Open... but Open never caches page 1 on a parse failure, so
+		// nothing to drop — the ValidateHeader gate in FindTable/GetEntries
+		// reports "file is not a database" from the flag alone.
 		return
 	}
 	// The engine resets checkedThisStmt at the start of each outermost
@@ -396,6 +402,14 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 func (m *Manager) FindTable(name string) (*Entry, error) {
 	// Detect external file modification before reading the schema btree.
 	m.checkExternalMod()
+	// lockBtree (btree.c) validates the db header on every schema access:
+	// a corrupt header must fail even for synthetic system tables
+	// (filefmt-1.2/1.6/1.7 corrupt magic/page-size then SELECT from
+	// sqlite_master). Without this gate the synthetic sqlite_master entry
+	// bypassed GetEntries/ValidateHeader and served stale rows.
+	if err := m.pager.ValidateHeader(); err != nil {
+		return nil, err
+	}
 	// If the name has a schema prefix (e.g. "aux.t4"), try the full name first
 	// to support tables in attached databases, then fall back to the short name.
 	searchNames := []string{name}

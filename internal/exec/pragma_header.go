@@ -246,10 +246,14 @@ func (e *Engine) execPragmaApplicationID(ctx *DatabaseContext, value string) *Re
 	return &Result{Rows: [][]interface{}{{n}}}
 }
 
-// execPragmaPageSize implements PRAGMA page_size. Setting page_size on an
-// empty database records the desired page size in the header; the engine uses
-// a fixed page size at open (changing it after pages exist is a no-op, as
-// SQLite only honors it before the first table is created).
+// execPragmaPageSize implements PRAGMA page_size. The requested size is
+// honored only on an empty database outside a transaction; any other set
+// is a silent no-op (pragma.c: an invalid size, a non-empty db, or an open
+// write transaction leaves the value unchanged and reports no error).
+// Oracle: PRAGMA page_size={511,65537,1234} on an empty db keeps the prior
+// value (pagesize-1.4/1.7/1.8); PRAGMA page_size=2048 after CREATE TABLE is
+// ignored (pagesize-1.3); PRAGMA page_size=2048 inside BEGIN..COMMIT does
+// not change main.page_size (pagesize-3.1/3.3).
 func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result {
 	if ctx == nil {
 		ctx = e.mainDB
@@ -257,10 +261,13 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 	if value != "" {
 		n, err := parseInt64Value(value)
 		if err != nil {
-			return &Result{Error: fmt.Errorf("cannot store %s: not an integer", value)}
+			return &Result{}
 		}
 		if n < 512 || n > 65536 || (n&(n-1)) != 0 {
-			return &Result{Error: fmt.Errorf("out of range: %d", n)}
+			return &Result{}
+		}
+		if e.tx.inTransaction {
+			return &Result{}
 		}
 		// Only honored before any table exists (SQLite errors with
 		// "unsupported file format" only for a mismatch at open; setting

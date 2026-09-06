@@ -40,11 +40,32 @@ func (p *Pager) CheckExternalFile() bool {
 	if changed {
 		p.knownFileVers = vers
 		p.knownFileSize = size
+		p.fileSize = size
+		// Re-read page 1's header from disk now (SQLite's shared-lock
+		// re-reads page 1 before lockBtree): callers validate the header
+		// immediately after, and the cached copy would otherwise be the
+		// stale pre-change image (filefmt-3.2's sql36231 DROP TABLE +
+		// header-word restore shrinks the file under the first connection).
+		// Clear the page cache too (pager.c pager_reset on external change).
+		p.pages = make(map[uint32]*Page)
+		p.header = nil
+		if p.file != nil {
+			buf := make([]byte, HeaderSize)
+			if _, err := p.file.ReadAt(buf, 0); err == nil {
+				p.header = buf
+			}
+			if info, err := p.file.Stat(); err == nil {
+				p.fileSize = info.Size()
+				if p.pageSize > 0 {
+					p.numPages = uint32(info.Size() / int64(p.pageSize))
+					if p.numPages == 0 && info.Size() > 0 {
+						p.numPages = 1
+					}
+				}
+			}
+		}
 	}
 	p.mu.Unlock()
-	if changed {
-		p.InvalidateCache()
-	}
 	return changed
 }
 
