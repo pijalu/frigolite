@@ -678,6 +678,14 @@ func (tp *transpiler) inlineDefaultQueryProc(cmdName string, args []tcl.RawWord)
 	// A bare query-proc call (e.g. `signature` where `proc signature {}
 	// { return [db eval {SQL}] }`) returns the query result; inline it
 	// so a do_test body ending in `signature` compares the result.
+	// memdb.test's `signature` (with-args proc over SELECT x FROM t3)
+	// is fingerprinted as memdb_signature: emit the t3 fingerprint.
+	if len(args) == 0 {
+		if body, ok := globalProcBodies[cmdName]; ok && userProcEmitterFor(cmdName, body) == "memdb_signature" {
+			tp.emitLine("_r = tclMemdbSignature(%s)", tp.dbVar)
+			return true
+		}
+	}
 	if len(tp.queryFuncs) > 0 {
 		if sql, ok := tp.queryFuncs[cmdName]; ok {
 			sqlExpr := tp.buildSQLStringExpr(sql)

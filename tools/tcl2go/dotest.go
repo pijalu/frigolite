@@ -764,40 +764,49 @@ func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bo
 		return
 	}
 	if bodyEndsWithQueryFunc(bodyCmds, tp.queryFuncs) {
-			// The body ends with a query-proc call (e.g. `execsql {...}
-			// signature`); the last command's query result is in `_r` and the
-			// expected value is that result list.
+		// The body ends with a query-proc call (e.g. `execsql {...}
+		// signature`); the last command's query result is in `_r` and the
+		// expected value is that result list.
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
+	// memdb.test .2 bodies end in a bare `signature` call (the t3
+	// rollback fingerprint via tclMemdbSignature in _r). queryFuncs does
+	// not cover it (with-args proc), so dispatch on the fingerprint here.
+	if len(bodyCmds) >= 1 && len(bodyCmds[len(bodyCmds)-1]) == 1 && bodyCmds[len(bodyCmds)-1][0].Text == "signature" {
+		if body, ok := globalProcBodies["signature"]; ok && userProcEmitterFor("signature", body) == "memdb_signature" {
 			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
 			return
 		}
-		if bodyEndsWithCommandName(bodyCmds, "quota_list") {
-			// quota.test: the body's last command is `quota_list`; the
-			// sorted pattern list is in `_r` and the expected value is
-			// that list (quota-4.4.1: [list $quotagroup]).
-			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-			return
-		}
-		if bodyEndsWithCommandName(bodyCmds, "quota_size") {
-			// quota.test: the body's last command is `quota_size NAME`;
-			// the tracked group size is in `_r` (quota-4.4.6/4.4.7).
-			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-			return
-		}
-		if bodyEndsWithQuotaValueCmd(bodyCmds) {
-			// The body's last command is a value-producing quota command
-			// (fopen/fread/fwrite/ftell/file_size/...); the transpiler
-			// left its result in _r and the expected value is that result
-			// (quota2.test 1.1/1.2.1/1.3/...).
-			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-			return
-		}
-		if bodyEndsWithQuotaGlob(bodyCmds) {
-			// test/quota-glob.test: the body's last command is
-			// `sqlite3_quota_glob PATTERN TEXT`; the transpiler mapped it to
-			// a runtime helper that left the "1"/"0" match result in `_r`.
-			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-			return
-		}
+	}
+	if bodyEndsWithCommandName(bodyCmds, "quota_list") {
+		// quota.test: the body's last command is `quota_list`; the
+		// sorted pattern list is in `_r` and the expected value is
+		// that list (quota-4.4.1: [list $quotagroup]).
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
+	if bodyEndsWithCommandName(bodyCmds, "quota_size") {
+		// quota.test: the body's last command is `quota_size NAME`;
+		// the tracked group size is in `_r` (quota-4.4.6/4.4.7).
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
+	if bodyEndsWithQuotaValueCmd(bodyCmds) {
+		// The body's last command is a value-producing quota command
+		// (fopen/fread/fwrite/ftell/file_size/...); the transpiler
+		// left its result in _r and the expected value is that result
+		// (quota2.test 1.1/1.2.1/1.3/...).
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
+	if bodyEndsWithQuotaGlob(bodyCmds) {
+		// test/quota-glob.test: the body's last command is
+		// `sqlite3_quota_glob PATTERN TEXT`; the transpiler mapped it to
+		// a runtime helper that left the "1"/"0" match result in `_r`.
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
 	if bodyEndsWithEQP(bodyCmds) {
 		// The body ends with `eqp "SQL"` — the EXPLAIN QUERY PLAN detail
 		// list is in `_r` and the expected value is that list (e_fkey-26.x).

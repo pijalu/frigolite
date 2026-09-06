@@ -68,6 +68,19 @@ func (e *Engine) Status(name string) (current, highwater int64) {
 	switch strings.ToUpper(name) {
 	case "SQLITE_STATUS_MEMORY_USED", "MEMORY_USED":
 		current = e.schemaBytes()
+	case "SQLITE_STATUS_PAGECACHE_USED", "PAGECACHE_USED":
+		// The engine has no fixed-slot pagecache allocator; every cached
+		// page is heap memory. Report the page-cache occupancy in pages
+		// so the counter is self-consistent (memsubsys1's exact-count
+		// assertions against C slot counts remain N-A — see the native
+		// memory-status test).
+		if e.mainDB != nil && e.mainDB.Pager != nil {
+			current = int64(e.mainDB.Pager.NumPages())
+		}
+	case "SQLITE_STATUS_PAGECACHE_OVERFLOW", "PAGECACHE_OVERFLOW",
+		"SQLITE_STATUS_SCRATCH_USED", "SCRATCH_USED",
+		"SQLITE_STATUS_MALLOC_SIZE", "MALLOC_SIZE":
+		current = 0
 	default:
 		current = 0
 	}

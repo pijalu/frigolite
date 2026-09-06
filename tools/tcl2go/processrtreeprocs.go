@@ -31,6 +31,10 @@ func userProcEmitterFor(name, body string) string {
 		if strings.Contains(body, "string range") {
 			return "rtreea_truncate"
 		}
+	case "signature":
+		if strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length") {
+			return "memdb_signature"
+		}
 	}
 	return ""
 }
@@ -137,6 +141,8 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 		tp.emitLine("}")
 		tp.indent--
 		tp.emitLine("}")
+	case "memdb_signature":
+		tp.emitLine("_r = tclMemdbSignature(%s)", tp.dbVar)
 	}
 }
 

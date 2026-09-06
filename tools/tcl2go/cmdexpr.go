@@ -1168,7 +1168,7 @@ func (tp *transpiler) cmdExprDbStatus(cmdName, cmdText string, args []string) st
 func (tp *transpiler) cmdExprStatus(cmdName, cmdText string, args []string) string {
 	name := "\"SQLITE_STATUS_MEMORY_USED\""
 	if len(args) >= 1 {
-		name = tp.buildStringExpr(args[1])
+		name = tp.buildStringExpr(args[0])
 	}
 	return fmt.Sprintf("tclStatus(%s, %s)", tp.dbVar, name)
 }

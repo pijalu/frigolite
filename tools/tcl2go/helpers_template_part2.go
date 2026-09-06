@@ -181,6 +181,16 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 	return strings.Join(rowStrs, "\n")
 }
 
+// tclMemdbSignature computes memdb.test's table-t3 rollback fingerprint:
+// [list [string length $rx] $rx] where rx is the flat [db eval {SELECT x
+// FROM t3}] result. The fingerprint is "len flat" so a ROLLBACK that
+// restores every row reproduces the identical string.
+func tclMemdbSignature(db *frigolite.DB) string {
+	rx := tclExecSQL(db, "SELECT x FROM t3")
+	flat := strings.ReplaceAll(rx, "\n", " ")
+	return strconv.Itoa(len(flat)) + " " + flat
+}
+
 // tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
 // list of the form "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}"
 // or "0 {}"). count "0" means the statement must succeed; count "1" means it
