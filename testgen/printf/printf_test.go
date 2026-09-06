@@ -3518,7 +3518,7 @@ func Test_printf(t *testing.T) {
 	{ // do_test "printf-5.1"
 		x = "sqlite3_mprintf_str {%d %d %100000s} 0 0 {Hello}"
 		_ = x // suppress unused warning
-		_ = strconv.Itoa(len(x)) // string length result
+		_r = strconv.Itoa(len(x)) // string length result
 	}
 	{ // do_test "printf-5.2"
 		// sqlite3_mprintf_str {%d %d (%-10.10s) %} -9 -10 {HelloHelloHello} (unsupported command, not transpiled)

@@ -34,7 +34,7 @@ func (tp *transpiler) runSubBody(args []tcl.RawWord, idx int) bool {
 		preparedState: tp.preparedState,
 		unsetVars:     tp.unsetVars,
 		dbVarFuncs:    tp.dbVarFuncs,
-		constFuncs:    tp.constFuncs,
+		constFuncs:    tp.constFuncs, quotaCallbacks: tp.quotaCallbacks,
 		identityFuncs: tp.identityFuncs,
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,
@@ -1244,6 +1244,12 @@ func (tp *transpiler) processUnset(args []tcl.RawWord) {
 		}
 		if !isValidGoIdent(tclVarToGo(flag)) {
 			continue
+		}
+		// Quota flag mirroring: `unset ::quota_request_ok` clears the
+		// runtime registry entry so the quota callback's exists-check
+		// returns false (quota.test 3.2.x).
+		if tclVarToGo(flag) == "quota_request_ok" {
+			tp.emitLine(`vtab.TclVarDelete("quota_request_ok", "")`)
 		}
 		if tp.unsetVars == nil {
 			tp.unsetVars = make(map[string]bool)

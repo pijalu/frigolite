@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"os"
 	"fmt"
 	"strings"
 
@@ -505,6 +506,9 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// reporting success while nothing reached durable storage).
 	if e.pager != nil {
 		if err := e.pager.Flush(); err != nil {
+			if os.Getenv("QDBG4") != "" {
+				fmt.Fprintf(os.Stderr, "QDBG4 main flush err=%v stmt=%T\n", err, stmt)
+			}
 			return &Result{Error: err}
 		}
 	}

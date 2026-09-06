@@ -8,6 +8,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/parse"
+	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -754,8 +755,10 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	if res := e.execFlushAutocommit(stmt, res, isDML); res != nil {
 		// A commit-hook abort (sqlite3_commit_hook returning nonzero) fails
 		// the statement and rolls back its changes (SQLite rolls the implicit
-		// transaction back instead of committing it).
-		if isDML && len(snaps) > 0 {
+		// transaction back instead of committing it). The quota layer makes
+		// any writing statement's flush fallible (SQLITE_FULL), including
+		// DDL — restore whenever a snapshot exists.
+		if len(snaps) > 0 {
 			e.restoreAllPagers(snaps)
 			e.restoreAllFTS()
 		}
@@ -835,7 +838,14 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 // outlive dispatch).
 func (e *Engine) execSnapshotDML(stmt sql.Stmt, isDML bool) []pagerSnap {
 	e.ftsSnapshots = nil
-	if !isDML || e.dmlCanSkipSnapshot(stmt) {
+	// With the quota layer active, any writing statement's COMMIT can fail
+	// with SQLITE_FULL (the pager's file-growth check), and SQLite rolls a
+	// failed statement back (vdbeaux.c:3358-3383 treats SQLITE_FULL as a
+	// transaction-abort error) — so DDL statements need the snapshot too.
+	if !isDML && !quota.Active() {
+		return nil
+	}
+	if isDML && e.dmlCanSkipSnapshot(stmt) {
 		return nil
 	}
 	if e.tx.execDepth > 1 && (e.tx.snapActive || e.tx.inFTSFlush) {

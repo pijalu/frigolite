@@ -329,7 +329,7 @@ func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 		forIncrs:      tp.forIncrs,
 		unsetVars:     tp.unsetVars,
 		dbVarFuncs:    tp.dbVarFuncs,
-		constFuncs:    tp.constFuncs,
+		constFuncs:    tp.constFuncs, quotaCallbacks: tp.quotaCallbacks,
 		identityFuncs: tp.identityFuncs,
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,
@@ -767,6 +767,27 @@ func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bo
 			// The body ends with a query-proc call (e.g. `execsql {...}
 			// signature`); the last command's query result is in `_r` and the
 			// expected value is that result list.
+			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+			return
+		}
+		if bodyEndsWithCommandName(bodyCmds, "quota_list") {
+			// quota.test: the body's last command is `quota_list`; the
+			// sorted pattern list is in `_r` and the expected value is
+			// that list (quota-4.4.1: [list $quotagroup]).
+			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+			return
+		}
+		if bodyEndsWithCommandName(bodyCmds, "quota_size") {
+			// quota.test: the body's last command is `quota_size NAME`;
+			// the tracked group size is in `_r` (quota-4.4.6/4.4.7).
+			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+			return
+		}
+		if bodyEndsWithQuotaValueCmd(bodyCmds) {
+			// The body's last command is a value-producing quota command
+			// (fopen/fread/fwrite/ftell/file_size/...); the transpiler
+			// left its result in _r and the expected value is that result
+			// (quota2.test 1.1/1.2.1/1.3/...).
 			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
 			return
 		}

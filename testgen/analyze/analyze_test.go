@@ -332,7 +332,12 @@ func Test_analyze(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				_catchErr = err
+				db = nil
+			} else {
+				tclConnRegister("db", db)
+			}
 		}
 		_res = db.Exec("\n    ANALYZE\n  ")
 		_ = _res // catchsql

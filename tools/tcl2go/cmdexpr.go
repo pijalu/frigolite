@@ -1085,6 +1085,15 @@ func (tp *transpiler) cmdExprLSort(cmdName, cmdText string, args []string) strin
 // attach4's database_list callback to strip the directory from the file
 // column).
 func (tp *transpiler) cmdExprFile(cmdName, cmdText string, args []string) string {
+	if len(args) >= 2 && args[0] == "join" {
+		// [file join P ...] — platform path join (unix "/" separator).
+		// quota.test 3.3.1's want: [file join [get_pwd] test.db].
+		parts := make([]string, 0, len(args)-1)
+		for _, a := range args[1:] {
+			parts = append(parts, tp.buildStringExpr(a))
+		}
+		return fmt.Sprintf("filepath.Join(%s)", strings.Join(parts, ", "))
+	}
 	if len(args) >= 2 && args[0] == "tail" {
 		pathExpr := tp.buildStringExpr(args[1])
 		return fmt.Sprintf("filepath.Base(%s)", pathExpr)

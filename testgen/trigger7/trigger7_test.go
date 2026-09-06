@@ -132,7 +132,12 @@ func Test_trigger7(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				_catchErr = err
+				db = nil
+			} else {
+				tclConnRegister("db", db)
+			}
 		}
 		_res = db.Exec(" DROP TRIGGER t2r5 ")
 		_ = _res // catchsql

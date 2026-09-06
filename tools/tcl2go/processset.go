@@ -80,6 +80,15 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 	}
 
 	tp.processSetPlain(args)
+
+	// Quota flag mirroring (quota.test / quota2.test): `set
+	// ::quota_request_ok V` also records into the runtime registry so the
+	// transpiled quota callback closure's `info exists` / value check sees
+	// the flag (vtab.TclVarExists / TclVarGet).
+	if goName == "quota_request_ok" && len(args) >= 2 {
+		valExpr := tp.goStringLiteral(args[1])
+		tp.emitLine(`vtab.TclVarSet("quota_request_ok", "", ` + valExpr + `)`)
+	}
 }
 
 // trackArrayKey records a TCL array literal-key assignment (set arr(K) V) so a
@@ -748,6 +757,27 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 			// $arg (if present) is the first word: "" or "-readonly".
 			tp.processDBIncrblobEvalTo(goName, "db", restWords)
 			return true
+		}
+	}
+	// set ::var [sqlite3_quota_* ARGS] — quota commands are
+	// value-producing (fopen handles, fread content, ...): run the same
+	// statement handler (which leaves its result in _r) and assign it
+	// (quota2.test 1.1/1.3: set ::h1 [sqlite3_quota_fopen ...]).
+	if len(args) >= 2 {
+		bracket := strings.TrimSpace(args[1].Text)
+		if strings.HasPrefix(bracket, "[") && strings.HasSuffix(bracket, "]") {
+			cmdText := strings.TrimSuffix(strings.TrimPrefix(bracket, "["), "]")
+			cmdParts := strings.Fields(cmdText)
+			if len(cmdParts) > 0 && strings.HasPrefix(cmdParts[0], "sqlite3_quota_") {
+				if h, ok := tclHandlers()[cmdParts[0]]; ok {
+					raws := tcl.ParseCommands(cmdText)
+					if len(raws) > 0 {
+						h(tp, raws[0][1:])
+						tp.assignSetValue(goName, "_r")
+						return true
+					}
+				}
+			}
 		}
 	}
 	valExpr := tp.varValueExpr(args[1:])

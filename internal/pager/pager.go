@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"github.com/pijalu/frigolite/internal/quota"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -302,6 +303,12 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	cleanPath := filepath.Clean(path)
 	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
+		// sqlite3OsOpen failure maps to SQLITE_CANTOPEN "unable to open
+		// database file" — including opening a path that is a directory
+		// (quota-5.4.1: file mkdir test.db; sqlite3 db test.db).
+		if strings.Contains(err.Error(), "is a directory") {
+			return nil, fmt.Errorf("pager: open %s: unable to open database file", path)
+		}
 		return nil, fmt.Errorf("pager: open %s: %w", path, err)
 	}
 	info, err := f.Stat()
@@ -326,6 +333,10 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 		// many bytes after a commit; negative means unlimited, 0 means zero.
 		journalSizeLimit: 32768,
 	}
+	// Quota layer (test_quota.c quotaOpen): a database file opened while
+	// the quota layer is initialized joins its matching quota group and
+	// its size counts toward the group cap. No-op when uninitialized.
+	quota.RegisterDBFile(cleanPath)
 
 	if info.Size() > 0 {
 		// Read the 100-byte header first: it contains the real page size.
@@ -497,9 +508,7 @@ func (p *Pager) deriveCksumInit() uint32 {
 func (p *Pager) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if err := p.flushAll(); err != nil {
-		return err
-	}
+	flushErr := p.flushAll()
 	if p.journalFile != nil {
 		// Close the open rollback-journal sidecar (PERSIST/TRUNCATE
 		// modes keep it open across commits; Close is the only path
@@ -513,10 +522,18 @@ func (p *Pager) Close() error {
 			h("xClose", jpath)
 		}
 	}
+	// Quota layer (quotaClose): release the file's group reference even
+	// when the final flush failed — a leaked reference would keep the
+	// quota group alive forever (quota.test 4.1.x group removal).
+	quota.UnregisterDBFile(p.path)
 	if p.file != nil {
-		return p.file.Close()
+		err := p.file.Close()
+		if flushErr != nil {
+			return flushErr
+		}
+		return err
 	}
-	return nil
+	return flushErr
 }
 
 func (p *Pager) PageSize() uint32 { return p.pageSize }
@@ -1615,6 +1632,12 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 		}
 		for pageNum := range p.dirty {
 			if err := p.flushPage(pageNum); err != nil {
+				// pager.c: a failed commit phase-one rolls the
+				// transaction back — journal playback restores the
+				// before-images of the pages already written and
+				// unlinks the journal. Without this, the journal fd
+				// lingers open with a half-written main database.
+				_ = p.rollbackFromJournalLocked()
 				return err
 			}
 		}
@@ -1703,7 +1726,17 @@ func (p *Pager) flushPage(pageNum uint32) error {
 	if pageNum == 1 && len(pg.Data) >= HeaderSize && len(p.header) >= HeaderSize {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
+	if os.Getenv("QDBG3") != "" {
+		fmt.Fprintf(os.Stderr, "QDBG3 flushPage page=%d fileSize=%d fileEnd=%d numPages=%d\n", pageNum, p.fileSize, fileEnd, p.numPages)
+	}
 	if p.fileSize < fileEnd {
+		// Quota enforcement (test_quota.c quotaWrite): growing the file
+		// past its tracked size goes through the quota layer, which
+		// invokes the group callback (the callback may raise or zero the
+		// limit) and refuses the growth with SQLITE_FULL otherwise.
+		if err := quota.CheckDBFileGrowth(p.path, fileEnd); err != nil {
+			return err
+		}
 		if err := p.file.Truncate(fileEnd); err != nil {
 			return fmt.Errorf("pager: truncate: %w", err)
 		}

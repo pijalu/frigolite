@@ -581,7 +581,7 @@ func Test_alter(t *testing.T) {
 	tbl_name = "abcꯍdef" // TCL namespace variable
 	_ = tbl_name // suppress unused warning
 	{ // do_test "alter-6.1"
-		_ = strconv.Itoa(len(tbl_name)) // string length result
+		_r = strconv.Itoa(len(tbl_name)) // string length result
 	}
 	{ // do_test "alter-6.2"
 		_res = db.Exec("\n    CREATE TABLE " + tbl_name + "(a, b, c);\n  ")

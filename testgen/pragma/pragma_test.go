@@ -10,6 +10,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"path/filepath"
 "strconv"
 "strings"
 "testing"
@@ -1717,7 +1718,7 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				{ // do_test "pragma-20.4"
-					pwd = strings.ReplaceAll("file join [get_pwd] data_dir", "'", "''")
+					pwd = strings.ReplaceAll(filepath.Join(tclGetPwd(), "data_dir"), "'", "''")
 					_ = pwd // suppress unused warning
 					_res = db.Exec("PRAGMA data_store_directory='" + pwd + "';")
 					_ = _res // catchsql
@@ -1735,7 +1736,7 @@ func Test_pragma(t *testing.T) {
 					if db2 != nil { db2.Close() }
 				}
 				{ // do_test "pragma-20.6"
-					db2, err = frigolite.Open("file join [get_pwd] test2.db")
+					db2, err = frigolite.Open(filepath.Join(tclGetPwd(), "test2.db"))
 					tclConnRegister("db2", db2)
 					if err != nil { t.Fatal(err) }
 					_res = db2.Exec("PRAGMA database_list;")

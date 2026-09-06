@@ -55,7 +55,7 @@ func (tp *transpiler) processStringCmd(args []tcl.RawWord) {
 func (tp *transpiler) processStringLength(args []tcl.RawWord) {
 	if len(args) >= 2 {
 		strExpr := tp.goStringLiteral(args[1])
-		tp.emitLine("_ = strconv.Itoa(len(%s)) // string length result", strExpr)
+		tp.emitLine("_r = strconv.Itoa(len(%s)) // string length result", strExpr)
 	}
 }
 

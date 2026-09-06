@@ -205,7 +205,9 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 				"sqlite3_quota_ftruncate":        (*transpiler).processSqlite3QuotaFtruncate,
 				"sqlite3_quota_file_available":   (*transpiler).processSqlite3QuotaFileAvailable,
 				"sqlite3_quota_file_size":        (*transpiler).processSqlite3QuotaFileSize,
+				"sqlite3_quota_file_truesize":    (*transpiler).processSqlite3QuotaFileTrueSize,
 				"sqlite3_quota_ferror":           (*transpiler).processSqlite3QuotaFerror,
+				"file_control_vfsname":           (*transpiler).processFileControlVfsName,
 
 		// Prepared-statement metadata queries (value-producing statements).
 		// Only active for files using the runtime Stmt VM emulation; other
@@ -424,6 +426,23 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		handler(tp, args)
 		return
 	}
+	// `$dbVar close` — the command NAME is a runtime connection-name
+	// variable (quota.test 3.2.X: foreach db {db1a db2a db2b db1b}
+	// { catch { $db close } }). Close through the runtime connection
+	// registry so the underlying pager actually closes.
+	if strings.HasPrefix(cmdName, "$") && len(args) >= 1 && args[0].Text == "close" {
+		goVar := tclVarToGo(strings.TrimPrefix(cmdName, "$"))
+		// A loop var shadowing a connection name (foreach db {db1a db2a}
+		// { $db close }) resolves through the rename map (db → db_iter),
+		// and the loop var holds a connection NAME string at runtime.
+		if renamed, ok := tp.varRenames[goVar]; ok {
+			goVar = renamed
+		}
+		if isValidGoIdent(goVar) {
+			tp.emitLine("tclConnByName(%s, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Close()", goVar)
+			return
+		}
+	}
 	// Inline user procs recorded by processProc (zero-arg or single
 	// defaulted-param calls): bind the default, then transpile the body.
 	if len(args) == 0 && tp.inlineProcs != nil {
@@ -640,6 +659,19 @@ func (tp *transpiler) inlineDefaultQueryProc(cmdName string, args []tcl.RawWord)
 			tp.emitLine("_r = tclExecSQL(db, %s)", sqlExpr)
 			return true
 		}
+	}
+	// quota_list (quota.test): the sorted list of quota-group patterns from
+	// sqlite3_quota_dump. A do_test body ending in `quota_list` compares
+	// against the pattern list.
+	if cmdName == "quota_list" && len(args) == 0 {
+		tp.emitLine("_r = tclQuotaList()")
+		return true
+	}
+	// quota_size NAME (quota.test): the tracked size of the quota group
+	// named NAME (0 when absent).
+	if cmdName == "quota_size" && len(args) >= 1 {
+		tp.emitLine("_r = tclQuotaSize(%s)", tp.goStringLiteral(args[0]))
+		return true
 	}
 	// eqp "SQL" (e_fkey.test): run EXPLAIN QUERY PLAN and collect the raw
 	// detail values. A do_test body ending in `eqp ...` compares the result

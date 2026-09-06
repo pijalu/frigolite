@@ -1108,7 +1108,14 @@ var tclConnRegistry = map[string]*frigolite.DB{}
 // re-bind) so tclConnByName can look up arbitrary names like "db1a"
 // or "db_tmp_5" at execsql time.
 func tclConnRegister(name string, db *frigolite.DB) {
-	tclConnRegistry[strings.TrimSpace(name)] = db
+	name = strings.TrimSpace(name)
+	tclConnRegistry[name] = db
+	// Quota VFS snapshot (quota-2.1.2.1): a connection opened while the
+	// quota VFS is the default reports "quota/unix" from
+	// file_control_vfsname.
+	if tclQuotaDefaultActive {
+		tclQuotaDefaultConns[name] = true
+	}
 }
 
 // tclConnByName returns the open *frigolite.DB connection named by a TCL

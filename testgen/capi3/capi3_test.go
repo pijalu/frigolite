@@ -466,7 +466,12 @@ func Test_capi3(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
-				if err != nil { t.Fatal(err) }
+				if err != nil {
+					_catchErr = err
+					db = nil
+				} else {
+					tclConnRegister("db", db)
+				}
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
 			_ = _res // catchsql
@@ -502,7 +507,12 @@ func Test_capi3(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
-				if err != nil { t.Fatal(err) }
+				if err != nil {
+					_catchErr = err
+					db = nil
+				} else {
+					tclConnRegister("db", db)
+				}
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
 			_ = _res // catchsql
@@ -526,7 +536,12 @@ func Test_capi3(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
-				if err != nil { t.Fatal(err) }
+				if err != nil {
+					_catchErr = err
+					db = nil
+				} else {
+					tclConnRegister("db", db)
+				}
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
 			_ = _res // catchsql

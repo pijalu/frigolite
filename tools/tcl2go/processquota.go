@@ -43,6 +43,49 @@ import (
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
 
+// quotaCallback shapes recognized in quota test procs. The C harness
+// callbacks differ only in how they append to ::quota and how they
+// modify the limit:
+//
+//	"extend"     — lappend ::quota [limit] $size; extend when
+//	               quota_request_ok exists (quota.test/quota2.test quota_check)
+//	"extendpath" — lappend ::quota [standard_path filename] [limit] $size
+//	               (quota2.test quota_check, mapped filename)
+//	"zero"       — lappend ::quota $file $size; set limit 0 (disables
+//	               enforcement, quota.test quota_callback)
+const (
+	quotaShapeExtend     = "extend"
+	quotaShapeExtendPath = "extendpath"
+	quotaShapeZero       = "zero"
+)
+
+// collectQuotaCallbacks scans all TCL commands for `proc NAME {...}` bodies
+// matching the quota-callback shapes and returns name → shape. Procs whose
+// body does not match a known shape are omitted (the sqlite3_quota_set call
+// site then emits a no-op callback so the generated test still runs).
+func collectQuotaCallbacks(cmds [][]tcl.RawWord) map[string]string {
+	result := map[string]string{}
+	walkCommands(cmds, func(cmd []tcl.RawWord) {
+		if len(cmd) < 4 || cmd[0].Text != "proc" {
+			return
+		}
+		name := cmd[1].Text
+		body := cmd[3].Text
+		if !strings.Contains(body, "lappend ::quota") {
+			return
+		}
+		switch {
+		case strings.Contains(body, "set limit 0"):
+			result[name] = quotaShapeZero
+		case strings.Contains(body, "standard_path"):
+			result[name] = quotaShapeExtendPath
+		default:
+			result[name] = quotaShapeExtend
+		}
+	})
+	return result
+}
+
 // quotaArg renders a RawWord as a Go string literal (with $var → Go ident)
 // so the emitted helper call mirrors TCL's command argument substitution.
 func quotaArg(tp *transpiler, w tcl.RawWord) string {
@@ -74,16 +117,18 @@ func (tp *transpiler) processSqlite3QuotaInitialize(args []tcl.RawWord) {
 	tp.emitLine("_r = tclQuotaInitialize(%s, %s)", vfs, makeDefault)
 }
 
-// processSqlite3QuotaShutdown handles `sqlite3_quota_shutdown`. Returns SQLITE_OK
-// when no connections are open, SQLITE_MISUSE otherwise. Mirrors
-// src/test_quota.c::test_quota_shutdown.
+// processSqlite3QuotaShutdown handles `sqlite3_quota_shutdown`. Returns
+// SQLITE_OK when no connections are open, SQLITE_MISUSE otherwise
+// (test_quota.c quotaShutdown refuses while any quota file is still
+// open). The fixed connection set is probed at runtime.
 func (tp *transpiler) processSqlite3QuotaShutdown(args []tcl.RawWord) {
-	tp.emitLine("_r = tclQuotaShutdown()")
+	tp.emitLine("_r = tclQuotaShutdown(db, db1, db2, db3, db4, db5, db6, db7, db8, db9)")
 }
 
 // processSqlite3QuotaSet handles `sqlite3_quota_set PATTERN LIMIT SCRIPT`.
-// SCRIPT is a TCL proc name (or empty for the default no-op). Mirrors
-// src/test_quota.c::test_quota_set.
+// SCRIPT is a TCL proc name (or empty for the default no-op): the callback
+// is emitted as an inline Go closure modeling the recognized proc shape
+// (see collectQuotaCallbacks). Mirrors src/test_quota.c::test_quota_set.
 func (tp *transpiler) processSqlite3QuotaSet(args []tcl.RawWord) {
 	pattern := ""
 	limit := "0"
@@ -97,7 +142,38 @@ func (tp *transpiler) processSqlite3QuotaSet(args []tcl.RawWord) {
 	if len(args) >= 3 {
 		script = quotaArg(tp, args[2])
 	}
-	tp.emitLine("_r = tclQuotaSet(%s, %s, %s)", pattern, limit, script)
+	name := strings.TrimSpace(script)
+	name = strings.Trim(name, "\"")
+	shape := tp.quotaCallbacks[name]
+	switch shape {
+	case quotaShapeExtend, quotaShapeExtendPath, quotaShapeZero:
+	default:
+		tp.emitLine("_r = tclQuotaSet(%s, %s, nil)", pattern, limit)
+		return
+	}
+	tp.emitLine("_r = tclQuotaSet(%s, %s, func(name string, limit *int64, size int64) {", pattern, limit)
+	tp.indent++
+	switch shape {
+	case quotaShapeExtend:
+		// lappend ::quota [set limit] $size
+		tp.emitLine(`quota = tclListAppend(quota, strconv.FormatInt(*limit, 10), strconv.FormatInt(size, 10))`)
+		tp.emitLine(`if vtab.TclVarExists("quota_request_ok", "") { *limit = size }`)
+	case quotaShapeExtendPath:
+		// lappend ::quota [standard_path $filename] [set limit] $size —
+		// standard_path maps the CWD prefix to "PWD" (unix paths).
+		tp.emitLine(`mapped := name`)
+		tp.emitLine(`if pwd := tclGetPwd(); pwd != "" { mapped = strings.Replace(mapped, pwd+"/", "PWD/", 1) }`)
+		tp.emitLine(`quota = tclListAppend(quota, mapped, strconv.FormatInt(*limit, 10), strconv.FormatInt(size, 10))`)
+		tp.emitLine(`if vtab.TclVarExists("quota_request_ok", "") { *limit = size }`)
+	case quotaShapeZero:
+		// lappend ::quota $file $size; set limit 0 — a zero limit disables
+		// enforcement for this write (test_quota.c quotaWrite's second
+		// check is gated on iLimit>0), so the write proceeds.
+		tp.emitLine(`quota = tclListAppend(quota, name, strconv.FormatInt(size, 10))`)
+		tp.emitLine(`*limit = 0`)
+	}
+	tp.indent--
+	tp.emitLine("})")
 }
 
 // processSqlite3QuotaRemove handles `sqlite3_quota_remove FILENAME`.
@@ -191,7 +267,7 @@ func (tp *transpiler) processSqlite3QuotaFwrite(args []tcl.RawWord) {
 		tp.emitUnsupportedStmtCmd("sqlite3_quota_fwrite", args)
 		return
 	}
-	tp.emitLine("tclQuotaFwrite(%s, %s, %s, %s)",
+	tp.emitLine("_r = tclQuotaFwrite(%s, %s, %s, %s)",
 		quotaArg(tp, args[0]),
 		strconv.FormatInt(quotaAtoi(args[1].Text), 10),
 		strconv.FormatInt(quotaAtoi(args[2].Text), 10),
@@ -284,4 +360,29 @@ func (tp *transpiler) processSqlite3QuotaFerror(args []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("_r = tclQuotaFerror(%s)", quotaArg(tp, args[0]))
+}
+
+// processFileControlVfsName handles `file_control_vfsname DB` — the TCL
+// test command returning the VFS name the connection reports
+// (sqlite3_file_control SQLITE_FCNTL_VFSNAME). The quota shim wraps the
+// default VFS, so connections opened while the quota VFS is the default
+// report "quota/unix" (quota-2.1.2.1: quota/$defaultVfs).
+func (tp *transpiler) processFileControlVfsName(args []tcl.RawWord) {
+	name := "db"
+	if len(args) >= 1 {
+		name = strings.TrimSpace(args[0].Text)
+		name = strings.TrimPrefix(name, "$")
+	}
+	tp.emitLine("_r = tclFileControlVfsName(%q)", name)
+}
+
+// processSqlite3QuotaFileTrueSize handles
+// `sqlite3_quota_file_truesize HANDLE` — the on-disk size after flush
+// (test_quota.c test_quota_file_truesize).
+func (tp *transpiler) processSqlite3QuotaFileTrueSize(args []tcl.RawWord) {
+	if len(args) < 1 {
+		tp.emitUnsupportedStmtCmd("sqlite3_quota_file_truesize", args)
+		return
+	}
+	tp.emitLine("_r = tclQuotaFileTrueSize(%s)", quotaArg(tp, args[0]))
 }

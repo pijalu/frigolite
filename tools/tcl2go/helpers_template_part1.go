@@ -30,6 +30,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/quota"
 
 	"github.com/pijalu/frigolite"
 )

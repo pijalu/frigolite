@@ -195,8 +195,6 @@ var skipTestFiles = map[string]string{
 		// VFS shim (file-size tracking + callback hook + Write3
 		// interception) is a deferred engine feature; see
 		// plan/goals/P8.PRAGMA.md §next.
-	"quota":  "quota VFS file-size enforcement N-A (P8.PRAGMA t3 partial; transpiler+helpers OK)",
-	"quota2": "quota2 VFS file-size enforcement N-A (P8.PRAGMA t3 partial; transpiler+helpers OK)",
 	// quota_glob: glob pattern matcher (quotaStrglob ported to Go) —
 	// fully passes (testgen/quota_glob).
 

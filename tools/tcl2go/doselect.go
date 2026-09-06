@@ -221,7 +221,7 @@ func (tp *transpiler) transpileSelectRepair(repair string) {
 		forIncrs:      tp.forIncrs,
 		unsetVars:     tp.unsetVars,
 		dbVarFuncs:    tp.dbVarFuncs,
-		constFuncs:    tp.constFuncs,
+		constFuncs:    tp.constFuncs, quotaCallbacks: tp.quotaCallbacks,
 		identityFuncs: tp.identityFuncs,
 		predFuncs:     tp.predFuncs,
 		queryFuncs:    tp.queryFuncs,

@@ -183,7 +183,12 @@ func Test_lock5(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				db2, err = frigolite.Open("test.db")
 				tclConnRegister("db2", db2)
-				if err != nil { t.Fatal(err) }
+				if err != nil {
+					_catchErr = err
+					db2 = nil
+				} else {
+					tclConnRegister("db2", db2)
+				}
 				db2.SetLockStyle(frigolite.LockStyleExclusive)
 			}
 			_res = db2.Exec(" SELECT * FROM t1 ")

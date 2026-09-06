@@ -13,6 +13,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -233,6 +234,12 @@ type ftsSnap struct {
 // Close — re-attempts and re-reports the error).
 func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
 	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
+		return false
+	}
+	// Quota layer active (test_quota.c shim): a flush can refuse file
+	// growth with SQLITE_FULL after the in-memory write succeeded, so the
+	// "commit cannot fail" assumption below is void — keep the snapshot.
+	if quota.Active() {
 		return false
 	}
 	ins, ok := stmt.(*sql.InsertStmt)

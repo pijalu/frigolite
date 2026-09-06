@@ -100,7 +100,20 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	}
 	emitFatal := tp.emitSqlite3Open(dbName, goName, filename, rawFilename, args)
 	if emitFatal {
-		tp.emitLine("if err != nil { t.Fatal(err) }")
+		// Inside `catch { sqlite3 db test.db }` the open failure is the
+		// catch's RESULT (quota-5.4.1: opening a directory reports
+		// "unable to open database file" as {1 ...}), not a fatal test
+		// error. Capture into _catchErr and nil the handle.
+		if tp.catchMode {
+			tp.emitLine("if err != nil {")
+			tp.emitLine("	_catchErr = err")
+			tp.emitLine("	%s = nil", goName)
+			tp.emitLine("} else {")
+			tp.emitLine("	tclConnRegister(%q, %s)", dbName, goName)
+			tp.emitLine("}")
+		} else {
+			tp.emitLine("if err != nil { t.Fatal(err) }")
+		}
 	}
 	// Apply the unix VFS locking style (unix-dotfile / unix-flock / unix-none)
 	// or the nolock=1 URI parameter as a per-connection lock model. Matches
@@ -251,7 +264,11 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 	// tp.vars (predeclared) but not in dbConnVars (never opened).
 	if goName != "db" && !isPreDeclaredDB(goName) && tp.isVarDeclared(goName) && !wasOpened {
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
-		tp.emitLine("if err != nil { t.Fatal(err) }")
+		if tp.catchMode {
+			tp.emitLine("if err != nil { _catchErr = err; %s = nil } else { tclConnRegister(%q, %s) }", goName, dbName, goName)
+		} else {
+			tp.emitLine("if err != nil { t.Fatal(err) }")
+		}
 		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
 		return true
 	}
@@ -279,7 +296,11 @@ func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename stri
 	if goName == "db" && (tp.inEvalScript || strings.HasPrefix(strings.TrimSpace(rawFilename), "$")) {
 		tp.emitLine("db.Close()")
 		tp.emitLine("db, err = frigolite.Open(%s)", filename)
-		tp.emitLine("if err != nil { t.Fatal(err) }")
+		if tp.catchMode {
+			tp.emitLine("if err != nil { _catchErr = err; db = nil } else { tclConnRegister(%q, db) }", dbName)
+		} else {
+			tp.emitLine("if err != nil { t.Fatal(err) }")
+		}
 		tp.dqsDDL = true
 		tp.dqsDML = true
 		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})

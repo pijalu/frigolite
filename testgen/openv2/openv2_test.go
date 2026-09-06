@@ -69,7 +69,12 @@ func Test_openv2(t *testing.T) {
 			var _catchErr error
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				_catchErr = err
+				db = nil
+			} else {
+				tclConnRegister("db", db)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

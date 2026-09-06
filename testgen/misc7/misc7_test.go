@@ -126,7 +126,12 @@ func Test_misc7(t *testing.T) {
 			var _catchErr error
 			db2, err = frigolite.Open("./mydir")
 			tclConnRegister("db2", db2)
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				_catchErr = err
+				db2 = nil
+			} else {
+				tclConnRegister("db2", db2)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

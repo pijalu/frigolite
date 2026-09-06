@@ -4,6 +4,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"strconv"
 	"strings"
@@ -67,6 +68,22 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 	if len(cmdParts) > 0 && (cmdParts[0] == "sqlite3_prepare" || cmdParts[0] == "sqlite3_prepare_v2") {
 		tp.recordPreparedStatement(goName, "["+cmdText+"]")
 		return true
+	}
+	// set VAR [sqlite3_quota_* ARGS] — quota commands are value-producing
+	// (fopen handles, fread content, ftell positions, dump lists): run the
+	// same statement handler (which leaves its result in _r) and assign it.
+	if strings.HasPrefix(cmdParts[0], "sqlite3_quota_") {
+		if os.Getenv("QDBG11") != "" {
+			fmt.Fprintf(os.Stderr, "QDBG11 set-bracket route: %s\n", cmdText)
+		}
+		if h, ok := tclHandlers()[cmdParts[0]]; ok {
+			raws := tcl.ParseCommands(cmdText)
+			if len(raws) > 0 {
+				h(tp, raws[0][1:])
+				tp.assignSetValue(goName, "_r")
+				return true
+			}
+		}
 	}
 	if isLsearchCmd(cmdParts) {
 		return tp.setLsearchValue(goName, cmdText, cmdParts)
@@ -988,7 +1005,7 @@ func (tp *transpiler) emitCatchBlock(varName, errVar, bodyStr string) {
 	tp.emitLine("var _catchErr error")
 	// Parse and transpile the body
 	bodyCmds := parseCommands(bodyStr)
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, rangeListFuncs: tp.rangeListFuncs, varCount: tp.varCount, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed}
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, quotaCallbacks: tp.quotaCallbacks, rangeListFuncs: tp.rangeListFuncs, varCount: tp.varCount, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed}
 	bodyTP.processCommands(bodyCmds)
 	tp.indent = bodyTP.indent
 	tp.dbClosed = bodyTP.dbClosed

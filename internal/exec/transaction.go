@@ -117,6 +117,11 @@ func (e *Engine) execCommit() *Result {
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil {
 			if err := dbCtx.Pager.FlushWithContext(multiDB); err != nil {
+				// sqlite3PagerCommitPhaseOne failure aborts the
+				// transaction: the pager rolls back to its BEGIN state
+				// (vdbe.c abort path). Without the rollback the flushed
+				// header/pages would lead the rolled-back file state.
+				e.execRollback()
 				return &Result{Error: err}
 			}
 		}

@@ -94,7 +94,7 @@ func Test_bigrow(t *testing.T) {
 				}
 			}
 		}
-		_ = strconv.Itoa(len(bigstr)) // string length result
+		_r = strconv.Itoa(len(bigstr)) // string length result
 	}
 	{ // do_test "bigrow-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a text, b text, c text);\n    SELECT name FROM sqlite_master\n      WHERE type='table' OR type='index'\n      ORDER BY name\n  ")

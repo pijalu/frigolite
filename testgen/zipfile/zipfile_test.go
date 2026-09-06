@@ -1312,7 +1312,7 @@ func Test_zipfile(t *testing.T) {
 					_ = off // suppress unused warning
 					zip = tclStringReplace(zip, off, tclExprWith("$off+3", map[string]string{"off": off}), "1F1F")
 					_ = zip // suppress unused warning
-					_ = strconv.Itoa(len(zip)) // string length result
+					_r = strconv.Itoa(len(zip)) // string length result
 				}
 				{ // "24.2"
 					_res = db.Exec("\n  SELECT * FROM zipfile(unhex(" + sqlLiteral(zip) + "))\n")

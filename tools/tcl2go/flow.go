@@ -319,6 +319,38 @@ func bodyEndsWithQueryFunc(bodyCmds [][]tcl.RawWord, queryFuncs map[string]strin
 // `sqlite3_quota_glob PATTERN TEXT` (test/quota-glob.test). The transpiler
 // maps the command to a runtime helper that returns "1"/"0" in `_r`; the
 // body comparison uses emitQueryFuncResultCheck to compare that result.
+// bodyEndsWithQuotaValueCmd reports whether a do_test body's last command
+// is a value-producing sqlite3_quota_* command (its result lands in _r).
+func bodyEndsWithQuotaValueCmd(bodyCmds [][]tcl.RawWord) bool {
+	if len(bodyCmds) == 0 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) == 0 {
+		return false
+	}
+	name := last[0].Text
+	switch name {
+	case "sqlite3_quota_fopen", "sqlite3_quota_fread", "sqlite3_quota_fwrite",
+		"sqlite3_quota_ftell", "sqlite3_quota_file_size", "sqlite3_quota_file_truesize",
+		"sqlite3_quota_file_available", "sqlite3_quota_ferror", "sqlite3_quota_dump",
+		"sqlite3_quota_file":
+		return true
+	}
+	return false
+}
+
+// bodyEndsWithCommandName reports whether a do_test body's last command is
+// the named bare command (a value-producing helper proc whose result is in
+// _r: quota_list / quota_size).
+func bodyEndsWithCommandName(bodyCmds [][]tcl.RawWord, name string) bool {
+	if len(bodyCmds) == 0 {
+		return false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	return len(last) >= 1 && last[0].Text == name
+}
+
 func bodyEndsWithQuotaGlob(bodyCmds [][]tcl.RawWord) bool {
 	if len(bodyCmds) == 0 {
 		return false

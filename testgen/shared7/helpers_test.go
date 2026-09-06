@@ -23,6 +23,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/quota"
 
 	"github.com/pijalu/frigolite"
 )
@@ -2908,132 +2909,144 @@ func tclBinaryScanBigUint32(b string) string {
 //
 // The quota layer is a per-file-size cap enforced at the engine surface
 // (Frigolite has no VFS plug-in system, so the SQLite quota shim is
-// emulated in pure Go). Each helper mirrors its test_quota.c counterpart.
-// State is held in package-level globals so successive test cases share
-// the same quota groups (matching the C harness behaviour).
-
-// tclQuotaGroup tracks a single quota rule: its glob pattern, current
-// limit, current combined size of all files in the group, and the TCL
-// proc name to invoke when a write would exceed the limit.
-type tclQuotaGroup struct {
-	Pattern  string
-	Limit    int64
-	Size     int64
-	Script   string
-	Files    map[string]int64 // tracked file path → current size
-}
-
-// tclQuotaState is the package-level quota state (mirrors src/test_quota.c
-// gQuota). Initialized lazily by tclQuotaInitialize.
-var tclQuotaGroups []tclQuotaGroup
-var tclQuotaInitialized bool
+// emulated by the pure-Go internal/quota package; the pager reports file
+// growth through quota.CheckDBFileGrowth). Each helper mirrors its
+// test_quota.c counterpart and delegates to that package. State is
+// process-global so successive test cases share the same quota groups
+// (matching the C harness behaviour).
 
 // tclQuotaActive reports whether the quota system is currently
 // initialized. Mirrors src/test_quota.c::gQuota.isInitialized.
 func tclQuotaActive() bool {
-	return tclQuotaInitialized
+	return quota.InitializedDefault() || tclQuotaHandlesActive()
 }
+
+func tclQuotaHandlesActive() bool { return false }
 
 // tclQuotaInitialize maps 'sqlite3_quota_initialize VFS MAKEDEFAULT'.
-// SQLite's quota shim accepts an optional VFS name (a shim layer to wrap)
-// and a makeDefault flag; for the pure-Go emulation the VFS name is
-// informational only. Returns SQLITE_OK (0) on success, SQLITE_ERROR (1)
-// when VFS is unknown, SQLITE_MISUSE (21) when called twice without an
-// intervening shutdown. Mirrors src/test_quota.c::test_quota_initialize.
+// SQLITE_ERROR when VFS is unknown, SQLITE_MISUSE when called twice
+// without an intervening shutdown. Mirrors
+// src/test_quota.c::test_quota_initialize.
 func tclQuotaInitialize(vfs string, makeDefault int64) string {
-	if vfs != "" && vfs != "unix" && vfs != "unix-none" && vfs != "win32" && vfs != "win32-none" {
-		return "1" // SQLITE_ERROR
-	}
-	if tclQuotaInitialized {
-		return "21" // SQLITE_MISUSE
-	}
-	tclQuotaInitialized = true
-	tclQuotaGroups = nil
-	return "0" // SQLITE_OK
+	code := quota.Initialize(vfs, makeDefault != 0)
+	tclQuotaDefaultActive = quota.InitializedDefault()
+	return strconv.FormatInt(int64(code), 10)
 }
 
-// tclQuotaShutdown maps 'sqlite3_quota_shutdown'. Frees all quota groups
-// and clears the initialized flag. Returns SQLITE_MISUSE (21) when at
-// least one database connection is still open (the SQLite C harness
-// checks the connection count via sqlite3_next_stmt); for the pure-Go
-// emulation we always return SQLITE_OK. Mirrors
-// src/test_quota.c::test_quota_shutdown.
-func tclQuotaShutdown() string {
-	tclQuotaInitialized = false
-	tclQuotaGroups = nil
-	return "0" // SQLITE_OK
-}
-
-// tclQuotaSet maps 'sqlite3_quota_set PATTERN LIMIT SCRIPT'. Adds (or
-// updates) a quota rule: any file matching PATTERN contributes to the
-// group's combined size, and writes that would push the group past
-// LIMIT trigger SCRIPT (a no-op when empty). A LIMIT of 0 removes the
-// rule. Returns SQLITE_OK. Mirrors src/test_quota.c::test_quota_set.
-func tclQuotaSet(pattern string, limit int64, script string) string {
-	if !tclQuotaInitialized {
-		tclQuotaInitialized = true
-	}
-	// Update existing group with this pattern
-	for i := range tclQuotaGroups {
-		if tclQuotaGroups[i].Pattern == pattern {
-			if limit == 0 {
-				tclQuotaGroups = append(tclQuotaGroups[:i], tclQuotaGroups[i+1:]...)
-				return "0"
-			}
-			tclQuotaGroups[i].Limit = limit
-			tclQuotaGroups[i].Script = script
-			return "0"
+// tclQuotaShutdown maps 'sqlite3_quota_shutdown'. Returns SQLITE_MISUSE
+// while any database connection is still open (the C harness counts open
+// quota files; the generated tests pass their connection set).
+func tclQuotaShutdown(conns ...*frigolite.DB) string {
+	for _, c := range conns {
+		if tclConnIsOpen(c) {
+			return "21" // SQLITE_MISUSE
 		}
 	}
-	if limit == 0 {
-		return "0"
+	code := quota.Shutdown()
+	tclQuotaDefaultActive = false
+	return strconv.FormatInt(int64(code), 10)
+}
+
+// tclConnIsOpen reports whether a connection handle is still usable
+// (nil-safe). A closed connection fails a cheap read-only probe.
+func tclConnIsOpen(db *frigolite.DB) bool {
+	if db == nil {
+		return false
 	}
-	tclQuotaGroups = append(tclQuotaGroups, tclQuotaGroup{
-		Pattern: pattern,
-		Limit:   limit,
-		Script:  script,
-		Files:   map[string]int64{},
-	})
-	return "0"
+	return !db.IsClosed()
+}
+
+// tclQuotaDefaultActive tracks whether the quota layer is currently the
+// default VFS; tclConnRegister snapshots it per connection so
+// file_control_vfsname can report "quota/<vfs>" for connections opened
+// under the quota VFS (quota-2.1.2.1).
+var tclQuotaDefaultActive bool
+
+// tclQuotaDefaultConns records the connection names opened while the
+// quota VFS was the default.
+var tclQuotaDefaultConns = map[string]bool{}
+
+// tclFileControlVfsName mirrors TCL file_control_vfsname: the VFS name a
+// connection reports ("unix" for the default; "quota/unix" when the
+// connection was opened through the quota VFS shim).
+func tclFileControlVfsName(connName string) string {
+	if tclQuotaDefaultConns[connName] {
+		return "quota/unix"
+	}
+	return "unix"
+}
+
+// tclQuotaSet maps 'sqlite3_quota_set PATTERN LIMIT CALLBACK'. The
+// callback is the inline Go closure the transpiler emitted for the
+// recognized TCL proc shape. Mirrors src/test_quota.c::test_quota_set.
+func tclQuotaSet(pattern string, limit int64, cb func(string, *int64, int64)) string {
+	code := quota.Set(pattern, limit, cb)
+	return strconv.FormatInt(int64(code), 10)
 }
 
 // tclQuotaRemove maps 'sqlite3_quota_remove FILENAME'. Drops the named
-// file from every quota group (it is no longer size-tracked). Returns
+// file from every quota group and deletes it from disk. Returns
 // SQLITE_OK. Mirrors src/test_quota.c::test_quota_remove.
 func tclQuotaRemove(filename string) string {
-	for i := range tclQuotaGroups {
-		delete(tclQuotaGroups[i].Files, filename)
-		tclQuotaGroups[i].Size = 0
-		for _, sz := range tclQuotaGroups[i].Files {
-			tclQuotaGroups[i].Size += sz
-		}
-	}
+	quota.Remove(filename)
 	return "0"
 }
 
-// tclQuotaFile maps 'sqlite3_quota_file FILENAME'. Returns the current
-// size of the file on disk as a decimal string. Mirrors
-// src/test_quota.c::test_quota_file.
+// tclQuotaFile maps 'sqlite3_quota_file FILENAME'. Adds the file to its
+// matching quota group (tracking its on-disk size) and returns the size
+// as a decimal string. Mirrors src/test_quota.c::test_quota_file.
 func tclQuotaFile(filename string) string {
-	if filename == "" {
-		return "0"
-	}
-	st, err := os.Stat(filename)
-	if err != nil {
-		return "0"
-	}
-	return strconv.FormatInt(st.Size(), 10)
+	return strconv.FormatInt(quota.TrackFile(filename), 10)
 }
 
-// tclQuotaDump maps 'sqlite3_quota_dump'. Returns a TCL list of triples
-// "{pattern limit size}" (one per quota group). Mirrors
+// tclQuotaDump maps 'sqlite3_quota_dump'. Returns a TCL list with one
+// "{pattern limit size}" element per group (newest first), each followed
+// by its file entries "{name size nref deleteOnClose}". Mirrors
 // src/test_quota.c::test_quota_dump.
 func tclQuotaDump() string {
+	dumps := quota.Dump()
 	var parts []string
-	for _, g := range tclQuotaGroups {
-		parts = append(parts, g.Pattern+" "+strconv.FormatInt(g.Limit, 10)+" "+strconv.FormatInt(g.Size, 10))
+	for _, g := range dumps {
+		el := "{" + g.Pattern + " " + strconv.FormatInt(g.Limit, 10) + " " + strconv.FormatInt(g.Size, 10)
+		for _, f := range g.Files {
+			dc := "0"
+			if f.DeleteOnClose {
+				dc = "1"
+			}
+			el += " {" + tclFileDumpName(f.Name) + " " + strconv.FormatInt(f.Size, 10) + " " + strconv.Itoa(f.RefCount) + " " + dc + "}"
+		}
+		el += "}"
+		parts = append(parts, el)
 	}
 	return strings.Join(parts, " ")
+}
+
+// tclFileDumpName renders an absolute path in the dump: TCL tests compare
+// against paths under the CWD verbatim (standard_path applies the PWD
+// mapping separately), so keep the absolute path.
+func tclFileDumpName(p string) string { return p }
+
+// tclQuotaList mirrors quota.test's quota_list proc: the sorted list of
+// quota-group patterns currently defined.
+func tclQuotaList() string {
+	var pats []string
+	for _, g := range quota.Dump() {
+		fmt.Println("QLDBG", g.Pattern, g.Limit, g.Size, g.Files)
+		pats = append(pats, g.Pattern)
+	}
+	sort.Strings(pats)
+	return strings.Join(pats, " ")
+}
+
+// tclQuotaSize mirrors quota.test's quota_size proc: the tracked size of
+// the group whose pattern is name (0 when the group is absent).
+func tclQuotaSize(name string) string {
+	for _, g := range quota.Dump() {
+		if g.Pattern == name {
+			return strconv.FormatInt(g.Size, 10)
+		}
+	}
+	return "0"
 }
 
 // tclQuotaStrglob is the core glob matcher used by tclQuotaGlob and by
@@ -3185,11 +3198,12 @@ func tclQuotaStrglob(zGlob, z string) int {
 	return 0
 }
 
+
 // tclQuotaGlob maps 'sqlite3_quota_glob PATTERN TEXT'. Returns "1" when
 // TEXT matches PATTERN, "0" otherwise. Mirrors
 // src/test_quota.c::test_quota_glob (which delegates to quotaStrglob).
 func tclQuotaGlob(pattern, text string) string {
-	if tclQuotaStrglob(pattern, text) == 1 {
+	if quota.Strglob(pattern, text) {
 		return "1"
 	}
 	return "0"
@@ -3200,261 +3214,178 @@ func tclQuotaGlob(pattern, text string) string {
 // quota group's size ledger. Returns SQLITE_OK. Mirrors
 // src/test_quota.c::test_quota_dir.
 func tclQuotaDir(pattern, directory string) string {
-	if !tclQuotaInitialized {
+	entries, err := os.ReadDir(directory)
+	if err != nil {
 		return "1"
 	}
-	for i := range tclQuotaGroups {
-		if tclQuotaGroups[i].Pattern != pattern {
+	for _, e := range entries {
+		if e.IsDir() {
 			continue
 		}
-		entries, err := os.ReadDir(directory)
-		if err != nil {
-			return "1"
+		if !quota.Strglob(pattern, e.Name()) {
+			continue
 		}
-		for _, e := range entries {
-			if e.IsDir() {
-				continue
-			}
-			if tclQuotaStrglob(pattern, e.Name()) == 0 {
-				continue
-			}
-			info, err := e.Info()
-			if err != nil {
-				continue
-			}
-			tclQuotaGroups[i].Files[directory+"/"+e.Name()] = info.Size()
-		}
-		return "0"
+		quota.TrackFile(directory + "/" + e.Name())
 	}
 	return "0"
 }
 
-// tclQuotaFileHandle is the in-memory file opened via tclQuotaFopen.
-// Mirrors src/test_quota.c::quota_FILE.
-type tclQuotaFileHandle struct {
-	Path   string
-	Mode   string
-	Size   int64
-	Offset int64
-	Buffer []byte
-	Error  bool
-}
-
-// tclQuotaHandles is the table of currently-open quota file handles.
-// Keys are the TCL handle tokens (allocated by tclQuotaFopen).
-var tclQuotaHandles = map[string]*tclQuotaFileHandle{}
+// tclQuotaHandles maps the TCL handle tokens (allocated by tclQuotaFopen)
+// to the open quota streams. Mirrors src/test_quota.c::quota_FILE.
+var tclQuotaHandles = map[string]*quota.File{}
 var tclQuotaHandleSeq int
 
 // tclQuotaFopen maps 'sqlite3_quota_fopen FILENAME MODE'. Opens FILENAME
-// for reading or writing (mode is one of "r", "rb", "w", "wb") and
-// returns a TCL handle token, or "" on error. Mirrors
-// src/test_quota.c::test_quota_fopen.
+// under the quota layer and returns a TCL handle token, or "" on error.
+// Mirrors src/test_quota.c::test_quota_fopen.
 func tclQuotaFopen(filename, mode string) string {
 	if filename == "" {
 		return ""
 	}
-	tclQuotaHandleSeq++
-	h := &tclQuotaFileHandle{Path: filename, Mode: mode}
-	switch mode {
-	case "r", "rb":
-		data, err := os.ReadFile(filename)
-		if err != nil {
-			return ""
-		}
-		h.Buffer = data
-		h.Size = int64(len(data))
-	case "w", "wb":
-		h.Buffer = nil
-	default:
+	f := quota.FOpen(filename, mode)
+	if f == nil {
 		return ""
 	}
+	tclQuotaHandleSeq++
 	tok := "qh" + strconv.Itoa(tclQuotaHandleSeq)
-	tclQuotaHandles[tok] = h
+	tclQuotaHandles[tok] = f
 	return tok
 }
 
-// tclQuotaFclose maps 'sqlite3_quota_fclose HANDLE'. Closes the open
-// file handle; flushes any writes back to disk. Mirrors
+// tclQuotaFclose maps 'sqlite3_quota_fclose HANDLE'. Mirrors
 // src/test_quota.c::test_quota_fclose.
 func tclQuotaFclose(handle string) {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return
+	if f, ok := tclQuotaHandles[handle]; ok {
+		quota.FClose(f)
+		delete(tclQuotaHandles, handle)
 	}
-	if h.Mode == "w" || h.Mode == "wb" {
-		_ = os.WriteFile(h.Path, h.Buffer, 0644)
-	}
-	delete(tclQuotaHandles, handle)
 }
 
-// tclQuotaFread maps 'sqlite3_quota_fread HANDLE SIZE NELEM'. Reads
-// NELEM * SIZE bytes from the file at the current offset and returns
-// the result as a TCL binary string. Mirrors
-// src/test_quota.c::test_quota_fread.
+// tclQuotaResolve fetches the stream for a handle token, or nil.
+func tclQuotaResolve(handle string) *quota.File {
+	return tclQuotaHandles[handle]
+}
+
+// tclQuotaFread maps 'sqlite3_quota_fread HANDLE SIZE NELEM'. Returns the
+// read content as a string. Mirrors src/test_quota.c::test_quota_fread.
 func tclQuotaFread(handle string, size, nelem int64) string {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
+	f := tclQuotaResolve(handle)
+	if f == nil {
 		return ""
 	}
-	total := size * nelem
-	if total <= 0 || h.Offset >= h.Size {
-		return ""
-	}
-	end := h.Offset + total
-	if end > h.Size {
-		end = h.Size
-	}
-	out := h.Buffer[h.Offset:end]
-	h.Offset = end
-	return string(out)
+	return string(quota.FRead(f, int(size), int(nelem)))
 }
 
 // tclQuotaFwrite maps 'sqlite3_quota_fwrite HANDLE SIZE NELEM CONTENT'.
-// Writes NELEM * SIZE bytes from CONTENT to the file at the current
-// offset; grows the in-memory buffer. Mirrors
+// Returns the number of bytes written as a decimal string. Mirrors
 // src/test_quota.c::test_quota_fwrite.
-func tclQuotaFwrite(handle string, size, nelem int64, content string) {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return
-	}
-	total := size * nelem
-	if total <= 0 {
-		return
-	}
-	if int64(len(content)) < total {
-		total = int64(len(content))
-	}
-	end := h.Offset + total
-	if end > int64(len(h.Buffer)) {
-		buf := make([]byte, end)
-		copy(buf, h.Buffer)
-		h.Buffer = buf
-	}
-	copy(h.Buffer[h.Offset:], content[:total])
-	h.Offset = end
-	if h.Offset > h.Size {
-		h.Size = h.Offset
-	}
-}
-
-// tclQuotaFflush maps 'sqlite3_quota_fflush HANDLE ?HARDSYNC?'. Flushes
-// any buffered writes to disk; HARDSYNC requests a full fsync. Mirrors
-// src/test_quota.c::test_quota_fflush.
-func tclQuotaFflush(handle string, hardsync bool) {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return
-	}
-	if h.Mode == "w" || h.Mode == "wb" {
-		_ = os.WriteFile(h.Path, h.Buffer, 0644)
-	}
-}
-
-// tclQuotaFseek maps 'sqlite3_quota_fseek HANDLE OFFSET WHENCE'.
-// WHENCE is "SEEK_SET"/0 (absolute), "SEEK_CUR"/1 (relative), or
-// "SEEK_END"/2 (from end). Mirrors src/test_quota.c::test_quota_fseek.
-func tclQuotaFseek(handle, offset, whence string) {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return
-	}
-	off, _ := strconv.ParseInt(offset, 10, 64)
-	switch whence {
-	case "SEEK_SET", "0":
-		h.Offset = off
-	case "SEEK_CUR", "1":
-		h.Offset += off
-	case "SEEK_END", "2":
-		h.Offset = h.Size + off
-	}
-	if h.Offset < 0 {
-		h.Offset = 0
-	}
-	if h.Offset > h.Size {
-		h.Offset = h.Size
-	}
-}
-
-// tclQuotaRewind maps 'sqlite3_quota_rewind HANDLE'. Resets the offset
-// to 0. Mirrors src/test_quota.c::test_quota_rewind.
-func tclQuotaRewind(handle string) {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return
-	}
-	h.Offset = 0
-}
-
-// tclQuotaFTell maps 'sqlite3_quota_ftell HANDLE'. Returns the current
-// offset as a decimal string. Mirrors src/test_quota.c::test_quota_ftell.
-func tclQuotaFTell(handle string) string {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
+func tclQuotaFwrite(handle string, size, nelem int64, content string) string {
+	f := tclQuotaResolve(handle)
+	if f == nil {
 		return "0"
 	}
-	return strconv.FormatInt(h.Offset, 10)
+	return strconv.Itoa(quota.FWrite(f, int(size), int(nelem), []byte(content)))
 }
 
-// tclQuotaFtruncate maps 'sqlite3_quota_ftruncate HANDLE SIZE'. Sets
-// the file size to SIZE bytes (truncating or extending). Mirrors
+// tclQuotaFflush maps 'sqlite3_quota_fflush HANDLE ?HARDSYNC?'. Mirrors
+// src/test_quota.c::test_quota_fflush.
+func tclQuotaFflush(handle string, hardsync bool) {
+	if f := tclQuotaResolve(handle); f != nil {
+		quota.FFlush(f, hardsync)
+	}
+}
+
+// tclQuotaFseek maps 'sqlite3_quota_fseek HANDLE OFFSET WHENCE'. Mirrors
+// src/test_quota.c::test_quota_fseek.
+func tclQuotaFseek(handle, offset, whence string) int {
+	f := tclQuotaResolve(handle)
+	if f == nil {
+		return -1
+	}
+	off, err := strconv.ParseInt(strings.TrimSpace(offset), 10, 64)
+	if err != nil {
+		return -1
+	}
+	wh := 0
+	switch strings.ToUpper(strings.TrimSpace(whence)) {
+	case "SEEK_SET":
+		wh = quota.SeekSet
+	case "SEEK_CUR":
+		wh = quota.SeekCur
+	case "SEEK_END":
+		wh = quota.SeekEnd
+	default:
+		return -1
+	}
+	return quota.FSeek(f, off, wh)
+}
+
+// tclQuotaRewind maps 'sqlite3_quota_rewind HANDLE'. Mirrors
+// src/test_quota.c::test_quota_rewind.
+func tclQuotaRewind(handle string) {
+	if f := tclQuotaResolve(handle); f != nil {
+		quota.FRewind(f)
+	}
+}
+
+// tclQuotaFTell maps 'sqlite3_quota_ftell HANDLE'. Mirrors
+// src/test_quota.c::test_quota_ftell.
+func tclQuotaFTell(handle string) string {
+	f := tclQuotaResolve(handle)
+	if f == nil {
+		return "-1"
+	}
+	return strconv.FormatInt(quota.FTell(f), 10)
+}
+
+// tclQuotaFtruncate maps 'sqlite3_quota_ftruncate HANDLE SIZE'. Mirrors
 // src/test_quota.c::test_quota_ftruncate.
 func tclQuotaFtruncate(handle string, size int64) {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return
-	}
-	if size < int64(len(h.Buffer)) {
-		h.Buffer = h.Buffer[:size]
-	} else {
-		buf := make([]byte, size)
-		copy(buf, h.Buffer)
-		h.Buffer = buf
-	}
-	h.Size = size
-	if h.Offset > h.Size {
-		h.Offset = h.Size
+	if f := tclQuotaResolve(handle); f != nil {
+		quota.FTruncate(f, size)
 	}
 }
 
 // tclQuotaFileAvailable maps 'sqlite3_quota_file_available HANDLE'.
-// Returns the number of bytes from the current offset to the end of
-// the file. Mirrors src/test_quota.c::test_quota_file_available.
+// Mirrors src/test_quota.c::test_quota_file_available.
 func tclQuotaFileAvailable(handle string) string {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return "0"
+	f := tclQuotaResolve(handle)
+	if f == nil {
+		return "-1"
 	}
-	avail := h.Size - h.Offset
-	if avail < 0 {
-		avail = 0
-	}
-	return strconv.FormatInt(avail, 10)
+	return strconv.FormatInt(quota.FileAvailable(f), 10)
 }
 
-// tclQuotaFileSize maps 'sqlite3_quota_file_size HANDLE'. Returns the
-// total file size as a decimal string. Mirrors
+// tclQuotaFileSize maps 'sqlite3_quota_file_size HANDLE' — the logical
+// size including buffered writes. Mirrors
 // src/test_quota.c::test_quota_file_size.
 func tclQuotaFileSize(handle string) string {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
-		return "0"
+	f := tclQuotaResolve(handle)
+	if f == nil {
+		return "-1"
 	}
-	return strconv.FormatInt(h.Size, 10)
+	return strconv.FormatInt(quota.FileSize(f), 10)
 }
 
-// tclQuotaFerror maps 'sqlite3_quota_ferror HANDLE'. Returns "1" if
-// the file handle is in the error state, "0" otherwise. Mirrors
+// tclQuotaFileTrueSize maps 'sqlite3_quota_file_truesize HANDLE' — the
+// on-disk size (after flush). Mirrors
+// src/test_quota.c::test_quota_file_truesize.
+func tclQuotaFileTrueSize(handle string) string {
+	f := tclQuotaResolve(handle)
+	if f == nil {
+		return "-1"
+	}
+	return strconv.FormatInt(quota.FileTrueSize(f), 10)
+}
+
+// tclQuotaFerror maps 'sqlite3_quota_ferror HANDLE'. Mirrors
 // src/test_quota.c::test_quota_ferror.
 func tclQuotaFerror(handle string) string {
-	h, ok := tclQuotaHandles[handle]
-	if !ok {
+	f := tclQuotaResolve(handle)
+	if f == nil {
 		return "1"
 	}
-	if h.Error {
-		return "1"
-	}
-	return "0"
+	return strconv.Itoa(quota.FError(f))
 }
 func tclStringIndex(s string, idx interface{}) string {
 	n := tclIndex(idx, len(s))
@@ -4564,7 +4495,14 @@ var tclConnRegistry = map[string]*frigolite.DB{}
 // re-bind) so tclConnByName can look up arbitrary names like "db1a"
 // or "db_tmp_5" at execsql time.
 func tclConnRegister(name string, db *frigolite.DB) {
-	tclConnRegistry[strings.TrimSpace(name)] = db
+	name = strings.TrimSpace(name)
+	tclConnRegistry[name] = db
+	// Quota VFS snapshot (quota-2.1.2.1): a connection opened while the
+	// quota VFS is the default reports "quota/unix" from
+	// file_control_vfsname.
+	if tclQuotaDefaultActive {
+		tclQuotaDefaultConns[name] = true
+	}
 }
 
 // tclConnByName returns the open *frigolite.DB connection named by a TCL

@@ -47,6 +47,12 @@ type DB struct {
 	// close a connection with open incremental blob handles).
 	activeBlobs int
 
+	// closedFlag records a completed Close (a test-harness probe such as
+	// the quota shutdown's open-connection check must distinguish a
+	// closed handle from an open one; Query on a closed DB still works
+	// because the engine object survives).
+	closedFlag bool
+
 	stmtMu      sync.Mutex
 	activeStmts int
 }
@@ -661,9 +667,17 @@ func (db *DB) Close() error {
 	}
 	if db.engine != nil {
 		db.engine.ClearBlobLocks()
-		return db.engine.Close()
+		err := db.engine.Close()
+		db.closedFlag = true
+		return err
 	}
+	db.closedFlag = true
 	return nil
+}
+
+// IsClosed reports whether Close has completed on this connection.
+func (db *DB) IsClosed() bool {
+	return db == nil || db.closedFlag
 }
 
 func (db *DB) registerStmt() {
