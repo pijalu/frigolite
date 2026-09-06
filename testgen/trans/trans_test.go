@@ -1258,7 +1258,7 @@ func Test_trans(t *testing.T) {
 	}
 	// wal_check_journal_mode trans-9.1.1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	if tclBool(tclBool01(GMap[isquick] != "") + " || (\n  " + TEMP_STORE + "==3 && " + "regexp {^pcache[[:digit:]]*$} [permutation]" + "\n)") {
+	if tclBool(tclBool01(GMap[isquick] != "") + " || (\n  " + TEMP_STORE + "==3 && " + tclRegexpMatch("^pcache[[:digit:]]*$", "") + "\n)") {
 		vtab.TclVarSet("limit", "", "20")
 		limit = "20"
 		_ = limit // suppress unused warning

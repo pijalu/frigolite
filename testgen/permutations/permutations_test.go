@@ -371,7 +371,7 @@ func Test_permutations(t *testing.T) {
 			_ = bIn // suppress unused warning
 			for _, x := range strings.Split(env_QUICKTEST_OMIT, ",") {
 			_ = x // suppress unused warning
-				if tclBool("regexp $x [file tail $a]") {
+				if tclBool(tclRegexpMatch("$x", filepath.Base(a))) {
 					vtab.TclVarSet("bIn", "", "0")
 					bIn = "0"
 					_ = bIn // suppress unused warning

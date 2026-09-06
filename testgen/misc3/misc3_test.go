@@ -291,13 +291,13 @@ func Test_misc3(t *testing.T) {
 		_ = x // suppress unused warning
 		tclRegexp(" SorterCompare \\d+ \\d+ \\d+ ", x)
 	}
-	if tclBool("regexp {16} [db one {PRAGMA encoding}]") {
+	if tclBool(tclRegexpMatch("16", tclDbOne(db, "PRAGMA encoding"))) {
 		{ // do_test "misc3-6.11-utf16"
 			x = tclExecSQL(db, "\n        EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC\n      ")
 			_ = x // suppress unused warning
 			y = "0" // capability regexp "{" not matched (engine default)
-			y = tclListAppend(y, "regexp { 4.5678 } $x")
-			y = tclListAppend(y, "regexp {,-B} $x")
+			y = tclListAppend(y, tclRegexpMatch("4.5678", x))
+			y = tclListAppend(y, tclRegexpMatch(",-B", x))
 			got := tclListFlatten(y)
 			want := tclListFlatten("1 1 1")
 			if got != want {
@@ -309,9 +309,9 @@ func Test_misc3(t *testing.T) {
 			x = tclExecSQL(db, "\n        EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC\n      ")
 			_ = x // suppress unused warning
 			y = "0" // capability regexp "{" not matched (engine default)
-			y = tclListAppend(y, "regexp { 4.5678 } $x")
-			y = tclListAppend(y, "regexp { hello } $x")
-			y = tclListAppend(y, "regexp {,-B} $x")
+			y = tclListAppend(y, tclRegexpMatch("4.5678", x))
+			y = tclListAppend(y, tclRegexpMatch("hello", x))
+			y = tclListAppend(y, tclRegexpMatch(",-B", x))
 			got := tclListFlatten(y)
 			want := tclListFlatten("1 1 1 1")
 			if got != want {

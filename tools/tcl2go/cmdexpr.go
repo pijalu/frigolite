@@ -154,6 +154,16 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 			}
 			return fmt.Sprintf("fts3SortBuildDatabase(db, %s, %s)", nRowExpr, paramExpr)
 		},
+		"regexp": func(tp *transpiler, cmdName, cmdText string, args []string) string {
+			// TCL `regexp PATTERN STRING` -> unanchored ARE match, "1"/"0"
+			// (misc3-6.11: [regexp { 4.5678 } $x] capability probes).
+			if len(args) != 2 {
+				return fmt.Sprintf("%q", cmdText)
+			}
+			pattern := strings.TrimSpace(args[0])
+			pattern = strings.TrimSuffix(strings.TrimPrefix(pattern, "{"), "}")
+			return fmt.Sprintf("tclRegexpMatch(%q, %s)", pattern, tp.buildStringExpr(args[1]))
+		},
 		"array": func(tp *transpiler, cmdName, cmdText string, args []string) string {
 			// [array get VAR]: flattened key/value pairs. Inside a db-eval
 			// row loop, VAR refers to the current row's column bindings

@@ -1074,6 +1074,20 @@ func hasTopLevelSpace(t string) bool {
 	return false
 }
 
+// tclRegexpMatch implements the TCL "regexp PATTERN STRING" command:
+// an unanchored ARE match returning "1" or "0" (misc3-6.11 capability
+// probes; the corpus patterns are plain regexps that compile under RE2).
+func tclRegexpMatch(pattern, s string) string {
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return "0"
+	}
+	if re.MatchString(s) {
+		return "1"
+	}
+	return "0"
+}
+
 func tclSplitList(s string) []string {
 	var result []string
 	pos := 0

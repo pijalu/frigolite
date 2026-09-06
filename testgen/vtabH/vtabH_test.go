@@ -296,7 +296,7 @@ func Test_vtabH(t *testing.T) {
 				for _, p := range tclSplitList(root_files) {
 				_ = p // suppress unused warning
 					if tcl_platform_platform == "windows" {
-						if tclBool("!" + "regexp {\\$} $p") {
+						if tclBool("!" + tclRegexpMatch("\\$", p)) {
 							res = tclListAppend(res, p)
 						}
 					} else {
