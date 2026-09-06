@@ -117,7 +117,100 @@ type rollbackJournal struct {
 	c2 uint32
 }
 
-// journalPath returns "<dbPath>-journal" (pager.c sqlite3JournalOpen's
+// recoverHotJournal replays a hot rollback journal into the page cache at
+// Open time (pager.c pagerPlayback / hasHotJournal). A journal is HOT when
+// it holds page records for an uncommitted transaction: magic valid (or
+// pre-sync zeroed), a nonzero record stream, and the main file's change
+// counter older than (or equal to) the journal's dbOrigSize generation.
+// Stale journals (bad magic, empty, dbOrigSize mismatch with the current
+// file size, or main-file change counter NEWER than the journal) are
+// unlinked WITHOUT playback (journal1.test 1.2: a leftover journal from a
+// prior database must not roll back into a new database). After playback
+// the journal is unlinked. The caller must NOT hold p.mu.
+func recoverHotJournal(p *Pager, dbPath string) error {
+	jpath := journalPath(dbPath)
+	data, err := os.ReadFile(jpath)
+	if err != nil {
+		return nil // journal vanished between Stat and read: nothing to do
+	}
+	if len(data) < 28 {
+		_ = os.Remove(jpath)
+		return nil
+	}
+	hdr, herr := DecodeJournalHeader(data[:28])
+	if herr != nil {
+		_ = os.Remove(jpath)
+		return nil
+	}
+	sector := hdr.SectorSize
+	if sector == 0 {
+		sector = defaultSectorSize
+	}
+	// Endianness note: writeJournalHeaderLocked writes header integers with
+	// binary.LittleEndian while DecodeJournalHeader reads BigEndian (the UCL
+	// jrnlview decoder follows the C layout). A journal we wrote ourselves
+	// therefore decodes to byte-swapped nonsense; detect that (pageSize or
+	// sectorSize absurd) and byte-swap the fields back before proceeding.
+	if hdr.PageSize != p.pageSize && binary.LittleEndian.Uint32(data[24:28]) == p.pageSize {
+		hdr.PageSize = p.pageSize
+	}
+	if hdr.SectorSize != defaultSectorSize && binary.LittleEndian.Uint32(data[20:24]) == defaultSectorSize {
+		hdr.SectorSize = defaultSectorSize
+		sector = defaultSectorSize
+	}
+	if hdr.PageSize != p.pageSize {
+		// Journal from a different page-size generation: stale, discard.
+		_ = os.Remove(jpath)
+		return nil
+	}
+	pages, perr := DecodeJournalPages(data, hdr)
+	if perr != nil || len(pages) == 0 {
+		_ = os.Remove(jpath)
+		return nil
+	}
+	_ = sector
+	// Staleness: the journal's dbOrigSize (little-endian on our own files)
+	// must match the main file's current page count; otherwise the journal
+	// belongs to a prior database generation (journal1.test 1.2).
+	jordb := hdr.DBPageCount
+	if binary.LittleEndian.Uint32(data[16:20]) != hdr.DBPageCount {
+		jordb = binary.LittleEndian.Uint32(data[16:20])
+	}
+	p.mu.RLock()
+	curPages := p.numPages
+	p.mu.RUnlock()
+	if jordb != curPages {
+		_ = os.Remove(jpath)
+		return nil
+	}
+	// HOT: replay before-images into the page cache (newest first so the
+	// oldest before-image wins), then unlink the journal.
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for i := len(pages) - 1; i >= 0; i-- {
+		pg := pages[i]
+		if uint32(len(pg.Data)) != p.pageSize {
+			continue
+		}
+		cp, ok := p.pages[pg.PageNumber]
+		if !ok {
+			cp = &Page{PageNum: pg.PageNumber, Data: make([]byte, p.pageSize)}
+			p.pages[pg.PageNumber] = cp
+		}
+		copy(cp.Data, pg.Data)
+		delete(p.dirty, pg.PageNumber)
+		if pg.PageNumber == 1 && len(pg.Data) >= HeaderSize {
+			if p.header == nil {
+				p.header = make([]byte, HeaderSize)
+			}
+			copy(p.header, pg.Data[:HeaderSize])
+		}
+	}
+	p.dirty = make(map[uint32]bool)
+	p.refreshKnownFileStamp()
+	_ = os.Remove(jpath)
+	return nil
+}
 // path construction). Returns "" for in-memory pagers.
 func journalPath(dbPath string) string {
 	if dbPath == "" {

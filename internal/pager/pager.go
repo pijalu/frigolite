@@ -429,6 +429,24 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	// records Pager.dbFileVers when page 1 is first read).
 	pr.refreshKnownFileStamp()
 
+	// Rollback-journal crash recovery (pager.c pagerPlayback / hasHotJournal
+	// at open): when a "-journal" sidecar accompanies the main database,
+	// its page records are the before-images of an uncommitted transaction
+	// whose process died. A reader must replay them into the page cache
+	// before the first read (never serving the crashed partial image) and
+	// unlink the journal. Stale journals (dbOrigSize mismatch, bad magic,
+	// or main-file change counter newer than the journal) are discarded
+	// without playback (journal1.test 1.2: a leftover journal from a prior
+	// database must not roll back into a new database).
+	if jpath := journalPath(cleanPath); jpath != "" {
+		if _, err := os.Stat(jpath); err == nil {
+			if rerr := recoverHotJournal(pr, cleanPath); rerr != nil {
+				f.Close()
+				return nil, rerr
+			}
+		}
+	}
+
 	// WAL crash recovery / WAL-mode detection: SQLite auto-detects WAL from the
 	// presence of a valid "-wal" file. When one accompanies the main database,
 	// recover its committed frames into the page cache before the first read

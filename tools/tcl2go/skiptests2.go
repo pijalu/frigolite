@@ -6,6 +6,15 @@ package main
 // (imports managed by goimports)
 
 var skipTestsMore = map[string]string{
+	// pendingrace-1.3: the "database is locked" expectation is produced by
+	// tvfs2 xUnlock fault-injection (a custom VFS that fails the hot-journal
+	// rollback lock upgrade and leaves a PENDING lock for a racing reader).
+	// The transpiler strips all testvfs/tvfs commands, so the generated test
+	// runs a plain hot-journal playback (which must succeed with "ok").
+	// The engine-visible contract (hot journal detected + played back before
+	// any read, journal unlinked, pre-txn rows intact) is covered by the
+	// native test frigolite_pendingrace_native_test.go::TestNativePendingraceHotJournalPlayback.
+	"pendingrace-1.3": "tvfs2 xUnlock fault-injection (custom VFS race) N-A; hot-journal playback covered by native test",
 	// with1-10.2, 10.8.1-10.8.3: these tests depend on the TCL
 	// `insert_into_tree` proc (a db-eval + foreach tree-building loop) and
 	// `scan_tree` (10.3-10.6) that the transpiler cannot convert (emitted as
