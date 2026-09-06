@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -98,8 +97,8 @@ func Test_cache(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 			}
 			_r = strconv.Itoa(tclPagerCacheSize(db))
-			if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cache_size) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cache_size, _res.Error, "cache-1.3." + ii)
+			if _r != cache_size {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, cache_size, "cache-1.3." + ii)
 			}
 		}
 		// incr ii 1

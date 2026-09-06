@@ -141,8 +141,15 @@ func generateTestFile(base string, src string, testDir string) (filename string,
 		}
 		body.WriteString(fmt.Sprintf("\t_ = %s // pre-declared from TCL source\n", gv))
 	}
-	// Declare dynamic-key array maps after the plain vars.
+	// Declare dynamic-key array maps after the plain vars. Map iteration is
+	// randomized in Go; sort the base names so regeneration is byte-stable
+	// (nondeterministic order produced spurious whole-file diffs).
+	mapBases := make([]string, 0, len(arrayMapVars))
 	for base := range arrayMapVars {
+		mapBases = append(mapBases, base)
+	}
+	sort.Strings(mapBases)
+	for _, base := range mapBases {
 		gv := tclVarToGo(base)
 		if gv == "" {
 			continue

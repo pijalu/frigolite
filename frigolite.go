@@ -1035,6 +1035,11 @@ func (db *DB) errorCode(err error) string {
 		strings.Contains(msg, "NOT NULL"), strings.Contains(msg, "CHECK"),
 		strings.Contains(msg, "FOREIGN KEY"), strings.Contains(msg, "PRIMARY KEY"):
 		return "SQLITE_ERROR"
+	case strings.Contains(msg, "too big"), strings.Contains(msg, "string or blob too big"):
+		// vdbemem.c SQLITE_TOOBIG: "string or blob too big" from sqlite3_bind_*
+		// for a value whose byte length exceeds SQLITE_LIMIT_LENGTH
+		// (sqllimits1-5.14.x).
+		return "SQLITE_TOOBIG"
 	default:
 		return "SQLITE_ERROR"
 	}

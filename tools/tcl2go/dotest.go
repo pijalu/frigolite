@@ -989,6 +989,15 @@ func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bo
 		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
 		return
 	}
+	// The body ends with a known value-returning TCL builtin
+	// (`pager_cache_size db`, `execsql {SELECT ...}`, etc.) — the last
+	// command's result is what the do_test compares against the expected
+	// value, and was left in `_r` by the transpiled handler
+	// (cache.test 1.3.x, memdb.test, etc.).
+	if bodyEndsWithValueBuiltin(bodyCmds) {
+		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
+		return
+	}
 	tp.emitErrorResultCheck(nameExpr, expectedExpr)
 }
 
