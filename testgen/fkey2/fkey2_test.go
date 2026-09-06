@@ -916,9 +916,9 @@ func Test_fkey2(t *testing.T) {
 								msg = ""
 							}
 						}
-						_list := tclList([]string{rc, msg})
-						_ = _list
-						_r = _list
+						_list4 := tclList([]string{rc, msg})
+						_ = _list4
+						_r = _list4
 					}
 					{ // do_test "fkey2-5.3"
 	_ = rc // suppress unused warning
@@ -1519,13 +1519,13 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					// foreach {tn stmt} "1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\""
-					_items4 := tclSplitList("1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"")
-					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
-						tn := _items4[_idx4+0]
+					_items5 := tclSplitList("1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"")
+					for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+						tn := _items5[_idx5+0]
 						_ = tn // suppress unused warning
-						stmt := _items4[_idx4+1]
+						stmt := _items5[_idx5+1]
 						_ = stmt // suppress unused warning
-						_ = _idx4
+						_ = _idx5
 							{ // do_test "fkey2-13.1." + tn + ".1"
 								_res = db.Exec(stmt)
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
@@ -2183,13 +2183,13 @@ func Test_fkey2(t *testing.T) {
 							// execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLB...} (unsupported command, not transpiled)
 						}
 						// foreach {tn zSchema} "1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }"
-						_items5 := tclSplitList("1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }")
-						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-							tn := _items5[_idx5+0]
+						_items6 := tclSplitList("1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }")
+						for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+							tn := _items6[_idx6+0]
 							_ = tn // suppress unused warning
-							zSchema := _items5[_idx5+1]
+							zSchema := _items6[_idx6+1]
 							_ = zSchema // suppress unused warning
-							_ = _idx5
+							_ = _idx6
 								_res = db.Exec("PRAGMA foreign_keys = OFF")
 								for _, _t := range db.Query("SELECT name, type FROM sqlite_master WHERE type IN('table','view')").Rows {
 									db.Exec("DROP " + fmt.Sprint(_t[1]) + " " + tclQuoteIdent(fmt.Sprint(_t[0])))
@@ -2615,13 +2615,13 @@ func Test_fkey2(t *testing.T) {
 								}
 							}
 							// foreach {tn insert} "1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\""
-							_items6 := tclSplitList("1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"")
-							for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-								tn := _items6[_idx6+0]
+							_items7 := tclSplitList("1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"")
+							for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+								tn := _items7[_idx7+0]
 								_ = tn // suppress unused warning
-								insert := _items6[_idx6+1]
+								insert := _items7[_idx7+1]
 								_ = insert // suppress unused warning
-								_ = _idx6
+								_ = _idx7
 									{ // do_test "fkey2-20.2." + tn + ".1"
 										_res = db.Exec(insert + " INTO cc VALUES(1, 2)")
 										if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
@@ -2656,13 +2656,13 @@ func Test_fkey2(t *testing.T) {
 									}
 								}
 								// foreach {tn update} "1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\""
-								_items7 := tclSplitList("1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"")
-								for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-									tn := _items7[_idx7+0]
+								_items8 := tclSplitList("1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"")
+								for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
+									tn := _items8[_idx8+0]
 									_ = tn // suppress unused warning
-									update := _items7[_idx7+1]
+									update := _items8[_idx8+1]
 									_ = update // suppress unused warning
-									_ = _idx7
+									_ = _idx8
 										{ // do_test "fkey2-20.3." + tn + ".1"
 											_res = db.Exec("\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")
 											if _res.Error != nil {

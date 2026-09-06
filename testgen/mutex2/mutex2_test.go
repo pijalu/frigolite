@@ -69,6 +69,7 @@ func Test_mutex2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
@@ -105,6 +106,11 @@ func Test_mutex2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "mutex2-2.1")
+		}
 	}
 	{ // do_test "mutex2-2.4"
 		// sqlite3_mprintf_int {This is a test %d,%d,%d} 1 2 3 (unsupported command, not transpiled)

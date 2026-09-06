@@ -202,6 +202,11 @@ func Test_in(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: c")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "in-2.11")
+		}
 	}
 	{ // do_test "in-3.1"
 		r = db.Query("\n    SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5)\n    ORDER BY a\n  ")

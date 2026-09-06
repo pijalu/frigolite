@@ -495,6 +495,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// optimization_control exists-to-join 0 (no PRAGMA equivalent; ignored)
 	}
 	{ // "9.6"
@@ -515,6 +516,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db.Exec("PRAGMA skip_scan = 1")
 		if _res.Error != nil {
 			t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
@@ -529,6 +531,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// optimization_control exists-to-join 0 (no PRAGMA equivalent; ignored)
 	}
 	{ // "9.7.3"
@@ -540,6 +543,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db.Exec("PRAGMA skip_scan = 1")
 		if _res.Error != nil {
 			t.Errorf("optimization_control all skip-scan error: %v", _res.Error)

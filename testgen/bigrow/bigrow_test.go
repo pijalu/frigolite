@@ -151,6 +151,11 @@ func Test_bigrow(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bigrow-1.4")
+		}
 	}
 	{ // do_test "bigrow-1.4.1"
 		r = db.Query("SELECT b FROM t1 ORDER BY c")
@@ -240,14 +245,17 @@ func Test_bigrow(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	{ // do_test "bigrow-3.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');\n  ")

@@ -101,6 +101,13 @@ func cloneInsertValue(expr sql.Expr, values []interface{}, valIdx *int) (sql.Exp
 // Additionally, structurally identical SQL (same after replacing literal values
 // with placeholders) uses a template cache to avoid full re-parsing.
 func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
+	// Tokenize-time SQL length limit (tokenize.c sqlite3RunParser: mxSqlLen
+	// counts the SQL text against db->aLimit[SQLITE_LIMIT_SQL_LENGTH];
+	// exhaustion sets pParse->rc = SQLITE_TOOBIG with the default message,
+	// before any statement runs — sqllimits1-6.1).
+	if e.settings.sqlLengthLimit != 0 && len(sqlStr) > e.settings.sqlLengthLimit {
+		return nil, fmt.Errorf("string or blob too big")
+	}
 	// Check exact match cache first (fastest)
 	if cached, ok := e.caches.stmtCache[sqlStr]; ok {
 		return cached, nil

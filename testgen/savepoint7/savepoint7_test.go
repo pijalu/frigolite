@@ -192,9 +192,9 @@ func Test_savepoint7(t *testing.T) {
 			}
 		}
 		_res = db.Exec("RELEASE x1")
-		_list := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
-		_ = _list
-		_r = _list
+		_list16 := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
+		_ = _list16
+		_r = _list16
 	}
 	{ // do_test "savepoint7-2.2"
 		_res = db.Exec("DELETE FROM t2;")
@@ -202,30 +202,30 @@ func Test_savepoint7(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows16 := db.Query("SELECT * FROM t1")
-			var _dbevalRb17 bool
-			var _dbevalErr18 error
-			var _dbevalInt19 bool
+			_dbevalRows17 := db.Query("SELECT * FROM t1")
+			var _dbevalRb18 bool
+			var _dbevalErr19 error
+			var _dbevalInt20 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows16.Rows) && _dbevalErr18 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows16.Columns); _ci++ {
-					switch _dbevalRows16.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows17.Rows) && _dbevalErr19 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows17.Columns); _ci++ {
+					switch _dbevalRows17.Columns[_ci] {
 						case "a":
-							a = tclStr(_dbevalRows16.Rows[_ri][_ci])
+							a = tclStr(_dbevalRows17.Rows[_ri][_ci])
 						case "b":
-							b = tclStr(_dbevalRows16.Rows[_ri][_ci])
+							b = tclStr(_dbevalRows17.Rows[_ri][_ci])
 						case "c":
-							c = tclStr(_dbevalRows16.Rows[_ri][_ci])
+							c = tclStr(_dbevalRows17.Rows[_ri][_ci])
 					}
 				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
 				if _res.Error != nil { _catchErr = _res.Error }
-				if _dbevalRb17 { _dbevalErr18 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt19 { _dbevalErr18 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb18 { _dbevalErr19 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt20 { _dbevalErr19 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr18 != nil {
-				_catchErr = _dbevalErr18
+			if _dbevalErr19 != nil {
+				_catchErr = _dbevalErr19
 			}
 			if _catchErr != nil {
 				rc = "1"
@@ -235,9 +235,9 @@ func Test_savepoint7(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
-		_ = _list
-		_r = _list
+		_list21 := tclList([]string{rc, msg, tclExecSQL(db, "SELECT * FROM t2")})
+		_ = _list21
+		_r = _list21
 	}
 	vtab.TclVarSet("i", "", "248")
 	i = "248"

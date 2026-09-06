@@ -126,18 +126,18 @@ func Test_capi2(t *testing.T) {
 		_r = tclStepStmt(db, "VM")
 	}
 	{ // do_test "capi2-1.7"
-		_list := tclList([]string{strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "capi2-1.8"
 		_r = tclStepStmt(db, "VM")
 	}
 	{ // do_test "capi2-1.9"
 		_r = tclResetStmtCode("VM")
-		_list := tclList([]string{strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "capi2-1.10"
 		_r = strconv.Itoa(tclDataCount("VM"))
@@ -199,16 +199,19 @@ func Test_capi2(t *testing.T) {
 		SQL = tclSqlTail(SQL)
 		_ = SQL // suppress unused warning
 		_ = VM // prepared statement handle
-		_list := tclList([]string{SQL, VM})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{SQL, VM})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "capi2-3.1"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc4 := tclPrepareStmt(db, "catchprep3", "select bogus from sqlite_master", -1)
+			if _catchPrepRc4 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc4)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -224,7 +227,10 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc5 := tclPrepareStmt(db, "catchprep4", "select bogus from ", -1)
+			if _catchPrepRc5 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc5)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -240,7 +246,10 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc6 := tclPrepareStmt(db, "catchprep5", ";;;;select bogus from sqlite_master", -1)
+			if _catchPrepRc6 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc6)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -256,7 +265,10 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc7 := tclPrepareStmt(db, "catchprep6", "select bogus from sqlite_master;x;", -1)
+			if _catchPrepRc7 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc7)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -272,7 +284,10 @@ func Test_capi2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc8 := tclPrepareStmt(db, "catchprep7", "select bogus from sqlite_master;;;x;", -1)
+			if _catchPrepRc8 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc8)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -288,7 +303,10 @@ func Test_capi2(t *testing.T) {
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc9 := tclPrepareStmt(db, "catchprep8", "select 5/0;", -1)
+			if _catchPrepRc9 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc9)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -298,11 +316,16 @@ func Test_capi2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, TAIL)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi2-3.6")
+		}
 	}
 	{ // do_test "capi2-3.7"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM", SQL), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list9 := tclList([]string{tclStepPreparedCode(db, "VM", SQL), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list9
+		_r = _list9
 	}
 	{ // do_test "capi2-3.8"
 		_r = tclFinalizeStmt(db, "VM")
@@ -327,9 +350,9 @@ func Test_capi2(t *testing.T) {
 		_r = strconv.FormatInt(db.Changes(), 10)
 	}
 	{ // do_test "capi2-3.10"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM", "INSERT INTO t1 VALUES(1,2,3)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list10 := tclList([]string{tclStepPreparedCode(db, "VM", "INSERT INTO t1 VALUES(1,2,3)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list10
+		_r = _list10
 	}
 	{ // do_test "capi2-3.10b"
 		_r = strconv.FormatInt(db.Changes(), 10)
@@ -346,17 +369,17 @@ func Test_capi2(t *testing.T) {
 		TAIL = tclSqlTail("INSERT INTO t1 VALUES(1,3,4)")
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
-		_list := tclList([]string{tclStepPreparedCode(db, "VM", "INSERT INTO t1 VALUES(1,3,4)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list11 := tclList([]string{tclStepPreparedCode(db, "VM", "INSERT INTO t1 VALUES(1,3,4)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list11
+		_r = _list11
 	}
 	{ // do_test "capi2-3.13b"
 		_r = strconv.FormatInt(db.Changes(), 10)
 	}
 	{ // do_test "capi2-3.14"
-		_list := tclList([]string{tclFinalizePreparedCode(db, "VM"), db.LastErr(), "sqlite3_extended_errcode $DB"})
-		_ = _list
-		_r = _list
+		_list12 := tclList([]string{tclFinalizePreparedCode(db, "VM"), db.LastErr(), "sqlite3_extended_errcode $DB"})
+		_ = _list12
+		_r = _list12
 	}
 	{ // do_test "capi2-3.15"
 		_r = tclPrepareStmt(db, "VM", "CREATE TABLE t2(a NOT NULL, b)", -1)
@@ -371,14 +394,14 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-3.16"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM", "CREATE TABLE t2(a NOT NULL, b)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list13 := tclList([]string{tclStepPreparedCode(db, "VM", "CREATE TABLE t2(a NOT NULL, b)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list13
+		_r = _list13
 	}
 	{ // do_test "capi2-3.17"
-		_list := tclList([]string{tclFinalizePreparedCode(db, "VM"), db.LastErr()})
-		_ = _list
-		_r = _list
+		_list14 := tclList([]string{tclFinalizePreparedCode(db, "VM"), db.LastErr()})
+		_ = _list14
+		_r = _list14
 	}
 	{ // do_test "capi2-3.18"
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t2 VALUES(NULL,2)", -1)
@@ -386,14 +409,14 @@ func Test_capi2(t *testing.T) {
 		TAIL = tclSqlTail("INSERT INTO t2 VALUES(NULL,2)")
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
-		_list := tclList([]string{tclStepPreparedCode(db, "VM", "INSERT INTO t2 VALUES(NULL,2)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
-		_ = _list
-		_r = _list
+		_list15 := tclList([]string{tclStepPreparedCode(db, "VM", "INSERT INTO t2 VALUES(NULL,2)"), strconv.Itoa(tclColumnCount("VM")), "get_row_values $VM", "get_column_names $VM"})
+		_ = _list15
+		_r = _list15
 	}
 	{ // do_test "capi2-3.19"
-		_list := tclList([]string{tclFinalizePreparedCode(db, "VM"), db.LastErr(), "sqlite3_extended_errcode $DB"})
-		_ = _list
-		_r = _list
+		_list16 := tclList([]string{tclFinalizePreparedCode(db, "VM"), db.LastErr(), "sqlite3_extended_errcode $DB"})
+		_ = _list16
+		_r = _list16
 	}
 	{ // do_test "capi2-3.20"
 		_res = db.Exec("\n    CREATE TABLE a1(message_id, name , UNIQUE(message_id, name) );\n    INSERT INTO a1 VALUES(1, 1);\n  ")
@@ -419,9 +442,9 @@ func Test_capi2(t *testing.T) {
 		_r = tclFinalizeStmt(db, "VM")
 	}
 	{ // do_test "capi2-3.24"
-		_list := tclList([]string{db.LastErrCode(), "sqlite3_extended_errcode $DB"})
-		_ = _list
-		_r = _list
+		_list17 := tclList([]string{db.LastErrCode(), "sqlite3_extended_errcode $DB"})
+		_ = _list17
+		_r = _list17
 	}
 	{ // do_test "capi2-4.1"
 		_r = tclPrepareStmt(db, "VM1", "INSERT INTO t2 VALUES(1,2)", -1)
@@ -460,9 +483,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-4.4"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM2", "INSERT INTO t2 VALUES(2,3)"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
-		_ = _list
-		_r = _list
+		_list18 := tclList([]string{tclStepPreparedCode(db, "VM2", "INSERT INTO t2 VALUES(2,3)"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
+		_ = _list18
+		_r = _list18
 	}
 	{ // do_test "capi2-4.5"
 		r = db.Query("SELECT * FROM t2 ORDER BY a")
@@ -474,9 +497,9 @@ func Test_capi2(t *testing.T) {
 		_r = tclFinalizeStmt(db, "VM2")
 	}
 	{ // do_test "capi2-4.7"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM3", "INSERT INTO t2 VALUES(3,4)"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
-		_ = _list
-		_r = _list
+		_list19 := tclList([]string{tclStepPreparedCode(db, "VM3", "INSERT INTO t2 VALUES(3,4)"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
+		_ = _list19
+		_r = _list19
 	}
 	{ // do_test "capi2-4.8"
 		r = db.Query("SELECT * FROM t2 ORDER BY a")
@@ -488,9 +511,9 @@ func Test_capi2(t *testing.T) {
 		_r = tclFinalizeStmt(db, "VM3")
 	}
 	{ // do_test "capi2-4.10"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "INSERT INTO t2 VALUES(1,2)"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list20 := tclList([]string{tclStepPreparedCode(db, "VM1", "INSERT INTO t2 VALUES(1,2)"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list20
+		_r = _list20
 	}
 	{ // do_test "capi2-4.11"
 		r = db.Query("SELECT * FROM t2 ORDER BY a")
@@ -517,60 +540,60 @@ func Test_capi2(t *testing.T) {
 		TAIL = tclSqlTail("SELECT * FROM t2")
 		_ = TAIL // suppress unused warning
 		_ = VM3 // prepared statement handle
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list21 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list21
+		_r = _list21
 	}
 	{ // do_test "capi2-5.2"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM2", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
-		_ = _list
-		_r = _list
+		_list22 := tclList([]string{tclStepPreparedCode(db, "VM2", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
+		_ = _list22
+		_r = _list22
 	}
 	{ // do_test "capi2-5.3"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list23 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list23
+		_r = _list23
 	}
 	{ // do_test "capi2-5.4"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
-		_ = _list
-		_r = _list
+		_list24 := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
+		_ = _list24
+		_r = _list24
 	}
 	{ // do_test "capi2-5.5"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
-		_ = _list
-		_r = _list
+		_list25 := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
+		_ = _list25
+		_r = _list25
 	}
 	{ // do_test "capi2-5.6"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
-		_ = _list
-		_r = _list
+		_list26 := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
+		_ = _list26
+		_r = _list26
 	}
 	{ // do_test "capi2-5.7"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
-		_ = _list
-		_r = _list
+		_list27 := tclList([]string{tclStepPreparedCode(db, "VM3", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM3")), "get_row_values $VM3", "get_column_names $VM3"})
+		_ = _list27
+		_r = _list27
 	}
 	{ // do_test "capi2-5.8"
 		_r = tclFinalizeStmt(db, "VM3")
 	}
 	{ // do_test "capi2-5.9"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list28 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list28
+		_r = _list28
 	}
 	{ // do_test "capi2-5.10"
 		_r = tclFinalizeStmt(db, "VM1")
 	}
 	{ // do_test "capi2-5.11"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM2", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
-		_ = _list
-		_r = _list
+		_list29 := tclList([]string{tclStepPreparedCode(db, "VM2", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
+		_ = _list29
+		_r = _list29
 	}
 	{ // do_test "capi2-5.12"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM2", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
-		_ = _list
-		_r = _list
+		_list30 := tclList([]string{tclStepPreparedCode(db, "VM2", "SELECT * FROM t2"), strconv.Itoa(tclColumnCount("VM2")), "get_row_values $VM2", "get_column_names $VM2"})
+		_ = _list30
+		_r = _list30
 	}
 	{ // do_test "capi2-5.11"
 		_r = tclFinalizeStmt(db, "VM2")
@@ -600,16 +623,16 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.4"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list31 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list31
+		_r = _list31
 	}
 	{ // "capi2-6.5" — skipped: prepared SELECT read-lock retention across connections N-A
 	}
 	{ // do_test "capi2-6.6"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list32 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list32
+		_r = _list32
 	}
 	{ // do_test "capi2-6.7"
 		r = db2.Query("SELECT * FROM t2")
@@ -618,9 +641,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.8"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list33 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list33
+		_r = _list33
 	}
 	{ // do_test "capi2-6.9"
 		r = db.Query("SELECT * FROM t2")
@@ -629,9 +652,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.10"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list34 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list34
+		_r = _list34
 	}
 	{ // do_test "capi2-6.11"
 		_res = db.Exec("BEGIN")
@@ -640,14 +663,14 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.12"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list35 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list35
+		_r = _list35
 	}
 	{ // do_test "capi2-6.14"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list36 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list36
+		_r = _list36
 	}
 	{ // do_test "capi2-6.15"
 		r = db.Query("SELECT * FROM t1")
@@ -656,9 +679,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.16"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list37 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list37
+		_r = _list37
 	}
 	{ // do_test "capi2-6.17"
 		_res = db.Exec("UPDATE t1 SET b=b+1")
@@ -667,9 +690,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.18"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list38 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list38
+		_r = _list38
 	}
 	{ // do_test "capi2-6.19"
 		r = db.Query("SELECT * FROM t1")
@@ -678,19 +701,19 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.20"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list39 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list39
+		_r = _list39
 	}
 	{ // do_test "capi2-6.22"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list40 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list40
+		_r = _list40
 	}
 	{ // do_test "capi2-6.24"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list41 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list41
+		_r = _list41
 	}
 	{ // do_test "capi2-6.25"
 		r = db.Query("\n    INSERT INTO t1 VALUES(2,3,4);\n    SELECT * FROM t1;\n  ")
@@ -699,9 +722,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.26"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list42 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list42
+		_r = _list42
 	}
 	{ // do_test "capi2-6.27"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2,4,5);\n    SELECT * FROM t1;\n  ")
@@ -710,9 +733,9 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-6.28"
-		_list := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
-		_ = _list
-		_r = _list
+		_list43 := tclList([]string{tclStepPreparedCode(db, "VM1", "SELECT * FROM t3"), strconv.Itoa(tclColumnCount("VM1")), "get_row_values $VM1", "get_column_names $VM1"})
+		_ = _list43
+		_r = _list43
 	}
 	{ // do_test "capi2-6.99"
 		_r = tclFinalizeStmt(db, "VM1")

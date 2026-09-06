@@ -102,9 +102,9 @@ func Test_tkt1873(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{rc, msg})
+		_ = _list4
+		_r = _list4
 	}
 	{ // do_test "tkt1873-1.4"
 		_res = db.Exec("\n    select * from t2;\n  ")

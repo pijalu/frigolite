@@ -522,9 +522,9 @@ func Test_with1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;\n")
 		}
 	}
-	_list := tclList([]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
+	_ = _list0
+	_r = _list0
 	I = _r
 	_ = I // suppress unused warning
 	// proc definition (not transpiled)
@@ -762,15 +762,15 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // do_test "17.2"
-		_dbevalRows0 := db.Query("\n    WITH x AS (\n        WITH y(b) AS (SELECT 10)\n        SELECT * FROM y UNION ALL SELECT * FROM y\n    )\n    SELECT * FROM x\n  ")
-		if _dbevalRows0.Error == nil {
+		_dbevalRows1 := db.Query("\n    WITH x AS (\n        WITH y(b) AS (SELECT 10)\n        SELECT * FROM y UNION ALL SELECT * FROM y\n    )\n    SELECT * FROM x\n  ")
+		if _dbevalRows1.Error == nil {
 			db.BeginActiveStatement()
-			_A_arr = strings.Join(_dbevalRows0.Columns, " ")
-			for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
-				_AFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
-				_ = _AFlat1
-				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
-					switch _dbevalRows0.Columns[_ci] {
+			_A_arr = strings.Join(_dbevalRows1.Columns, " ")
+			for _ri := 0; _ri < len(_dbevalRows1.Rows); _ri++ {
+				_AFlat2 := tclRowFlatPairs(_dbevalRows1.Columns, _dbevalRows1.Rows[_ri])
+				_ = _AFlat2
+				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+					switch _dbevalRows1.Columns[_ci] {
 					}
 				}
 			}
@@ -976,8 +976,8 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // do_test "24.1"
-		_dbeval2 := tclExecSQL(db, "EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc")
-		program = _dbeval2
+		_dbeval3 := tclExecSQL(db, "EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc")
+		program = _dbeval3
 		_ = program // suppress unused warning
 		// expr [lsearch $program OpenDup]>0 → runtime compare
 		_r = tclBool01(toInt(strconv.Itoa(tclLsearch(program, "OpenDup")))  >  0)
@@ -995,13 +995,13 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// foreach {id dual} "1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}"
-	_items3 := tclSplitList("1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		id := _items3[_idx3+0]
+	_items4 := tclSplitList("1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}")
+	for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+		id := _items4[_idx4+0]
 		_ = id // suppress unused warning
-		dual := _items3[_idx3+1]
+		dual := _items4[_idx4+1]
 		_ = dual // suppress unused warning
-		_ = _idx3
+		_ = _idx4
 			db.Close()
 			os.Remove("test.db")
 			os.Remove("test.db-journal")

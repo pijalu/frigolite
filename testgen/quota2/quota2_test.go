@@ -144,10 +144,12 @@ func Test_quota2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	{ // do_test "quota2-1.1"
 		_r = tclQuotaFopen("quota2a/xyz.txt", "w+b")
@@ -399,11 +401,13 @@ func Test_quota2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_r = tclQuotaShutdown(db, db1, db2, db3, db4, db5, db6, db7, db8, db9)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		vtab.TclVarDelete("quota_request_ok", "")
 	}
 }

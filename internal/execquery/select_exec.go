@@ -82,6 +82,24 @@ func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interfa
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
+// validateOrderGroupByTerms enforces SQLITE_LIMIT_COLUMN on the ORDER BY and
+// GROUP BY clause sizes: more terms than the limit errors "too many terms in
+// ORDER BY clause" / "too many terms in GROUP BY clause" (resolve.c
+// sqlite3ResolveOrderGroupBy, checked during name resolution before rows are
+// processed — sqllimits1-8.x).
+func (e *SelectEngine) validateOrderGroupByTerms(s *sql.SelectStmt) error {
+	limit := e.ctx.ColumnLimit()
+	if limit != 0 {
+		if len(s.GroupBy) > limit {
+			return fmt.Errorf("too many terms in GROUP BY clause")
+		}
+		if len(s.OrderBy) > limit {
+			return fmt.Errorf("too many terms in ORDER BY clause")
+		}
+	}
+	return nil
+}
+
 func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if len(s.Joins) > 0 {
 	}
@@ -113,6 +131,9 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 		}
 		e.cteScopes = append(e.cteScopes, s.CTEs)
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
+	}
+	if err := e.validateOrderGroupByTerms(s); err != nil {
+		return &Result{Error: err}
 	}
 	if err := e.validate.ValidateExprs(s); err != nil {
 		return &Result{Error: err}

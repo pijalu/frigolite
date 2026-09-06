@@ -107,9 +107,9 @@ func Test_enc2(t *testing.T) {
 	dbcontents = "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n"
 	_ = dbcontents // suppress unused warning
 	// proc definition (not transpiled)
-	_list := tclList([]string{"UTF-8", "UTF-16le", "UTF-16be"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"UTF-8", "UTF-16le", "UTF-16be"})
+	_ = _list0
+	_r = _list0
 	encodings = _r
 	_ = encodings // suppress unused warning
 	vtab.TclVarSet("sqlite_os_trace", "", "0")
@@ -236,18 +236,33 @@ func Test_enc2(t *testing.T) {
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-8")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.1")
+		}
 	}
 	{ // do_test "enc2-5.2"
 		// add_test_collate $DB 0 1 0 (unsupported command, not transpiled)
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16LE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.2")
+		}
 	}
 	{ // do_test "enc2-5.3"
 		// add_test_collate $DB 0 0 1 (unsupported command, not transpiled)
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16BE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.3")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -271,18 +286,33 @@ func Test_enc2(t *testing.T) {
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16LE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.5")
+		}
 	}
 	{ // do_test "enc2-5.6"
 		// add_test_collate $DB 1 0 1 (unsupported command, not transpiled)
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16BE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.6")
+		}
 	}
 	{ // do_test "enc2-5.7"
 		// add_test_collate $DB 1 0 0 (unsupported command, not transpiled)
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-8")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.7")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -306,18 +336,33 @@ func Test_enc2(t *testing.T) {
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16BE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.9")
+		}
 	}
 	{ // do_test "enc2-5.10"
 		// add_test_collate $DB 1 1 0 (unsupported command, not transpiled)
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16LE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.10")
+		}
 	}
 	{ // do_test "enc2-5.11"
 		// add_test_collate $DB 1 0 0 (unsupported command, not transpiled)
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-8")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.11")
+		}
 	}
 	{ // do_test "enc2-5-12"
 		// add_test_collate $DB 0 0 0 (unsupported command, not transpiled)
@@ -329,6 +374,11 @@ func Test_enc2(t *testing.T) {
 		res = tclExecSQL(db, "SELECT * FROM t5 ORDER BY 1 COLLATE test_collate; ")
 		_ = res // suppress unused warning
 		res = tclListAppend(res, test_collate_enc)
+		got := tclListFlatten(res)
+		want := tclListFlatten("one two three four five UTF-16BE")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "enc2-5.13")
+		}
 	}
 	{ // do_test "enc2-5.14"
 		_ = sqlite_last_needed_collation // TCL namespace variable (query)
@@ -577,8 +627,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
@@ -588,8 +638,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.3"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
@@ -599,8 +649,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.4"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
@@ -610,8 +660,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.5"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()

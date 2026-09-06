@@ -129,9 +129,9 @@ func Test_thread002(t *testing.T) {
 	thread_program, err = frigolite.Open("test.db]")
 	if err != nil { t.Fatal(err) }
 	defer thread_program.Close()
-	_list := tclList([]string{"0 1 2", "0 2 1", "1 0 2", "1 2 0", "2 0 1", "2 1 0"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"0 1 2", "0 2 1", "1 0 2", "1 2 0", "2 0 1", "2 1 0"})
+	_ = _list0
+	_r = _list0
 	order_list = _r
 	_ = order_list // suppress unused warning
 	// array unset (not transpiled)
@@ -177,14 +177,14 @@ func Test_thread002(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 3 }() {
 		{ // do_test "thread002.3." + ii
-			_dbtmp0, err := frigolite.Open("test" + ii + ".db")
-			_ = _dbtmp0 // sqlite3 db connection
+			_dbtmp1, err := frigolite.Open("test" + ii + ".db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 			_ = err
 			db.ResetChangesCounters()
-			_list := tclList([]string{tclExecSQL(db, "SELECT count(*) FROM t1"), tclExecSQL(db, "PRAGMA integrity_check"), "\\"})
-			_ = _list
-			_r = _list
+			_list2 := tclList([]string{tclExecSQL(db, "SELECT count(*) FROM t1"), tclExecSQL(db, "PRAGMA integrity_check"), "\\"})
+			_ = _list2
+			_r = _list2
 			res = _r
 			_ = res // suppress unused warning
 			db.Close()

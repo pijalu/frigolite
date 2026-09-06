@@ -122,6 +122,7 @@ func Test_select2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 		}
 		var _data_arr string
 		_ = _data_arr // suppress unused warning
@@ -264,6 +265,7 @@ func Test_select2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db.Exec("DROP TABLE tbl2")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}

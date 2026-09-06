@@ -140,6 +140,11 @@ func Test_quote(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 hello 10")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quote-1.3.4")
+		}
 	}
 	{ // do_test "quote-1.4"
 	_ = _r // suppress unused warning
@@ -157,6 +162,11 @@ func Test_quote(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quote-1.4")
+		}
 	}
 	{ // do_test "quote-1.5"
 	_ = _r // suppress unused warning
@@ -174,6 +184,11 @@ func Test_quote(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 hello 16")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quote-1.5")
+		}
 	}
 	{ // do_test "quote-1.6"
 	_ = _r // suppress unused warning
@@ -191,6 +206,11 @@ func Test_quote(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quote-1.6")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")

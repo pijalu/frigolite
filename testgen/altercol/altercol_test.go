@@ -142,9 +142,9 @@ func Test_altercol(t *testing.T) {
 				res = after
 				_ = res // suppress unused warning
 			} else {
-				_list := tclList([]string{after})
-				_ = _list
-				_r = _list
+				_list0 := tclList([]string{after})
+				_ = _list0
+				_r = _list0
 				res = _r
 				_ = res // suppress unused warning
 			}

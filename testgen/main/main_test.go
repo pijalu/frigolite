@@ -234,6 +234,7 @@ func Test_main(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db.Close()
 			}
 			os.Remove("test.db")
@@ -273,6 +274,7 @@ func Test_main(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		for _, f := range tclSplitList(tclGlob("testdb/*")) {
@@ -298,11 +300,17 @@ func Test_main(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 unrecognized token: \"!\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "main-3.1")
+		}
 	}
 	{ // do_test "main-3.2"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		for _, f := range tclSplitList(tclGlob("testdb/*")) {
@@ -328,6 +336,11 @@ func Test_main(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 unrecognized token: \"^\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "main-3.2")
+		}
 	}
 	{ // do_test "main-3.2.2"
 		_res = db.Exec("select 'abc")
@@ -547,6 +560,7 @@ func Test_main(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		for _, f := range tclSplitList(tclGlob("testdb/*")) {
@@ -578,6 +592,11 @@ func Test_main(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \"bogus\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "main-3.4")
+		}
 	}
 	{ // do_test "main-3.5"
 	_ = v // suppress unused warning
@@ -595,6 +614,11 @@ func Test_main(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 incomplete input")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "main-3.5")
+		}
 	}
 	{ // do_test "main-3.6"
 		_res = db.Exec("SELECT 'abc' + #9")

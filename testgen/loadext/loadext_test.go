@@ -206,9 +206,9 @@ func Test_loadext(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "loadext-2.2"
 		_ = os.WriteFile("./notasharedlib.so", nil, 0644)
@@ -234,9 +234,9 @@ func Test_loadext(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "loadext-2.3"
 	_ = rc // suppress unused warning
@@ -256,9 +256,9 @@ func Test_loadext(t *testing.T) {
 			msg = tclRegsub("0x[1234567890abcdefABCDEF]*", msg, "XXX")
 			_ = msg // suppress unused warning
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{rc, msg})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "loadext-2.4"
 	_ = rc // suppress unused warning
@@ -274,9 +274,9 @@ func Test_loadext(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{rc, msg})
+		_ = _list3
+		_r = _list3
 	}
 	db.Close()
 	db, err = frigolite.Open("test.db")

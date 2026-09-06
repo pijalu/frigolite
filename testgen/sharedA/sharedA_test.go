@@ -160,9 +160,9 @@ func Test_sharedA(t *testing.T) {
 	if func() bool { l_n, l_e := strconv.Atoi(tclBool01(vtab.TclVarExists("thread_result", ""))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 	}
 	{ // do_test "2.4"
-		_list := tclList([]string{thread_result, db2.LastErr()})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{thread_result, db2.LastErr()})
+		_ = _list0
+		_r = _list0
 	}
 	if db1 != nil { db1.Close() }
 	if db2 != nil { db2.Close() }

@@ -104,6 +104,7 @@ func Test_journal3(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						os.Remove("test.db-journal")
 					}
 					tclFileChmod("test.db", permissions)

@@ -326,13 +326,14 @@ func Test_quota(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tclConnRegister("db2b", db2b)
 		if err != nil { t.Fatal(err) }
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list0
+		_r = _list0
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		vtab.TclVarDelete("quota_request_ok", "")
 	}
 	{ // do_test "quota-3.2.2"
@@ -421,6 +422,7 @@ func Test_quota(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				tclConnByName(db_iter, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Close()
 			}
 		}
@@ -680,6 +682,7 @@ func Test_quota(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove("test.db")
@@ -705,6 +708,7 @@ func Test_quota(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		os.Remove("test.db")
@@ -723,20 +727,22 @@ func Test_quota(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	// do_faultsim_test quota-5.5 -prep {\n  catch { sqlite3_quota_shutdown }\n} -body {\n  sqlite3_quot... (unsupported command, not transpiled)
 	// do_faultsim_test quota-5.6 -prep {\n  catch { sqlite3_quota_shutdown }\n  sqlite3_qu...} -body {\... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_r = tclQuotaShutdown(db, db1, db2, db3, db4, db5, db6, db7, db8, db9)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove("test.db")

@@ -155,9 +155,17 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"dbcksum":                     (*transpiler).processDBCksum,
 		"file_control_data_version":   (*transpiler).processFileControlDataVersion,
 		"sqlite3_prepare": func(tp *transpiler, args []tcl.RawWord) {
+			if tp.catchMode && len(args) >= 4 {
+				tp.emitPrepareInCatch(args)
+				return
+			}
 			tp.emitLine("// sqlite3_prepare (standalone prepare; not emulated)")
 		},
 		"sqlite3_prepare_v2": func(tp *transpiler, args []tcl.RawWord) {
+			if tp.catchMode && len(args) >= 4 {
+				tp.emitPrepareInCatch(args)
+				return
+			}
 			tp.emitLine("// sqlite3_prepare_v2 (standalone prepare; not emulated)")
 		},
 		"sqlite3_bind_double":       func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_double", args) },

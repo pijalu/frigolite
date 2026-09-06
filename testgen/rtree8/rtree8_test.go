@@ -488,5 +488,10 @@ func Test_rtree8(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 database table is locked")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rtree8-6.1")
+		}
 	}
 }

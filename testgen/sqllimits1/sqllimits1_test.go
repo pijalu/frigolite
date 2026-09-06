@@ -680,12 +680,13 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			_r = tclBindStmt(db, "STMT", 1, "text", str1, -1)
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -701,12 +702,13 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, -1)
+			_r = ""
+			_r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(np1))
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -724,12 +726,13 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, -1)
+			_r = ""
+			_r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n))
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -745,12 +748,13 @@ func Test_sqllimits1(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			_r = tclBindStmt(db, "STMT", 1, "text", str1, -1)
+			_r = ""
+			_r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n))
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -822,6 +826,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	{ // do_test "sqllimits1-6.1"
+		db.SetLimit("SQLITE_LIMIT_SQL_LENGTH", toInt(50000))
 		vtab.TclVarSet("sql", "", "SELECT 1 WHERE 1==1")
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
@@ -835,6 +840,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-6.3"
+		db.SetLimit("SQLITE_LIMIT_SQL_LENGTH", toInt(50000))
 		vtab.TclVarSet("sql", "", "SELECT 1 WHERE 1==1")
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
@@ -851,7 +857,13 @@ func Test_sqllimits1(t *testing.T) {
 	_ = STMT // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepN1, _catchPrepErr1 := strconv.Atoi(nbytes)
+			_catchPrepNV1 := -1
+			if _catchPrepErr1 == nil { _catchPrepNV1 = _catchPrepN1 }
+			_catchPrepRc1 := tclPrepareStmt(db, "catchprep0", sql, _catchPrepNV1)
+			if _catchPrepRc1 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc1)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				STMT = _catchErr.Error()
@@ -861,6 +873,11 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, STMT)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 (18) statement too long")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-6.3")
+		}
 	}
 	{ // do_test "sqllimits1-6.4"
 		_r = tclErrMsg(db)
@@ -1400,6 +1417,7 @@ func Test_sqllimits1(t *testing.T) {
 	vtab.TclVarSet("SQLITE_LIMIT_LIKE_PATTERN", "", "1000")
 	SQLITE_LIMIT_LIKE_PATTERN = "1000"
 	_ = SQLITE_LIMIT_LIKE_PATTERN // suppress unused warning
+	db.SetLimit("SQLITE_LIMIT_LIKE_PATTERN_LENGTH", toInt(SQLITE_LIMIT_LIKE_PATTERN))
 	{ // do_test "sqllimits1-15.1"
 		vtab.TclVarSet("max", "", SQLITE_LIMIT_LIKE_PATTERN)
 		max = SQLITE_LIMIT_LIKE_PATTERN
@@ -1435,16 +1453,17 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	// foreach {key value} "array get saved"
-	_items0 := tclSplitList("array get saved")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		key := _items0[_idx0+0]
+	_items1 := tclSplitList("array get saved")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		key := _items1[_idx1+0]
 		_ = key // suppress unused warning
-		value := _items0[_idx0+1]
+		value := _items1[_idx1+1]
 		_ = value // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				vtab.TclVarSet("$key", "", value)
 				key = value
 				_ = key // suppress unused warning
@@ -1459,6 +1478,7 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
 			}
 		}
+		db.SetLimit("SQLITE_LIMIT_COMPOUND_SELECT", toInt(10))
 		{ // "sqllimits1-18.1"
 			_res = db.Exec("\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
 			if _res.Error != nil {

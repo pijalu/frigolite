@@ -3,7 +3,6 @@ package execdml
 
 import (
 	"fmt"
-
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execquery"

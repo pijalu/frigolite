@@ -73,14 +73,14 @@ func Test_changes2(t *testing.T) {
 	tclPrepareStep(db, "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id", "stmt")
 	_ = stmt // prepared statement handle
 	{ // do_test "1.1"
-		_list := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "1.2"
-		_list := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
+		_ = _list1
+		_r = _list1
 	}
 	tclResetPrepared("stmt")
 	// sqlite3_reset $stmt
@@ -91,14 +91,14 @@ func Test_changes2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		_list := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "1.4"
-		_list := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{tclStepPreparedCode(db, "stmt", "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id"), tclDbOne(db, "db changes")})
+		_ = _list3
+		_r = _list3
 	}
 	tclFinalizePrepared("stmt")
 	// sqlite3_finalize $stmt
@@ -124,9 +124,9 @@ func Test_changes2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_list := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), "sqlite3_reset $::stmt"})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), "sqlite3_reset $::stmt"})
+		_ = _list4
+		_r = _list4
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  CREATE TABLE t3(x);\n")
@@ -141,9 +141,9 @@ func Test_changes2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		_list := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), "sqlite3_reset $::stmt"})
-		_ = _list
-		_r = _list
+		_list5 := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), "sqlite3_reset $::stmt"})
+		_ = _list5
+		_r = _list5
 	}
 	tclFinalizePrepared("stmt")
 	// sqlite3_finalize $stmt

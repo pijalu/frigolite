@@ -104,6 +104,7 @@ func Test_pragma4(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db.Close()
 			}
 			os.Remove("test.db")
@@ -521,11 +522,13 @@ func Test_pragma4(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				if db2 != nil { db2.Close() }
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				if db3 != nil { db3.Close() }
 			}
 			db.Close()

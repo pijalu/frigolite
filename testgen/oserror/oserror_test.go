@@ -109,9 +109,9 @@ func Test_oserror(t *testing.T) {
 				x = "ok"
 				_ = x // suppress unused warning
 			} else {
-				_list := tclList([]string{rc, msg})
-				_ = _list
-				_r = _list
+				_list0 := tclList([]string{rc, msg})
+				_ = _list0
+				_r = _list0
 				x = _r
 				_ = x // suppress unused warning
 			}
@@ -120,6 +120,7 @@ func Test_oserror(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				vtab.TclVarSet("i", "", "0")
 				i = "0"
 				_ = i // suppress unused warning
@@ -162,9 +163,9 @@ func Test_oserror(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	// do_re_test 1.2.2 { lindex $::log 0 } {^os_unix.c:\d+: \(\d+\) open\(.*dir.db\) - } (unsupported command, not transpiled)
 	{ // do_test "1.3.1"
@@ -186,9 +187,9 @@ func Test_oserror(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	// do_re_test 1.3.2 { lindex $::log 0 } {^os_unix.c:\d+: \(\d+\) open\(.*test.db\) - } (unsupported command, not transpiled)
 	{ // do_test "1.4.1"
@@ -210,9 +211,9 @@ func Test_oserror(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{_rc, msg})
+		_ = _list2
+		_r = _list2
 	}
 	// do_re_test 1.4.2 { \n  lindex $::log 0\n} {^os_unix.c:\d*: \(\d+\) (open|readlink|lstat)\(.... (unsupported command, not transpiled)
 	{ // do_test "2.1.1"
@@ -238,15 +239,16 @@ func Test_oserror(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{_rc, msg})
+		_ = _list3
+		_r = _list3
 	}
 	// do_re_test 2.1.2 { \n    lindex $::log 0 \n  } {^os_unix.c:\d+: \(\d+\) unlink\(.*test.db-w... (unsupported command, not transpiled)
 	{ // do_test "2.1.3"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// dbh close (unsupported command, not transpiled)
 		}
 		os.Remove("test.db-wal")

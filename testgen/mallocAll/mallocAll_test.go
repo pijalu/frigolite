@@ -109,6 +109,7 @@ func Test_mallocAll(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {

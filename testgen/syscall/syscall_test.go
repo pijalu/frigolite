@@ -103,9 +103,9 @@ func Test_syscall(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "1.1.2"
 		_rc := "0"
@@ -115,9 +115,9 @@ func Test_syscall(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "1.1.3"
 		_rc := "0"
@@ -127,9 +127,9 @@ func Test_syscall(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{_rc, msg})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "1.1.4"
 		_rc := "0"
@@ -139,9 +139,9 @@ func Test_syscall(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{_rc, msg})
+		_ = _list3
+		_r = _list3
 	}
 	{ // do_test "1.2"
 		// test_syscall reset (unsupported command, not transpiled)
@@ -202,8 +202,8 @@ func Test_syscall(t *testing.T) {
 			// test_syscall fault $i 0 (unsupported command, not transpiled)
 			// test_syscall errno open EINTR (unsupported command, not transpiled)
 			{ // do_test "4.2." + jrnl + "." + i
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 				_ = err
 				db.ResetChangesCounters()
@@ -248,6 +248,7 @@ func Test_syscall(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove("test.db")
@@ -255,6 +256,7 @@ func Test_syscall(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	{ // do_test "6.1"
@@ -289,25 +291,26 @@ func Test_syscall(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove("test.db")
 	// proc definition (not transpiled)
 	// foreach {nByte res} "1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}"
-	_items1 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		nByte := _items1[_idx1+0]
+	_items5 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
+	for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+		nByte := _items5[_idx5+0]
 		_ = nByte // suppress unused warning
-		res := _items1[_idx1+1]
+		res := _items5[_idx5+1]
 		_ = res // suppress unused warning
-		_ = _idx1
+		_ = _idx5
 			{ // do_test "7." + nByte
 				// create_db_file $nByte (unsupported command, not transpiled)
 				_rc := "0"
 				{
 					var _catchErr error
-					_dbtmp2, err := frigolite.Open("test.db")
-					_ = _dbtmp2 // sqlite3 db connection
+					_dbtmp6, err := frigolite.Open("test.db")
+					_ = _dbtmp6 // sqlite3 db connection
 					if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 					_ = err
 					db.ResetChangesCounters()
@@ -316,9 +319,9 @@ func Test_syscall(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list6 := tclList([]string{_rc, msg})
+				_ = _list6
+				_r = _list6
 				if _r != res {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res, "7." + nByte)
 				}
@@ -326,12 +329,14 @@ func Test_syscall(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db.Close()
 			}
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		os.Remove("test.db")
@@ -346,15 +351,15 @@ func Test_syscall(t *testing.T) {
 			}
 		}
 		// foreach {tn hint size} "1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192"
-		_items2 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
-		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-			tn := _items2[_idx2+0]
+		_items7 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
+		for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
+			tn := _items7[_idx7+0]
 			_ = tn // suppress unused warning
-			hint := _items2[_idx2+1]
+			hint := _items7[_idx7+1]
 			_ = hint // suppress unused warning
-			size := _items2[_idx2+2]
+			size := _items7[_idx7+2]
 			_ = size // suppress unused warning
-			_ = _idx2
+			_ = _idx7
 				{ // do_test "8.2." + tn
 					// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 					_r = strconv.Itoa(tclFileSize("test.db"))
@@ -376,15 +381,15 @@ func Test_syscall(t *testing.T) {
 				}
 			}
 			// foreach {tn hint size} "1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64"
-			_items3 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
-			for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-				tn := _items3[_idx3+0]
+			_items8 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
+			for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+				tn := _items8[_idx8+0]
 				_ = tn // suppress unused warning
-				hint := _items3[_idx3+1]
+				hint := _items8[_idx8+1]
 				_ = hint // suppress unused warning
-				size := _items3[_idx3+2]
+				size := _items8[_idx8+2]
 				_ = size // suppress unused warning
-				_ = _idx3
+				_ = _idx8
 					{ // do_test "8.4." + tn
 						// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 						_r = strconv.Itoa(tclFileSize("test.db"))

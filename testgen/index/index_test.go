@@ -136,6 +136,11 @@ func Test_index(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: main.test1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-2.1")
+		}
 	}
 	{ // do_test "index-2.1b"
 		_res = db.Exec("CREATE TABLE test1(f1 int, f2 int, f3 int)")
@@ -157,6 +162,11 @@ func Test_index(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: f4")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-2.1b")
+		}
 	}
 	{ // do_test "index-2.2"
 	_ = v // suppress unused warning
@@ -178,6 +188,11 @@ func Test_index(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE test1")
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: f4")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-2.2")
+		}
 	}
 	vtab.TclVarSet("r", "", "")
 	_r = ""
@@ -391,6 +406,11 @@ func Test_index(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table sqlite_master may not be indexed")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-5.1")
+		}
 	}
 	{ // do_test "index-5.2"
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
@@ -426,6 +446,11 @@ func Test_index(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 index index1 already exists")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-6.1")
+		}
 	}
 	{ // do_test "index-6.1.1"
 		_res = db.Exec("CREATE INDEX [index1] ON test2(g1)")
@@ -461,6 +486,11 @@ func Test_index(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 there is already a table named test1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-6.2")
+		}
 	}
 	{ // do_test "index-6.2b"
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
@@ -556,6 +586,11 @@ func Test_index(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such index: index1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-8.1")
+		}
 	}
 	{ // do_test "index-9.1"
 		_res = db.Exec("CREATE TABLE tab1(a int)")

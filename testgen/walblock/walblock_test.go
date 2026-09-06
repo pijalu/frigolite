@@ -76,6 +76,7 @@ func Test_walblock(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)

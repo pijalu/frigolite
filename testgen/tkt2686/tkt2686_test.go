@@ -88,6 +88,11 @@ func Test_tkt2686(t *testing.T) {
 				}
 			}
 			rc = tclListAppend(rc, msg)
+			got := tclListFlatten(rc)
+			want := tclListFlatten("1 database or disk is full")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tkt2686-" + i + ".1")
+			}
 		}
 		{ // do_test "tkt2686-" + i + ".2"
 			_res = db.Exec("\n      DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)\n    ")
@@ -100,6 +105,7 @@ func Test_tkt2686(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("COMMIT")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -141,6 +147,11 @@ func Test_tkt2686(t *testing.T) {
 				}
 			}
 			rc = tclListAppend(rc, msg)
+			got := tclListFlatten(rc)
+			want := tclListFlatten("1 database or disk is full")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tkt2686-" + i + ".1")
+			}
 		}
 		{ // do_test "tkt2686-" + i + ".2"
 			_res = db.Exec("\n      DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)\n    ")
@@ -153,6 +164,7 @@ func Test_tkt2686(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("COMMIT")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}

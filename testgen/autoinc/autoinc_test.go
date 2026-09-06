@@ -493,11 +493,13 @@ func Test_autoinc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		os.Remove("test.db")
@@ -700,6 +702,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("1 database disk image is malformed")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.1")
+		}
 	}
 	{ // do_test "autoinc-12.2"
 		db.Close()
@@ -728,6 +735,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("1 database disk image is malformed")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.2")
+		}
 	}
 	vtab.TclVarSet("err", "", "database disk image is malformed")
 	_err_tcl = "database disk image is malformed"
@@ -759,6 +771,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("1"+" "+_err_tcl)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.3")
+		}
 	}
 	{ // do_test "autoinc-12.4"
 		db.Close()
@@ -794,6 +811,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("1 database disk image is malformed")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.4")
+		}
 	}
 	{ // do_test "autoinc-12.5"
 		db.Close()
@@ -822,6 +844,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("1 database disk image is malformed")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.5")
+		}
 	}
 	{ // do_test "autoinc-12.6"
 		db.Close()
@@ -850,6 +877,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("0 ok")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.6")
+		}
 	}
 	{ // do_test "autoinc-12.7"
 		db.Close()
@@ -878,6 +910,11 @@ func Test_autoinc(t *testing.T) {
 			}
 		}
 		res = tclListAppend(res, msg)
+		got := tclListFlatten(res)
+		want := tclListFlatten("0 ok")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.7")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")

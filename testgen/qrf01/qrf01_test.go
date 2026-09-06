@@ -214,11 +214,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -234,11 +235,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -254,11 +256,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -274,11 +277,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -294,11 +298,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -798,6 +803,11 @@ func Test_qrf01(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 bad -title \"unk\": must be off, on, always, auto, csv, html, json, plain, relaxed, sql, or tcl")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.118")
+		}
 	}
 	{ // do_test "1.120"
 		vtab.TclVarSet("result", "", "\n" + tclDbOne(db, "db format -style markdown {SELECT * FROM t1}"))
@@ -971,11 +981,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -991,11 +1002,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -1011,11 +1023,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}
@@ -1105,11 +1118,12 @@ func Test_qrf01(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			if _catchErr != nil {
-				res = "1"
+				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				res = "0"
+				res = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}

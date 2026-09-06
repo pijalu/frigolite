@@ -186,6 +186,7 @@ func Test_in3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}

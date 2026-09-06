@@ -374,6 +374,7 @@ func Test_rtreedoc(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							_res = db.Exec(" INSERT INTO rtF VALUES(NULL, " + sqlLiteral(x1) + ", " + sqlLiteral(x2) + ", " + sqlLiteral(y1) + ", " + sqlLiteral(y2) + ") ")
 							if _res.Error != nil { _catchErr = _res.Error }
 						}
@@ -403,6 +404,7 @@ func Test_rtreedoc(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								_res = db.Exec(" INSERT INTO rtI VALUES(NULL," + sqlLiteral(x1) + "," + sqlLiteral(x2) + "," + sqlLiteral(y1) + "," + sqlLiteral(y2) + "," + sqlLiteral(z1) + "," + sqlLiteral(z2) + ") ")
 								if _res.Error != nil { _catchErr = _res.Error }
 							}
@@ -1003,9 +1005,9 @@ func Test_rtreedoc(t *testing.T) {
 												_dbeval13 := tclExecSQL(db, "SELECT * FROM rt WHERE maxX < 30 ORDER BY +id")
 												res2o = _dbeval13
 												_ = res2o // suppress unused warning
-												_list := tclList([]string{tclExprWith("$res1==$res2", map[string]string{"res1": res1, "res2": res2}), tclExprWith("$res1o==$res2o", map[string]string{"res1o": res1o, "res2o": res2o})})
-												_ = _list
-												_r = _list
+												_list14 := tclList([]string{tclExprWith("$res1==$res2", map[string]string{"res1": res1, "res2": res2}), tclExprWith("$res1o==$res2o", map[string]string{"res1o": res1o, "res2o": res2o})})
+												_ = _list14
+												_r = _list14
 											}
 											{ // "1.3"
 												r = db.Query(" SELECT count(*) FROM rt_node ")
@@ -1023,16 +1025,16 @@ func Test_rtreedoc(t *testing.T) {
 												vtab.TclVarSet("nCnt", "", "3")
 												nCnt = "3"
 												_ = nCnt // suppress unused warning
-												_dbevalRows14 := db.Query(" SELECT * FROM rt WHERE minX>0 AND maxX<12 ")
-												var _dbevalRb15 bool
-												var _dbevalErr16 error
-												var _dbevalInt17 bool
+												_dbevalRows15 := db.Query(" SELECT * FROM rt WHERE minX>0 AND maxX<12 ")
+												var _dbevalRb16 bool
+												var _dbevalErr17 error
+												var _dbevalInt18 bool
 												db.BeginActiveStatement()
-												for _ri := 0; _ri < len(_dbevalRows14.Rows) && _dbevalErr16 == nil; _ri++ {
-													for _ci := 0; _ci < len(_dbevalRows14.Columns); _ci++ {
-														switch _dbevalRows14.Columns[_ci] {
+												for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
+													for _ci := 0; _ci < len(_dbevalRows15.Columns); _ci++ {
+														switch _dbevalRows15.Columns[_ci] {
 															case "nCnt":
-																nCnt = tclStr(_dbevalRows14.Rows[_ri][_ci])
+																nCnt = tclStr(_dbevalRows15.Rows[_ri][_ci])
 														}
 													}
 													// incr nCnt -1
@@ -1061,16 +1063,16 @@ func Test_rtreedoc(t *testing.T) {
 														_ = errorcode // suppress unused warning
 														break
 													}
-													if _dbevalRb15 { _dbevalErr16 = errors.New("abort due to ROLLBACK") }
-													if _dbevalInt17 { _dbevalErr16 = errors.New("interrupted"); db.ClearInterrupt() }
+													if _dbevalRb16 { _dbevalErr17 = errors.New("abort due to ROLLBACK") }
+													if _dbevalInt18 { _dbevalErr17 = errors.New("interrupted"); db.ClearInterrupt() }
 												}
 												db.EndActiveStatement()
-												if _dbevalErr16 != nil {
-													t.Errorf("db eval callback error: %v", _dbevalErr16)
+												if _dbevalErr17 != nil {
+													t.Errorf("db eval callback error: %v", _dbevalErr17)
 												}
-												_list := tclList([]string{errorcode, rc, msg})
-												_ = _list
-												_r = _list
+												_list19 := tclList([]string{errorcode, rc, msg})
+												_ = _list19
+												_r = _list19
 											}
 											{ // "2.0"
 												_res = db.Exec("\n  CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446);\n")
@@ -1079,16 +1081,16 @@ func Test_rtreedoc(t *testing.T) {
 												}
 											}
 											{ // do_test "2.1"
-												_dbevalRows18 := db.Query(" SELECT id FROM demo_index WHERE maxY>=35.0  AND minY<=35.0 ")
-												var _dbevalRb19 bool
-												var _dbevalErr20 error
-												var _dbevalInt21 bool
+												_dbevalRows20 := db.Query(" SELECT id FROM demo_index WHERE maxY>=35.0  AND minY<=35.0 ")
+												var _dbevalRb21 bool
+												var _dbevalErr22 error
+												var _dbevalInt23 bool
 												db.BeginActiveStatement()
-												for _ri := 0; _ri < len(_dbevalRows18.Rows) && _dbevalErr20 == nil; _ri++ {
-													for _ci := 0; _ci < len(_dbevalRows18.Columns); _ci++ {
-														switch _dbevalRows18.Columns[_ci] {
+												for _ri := 0; _ri < len(_dbevalRows20.Rows) && _dbevalErr22 == nil; _ri++ {
+													for _ci := 0; _ci < len(_dbevalRows20.Columns); _ci++ {
+														switch _dbevalRows20.Columns[_ci] {
 															case "id":
-																id = tclStr(_dbevalRows18.Rows[_ri][_ci])
+																id = tclStr(_dbevalRows20.Rows[_ri][_ci])
 														}
 													}
 	_ = rc // suppress unused warning
@@ -1108,16 +1110,16 @@ func Test_rtreedoc(t *testing.T) {
 													errorcode = tclDbOne(db, "db errorcode")
 													_ = errorcode // suppress unused warning
 													break
-													if _dbevalRb19 { _dbevalErr20 = errors.New("abort due to ROLLBACK") }
-													if _dbevalInt21 { _dbevalErr20 = errors.New("interrupted"); db.ClearInterrupt() }
+													if _dbevalRb21 { _dbevalErr22 = errors.New("abort due to ROLLBACK") }
+													if _dbevalInt23 { _dbevalErr22 = errors.New("interrupted"); db.ClearInterrupt() }
 												}
 												db.EndActiveStatement()
-												if _dbevalErr20 != nil {
-													t.Errorf("db eval callback error: %v", _dbevalErr20)
+												if _dbevalErr22 != nil {
+													t.Errorf("db eval callback error: %v", _dbevalErr22)
 												}
-												_list := tclList([]string{errorcode, rc, msg})
-												_ = _list
-												_r = _list
+												_list24 := tclList([]string{errorcode, rc, msg})
+												_ = _list24
+												_r = _list24
 											}
 											{ // "3.0"
 												_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO x1 VALUES(1, 1, 1);\n  INSERT INTO x1 VALUES(2, 2, 2);\n  INSERT INTO x1 VALUES(3, 3, 3);\n  INSERT INTO x1 VALUES(4, 4, 4);\n")
@@ -1128,30 +1130,30 @@ func Test_rtreedoc(t *testing.T) {
 											{ // do_test "3.1"
 												res = ""
 												_ = res // suppress unused warning
-												_dbevalRows22 := db.Query(" SELECT * FROM x1 ")
-												var _dbevalRb23 bool
-												var _dbevalErr24 error
-												var _dbevalInt25 bool
+												_dbevalRows25 := db.Query(" SELECT * FROM x1 ")
+												var _dbevalRb26 bool
+												var _dbevalErr27 error
+												var _dbevalInt28 bool
 												db.BeginActiveStatement()
-												for _ri := 0; _ri < len(_dbevalRows22.Rows) && _dbevalErr24 == nil; _ri++ {
-													for _ci := 0; _ci < len(_dbevalRows22.Columns); _ci++ {
-														switch _dbevalRows22.Columns[_ci] {
+												for _ri := 0; _ri < len(_dbevalRows25.Rows) && _dbevalErr27 == nil; _ri++ {
+													for _ci := 0; _ci < len(_dbevalRows25.Columns); _ci++ {
+														switch _dbevalRows25.Columns[_ci] {
 															case "a":
-																a = tclStr(_dbevalRows22.Rows[_ri][_ci])
+																a = tclStr(_dbevalRows25.Rows[_ri][_ci])
 															case "b":
-																b = tclStr(_dbevalRows22.Rows[_ri][_ci])
+																b = tclStr(_dbevalRows25.Rows[_ri][_ci])
 															case "c":
-																c = tclStr(_dbevalRows22.Rows[_ri][_ci])
+																c = tclStr(_dbevalRows25.Rows[_ri][_ci])
 														}
 													}
 													res = tclListAppend(res, a, b, c)
 													// switch -- $a {\n      1 {\n        db eval { INSERT INTO x1 VALU...} (test infra, not transpiled)
-													if _dbevalRb23 { _dbevalErr24 = errors.New("abort due to ROLLBACK") }
-													if _dbevalInt25 { _dbevalErr24 = errors.New("interrupted"); db.ClearInterrupt() }
+													if _dbevalRb26 { _dbevalErr27 = errors.New("abort due to ROLLBACK") }
+													if _dbevalInt28 { _dbevalErr27 = errors.New("interrupted"); db.ClearInterrupt() }
 												}
 												db.EndActiveStatement()
-												if _dbevalErr24 != nil {
-													t.Errorf("db eval callback error: %v", _dbevalErr24)
+												if _dbevalErr27 != nil {
+													t.Errorf("db eval callback error: %v", _dbevalErr27)
 												}
 												got := tclListFlatten(res)
 												want := tclListFlatten("1 1 1 2 2 2 3 3 3 5 5 5")
@@ -1172,14 +1174,14 @@ func Test_rtreedoc(t *testing.T) {
 												}
 											}
 											{ // do_test "8.1"
-												_dbevalRows26 := db.Query(" SELECT * FROM rt ")
-												var _dbevalRb27 bool
-												var _dbevalErr28 error
-												var _dbevalInt29 bool
+												_dbevalRows29 := db.Query(" SELECT * FROM rt ")
+												var _dbevalRb30 bool
+												var _dbevalErr31 error
+												var _dbevalInt32 bool
 												db.BeginActiveStatement()
-												for _ri := 0; _ri < len(_dbevalRows26.Rows) && _dbevalErr28 == nil; _ri++ {
-													for _ci := 0; _ci < len(_dbevalRows26.Columns); _ci++ {
-														switch _dbevalRows26.Columns[_ci] {
+												for _ri := 0; _ri < len(_dbevalRows29.Rows) && _dbevalErr31 == nil; _ri++ {
+													for _ci := 0; _ci < len(_dbevalRows29.Columns); _ci++ {
+														switch _dbevalRows29.Columns[_ci] {
 														}
 													}
 	_ = rc // suppress unused warning
@@ -1197,26 +1199,26 @@ func Test_rtreedoc(t *testing.T) {
 														}
 													}
 													break
-													if _dbevalRb27 { _dbevalErr28 = errors.New("abort due to ROLLBACK") }
-													if _dbevalInt29 { _dbevalErr28 = errors.New("interrupted"); db.ClearInterrupt() }
+													if _dbevalRb30 { _dbevalErr31 = errors.New("abort due to ROLLBACK") }
+													if _dbevalInt32 { _dbevalErr31 = errors.New("interrupted"); db.ClearInterrupt() }
 												}
 												db.EndActiveStatement()
-												if _dbevalErr28 != nil {
-													t.Errorf("db eval callback error: %v", _dbevalErr28)
+												if _dbevalErr31 != nil {
+													t.Errorf("db eval callback error: %v", _dbevalErr31)
 												}
-												_list := tclList([]string{rc, msg})
-												_ = _list
-												_r = _list
+												_list33 := tclList([]string{rc, msg})
+												_ = _list33
+												_r = _list33
 											}
 											{ // do_test "8.2"
-												_dbevalRows30 := db.Query(" SELECT * FROM rt ORDER BY +id ")
-												var _dbevalRb31 bool
-												var _dbevalErr32 error
-												var _dbevalInt33 bool
+												_dbevalRows34 := db.Query(" SELECT * FROM rt ORDER BY +id ")
+												var _dbevalRb35 bool
+												var _dbevalErr36 error
+												var _dbevalInt37 bool
 												db.BeginActiveStatement()
-												for _ri := 0; _ri < len(_dbevalRows30.Rows) && _dbevalErr32 == nil; _ri++ {
-													for _ci := 0; _ci < len(_dbevalRows30.Columns); _ci++ {
-														switch _dbevalRows30.Columns[_ci] {
+												for _ri := 0; _ri < len(_dbevalRows34.Rows) && _dbevalErr36 == nil; _ri++ {
+													for _ci := 0; _ci < len(_dbevalRows34.Columns); _ci++ {
+														switch _dbevalRows34.Columns[_ci] {
 														}
 													}
 	_ = rc // suppress unused warning
@@ -1234,16 +1236,16 @@ func Test_rtreedoc(t *testing.T) {
 														}
 													}
 													break
-													if _dbevalRb31 { _dbevalErr32 = errors.New("abort due to ROLLBACK") }
-													if _dbevalInt33 { _dbevalErr32 = errors.New("interrupted"); db.ClearInterrupt() }
+													if _dbevalRb35 { _dbevalErr36 = errors.New("abort due to ROLLBACK") }
+													if _dbevalInt37 { _dbevalErr36 = errors.New("interrupted"); db.ClearInterrupt() }
 												}
 												db.EndActiveStatement()
-												if _dbevalErr32 != nil {
-													t.Errorf("db eval callback error: %v", _dbevalErr32)
+												if _dbevalErr36 != nil {
+													t.Errorf("db eval callback error: %v", _dbevalErr36)
 												}
-												_list := tclList([]string{rc, msg})
-												_ = _list
-												_r = _list
+												_list38 := tclList([]string{rc, msg})
+												_ = _list38
+												_r = _list38
 											}
 											vtab.TclVarSet("testprefix", "", "rtreedoc-8")
 											testprefix = "rtreedoc-8"
@@ -1328,13 +1330,13 @@ func Test_rtreedoc(t *testing.T) {
 												}
 											}
 											// foreach {tn cols} "1 \"id x1,x2, +extra,  y1,y2\"\n  2 \"extra, +id x1,x2, y1,y2\"\n  3 \"id, x1,+x2, extra, y1,y2\""
-											_items34 := tclSplitList("1 \"id x1,x2, +extra,  y1,y2\"\n  2 \"extra, +id x1,x2, y1,y2\"\n  3 \"id, x1,+x2, extra, y1,y2\"")
-											for _idx34 := 0; _idx34+2 <= len(_items34); _idx34 += 2 {
-												tn := _items34[_idx34+0]
+											_items39 := tclSplitList("1 \"id x1,x2, +extra,  y1,y2\"\n  2 \"extra, +id x1,x2, y1,y2\"\n  3 \"id, x1,+x2, extra, y1,y2\"")
+											for _idx39 := 0; _idx39+2 <= len(_items39); _idx39 += 2 {
+												tn := _items39[_idx39+0]
 												_ = tn // suppress unused warning
-												cols := _items34[_idx34+1]
+												cols := _items39[_idx39+1]
 												_ = cols // suppress unused warning
-												_ = _idx34
+												_ = _idx39
 													{ // "2." + tn
 														_res = db.Exec("\n    CREATE VIRTUAL TABLE rrr USING rtree(" + cols + ")\n  ")
 														if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Auxiliary rtree columns must be last") {
@@ -1388,19 +1390,20 @@ func Test_rtreedoc(t *testing.T) {
 													{
 														var _catchErr error
 														_ = _catchErr // suppress unused warning
+														_r = ""
 														// array unset (not transpiled)
 													}
 													var _R_arr string
 													_ = _R_arr // suppress unused warning
-													_dbevalRows35 := db.Query("SELECT * FROM demo_index2")
-													if _dbevalRows35.Error == nil {
+													_dbevalRows40 := db.Query("SELECT * FROM demo_index2")
+													if _dbevalRows40.Error == nil {
 														db.BeginActiveStatement()
-														_R_arr = strings.Join(_dbevalRows35.Columns, " ")
-														for _ri := 0; _ri < len(_dbevalRows35.Rows); _ri++ {
-															_RFlat36 := tclRowFlatPairs(_dbevalRows35.Columns, _dbevalRows35.Rows[_ri])
-															_ = _RFlat36
-															for _ci := 0; _ci < len(_dbevalRows35.Columns); _ci++ {
-																switch _dbevalRows35.Columns[_ci] {
+														_R_arr = strings.Join(_dbevalRows40.Columns, " ")
+														for _ri := 0; _ri < len(_dbevalRows40.Rows); _ri++ {
+															_RFlat41 := tclRowFlatPairs(_dbevalRows40.Columns, _dbevalRows40.Rows[_ri])
+															_ = _RFlat41
+															for _ci := 0; _ci < len(_dbevalRows40.Columns); _ci++ {
+																switch _dbevalRows40.Columns[_ci] {
 																}
 															}
 															r1 = "array names R"
@@ -1411,17 +1414,18 @@ func Test_rtreedoc(t *testing.T) {
 													{
 														var _catchErr error
 														_ = _catchErr // suppress unused warning
+														_r = ""
 														// array unset (not transpiled)
 													}
-													_dbevalRows37 := db.Query("SELECT * FROM demo_index NATURAL JOIN demo_data ")
-													if _dbevalRows37.Error == nil {
+													_dbevalRows42 := db.Query("SELECT * FROM demo_index NATURAL JOIN demo_data ")
+													if _dbevalRows42.Error == nil {
 														db.BeginActiveStatement()
-														_R_arr = strings.Join(_dbevalRows37.Columns, " ")
-														for _ri := 0; _ri < len(_dbevalRows37.Rows); _ri++ {
-															_RFlat38 := tclRowFlatPairs(_dbevalRows37.Columns, _dbevalRows37.Rows[_ri])
-															_ = _RFlat38
-															for _ci := 0; _ci < len(_dbevalRows37.Columns); _ci++ {
-																switch _dbevalRows37.Columns[_ci] {
+														_R_arr = strings.Join(_dbevalRows42.Columns, " ")
+														for _ri := 0; _ri < len(_dbevalRows42.Rows); _ri++ {
+															_RFlat43 := tclRowFlatPairs(_dbevalRows42.Columns, _dbevalRows42.Rows[_ri])
+															_ = _RFlat43
+															for _ci := 0; _ci < len(_dbevalRows42.Columns); _ci++ {
+																switch _dbevalRows42.Columns[_ci] {
 																}
 															}
 															r2 = "array names R"
@@ -1498,15 +1502,15 @@ func Test_rtreedoc(t *testing.T) {
 													}
 												}
 												// foreach {tn auxcol nm} "1 \"+extra INTEGER\" extra\n  2 \"+extra TEXT\"    extra\n  3 \"+extra BLOB\"    extra\n  4 \"+extra REAL\"    extra\n\n  5 \"+col NOT NULL\"                 col\n  6 \"+col CHECK (col IS NOT NULL)\"  col\n  7 \"+col REFERENCES tbl(x)\"        col"
-												_items39 := tclSplitList("1 \"+extra INTEGER\" extra\n  2 \"+extra TEXT\"    extra\n  3 \"+extra BLOB\"    extra\n  4 \"+extra REAL\"    extra\n\n  5 \"+col NOT NULL\"                 col\n  6 \"+col CHECK (col IS NOT NULL)\"  col\n  7 \"+col REFERENCES tbl(x)\"        col")
-												for _idx39 := 0; _idx39+3 <= len(_items39); _idx39 += 3 {
-													tn := _items39[_idx39+0]
+												_items44 := tclSplitList("1 \"+extra INTEGER\" extra\n  2 \"+extra TEXT\"    extra\n  3 \"+extra BLOB\"    extra\n  4 \"+extra REAL\"    extra\n\n  5 \"+col NOT NULL\"                 col\n  6 \"+col CHECK (col IS NOT NULL)\"  col\n  7 \"+col REFERENCES tbl(x)\"        col")
+												for _idx44 := 0; _idx44+3 <= len(_items44); _idx44 += 3 {
+													tn := _items44[_idx44+0]
 													_ = tn // suppress unused warning
-													auxcol := _items39[_idx39+1]
+													auxcol := _items44[_idx44+1]
 													_ = auxcol // suppress unused warning
-													nm := _items39[_idx39+2]
+													nm := _items44[_idx44+2]
 													_ = nm // suppress unused warning
-													_ = _idx39
+													_ = _idx44
 														{ // "1." + tn + ".1"
 															_res = db.Exec("\n    CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, " + auxcol + ")\n  ")
 															if _res.Error != nil {
@@ -1582,13 +1586,13 @@ func Test_rtreedoc(t *testing.T) {
 													db.RegisterFunction("rnode_contains", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 													db.RegisterFunction("rnode_replace_cell", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 													// foreach {tn nm} "1 x1\n  2 asdfghjkl\n  3 hello_world"
-													_items40 := tclSplitList("1 x1\n  2 asdfghjkl\n  3 hello_world")
-													for _idx40 := 0; _idx40+2 <= len(_items40); _idx40 += 2 {
-														tn := _items40[_idx40+0]
+													_items45 := tclSplitList("1 x1\n  2 asdfghjkl\n  3 hello_world")
+													for _idx45 := 0; _idx45+2 <= len(_items45); _idx45 += 2 {
+														tn := _items45[_idx45+0]
 														_ = tn // suppress unused warning
-														nm := _items40[_idx40+1]
+														nm := _items45[_idx45+1]
 														_ = nm // suppress unused warning
-														_ = _idx40
+														_ = _idx45
 															{ // "1." + tn + ".1"
 																_res = db.Exec("\n    CREATE VIRTUAL TABLE " + nm + " USING rtree(a,b,c,d,e);\n  ")
 																if _res.Error != nil {
@@ -1887,9 +1891,9 @@ func Test_rtreedoc(t *testing.T) {
 														{ // do_test "3.1"
 															cell = tclLIndex(tclExecSQL(db, "SELECT rnode(data) FROM rt2_node WHERE nodeno=3"), "0")
 															_ = cell // suppress unused warning
-															_list := tclList([]string{tclLIndex(cell, "0"), tclLIndex(cell, "2"), tclLIndex(cell, "1"), tclLIndex(cell, "3"), tclLIndex(cell, "4"), "\\"})
-															_ = _list
-															_r = _list
+															_list46 := tclList([]string{tclLIndex(cell, "0"), tclLIndex(cell, "2"), tclLIndex(cell, "1"), tclLIndex(cell, "3"), tclLIndex(cell, "4"), "\\"})
+															_ = _list46
+															_r = _list46
 															cell = _r
 															_ = cell // suppress unused warning
 															_res = db.Exec(" \n    UPDATE rt2_node SET data=rnode_replace_cell(data, 3, " + sqlLiteral(cell) + ") WHERE nodeno=3 \n  ")

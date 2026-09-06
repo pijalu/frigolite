@@ -158,9 +158,9 @@ func Test_rtree1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DROP TABLE aux.'a\" \"b'; \n    SELECT name FROM aux.sqlite_master ORDER BY name;\n  ")
 		}
 	}
-	_list := tclList([]string{"i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "iA", "iB", "iC", "iD", "iE", "iF", "iG", "iH", "iI", "iJ", "iK"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "iA", "iB", "iC", "iD", "iE", "iF", "iG", "iH", "iI", "iJ", "iK"})
+	_ = _list0
+	_r = _list0
 	cols = _r
 	_ = cols // suppress unused warning
 	vtab.TclVarSet("nCol", "", "1")
@@ -823,27 +823,27 @@ func Test_rtree1(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// foreach {tn sql_template testdata} "1    \"INSERT %CONF% INTO t1 VALUES(2, 7, 7, 7, 7)\" {\n    ROLLBACK 0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 0 {1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7}\n  }\n\n  2    \"INSERT %CONF% INTO t1 SELECT * FROM source\" {\n    ROLLBACK 1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   1 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n    FAIL     1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n    REPLACE  1 0 {1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n  }\n\n  3    \"UPDATE %CONF% t1 SET idx = 2 WHERE idx = 4\" {\n    ROLLBACK 0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 0 {1 1 2 3 4   2 4 5 6 7   3 3 4 5 6}\n  }\n\n  3    \"UPDATE %CONF% t1 SET idx = ((idx+1)%5)+1 WHERE idx > 2\" {\n    ROLLBACK 1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   1 0 {1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6}\n    FAIL     1 1 {1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6}\n    REPLACE  1 0 {1 4 5 6 7   2 2 3 4 5                           5 3 4 5 6}\n  }\n\n  4    \"INSERT %CONF% INTO t1 VALUES(2, 7, 6, 7, 7)\" {\n    ROLLBACK 0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n  }"
-	_items0 := tclSplitList("1    \"INSERT %CONF% INTO t1 VALUES(2, 7, 7, 7, 7)\" {\n    ROLLBACK 0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 0 {1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7}\n  }\n\n  2    \"INSERT %CONF% INTO t1 SELECT * FROM source\" {\n    ROLLBACK 1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   1 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n    FAIL     1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n    REPLACE  1 0 {1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n  }\n\n  3    \"UPDATE %CONF% t1 SET idx = 2 WHERE idx = 4\" {\n    ROLLBACK 0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 0 {1 1 2 3 4   2 4 5 6 7   3 3 4 5 6}\n  }\n\n  3    \"UPDATE %CONF% t1 SET idx = ((idx+1)%5)+1 WHERE idx > 2\" {\n    ROLLBACK 1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   1 0 {1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6}\n    FAIL     1 1 {1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6}\n    REPLACE  1 0 {1 4 5 6 7   2 2 3 4 5                           5 3 4 5 6}\n  }\n\n  4    \"INSERT %CONF% INTO t1 VALUES(2, 7, 6, 7, 7)\" {\n    ROLLBACK 0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n  }")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("1    \"INSERT %CONF% INTO t1 VALUES(2, 7, 7, 7, 7)\" {\n    ROLLBACK 0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 0 {1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7}\n  }\n\n  2    \"INSERT %CONF% INTO t1 SELECT * FROM source\" {\n    ROLLBACK 1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   1 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n    FAIL     1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n    REPLACE  1 0 {1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8}\n  }\n\n  3    \"UPDATE %CONF% t1 SET idx = 2 WHERE idx = 4\" {\n    ROLLBACK 0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 0 {1 1 2 3 4   2 4 5 6 7   3 3 4 5 6}\n  }\n\n  3    \"UPDATE %CONF% t1 SET idx = ((idx+1)%5)+1 WHERE idx > 2\" {\n    ROLLBACK 1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    1 1 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   1 0 {1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6}\n    FAIL     1 1 {1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6}\n    REPLACE  1 0 {1 4 5 6 7   2 2 3 4 5                           5 3 4 5 6}\n  }\n\n  4    \"INSERT %CONF% INTO t1 VALUES(2, 7, 6, 7, 7)\" {\n    ROLLBACK 0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6}\n    ABORT    0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    IGNORE   0 0 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    FAIL     0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n    REPLACE  0 2 {1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7}\n  }")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql_template := _items0[_idx0+1]
+		sql_template := _items1[_idx1+1]
 		_ = sql_template // suppress unused warning
-		testdata := _items0[_idx0+2]
+		testdata := _items1[_idx1+2]
 		_ = testdata // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			// foreach {mode uses error data} testdata
-			_items1 := tclSplitList(testdata)
-			for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-				mode := _items1[_idx1+0]
+			_items2 := tclSplitList(testdata)
+			for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+				mode := _items2[_idx2+0]
 				_ = mode // suppress unused warning
-				uses := _items1[_idx1+1]
+				uses := _items2[_idx2+1]
 				_ = uses // suppress unused warning
-				_error := _items1[_idx1+2]
+				_error := _items2[_idx2+2]
 				_ = _error // suppress unused warning
-				data := _items1[_idx1+3]
+				data := _items2[_idx2+3]
 				_ = data // suppress unused warning
-				_ = _idx1
+				_ = _idx2
 					// db_restore_and_reopen: restore sv_test.db* snapshot
 					db.Close()
 					for _, _sf := range tclSplitList(tclGlob("test.db*")) { os.Remove(_sf) }
@@ -1305,6 +1305,7 @@ func Test_rtree1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					_res = db.Exec("CREATE TABLE t2 AS SELECT rtreecheck('t1') AS y;")
 					if _res.Error != nil { _catchErr = _res.Error }
 				}

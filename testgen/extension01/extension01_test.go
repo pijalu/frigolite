@@ -101,9 +101,9 @@ func Test_extension01(t *testing.T) {
 		x = tclReadFile(in)
 		_ = x // suppress unused warning
 		// close $in
-		_list := tclList([]string{x, strconv.Itoa(tclFileSize("file2.txt"))})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{x, strconv.Itoa(tclFileSize("file2.txt"))})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "1.4"
 		r = db.Query("\n    SELECT writefile('./file2.txt', NULL);\n  ")

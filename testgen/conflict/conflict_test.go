@@ -127,6 +127,7 @@ func Test_conflict(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					_res = db.Exec("COMMIT")
 					if _res.Error != nil { _catchErr = _res.Error }
 				}
@@ -143,9 +144,9 @@ func Test_conflict(t *testing.T) {
 				vtab.TclVarSet("r3", "", sqlite_opentemp_count)
 				r3 = sqlite_opentemp_count
 				_ = r3 // suppress unused warning
-				_list := tclList([]string{r0, r1, r2, r3})
-				_ = _list
-				_r = _list
+				_list1 := tclList([]string{r0, r1, r2, r3})
+				_ = _list1
+				_r = _list1
 			}
 		}
 		{ // do_test "conflict-2.0"
@@ -155,19 +156,19 @@ func Test_conflict(t *testing.T) {
 			}
 		}
 		// foreach {i cmd t0 t1 t2} "1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}"
-		_items1 := tclSplitList("1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}")
-		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
-			i := _items1[_idx1+0]
+		_items2 := tclSplitList("1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}")
+		for _idx2 := 0; _idx2+5 <= len(_items2); _idx2 += 5 {
+			i := _items2[_idx2+0]
 			_ = i // suppress unused warning
-			cmd := _items1[_idx1+1]
+			cmd := _items2[_idx2+1]
 			_ = cmd // suppress unused warning
-			t0 := _items1[_idx1+2]
+			t0 := _items2[_idx2+2]
 			_ = t0 // suppress unused warning
-			t1 := _items1[_idx1+3]
+			t1 := _items2[_idx2+3]
 			_ = t1 // suppress unused warning
-			t2 := _items1[_idx1+4]
+			t2 := _items2[_idx2+4]
 			_ = t2 // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "conflict-2." + i
 	_ = r0 // suppress unused warning
 	_ = r1 // suppress unused warning
@@ -186,6 +187,7 @@ func Test_conflict(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						_res = db.Exec("COMMIT")
 						if _res.Error != nil { _catchErr = _res.Error }
 					}
@@ -199,9 +201,9 @@ func Test_conflict(t *testing.T) {
 					}
 					r2 = tclExecSQL(db, "SELECT x FROM t2")
 					_ = r2 // suppress unused warning
-					_list := tclList([]string{r0, r1, r2})
-					_ = _list
-					_r = _list
+					_list3 := tclList([]string{r0, r1, r2})
+					_ = _list3
+					_r = _list3
 				}
 			}
 			{ // do_test "conflict-3.0"
@@ -211,19 +213,19 @@ func Test_conflict(t *testing.T) {
 				}
 			}
 			// foreach {i cmd t0 t1 t2} "1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}"
-			_items2 := tclSplitList("1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}")
-			for _idx2 := 0; _idx2+5 <= len(_items2); _idx2 += 5 {
-				i := _items2[_idx2+0]
+			_items4 := tclSplitList("1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}")
+			for _idx4 := 0; _idx4+5 <= len(_items4); _idx4 += 5 {
+				i := _items4[_idx4+0]
 				_ = i // suppress unused warning
-				cmd := _items2[_idx2+1]
+				cmd := _items4[_idx4+1]
 				_ = cmd // suppress unused warning
-				t0 := _items2[_idx2+2]
+				t0 := _items4[_idx4+2]
 				_ = t0 // suppress unused warning
-				t1 := _items2[_idx2+3]
+				t1 := _items4[_idx4+3]
 				_ = t1 // suppress unused warning
-				t2 := _items2[_idx2+4]
+				t2 := _items4[_idx4+4]
 				_ = t2 // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					{ // do_test "conflict-3." + i
 	_ = r0 // suppress unused warning
 	_ = r1 // suppress unused warning
@@ -242,6 +244,7 @@ func Test_conflict(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							_res = db.Exec("COMMIT")
 							if _res.Error != nil { _catchErr = _res.Error }
 						}
@@ -255,9 +258,9 @@ func Test_conflict(t *testing.T) {
 						}
 						r2 = tclExecSQL(db, "SELECT x FROM t2")
 						_ = r2 // suppress unused warning
-						_list := tclList([]string{r0, r1, r2})
-						_ = _list
-						_r = _list
+						_list5 := tclList([]string{r0, r1, r2})
+						_ = _list5
+						_r = _list5
 					}
 				}
 				{ // do_test "conflict-4.0"
@@ -267,21 +270,21 @@ func Test_conflict(t *testing.T) {
 					}
 				}
 				// foreach {i conf1 cmd t0 t1 t2} "1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1"
-				_items3 := tclSplitList("1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1")
-				for _idx3 := 0; _idx3+6 <= len(_items3); _idx3 += 6 {
-					i := _items3[_idx3+0]
+				_items6 := tclSplitList("1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1")
+				for _idx6 := 0; _idx6+6 <= len(_items6); _idx6 += 6 {
+					i := _items6[_idx6+0]
 					_ = i // suppress unused warning
-					conf1 := _items3[_idx3+1]
+					conf1 := _items6[_idx6+1]
 					_ = conf1 // suppress unused warning
-					cmd := _items3[_idx3+2]
+					cmd := _items6[_idx6+2]
 					_ = cmd // suppress unused warning
-					t0 := _items3[_idx3+3]
+					t0 := _items6[_idx6+3]
 					_ = t0 // suppress unused warning
-					t1 := _items3[_idx3+4]
+					t1 := _items6[_idx6+4]
 					_ = t1 // suppress unused warning
-					t2 := _items3[_idx3+5]
+					t2 := _items6[_idx6+5]
 					_ = t2 // suppress unused warning
-					_ = _idx3
+					_ = _idx6
 						{ // do_test "conflict-4." + i
 							if conf1 != "" {
 								vtab.TclVarSet("conf1", "", "ON CONFLICT " + conf1)
@@ -305,6 +308,7 @@ func Test_conflict(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								_res = db.Exec("COMMIT")
 								if _res.Error != nil { _catchErr = _res.Error }
 							}
@@ -318,9 +322,9 @@ func Test_conflict(t *testing.T) {
 							}
 							r2 = tclExecSQL(db, "SELECT x FROM t2")
 							_ = r2 // suppress unused warning
-							_list := tclList([]string{r0, r1, r2})
-							_ = _list
-							_r = _list
+							_list7 := tclList([]string{r0, r1, r2})
+							_ = _list7
+							_r = _list7
 						}
 					}
 					{ // do_test "conflict-5.0"
@@ -330,21 +334,21 @@ func Test_conflict(t *testing.T) {
 						}
 					}
 					// foreach {i conf1 cmd t0 t1 t2} "1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}"
-					_items4 := tclSplitList("1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}")
-					for _idx4 := 0; _idx4+6 <= len(_items4); _idx4 += 6 {
-						i := _items4[_idx4+0]
+					_items8 := tclSplitList("1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}")
+					for _idx8 := 0; _idx8+6 <= len(_items8); _idx8 += 6 {
+						i := _items8[_idx8+0]
 						_ = i // suppress unused warning
-						conf1 := _items4[_idx4+1]
+						conf1 := _items8[_idx8+1]
 						_ = conf1 // suppress unused warning
-						cmd := _items4[_idx4+2]
+						cmd := _items8[_idx8+2]
 						_ = cmd // suppress unused warning
-						t0 := _items4[_idx4+3]
+						t0 := _items8[_idx8+3]
 						_ = t0 // suppress unused warning
-						t1 := _items4[_idx4+4]
+						t1 := _items8[_idx8+4]
 						_ = t1 // suppress unused warning
-						t2 := _items4[_idx4+5]
+						t2 := _items8[_idx8+5]
 						_ = t2 // suppress unused warning
-						_ = _idx4
+						_ = _idx8
 							if tclBool(t0) {
 								vtab.TclVarSet("t1", "", "NOT NULL constraint failed: t1.c")
 								t1 = "NOT NULL constraint failed: t1.c"
@@ -373,6 +377,7 @@ func Test_conflict(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									_res = db.Exec("COMMIT")
 									if _res.Error != nil { _catchErr = _res.Error }
 								}
@@ -382,9 +387,9 @@ func Test_conflict(t *testing.T) {
 								}
 								r2 = tclExecSQL(db, "SELECT x FROM t2")
 								_ = r2 // suppress unused warning
-								_list := tclList([]string{r0, r1, r2})
-								_ = _list
-								_r = _list
+								_list9 := tclList([]string{r0, r1, r2})
+								_ = _list9
+								_r = _list9
 							}
 						}
 						{ // do_test "conflict-6.0"
@@ -394,25 +399,25 @@ func Test_conflict(t *testing.T) {
 							}
 						}
 						// foreach {i conf1 cmd t0 t1 t2 t3 t4} "1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0"
-						_items5 := tclSplitList("1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0")
-						for _idx5 := 0; _idx5+8 <= len(_items5); _idx5 += 8 {
-							i := _items5[_idx5+0]
+						_items10 := tclSplitList("1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0")
+						for _idx10 := 0; _idx10+8 <= len(_items10); _idx10 += 8 {
+							i := _items10[_idx10+0]
 							_ = i // suppress unused warning
-							conf1 := _items5[_idx5+1]
+							conf1 := _items10[_idx10+1]
 							_ = conf1 // suppress unused warning
-							cmd := _items5[_idx5+2]
+							cmd := _items10[_idx10+2]
 							_ = cmd // suppress unused warning
-							t0 := _items5[_idx5+3]
+							t0 := _items10[_idx10+3]
 							_ = t0 // suppress unused warning
-							t1 := _items5[_idx5+4]
+							t1 := _items10[_idx10+4]
 							_ = t1 // suppress unused warning
-							t2 := _items5[_idx5+5]
+							t2 := _items10[_idx10+5]
 							_ = t2 // suppress unused warning
-							t3 := _items5[_idx5+6]
+							t3 := _items10[_idx10+6]
 							_ = t3 // suppress unused warning
-							t4 := _items5[_idx5+7]
+							t4 := _items10[_idx10+7]
 							_ = t4 // suppress unused warning
-							_ = _idx5
+							_ = _idx10
 								if tclBool(t0) {
 									vtab.TclVarSet("t1", "", "UNIQUE constraint failed: t1.a")
 									t1 = "UNIQUE constraint failed: t1.a"
@@ -460,6 +465,7 @@ func Test_conflict(t *testing.T) {
 									{
 										var _catchErr error
 										_ = _catchErr // suppress unused warning
+										_r = ""
 										_res = db.Exec("COMMIT")
 										if _res.Error != nil { _catchErr = _res.Error }
 									}
@@ -469,9 +475,9 @@ func Test_conflict(t *testing.T) {
 									}
 									r2 = tclExecSQL(db, "SELECT x FROM t3")
 									_ = r2 // suppress unused warning
-									_list := tclList([]string{r0, r1, r2, sqlite_opentemp_count})
-									_ = _list
-									_r = _list
+									_list11 := tclList([]string{r0, r1, r2, sqlite_opentemp_count})
+									_ = _list11
+									_r = _list11
 								}
 							}
 							{ // do_test "conflict-7.1"
@@ -740,6 +746,7 @@ func Test_conflict(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									_res = db.Exec("COMMIT")
 									if _res.Error != nil { _catchErr = _res.Error }
 								}
@@ -759,6 +766,7 @@ func Test_conflict(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									_res = db.Exec("COMMIT")
 									if _res.Error != nil { _catchErr = _res.Error }
 								}
@@ -789,6 +797,7 @@ func Test_conflict(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									_res = db.Exec("COMMIT")
 									if _res.Error != nil { _catchErr = _res.Error }
 								}

@@ -82,11 +82,13 @@ func Test_misuse(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test2.db")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test2.db-journal")
 		}
 		db, err = frigolite.Open("test2.db")
@@ -164,6 +166,11 @@ func Test_misuse(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misuse-2.3")
+		}
 	}
 	{ // do_test "misuse-2.4"
 		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
@@ -221,6 +228,11 @@ func Test_misuse(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misuse-3.3")
+		}
 	}
 	{ // do_test "misuse-3.4"
 		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
@@ -312,7 +324,10 @@ func Test_misuse(t *testing.T) {
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				// sqlite3_prepare (standalone prepare; not emulated)
+				_catchPrepRc1 := tclPrepareStmt(db, "catchprep0", "SELECT * FROM t1", -1)
+				if _catchPrepRc1 != "SQLITE_OK" {
+					_catchErr = tclPrepareCatchErr(db, _catchPrepRc1)
+				}
 				if _catchErr != nil {
 					_r = "1"
 					msg = _catchErr.Error()
@@ -322,6 +337,11 @@ func Test_misuse(t *testing.T) {
 				}
 			}
 			_r = tclListAppend(_r, msg)
+			got := tclListFlatten(_r)
+			want := tclListFlatten("1 (21) bad parameter or other API misuse")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misuse-5.3")
+			}
 		}
 	}
 	db.Close()

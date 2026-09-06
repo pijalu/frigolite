@@ -199,9 +199,9 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.8"
 		v = tclExecSQL(db, "SELECT x, oid FROM t1 order by x")
 		_ = v // suppress unused warning
-		_list := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
+		_ = _list0
+		_r = _list0
 		v2 = _r
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
@@ -214,9 +214,9 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.9"
 		v = tclExecSQL(db, "SELECT x, RowID FROM t1 order by x")
 		_ = v // suppress unused warning
-		_list := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
+		_ = _list1
+		_r = _list1
 		v2 = _r
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
@@ -229,9 +229,9 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.10"
 		v = tclExecSQL(db, "SELECT x, _rowid_ FROM t1 order by x")
 		_ = v // suppress unused warning
-		_list := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
+		_ = _list2
+		_r = _list2
 		v2 = _r
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
@@ -320,6 +320,11 @@ func Test_rowid(t *testing.T) {
 				}
 			}
 			v = tclListAppend(v, msg)
+			got := tclListFlatten(v)
+			want := tclListFlatten("1 table t1 has no column named rowid")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rowid-2.9")
+			}
 		}
 		{ // do_test "rowid-2.10"
 	_ = v // suppress unused warning
@@ -337,6 +342,11 @@ func Test_rowid(t *testing.T) {
 				}
 			}
 			v = tclListAppend(v, msg)
+			got := tclListFlatten(v)
+			want := tclListFlatten("1 table t1 has no column named _rowid_")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rowid-2.10")
+			}
 		}
 		{ // do_test "rowid-2.11"
 	_ = v // suppress unused warning
@@ -354,6 +364,11 @@ func Test_rowid(t *testing.T) {
 				}
 			}
 			v = tclListAppend(v, msg)
+			got := tclListFlatten(v)
+			want := tclListFlatten("1 table t1 has no column named oid")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rowid-2.11")
+			}
 		}
 		{ // do_test "rowid-2.12"
 	_ = v // suppress unused warning
@@ -371,6 +386,11 @@ func Test_rowid(t *testing.T) {
 				}
 			}
 			v = tclListAppend(v, msg)
+			got := tclListFlatten(v)
+			want := tclListFlatten("1 table t1 has no column named rowid")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "rowid-2.12")
+			}
 		}
 	}
 	{ // do_test "rowid-3.1"

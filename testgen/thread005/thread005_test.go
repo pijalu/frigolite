@@ -168,17 +168,19 @@ func Test_thread005(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	{ // do_test "thread005-2.2"
-		_list := tclList([]string{finished_0, finished_1})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{finished_0, finished_1})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "thread005-2.3"
 		db, err = frigolite.Open("test.db")

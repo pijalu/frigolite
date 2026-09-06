@@ -89,6 +89,11 @@ func Test_delete(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: test1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "delete-1.1")
+		}
 	}
 	{ // do_test "delete-2.1"
 	_ = v // suppress unused warning
@@ -106,6 +111,11 @@ func Test_delete(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table sqlite_master may not be modified")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "delete-2.1")
+		}
 	}
 	{ // do_test "delete-3.1.1"
 		_res = db.Exec("CREATE TABLE table1(f1 int, f2 int)")
@@ -206,6 +216,11 @@ func Test_delete(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: f3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "delete-4.1")
+		}
 	}
 	{ // do_test "delete-4.2"
 	_ = v // suppress unused warning
@@ -223,6 +238,11 @@ func Test_delete(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such function: xyzzy")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "delete-4.2")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -622,16 +642,19 @@ func Test_delete(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		os.Remove("test.db-journal")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		tclFileChmod("test.db", "0444")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// file attributes "test.db" -readonly (unsupported attribute)
 	}
 	db, err = frigolite.Open("test.db")
@@ -681,6 +704,7 @@ func Test_delete(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// file attributes "test.db" -readonly (unsupported attribute)
 	}
 	db.Close()

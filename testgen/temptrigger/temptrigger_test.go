@@ -143,11 +143,13 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	{ // do_test "temptrigger-2.1"
@@ -182,11 +184,13 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
@@ -194,11 +198,13 @@ func Test_temptrigger(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test2.db")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db")
 		}
 		db, err = frigolite.Open("test.db")
@@ -249,11 +255,13 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	db.Close()

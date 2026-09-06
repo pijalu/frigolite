@@ -186,6 +186,11 @@ func Test_interrupt(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 interrupted")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "interrupt-2.5.2")
+		}
 	}
 	{ // do_test "interrupt-2.5.3"
 		_ = interrupt_count // TCL namespace variable (query)

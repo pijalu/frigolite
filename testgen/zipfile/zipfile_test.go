@@ -540,9 +540,9 @@ func Test_zipfile(t *testing.T) {
 					msg = ""
 				}
 			}
-			_list := tclList([]string{rc, msg})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{rc, msg})
+			_ = _list0
+			_r = _list0
 		}
 		{ // do_test "2.5.2"
 			// file isdir dirname3
@@ -785,9 +785,9 @@ func Test_zipfile(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list2 := tclList([]string{_rc, msg})
+				_ = _list2
+				_r = _list2
 			}
 			os.Remove("test.zip")
 			{ // "8.0.1"
@@ -803,29 +803,29 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			{ // do_test "8.0.2"
-				_dbevalRows2 := db.Query(" SELECT name, data FROM zz ")
-				var _dbevalRb3 bool
-				var _dbevalErr4 error
-				var _dbevalInt5 bool
+				_dbevalRows3 := db.Query(" SELECT name, data FROM zz ")
+				var _dbevalRb4 bool
+				var _dbevalErr5 error
+				var _dbevalInt6 bool
 				db.BeginActiveStatement()
-				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
-					for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
-						switch _dbevalRows2.Columns[_ci] {
+				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+						switch _dbevalRows3.Columns[_ci] {
 							case "data":
-								data = tclStr(_dbevalRows2.Rows[_ri][_ci])
+								data = tclStr(_dbevalRows3.Rows[_ri][_ci])
 							case "name":
-								name = tclStr(_dbevalRows2.Rows[_ri][_ci])
+								name = tclStr(_dbevalRows3.Rows[_ri][_ci])
 						}
 					}
 					if data == "2" {
 						_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
 					}
-					if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
-					if _dbevalInt5 { _dbevalErr4 = errors.New("interrupted"); db.ClearInterrupt() }
+					if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+					if _dbevalInt6 { _dbevalErr5 = errors.New("interrupted"); db.ClearInterrupt() }
 				}
 				db.EndActiveStatement()
-				if _dbevalErr4 != nil {
-					t.Errorf("db eval callback error: %v", _dbevalErr4)
+				if _dbevalErr5 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr5)
 				}
 				r = db.Query(" SELECT name, data FROM zz ")
 				if r.Error != nil {
@@ -833,25 +833,25 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			{ // do_test "8.0.3"
-				_dbevalRows6 := db.Query(" SELECT name, data FROM zz ")
-				var _dbevalRb7 bool
-				var _dbevalErr8 error
-				var _dbevalInt9 bool
+				_dbevalRows7 := db.Query(" SELECT name, data FROM zz ")
+				var _dbevalRb8 bool
+				var _dbevalErr9 error
+				var _dbevalInt10 bool
 				db.BeginActiveStatement()
-				for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
-					for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
-						switch _dbevalRows6.Columns[_ci] {
+				for _ri := 0; _ri < len(_dbevalRows7.Rows) && _dbevalErr9 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows7.Columns); _ci++ {
+						switch _dbevalRows7.Columns[_ci] {
 							case "name":
-								name = tclStr(_dbevalRows6.Rows[_ri][_ci])
+								name = tclStr(_dbevalRows7.Rows[_ri][_ci])
 						}
 					}
 					_res = db.Exec(" DELETE FROM zz WHERE name=" + sqlLiteral(name) + " ")
-					if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
-					if _dbevalInt9 { _dbevalErr8 = errors.New("interrupted"); db.ClearInterrupt() }
+					if _dbevalRb8 { _dbevalErr9 = errors.New("abort due to ROLLBACK") }
+					if _dbevalInt10 { _dbevalErr9 = errors.New("interrupted"); db.ClearInterrupt() }
 				}
 				db.EndActiveStatement()
-				if _dbevalErr8 != nil {
-					t.Errorf("db eval callback error: %v", _dbevalErr8)
+				if _dbevalErr9 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr9)
 				}
 				r = db.Query(" SELECT name, data FROM zz ")
 				if r.Error != nil {
@@ -865,11 +865,13 @@ func Test_zipfile(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test_unzip")
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.MkdirAll("test_unzip", 0755)
 			}
 			{ // "8.1.1"
@@ -924,6 +926,7 @@ func Test_zipfile(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db.Close()
 			}
 			os.Remove("test.zip")
@@ -1099,6 +1102,7 @@ func Test_zipfile(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						_ = os.Remove("subdir")
 					}
 					// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
@@ -1114,6 +1118,7 @@ func Test_zipfile(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								os.MkdirAll(dir, 0755)
 							}
 							_ = os.WriteFile(path, nil, 0644)
@@ -1321,8 +1326,8 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				{ // do_test "24.1"
-					_dbone10 := tclExecSQL(db, "{SELECT hex( readfile('test.zip') )}")
-					zip = _dbone10
+					_dbone11 := tclExecSQL(db, "{SELECT hex( readfile('test.zip') )}")
+					zip = _dbone11
 					_ = zip // suppress unused warning
 					off = strconv.Itoa(tclStrIndex(zip, "504B0102"))
 					_ = off // suppress unused warning

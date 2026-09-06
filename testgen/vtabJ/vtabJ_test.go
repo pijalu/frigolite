@@ -232,17 +232,17 @@ func Test_vtabJ(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE tclvar SET value = var.v FROM var WHERE name = var.k;\n  ")
 		}
-		_list := tclList([]string{testvar1, testvar2, testvar3})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{testvar1, testvar2, testvar3})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "220"
 		_res = db.Exec("\n    CREATE TABLE nam(k TEXT, v TEXT);\n    INSERT INTO nam VALUES('testvar1', 'tv1');\n    INSERT INTO nam VALUES('testvar2', 'tv2');\n    INSERT INTO nam VALUES('testvar3', 'tv3');\n    UPDATE tclvar SET fullname = nam.v FROM nam WHERE name = nam.k;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE nam(k TEXT, v TEXT);\n    INSERT INTO nam VALUES('testvar1', 'tv1');\n    INSERT INTO nam VALUES('testvar2', 'tv2');\n    INSERT INTO nam VALUES('testvar3', 'tv3');\n    UPDATE tclvar SET fullname = nam.v FROM nam WHERE name = nam.k;\n  ")
 		}
-		_list := tclList([]string{tv1, tv2, tv3})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{tv1, tv2, tv3})
+		_ = _list1
+		_r = _list1
 	}
 }

@@ -114,6 +114,7 @@ func Test_crashM(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)

@@ -125,6 +125,7 @@ func Test_collate5(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	{ // do_test "collate5-2.0"

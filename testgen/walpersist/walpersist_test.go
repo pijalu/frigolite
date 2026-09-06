@@ -73,9 +73,9 @@ func Test_walpersist(t *testing.T) {
 	}
 	{ // do_test "walpersist-1.2"
 		db.Close()
-		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "walpersist-1.3"
 		db, err = frigolite.Open("test.db")
@@ -84,9 +84,9 @@ func Test_walpersist(t *testing.T) {
 		_res = db.Exec("SELECT length(a) FROM t1")
 	}
 	{ // do_test "walpersist-1.4"
-		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "walpersist-1.5"
 		// file_control_persist_wal db -1 (unsupported command, not transpiled)
@@ -108,9 +108,9 @@ func Test_walpersist(t *testing.T) {
 	}
 	{ // do_test "walpersist-1.11"
 		db.Close()
-		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
+		_ = _list2
+		_r = _list2
 	}
 	os.Remove("test.db")
 	{ // do_test "walpersist-2.1"
@@ -143,6 +143,7 @@ func Test_walpersist(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		os.Remove("test.db")

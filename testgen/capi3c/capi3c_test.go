@@ -194,6 +194,7 @@ func Test_capi3c(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclPrepareStmt(db, "STMT", sql, -1)
 			// prepared STMT: $sql (bind/step emulation)
 			TAIL = tclSqlTail(sql)
@@ -233,6 +234,7 @@ func Test_capi3c(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// set db2 [sqlite3_open ...] (skipped, DB connection)
 		}
 		_r = "SQLITE_CANTOPEN"
@@ -385,6 +387,7 @@ func Test_capi3c(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil {
@@ -426,6 +429,7 @@ func Test_capi3c(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil {
@@ -455,6 +459,7 @@ func Test_capi3c(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil {
@@ -471,22 +476,22 @@ func Test_capi3c(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	_list := tclList([]string{"SQLITE_OK", "not an error", "SQLITE_ERROR", "SQL logic error", "SQLITE_PERM", "access permission denied", "SQLITE_ABORT", "query aborted", "SQLITE_BUSY", "database is locked", "SQLITE_LOCKED", "database table is locked", "SQLITE_NOMEM", "out of memory", "SQLITE_READONLY", "attempt to write a readonly database", "SQLITE_INTERRUPT", "interrupted", "SQLITE_IOERR", "disk I/O error", "SQLITE_CORRUPT", "database disk image is malformed", "SQLITE_FULL", "database or disk is full", "SQLITE_CANTOPEN", "unable to open database file", "SQLITE_EMPTY", "unknown error", "SQLITE_SCHEMA", "database schema has changed", "SQLITE_CONSTRAINT", "constraint failed", "SQLITE_MISMATCH", "datatype mismatch", "SQLITE_MISUSE", "bad parameter or other API misuse", "SQLITE_AUTH", "authorization denied", "SQLITE_RANGE", "column index out of range", "SQLITE_NOTADB", "file is not a database", "unknownerror", "unknown error", "\\"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"SQLITE_OK", "not an error", "SQLITE_ERROR", "SQL logic error", "SQLITE_PERM", "access permission denied", "SQLITE_ABORT", "query aborted", "SQLITE_BUSY", "database is locked", "SQLITE_LOCKED", "database table is locked", "SQLITE_NOMEM", "out of memory", "SQLITE_READONLY", "attempt to write a readonly database", "SQLITE_INTERRUPT", "interrupted", "SQLITE_IOERR", "disk I/O error", "SQLITE_CORRUPT", "database disk image is malformed", "SQLITE_FULL", "database or disk is full", "SQLITE_CANTOPEN", "unable to open database file", "SQLITE_EMPTY", "unknown error", "SQLITE_SCHEMA", "database schema has changed", "SQLITE_CONSTRAINT", "constraint failed", "SQLITE_MISMATCH", "datatype mismatch", "SQLITE_MISUSE", "bad parameter or other API misuse", "SQLITE_AUTH", "authorization denied", "SQLITE_RANGE", "column index out of range", "SQLITE_NOTADB", "file is not a database", "unknownerror", "unknown error", "\\"})
+	_ = _list0
+	_r = _list0
 	code2english = _r
 	_ = code2english // suppress unused warning
 	vtab.TclVarSet("test_number", "", "1")
 	test_number = "1"
 	_ = test_number // suppress unused warning
 	// foreach {code english} code2english
-	_items0 := tclSplitList(code2english)
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		code := _items0[_idx0+0]
+	_items1 := tclSplitList(code2english)
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		code := _items1[_idx1+0]
 		_ = code // suppress unused warning
-		english := _items0[_idx0+1]
+		english := _items1[_idx1+1]
 		_ = english // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "capi3c-9." + test_number
 				// sqlite3_test_errstr $code (test-harness C API, not transpiled)
 			}
@@ -760,6 +765,11 @@ func Test_capi3c(t *testing.T) {
 				}
 			}
 			rc = tclListAppend(rc, msg)
+			got := tclListFlatten(rc)
+			want := tclListFlatten("1 SQLITE_MISUSE")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi3c-14.1")
+			}
 		}
 		{ // "capi3c-15.1" (prepare-step internals; SQL side effects only)
 			vtab.TclVarSet("sql", "", "SELECT * FROM t2")
@@ -1090,13 +1100,13 @@ func Test_capi3c(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "1 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12\"\n  2 \"SELECT * FROM t11 UNION SELECT * FROM t12\"\n  3 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12\"\n  4 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12\"\n\n  5 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12 ORDER BY 1\"\n  6 \"SELECT * FROM t11 UNION SELECT * FROM t12 ORDER BY 1\"\n  7 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12 ORDER BY 1\"\n  8 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12 ORDER BY 1\""
-		_items1 := tclSplitList("1 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12\"\n  2 \"SELECT * FROM t11 UNION SELECT * FROM t12\"\n  3 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12\"\n  4 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12\"\n\n  5 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12 ORDER BY 1\"\n  6 \"SELECT * FROM t11 UNION SELECT * FROM t12 ORDER BY 1\"\n  7 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12 ORDER BY 1\"\n  8 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12 ORDER BY 1\"")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("1 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12\"\n  2 \"SELECT * FROM t11 UNION SELECT * FROM t12\"\n  3 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12\"\n  4 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12\"\n\n  5 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12 ORDER BY 1\"\n  6 \"SELECT * FROM t11 UNION SELECT * FROM t12 ORDER BY 1\"\n  7 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12 ORDER BY 1\"\n  8 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12 ORDER BY 1\"")
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			sql := _items1[_idx1+1]
+			sql := _items2[_idx2+1]
 			_ = sql // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "25." + tn
 					// decltype $sql (unsupported command, not transpiled)
 				}

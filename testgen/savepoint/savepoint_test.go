@@ -586,6 +586,11 @@ func Test_savepoint(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 hellontyeight character blob")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "savepoint-5.3.2.1")
+		}
 	}
 	{ // do_test "savepoint-5.3.2.2"
 		_res = db.Exec("ROLLBACK TO def")
@@ -934,6 +939,7 @@ func Test_savepoint(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db.Exec("ROLLBACK")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
@@ -1194,6 +1200,7 @@ func Test_savepoint(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test.db")
 			}
 			db, err = frigolite.Open("test.db")

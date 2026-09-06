@@ -71,6 +71,7 @@ func Test_pagesize(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("EXPLAIN PRAGMA page_size")
 			if r.Error != nil { _catchErr = r.Error }
 		}

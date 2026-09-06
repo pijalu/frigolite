@@ -85,6 +85,11 @@ func Test_subselect(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 row value misused")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "subselect-1.2")
+		}
 	}
 	{ // do_test "subselect-1.3a"
 		r = db.Query("SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=2)")

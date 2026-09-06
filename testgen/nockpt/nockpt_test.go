@@ -195,16 +195,19 @@ func Test_nockpt(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db-wal")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db-shm")
 		}
 		db, err = frigolite.Open("test.db")

@@ -295,7 +295,9 @@ func (tp *transpiler) processSqlite3Limit(args []tcl.RawWord) {
 		}
 	case "SQLITE_LIMIT_TRIGGER_DEPTH":
 		tp.emitTriggerDepthLimit(args[2].Text)
-	case "SQLITE_LIMIT_COLUMN", "SQLITE_LIMIT_LENGTH":
+	case "SQLITE_LIMIT_COLUMN", "SQLITE_LIMIT_LENGTH", "SQLITE_LIMIT_SQL_LENGTH",
+		"SQLITE_LIMIT_COMPOUND_SELECT", "SQLITE_LIMIT_FUNCTION_ARG",
+		"SQLITE_LIMIT_LIKE_PATTERN_LENGTH", "SQLITE_LIMIT_VARIABLE_NUMBER":
 		// Set a numeric limit directly, or resolve [expr ...] constants at
 		// transpile time (e.g. [expr $::SQLITE_MAX_COLUMN+1]).
 		n := ""

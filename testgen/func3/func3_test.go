@@ -121,9 +121,9 @@ func Test_func3(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "func3-4.2"
 		got := tclListFlatten(destroyed)
@@ -241,12 +241,12 @@ func Test_func3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want0 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
-		if _want0.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		_want1 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
 			return
 		}
-		want := flatten(_want0)
+		want := flatten(_want1)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -330,12 +330,12 @@ func Test_func3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want1 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
-		if _want1.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		_want2 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		if _want2.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
 			return
 		}
-		want := flatten(_want1)
+		want := flatten(_want2)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -455,12 +455,12 @@ func Test_func3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want2 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
-		if _want2.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		_want3 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		if _want3.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
 			return
 		}
-		want := flatten(_want2)
+		want := flatten(_want3)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

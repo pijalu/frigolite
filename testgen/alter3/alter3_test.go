@@ -287,9 +287,9 @@ func Test_alter3(t *testing.T) {
 	}
 	if tclBool("!" + has_codec) {
 		{ // do_test "alter3-5.5"
-			_list := tclList([]string{"get_file_format test2.db", "get_file_format"})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{"get_file_format test2.db", "get_file_format"})
+			_ = _list0
+			_r = _list0
 		}
 	}
 	{ // do_test "alter3-5.6"

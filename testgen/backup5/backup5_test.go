@@ -104,9 +104,9 @@ func Test_backup5(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "1.4"
 		_r = tclErrMsg(db2)
@@ -132,9 +132,9 @@ func Test_backup5(t *testing.T) {
 		}
 	}
 	{ // do_test "1.6"
-		_list := tclList([]string{tclStepPreparedCode(db2, "stmt", "SELECT * FROM t2"), tclFinalizePreparedCode(db2, "stmt")})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{tclStepPreparedCode(db2, "stmt", "SELECT * FROM t2"), tclFinalizePreparedCode(db2, "stmt")})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "1.7"
 		_r = tclErrMsg(db2)

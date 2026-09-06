@@ -134,20 +134,20 @@ func Test_mutex1(t *testing.T) {
 	}
 	{ // do_test "mutex1-1.9"
 		// mutex_counters counters (unsupported command, not transpiled)
-		_list := tclList([]string{counters_total, counters_static_main})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{counters_total, counters_static_main})
+		_ = _list0
+		_r = _list0
 	}
 	enable_shared_cache = "sqlite3_enable_shared_cache 1"
 	_ = enable_shared_cache // suppress unused warning
 	// foreach {mode mutexes} "singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }"
-	_items0 := tclSplitList("singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		mode := _items0[_idx0+0]
+	_items1 := tclSplitList("singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		mode := _items1[_idx1+0]
 		_ = mode // suppress unused warning
-		mutexes := _items0[_idx0+1]
+		mutexes := _items1[_idx1+1]
 		_ = mutexes // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			if mode != "serialized" {
 				continue
 			}
@@ -163,6 +163,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					db.Close()
 				}
 				// sqlite3_shutdown (unsupported command, not transpiled)
@@ -202,13 +203,13 @@ func Test_mutex1(t *testing.T) {
 				res = ""
 				_ = res // suppress unused warning
 				// foreach {key value} "array get counters"
-				_items1 := tclSplitList("array get counters")
-				for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-					key := _items1[_idx1+0]
+				_items2 := tclSplitList("array get counters")
+				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+					key := _items2[_idx2+0]
 					_ = key // suppress unused warning
-					value := _items1[_idx1+1]
+					value := _items2[_idx2+1]
 					_ = value // suppress unused warning
-					_ = _idx1
+					_ = _idx2
 						if tclBool(key + " != \"total\" && " + value + " > 0") {
 							res = tclListAppend(res, key)
 						}
@@ -221,6 +222,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					db.Close()
 				}
 				db, err = frigolite.Open("test.db")
@@ -237,6 +239,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					db.Close()
 				}
 				db, err = frigolite.Open("test.db")
@@ -253,6 +256,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					db.Close()
 				}
 				// sqlite3_shutdown (unsupported command, not transpiled)

@@ -421,6 +421,11 @@ func Test_lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 database is locked")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-2.1")
+		}
 	}
 	{ // do_test "lock-2.2"
 		_res = db2.Exec("SELECT * FROM t2")
@@ -449,6 +454,11 @@ func Test_lock(t *testing.T) {
 		}
 		_r = tclListAppend(_r, msg)
 		_r = tclListAppend(_r, callback_value)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 database is locked 0")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-2.3.1")
+		}
 	}
 	{ // do_test "lock-2.3.2"
 		vtab.TclVarSet("callback_value", "", "")
@@ -474,10 +484,16 @@ func Test_lock(t *testing.T) {
 		}
 		_r = tclListAppend(_r, msg)
 		_r = tclListAppend(_r, callback_value)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 database is locked {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-2.3.2")
+		}
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
@@ -502,6 +518,11 @@ func Test_lock(t *testing.T) {
 		}
 		_r = tclListAppend(_r, msg)
 		_r = tclListAppend(_r, callback_value)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 database is locked 0 1 2 3 4 5")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-2.4.1")
+		}
 	}
 	{ // do_test "lock-2.4.2"
 		// proc definition (not transpiled)
@@ -528,10 +549,16 @@ func Test_lock(t *testing.T) {
 		}
 		_r = tclListAppend(_r, msg)
 		_r = tclListAppend(_r, callback_value)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 database is locked {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-2.4.2")
+		}
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
@@ -556,6 +583,11 @@ func Test_lock(t *testing.T) {
 		}
 		_r = tclListAppend(_r, msg)
 		_r = tclListAppend(_r, callback_value)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 2 1 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-2.5")
+		}
 	}
 	_res = db.Exec("ROLLBACK")
 	if _res.Error != nil {
@@ -647,6 +679,11 @@ func Test_lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 cannot start a transaction within a transaction")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "lock-3.1")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -655,6 +692,7 @@ func Test_lock(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("ROLLBACK")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}

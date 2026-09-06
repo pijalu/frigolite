@@ -134,6 +134,7 @@ func Test_corrupt2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		vtab.TclVarSet("presql", "", G_perm_presql + ";")
 		presql = G_perm_presql + ";"
 		_ = presql // suppress unused warning

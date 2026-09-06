@@ -156,6 +156,7 @@ func Test_memdb1(t *testing.T) {
 			_ = msg // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			_catchErr = fmt.Errorf("unknown option: -unknown")
 			if _catchErr != nil {
 				msg = _catchErr.Error()
@@ -318,6 +319,11 @@ func Test_memdb1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "500")
+		}
 	}
 	{ // "510"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
@@ -340,6 +346,11 @@ func Test_memdb1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "600")
+		}
 	}
 	{ // do_test "610"
 	_ = rc // suppress unused warning
@@ -356,6 +367,11 @@ func Test_memdb1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 unknown option: a")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "610")
+		}
 	}
 	{ // do_test "620"
 	_ = rc // suppress unused warning
@@ -372,6 +388,11 @@ func Test_memdb1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db serialize ?DATABASE?\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "620")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -398,6 +419,11 @@ func Test_memdb1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, "err")
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 err")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "650")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -553,9 +579,9 @@ func Test_memdb1(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
@@ -582,9 +608,9 @@ func Test_memdb1(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{_rc, msg})
+		_ = _list2
+		_r = _list2
 		res = _r
 		_ = res // suppress unused warning
 		_r = tclBackupFinish(B)

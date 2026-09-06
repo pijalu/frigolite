@@ -2189,9 +2189,9 @@ func Test_json102(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
 		}
 	}
-	_list := tclList([]string{"1", "$.id", "123", "1", "$.stuff[0]", "1", "1", "$.stuff[1]", "2", "1", "$.stuff[2]", "3", "1", "$.stuff[3]", "4", "1", "$.partlist[0].uuid", "bb108722-572e-11e5-9320-7f3b63a4ca74", "1", "$.partlist[1].uuid", "c690dc14-572e-11e5-95f9-dfc8861fd535", "1", "$.partlist[2].subassembly[0].uuid", "6fa5181e-5721-11e5-a04e-57f3d7b32808", "2", "$.id", "456", "2", "$.stuff[0]", "hello", "2", "$.stuff[1]", "world", "2", "$.stuff[2]", "xyzzy", "2", "$.partlist[0].uuid", "0", "2", "$.partlist[1].uuid", "c690dc14-572e-11e5-95f9-dfc8861fd535"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"1", "$.id", "123", "1", "$.stuff[0]", "1", "1", "$.stuff[1]", "2", "1", "$.stuff[2]", "3", "1", "$.stuff[3]", "4", "1", "$.partlist[0].uuid", "bb108722-572e-11e5-9320-7f3b63a4ca74", "1", "$.partlist[1].uuid", "c690dc14-572e-11e5-95f9-dfc8861fd535", "1", "$.partlist[2].subassembly[0].uuid", "6fa5181e-5721-11e5-a04e-57f3d7b32808", "2", "$.id", "456", "2", "$.stuff[0]", "hello", "2", "$.stuff[1]", "world", "2", "$.stuff[2]", "xyzzy", "2", "$.partlist[0].uuid", "0", "2", "$.partlist[1].uuid", "c690dc14-572e-11e5-95f9-dfc8861fd535"})
+	_ = _list0
+	_r = _list0
 	correct_answer = _r
 	_ = correct_answer // suppress unused warning
 	{ // "json102-1110"
@@ -2318,17 +2318,17 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	// foreach {id j x0 x5} "1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1"
-	_items0 := tclSplitList("1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		id := _items0[_idx0+0]
+	_items1 := tclSplitList("1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1")
+	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+		id := _items1[_idx1+0]
 		_ = id // suppress unused warning
-		j := _items0[_idx0+1]
+		j := _items1[_idx1+1]
 		_ = j // suppress unused warning
-		x0 := _items0[_idx0+2]
+		x0 := _items1[_idx1+2]
 		_ = x0 // suppress unused warning
-		x5 := _items0[_idx0+3]
+		x5 := _items1[_idx1+3]
 		_ = x5 // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // "json102-" + id
 				r = db.Query("\n     SELECT json_valid(" + j + "), NOT json_error_position(" + j + ");\n  ")
 				if r.Error != nil {

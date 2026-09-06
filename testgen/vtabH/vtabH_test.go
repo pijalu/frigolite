@@ -332,6 +332,7 @@ func Test_vtabH(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						_ = os.Remove("subdir")
 					}
 					// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
@@ -347,6 +348,7 @@ func Test_vtabH(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								os.MkdirAll(dir, 0755)
 							}
 							_ = os.WriteFile(path, nil, 0644)

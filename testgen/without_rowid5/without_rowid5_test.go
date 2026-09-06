@@ -365,6 +365,7 @@ func Test_without_rowid5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(NULL,6,7);")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -375,6 +376,7 @@ func Test_without_rowid5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(NULL,6,7);")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -385,6 +387,7 @@ func Test_without_rowid5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -442,5 +445,10 @@ func Test_without_rowid5(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 cannot open table without rowid: b1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "without_rowid5-6.2")
+		}
 	}
 }

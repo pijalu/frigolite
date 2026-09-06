@@ -415,9 +415,9 @@ func Test_schema(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // "schema-11.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -454,9 +454,9 @@ func Test_schema(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // "schema-11.8" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -475,9 +475,9 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    CREATE TABLE t4(a, b, c);\n  ")
 		}
-		_list := tclList([]string{tclStepPreparedCode(db, "STMT", "CREATE TABLE t4(a,b,c)"), tclFinalizePreparedCode(db, "STMT")})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{tclStepPreparedCode(db, "STMT", "CREATE TABLE t4(a,b,c)"), tclFinalizePreparedCode(db, "STMT")})
+		_ = _list2
+		_r = _list2
 	}
 	{ // "schema-13.1" (prepare-step internals; SQL side effects only)
 		// prepared S: SELECT * FROM sqlite_master (bind/step emulation)

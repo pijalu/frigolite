@@ -86,6 +86,7 @@ func Test_tkt3457(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// test_syscall install fchmod (unsupported command, not transpiled)
 		// test_syscall fault 1 1 (unsupported command, not transpiled)
 	}
@@ -116,6 +117,7 @@ func Test_tkt3457(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// test_syscall uninstall (unsupported command, not transpiled)
 		// test_syscall fault 0 0 (unsupported command, not transpiled)
 	}

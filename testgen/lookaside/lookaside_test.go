@@ -76,6 +76,7 @@ func Test_lookaside(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -88,6 +89,7 @@ func Test_lookaside(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// sqlite3_config_error db (unsupported command, not transpiled)
 		}
 	}

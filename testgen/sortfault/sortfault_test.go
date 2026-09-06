@@ -169,6 +169,7 @@ func Test_sortfault(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)

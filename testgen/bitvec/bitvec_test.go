@@ -139,9 +139,9 @@ func Test_bitvec(t *testing.T) {
 		for _, incr := range tclSplitList("124 125") {
 		_ = incr // suppress unused warning
 			{ // do_test "bitvec-1.20." + start + "." + incr
-				_list := tclList([]string{"1", "60", start, incr, "2", "5000", "1", "1", "0"})
-				_ = _list
-				_r = _list
+				_list0 := tclList([]string{"1", "60", start, incr, "2", "5000", "1", "1", "0"})
+				_ = _list0
+				_r = _list0
 				prog = _r
 				_ = prog // suppress unused warning
 				// sqlite3BitvecBuiltinTest 5000 $prog (unsupported command, not transpiled)

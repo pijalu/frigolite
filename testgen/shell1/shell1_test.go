@@ -505,6 +505,7 @@ func Test_shell1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_res = db.Exec("DROP VIEW v1; DROP VIEW v2; DROP TABLE t1;")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}

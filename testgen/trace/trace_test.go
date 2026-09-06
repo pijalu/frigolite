@@ -108,6 +108,11 @@ func Test_trace(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db trace ?CALLBACK?\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-1.1")
+		}
 	}
 	// proc definition (not transpiled)
 	{ // do_test "trace-1.2"
@@ -201,6 +206,7 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		tclFinalizePrepared("STMT")
 		// sqlite3_finalize $STMT
 	}
@@ -229,6 +235,11 @@ func Test_trace(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db profile ?CALLBACK?\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-3.1")
+		}
 	}
 	vtab.TclVarSet("stmtlist", "", "")
 	stmtlist = "" // TCL namespace variable
@@ -307,6 +318,7 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		tclFinalizePrepared("STMT")
 		// sqlite3_finalize $STMT
 	}

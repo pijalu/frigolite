@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Value-returning TCL builtins for do_test body dispatch: bodies whose final
-// command is one of these compare the command's `_r` result value instead of
-// the `_res` error slot (see emitDoTestBodyComparison in dotest.go).
+// do_test body dispatch helpers: value-returning builtin detection (bodies
+// whose final command compares the command's `_r` result value instead of the
+// `_res` error slot — see emitDoTestBodyComparison in dotest.go) and the
+// trailing lappend-var shape.
 
 package main
 
-import tcl "github.com/pijalu/frigolite/tools/tclconvert/tcl"
+import (
+	"strings"
+
+	tcl "github.com/pijalu/frigolite/tools/tclconvert/tcl"
+)
 
 // valueReturningBuiltins is the set of TCL builtins (in the SQLite TCL harness
 // test scripts) whose last-command invocation result is what `do_test` body
@@ -55,4 +60,20 @@ func bodyEndsWithValueBuiltin(bodyCmds [][]tcl.RawWord) bool {
 		return false
 	}
 	return valueReturningBuiltins[last[0].Text]
+}
+
+// bodyEndsWithLappendVar reports whether a do_test body's last command is
+// `lappend VAR $X`, whose value is the appended list variable itself
+// (sqllimits1-6.3's `set rc [catch {sqlite3_prepare ...} STMT];
+// lappend rc $STMT` — the do_test compares rc's final list value). Returns
+// the variable to compare.
+func bodyEndsWithLappendVar(bodyCmds [][]tcl.RawWord) (string, bool) {
+	if len(bodyCmds) == 0 {
+		return "", false
+	}
+	last := bodyCmds[len(bodyCmds)-1]
+	if len(last) == 3 && last[0].Text == "lappend" {
+		return tclVarToGo(strings.TrimPrefix(last[1].Text, "$")), true
+	}
+	return "", false
 }

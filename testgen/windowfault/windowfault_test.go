@@ -125,20 +125,21 @@ func Test_windowfault(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	vtab.TclVarSet("FAULTSIM", "tmpread", "-injectstart"+" "+"tmpread_injectstart"+" "+"-injectstop"+" "+"tmpread_injectstop"+" "+"-injecterrlist"+" "+"{{1 {disk I/O error}}}"+" "+"\\")
-	_list := tclList([]string{"-injectstart", "tmpread_injectstart", "-injectstop", "tmpread_injectstop", "-injecterrlist", "{1 {disk I/O error}}", "\\"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"-injectstart", "tmpread_injectstart", "-injectstop", "tmpread_injectstop", "-injecterrlist", "{1 {disk I/O error}}", "\\"})
+	_ = _list0
+	_r = _list0
 	FAULTSIM_tmpread = _r
 	_ = FAULTSIM_tmpread // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	_dbeval0 := tclExecSQL(db, "SELECT 0.0 FROM t")
-	L = _dbeval0
+	_dbeval1 := tclExecSQL(db, "SELECT 0.0 FROM t")
+	L = _dbeval1
 	_ = L // suppress unused warning
 	// do_faultsim_test 9 -end 25 -faults tmpread -body {\n  execsql {\n    SELECT sum(y) OVER win FROM ... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	// tvfs delete (unsupported command, not transpiled)
@@ -198,9 +199,9 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
 		}
 	}
-	_list := tclList([]string{"*", "\n  1b22\n  1b22c333\n  22c333dddd4444 \n  333dddd4444e55555 \n  4444e55555f666666\n  55555f666666gggggggggg7777777 \n  666666gggggggggg7777777\n"})
-	_ = _list
-	_r = _list
+	_list2 := tclList([]string{"*", "\n  1b22\n  1b22c333\n  22c333dddd4444 \n  333dddd4444e55555 \n  4444e55555f666666\n  55555f666666gggggggggg7777777 \n  666666gggggggggg7777777\n"})
+	_ = _list2
+	_r = _list2
 	queryres = _r
 	_ = queryres // suppress unused warning
 	{ // "13.1"

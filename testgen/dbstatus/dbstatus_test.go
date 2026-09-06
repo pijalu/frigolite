@@ -173,6 +173,7 @@ func Test_dbstatus(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					// register_echo_module db (unsupported command, not transpiled)
 				}
 				_res = db.Exec(schema)
@@ -278,26 +279,26 @@ func Test_dbstatus(t *testing.T) {
 					}
 				}
 				{ // do_test "dbstatus-2." + tn + ".b"
-					_list := tclList([]string{nAlloc1, nSchema1})
-					_ = _list
-					_r = _list
+					_list1 := tclList([]string{nAlloc1, nSchema1})
+					_ = _list1
+					_r = _list1
 				}
 				{ // do_test "dbstatus-2." + tn + ".c"
-					_list := tclList([]string{nAlloc2, nSchema2})
-					_ = _list
-					_r = _list
+					_list2 := tclList([]string{nAlloc2, nSchema2})
+					_ = _list2
+					_r = _list2
 				}
 			}
 			// foreach {tn schema statements} "1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }"
-			_items1 := tclSplitList("1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }")
-			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-				tn := _items1[_idx1+0]
+			_items3 := tclSplitList("1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }")
+			for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+				tn := _items3[_idx3+0]
 				_ = tn // suppress unused warning
-				schema := _items1[_idx1+1]
+				schema := _items3[_idx3+1]
 				_ = schema // suppress unused warning
-				statements := _items1[_idx1+2]
+				statements := _items3[_idx3+2]
 				_ = statements // suppress unused warning
-				_ = _idx1
+				_ = _idx3
 					vtab.TclVarSet("tn", "", lookaside_buffer_size + "-" + tn)
 					tn = lookaside_buffer_size + "-" + tn
 					_ = tn // suppress unused warning
@@ -310,6 +311,7 @@ func Test_dbstatus(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						// register_echo_module db (unsupported command, not transpiled)
 					}
 					_res = db.Exec(schema)
@@ -396,14 +398,14 @@ func Test_dbstatus(t *testing.T) {
 						}
 					}
 					{ // do_test "dbstatus-3." + tn + ".c"
-						_list := tclList([]string{nAlloc1, nStmt1})
-						_ = _list
-						_r = _list
+						_list4 := tclList([]string{nAlloc1, nStmt1})
+						_ = _list4
+						_r = _list4
 					}
 					{ // do_test "dbstatus-3." + tn + ".d"
-						_list := tclList([]string{nAlloc2, nStmt2})
-						_ = _list
-						_r = _list
+						_list5 := tclList([]string{nAlloc2, nStmt2})
+						_ = _list5
+						_r = _list5
 					}
 				}
 			}
@@ -444,15 +446,15 @@ func Test_dbstatus(t *testing.T) {
 				_r = tclBool01(toInt(strconv.FormatInt(db.StmtStatus("99"), 10))  >  0)
 			}
 			// foreach {tn id res} "1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1"
-			_items2 := tclSplitList("1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items6 := tclSplitList("1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1")
+			for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
+				tn := _items6[_idx6+0]
 				_ = tn // suppress unused warning
-				id := _items2[_idx2+1]
+				id := _items6[_idx6+1]
 				_ = id // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items6[_idx6+2]
 				_ = res // suppress unused warning
-				_ = _idx2
+				_ = _idx6
 					if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 					}
 					{ // do_test "5.5." + tn

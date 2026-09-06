@@ -495,6 +495,7 @@ func Test_pager1(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				// tv delete (unsupported command, not transpiled)
 			}
 		}
@@ -1155,6 +1156,7 @@ func Test_pager1(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						// test_syscall install fchmod (unsupported command, not transpiled)
 						// test_syscall fault 1 1 (unsupported command, not transpiled)
 					}
@@ -1171,11 +1173,13 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							tclFileChmod("test.db-journal", "r--------")
 						}
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							// file attributes "test.db-journal" -readonly (unsupported attribute)
 						}
 						_res = db.Exec(" SELECT * FROM t1 ")
@@ -1184,6 +1188,7 @@ func Test_pager1(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						// test_syscall reset (unsupported command, not transpiled)
 						// test_syscall fault 0 0 (unsupported command, not transpiled)
 					}
@@ -1192,11 +1197,13 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							tclFileChmod("test.db-journal", "rw-rw-rw-")
 						}
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							// file attributes "test.db-journal" -readonly (unsupported attribute)
 						}
 						os.Remove("test.db-journal")
@@ -1206,11 +1213,13 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							tclFileChmod("test.db", "r--------")
 						}
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							// file attributes "test.db" -readonly (unsupported attribute)
 						}
 						db, err = frigolite.Open("test.db")
@@ -1227,6 +1236,7 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							_r = ""
 							// file attributes "test.db" -readonly (unsupported attribute)
 						}
 						{
@@ -1234,6 +1244,7 @@ func Test_pager1(t *testing.T) {
 							_ = msg // suppress unused warning
 							_ = _catchErrMsg // suppress unused warning
 							var _catchErr error
+							_r = ""
 							tclFileChmod("test.db", "rw-rw-rw-")
 							if _catchErr != nil {
 								msg = _catchErr.Error()
@@ -1513,6 +1524,7 @@ func Test_pager1(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								vtab.TclVarSet("J", "", "-1")
 								J = "-1"
 								_ = J // suppress unused warning
@@ -1522,6 +1534,7 @@ func Test_pager1(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								vtab.TclVarSet("W", "", "-1")
 								W = "-1"
 								_ = W // suppress unused warning
@@ -1529,9 +1542,9 @@ func Test_pager1(t *testing.T) {
 								_ = W // suppress unused warning
 							}
 							{ // do_test "pager1-7.1." + tn + ".2"
-								_list := tclList([]string{J, W})
-								_ = _list
-								_r = _list
+								_list5 := tclList([]string{J, W})
+								_ = _list5
+								_r = _list5
 							}
 						}
 						{ // do_test "pager1-7.2.1"
@@ -1567,13 +1580,13 @@ func Test_pager1(t *testing.T) {
 							}
 						}
 						// foreach {tn filename} "1 :memory:\n  2 \"\""
-						_items5 := tclSplitList("1 :memory:\n  2 \"\"")
-						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-							tn := _items5[_idx5+0]
+						_items6 := tclSplitList("1 :memory:\n  2 \"\"")
+						for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+							tn := _items6[_idx6+0]
 							_ = tn // suppress unused warning
-							filename := _items5[_idx5+1]
+							filename := _items6[_idx6+1]
 							_ = filename // suppress unused warning
-							_ = _idx5
+							_ = _idx6
 								{ // do_test "pager1-8." + tn + ".1"
 									// db_delete_and_reopen: delete test.db* and reopen
 									db.Close()
@@ -1631,9 +1644,9 @@ func Test_pager1(t *testing.T) {
 								} else {
 									_r = "B"
 								}
-								_list := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list
-								_r = _list
+								_list7 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list7
+								_r = _list7
 							}
 							{ // do_test "pager1-9.0.3"
 							}
@@ -1660,9 +1673,9 @@ func Test_pager1(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ab SET b = a_string(301) ")
 								}
-								_list := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list
-								_r = _list
+								_list8 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list8
+								_r = _list8
 							}
 							{ // do_test "pager1-9.1.3"
 							}
@@ -1695,9 +1708,9 @@ func Test_pager1(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      UPDATE ab SET b = a_string(301);\n    ROLLBACK;\n  ")
 								}
-								_list := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list
-								_r = _list
+								_list9 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list9
+								_r = _list9
 							}
 							{ // do_test "pager1-9.2.3"
 							}
@@ -1757,9 +1770,9 @@ func Test_pager1(t *testing.T) {
 										_r = "B"
 									}
 									_r = tclBackupStep(B, "30")
-									_list := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-									_ = _list
-									_r = _list
+									_list0 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+									_ = _list0
+									_r = _list0
 								}
 								{ // do_test "pager1-9.3.3codec"
 									if db2 != nil { db2.Close() }
@@ -1788,9 +1801,9 @@ func Test_pager1(t *testing.T) {
 										_r = "B"
 									}
 									_r = tclBackupStep(B, "30")
-									_list := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-									_ = _list
-									_r = _list
+									_list0 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+									_ = _list0
+									_r = _list0
 								}
 								{ // do_test "pager1-9.3.3"
 									if db2 != nil { db2.Close() }
@@ -1824,14 +1837,14 @@ func Test_pager1(t *testing.T) {
 								} else {
 									_r = "B"
 								}
-								_list := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list
-								_r = _list
+								_list10 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list10
+								_r = _list10
 							}
 							{ // do_test "pager1-9.4.2"
-								_list := tclList([]string{strconv.Itoa(tclFileSize("test.db2")), strconv.Itoa(tclFileSize("test.db"))})
-								_ = _list
-								_r = _list
+								_list11 := tclList([]string{strconv.Itoa(tclFileSize("test.db2")), strconv.Itoa(tclFileSize("test.db"))})
+								_ = _list11
+								_r = _list11
 							}
 							if db2 != nil { db2.Close() }
 							// testvfs tv -default 1 (unsupported command, not transpiled)
@@ -2287,8 +2300,8 @@ func Test_pager1(t *testing.T) {
 							_ = i // suppress unused warning
 							for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 513 }() {
 								// testvfs tv -default 1 -szosfile $i (unsupported command, not transpiled)
-								_dbtmp6, err := frigolite.Open("test.db")
-								_ = _dbtmp6 // sqlite3 db connection
+								_dbtmp12, err := frigolite.Open("test.db")
+								_ = _dbtmp12 // sqlite3 db connection
 								if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 								_ = err
 								db.ResetChangesCounters()
@@ -2340,17 +2353,17 @@ func Test_pager1(t *testing.T) {
 									_rc := "0"
 									{
 										var _catchErr error
-										_dbtmp7, err := frigolite.Open("test.db")
-										_ = _dbtmp7 // sqlite3 db connection
+										_dbtmp13, err := frigolite.Open("test.db")
+										_ = _dbtmp13 // sqlite3 db connection
 										if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 										_ = err
 										db.ResetChangesCounters()
 										if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 										if _catchErr != nil { _rc = "1" }
 									}
-									_list := tclList([]string{_rc, msg})
-									_ = _list
-									_r = _list
+									_list13 := tclList([]string{_rc, msg})
+									_ = _list13
+									_r = _list13
 									if _r != res {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res, "pager1-16.1." + ii)
 									}
@@ -2358,6 +2371,7 @@ func Test_pager1(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									db.Close()
 								}
 								// tv delete (unsupported command, not transpiled)
@@ -2380,6 +2394,7 @@ func Test_pager1(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									db.Close()
 								}
 								db, err = frigolite.Open("")
@@ -2538,23 +2553,23 @@ func Test_pager1(t *testing.T) {
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
 								}
-								_dbevalRows7 := db.Query(" SELECT * FROM t1 ")
-								var _dbevalRb8 bool
-								var _dbevalErr9 error
-								var _dbevalInt10 bool
+								_dbevalRows14 := db.Query(" SELECT * FROM t1 ")
+								var _dbevalRb15 bool
+								var _dbevalErr16 error
+								var _dbevalInt17 bool
 								db.BeginActiveStatement()
-								for _ri := 0; _ri < len(_dbevalRows7.Rows) && _dbevalErr9 == nil; _ri++ {
-									for _ci := 0; _ci < len(_dbevalRows7.Columns); _ci++ {
-										switch _dbevalRows7.Columns[_ci] {
+								for _ri := 0; _ri < len(_dbevalRows14.Rows) && _dbevalErr16 == nil; _ri++ {
+									for _ci := 0; _ci < len(_dbevalRows14.Columns); _ci++ {
+										switch _dbevalRows14.Columns[_ci] {
 										}
 									}
 									_res = db.Exec(" PRAGMA journal_mode = DELETE ")
-									if _dbevalRb8 { _dbevalErr9 = errors.New("abort due to ROLLBACK") }
-									if _dbevalInt10 { _dbevalErr9 = errors.New("interrupted"); db.ClearInterrupt() }
+									if _dbevalRb15 { _dbevalErr16 = errors.New("abort due to ROLLBACK") }
+									if _dbevalInt17 { _dbevalErr16 = errors.New("interrupted"); db.ClearInterrupt() }
 								}
 								db.EndActiveStatement()
-								if _dbevalErr9 != nil {
-									t.Errorf("db eval callback error: %v", _dbevalErr9)
+								if _dbevalErr16 != nil {
+									t.Errorf("db eval callback error: %v", _dbevalErr16)
 								}
 								r = db.Query(" PRAGMA journal_mode ")
 								if r.Error != nil {
@@ -2616,15 +2631,15 @@ func Test_pager1(t *testing.T) {
 								if err != nil { t.Fatal(err) }
 							}
 							// foreach {tn mode possible} "2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0"
-							_items11 := tclSplitList("2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0")
-							for _idx11 := 0; _idx11+3 <= len(_items11); _idx11 += 3 {
-								tn := _items11[_idx11+0]
+							_items18 := tclSplitList("2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0")
+							for _idx18 := 0; _idx18+3 <= len(_items18); _idx18 += 3 {
+								tn := _items18[_idx18+0]
 								_ = tn // suppress unused warning
-								mode := _items11[_idx11+1]
+								mode := _items18[_idx18+1]
 								_ = mode // suppress unused warning
-								possible := _items11[_idx11+2]
+								possible := _items18[_idx18+2]
 								_ = possible // suppress unused warning
-								_ = _idx11
+								_ = _idx18
 									{ // do_test "pager1-23.5." + tn + ".1"
 										r = db.Query("PRAGMA journal_mode = off")
 										if r.Error != nil {
@@ -2788,6 +2803,7 @@ func Test_pager1(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									db.Close()
 								}
 								// do_multiclient_test tn {\n    do_test pager1-28.$tn.1 {\n      sql1 { \n  ...} (unsupported command, not transpiled)
@@ -2869,6 +2885,7 @@ func Test_pager1(t *testing.T) {
 								{
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
+									_r = ""
 									db.Close()
 								}
 								os.Remove("test.db")
@@ -2924,15 +2941,15 @@ func Test_pager1(t *testing.T) {
 									}
 								}
 								// foreach {tn pragma strsize} "1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400"
-								_items12 := tclSplitList("1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400")
-								for _idx12 := 0; _idx12+3 <= len(_items12); _idx12 += 3 {
-									tn := _items12[_idx12+0]
+								_items19 := tclSplitList("1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400")
+								for _idx19 := 0; _idx19+3 <= len(_items19); _idx19 += 3 {
+									tn := _items19[_idx19+0]
 									_ = tn // suppress unused warning
-									pragma := _items12[_idx12+1]
+									pragma := _items19[_idx19+1]
 									_ = pragma // suppress unused warning
-									strsize := _items12[_idx12+2]
+									strsize := _items19[_idx19+2]
 									_ = strsize // suppress unused warning
-									_ = _idx12
+									_ = _idx19
 										db.Close()
 										os.Remove("test.db")
 										os.Remove("test.db-journal")
@@ -2969,8 +2986,8 @@ func Test_pager1(t *testing.T) {
 									if err != nil { t.Fatal(err) }
 									tcl_nullvalue = "{}" // fresh connection resets nullvalue
 									{ // do_test "35"
-										_dbtmp13, err := frigolite.Open("test.db")
-										_ = _dbtmp13 // sqlite3 db connection
+										_dbtmp20, err := frigolite.Open("test.db")
+										_ = _dbtmp20 // sqlite3 db connection
 										if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 										_ = err
 										db.ResetChangesCounters()
@@ -2989,17 +3006,18 @@ func Test_pager1(t *testing.T) {
 									// do_multiclient_test tn {\n  sql1 {\n    PRAGMA auto_vacuum = 0;\n    CREAT...} (unsupported command, not transpiled)
 									os.Remove("test1")
 									// foreach {tn uri} "1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}"
-									_items14 := tclSplitList("1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}")
-									for _idx14 := 0; _idx14+2 <= len(_items14); _idx14 += 2 {
-										tn := _items14[_idx14+0]
+									_items21 := tclSplitList("1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}")
+									for _idx21 := 0; _idx21+2 <= len(_items21); _idx21 += 2 {
+										tn := _items21[_idx21+0]
 										_ = tn // suppress unused warning
-										uri := _items14[_idx14+1]
+										uri := _items21[_idx21+1]
 										_ = uri // suppress unused warning
-										_ = _idx14
+										_ = _idx21
 											{ // do_test "37." + tn
 												{
 													var _catchErr error
 													_ = _catchErr // suppress unused warning
+													_r = ""
 													db.Close()
 												}
 												// sqlite3_shutdown (unsupported command, not transpiled)
@@ -3021,6 +3039,7 @@ func Test_pager1(t *testing.T) {
 											{
 												var _catchErr error
 												_ = _catchErr // suppress unused warning
+												_r = ""
 												db.Close()
 											}
 											os.Remove("test.db")
@@ -3039,6 +3058,7 @@ func Test_pager1(t *testing.T) {
 											{
 												var _catchErr error
 												_ = _catchErr // suppress unused warning
+												_r = ""
 												db.Close()
 											}
 											os.Remove("test.db")

@@ -102,9 +102,9 @@ func Test_carray02(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "2.1"
 		_rc := "0"
@@ -114,22 +114,22 @@ func Test_carray02(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	tclFinalizePrepared("STMT")
 	// sqlite3_finalize $STMT
 	// foreach {tn sql res} "1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}"
-	_items0 := tclSplitList("1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items2 := tclSplitList("1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}")
+	for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items2[_idx2+1]
 		_ = sql // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items2[_idx2+2]
 		_ = res // suppress unused warning
-		_ = _idx0
+		_ = _idx2
 			{ // "2.2." + tn (prepare-step internals; SQL side effects only)
 				// prepared STMT: $sql (bind/step emulation)
 				tclPrepareStep(db, sql, "STMT")
@@ -144,15 +144,15 @@ func Test_carray02(t *testing.T) {
 			}
 		}
 		// foreach {tn sql res} "1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}"
-		_items1 := tclSplitList("1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
+		_items3 := tclSplitList("1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}")
+		for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+			tn := _items3[_idx3+0]
 			_ = tn // suppress unused warning
-			sql := _items1[_idx1+1]
+			sql := _items3[_idx3+1]
 			_ = sql // suppress unused warning
-			res := _items1[_idx1+2]
+			res := _items3[_idx3+2]
 			_ = res // suppress unused warning
-			_ = _idx1
+			_ = _idx3
 				{ // "2.3." + tn (prepare-step internals; SQL side effects only)
 					// prepared STMT: $sql (bind/step emulation)
 					tclPrepareStep(db, sql, "STMT")
@@ -167,15 +167,15 @@ func Test_carray02(t *testing.T) {
 				}
 			}
 			// foreach {tn sql res} "1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}"
-			_items2 := tclSplitList("1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items4 := tclSplitList("1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}")
+			for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				sql := _items2[_idx2+1]
+				sql := _items4[_idx4+1]
 				_ = sql // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items4[_idx4+2]
 				_ = res // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					{ // "2.4." + tn (prepare-step internals; SQL side effects only)
 						// prepared STMT: SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value (bind/step emulation)
 						tclPrepareStep(db, "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value", "STMT")
@@ -224,8 +224,8 @@ func Test_carray02(t *testing.T) {
 					_res = db.Exec("SELECT * FROM carray(?, 5, 'apples')")
 					if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
 					_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
-					_list := tclList([]string{tclFinalizePreparedCode(db, "STMT"), db.LastErr()})
-					_ = _list
-					_r = _list
+					_list5 := tclList([]string{tclFinalizePreparedCode(db, "STMT"), db.LastErr()})
+					_ = _list5
+					_r = _list5
 				}
 }

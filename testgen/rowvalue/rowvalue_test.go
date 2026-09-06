@@ -256,9 +256,9 @@ func Test_rowvalue(t *testing.T) {
 						_map_arr = ""
 						_ = _map_arr // suppress unused warning
 						vtab.TclVarSet("map", "1", "1")
-						_list := tclList([]string{"1"})
-						_ = _list
-						_r = _list
+						_list3 := tclList([]string{"1"})
+						_ = _list3
+						_r = _list3
 						map_1 = _r
 						_ = map_1 // suppress unused warning
 						{ // tn2 + ".where1" — skipped: TCL associative-array expected-value lookup not transpiled N-A (SQL side effects only)
@@ -266,9 +266,9 @@ func Test_rowvalue(t *testing.T) {
 							_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 						}
 						vtab.TclVarSet("map", "0", "1")
-						_list := tclList([]string{"1"})
-						_ = _list
-						_r = _list
+						_list4 := tclList([]string{"1"})
+						_ = _list4
+						_r = _list4
 						map_0 = _r
 						_ = map_0 // suppress unused warning
 						vtab.TclVarSet("map", "", "")
@@ -290,15 +290,15 @@ func Test_rowvalue(t *testing.T) {
 					}
 				}
 				// foreach {tn r order} "1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\""
-				_items3 := tclSplitList("1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\"")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items5 := tclSplitList("1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\"")
+				for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+					tn := _items5[_idx5+0]
 					_ = tn // suppress unused warning
-					_r := _items3[_idx3+1]
+					_r := _items5[_idx5+1]
 					_ = _r // suppress unused warning
-					order := _items3[_idx3+2]
+					order := _items5[_idx5+2]
 					_ = order // suppress unused warning
-					_ = _idx3
+					_ = _idx5
 						{ // "3." + tn + ".1"
 							r = db.Query("SELECT " + _r + " == (SELECT x,y FROM t1 " + order + ")")
 							if r.Error != nil {
@@ -349,15 +349,15 @@ func Test_rowvalue(t *testing.T) {
 						}
 					}
 					// foreach {tn expr res} "1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0"
-					_items4 := tclSplitList("1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0")
-					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-						tn := _items4[_idx4+0]
+					_items6 := tclSplitList("1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0")
+					for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
+						tn := _items6[_idx6+0]
 						_ = tn // suppress unused warning
-						expr := _items4[_idx4+1]
+						expr := _items6[_idx6+1]
 						_ = expr // suppress unused warning
-						res := _items4[_idx4+2]
+						res := _items6[_idx6+2]
 						_ = res // suppress unused warning
-						_ = _idx4
+						_ = _idx6
 							{ // "4." + tn
 								r = db.Query("SELECT " + expr)
 								if r.Error != nil {
@@ -372,15 +372,15 @@ func Test_rowvalue(t *testing.T) {
 							}
 						}
 						// foreach {tn expr res} "1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1"
-						_items5 := tclSplitList("1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1")
-						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
-							tn := _items5[_idx5+0]
+						_items7 := tclSplitList("1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1")
+						for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
+							tn := _items7[_idx7+0]
 							_ = tn // suppress unused warning
-							expr := _items5[_idx5+1]
+							expr := _items7[_idx7+1]
 							_ = expr // suppress unused warning
-							res := _items5[_idx5+2]
+							res := _items7[_idx7+2]
 							_ = res // suppress unused warning
-							_ = _idx5
+							_ = _idx7
 								{ // "5." + tn
 									r = db.Query("SELECT " + expr)
 									if r.Error != nil {
@@ -515,17 +515,17 @@ func Test_rowvalue(t *testing.T) {
 								}
 							}
 							// foreach {tn sql res eqp} "1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\""
-							_items6 := tclSplitList("1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"")
-							for _idx6 := 0; _idx6+4 <= len(_items6); _idx6 += 4 {
-								tn := _items6[_idx6+0]
+							_items8 := tclSplitList("1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"")
+							for _idx8 := 0; _idx8+4 <= len(_items8); _idx8 += 4 {
+								tn := _items8[_idx8+0]
 								_ = tn // suppress unused warning
-								sql := _items6[_idx6+1]
+								sql := _items8[_idx8+1]
 								_ = sql // suppress unused warning
-								res := _items6[_idx6+2]
+								res := _items8[_idx8+2]
 								_ = res // suppress unused warning
-								eqp := _items6[_idx6+3]
+								eqp := _items8[_idx8+3]
 								_ = eqp // suppress unused warning
-								_ = _idx6
+								_ = _idx8
 									{ // "7." + tn + ".1"
 										r = db.Query("EXPLAIN QUERY PLAN " + sql)
 										if r.Error != nil {
@@ -558,15 +558,15 @@ func Test_rowvalue(t *testing.T) {
 									}
 								}
 								// foreach {tn q res} "1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}"
-								_items7 := tclSplitList("1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}")
-								for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
-									tn := _items7[_idx7+0]
+								_items9 := tclSplitList("1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}")
+								for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+									tn := _items9[_idx9+0]
 									_ = tn // suppress unused warning
-									q := _items7[_idx7+1]
+									q := _items9[_idx9+1]
 									_ = q // suppress unused warning
-									res := _items7[_idx7+2]
+									res := _items9[_idx9+2]
 									_ = res // suppress unused warning
-									_ = _idx7
+									_ = _idx9
 										{ // "9." + tn
 											r = db.Query("SELECT c FROM t2 WHERE " + q)
 											if r.Error != nil {
@@ -673,13 +673,13 @@ func Test_rowvalue(t *testing.T) {
 									}
 									tcl_nullvalue = ""
 									// foreach {tn sql} "0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\""
-									_items8 := tclSplitList("0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"")
-									for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
-										tn := _items8[_idx8+0]
+									_items10 := tclSplitList("0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"")
+									for _idx10 := 0; _idx10+2 <= len(_items10); _idx10 += 2 {
+										tn := _items10[_idx10+0]
 										_ = tn // suppress unused warning
-										sql := _items8[_idx8+1]
+										sql := _items10[_idx10+1]
 										_ = sql // suppress unused warning
-										_ = _idx8
+										_ = _idx10
 											{ // "13." + tn
 												_res = db.Exec(sql)
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
@@ -772,15 +772,15 @@ func Test_rowvalue(t *testing.T) {
 											}
 										}
 										// foreach {tn n sql} "1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\""
-										_items9 := tclSplitList("1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\"")
-										for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-											tn := _items9[_idx9+0]
+										_items11 := tclSplitList("1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\"")
+										for _idx11 := 0; _idx11+3 <= len(_items11); _idx11 += 3 {
+											tn := _items11[_idx11+0]
 											_ = tn // suppress unused warning
-											n := _items9[_idx9+1]
+											n := _items11[_idx11+1]
 											_ = n // suppress unused warning
-											sql := _items9[_idx9+2]
+											sql := _items11[_idx11+2]
 											_ = sql // suppress unused warning
-											_ = _idx9
+											_ = _idx11
 												if func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n == 0 }() {
 													vtab.TclVarSet("err", "", "row value misused")
 													_err_tcl = "row value misused"

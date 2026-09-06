@@ -216,6 +216,11 @@ func Test_misc2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc2-7.2")
+		}
 	}
 	{ // do_test "misc2-7.3"
 		r = db.Query("SELECT * FROM t1")
@@ -431,6 +436,11 @@ func Test_misc2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc2-7.12")
+		}
 	}
 	{ // do_test "misc2-7.13"
 		r = db.Query("SELECT * FROM t1")

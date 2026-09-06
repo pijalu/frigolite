@@ -398,6 +398,10 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 	if !hasResult {
 		tp.emitLine("_ = _catchErr // suppress unused warning")
 	}
+	// TCL catch compares the body's RESULT; reset the value-builtin
+	// accumulator so a body whose commands assign no value (plain set/DDL)
+	// yields an empty result rather than a stale `_r`.
+	tp.emitLine("_r = \"\"")
 	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, quotaCallbacks: tp.quotaCallbacks, rangeListFuncs: tp.rangeListFuncs, varCount: tp.varCount, pendingFileReset: tp.pendingFileReset, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, fixtureVar: tp.fixtureVar}
 	bodyTP.processCommands(bodyCmds)
 	tp.indent = bodyTP.indent
@@ -453,14 +457,22 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 			tp.indent--
 			tp.emitLine("}")
 		} else {
+			// Faithful TCL `catch BODY varName` semantics: varName holds
+			// the error message on failure, else the body's RESULT (the
+			// value the last command left in `_r`; tclCatchStmtResult maps
+			// the stmt-API SQLITE_OK sentinel to TCL's empty success
+			// result — sqlite3_bind_text leaves no interpreter result,
+			// sqllimits1-5.14.8). The pre-2026-09 emission ("1"/"0" catch
+			// codes) contradicted TCL: no `catch BODY var` ever yields
+			// the numeric code in the variable.
 			tp.emitLine("if _catchErr != nil {")
 			tp.indent++
-			tp.emitLine("%s = \"1\"", resultVar)
+			tp.emitLine("%s = _catchErr.Error()", resultVar)
 			tp.emitLine("%s = _catchErr.Error()", errVar)
 			tp.indent--
 			tp.emitLine("} else {")
 			tp.indent++
-			tp.emitLine("%s = \"0\"", resultVar)
+			tp.emitLine("%s = tclCatchStmtResult(_r)", resultVar)
 			tp.emitLine("%s = \"\"", errVar)
 			tp.indent--
 			tp.emitLine("}")
@@ -562,12 +574,17 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 		tp.emitLine("_ = _r // colmeta result")
 		return
 	}
-	tp.emitLine("_list := tclList([]string{%s})", strings.Join(items, ", "))
-	tp.emitLine("_ = _list")
+	// Unique var name: two `list` commands can land in the same Go scope
+	// (enc4 preamble, interrupt2 4.x) and a plain `_list :=` twice breaks
+	// the build.
+	listVar := fmt.Sprintf("_list%d", tp.varCount)
+	tp.varCount++
+	tp.emitLine("%s := tclList([]string{%s})", listVar, strings.Join(items, ", "))
+	tp.emitLine("_ = %s", listVar)
 	// The list result is also the do_test body value when a `list` command
 	// closes a do_test body (e.g. `list [catch {sqlite3_blob_write ...} msg]
 	// $msg`).
-	tp.emitLine("_r = _list")
+	tp.emitLine("_r = %s", listVar)
 }
 
 // emitListStepArg handles a `[sqlite3_step $stmt]` argument to a `list`

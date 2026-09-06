@@ -1132,3 +1132,47 @@ func markTclvarBase(base string) {
 		activeTclvarBases[base] = true
 	}
 }
+
+// emitPrepareInCatch transpiles a `sqlite3_prepare[_v2] DB SQL NBYTE [TAIL]`
+// command that appears as a catch BODY (`set rc [catch {sqlite3_prepare
+// db $sql $nbytes TAIL} STMT]`). The C wrapper (test1.c test_prepare)
+// reports failure as TCL_ERROR with "(<code>) <errmsg>"; the surrounding
+// catch block maps that to rc="1" / STMT=message via _catchErr
+// (sqllimits1-6.3: "1 {(18) statement too long}").
+func (tp *transpiler) emitPrepareInCatch(args []tcl.RawWord) {
+	words := make([]string, 0, len(args))
+	for _, w := range args {
+		words = append(words, w.Text)
+	}
+	// args exclude the command name: [DB SQL NBYTE TAIL]
+	conn := "db"
+	if len(words) > 0 {
+		conn = tp.dbArgGo(words[0])
+	}
+	sqlArg := strings.Trim(words[1], `"`)
+	sqlExpr := tp.prepareSQLExpr(sqlArg, args[1].Braced)
+	name := fmt.Sprintf("catchprep%d", tp.varCount)
+	tp.varCount++
+	suffix := fmt.Sprintf("%d", tp.varCount)
+	nByteExpr := "-1"
+	if len(words) > 2 {
+		word := strings.TrimSpace(words[2])
+		if _, err := strconv.Atoi(word); err == nil {
+			nByteExpr = word
+		} else {
+			// Runtime NBYTE ($var): parse at test runtime (unique temp
+			// names so two catch-prepares in one scope don't collide).
+			v := tclVarToGo(strings.TrimPrefix(word, "$"))
+			tp.emitLine("_catchPrepN%s, _catchPrepErr%s := strconv.Atoi(%s)", suffix, suffix, v)
+			tp.emitLine("_catchPrepNV%s := -1", suffix)
+			tp.emitLine("if _catchPrepErr%s == nil { _catchPrepNV%s = _catchPrepN%s }", suffix, suffix, suffix)
+			nByteExpr = fmt.Sprintf("_catchPrepNV%s", suffix)
+		}
+	}
+	tp.emitLine("_catchPrepRc%s := tclPrepareStmt(%s, %q, %s, %s)", suffix, conn, name, sqlExpr, nByteExpr)
+	tp.emitLine("if _catchPrepRc%s != \"SQLITE_OK\" {", suffix)
+	tp.indent++
+	tp.emitLine("_catchErr = tclPrepareCatchErr(%s, _catchPrepRc%s)", conn, suffix)
+	tp.indent--
+	tp.emitLine("}")
+}

@@ -179,9 +179,9 @@ func Test_normalize(t *testing.T) {
 						tclFinalizePrepared("STMT")
 						// sqlite3_finalize $STMT
 					}
-					_list := tclList([]string{code, res})
-					_ = _list
-					_r = _list
+					_list2 := tclList([]string{code, res})
+					_ = _list2
+					_r = _list2
 				}
 			}
 }

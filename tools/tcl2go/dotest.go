@@ -844,6 +844,13 @@ func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bo
 		tp.emitSetVarResultCheck(nameExpr, expectedExpr, setVar)
 		return
 	}
+	// A body ending in `lappend VAR $X` compares VAR's final list value
+	// (sqllimits1-6.3: `set rc [catch {sqlite3_prepare ...} STMT];
+	// lappend rc $STMT` vs "1 {(18) statement too long}").
+	if lappVar, ok := bodyEndsWithLappendVar(bodyCmds); ok {
+		tp.emitSetVarResultCheck(nameExpr, expectedExpr, lappVar)
+		return
+	}
 	if !isBareGoIdent(expectedExpr) {
 		return
 	}

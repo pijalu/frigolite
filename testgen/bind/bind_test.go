@@ -212,7 +212,10 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc1 := tclPrepareStmt(db, "catchprep0", "INSERT INTO t1 VALUES($abc:123,?,:abc)", -1)
+			if _catchPrepRc1 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc1)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -222,13 +225,21 @@ func Test_bind(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 (1) near \":123\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-1.10")
+		}
 	}
 	{ // do_test "bind-1.11"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc2 := tclPrepareStmt(db, "catchprep1", "INSERT INTO t1 VALUES(@abc:xyz,?,:abc)", -1)
+			if _catchPrepRc2 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc2)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -238,6 +249,11 @@ func Test_bind(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 (1) near \":xyz\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-1.11")
+		}
 	}
 	{ // do_test "bind-1.99"
 		_r = tclFinalizeStmt(db, "VM")
@@ -470,8 +486,8 @@ func Test_bind(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	_dbeval0 := tclExecSQL(db, "PRAGMA encoding")
-	enc = _dbeval0
+	_dbeval2 := tclExecSQL(db, "PRAGMA encoding")
+	enc = _dbeval2
 	_ = enc // suppress unused warning
 	if tclBool(enc + "==\"UTF-8\" || " + enc + "==\"\"") {
 		{ // do_test "bind-6.5"
@@ -525,6 +541,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 0, "null", "", -1)
 		}
 	}
@@ -545,6 +562,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 4, "null", "", -1)
 		}
 	}
@@ -558,6 +576,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 0, "blob", "abc", -1)
 		}
 	}
@@ -565,6 +584,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 4, "blob", "abc", -1)
 		}
 	}
@@ -572,6 +592,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 0, "text", "abc", 3)
 		}
 	}
@@ -579,6 +600,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 0, "int", "5", -1)
 		}
 	}
@@ -586,6 +608,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 4, "int", "5", -1)
 		}
 	}
@@ -593,6 +616,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 0, "double", "5.0", -1)
 		}
 	}
@@ -600,6 +624,7 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclBindStmt(db, "VM", 4, "double", "6.0", -1)
 		}
 	}
@@ -621,7 +646,10 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc4 := tclPrepareStmt(db, "catchprep3", "\n      INSERT INTO t2(a) VALUES(?0)\n    ", -1)
+			if _catchPrepRc4 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc4)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -631,13 +659,21 @@ func Test_bind(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1"+" "+zError)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-9.1")
+		}
 	}
 	{ // do_test "bind-9.2"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc5 := tclPrepareStmt(db, "catchprep4", "INSERT INTO t2(a) VALUES(?" + tclExprWith("$iMaxVar+1", map[string]string{"iMaxVar": iMaxVar}) + ")", -1)
+			if _catchPrepRc5 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc5)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -647,6 +683,11 @@ func Test_bind(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1"+" "+zError)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-9.2")
+		}
 	}
 	{ // do_test "bind-9.3.1"
 		_r = tclPrepareStmt(db, "VM", "INSERT INTO t2(a,b) VALUES(?1,?" + iMaxVar + ")", -1)
@@ -662,6 +703,7 @@ func Test_bind(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_r = tclFinalizeStmt(db, "VM")
 	}
 	{ // do_test "bind-9.3.2"
@@ -675,6 +717,7 @@ func Test_bind(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_r = tclFinalizeStmt(db, "VM")
 	}
 	{ // do_test "bind-9.4"
@@ -772,6 +815,11 @@ func Test_bind(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "bind-10.8.1")
+		}
 	}
 	{ // do_test "bind-10.9"
 		_r = tclFinalizeStmt(db, "VM")
@@ -823,6 +871,7 @@ func Test_bind(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		_r = tclFinalizeStmt(db, "VM")
 	}
 	{ // do_test "bind-11.1"
@@ -868,9 +917,9 @@ func Test_bind(t *testing.T) {
 		_ = TAIL // suppress unused warning
 		_ = VM // prepared statement handle
 		_r = tclStepStmt(db, "VM")
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
-		_r = _list
+		_list5 := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
+		_ = _list5
+		_r = _list5
 	}
 	{ // do_test "bind-13.2"
 		_r = tclResetStmtCode("VM")
@@ -878,24 +927,24 @@ func Test_bind(t *testing.T) {
 		_r = tclBindStmt(db, "VM", 2, "int", "2", -1)
 		_r = tclBindStmt(db, "VM", 3, "int", "3", -1)
 		_r = tclStepStmt(db, "VM")
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
-		_r = _list
+		_list6 := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
+		_ = _list6
+		_r = _list6
 	}
 	{ // do_test "bind-13.3"
 		_r = tclResetStmtCode("VM")
 		_r = tclStepStmt(db, "VM")
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
-		_r = _list
+		_list7 := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
+		_ = _list7
+		_r = _list7
 	}
 	{ // do_test "bind-13.4"
 		_r = tclResetStmtCode("VM")
 		_r = tclClearBindingsStmt("VM")
 		_r = tclStepStmt(db, "VM")
-		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
-		_ = _list
-		_r = _list
+		_list8 := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
+		_ = _list8
+		_r = _list8
 	}
 	_r = tclFinalizeStmt(db, "VM")
 	// proc definition (not transpiled)

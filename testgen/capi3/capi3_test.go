@@ -238,6 +238,7 @@ func Test_capi3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_r = tclPrepareStmt(db, "STMT", sql, -1)
 			// prepared STMT: $sql (bind/step emulation)
 			TAIL = tclSqlTail(sql)
@@ -277,14 +278,15 @@ func Test_capi3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// set db2 [sqlite3_open ...] (skipped, DB connection)
 		}
 		vtab.TclVarSet("capi3_errno", "", "sqlite3_system_errno $db2")
 		capi3_errno = "sqlite3_system_errno $db2" // TCL namespace variable
 		_ = capi3_errno // suppress unused warning
-		_list := tclList([]string{"sqlite3_extended_errcode $db2", tclExprWith("$::capi3_errno!=0", map[string]string{"::capi3_errno": capi3_errno})})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{"sqlite3_extended_errcode $db2", tclExprWith("$::capi3_errno!=0", map[string]string{"::capi3_errno": capi3_errno})})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "capi3-3.4"
 		_r = "unable to open database file"
@@ -293,9 +295,9 @@ func Test_capi3(t *testing.T) {
 		}
 	}
 	{ // do_test "capi3-3.5"
-		_list := tclList([]string{"sqlite3_system_errno $db2", "sqlite3_close $db2"})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{"sqlite3_system_errno $db2", "sqlite3_close $db2"})
+		_ = _list1
+		_r = _list1
 	}
 	if tclBool("0" + "==0 && 0") {
 		{ // do_test "capi3-3.6.1-misuse"
@@ -464,6 +466,7 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil {
@@ -505,6 +508,7 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil {
@@ -534,6 +538,7 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil {
@@ -550,22 +555,22 @@ func Test_capi3(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	_list := tclList([]string{"SQLITE_OK", "not an error", "SQLITE_ERROR", "SQL logic error", "SQLITE_PERM", "access permission denied", "SQLITE_ABORT", "query aborted", "SQLITE_BUSY", "database is locked", "SQLITE_LOCKED", "database table is locked", "SQLITE_NOMEM", "out of memory", "SQLITE_READONLY", "attempt to write a readonly database", "SQLITE_INTERRUPT", "interrupted", "SQLITE_IOERR", "disk I/O error", "SQLITE_CORRUPT", "database disk image is malformed", "SQLITE_FULL", "database or disk is full", "SQLITE_CANTOPEN", "unable to open database file", "SQLITE_SCHEMA", "database schema has changed", "SQLITE_CONSTRAINT", "constraint failed", "SQLITE_MISMATCH", "datatype mismatch", "SQLITE_MISUSE", "bad parameter or other API misuse", "SQLITE_AUTH", "authorization denied", "SQLITE_RANGE", "column index out of range", "SQLITE_NOTADB", "file is not a database", "unknownerror", "unknown error", "\\"})
-	_ = _list
-	_r = _list
+	_list2 := tclList([]string{"SQLITE_OK", "not an error", "SQLITE_ERROR", "SQL logic error", "SQLITE_PERM", "access permission denied", "SQLITE_ABORT", "query aborted", "SQLITE_BUSY", "database is locked", "SQLITE_LOCKED", "database table is locked", "SQLITE_NOMEM", "out of memory", "SQLITE_READONLY", "attempt to write a readonly database", "SQLITE_INTERRUPT", "interrupted", "SQLITE_IOERR", "disk I/O error", "SQLITE_CORRUPT", "database disk image is malformed", "SQLITE_FULL", "database or disk is full", "SQLITE_CANTOPEN", "unable to open database file", "SQLITE_SCHEMA", "database schema has changed", "SQLITE_CONSTRAINT", "constraint failed", "SQLITE_MISMATCH", "datatype mismatch", "SQLITE_MISUSE", "bad parameter or other API misuse", "SQLITE_AUTH", "authorization denied", "SQLITE_RANGE", "column index out of range", "SQLITE_NOTADB", "file is not a database", "unknownerror", "unknown error", "\\"})
+	_ = _list2
+	_r = _list2
 	code2english = _r
 	_ = code2english // suppress unused warning
 	vtab.TclVarSet("test_number", "", "1")
 	test_number = "1"
 	_ = test_number // suppress unused warning
 	// foreach {code english} code2english
-	_items0 := tclSplitList(code2english)
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		code := _items0[_idx0+0]
+	_items3 := tclSplitList(code2english)
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		code := _items3[_idx3+0]
 		_ = code // suppress unused warning
-		english := _items0[_idx0+1]
+		english := _items3[_idx3+1]
 		_ = english // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			{ // do_test "capi3-9." + test_number
 				// sqlite3_test_errstr $code (test-harness C API, not transpiled)
 			}
@@ -854,6 +859,11 @@ func Test_capi3(t *testing.T) {
 					}
 				}
 				rc = tclListAppend(rc, msg)
+				got := tclListFlatten(rc)
+				want := tclListFlatten("1 SQLITE_MISUSE")
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi3-14.1-misuse")
+				}
 			}
 		}
 		{ // do_test "capi3-15.1"

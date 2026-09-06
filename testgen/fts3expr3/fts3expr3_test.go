@@ -193,9 +193,9 @@ func Test_fts3expr3(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list0 := tclList([]string{_rc, msg})
+				_ = _list0
+				_r = _list0
 			}
 			// incr i 1
 			{
@@ -229,9 +229,9 @@ func Test_fts3expr3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list1 := tclList([]string{_rc, msg})
+			_ = _list1
+			_r = _list1
 		}
 		{ // "4.1.2" (prepare-step internals; SQL side effects only)
 			vtab.TclVarSet("q", "", "1")
@@ -253,6 +253,7 @@ func Test_fts3expr3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				// test_fts3expr2 $q (unsupported command, not transpiled)
 			}
 		}
@@ -265,9 +266,9 @@ func Test_fts3expr3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list2 := tclList([]string{_rc, msg})
+			_ = _list2
+			_r = _list2
 		}
 		query = "random_andor_query 12"
 		_ = query // suppress unused warning

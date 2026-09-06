@@ -119,9 +119,9 @@ func Test_trans2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 400 }() {
-		_list := tclList([]string{i, tclRandomUUID(), "1000", tclRandomUUID()})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{i, tclRandomUUID(), "1000", tclRandomUUID()})
+		_ = _list0
+		_r = _list0
 		rec = _r
 		_ = rec // suppress unused warning
 		data = tclListAppend(data, rec)
@@ -142,15 +142,15 @@ func Test_trans2(t *testing.T) {
 		}
 		for _, rec := range tclSplitList(tclScramble(data)) {
 		_ = rec // suppress unused warning
-			_items0 := tclSplitList(rec)
-			if len(_items0) >= 4 {
-				id = _items0[0]
+			_items1 := tclSplitList(rec)
+			if len(_items1) >= 4 {
+				id = _items1[0]
 				_ = id // suppress unused warning
-				u1 = _items0[1]
+				u1 = _items1[1]
 				_ = u1 // suppress unused warning
-				z = _items0[2]
+				z = _items1[2]
 				_ = z // suppress unused warning
-				u2 = _items0[3]
+				u2 = _items1[3]
 				_ = u2 // suppress unused warning
 			}
 			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
@@ -186,9 +186,9 @@ func Test_trans2(t *testing.T) {
 				_ = max1 // suppress unused warning
 			}
 		}
-		_list := tclList([]string{tclHashByIndex(data, 1), tclHashByIndex(data, 3)})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{tclHashByIndex(data, 1), tclHashByIndex(data, 3)})
+		_ = _list2
+		_r = _list2
 		origres = _r
 		_ = origres // suppress unused warning
 		{ // do_test "trans2-" + i + ".1"
@@ -209,9 +209,9 @@ func Test_trans2(t *testing.T) {
 		_ = newdata // suppress unused warning
 		for _, id := range tclSplitList(todel) {
 		_ = id // suppress unused warning
-			_list := tclList([]string{id, tclRandomUUID(), "1000", tclRandomUUID()})
-			_ = _list
-			_r = _list
+			_list3 := tclList([]string{id, tclRandomUUID(), "1000", tclRandomUUID()})
+			_ = _list3
+			_r = _list3
 			rec = _r
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
@@ -224,9 +224,9 @@ func Test_trans2(t *testing.T) {
 			id = tclExprWith("$max_rowid+$j", map[string]string{"max_rowid": max_rowid, "j": j})
 			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
-			_list := tclList([]string{id, tclRandomUUID(), "1000", tclRandomUUID()})
-			_ = _list
-			_r = _list
+			_list4 := tclList([]string{id, tclRandomUUID(), "1000", tclRandomUUID()})
+			_ = _list4
+			_r = _list4
 			rec = _r
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
@@ -247,24 +247,24 @@ func Test_trans2(t *testing.T) {
 		vtab.TclVarSet("inssql", "", "")
 		inssql = ""
 		_ = inssql // suppress unused warning
-		_list := tclList([]string{tclHashByIndex(data, 1), tclHashByIndex(data, 3)})
-		_ = _list
-		_r = _list
+		_list5 := tclList([]string{tclHashByIndex(data, 1), tclHashByIndex(data, 3)})
+		_ = _list5
+		_r = _list5
 		newres = _r
 		_ = newres // suppress unused warning
 		{ // do_test "trans2-" + i + ".3"
 			_res = db.Exec("BEGIN")
 			for _, rec := range tclSplitList(tclScramble(newdata)) {
 			_ = rec // suppress unused warning
-				_items1 := tclSplitList(rec)
-				if len(_items1) >= 4 {
-					id = _items1[0]
+				_items6 := tclSplitList(rec)
+				if len(_items6) >= 4 {
+					id = _items6[0]
 					_ = id // suppress unused warning
-					u1 = _items1[1]
+					u1 = _items6[1]
 					_ = u1 // suppress unused warning
-					z = _items1[2]
+					z = _items6[2]
 					_ = z // suppress unused warning
-					u2 = _items1[3]
+					u2 = _items6[3]
 					_ = u2 // suppress unused warning
 				}
 				vtab.TclVarSet("s", "", "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');")

@@ -80,6 +80,7 @@ func Test_tableapi(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// sqlite_exec_printf $::dbx {DROP TABLE xyz} {} (unsupported command, not transpiled)
 		}
 		// sqlite3_exec_printf $::dbx {CREATE TABLE %s(a int, b text)} xyz (unsupported command, not transpiled)

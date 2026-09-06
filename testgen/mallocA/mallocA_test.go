@@ -111,6 +111,7 @@ func Test_mallocA(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		got := tclListFlatten(sqlite_open_file_count)

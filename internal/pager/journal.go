@@ -494,7 +494,13 @@ func (p *Pager) finalizeRollbackJournalLockedMulti(multiDB bool) error {
 		if h := p.journalFileOpHookFn(); h != nil {
 			h("xDelete", jpath)
 		}
-		return err
+		if err != nil && !os.IsNotExist(err) {
+			// The journal may already be gone (playback at Open, a prior
+			// commit, or a transaction that never spilled); SQLite's
+			// xDelete treats a missing file as deleted (os_unix.c).
+			return err
+		}
+		return nil
 	case "truncate":
 		// TRUNCATE: keep the file open across COMMITs (the next
 		// transaction reuses the open FD; pager.c sqlite3PagerClose

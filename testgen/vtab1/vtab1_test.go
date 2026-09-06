@@ -850,9 +850,9 @@ func Test_vtab1(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "vtab1.10-3"
 		vtab.TclVarSet("echo_module_begin_fail", "", "r")
@@ -865,6 +865,7 @@ func Test_vtab1(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("\n    EXPLAIN SELECT * FROM e WHERE rowid = 2;\n    EXPLAIN QUERY PLAN SELECT * FROM e WHERE rowid = 2 ORDER BY rowid;\n  ")
 			if r.Error != nil { _catchErr = r.Error }
 		}
@@ -893,6 +894,7 @@ func Test_vtab1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	{ // do_test "vtab1.11-1"
 		r = db.Query("\n    INSERT INTO r(a,b,c) VALUES(1,'?',99);\n    INSERT INTO r(a,b,c) VALUES(2,3,99);\n    SELECT a GLOB b FROM e\n  ")
@@ -1195,17 +1197,17 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res filter} "1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}"
-	_items0 := tclSplitList("1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("1.1 \"SELECT a FROM e6 WHERE b>'8James'\" {4 2 6 1 5}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b > ?} 8James}\n  \n    1.2 \"SELECT a FROM e6 WHERE b>='8' AND b<'9'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ?} 8 9}\n  \n    1.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8J%}\n  \n    1.4 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8k 8j%}\n  \n    1.5 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n      {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}")
+	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		filter := _items0[_idx0+3]
+		filter := _items1[_idx1+3]
 		_ = filter // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			vtab.TclVarSet("echo_module", "", "")
 			echo_module = ""
 			_ = echo_module // suppress unused warning
@@ -1226,17 +1228,17 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 		// foreach {tn sql res filter} "2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}"
-		_items1 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
-		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
+		for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			sql := _items1[_idx1+1]
+			sql := _items2[_idx2+1]
 			_ = sql // suppress unused warning
-			res := _items1[_idx1+2]
+			res := _items2[_idx2+2]
 			_ = res // suppress unused warning
-			filter := _items1[_idx1+3]
+			filter := _items2[_idx2+3]
 			_ = filter // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				vtab.TclVarSet("echo_module", "", "")
 				echo_module = ""
 				_ = echo_module // suppress unused warning
@@ -1379,28 +1381,28 @@ func Test_vtab1(t *testing.T) {
 				vtab.TclVarSet("res", "", "")
 				res = ""
 				_ = res // suppress unused warning
-				_dbevalRows2 := db.Query(" SELECT value FROM t1 WHERE value<10 ")
-				var _dbevalRb3 bool
-				var _dbevalErr4 error
-				var _dbevalInt5 bool
+				_dbevalRows3 := db.Query(" SELECT value FROM t1 WHERE value<10 ")
+				var _dbevalRb4 bool
+				var _dbevalErr5 error
+				var _dbevalInt6 bool
 				db.BeginActiveStatement()
-				for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
-					for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
-						switch _dbevalRows2.Columns[_ci] {
+				for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+						switch _dbevalRows3.Columns[_ci] {
 							case "value":
-								value = tclStr(_dbevalRows2.Rows[_ri][_ci])
+								value = tclStr(_dbevalRows3.Rows[_ri][_ci])
 						}
 					}
 					if func() bool { value_n, _value_e := strconv.Atoi(value); if _value_e != nil { return false }; return value_n == 5 }() {
 						_res = db.Exec(" DROP TABLE t1 ")
 						res = tclCatchsqlString(_res)
 					}
-					if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
-					if _dbevalInt5 { _dbevalErr4 = errors.New("interrupted"); db.ClearInterrupt() }
+					if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+					if _dbevalInt6 { _dbevalErr5 = errors.New("interrupted"); db.ClearInterrupt() }
 				}
 				db.EndActiveStatement()
-				if _dbevalErr4 != nil {
-					t.Errorf("db eval callback error: %v", _dbevalErr4)
+				if _dbevalErr5 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr5)
 				}
 				got := tclListFlatten(res)
 				want := tclListFlatten("1 database table is locked")
@@ -1416,40 +1418,40 @@ func Test_vtab1(t *testing.T) {
 				_rc := "0"
 				{
 					var _catchErr error
-					_dbevalRows6 := db.Query("\n      SELECT value FROM t2 UNION ALL \n      SELECT value FROM t1 WHERE value<10\n    ")
-					var _dbevalRb7 bool
-					var _dbevalErr8 error
-					var _dbevalInt9 bool
+					_dbevalRows7 := db.Query("\n      SELECT value FROM t2 UNION ALL \n      SELECT value FROM t1 WHERE value<10\n    ")
+					var _dbevalRb8 bool
+					var _dbevalErr9 error
+					var _dbevalInt10 bool
 					db.BeginActiveStatement()
-					for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
-						for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
-							switch _dbevalRows6.Columns[_ci] {
+					for _ri := 0; _ri < len(_dbevalRows7.Rows) && _dbevalErr9 == nil; _ri++ {
+						for _ci := 0; _ci < len(_dbevalRows7.Columns); _ci++ {
+							switch _dbevalRows7.Columns[_ci] {
 								case "value":
-									value = tclStr(_dbevalRows6.Rows[_ri][_ci])
+									value = tclStr(_dbevalRows7.Rows[_ri][_ci])
 							}
 						}
 						if func() bool { value_n, _value_e := strconv.Atoi(value); if _value_e != nil { return false }; return value_n == 2 }() {
 							_res = db.Exec(" DROP TABLE t1 ")
 							res1 = tclCatchsqlString(_res)
 						}
-						if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
-						if _dbevalInt9 { _dbevalErr8 = errors.New("interrupted"); db.ClearInterrupt() }
+						if _dbevalRb8 { _dbevalErr9 = errors.New("abort due to ROLLBACK") }
+						if _dbevalInt10 { _dbevalErr9 = errors.New("interrupted"); db.ClearInterrupt() }
 					}
 					db.EndActiveStatement()
-					if _dbevalErr8 != nil {
-						_catchErr = _dbevalErr8
+					if _dbevalErr9 != nil {
+						_catchErr = _dbevalErr9
 					}
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list7 := tclList([]string{_rc, msg})
+				_ = _list7
+				_r = _list7
 				res2 = _r
 				_ = res2 // suppress unused warning
-				_list := tclList([]string{res1, res2})
-				_ = _list
-				_r = _list
+				_list8 := tclList([]string{res1, res2})
+				_ = _list8
+				_r = _list8
 			}
 			{ // "vtab1-23.3.1" — skipped: eval() SQL function executing DROP inside an INSERT subquery (test-harness eval fn)
 			}

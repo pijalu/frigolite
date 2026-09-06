@@ -197,9 +197,9 @@ func Test_without_rowid7(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "3.4.2"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)
@@ -213,9 +213,9 @@ func Test_without_rowid7(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "3.5.2"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)

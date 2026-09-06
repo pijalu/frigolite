@@ -223,9 +223,9 @@ func Test_rtree2(t *testing.T) {
 				}
 			}
 			// do_rtree_integrity_test rtree2-$module.$nDim.3 t1 (unsupported command, not transpiled)
-			_list := tclList([]string{"<", ">", "<=", ">=", "="})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{"<", ">", "<=", ">=", "="})
+			_ = _list0
+			_r = _list0
 			OPS = _r
 			_ = OPS // suppress unused warning
 			vtab.TclVarSet("ii", "", "0")

@@ -356,6 +356,23 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 		if strings.EqualFold(f.Name, "EVAL") {
 			return ev.evalSQLFunc(args)
 		}
+		// strftime builds its output in a StrAccum whose max is
+		// db->aLimit[SQLITE_LIMIT_LENGTH] (date.c strftimeFunc,
+		// sqlite3StrAccumInit); util.c StrAccumAppend rejects an append
+		// when nChar+N+1 would exceed nMax (the NUL terminator is
+		// reserved), so an output of exactly LIMIT bytes fails too
+		// (sqllimits1-5.20 succeeds at LIMIT-11 output, 5.21 fails at
+		// exactly LIMIT) — "string or blob too big".
+		if strings.EqualFold(f.Name, "STRFTIME") {
+			out, err := fn.ScalarFn(args)
+			if err != nil {
+				return nil, err
+			}
+			if s, ok := out.(string); ok && int64(len(s))+1 > int64(ev.ctx.LengthLimit()) {
+				return nil, fmt.Errorf("string or blob too big")
+			}
+			return out, nil
+		}
 		return fn.ScalarFn(args)
 	}
 	// Scalar min/max: with two or more arguments, MIN()/MAX() are scalar

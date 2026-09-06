@@ -97,12 +97,13 @@ func Test_analyzer1(t *testing.T) {
 			_ = MSG // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			// eval $line (dynamic, not transpiled)
 			if _catchErr != nil {
-				MSG = "1"
+				MSG = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				MSG = "0"
+				MSG = tclCatchStmtResult(_r)
 				_catchErrMsg = ""
 			}
 		}

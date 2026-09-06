@@ -148,12 +148,13 @@ func Test_colmeta(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
+				_r = ""
 				// sqlite3_table_column_metadata $::DB main xyzzy (unsupported command, not transpiled)
 				if _catchErr != nil {
-					res = "1"
+					res = _catchErr.Error()
 					_catchErrMsg = _catchErr.Error()
 				} else {
-					res = "0"
+					res = tclCatchStmtResult(_r)
 					_catchErrMsg = ""
 				}
 			}
@@ -164,12 +165,13 @@ func Test_colmeta(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
+				_r = ""
 				// sqlite3_table_column_metadata $::DB main abc (unsupported command, not transpiled)
 				if _catchErr != nil {
-					res = "1"
+					res = _catchErr.Error()
 					_catchErrMsg = _catchErr.Error()
 				} else {
-					res = "0"
+					res = tclCatchStmtResult(_r)
 					_catchErrMsg = ""
 				}
 			}

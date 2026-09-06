@@ -169,6 +169,11 @@ func Test_func(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 wrong number of arguments to function length()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "func-1.1")
+		}
 	}
 	{ // do_test "func-1.2"
 	_ = _r // suppress unused warning
@@ -186,6 +191,11 @@ func Test_func(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 wrong number of arguments to function length()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "func-1.2")
+		}
 	}
 	{ // do_test "func-1.3"
 		r = db.Query("SELECT length(t1), count(*) FROM tbl1 GROUP BY length(t1)\n           ORDER BY length(t1)")
@@ -1034,6 +1044,7 @@ func Test_func(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.RegisterFunction("[string repeat X 254]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}
@@ -1041,6 +1052,7 @@ func Test_func(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.RegisterFunction("[string repeat X 256]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}

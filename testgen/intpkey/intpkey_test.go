@@ -114,6 +114,11 @@ func Test_intpkey(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 UNIQUE constraint failed: t1.a")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.6")
+		}
 	}
 	{ // do_test "intpkey-1.7"
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
@@ -137,6 +142,11 @@ func Test_intpkey(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.8")
+		}
 	}
 	{ // do_test "intpkey-1.8.1"
 	}
@@ -186,6 +196,11 @@ func Test_intpkey(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 datatype mismatch")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.13.1")
+		}
 	}
 	{ // do_test "intpkey-1.13.2"
 	_ = _r // suppress unused warning
@@ -203,6 +218,11 @@ func Test_intpkey(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 datatype mismatch")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.13.2")
+		}
 	}
 	{ // do_test "intpkey-1.14"
 	_ = _r // suppress unused warning
@@ -220,6 +240,11 @@ func Test_intpkey(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 datatype mismatch")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.14")
+		}
 	}
 	{ // do_test "intpkey-1.15"
 	_ = _r // suppress unused warning
@@ -237,6 +262,11 @@ func Test_intpkey(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.15")
+		}
 	}
 	{ // do_test "intpkey-1.16"
 		r = db.Query("SELECT * FROM t1")

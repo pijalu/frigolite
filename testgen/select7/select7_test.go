@@ -168,6 +168,7 @@ func Test_select7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")
 		}
 	}
+	db.SetLimit("SQLITE_LIMIT_COMPOUND_SELECT", toInt(10))
 	db.SetDQS(true, false)
 	{ // "select7-6.6"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")

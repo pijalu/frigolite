@@ -107,9 +107,9 @@ func Test_tkt1644(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE temp_t1;\n    ")
 		}
-		_list := tclList([]string{tclStepPreparedCode(db, "STMT", "SELECT * FROM temp_t1"), tclFinalizePreparedCode(db, "STMT")})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{tclStepPreparedCode(db, "STMT", "SELECT * FROM temp_t1"), tclFinalizePreparedCode(db, "STMT")})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "tkt1644-2.2"
 		_res = db.Exec("\n      CREATE TABLE real_t1(a, b);\n      CREATE TEMP VIEW temp_v1 AS SELECT * FROM real_t1;\n    ")
@@ -128,9 +128,9 @@ func Test_tkt1644(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW temp_v1;\n    ")
 		}
-		_list := tclList([]string{tclStepPreparedCode(db, "STMT", "SELECT * FROM temp_v1"), tclFinalizePreparedCode(db, "STMT")})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{tclStepPreparedCode(db, "STMT", "SELECT * FROM temp_v1"), tclFinalizePreparedCode(db, "STMT")})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "tkt1644-2.3"
 		_res = db.Exec("\n      CREATE TEMP VIEW temp_v1 AS SELECT * FROM real_t1 LIMIT 10 OFFSET 10;\n    ")
@@ -149,8 +149,8 @@ func Test_tkt1644(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW temp_v1;\n    ")
 		}
-		_list := tclList([]string{tclStepPreparedCode(db, "STMT", "SELECT * FROM temp_v1"), tclFinalizePreparedCode(db, "STMT")})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{tclStepPreparedCode(db, "STMT", "SELECT * FROM temp_v1"), tclFinalizePreparedCode(db, "STMT")})
+		_ = _list2
+		_r = _list2
 	}
 }

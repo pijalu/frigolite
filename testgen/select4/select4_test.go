@@ -176,6 +176,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ORDER BY clause should come after UNION ALL not before")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-1.3")
+		}
 	}
 	{ // "select4-1.4"
 		_res = db.Exec("\n  SELECT (VALUES(0) INTERSECT SELECT(0) UNION SELECT(0) ORDER BY 1 UNION\n          SELECT 0 UNION SELECT 0 ORDER BY 1);\n")
@@ -211,6 +216,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ORDER BY clause should come after UNION not before")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-2.3")
+		}
 	}
 	{ // do_test "select4-2.4"
 	_ = v // suppress unused warning
@@ -228,6 +238,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ORDER BY clause should come after UNION not before")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-2.4")
+		}
 	}
 	{ // "select4-2.5"
 		r = db.Query("\n  SELECT 123 AS x ORDER BY (SELECT x ORDER BY 1);\n")
@@ -289,6 +304,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ORDER BY clause should come after EXCEPT not before")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-3.3")
+		}
 	}
 	{ // do_test "select4-4.1.1"
 		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
@@ -344,6 +364,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ORDER BY clause should come after INTERSECT not before")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-4.3")
+		}
 	}
 	{ // "select4-4.4"
 		_res = db.Exec("\n  SELECT 3 IN (\n    SELECT 0 ORDER BY 1\n    INTERSECT\n    SELECT 1\n    INTERSECT \n    SELECT 2\n    ORDER BY 1\n  );\n")
@@ -367,6 +392,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: t2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.1")
+		}
 	}
 	{ // do_test "select4-5.2"
 	_ = v // suppress unused warning
@@ -384,6 +414,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 0 1 2 3 4 5 5 6 7 8")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.2")
+		}
 	}
 	{ // do_test "select4-5.2b"
 	_ = v // suppress unused warning
@@ -401,6 +436,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 0 1 2 3 4 5 5 6 7 8")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.2b")
+		}
 	}
 	{ // do_test "select4-5.2c"
 	_ = v // suppress unused warning
@@ -418,6 +458,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 1st ORDER BY term does not match any column in the result set")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.2c")
+		}
 	}
 	{ // do_test "select4-5.2d"
 	_ = v // suppress unused warning
@@ -435,6 +480,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 1st ORDER BY term does not match any column in the result set")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.2d")
+		}
 	}
 	{ // do_test "select4-5.2e"
 	_ = v // suppress unused warning
@@ -452,6 +502,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 0 1 2 3 4 5 5 6 7 8")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.2e")
+		}
 	}
 	{ // do_test "select4-5.2f"
 		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
@@ -505,6 +560,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 SELECTs to the left and right of UNION ALL do not have the same number of result columns")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.3")
+		}
 	}
 	{ // do_test "select4-5.3-3807-1"
 		_res = db.Exec("\n    SELECT 1 UNION SELECT 2, 3 UNION SELECT 4, 5 ORDER BY 1;\n  ")
@@ -528,6 +588,11 @@ func Test_select4(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 2 2 3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select4-5.4")
+		}
 	}
 	{ // do_test "select4-6.1"
 		r = db.Query("\n    SELECT log, count(*) as cnt FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY cnt, log;\n  ")

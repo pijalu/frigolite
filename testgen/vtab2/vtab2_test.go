@@ -95,6 +95,7 @@ func Test_vtab2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			result = tclListAppend(result, _var, _var)
 		}
 	}

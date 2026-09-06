@@ -152,6 +152,11 @@ func Test_select5(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such function: z")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select5-2.2")
+		}
 	}
 	{ // do_test "select5-2.3"
 	_ = v // suppress unused warning
@@ -169,6 +174,11 @@ func Test_select5(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 8 2 9 1 10 1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select5-2.3")
+		}
 	}
 	{ // do_test "select5-2.4"
 	_ = v // suppress unused warning
@@ -186,6 +196,11 @@ func Test_select5(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such function: z")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select5-2.4")
+		}
 	}
 	{ // do_test "select5-2.5"
 	_ = v // suppress unused warning
@@ -203,6 +218,11 @@ func Test_select5(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: z")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select5-2.5")
+		}
 	}
 	{ // do_test "select5-3.1"
 		r = db.Query("\n    SELECT x, count(*), avg(y) FROM t1 GROUP BY x HAVING x<4 ORDER BY x\n  ")

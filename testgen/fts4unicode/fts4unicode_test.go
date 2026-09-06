@@ -153,63 +153,63 @@ func Test_fts4unicode(t *testing.T) {
 	// do_unicode_token_test2 1.9 x\uC4x x\uD6x x\uDCx 0 xax x\uC4x 1 xox x\uD6x 2 xux x\uDCx (unsupported command, not transpiled)
 	// do_unicode_token_test2 1.10 xx\u0301xx 0 xxxx xx\u301xx (unsupported command, not transpiled)
 	// do_unicode_token_test 1.11 \u01c5 0 \u01c6 \u01c5 (unsupported command, not transpiled)
-	_list := tclList([]string{"\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n", "\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n", "\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n", "\n  Added the sqlite3_db_readonly() interface.\n", "\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n", "\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n", "\n  Added support for the FTS4 languageid option.\n", "\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n", "\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n", "\n  Improvements to the handling of CSV inputs in the command-line shell\n", "\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n", "\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n", "\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n", "\n  Added the sqlite3_db_readonly() interface.\n", "\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n", "\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n", "\n  Added support for the FTS4 languageid option.\n", "\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n", "\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n", "\n  Improvements to the handling of CSV inputs in the command-line shell\n", "\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n"})
+	_ = _list0
+	_r = _list0
 	docs = _r
 	_ = docs // suppress unused warning
 	vtab.TclVarSet("map", "a", "Ä"+" "+"ä")
-	_list := tclList([]string{"Ä", "ä"})
-	_ = _list
-	_r = _list
+	_list1 := tclList([]string{"Ä", "ä"})
+	_ = _list1
+	_r = _list1
 	map_a = _r
 	_ = map_a // suppress unused warning
 	vtab.TclVarSet("map", "e", "Ë"+" "+"ë")
-	_list := tclList([]string{"Ë", "ë"})
-	_ = _list
-	_r = _list
+	_list2 := tclList([]string{"Ë", "ë"})
+	_ = _list2
+	_r = _list2
 	map_e = _r
 	_ = map_e // suppress unused warning
 	vtab.TclVarSet("map", "i", "Ï"+" "+"ï")
-	_list := tclList([]string{"Ï", "ï"})
-	_ = _list
-	_r = _list
+	_list3 := tclList([]string{"Ï", "ï"})
+	_ = _list3
+	_r = _list3
 	map_i = _r
 	_ = map_i // suppress unused warning
 	vtab.TclVarSet("map", "o", "Ö"+" "+"ö")
-	_list := tclList([]string{"Ö", "ö"})
-	_ = _list
-	_r = _list
+	_list4 := tclList([]string{"Ö", "ö"})
+	_ = _list4
+	_r = _list4
 	map_o = _r
 	_ = map_o // suppress unused warning
 	vtab.TclVarSet("map", "u", "Ü"+" "+"ü")
-	_list := tclList([]string{"Ü", "ü"})
-	_ = _list
-	_r = _list
+	_list5 := tclList([]string{"Ü", "ü"})
+	_ = _list5
+	_r = _list5
 	map_u = _r
 	_ = map_u // suppress unused warning
 	vtab.TclVarSet("map", "y", "Ÿ"+" "+"ÿ")
-	_list := tclList([]string{"Ÿ", "ÿ"})
-	_ = _list
-	_r = _list
+	_list6 := tclList([]string{"Ÿ", "ÿ"})
+	_ = _list6
+	_r = _list6
 	map_y = _r
 	_ = map_y // suppress unused warning
 	vtab.TclVarSet("map", "h", "Ḧ"+" "+"ḧ")
-	_list := tclList([]string{"Ḧ", "ḧ"})
-	_ = _list
-	_r = _list
+	_list7 := tclList([]string{"Ḧ", "ḧ"})
+	_ = _list7
+	_r = _list7
 	map_h = _r
 	_ = map_h // suppress unused warning
 	vtab.TclVarSet("map", "w", "Ẅ"+" "+"ẅ")
-	_list := tclList([]string{"Ẅ", "ẅ"})
-	_ = _list
-	_r = _list
+	_list8 := tclList([]string{"Ẅ", "ẅ"})
+	_ = _list8
+	_r = _list8
 	map_w = _r
 	_ = map_w // suppress unused warning
 	vtab.TclVarSet("map", "x", "Ẍ"+" "+"ẍ")
-	_list := tclList([]string{"Ẍ", "ẍ"})
-	_ = _list
-	_r = _list
+	_list9 := tclList([]string{"Ẍ", "ẍ"})
+	_ = _list9
+	_r = _list9
 	map_x = _r
 	_ = map_x // suppress unused warning
 	for _, k := range tclSplitList("array names map") {
@@ -242,15 +242,15 @@ func Test_fts4unicode(t *testing.T) {
 		}
 	}
 	// foreach {tn query snippet} "2 \"row\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  3 \"ROW\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  4 \"rollback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  5 \"rOllback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  6 \"lang*\" {\n     Added support for the FTS4 [languageid] option.\n  }"
-	_items0 := tclSplitList("2 \"row\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  3 \"ROW\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  4 \"rollback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  5 \"rOllback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  6 \"lang*\" {\n     Added support for the FTS4 [languageid] option.\n  }")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items10 := tclSplitList("2 \"row\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  3 \"ROW\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  4 \"rollback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  5 \"rOllback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  6 \"lang*\" {\n     Added support for the FTS4 [languageid] option.\n  }")
+	for _idx10 := 0; _idx10+3 <= len(_items10); _idx10 += 3 {
+		tn := _items10[_idx10+0]
 		_ = tn // suppress unused warning
-		query := _items0[_idx0+1]
+		query := _items10[_idx10+1]
 		_ = query // suppress unused warning
-		snippet := _items0[_idx0+2]
+		snippet := _items10[_idx10+2]
 		_ = snippet // suppress unused warning
-		_ = _idx0
+		_ = _idx10
 			{ // do_test "2." + tn
 				q = "mapdoc $query"
 				_ = q // suppress unused warning
@@ -369,9 +369,9 @@ func Test_fts4unicode(t *testing.T) {
 		// do_unicode_token_test3 5.11 tokenchars=\u0301 remove_diacritics=0 hello\u0301world \u0301helloworld 0 h... (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
-		_list := tclList([]string{"unicode61"})
-		_ = _list
-		_r = _list
+		_list11 := tclList([]string{"unicode61"})
+		_ = _list11
+		_r = _list11
 		tokenizers = _r
 		_ = tokenizers // suppress unused warning
 		for _, T := range tclSplitList(tokenizers) {
@@ -409,23 +409,23 @@ func Test_fts4unicode(t *testing.T) {
 			// do_isspace_test 6.$T.23 $T {8287 12288} (unsupported command, not transpiled)
 		}
 		// foreach {tn1 c} "1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff"
-		_items1 := tclSplitList("1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn1 := _items1[_idx1+0]
+		_items12 := tclSplitList("1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff")
+		for _idx12 := 0; _idx12+2 <= len(_items12); _idx12 += 2 {
+			tn1 := _items12[_idx12+0]
 			_ = tn1 // suppress unused warning
-			c := _items1[_idx1+1]
+			c := _items12[_idx12+1]
 			_ = c // suppress unused warning
-			_ = _idx1
+			_ = _idx12
 				// foreach {tn2 config res} "1 \"\"             \"0 hello*world hello*world\"\n    2 \"separators=*\" \"0 hello hello 1 world world\""
-				_items2 := tclSplitList("1 \"\"             \"0 hello*world hello*world\"\n    2 \"separators=*\" \"0 hello hello 1 world world\"")
-				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-					tn2 := _items2[_idx2+0]
+				_items13 := tclSplitList("1 \"\"             \"0 hello*world hello*world\"\n    2 \"separators=*\" \"0 hello hello 1 world world\"")
+				for _idx13 := 0; _idx13+3 <= len(_items13); _idx13 += 3 {
+					tn2 := _items13[_idx13+0]
 					_ = tn2 // suppress unused warning
-					config := _items2[_idx2+1]
+					config := _items13[_idx13+1]
 					_ = config // suppress unused warning
-					res := _items2[_idx2+2]
+					res := _items13[_idx13+2]
 					_ = res // suppress unused warning
-					_ = _idx2
+					_ = _idx13
 						config = strings.ReplaceAll(config, "*", c)
 						_ = config // suppress unused warning
 						input = strings.ReplaceAll("\"hello*world\"", "*", c)
@@ -496,13 +496,13 @@ func Test_fts4unicode(t *testing.T) {
 					}
 				}
 				// foreach {tn sql} "1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 [tokenchars= .]);\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 [tokenchars==\"] \"tokenchars=[]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 [separators=x\\xC4]);\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=[=\"\"]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\\xC4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"[]');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\\xC4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=[=\"]`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\\xC4`);\n  }"
-				_items3 := tclSplitList("1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 [tokenchars= .]);\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 [tokenchars==\"] \"tokenchars=[]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 [separators=x\\xC4]);\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=[=\"\"]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\\xC4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"[]');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\\xC4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=[=\"]`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\\xC4`);\n  }")
-				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-					tn := _items3[_idx3+0]
+				_items14 := tclSplitList("1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 [tokenchars= .]);\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 [tokenchars==\"] \"tokenchars=[]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 [separators=x\\xC4]);\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=[=\"\"]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\\xC4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"[]');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\\xC4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=[=\"]`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\\xC4`);\n  }")
+				for _idx14 := 0; _idx14+2 <= len(_items14); _idx14 += 2 {
+					tn := _items14[_idx14+0]
 					_ = tn // suppress unused warning
-					sql := _items3[_idx3+1]
+					sql := _items14[_idx14+1]
 					_ = sql // suppress unused warning
-					_ = _idx3
+					_ = _idx14
 						{ // "9." + tn + ".0"
 							_res = db.Exec(" \n    DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;\n  ")
 							if _res.Error != nil {

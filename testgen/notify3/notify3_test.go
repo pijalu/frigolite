@@ -128,9 +128,9 @@ func Test_notify3(t *testing.T) {
 		}
 	}
 	{ // do_test "notify3-1.6"
-		_list := tclList([]string{db.LastErrCode(), "sqlite3_extended_errcode db"})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{db.LastErrCode(), "sqlite3_extended_errcode db"})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "notify3-1.7"
 		// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
@@ -139,6 +139,7 @@ func Test_notify3(t *testing.T) {
 			_ = msg // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
+			_r = ""
 			// prepared stmt: SELECT * FROM t2 (bind/step emulation)
 			tclPrepareStep(db, "SELECT * FROM t2", "stmt")
 			var tail string
@@ -211,11 +212,13 @@ func Test_notify3(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						if db1 != nil { db1.Close() }
 					}
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						if db2 != nil { db2.Close() }
 					}
 					db1, err = frigolite.Open("test.db")
@@ -243,9 +246,9 @@ func Test_notify3(t *testing.T) {
 					}
 				}
 				{ // do_test "notify3-2." + tn + ".2"
-					_list := tclList([]string{db1.LastErrCode(), "sqlite3_extended_errcode db1"})
-					_ = _list
-					_r = _list
+					_list1 := tclList([]string{db1.LastErrCode(), "sqlite3_extended_errcode db1"})
+					_ = _list1
+					_r = _list1
 				}
 				{ // do_test "notify3-2." + tn + ".3"
 					// db1.unlock_notify (db command)
@@ -265,11 +268,13 @@ func Test_notify3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db1 != nil { db1.Close() }
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		// sqlite3_enable_shared_cache $esc (unsupported command, not transpiled)

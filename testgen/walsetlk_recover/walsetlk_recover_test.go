@@ -121,6 +121,7 @@ func Test_walsetlk_recover(t *testing.T) {
 		_ = msg // suppress unused warning
 		_ = _catchErrMsg // suppress unused warning
 		var _catchErr error
+		_r = ""
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil { _catchErr = _res.Error }
 		if _catchErr != nil {

@@ -82,11 +82,21 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: test1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-1.1")
+		}
 	}
 	{ // do_test "update-2.1"
 		v = "0"
 		_ = v // suppress unused warning
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table sqlite_master may not be modified")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-2.1")
+		}
 	}
 	{ // do_test "update-3.1"
 		_res = db.Exec("CREATE TABLE test1(f1 int,f2 int)")
@@ -133,6 +143,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: f3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-3.2")
+		}
 	}
 	{ // do_test "update-3.3"
 	_ = v // suppress unused warning
@@ -150,6 +165,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: test2.f1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-3.3")
+		}
 	}
 	{ // do_test "update-3.4"
 	_ = v // suppress unused warning
@@ -167,6 +187,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: f3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-3.4")
+		}
 	}
 	{ // do_test "update-3.5"
 		_res = db.Exec("UPDATE test1 SET f2=f2*3")
@@ -838,6 +863,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: x")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-9.1")
+		}
 	}
 	{ // do_test "update-9.2"
 	_ = v // suppress unused warning
@@ -855,6 +885,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such function: x")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-9.2")
+		}
 	}
 	{ // do_test "update-9.3"
 	_ = v // suppress unused warning
@@ -872,6 +907,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such column: x")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-9.3")
+		}
 	}
 	{ // do_test "update-9.4"
 	_ = v // suppress unused warning
@@ -889,6 +929,11 @@ func Test_update(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such function: x")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "update-9.4")
+		}
 	}
 	{ // do_test "update-10.1"
 		r = db.Query("\n    DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1\n  ")

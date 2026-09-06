@@ -181,7 +181,10 @@ func Test_attach2(t *testing.T) {
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc1 := tclPrepareStmt(db, "catchprep0", "ATTACH 'test2.db' AS t2", -1)
+			if _catchPrepRc1 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc1)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -202,7 +205,10 @@ func Test_attach2(t *testing.T) {
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc2 := tclPrepareStmt(db, "catchprep1", "DETACH t2", -1)
+			if _catchPrepRc2 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc2)
+			}
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -226,6 +232,7 @@ func Test_attach2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// db$i close (unsupported command, not transpiled)
 		}
 		// incr i 1

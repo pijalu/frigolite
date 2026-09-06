@@ -119,6 +119,7 @@ func Test_lock2(t *testing.T) {
 				_ = msg // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
+				_r = ""
 				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
 				if _res.Error != nil { _catchErr = _res.Error }
 				if _catchErr != nil {
@@ -161,6 +162,7 @@ func Test_lock2(t *testing.T) {
 				_ = msg // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
+				_r = ""
 				_res = db.Exec("\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
 				if _res.Error != nil { _catchErr = _res.Error }
 				if _catchErr != nil {
@@ -200,6 +202,7 @@ func Test_lock2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		{ // testfixture tf1
 			if tclFixtureDBs["tf1"] == nil {
 				_fxdb, _fxerr := frigolite.Open("test.db")
@@ -215,6 +218,7 @@ func Test_lock2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// close $::tf1
 	}
 	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)

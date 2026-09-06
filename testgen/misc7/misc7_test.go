@@ -140,9 +140,9 @@ func Test_misc7(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		{ // do_test "misc7-5"
@@ -190,6 +190,11 @@ func Test_misc7(t *testing.T) {
 		delay = tclLIndex(tm, "0")
 		_ = delay // suppress unused warning
 		result = tclListAppend(result, tclExprWith("$delay>1500000 && $delay<4000000", map[string]string{"delay": delay}))
+		got := tclListFlatten(result)
+		want := tclListFlatten("1 database is locked 1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc7-7.0")
+		}
 	}
 	if db2 != nil { db2.Close() }
 	{ // do_test "misc7-7.1"
@@ -255,8 +260,8 @@ func Test_misc7(t *testing.T) {
 	}
 	// do_ioerr_test misc7-12 -tclprep {\n    sqlite3 db2 test.db\n    register_echo_modul...} -tclbo... (unsupported command, not transpiled)
 	{ // do_test "misc7-13"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 		_ = err
 		db.ResetChangesCounters()
@@ -382,6 +387,7 @@ func Test_misc7(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove("test.db")

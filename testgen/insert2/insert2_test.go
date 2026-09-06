@@ -135,6 +135,7 @@ func Test_insert2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("DROP TABLE t1")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -153,6 +154,7 @@ func Test_insert2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("DROP TABLE t1")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -175,6 +177,7 @@ func Test_insert2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("DROP TABLE t1")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -182,6 +185,11 @@ func Test_insert2(t *testing.T) {
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, tclExecSQL(db, "SELECT cnt FROM t1 WHERE log=3"))
 		_r = tclListAppend(_r, tclExecSQL(db, "SELECT log FROM t1 WHERE cnt=4 ORDER BY log"))
+		got := tclListFlatten(_r)
+		want := tclListFlatten("0 1 1 1 2 2 3 4 4 8 5 4 4 3 5")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert2-1.4")
+		}
 	}
 	{ // do_test "insert2-2.0"
 		r = db.Query("\n    CREATE TABLE t3(a,b,c);\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,2);\n    SELECT * FROM t4;\n  ")

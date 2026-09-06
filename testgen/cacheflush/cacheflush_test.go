@@ -161,9 +161,9 @@ func Test_cacheflush(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{_rc, msg})
+		_ = _list4
+		_r = _list4
 	}
 	{ // do_test "1.4.3"
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
@@ -233,9 +233,9 @@ func Test_cacheflush(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list5 := tclList([]string{_rc, msg})
+		_ = _list5
+		_r = _list5
 	}
 	{ // do_test "2.2.4"
 		// diskquery test.db { SELECT * FROM t1; } (unsupported command, not transpiled)

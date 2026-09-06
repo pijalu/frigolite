@@ -161,6 +161,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-2.1")
+		}
 	}
 	{ // do_test "trans-2.1b"
 		// sqlite3_txn_state db (unsupported command, not transpiled)
@@ -181,6 +186,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-2.2")
+		}
 	}
 	{ // do_test "trans-2.3"
 	_ = v // suppress unused warning
@@ -198,6 +208,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-2.3")
+		}
 	}
 	{ // do_test "trans-2.4"
 	_ = v // suppress unused warning
@@ -215,6 +230,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-2.4")
+		}
 	}
 	{ // do_test "trans-2.5"
 	_ = v // suppress unused warning
@@ -232,6 +252,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-2.5")
+		}
 	}
 	{ // do_test "trans-2.6"
 	_ = v // suppress unused warning
@@ -249,6 +274,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-2.6")
+		}
 	}
 	{ // do_test "trans-2.10"
 		r = db.Query("\n    BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;\n  ")
@@ -347,6 +377,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 4 5 10")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-3.11")
+		}
 	}
 	{ // do_test "trans-3.12"
 	_ = v // suppress unused warning
@@ -364,6 +399,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 2 3 4")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-3.12")
+		}
 	}
 	{ // do_test "trans-3.13"
 	_ = v // suppress unused warning
@@ -381,6 +421,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 4 5 10")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-3.13")
+		}
 	}
 	{ // do_test "trans-3.14"
 	_ = v // suppress unused warning
@@ -398,6 +443,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 2 3 4")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-3.14")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -418,6 +468,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 cannot commit - no transaction is active")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-4.1")
+		}
 	}
 	{ // do_test "trans-4.2"
 	_ = v // suppress unused warning
@@ -435,6 +490,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 cannot rollback - no transaction is active")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-4.2")
+		}
 	}
 	{ // do_test "trans-4.3"
 		_res = db.Exec("\n    BEGIN TRANSACTION;\n    UPDATE two SET a = 0 WHERE 0;\n    SELECT a FROM two ORDER BY a;\n  ")
@@ -488,6 +548,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 4 5 10")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-4.9")
+		}
 	}
 	{ // do_test "trans-4.10"
 	_ = v // suppress unused warning
@@ -505,6 +570,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 4 5 10")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-4.10")
+		}
 	}
 	{ // do_test "trans-4.11"
 	_ = v // suppress unused warning
@@ -522,6 +592,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 1 2 3 4")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-4.11")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -613,6 +688,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: one")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-5.7")
+		}
 	}
 	{ // do_test "trans-5.8"
 		r = db.Query("\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name\n  ")
@@ -708,6 +788,11 @@ func Test_trans(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
+		got := tclListFlatten(_r)
+		want := tclListFlatten("1 no such table: t2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans-5.21")
+		}
 	}
 	{ // do_test "trans-5.22"
 		r = db.Query("\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")
@@ -1103,6 +1188,7 @@ func Test_trans(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// exec [info nameofexec] test.tcl (unsupported command, not transpiled)
 		}
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")
@@ -1133,6 +1219,7 @@ func Test_trans(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// exec [info nameofexec] test.tcl (unsupported command, not transpiled)
 		}
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")

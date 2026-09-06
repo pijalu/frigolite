@@ -114,54 +114,54 @@ func Test_incrvacuum2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;\n    ")
 		}
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "incrvacuum2-2.2"
 		r = db.Query("\n      PRAGMA aux.incremental_vacuum(1)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.incremental_vacuum(1)\n    ")
 		}
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "incrvacuum2-2.3"
 		r = db.Query("\n      PRAGMA aux.incremental_vacuum(5)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.incremental_vacuum(5)\n    ")
 		}
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "incrvacuum2-2.4"
 		r = db.Query("\n      PRAGMA main.incremental_vacuum(5)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.incremental_vacuum(5)\n    ")
 		}
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list3
+		_r = _list3
 	}
 	{ // do_test "incrvacuum2-2.5"
 		r = db.Query("\n      PRAGMA aux.incremental_vacuum\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.incremental_vacuum\n    ")
 		}
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list4
+		_r = _list4
 	}
 	{ // do_test "incrvacuum2-2.6"
 		r = db.Query("\n      PRAGMA incremental_vacuum(1)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA incremental_vacuum(1)\n    ")
 		}
-		_list := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
-		_ = _list
-		_r = _list
+		_list5 := tclList([]string{strconv.Itoa(tclFileSize("test.db")), strconv.Itoa(tclFileSize("test2.db"))})
+		_ = _list5
+		_r = _list5
 	}
 	{ // do_test "incrvacuum2-3.1"
 		r = db.Query("\n    PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;\n  ")

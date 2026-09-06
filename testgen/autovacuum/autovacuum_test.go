@@ -703,11 +703,13 @@ func Test_autovacuum(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("COMMIT")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}

@@ -263,9 +263,9 @@ func Test_jrnlmode(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;\n    ")
 		}
-		_list := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal"})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal"})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "jrnlmode-2.2" (file size test.db-journal)
 		got := strconv.Itoa(tclFileSize("test.db-journal"))
@@ -419,18 +419,18 @@ func Test_jrnlmode(t *testing.T) {
 			}
 		}
 		{ // do_test "jrnlmode-5.10"
-			_list := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal", "file exists test3.db-journal"})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal", "file exists test3.db-journal"})
+			_ = _list0
+			_r = _list0
 		}
 		{ // do_test "jrnlmode-5.11"
 			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;\n    ")
 			}
-			_list := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal", "file exists test3.db-journal", strconv.Itoa(tclFileSize("test.db-journal")), strconv.Itoa(tclFileSize("test2.db-journal")), strconv.Itoa(tclFileSize("test3.db-journal"))})
-			_ = _list
-			_r = _list
+			_list1 := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal", "file exists test3.db-journal", strconv.Itoa(tclFileSize("test.db-journal")), strconv.Itoa(tclFileSize("test2.db-journal")), strconv.Itoa(tclFileSize("test3.db-journal"))})
+			_ = _list1
+			_r = _list1
 		}
 		{ // do_test "jrnlmode-5.12"
 			_res = db.Exec("\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
@@ -519,9 +519,9 @@ func Test_jrnlmode(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
-			_list := tclList([]string{"file exists test.db-journal", strconv.Itoa(tclFileSize("test.db-journal"))})
-			_ = _list
-			_r = _list
+			_list2 := tclList([]string{"file exists test.db-journal", strconv.Itoa(tclFileSize("test.db-journal"))})
+			_ = _list2
+			_r = _list2
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
@@ -572,6 +572,7 @@ func Test_jrnlmode(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	{ // do_test "jrnlmode-7.1"

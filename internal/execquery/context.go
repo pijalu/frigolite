@@ -40,6 +40,9 @@ type SelectContext interface {
 	FullColumnNames() bool
 	FTSTables() map[string]*fts.FTS3Table
 	Expr() *execexpr.Evaluator
+	// ColumnLimit returns the runtime SQLITE_LIMIT_COLUMN value (used by
+	// CREATE TABLE column counts and ORDER BY/GROUP BY term counts).
+	ColumnLimit() int
 
 	// SkipScanEnabled reports whether the skip-scan query optimization is on.
 	// Mirrors SQLite's SQLITE_SkipScan optimization_control bit. Used by the

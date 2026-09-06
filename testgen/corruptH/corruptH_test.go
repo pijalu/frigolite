@@ -147,9 +147,9 @@ func Test_corruptH(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{_rc, msg})
+		_ = _list4
+		_r = _list4
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -165,27 +165,27 @@ func Test_corruptH(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_dbevalRows4 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
-		var _dbevalRb5 bool
-		var _dbevalErr6 error
-		var _dbevalInt7 bool
+		_dbevalRows5 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
+		var _dbevalRb6 bool
+		var _dbevalErr7 error
+		var _dbevalInt8 bool
 		db.BeginActiveStatement()
-		for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
-			for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
-				switch _dbevalRows4.Columns[_ci] {
+		for _ri := 0; _ri < len(_dbevalRows5.Rows) && _dbevalErr7 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows5.Columns); _ci++ {
+				switch _dbevalRows5.Columns[_ci] {
 					case "name":
-						name = tclStr(_dbevalRows4.Rows[_ri][_ci])
+						name = tclStr(_dbevalRows5.Rows[_ri][_ci])
 					case "rootpage":
-						rootpage = tclStr(_dbevalRows4.Rows[_ri][_ci])
+						rootpage = tclStr(_dbevalRows5.Rows[_ri][_ci])
 				}
 			}
 			_rMap[name] = rootpage
-			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
-			if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
+			if _dbevalRb6 { _dbevalErr7 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt8 { _dbevalErr7 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
 		db.EndActiveStatement()
-		if _dbevalErr6 != nil {
-			t.Errorf("db eval callback error: %v", _dbevalErr6)
+		if _dbevalErr7 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr7)
 		}
 		db.Close()
 		fl = "hexio_get_int [hexio_read test.db 32 4]"
@@ -207,34 +207,34 @@ func Test_corruptH(t *testing.T) {
 			var _catchErr error
 			var res = ""
 			_ = res // suppress unused warning
-			_dbevalRows8 := db.Query(" SELECT * FROM t1 WHERE a IN (1, 2) ")
-			var _dbevalRb9 bool
-			var _dbevalErr10 error
-			var _dbevalInt11 bool
+			_dbevalRows9 := db.Query(" SELECT * FROM t1 WHERE a IN (1, 2) ")
+			var _dbevalRb10 bool
+			var _dbevalErr11 error
+			var _dbevalInt12 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows8.Columns); _ci++ {
-					switch _dbevalRows8.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
+					switch _dbevalRows9.Columns[_ci] {
 						case "b":
-							b = tclStr(_dbevalRows8.Rows[_ri][_ci])
+							b = tclStr(_dbevalRows9.Rows[_ri][_ci])
 					}
 				}
 				_res = db.Exec(" \n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n    ")
 				if _res.Error != nil { _catchErr = _res.Error }
 				res = tclListAppend(res, b)
-				if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt12 { _dbevalErr11 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr10 != nil {
-				_catchErr = _dbevalErr10
+			if _dbevalErr11 != nil {
+				_catchErr = _dbevalErr11
 			}
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list9 := tclList([]string{_rc, msg})
+		_ = _list9
+		_r = _list9
 		if _r != res23 {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res23, "2.3")
 		}
@@ -253,27 +253,27 @@ func Test_corruptH(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		_dbevalRows8 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
-		var _dbevalRb9 bool
-		var _dbevalErr10 error
-		var _dbevalInt11 bool
+		_dbevalRows10 := db.Query(" SELECT name, rootpage FROM sqlite_master ")
+		var _dbevalRb11 bool
+		var _dbevalErr12 error
+		var _dbevalInt13 bool
 		db.BeginActiveStatement()
-		for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
-			for _ci := 0; _ci < len(_dbevalRows8.Columns); _ci++ {
-				switch _dbevalRows8.Columns[_ci] {
+		for _ri := 0; _ri < len(_dbevalRows10.Rows) && _dbevalErr12 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows10.Columns); _ci++ {
+				switch _dbevalRows10.Columns[_ci] {
 					case "name":
-						name = tclStr(_dbevalRows8.Rows[_ri][_ci])
+						name = tclStr(_dbevalRows10.Rows[_ri][_ci])
 					case "rootpage":
-						rootpage = tclStr(_dbevalRows8.Rows[_ri][_ci])
+						rootpage = tclStr(_dbevalRows10.Rows[_ri][_ci])
 				}
 			}
 			_rMap[name] = rootpage
-			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
-			if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
+			if _dbevalRb11 { _dbevalErr12 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt13 { _dbevalErr12 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
 		db.EndActiveStatement()
-		if _dbevalErr10 != nil {
-			t.Errorf("db eval callback error: %v", _dbevalErr10)
+		if _dbevalErr12 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr12)
 		}
 		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002 (unsupported arguments)
@@ -285,30 +285,30 @@ func Test_corruptH(t *testing.T) {
 		_rc := "0"
 		{
 			var _catchErr error
-			_dbevalRows12 := db.Query(" SELECT * FROM t1 WHERE a IN (1, 2) ")
-			var _dbevalRb13 bool
-			var _dbevalErr14 error
-			var _dbevalInt15 bool
+			_dbevalRows14 := db.Query(" SELECT * FROM t1 WHERE a IN (1, 2) ")
+			var _dbevalRb15 bool
+			var _dbevalErr16 error
+			var _dbevalInt17 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
-					switch _dbevalRows12.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows14.Rows) && _dbevalErr16 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows14.Columns); _ci++ {
+					switch _dbevalRows14.Columns[_ci] {
 					}
 				}
 				_res = db.Exec(" \n      DELETE FROM t2 WHERE c=1;\n    ")
 				if _res.Error != nil { _catchErr = _res.Error }
-				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb15 { _dbevalErr16 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt17 { _dbevalErr16 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr14 != nil {
-				_catchErr = _dbevalErr14
+			if _dbevalErr16 != nil {
+				_catchErr = _dbevalErr16
 			}
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list14 := tclList([]string{_rc, msg})
+		_ = _list14
+		_r = _list14
 	}
 }

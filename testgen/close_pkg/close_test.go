@@ -254,21 +254,24 @@ func Test_close(t *testing.T) {
 		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.2"
-		_list := tclList([]string{tclStepPreparedCode(DB, "STMT", "SELECT * FROM t1"), tclColumnTextOf("STMT", 0)})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{tclStepPreparedCode(DB, "STMT", "SELECT * FROM t1"), tclColumnTextOf("STMT", 0)})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "1.4.3"
 		_rc := "0"
 		{
 			var _catchErr error
-			// sqlite3_prepare (standalone prepare; not emulated)
+			_catchPrepRc2 := tclPrepareStmt(DB, "catchprep1", "SELECT * FROM sqlite_master", -1)
+			if _catchPrepRc2 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(DB, _catchPrepRc2)
+			}
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // "1.4.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")

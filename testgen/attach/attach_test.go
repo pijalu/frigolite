@@ -720,6 +720,7 @@ func Test_attach(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// db$i close (unsupported command, not transpiled)
 		}
 		// incr i 1

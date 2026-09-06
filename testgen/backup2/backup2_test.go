@@ -168,11 +168,13 @@ func Test_backup2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			tclFileChmod("bu2.db", "r--------")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// file attributes "bu2.db" -readonly (unsupported attribute)
 		}
 	_ = rc // suppress unused warning
@@ -190,16 +192,23 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 backup failed: attempt to write a readonly database")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-6")
+		}
 	}
 	{ // do_test "backup2-7"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			// file attributes "bu2.db" -readonly (unsupported attribute)
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			tclFileChmod("bu2.db", "rw-------")
 		}
 		_ = os.WriteFile("bu2.db", nil, 0644)
@@ -222,6 +231,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 backup failed: file is not a database")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-7")
+		}
 	}
 	{ // do_test "backup2-8"
 		os.Remove("bu1.db")
@@ -240,6 +254,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 backup failed: unknown database aux1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-8")
+		}
 	}
 	{ // do_test "backup2-9"
 	_ = rc // suppress unused warning
@@ -257,6 +276,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db backup ?DATABASE? FILENAME\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-9")
+		}
 	}
 	if tcl_platform_os == "Windows NT" {
 		vtab.TclVarSet("msg", "", "cannot open source database: unable to open database file")
@@ -293,9 +317,9 @@ func Test_backup2(t *testing.T) {
 			res = ""
 			_ = res // suppress unused warning
 		}
-		_list := tclList([]string{rc, res})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, res})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "backup2-11"
 	_ = rc // suppress unused warning
@@ -313,6 +337,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 restore failed: file is not a database")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-11")
+		}
 	}
 	{ // do_test "backup2-12"
 	_ = rc // suppress unused warning
@@ -330,6 +359,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 restore failed: unknown database aux1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-12")
+		}
 	}
 	{ // do_test "backup2-13"
 		os.Remove("bu4.db")
@@ -348,6 +382,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 cannot open source database: unable to open database file")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-13")
+		}
 	}
 	{ // do_test "backup2-14"
 	_ = rc // suppress unused warning
@@ -365,6 +404,11 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db restore ?DATABASE? FILENAME\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-14")
+		}
 	}
 	os.Remove("bu1.db")
 }

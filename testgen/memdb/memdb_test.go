@@ -247,6 +247,7 @@ func Test_memdb(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					_res = db.Exec("COMMIT")
 					if _res.Error != nil { _catchErr = _res.Error }
 				}
@@ -260,9 +261,9 @@ func Test_memdb(t *testing.T) {
 				}
 				r2 = tclExecSQL(db, "SELECT x FROM t2")
 				_ = r2 // suppress unused warning
-				_list := tclList([]string{r0, r1, r2})
-				_ = _list
-				_r = _list
+				_list1 := tclList([]string{r0, r1, r2})
+				_ = _list1
+				_r = _list1
 			}
 		}
 		{ // do_test "memdb-5.0"
@@ -272,23 +273,23 @@ func Test_memdb(t *testing.T) {
 			}
 		}
 		// foreach {i conf1 conf2 cmd t0 t1 t2} "1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0"
-		_items1 := tclSplitList("1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0")
-		for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
-			i := _items1[_idx1+0]
+		_items2 := tclSplitList("1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0")
+		for _idx2 := 0; _idx2+7 <= len(_items2); _idx2 += 7 {
+			i := _items2[_idx2+0]
 			_ = i // suppress unused warning
-			conf1 := _items1[_idx1+1]
+			conf1 := _items2[_idx2+1]
 			_ = conf1 // suppress unused warning
-			conf2 := _items1[_idx1+2]
+			conf2 := _items2[_idx2+2]
 			_ = conf2 // suppress unused warning
-			cmd := _items1[_idx1+3]
+			cmd := _items2[_idx2+3]
 			_ = cmd // suppress unused warning
-			t0 := _items1[_idx1+4]
+			t0 := _items2[_idx2+4]
 			_ = t0 // suppress unused warning
-			t1 := _items1[_idx1+5]
+			t1 := _items2[_idx2+5]
 			_ = t1 // suppress unused warning
-			t2 := _items1[_idx1+6]
+			t2 := _items2[_idx2+6]
 			_ = t2 // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				if tclBool(t0) {
 					vtab.TclVarSet("t1", "", "UNIQUE constraint failed: t1.a")
 					t1 = "UNIQUE constraint failed: t1.a"
@@ -322,6 +323,7 @@ func Test_memdb(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						_r = ""
 						_res = db.Exec("COMMIT")
 						if _res.Error != nil { _catchErr = _res.Error }
 					}
@@ -331,9 +333,9 @@ func Test_memdb(t *testing.T) {
 					}
 					r2 = tclExecSQL(db, "SELECT x FROM t3")
 					_ = r2 // suppress unused warning
-					_list := tclList([]string{r0, r1, r2})
-					_ = _list
-					_r = _list
+					_list3 := tclList([]string{r0, r1, r2})
+					_ = _list3
+					_r = _list3
 				}
 			}
 			{ // do_test "memdb-6.1"
@@ -486,15 +488,15 @@ func Test_memdb(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
 				}
-				_dbone2 := tclExecSQL(db, "{PRAGMA page_count}")
-				before = _dbone2
+				_dbone4 := tclExecSQL(db, "{PRAGMA page_count}")
+				before = _dbone4
 				_ = before // suppress unused warning
 				_res = db.Exec(" DELETE FROM t1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 				}
-				_dbone3 := tclExecSQL(db, "{PRAGMA page_count}")
-				after = _dbone3
+				_dbone5 := tclExecSQL(db, "{PRAGMA page_count}")
+				after = _dbone5
 				_ = after // suppress unused warning
 				// expr $before>$after (not evaluated)
 			}

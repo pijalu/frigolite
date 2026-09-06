@@ -226,9 +226,9 @@ func Test_notify1(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "notify1-2.3.1"
 		db.Close()
@@ -237,9 +237,9 @@ func Test_notify1(t *testing.T) {
 		for _, con := range tclSplitList("db db2 db3") {
 		_ = con // suppress unused warning
 			// sqlite3 $con test.db (dynamic connection name)
-			_dbtmp0, err := frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
 			if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-			_ = _dbtmp0
+			_ = _dbtmp1
 			// $con eval { ATTACH 'test2.db' AS aux2 } (unsupported command, not transpiled)
 			// $con eval { ATTACH 'test3.db' AS aux3 } (unsupported command, not transpiled)
 		}
@@ -299,9 +299,9 @@ func Test_notify1(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{rc, msg})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "notify1-2.3.8"
 		_res = db.Exec(" COMMIT ")
@@ -347,29 +347,32 @@ func Test_notify1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db3 != nil { db3.Close() }
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	// foreach {tn nConn} "3 20 4 76"
-	_items1 := tclSplitList("3 20 4 76")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items3 := tclSplitList("3 20 4 76")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		nConn := _items1[_idx1+1]
+		nConn := _items3[_idx3+1]
 		_ = nConn // suppress unused warning
-		_ = _idx1
+		_ = _idx3
 			{ // do_test "notify1-" + tn + ".1"
-				_dbtmp2, err := frigolite.Open("test.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 				_ = err
 				db.ResetChangesCounters()
@@ -391,9 +394,9 @@ func Test_notify1(t *testing.T) {
 					cmd = "db" + ii
 					_ = cmd // suppress unused warning
 					// sqlite3 $cmd test.db (dynamic connection name)
-					_dbtmp3, err := frigolite.Open("test.db")
+					_dbtmp5, err := frigolite.Open("test.db")
 					if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-					_ = _dbtmp3
+					_ = _dbtmp5
 					_res = db.Exec(" SELECT * FROM t1 ")
 					_ = _res // catchsql
 				}
@@ -450,9 +453,9 @@ func Test_notify1(t *testing.T) {
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
 				// sqlite3 $conn test.db (dynamic connection name)
-				_dbtmp4, err := frigolite.Open("test.db")
+				_dbtmp6, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp4
+				_ = _dbtmp6
 				_res = db.Exec(" ATTACH 'test2.db' AS two ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test2.db' AS two ")
@@ -582,9 +585,9 @@ func Test_notify1(t *testing.T) {
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning
 				// sqlite3 $conn test.db (dynamic connection name)
-				_dbtmp5, err := frigolite.Open("test.db")
+				_dbtmp7, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp5
+				_ = _dbtmp7
 			}
 			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 			if _res.Error != nil {

@@ -93,6 +93,7 @@ func Test_corruptC(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		os.Remove("test.db")
 	}
 	// set testdir: test directory (not used in Go test context)

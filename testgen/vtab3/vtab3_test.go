@@ -203,9 +203,9 @@ func Test_vtab3(t *testing.T) {
 				msg = "not authorized"
 				_ = msg // suppress unused warning
 			}
-			_list := tclList([]string{rc, msg})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{rc, msg})
+			_ = _list0
+			_r = _list0
 		}
 		{ // do_test "vtab3-1.7." + i + ".2"
 			r = db.Query("\n      SELECT name FROM sqlite_master WHERE type = 'table';\n    ")

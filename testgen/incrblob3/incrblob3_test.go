@@ -275,14 +275,14 @@ func Test_incrblob3(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "incrblob3-2.1.2"
-		_list := tclList([]string{db.LastErrCode(), db.LastErr()})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{db.LastErrCode(), db.LastErr()})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "incrblob3-2.1.3"
 		_rc := "0"
@@ -297,9 +297,9 @@ func Test_incrblob3(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{_rc, msg})
+		_ = _list3
+		_r = _list3
 	}
 	{ // do_test "incrblob3-2.1.4"
 		tclBlobResolve(blob, incrblob_1, incrblob_2, incrblob_3, incrblob_4, incrblob_5, incrblob_6, incrblob_7, incrblob_8, incrblob_9, incrblob_10, incrblob_11, incrblob_12, incrblob_13, incrblob_14, incrblob_15, incrblob_16, incrblob_17, incrblob_18, incrblob_19, incrblob_20, incrblob_21, incrblob_22, incrblob_23, incrblob_24, incrblob_25, incrblob_26, incrblob_27, incrblob_28, incrblob_29, incrblob_30, incrblob_31, incrblob_32, incrblob_33, incrblob_34, incrblob_35, incrblob_36, incrblob_37, incrblob_38, incrblob_39, incrblob_40, incrblob_41, incrblob_42, incrblob_43, incrblob_44, incrblob_45, incrblob_46, incrblob_47, incrblob_48, incrblob_49, incrblob_50, incrblob_51, incrblob_52, incrblob_53, incrblob_54, incrblob_55, incrblob_56, incrblob_57, incrblob_58, incrblob_59, incrblob_60, incrblob_61, incrblob_62, incrblob_63, incrblob_64).Close()
@@ -311,15 +311,15 @@ func Test_incrblob3(t *testing.T) {
 		}
 	}
 	// foreach {tn rowid type} "1 3 integer\n  2 4 real\n  3 5 null"
-	_items1 := tclSplitList("1 3 integer\n  2 4 real\n  3 5 null")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		tn := _items1[_idx1+0]
+	_items4 := tclSplitList("1 3 integer\n  2 4 real\n  3 5 null")
+	for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+		tn := _items4[_idx4+0]
 		_ = tn // suppress unused warning
-		rowid := _items1[_idx1+1]
+		rowid := _items4[_idx4+1]
 		_ = rowid // suppress unused warning
-		_type := _items1[_idx1+2]
+		_type := _items4[_idx4+2]
 		_ = _type // suppress unused warning
-		_ = _idx1
+		_ = _idx4
 			{ // do_test "incrblob3-2.2." + tn + ".1"
 				blob = "incrblob_3"
 				incrblob_3, _berr = db.OpenBlob("main", "blobs", "v", tclRowID(1), true)
@@ -341,14 +341,14 @@ func Test_incrblob3(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list5 := tclList([]string{_rc, msg})
+				_ = _list5
+				_r = _list5
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".2"
-				_list := tclList([]string{db.LastErrCode(), db.LastErr()})
-				_ = _list
-				_r = _list
+				_list6 := tclList([]string{db.LastErrCode(), db.LastErr()})
+				_ = _list6
+				_r = _list6
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".3"
 				_rc := "0"
@@ -363,9 +363,9 @@ func Test_incrblob3(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list7 := tclList([]string{_rc, msg})
+				_ = _list7
+				_r = _list7
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".4"
 				_rc := "0"
@@ -380,9 +380,9 @@ func Test_incrblob3(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list8 := tclList([]string{_rc, msg})
+				_ = _list8
+				_r = _list8
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".5"
 				_rc := "0"
@@ -391,9 +391,9 @@ func Test_incrblob3(t *testing.T) {
 					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 					if _catchErr != nil { _rc = "1" }
 				}
-				_list := tclList([]string{_rc, msg})
-				_ = _list
-				_r = _list
+				_list9 := tclList([]string{_rc, msg})
+				_ = _list9
+				_r = _list9
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".6"
 				_r = strconv.Itoa(incrblob_3.Bytes())
@@ -410,9 +410,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list10 := tclList([]string{_rc, msg})
+			_ = _list10
+			_r = _list10
 		}
 		{ // do_test "incrblob3-3.2"
 			_rc := "0"
@@ -422,9 +422,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list11 := tclList([]string{_rc, msg})
+			_ = _list11
+			_r = _list11
 		}
 		{ // do_test "incrblob3-3.3"
 			_rc := "0"
@@ -433,9 +433,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list12 := tclList([]string{_rc, msg})
+			_ = _list12
+			_r = _list12
 		}
 		{ // do_test "incrblob3-3.4"
 			_r = "0"
@@ -467,9 +467,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list13 := tclList([]string{_rc, msg})
+			_ = _list13
+			_r = _list13
 		}
 		{ // do_test "incrblob3-4.3"
 			_rc := "0"
@@ -484,9 +484,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list14 := tclList([]string{_rc, msg})
+			_ = _list14
+			_r = _list14
 		}
 		{ // do_test "incrblob3-4.4"
 			_rc := "0"
@@ -501,9 +501,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list15 := tclList([]string{_rc, msg})
+			_ = _list15
+			_r = _list15
 		}
 		{ // do_test "incrblob3-4.5"
 			_rc := "0"
@@ -518,9 +518,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list16 := tclList([]string{_rc, msg})
+			_ = _list16
+			_r = _list16
 		}
 		{ // do_test "incrblob3-4.6"
 			_rc := "0"
@@ -535,9 +535,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list17 := tclList([]string{_rc, msg})
+			_ = _list17
+			_r = _list17
 		}
 		{ // do_test "incrblob3-4.7"
 			_rc := "0"
@@ -546,9 +546,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list18 := tclList([]string{_rc, msg})
+			_ = _list18
+			_r = _list18
 		}
 		{ // do_test "incrblob3-4.8"
 			tclBlobResolve(blob, incrblob_1, incrblob_2, incrblob_3, incrblob_4, incrblob_5, incrblob_6, incrblob_7, incrblob_8, incrblob_9, incrblob_10, incrblob_11, incrblob_12, incrblob_13, incrblob_14, incrblob_15, incrblob_16, incrblob_17, incrblob_18, incrblob_19, incrblob_20, incrblob_21, incrblob_22, incrblob_23, incrblob_24, incrblob_25, incrblob_26, incrblob_27, incrblob_28, incrblob_29, incrblob_30, incrblob_31, incrblob_32, incrblob_33, incrblob_34, incrblob_35, incrblob_36, incrblob_37, incrblob_38, incrblob_39, incrblob_40, incrblob_41, incrblob_42, incrblob_43, incrblob_44, incrblob_45, incrblob_46, incrblob_47, incrblob_48, incrblob_49, incrblob_50, incrblob_51, incrblob_52, incrblob_53, incrblob_54, incrblob_55, incrblob_56, incrblob_57, incrblob_58, incrblob_59, incrblob_60, incrblob_61, incrblob_62, incrblob_63, incrblob_64).Close()
@@ -581,9 +581,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list19 := tclList([]string{_rc, msg})
+			_ = _list19
+			_r = _list19
 		}
 		{ // do_test "incrblob3-6.1"
 			_res = db.Exec("\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('rules to open a column to which');\n    ")
@@ -604,9 +604,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list20 := tclList([]string{_rc, msg})
+			_ = _list20
+			_r = _list20
 		}
 		{ // do_test "incrblob3-6.2"
 			_res = db.Exec(" CREATE VIEW v1 AS SELECT * FROM blobs ")
@@ -627,9 +627,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list21 := tclList([]string{_rc, msg})
+			_ = _list21
+			_r = _list21
 		}
 		{ // do_test "incrblob3-6.3"
 			_rc := "0"
@@ -646,9 +646,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list22 := tclList([]string{_rc, msg})
+			_ = _list22
+			_r = _list22
 		}
 		{ // do_test "incrblob3-6.4.1"
 			_res = db.Exec(" \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));\n  ")
@@ -669,9 +669,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list23 := tclList([]string{_rc, msg})
+			_ = _list23
+			_r = _list23
 		}
 		{ // do_test "incrblob3-6.4.2"
 			blob = "incrblob_10"
@@ -714,9 +714,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list24 := tclList([]string{_rc, msg})
+			_ = _list24
+			_r = _list24
 		}
 		{ // do_test "incrblob3-6.5.2"
 			blob = "incrblob_13"
@@ -780,8 +780,8 @@ func Test_incrblob3(t *testing.T) {
 		// tvfs script access_method (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // do_test "incrblob3-7.2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp25, err := frigolite.Open("test.db")
+			_ = _dbtmp25 // sqlite3 db connection
 			if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 			_ = err
 			db.ResetChangesCounters()
@@ -800,9 +800,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list26 := tclList([]string{_rc, msg})
+			_ = _list26
+			_r = _list26
 		}
 		db.Close()
 		// tvfs delete (unsupported command, not transpiled)
@@ -877,9 +877,9 @@ func Test_incrblob3(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list27 := tclList([]string{_rc, msg})
+			_ = _list27
+			_r = _list27
 		}
 		db.Close()
 }

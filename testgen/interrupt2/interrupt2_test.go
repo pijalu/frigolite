@@ -147,9 +147,9 @@ func Test_interrupt2(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{_rc, msg})
+			_ = _list0
+			_r = _list0
 		}
 		{ // "1." + idelay + ".4"
 			r = db.Query(" SELECT count(*) FROM t1 ")
@@ -180,18 +180,18 @@ func Test_interrupt2(t *testing.T) {
 			vtab.TclVarSet("i", "", "10")
 			i = "10"
 			_ = i // suppress unused warning
-			_dbevalRows0 := db.Query("SELECT * FROM z1")
-			var _dbevalRb1 bool
-			var _dbevalErr2 error
-			var _dbevalInt3 bool
+			_dbevalRows1 := db.Query("SELECT * FROM z1")
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			var _dbevalInt4 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
-					switch _dbevalRows0.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+					switch _dbevalRows1.Columns[_ci] {
 						case "i":
-							i = tclStr(_dbevalRows0.Rows[_ri][_ci])
+							i = tclStr(_dbevalRows1.Rows[_ri][_ci])
 						case "msg":
-							msg = tclStr(_dbevalRows0.Rows[_ri][_ci])
+							msg = tclStr(_dbevalRows1.Rows[_ri][_ci])
 					}
 				}
 				// incr i -1
@@ -220,24 +220,24 @@ func Test_interrupt2(t *testing.T) {
 					}
 					cres = tclListAppend(cres, msg)
 				}
-				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr2 != nil {
-				_catchErr = _dbevalErr2
+			if _dbevalErr3 != nil {
+				_catchErr = _dbevalErr3
 			}
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 		res = _r
 		_ = res // suppress unused warning
-		_list := tclList([]string{cres, res})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{cres, res})
+		_ = _list2
+		_r = _list2
 	}
 	{ // "2.0"
 		r = db.Query("\n  SELECT count(*) FROM t1\n  UNION ALL\n  SELECT count(*) FROM z1\n")
@@ -283,9 +283,9 @@ func Test_interrupt2(t *testing.T) {
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "3.1.2"
-		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{"file exists test.db", "file exists test.db-wal"})
+		_ = _list3
+		_r = _list3
 	}
 	// db_restore_and_reopen: restore sv_test.db* snapshot
 	db.Close()
@@ -302,9 +302,9 @@ func Test_interrupt2(t *testing.T) {
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "3.2.2"
-		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{"file exists test.db", "file exists test.db-wal"})
+		_ = _list4
+		_r = _list4
 	}
 	// db_restore_and_reopen: restore sv_test.db* snapshot
 	db.Close()

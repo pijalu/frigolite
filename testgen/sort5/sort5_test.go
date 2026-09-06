@@ -151,6 +151,7 @@ func Test_sort5(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove("test.db")
@@ -196,6 +197,7 @@ func Test_sort5(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					// array unset (not transpiled)
 				}
 				r = db.Query("\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")

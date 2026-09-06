@@ -89,6 +89,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: test1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-1.1")
+		}
 	}
 	_res = db.Exec("CREATE TABLE test1(f1 int, f2 int)")
 	if _res.Error != nil {
@@ -110,6 +115,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: test2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-1.2")
+		}
 	}
 	{ // do_test "select1-1.3"
 	_ = v // suppress unused warning
@@ -127,6 +137,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: test2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-1.3")
+		}
 	}
 	_res = db.Exec("INSERT INTO test1(f1,f2) VALUES(11,22)")
 	if _res.Error != nil {
@@ -267,6 +282,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 wrong number of arguments to function count()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.1")
+		}
 	}
 	{ // do_test "select1-2.2"
 	_ = v // suppress unused warning
@@ -284,6 +304,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.2")
+		}
 	}
 	{ // do_test "select1-2.3"
 	_ = v // suppress unused warning
@@ -301,6 +326,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.3")
+		}
 	}
 	{ // do_test "select1-2.4"
 	_ = v // suppress unused warning
@@ -318,6 +348,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.4")
+		}
 	}
 	{ // do_test "select1-2.5"
 	_ = v // suppress unused warning
@@ -335,6 +370,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.5")
+		}
 	}
 	{ // do_test "select1-2.5.1"
 		r = db.Query("SELECT count(*),count(a),count(b) FROM t3")
@@ -370,6 +410,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 wrong number of arguments to function min()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.6")
+		}
 	}
 	{ // do_test "select1-2.7"
 	_ = v // suppress unused warning
@@ -387,6 +432,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.7")
+		}
 	}
 	{ // do_test "select1-2.8"
 	_ = v // suppress unused warning
@@ -404,6 +454,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.8")
+		}
 	}
 	{ // do_test "select1-2.8.1"
 		r = db.Query("SELECT coalesce(min(a),'xyzzy') FROM t3")
@@ -439,6 +494,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 wrong number of arguments to function MAX()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.9")
+		}
 	}
 	{ // do_test "select1-2.10"
 	_ = v // suppress unused warning
@@ -456,6 +516,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.10")
+		}
 	}
 	{ // do_test "select1-2.11"
 	_ = v // suppress unused warning
@@ -473,6 +538,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 22 44")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.11")
+		}
 	}
 	{ // do_test "select1-2.12"
 	_ = v // suppress unused warning
@@ -490,6 +560,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 23 45")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.12")
+		}
 	}
 	{ // do_test "select1-2.13"
 	_ = v // suppress unused warning
@@ -507,6 +582,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 34")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.13")
+		}
 	}
 	{ // do_test "select1-2.13.1"
 		r = db.Query("SELECT coalesce(max(a),'xyzzy') FROM t3")
@@ -536,6 +616,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 wrong number of arguments to function SUM()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.14")
+		}
 	}
 	{ // do_test "select1-2.15"
 	_ = v // suppress unused warning
@@ -553,6 +638,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 44")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.15")
+		}
 	}
 	{ // do_test "select1-2.16"
 	_ = v // suppress unused warning
@@ -570,6 +660,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 wrong number of arguments to function sum()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.16")
+		}
 	}
 	{ // do_test "select1-2.17"
 	_ = v // suppress unused warning
@@ -587,6 +682,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 45")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.17")
+		}
 	}
 	{ // do_test "select1-2.17.1"
 		r = db.Query("SELECT sum(a) FROM t3")
@@ -610,6 +710,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such function: XYZZY")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.18")
+		}
 	}
 	{ // do_test "select1-2.19"
 	_ = v // suppress unused warning
@@ -627,6 +732,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 44")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.19")
+		}
 	}
 	{ // do_test "select1-2.20"
 	_ = v // suppress unused warning
@@ -644,6 +754,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 misuse of aggregate function min()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-2.20")
+		}
 	}
 	{ // do_test "select1-2.21"
 		_res = db.Exec("\n     SELECT min(f1) AS m FROM test1 GROUP BY f1 HAVING max(m+5)<10\n  ")
@@ -681,6 +796,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.1")
+		}
 	}
 	{ // do_test "select1-3.2"
 	_ = v // suppress unused warning
@@ -698,6 +818,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.2")
+		}
 	}
 	{ // do_test "select1-3.3"
 	_ = v // suppress unused warning
@@ -715,6 +840,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.3")
+		}
 	}
 	{ // do_test "select1-3.4"
 	_ = v // suppress unused warning
@@ -732,6 +862,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.4")
+		}
 	}
 	{ // do_test "select1-3.5"
 	_ = v // suppress unused warning
@@ -749,6 +884,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.5")
+		}
 	}
 	{ // do_test "select1-3.6"
 	_ = v // suppress unused warning
@@ -766,6 +906,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.6")
+		}
 	}
 	{ // do_test "select1-3.7"
 	_ = v // suppress unused warning
@@ -783,6 +928,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.7")
+		}
 	}
 	{ // do_test "select1-3.8"
 	_ = v // suppress unused warning
@@ -800,6 +950,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, tclSort(msg))
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.8")
+		}
 	}
 	{ // do_test "select1-3.9"
 	_ = v // suppress unused warning
@@ -817,6 +972,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 wrong number of arguments to function count()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-3.9")
+		}
 	}
 	{ // do_test "select1-4.1"
 	_ = v // suppress unused warning
@@ -834,6 +994,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-4.1")
+		}
 	}
 	{ // do_test "select1-4.2"
 	_ = v // suppress unused warning
@@ -851,6 +1016,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 33 11")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-4.2")
+		}
 	}
 	{ // do_test "select1-4.3"
 	_ = v // suppress unused warning
@@ -868,6 +1038,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-4.3")
+		}
 	}
 	{ // do_test "select1-4.4"
 	_ = v // suppress unused warning
@@ -885,6 +1060,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 misuse of aggregate: min()")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-4.4")
+		}
 	}
 	{ // "select1-4.5"
 		_res = db.Exec("\n  INSERT INTO test1(f1) SELECT f1 FROM test1 ORDER BY min(f1);\n")
@@ -968,6 +1148,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-5.1")
+		}
 	}
 	_res = db.Exec("CREATE TABLE test2(t1 text, t2 text)")
 	if _res.Error != nil {
@@ -993,6 +1178,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f1 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1")
+		}
 	}
 	{ // do_test "select1-6.1.1"
 		_res = db.Exec("PRAGMA full_column_names=on")
@@ -1011,6 +1201,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 test1.f1 11 test1.f1 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1.1")
+		}
 	}
 	{ // do_test "select1-6.1.2"
 	_ = v // suppress unused warning
@@ -1028,6 +1223,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f1 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1.2")
+		}
 	}
 	{ // do_test "select1-6.1.3"
 	_ = v // suppress unused warning
@@ -1045,6 +1245,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f2 22")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1.3")
+		}
 	}
 	{ // do_test "select1-6.1.4"
 	_ = v // suppress unused warning
@@ -1063,6 +1268,11 @@ func Test_select1(t *testing.T) {
 		}
 		_res = db.Exec("PRAGMA full_column_names=off")
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f2 22")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1.4")
+		}
 	}
 	{ // do_test "select1-6.1.5"
 	_ = v // suppress unused warning
@@ -1080,6 +1290,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f2 22")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1.5")
+		}
 	}
 	{ // do_test "select1-6.1.6"
 	_ = v // suppress unused warning
@@ -1097,6 +1312,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f2 22")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.1.6")
+		}
 	}
 	{ // do_test "select1-6.2"
 	_ = v // suppress unused warning
@@ -1114,6 +1334,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 xyzzy 11 xyzzy 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.2")
+		}
 	}
 	{ // do_test "select1-6.3"
 	_ = v // suppress unused warning
@@ -1131,6 +1356,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 xyzzy 11 xyzzy 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.3")
+		}
 	}
 	{ // do_test "select1-6.3.1"
 	_ = v // suppress unused warning
@@ -1148,6 +1378,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 {xyzzy } 11 {xyzzy } 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.3.1")
+		}
 	}
 	{ // do_test "select1-6.4"
 	_ = v // suppress unused warning
@@ -1165,6 +1400,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 xyzzy 33 xyzzy 77")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.4")
+		}
 	}
 	{ // do_test "select1-6.4a"
 	_ = v // suppress unused warning
@@ -1182,6 +1422,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1+F2 33 f1+F2 77")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.4a")
+		}
 	}
 	{ // do_test "select1-6.5"
 	_ = v // suppress unused warning
@@ -1199,6 +1444,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 test1.f1+F2 33 test1.f1+F2 77")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.5")
+		}
 	}
 	{ // do_test "select1-6.5.1"
 		r = db.Query("PRAGMA full_column_names=on")
@@ -1224,6 +1474,11 @@ func Test_select1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA full_column_names=off")
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 test1.f1+F2 33 test1.f1+F2 77")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.5.1")
+		}
 	}
 	{ // do_test "select1-6.6"
 	_ = v // suppress unused warning
@@ -1241,6 +1496,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 test1.f1+F2 33 t1 abc test1.f1+F2 77 t1 abc")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.6")
+		}
 	}
 	{ // do_test "select1-6.7"
 	_ = v // suppress unused warning
@@ -1258,6 +1518,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 t1 abc f1 33 t1 abc")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.7")
+		}
 	}
 	{ // do_test "select1-6.8"
 	_ = v // suppress unused warning
@@ -1275,6 +1540,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ambiguous column name: f1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.8")
+		}
 	}
 	{ // do_test "select1-6.8b"
 	_ = v // suppress unused warning
@@ -1292,6 +1562,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ambiguous column name: f2")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.8b")
+		}
 	}
 	{ // do_test "select1-6.8c"
 	_ = v // suppress unused warning
@@ -1309,6 +1584,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 ambiguous column name: A.f1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.8c")
+		}
 	}
 	{ // do_test "select1-6.9.1"
 	_ = v // suppress unused warning
@@ -1326,6 +1606,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 11 11 11 33 33 11 33 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.9.1")
+		}
 	}
 	{ // do_test "select1-6.9.2"
 	_ = v // suppress unused warning
@@ -1343,6 +1628,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f1 11 f1 33 f1 33 f1 11 f1 11 f1 33 f1 33")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.9.2")
+		}
 	}
 	{ // do_test "select1-6.9.3"
 		_res = db.Exec("\n     PRAGMA short_column_names=OFF;\n     PRAGMA full_column_names=OFF;\n  ")
@@ -1461,6 +1751,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("0 f1 11 f1 22 f1 33 f1 44")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.10")
+		}
 	}
 	{ // do_test "select1-6.11"
 	_ = v // suppress unused warning
@@ -1478,6 +1773,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 1st ORDER BY term does not match any column in the result set")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-6.11")
+		}
 	}
 	{ // do_test "select1-6.20"
 		r = db.Query("\n     CREATE TABLE t6(a TEXT, b TEXT);\n     INSERT INTO t6 VALUES('a','0');\n     INSERT INTO t6 VALUES('b','1');\n     INSERT INTO t6 VALUES('c','2');\n     INSERT INTO t6 VALUES('d','3');\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 LIMIT 1)\n   ")
@@ -1519,6 +1819,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \";\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.1")
+		}
 	}
 	{ // do_test "select1-7.2"
 	_ = v // suppress unused warning
@@ -1536,6 +1841,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \"WHERE\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.2")
+		}
 	}
 	{ // do_test "select1-7.3"
 	_ = v // suppress unused warning
@@ -1553,6 +1863,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 incomplete input")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.3")
+		}
 	}
 	{ // do_test "select1-7.4"
 	_ = v // suppress unused warning
@@ -1570,6 +1885,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \";\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.4")
+		}
 	}
 	{ // do_test "select1-7.5"
 	_ = v // suppress unused warning
@@ -1587,6 +1907,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \"where\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.5")
+		}
 	}
 	{ // do_test "select1-7.6"
 	_ = v // suppress unused warning
@@ -1604,6 +1929,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \"FROM\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.6")
+		}
 	}
 	{ // do_test "select1-7.7"
 	_ = v // suppress unused warning
@@ -1621,6 +1951,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \")\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.7")
+		}
 	}
 	{ // do_test "select1-7.8"
 	_ = v // suppress unused warning
@@ -1638,6 +1973,11 @@ func Test_select1(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 near \";\": syntax error")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select1-7.8")
+		}
 	}
 	{ // do_test "select1-7.9"
 		_res = db.Exec("\n     SELECT f1 FROM test1 LIMIT 5+3 OFFSET 11 ORDER BY f2;\n  ")
@@ -1685,6 +2025,7 @@ func Test_select1(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 		}
 		vtab.TclVarSet("r", "*", "")
 		_r_arr = ""

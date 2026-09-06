@@ -100,27 +100,27 @@ func Test_ctime(t *testing.T) {
 	{ // do_test "ctime-1.2.1"
 		_res = db.Exec("\n    PRAGMA compile_options;\n  ")
 		ans = tclCatchsqlString(_res)
-		_list := tclList([]string{tclLIndex(ans, "0")})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{tclLIndex(ans, "0")})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "ctime-1.2.2"
 		_res = db.Exec("\n    PRAGMA compile_options;\n  ")
 		ans = tclCatchsqlString(_res)
-		_list := tclList([]string{tclLIndex(ans, "0"), tclExprWith(" [lsort [lindex $ans 1]]==[lindex $ans 1] ", map[string]string{"ans": ans})})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{tclLIndex(ans, "0"), tclExprWith(" [lsort [lindex $ans 1]]==[lindex $ans 1] ", map[string]string{"ans": ans})})
+		_ = _list1
+		_r = _list1
 	}
 	// foreach {tn opt res} "1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0"
-	_items0 := tclSplitList("1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items2 := tclSplitList("1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0")
+	for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		opt := _items0[_idx0+1]
+		opt := _items2[_idx2+1]
 		_ = opt // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items2[_idx2+2]
 		_ = res // suppress unused warning
-		_ = _idx0
+		_ = _idx2
 			{ // "ctime-1.3." + tn
 				r = db.Query("\n      SELECT sqlite_compileoption_used(" + sqlLiteral(opt) + ")\n    ")
 				if r.Error != nil {
@@ -255,9 +255,9 @@ func Test_ctime(t *testing.T) {
 		{ // do_test "ctime-2.4"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_get(0);\n  ")
 			ans = tclCatchsqlString(_res)
-			_list := tclList([]string{tclLIndex(ans, "0")})
-			_ = _list
-			_r = _list
+			_list3 := tclList([]string{tclLIndex(ans, "0")})
+			_ = _list3
+			_r = _list3
 		}
 		_res = db.Exec("\n  PRAGMA compile_options;\n")
 		ans = tclCatchsqlString(_res)
@@ -286,9 +286,9 @@ func Test_ctime(t *testing.T) {
 				ans1 = tclListAppend(ans1, msg)
 				_res = db.Exec("\n      SELECT sqlite_compileoption_used(" + opt + ");\n    ")
 				ans2 = tclCatchsqlString(_res)
-				_list := tclList([]string{tclLIndex(ans1, "0"), tclExprWith(" [lindex $ans1 1]==$opt ", map[string]string{"ans1": ans1, "opt": opt}), tclExprWith(" $ans2 ", map[string]string{"ans2": ans2})})
-				_ = _list
-				_r = _list
+				_list4 := tclList([]string{tclLIndex(ans1, "0"), tclExprWith(" [lindex $ans1 1]==$opt ", map[string]string{"ans1": ans1, "opt": opt}), tclExprWith(" $ans2 ", map[string]string{"ans2": ans2})})
+				_ = _list4
+				_r = _list4
 			}
 			// incr tc 1
 			{

@@ -181,6 +181,7 @@ func Test_lock5(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db2, err = frigolite.Open("test.db")
 				tclConnRegister("db2", db2)
 				if err != nil {
@@ -355,9 +356,9 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "2.dotfile.3"
-			_list := tclList([]string{"file exists test.db", "file exists test.db-journal", "file exists test.db.lock"})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{"file exists test.db", "file exists test.db-journal", "file exists test.db.lock"})
+			_ = _list0
+			_r = _list0
 		}
 		{ // do_test "2.dotfile.4"
 			tclFileCopy("test.db", "test.db2")

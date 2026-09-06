@@ -84,6 +84,7 @@ func Test_literal2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("\n  SELECT 123__456\n")
 			if r.Error != nil { _catchErr = r.Error }
 		}
@@ -139,6 +140,7 @@ func Test_literal2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("\n  SELECT 0xFF__EF\n")
 			if r.Error != nil { _catchErr = r.Error }
 		}
@@ -147,6 +149,7 @@ func Test_literal2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("\n  SELECT 0xFFEF_\n")
 			if r.Error != nil { _catchErr = r.Error }
 		}
@@ -179,6 +182,7 @@ func Test_literal2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("\n  SELECT 0XFF__EF\n")
 			if r.Error != nil { _catchErr = r.Error }
 		}
@@ -187,6 +191,7 @@ func Test_literal2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("\n  SELECT 0XFFEF_\n")
 			if r.Error != nil { _catchErr = r.Error }
 		}

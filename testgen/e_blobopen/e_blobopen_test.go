@@ -302,9 +302,9 @@ func Test_e_blobopen(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "2.2"
 		_rc := "0"
@@ -322,20 +322,20 @@ func Test_e_blobopen(t *testing.T) {
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	// foreach {tn iRow flags} "1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648"
-	_items0 := tclSplitList("1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items2 := tclSplitList("1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648")
+	for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		iRow := _items0[_idx0+1]
+		iRow := _items2[_idx2+1]
 		_ = iRow // suppress unused warning
-		flags := _items0[_idx0+2]
+		flags := _items2[_idx2+2]
 		_ = flags // suppress unused warning
-		_ = _idx0
+		_ = _idx2
 			{ // do_test "3." + tn + ".1"
 				B = "incrblob_3"
 				incrblob_3, _berr = db.OpenBlob("main", "x1", "c", tclRowID(iRow), tclBlobWritable(flags))
@@ -367,9 +367,9 @@ func Test_e_blobopen(t *testing.T) {
 						if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 						if _catchErr != nil { _rc = "1" }
 					}
-					_list := tclList([]string{_rc, msg})
-					_ = _list
-					_r = _list
+					_list0 := tclList([]string{_rc, msg})
+					_ = _list0
+					_r = _list0
 				}
 				{ // "3." + tn + ".3"
 					r = db.Query("\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
@@ -397,9 +397,9 @@ func Test_e_blobopen(t *testing.T) {
 						if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 						if _catchErr != nil { _rc = "1" }
 					}
-					_list := tclList([]string{_rc, msg})
-					_ = _list
-					_r = _list
+					_list0 := tclList([]string{_rc, msg})
+					_ = _list0
+					_r = _list0
 				}
 				{ // "3." + tn + ".5"
 					r = db.Query("\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
@@ -510,9 +510,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list3 := tclList([]string{_rc, msg})
+			_ = _list3
+			_r = _list3
 		}
 		{ // do_test "11.2.4"
 			incrblob_4.Close()
@@ -560,9 +560,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list4 := tclList([]string{_rc, msg})
+			_ = _list4
+			_r = _list4
 		}
 		{ // do_test "11.3.4"
 			incrblob_5.Close()
@@ -610,9 +610,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list5 := tclList([]string{_rc, msg})
+			_ = _list5
+			_r = _list5
 		}
 		{ // do_test "11.4.4"
 			incrblob_6.Close()
@@ -644,9 +644,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list6 := tclList([]string{_rc, msg})
+			_ = _list6
+			_r = _list6
 		}
 		{ // do_test "11.4.4"
 			incrblob_7.Close()
@@ -678,9 +678,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list7 := tclList([]string{_rc, msg})
+			_ = _list7
+			_r = _list7
 		}
 		{ // do_test "11.5.4"
 			incrblob_8.Close()
@@ -712,9 +712,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list8 := tclList([]string{_rc, msg})
+			_ = _list8
+			_r = _list8
 		}
 		{ // do_test "11.6.4"
 			incrblob_9.Close()
@@ -759,9 +759,9 @@ func Test_e_blobopen(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list9 := tclList([]string{_rc, msg})
+			_ = _list9
+			_r = _list9
 		}
 		{ // "12.5"
 			r = db.Query("\n  SELECT * FROM b3;\n")
@@ -823,9 +823,9 @@ func Test_e_blobopen(t *testing.T) {
 			} else {
 				_r = "B2"
 			}
-			_list := tclList([]string{"sqlite3_blob_bytes $B", "sqlite3_blob_bytes $B2"})
-			_ = _list
-			_r = _list
+			_list10 := tclList([]string{"sqlite3_blob_bytes $B", "sqlite3_blob_bytes $B2"})
+			_ = _list10
+			_r = _list10
 		}
 		{ // do_test "13.3.2"
 			if _r2, _err2 := incrblob_11.Read(tclBlobInt(0), tclBlobInt(24)); _err2 != nil {

@@ -83,9 +83,9 @@ func Test_qrf05(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, strings.Trim(msg, " \t\n\r\v\f")})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, strings.Trim(msg, " \t\n\r\v\f")})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "1.2"
 	_ = rc // suppress unused warning
@@ -100,9 +100,9 @@ func Test_qrf05(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, strings.Trim(msg, " \t\n\r\v\f")})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{rc, strings.Trim(msg, " \t\n\r\v\f")})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "1.3"
 	_ = rc // suppress unused warning
@@ -117,8 +117,8 @@ func Test_qrf05(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, strings.Trim(msg, " \t\n\r\v\f")})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{rc, strings.Trim(msg, " \t\n\r\v\f")})
+		_ = _list2
+		_r = _list2
 	}
 }

@@ -127,9 +127,9 @@ func Test_corruptE(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
 	}
-	_list := tclList([]string{"10233 0xd0", "941 0x42", "2041 0xd0", "2042 0x1f", "2274 0x75", "3267 0xf2", "5113 0x36", "10233 0x84", "10234 0x74", "10239 0x41", "11273 0x28", "11461 0xe6", "12297 0xd7", "13303 0x53"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"10233 0xd0", "941 0x42", "2041 0xd0", "2042 0x1f", "2274 0x75", "3267 0xf2", "5113 0x36", "10233 0x84", "10234 0x74", "10239 0x41", "11273 0x28", "11461 0xe6", "12297 0xd7", "13303 0x53"})
+	_ = _list0
+	_r = _list0
 	tests = _r
 	_ = tests // suppress unused warning
 	vtab.TclVarSet("tc", "", "1")

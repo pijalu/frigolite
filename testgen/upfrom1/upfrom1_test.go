@@ -227,6 +227,7 @@ func Test_upfrom1(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("\n  UPDATE t5 SET b=1 FROM t5;\n")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
@@ -235,6 +236,7 @@ func Test_upfrom1(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			_res = db.Exec("\n  UPDATE t5 AS apples SET b=1 FROM t5 AS apples;\n")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}

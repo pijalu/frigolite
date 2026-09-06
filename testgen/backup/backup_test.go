@@ -216,11 +216,13 @@ func Test_backup(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								os.Remove("test.db")
 							}
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								os.Remove("test2.db")
 							}
 							if zOpenScript == "\n  sqlite3 db " + tclListElem(zSrcFile) + "\n  sqlite3 db2 " + tclListElem(zSrcFile) + "\n  db2 eval \"ATTACH '" + zDestFile + "' AS bak\"\n  set db_dest db2\n  set file_dest bak\n" {
@@ -343,6 +345,7 @@ func Test_backup(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
+								_r = ""
 								if db2 != nil { db2.Close() }
 							}
 							// incr iTest 1
@@ -370,11 +373,13 @@ func Test_backup(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					os.Remove("test.db")
 				}
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					_r = ""
 					os.Remove("test2.db")
 				}
 				db, err = frigolite.Open("test.db")
@@ -459,11 +464,13 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test2.db")
 		}
 		db, err = frigolite.Open("test.db")
@@ -528,6 +535,7 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			B, _berr = tclBackupInit(db, "aux", db2, "main")
 			if _berr != nil {
 				// sqlite3_backup_init failed; the error message is on the source connection
@@ -548,6 +556,7 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			B, _berr = tclBackupInit(db, "main", db2, "aux")
 			if _berr != nil {
 				// sqlite3_backup_init failed; the error message is on the source connection
@@ -568,11 +577,13 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test3.db")
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test4.db")
 		}
 		_res = db.Exec(" \n    ATTACH 'test3.db' AS aux1;\n    CREATE TABLE aux1.t1(a, b);\n  ")
@@ -672,9 +683,9 @@ func Test_backup(t *testing.T) {
 				_catchErrMsg = ""
 			}
 		}
-		_list := tclList([]string{rc, db.LastErrCode(), db.LastErr()})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, db.LastErrCode(), db.LastErr()})
+		_ = _list0
+		_r = _list0
 	}
 	db.Close()
 	if db2 != nil { db2.Close() }
@@ -682,6 +693,7 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db")
 		}
 		db, err = frigolite.Open("test.db")
@@ -729,13 +741,13 @@ func Test_backup(t *testing.T) {
 	_ = iTest // suppress unused warning
 	os.Remove("bak.db-wal")
 	// foreach {writer file} "db test.db db3 test.db db :memory:"
-	_items0 := tclSplitList("db test.db db3 test.db db :memory:")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		writer := _items0[_idx0+0]
+	_items1 := tclSplitList("db test.db db3 test.db db :memory:")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		writer := _items1[_idx1+0]
 		_ = writer // suppress unused warning
-		file := _items0[_idx0+1]
+		file := _items1[_idx1+1]
 		_ = file // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			// incr iTest 1
 			{
 				_n, _err := strconv.Atoi(iTest)
@@ -746,6 +758,7 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
@@ -754,6 +767,7 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove(file)
 			}
 			db, err = frigolite.Open(file)
@@ -917,21 +931,25 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db.Close()
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				if db2 != nil { db2.Close() }
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				if db3 != nil { db3.Close() }
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
@@ -940,6 +958,7 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove(file)
 			}
 			db, err = frigolite.Open(file)
@@ -990,16 +1009,19 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				db.Close()
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				if db2 != nil { db2.Close() }
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				if db3 != nil { db3.Close() }
 			}
 		}
@@ -1007,11 +1029,13 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test.db")
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test2.db")
 			}
 			db, err = frigolite.Open("test.db")
@@ -1055,9 +1079,9 @@ func Test_backup(t *testing.T) {
 		}
 		{ // do_test "backup-6.5"
 			_r = tclBackupStep(B, "5")
-			_list := tclList([]string{strconv.Itoa(B.Remaining()), strconv.Itoa(B.Pagecount())})
-			_ = _list
-			_r = _list
+			_list2 := tclList([]string{strconv.Itoa(B.Remaining()), strconv.Itoa(B.Pagecount())})
+			_ = _list2
+			_r = _list2
 		}
 		{ // do_test "backup-6.6"
 			_res = db.Exec(" CREATE TABLE t2(a PRIMARY KEY, b) ")
@@ -1065,9 +1089,9 @@ func Test_backup(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a PRIMARY KEY, b) ")
 			}
 			_r = tclBackupStep(B, "1")
-			_list := tclList([]string{strconv.Itoa(B.Remaining()), strconv.Itoa(B.Pagecount())})
-			_ = _list
-			_r = _list
+			_list3 := tclList([]string{strconv.Itoa(B.Remaining()), strconv.Itoa(B.Pagecount())})
+			_ = _list3
+			_r = _list3
 		}
 		{ // do_test "backup-6.X"
 			_r = tclBackupFinish(B)
@@ -1078,22 +1102,26 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		{ // do_test "backup-7.0"
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test.db")
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test2.db")
 			}
 			db2, err = frigolite.Open("test2.db")
@@ -1224,22 +1252,26 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db3 != nil { db3.Close() }
 		}
 		{ // do_test "backup-8.1"
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test2.db")
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				_r = ""
 				os.Remove("test3.db")
 			}
 			db2, err = frigolite.Open("test2.db")
@@ -1264,9 +1296,9 @@ func Test_backup(t *testing.T) {
 			} else {
 				_r = "B3"
 			}
-			_list := tclList([]string{tclBackupFinish(B2), tclBackupFinish(B3)})
-			_ = _list
-			_r = _list
+			_list4 := tclList([]string{tclBackupFinish(B2), tclBackupFinish(B3)})
+			_ = _list4
+			_r = _list4
 		}
 		{ // do_test "backup-8.2"
 			B3, _berr = tclBackupInit(db3, "main", db, "main")
@@ -1285,9 +1317,9 @@ func Test_backup(t *testing.T) {
 			} else {
 				_r = "B2"
 			}
-			_list := tclList([]string{tclBackupFinish(B2), tclBackupFinish(B3)})
-			_ = _list
-			_r = _list
+			_list5 := tclList([]string{tclBackupFinish(B2), tclBackupFinish(B3)})
+			_ = _list5
+			_r = _list5
 		}
 		{ // do_test "backup-8.3"
 			B2, _berr = tclBackupInit(db2, "main", db, "main")
@@ -1322,14 +1354,14 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-8.5"
-			_list := tclList([]string{tclBackupStep(B3, "5000"), tclBackupFinish(B3)})
-			_ = _list
-			_r = _list
+			_list6 := tclList([]string{tclBackupStep(B3, "5000"), tclBackupFinish(B3)})
+			_ = _list6
+			_r = _list6
 		}
 		{ // do_test "backup-8.6"
-			_list := tclList([]string{tclBackupStep(B2, "5000"), tclBackupFinish(B2)})
-			_ = _list
-			_r = _list
+			_list7 := tclList([]string{tclBackupStep(B2, "5000"), tclBackupFinish(B2)})
+			_ = _list7
+			_r = _list7
 		}
 		// test_contents backup-8.7 db main db2 main (unsupported command, not transpiled)
 		// test_contents backup-8.8 db main db3 main (unsupported command, not transpiled)
@@ -1348,11 +1380,13 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db3 != nil { db3.Close() }
 		}
 		{ // do_test "backup-9.1.1"
@@ -1410,20 +1444,21 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		db.Close()
 		os.Remove("test.db")
 		// foreach {tn file rc} "1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK"
-		_items1 := tclSplitList("1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
+		_items8 := tclSplitList("1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK")
+		for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+			tn := _items8[_idx8+0]
 			_ = tn // suppress unused warning
-			file := _items1[_idx1+1]
+			file := _items8[_idx8+1]
 			_ = file // suppress unused warning
-			rc := _items1[_idx1+2]
+			rc := _items8[_idx8+2]
 			_ = rc // suppress unused warning
-			_ = _idx1
+			_ = _idx8
 				{ // do_test "backup-10." + tn + ".1"
 					db.Close()
 					db, err = frigolite.Open(file)

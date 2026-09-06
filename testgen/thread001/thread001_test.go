@@ -125,9 +125,9 @@ func Test_thread001(t *testing.T) {
 			dbconfig = ""
 			_ = dbconfig // suppress unused warning
 			if tclBool(same_db) {
-				_list := tclList([]string{"set", "::DB", "sqlite3_connection_pointer db"})
-				_ = _list
-				_r = _list
+				_list0 := tclList([]string{"set", "::DB", "sqlite3_connection_pointer db"})
+				_ = _list0
+				_r = _list0
 				dbconfig = _r
 				_ = dbconfig // suppress unused warning
 			}
@@ -211,6 +211,7 @@ func Test_thread001(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db.Close()
 		}
 		vtab.TclVarSet("sqlite_open_file_count", "", "0")

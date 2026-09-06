@@ -138,6 +138,7 @@ func Test_index3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			db, err = frigolite.Open("test.db")
 			tclConnRegister("db", db)
 			if err != nil {

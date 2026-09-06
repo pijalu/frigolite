@@ -125,6 +125,11 @@ func Test_intarray(t *testing.T) {
 		ia1 = _r
 		_r = "0"
 		rc = tclListAppend(rc, ia1)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("/0 [0-9A-Z]+/")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intarray-1.1b")
+		}
 	}
 	{ // do_test "intarray-1.2"
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")

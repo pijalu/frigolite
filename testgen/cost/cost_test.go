@@ -259,21 +259,21 @@ func Test_cost(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ANALYZE;\n    CREATE INDEX i2 ON t1(a,b,c,d,e,f,g,h,i,j);\n  ")
 		}
 	}
-	_list := tclList([]string{"a=?", "b=?", "c=?", "d=?", "e=?", "f=?", "g=?", "h=?", "i=?", "j=?"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"a=?", "b=?", "c=?", "d=?", "e=?", "f=?", "g=?", "h=?", "i=?", "j=?"})
+	_ = _list0
+	_r = _list0
 	L = _r
 	_ = L // suppress unused warning
 	// foreach {tn nTerm nRow} "1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5"
-	_items0 := tclSplitList("1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		nTerm := _items0[_idx0+1]
+		nTerm := _items1[_idx1+1]
 		_ = nTerm // suppress unused warning
-		nRow := _items0[_idx0+2]
+		nRow := _items1[_idx1+2]
 		_ = nRow // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			w = strings.Join(tclSplitList(tclLRange(L, "0", tclExprWith("$nTerm-1", map[string]string{"nTerm": nTerm}))), " AND ")
 			_ = w // suppress unused warning
 			p1 = tclExprWith("($nRow-1) / 100.0", map[string]string{"nRow": nRow})

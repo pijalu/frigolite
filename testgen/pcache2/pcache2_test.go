@@ -100,6 +100,7 @@ func Test_pcache2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			if db2 != nil { db2.Close() }
 		}
 		db.Close()
@@ -127,6 +128,7 @@ func Test_pcache2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	// sqlite3_reset_auto_extension (unsupported command, not transpiled)

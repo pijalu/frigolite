@@ -81,6 +81,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 no such table: test1")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.1")
+		}
 	}
 	{ // do_test "insert-1.2"
 	_ = v // suppress unused warning
@@ -98,6 +103,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table sqlite_master may not be modified")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.2")
+		}
 	}
 	{ // do_test "insert-1.3"
 		_res = db.Exec("CREATE TABLE test1(one int, two int, three int)")
@@ -119,6 +129,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table test1 has 3 columns but 2 values were supplied")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3")
+		}
 	}
 	{ // do_test "insert-1.3b"
 	_ = v // suppress unused warning
@@ -136,6 +151,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table test1 has 3 columns but 4 values were supplied")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3b")
+		}
 	}
 	{ // do_test "insert-1.3c"
 	_ = v // suppress unused warning
@@ -153,6 +173,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 4 values for 2 columns")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3c")
+		}
 	}
 	{ // do_test "insert-1.3d"
 	_ = v // suppress unused warning
@@ -170,6 +195,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 1 values for 2 columns")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3d")
+		}
 	}
 	{ // do_test "insert-1.4"
 	_ = v // suppress unused warning
@@ -187,6 +217,11 @@ func Test_insert(t *testing.T) {
 			}
 		}
 		v = tclListAppend(v, msg)
+		got := tclListFlatten(v)
+		want := tclListFlatten("1 table test1 has no column named four")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.4")
+		}
 	}
 	{ // do_test "insert-1.5"
 		_res = db.Exec("INSERT INTO test1 VALUES(1,2,3)")

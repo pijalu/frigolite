@@ -501,9 +501,9 @@ func Test_limit(t *testing.T) {
 				msg = tclRowValuesFlat(_res)
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "limit-10.5"
 		vtab.TclVarSet("limit", "", "hello world")
@@ -523,9 +523,9 @@ func Test_limit(t *testing.T) {
 				msg = tclRowValuesFlat(_res)
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "limit-11.1"
 		r = db.Query("\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")

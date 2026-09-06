@@ -200,6 +200,7 @@ func Test_walthread(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		db.Close()
 	}
 	os.Remove(DBNAME)

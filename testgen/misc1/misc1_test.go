@@ -486,6 +486,11 @@ func Test_misc1(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc1-11.1")
+		}
 	}
 	{ // do_test "misc1-11.2"
 		_res = db.Exec("COMMIT")
@@ -508,6 +513,11 @@ func Test_misc1(t *testing.T) {
 		}
 		if db2 != nil { db2.Close() }
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("0 3")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc1-11.2")
+		}
 	}
 	{ // do_test "misc1-12.1"
 		r = db.Query("SELECT '0'=='0.0'")
@@ -825,13 +835,16 @@ func Test_misc1(t *testing.T) {
 		_rc := "0"
 		{
 			var _catchErr error
-			// sqlite3_prepare_v2 (standalone prepare; not emulated)
+			_catchPrepRc1 := tclPrepareStmt(db, "catchprep0", "!", -1)
+			if _catchPrepRc1 != "SQLITE_OK" {
+				_catchErr = tclPrepareCatchErr(db, _catchPrepRc1)
+			}
 			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 			if _catchErr != nil { _rc = "1" }
 		}
-		_list := tclList([]string{_rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{_rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // "misc1-25.0" — skipped: fuzzed mega-query performance regression; exact semantic error message on pathological input not replicated
 	}

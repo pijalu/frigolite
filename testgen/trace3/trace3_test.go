@@ -107,6 +107,11 @@ func Test_trace3(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 wrong # args: should be \"db trace_v2 ?CALLBACK? ?MASK?\"")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-1.1")
+		}
 	}
 	{ // do_test "trace3-1.2"
 	_ = rc // suppress unused warning
@@ -122,6 +127,11 @@ func Test_trace3(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 bad trace type \"bad\": must be statement, profile, row, or close")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace3-1.2")
+		}
 	}
 	{ // do_test "trace3-2.1"
 	}
@@ -227,9 +237,9 @@ func Test_trace3(t *testing.T) {
 		_ = stmt // suppress unused warning
 		ns = tclLIndex(tclLIndex(stmtlist_record, "0"), "1")
 		_ = ns // suppress unused warning
-		_list := tclList([]string{stmt, tclExprWith("$ns >= 0 && $ns <= 9999999", map[string]string{"ns": ns})})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{stmt, tclExprWith("$ns >= 0 && $ns <= 9999999", map[string]string{"ns": ns})})
+		_ = _list0
+		_r = _list0
 	}
 	{ // do_test "trace3-4.4"
 		vtab.TclVarSet("cnt", "", "0")
@@ -267,9 +277,9 @@ func Test_trace3(t *testing.T) {
 				break
 			}
 		}
-		_list := tclList([]string{stmt, res})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{stmt, res})
+		_ = _list1
+		_r = _list1
 	}
 	{ // do_test "trace3-5.1"
 		stmtlist_record = "" // TCL namespace variable
@@ -338,49 +348,49 @@ func Test_trace3(t *testing.T) {
 		_ = STMT // prepared statement handle
 	}
 	{ // do_test "trace3-8.1"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list2 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list2
+		_r = _list2
 	}
 	{ // do_test "trace3-8.2"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list3 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list3
+		_r = _list3
 	}
 	{ // do_test "trace3-8.3"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list4
+		_r = _list4
 	}
 	{ // do_test "trace3-8.4"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list5 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list5
+		_r = _list5
 	}
 	{ // do_test "trace3-8.5"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list6 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list6
+		_r = _list6
 	}
 	{ // do_test "trace3-8.6"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list7 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list7
+		_r = _list7
 	}
 	{ // do_test "trace3-8.7"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list8 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list8
+		_r = _list8
 	}
 	{ // do_test "trace3-8.8"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list9 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list9
+		_r = _list9
 	}
 	{ // do_test "trace3-8.9"
-		_list := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
-		_ = _list
-		_r = _list
+		_list10 := tclList([]string{"", "sqlite3_expanded_sql $STMT"})
+		_ = _list10
+		_r = _list10
 	}
 	{ // "trace3-9.1" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -500,22 +510,22 @@ func Test_trace3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "13.1"
-		_dbevalRows0 := db.Query(" SELECT * FROM t1 ")
-		var _dbevalRb1 bool
-		var _dbevalErr2 error
-		var _dbevalInt3 bool
+		_dbevalRows11 := db.Query(" SELECT * FROM t1 ")
+		var _dbevalRb12 bool
+		var _dbevalErr13 error
+		var _dbevalInt14 bool
 		db.BeginActiveStatement()
-		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
-			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
-				switch _dbevalRows0.Columns[_ci] {
+		for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
+				switch _dbevalRows11.Columns[_ci] {
 				}
 			}
-			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
-			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
+			if _dbevalRb12 { _dbevalErr13 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt14 { _dbevalErr13 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
 		db.EndActiveStatement()
-		if _dbevalErr2 != nil {
-			t.Errorf("db eval callback error: %v", _dbevalErr2)
+		if _dbevalErr13 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr13)
 		}
 		// set  (invalid identifier, skipped)
 	}

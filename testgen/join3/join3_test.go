@@ -72,6 +72,7 @@ func Test_join3(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 	}
 	vtab.TclVarSet("result", "", "")
 	result = ""

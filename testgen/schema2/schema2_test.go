@@ -396,9 +396,9 @@ func Test_schema2(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list0 := tclList([]string{rc, msg})
+		_ = _list0
+		_r = _list0
 	}
 	{ // "schema2-11.4" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")
@@ -435,9 +435,9 @@ func Test_schema2(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list1 := tclList([]string{rc, msg})
+		_ = _list1
+		_r = _list1
 	}
 	{ // "schema2-11.8" (prepare-step internals; SQL side effects only)
 		tclFinalizePrepared("STMT")

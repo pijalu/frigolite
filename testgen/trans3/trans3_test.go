@@ -133,6 +133,11 @@ func Test_trans3(t *testing.T) {
 			}
 		}
 		x = tclListAppend(x, errmsg)
+		got := tclListFlatten(x)
+		want := tclListFlatten("0 {}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans3-1.2")
+		}
 	}
 	{ // do_test "trans3-1.3"
 		_ = ecode // TCL namespace variable (query)
@@ -214,6 +219,11 @@ func Test_trans3(t *testing.T) {
 			}
 		}
 		x = tclListAppend(x, errmsg)
+		got := tclListFlatten(x)
+		want := tclListFlatten("1 abort due to ROLLBACK")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trans3-1.5")
+		}
 	}
 	{ // do_test "trans3-1.6"
 		_ = ecode // TCL namespace variable (query)

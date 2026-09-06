@@ -393,11 +393,15 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 		tp.emitLine("// %s $%s %d %s → %s", cmdName, stmtVar, idx, args[2].Text, lit)
 		return
 	}
-	nlen := -1
-	// sqlite3_bind_text takes an explicit byte count as a 4th argument.
-	if len(args) >= 4 && kind == "text" {
+	nlenExpr := "-1"
+	// sqlite3_bind_text/text16 take an explicit byte count as a 4th
+	// argument — a literal or a $var (sqllimits1-5.14.6/5.14.8 bind with
+	// the runtime $np1/$n counts).
+	if len(args) >= 4 && (kind == "text" || kind == "text16") {
 		if n, nerr := strconv.Atoi(strings.TrimSpace(args[3].Text)); nerr == nil {
-			nlen = n
+			nlenExpr = strconv.Itoa(n)
+		} else if strings.HasPrefix(strings.TrimSpace(args[3].Text), "$") {
+			nlenExpr = fmt.Sprintf("toInt(%s)", tclVarToGo(strings.TrimPrefix(strings.TrimSpace(args[3].Text), "$")))
 		}
 	}
 	rawExpr := `""`
@@ -405,7 +409,7 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 		rawExpr = tp.buildStringExpr(args[2].Text)
 	}
 	_ = sql
-	tp.emitLine("_r = tclBindStmt(%s, %q, %d, %q, %s, %d)", conn, stmtVar, idx, kind, rawExpr, nlen)
+	tp.emitLine("_r = tclBindStmt(%s, %q, %d, %q, %s, %s)", conn, stmtVar, idx, kind, rawExpr, nlenExpr)
 }
 
 // bindValueSQL renders a bound TCL value as a SQL literal for the INSERT

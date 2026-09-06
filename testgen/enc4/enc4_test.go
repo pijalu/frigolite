@@ -85,14 +85,14 @@ func Test_enc4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	return
 	db.Close()
-	_list := tclList([]string{"UTF-8", "UTF-16le", "UTF-16be"})
-	_ = _list
-	_r = _list
+	_list0 := tclList([]string{"UTF-8", "UTF-16le", "UTF-16be"})
+	_ = _list0
+	_r = _list0
 	encodings = _r
 	_ = encodings // suppress unused warning
-	_list := tclList([]string{"1", "1.0", "1.", "1e0"})
-	_ = _list
-	_r = _list
+	_list1 := tclList([]string{"1", "1.0", "1.", "1e0"})
+	_ = _list1
+	_r = _list1
 	inits = _r
 	_ = inits // suppress unused warning
 	vals = "list\\\n\"922337203685477580792233720368547758079223372036854775807\"\\\n\"100000000000000000000000000000000000000000000000000000000\"\\\n\"1.0000000000000000000000000000000000000000000000000000000\"\\"

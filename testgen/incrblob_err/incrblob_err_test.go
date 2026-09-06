@@ -219,12 +219,14 @@ func Test_incrblob_err(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 	// do_ioerr_test incrblob_err-8 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE bl... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		if db2 != nil { db2.Close() }
 	}
 }

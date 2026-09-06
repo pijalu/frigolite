@@ -3863,6 +3863,95 @@ func tclCloseDB(db *frigolite.DB) string {
 
 var tclPrepared = map[string]*frigolite.Stmt{}
 
+// tclCatchStmtResult maps a stmt-API helper's returned code string to the
+// TCL-visible result of "catch {sqlite3_* ...} var": SQLITE_OK (and empty)
+// mean the call succeeded and left no interpreter result (bind/reset/
+// finalize), while every other code — including SQLITE_ROW/SQLITE_DONE from
+// step — is itself the result or error message.
+func tclCatchStmtResult(code string) string {
+	if code == "SQLITE_OK" || code == "" {
+		return ""
+	}
+	return code
+}
+
+// tclPrepareCatchErr formats a failed sqlite3_prepare's TCL error the way
+// the test1.c test_prepare wrapper does: "(<code>) <errmsg>"
+// (sqllimits1-6.3 expects "(18) statement too long").
+func tclPrepareCatchErr(db *frigolite.DB, code string) error {
+	msg := "unknown error"
+	if db != nil && db.LastErr() != "" {
+		msg = db.LastErr()
+	}
+	return fmt.Errorf("(%d) %s", sqliteErrCodeNum(code), msg)
+}
+
+// sqliteErrCodeNum maps the primary SQLITE_* result-code names to their
+// numeric values (sqlite3.h).
+func sqliteErrCodeNum(code string) int {
+	switch code {
+	case "SQLITE_OK":
+		return 0
+	case "SQLITE_ERROR":
+		return 1
+	case "SQLITE_INTERNAL":
+		return 2
+	case "SQLITE_PERM":
+		return 3
+	case "SQLITE_ABORT":
+		return 4
+	case "SQLITE_BUSY":
+		return 5
+	case "SQLITE_LOCKED":
+		return 6
+	case "SQLITE_NOMEM":
+		return 7
+	case "SQLITE_READONLY":
+		return 8
+	case "SQLITE_INTERRUPT":
+		return 9
+	case "SQLITE_IOERR":
+		return 10
+	case "SQLITE_CORRUPT":
+		return 11
+	case "SQLITE_NOTFOUND":
+		return 12
+	case "SQLITE_FULL":
+		return 13
+	case "SQLITE_CANTOPEN":
+		return 14
+	case "SQLITE_PROTOCOL":
+		return 15
+	case "SQLITE_EMPTY":
+		return 16
+	case "SQLITE_SCHEMA":
+		return 17
+	case "SQLITE_TOOBIG":
+		return 18
+	case "SQLITE_CONSTRAINT":
+		return 19
+	case "SQLITE_MISMATCH":
+		return 20
+	case "SQLITE_MISUSE":
+		return 21
+	case "SQLITE_NOLFS":
+		return 22
+	case "SQLITE_AUTH":
+		return 23
+	case "SQLITE_FORMAT":
+		return 24
+	case "SQLITE_RANGE":
+		return 25
+	case "SQLITE_NOTADB":
+		return 26
+	case "SQLITE_NOTICE":
+		return 27
+	case "SQLITE_WARNING":
+		return 28
+	}
+	return 1
+}
+
 func tclPrepareStep(db *frigolite.DB, sqlText, name string) {
 	if db == nil { return }
 	stmt, err := db.Prepare(sqlText)
@@ -3963,6 +4052,14 @@ func tclStepPreparedCode(db *frigolite.DB, name, sqlText string) string {
 func tclPrepareStmt(db *frigolite.DB, name, sqlText string, nByte int) string {
 	if db == nil {
 		return "SQLITE_MISUSE"
+	}
+	// prepare.c:766-774: an explicit nByte larger than
+	// SQLITE_LIMIT_SQL_LENGTH fails SQLITE_TOOBIG "statement too long"
+	// before any parsing; the message stays as the connection's last error
+	// (sqlite3_errmsg — sqllimits1-6.3/6.4).
+	if nByte >= 0 && nByte > db.Limit("SQLITE_LIMIT_SQL_LENGTH") {
+		db.SetLastErr("statement too long", "SQLITE_TOOBIG")
+		return "SQLITE_TOOBIG"
 	}
 	// sqlite3_prepare's nByte limits how much of the SQL is read.
 	if nByte >= 0 && nByte < len(sqlText) {

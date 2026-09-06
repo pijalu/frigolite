@@ -274,9 +274,9 @@ func Test_incrvacuum(t *testing.T) {
 		if _dbevalErr2 != nil {
 			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
-		_list := tclList([]string{tclExpr("[file size test.db] / 1024"), nStep})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{tclExpr("[file size test.db] / 1024"), nStep})
+		_ = _list4
+		_r = _list4
 	}
 	{ // do_test "incrvacuum-5.1.1"
 		// expr [file size test.db] / 1024 (not evaluated)
@@ -328,9 +328,9 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
-	_list := tclList([]string{"\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t1_i ON t1(a);\n  CREATE INDEX t2_i ON t2(a);\n", "\n  INSERT INTO t1 VALUES($::str1, $::str2);\n  INSERT INTO t1 VALUES($::str1||$::str2, $::str2||$::str1);\n  INSERT INTO t2 SELECT b, a FROM t1;\n  INSERT INTO t2 SELECT a, b FROM t1;\n  INSERT INTO t1 SELECT b, a FROM t2;\n  UPDATE t2 SET b = '';\n  PRAGMA incremental_vacuum;\n", "\n  UPDATE t2 SET b = (SELECT b FROM t1 WHERE t1.oid = t2.oid);\n  PRAGMA incremental_vacuum;\n", "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 SELECT * FROM t2;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum;\n", "\n  CREATE INDEX t3_i ON t3(a);\n  COMMIT;\n", "\n  BEGIN;\n  DROP INDEX t3_i;\n  PRAGMA incremental_vacuum;\n  INSERT INTO t3 VALUES('hello', 'world');\n  ROLLBACK;\n", "\n  INSERT INTO t3 VALUES('hello', 'world');\n"})
-	_ = _list
-	_r = _list
+	_list5 := tclList([]string{"\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t1_i ON t1(a);\n  CREATE INDEX t2_i ON t2(a);\n", "\n  INSERT INTO t1 VALUES($::str1, $::str2);\n  INSERT INTO t1 VALUES($::str1||$::str2, $::str2||$::str1);\n  INSERT INTO t2 SELECT b, a FROM t1;\n  INSERT INTO t2 SELECT a, b FROM t1;\n  INSERT INTO t1 SELECT b, a FROM t2;\n  UPDATE t2 SET b = '';\n  PRAGMA incremental_vacuum;\n", "\n  UPDATE t2 SET b = (SELECT b FROM t1 WHERE t1.oid = t2.oid);\n  PRAGMA incremental_vacuum;\n", "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 SELECT * FROM t2;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum;\n", "\n  CREATE INDEX t3_i ON t3(a);\n  COMMIT;\n", "\n  BEGIN;\n  DROP INDEX t3_i;\n  PRAGMA incremental_vacuum;\n  INSERT INTO t3 VALUES('hello', 'world');\n  ROLLBACK;\n", "\n  INSERT INTO t3 VALUES('hello', 'world');\n"})
+	_ = _list5
+	_r = _list5
 	TestScriptList = _r
 	_ = TestScriptList // suppress unused warning
 	// proc definition (not transpiled)
@@ -423,26 +423,26 @@ func Test_incrvacuum(t *testing.T) {
 			vtab.TclVarSet("nRow", "", "0")
 			nRow = "0" // TCL namespace variable
 			_ = nRow // suppress unused warning
-			_dbevalRows4 := db.Query("SELECT a FROM tbl2")
-			var _dbevalRb5 bool
-			var _dbevalErr6 error
-			var _dbevalInt7 bool
+			_dbevalRows6 := db.Query("SELECT a FROM tbl2")
+			var _dbevalRb7 bool
+			var _dbevalErr8 error
+			var _dbevalInt9 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
-					switch _dbevalRows4.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+					switch _dbevalRows6.Columns[_ci] {
 					}
 				}
-				if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt9 { _dbevalErr8 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr6 != nil {
-				t.Errorf("db eval callback error: %v", _dbevalErr6)
+			if _dbevalErr8 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr8)
 			}
-			_list := tclList([]string{tclExpr("[file size test.db] / 1024"), nRow})
-			_ = _list
-			_r = _list
+			_list10 := tclList([]string{tclExpr("[file size test.db] / 1024"), nRow})
+			_ = _list10
+			_r = _list10
 		}
 		// incr jj 1
 		{
@@ -484,14 +484,14 @@ func Test_incrvacuum(t *testing.T) {
 			vtab.TclVarSet("nRow", "", "0")
 			nRow = "0" // TCL namespace variable
 			_ = nRow // suppress unused warning
-			_dbevalRows8 := db.Query("PRAGMA incremental_vacuum")
-			var _dbevalRb9 bool
-			var _dbevalErr10 error
-			var _dbevalInt11 bool
+			_dbevalRows11 := db.Query("PRAGMA incremental_vacuum")
+			var _dbevalRb12 bool
+			var _dbevalErr13 error
+			var _dbevalInt14 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows8.Columns); _ci++ {
-					switch _dbevalRows8.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
+					switch _dbevalRows11.Columns[_ci] {
 					}
 				}
 				// incr nRow 1
@@ -504,16 +504,16 @@ func Test_incrvacuum(t *testing.T) {
 				if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; iWrite_n, _iWrite_e := strconv.Atoi(iWrite); if _iWrite_e != nil { return false }; return nRow_n == iWrite_n }() {
 					_res = db.Exec("\n          CREATE TABLE tbl1(a, b);\n          INSERT INTO tbl1 VALUES('hello', 'world');\n        ")
 				}
-				if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb12 { _dbevalErr13 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt14 { _dbevalErr13 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr10 != nil {
-				t.Errorf("db eval callback error: %v", _dbevalErr10)
+			if _dbevalErr13 != nil {
+				t.Errorf("db eval callback error: %v", _dbevalErr13)
 			}
-			_list := tclList([]string{tclExpr("[file size test.db] / 1024")})
-			_ = _list
-			_r = _list
+			_list15 := tclList([]string{tclExpr("[file size test.db] / 1024")})
+			_ = _list15
+			_r = _list15
 		}
 		{ // do_test "incrvacuum-7." + iWrite + ".3"
 			r = db.Query("\n      SELECT * FROM tbl1;\n    ")
@@ -769,9 +769,9 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-13.4"
 		rc = "SQLITE_ROW"
 		_ = rc // suppress unused warning
-		_list := tclList([]string{rc, tclFinalizePreparedCode(db, "STMT")})
-		_ = _list
-		_r = _list
+		_list16 := tclList([]string{rc, tclFinalizePreparedCode(db, "STMT")})
+		_ = _list16
+		_r = _list16
 	}
 	{ // do_test "incrvacuum-13.5"
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
@@ -846,28 +846,28 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-16.2"
 		res = ""
 		_ = res // suppress unused warning
-		_dbevalRows12 := db.Query(" SELECT a FROM t3 ")
-		var _dbevalRb13 bool
-		var _dbevalErr14 error
-		var _dbevalInt15 bool
+		_dbevalRows17 := db.Query(" SELECT a FROM t3 ")
+		var _dbevalRb18 bool
+		var _dbevalErr19 error
+		var _dbevalInt20 bool
 		db.BeginActiveStatement()
-		for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
-			for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
-				switch _dbevalRows12.Columns[_ci] {
+		for _ri := 0; _ri < len(_dbevalRows17.Rows) && _dbevalErr19 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows17.Columns); _ci++ {
+				switch _dbevalRows17.Columns[_ci] {
 					case "a":
-						a = tclStr(_dbevalRows12.Rows[_ri][_ci])
+						a = tclStr(_dbevalRows17.Rows[_ri][_ci])
 				}
 			}
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
 				_res = db.Exec("COMMIT")
 			}
 			res = tclListAppend(res, a)
-			if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
-			if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
+			if _dbevalRb18 { _dbevalErr19 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt20 { _dbevalErr19 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
 		db.EndActiveStatement()
-		if _dbevalErr14 != nil {
-			t.Errorf("db eval callback error: %v", _dbevalErr14)
+		if _dbevalErr19 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr19)
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 2 3 4")

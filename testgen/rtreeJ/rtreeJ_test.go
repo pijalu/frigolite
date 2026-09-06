@@ -133,9 +133,9 @@ func Test_rtreeJ(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list4 := tclList([]string{rc, msg})
+		_ = _list4
+		_r = _list4
 	}
 	{ // "1.3"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -154,32 +154,32 @@ func Test_rtreeJ(t *testing.T) {
 		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(5, 5, 5);\n      INSERT INTO t1 VALUES(6, 6, 6);\n  ")
-		_dbevalRows4 := db.Query(" SELECT * FROM t1 ")
-		var _dbevalRb5 bool
-		var _dbevalErr6 error
-		var _dbevalInt7 bool
+		_dbevalRows5 := db.Query(" SELECT * FROM t1 ")
+		var _dbevalRb6 bool
+		var _dbevalErr7 error
+		var _dbevalInt8 bool
 		db.BeginActiveStatement()
-		for _ri := 0; _ri < len(_dbevalRows4.Rows) && _dbevalErr6 == nil; _ri++ {
-			for _ci := 0; _ci < len(_dbevalRows4.Columns); _ci++ {
-				switch _dbevalRows4.Columns[_ci] {
+		for _ri := 0; _ri < len(_dbevalRows5.Rows) && _dbevalErr7 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows5.Columns); _ci++ {
+				switch _dbevalRows5.Columns[_ci] {
 					case "id":
-						id = tclStr(_dbevalRows4.Rows[_ri][_ci])
+						id = tclStr(_dbevalRows5.Rows[_ri][_ci])
 					case "x1":
-						x1 = tclStr(_dbevalRows4.Rows[_ri][_ci])
+						x1 = tclStr(_dbevalRows5.Rows[_ri][_ci])
 					case "x2":
-						x2 = tclStr(_dbevalRows4.Rows[_ri][_ci])
+						x2 = tclStr(_dbevalRows5.Rows[_ri][_ci])
 				}
 			}
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 				_res = db.Exec(" COMMIT ")
 			}
 			res = tclListAppend(res, id, x1, x2)
-			if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
-			if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
+			if _dbevalRb6 { _dbevalErr7 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt8 { _dbevalErr7 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
 		db.EndActiveStatement()
-		if _dbevalErr6 != nil {
-			t.Errorf("db eval callback error: %v", _dbevalErr6)
+		if _dbevalErr7 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr7)
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 1.0 1.0 2 2.0 2.0 5 5.0 5.0 6 6.0 6.0")
@@ -216,32 +216,32 @@ func Test_rtreeJ(t *testing.T) {
 		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t2(x) VALUES(12345);\n  ")
-		_dbevalRows8 := db.Query(" SELECT * FROM t1 ")
-		var _dbevalRb9 bool
-		var _dbevalErr10 error
-		var _dbevalInt11 bool
+		_dbevalRows9 := db.Query(" SELECT * FROM t1 ")
+		var _dbevalRb10 bool
+		var _dbevalErr11 error
+		var _dbevalInt12 bool
 		db.BeginActiveStatement()
-		for _ri := 0; _ri < len(_dbevalRows8.Rows) && _dbevalErr10 == nil; _ri++ {
-			for _ci := 0; _ci < len(_dbevalRows8.Columns); _ci++ {
-				switch _dbevalRows8.Columns[_ci] {
+		for _ri := 0; _ri < len(_dbevalRows9.Rows) && _dbevalErr11 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows9.Columns); _ci++ {
+				switch _dbevalRows9.Columns[_ci] {
 					case "id":
-						id = tclStr(_dbevalRows8.Rows[_ri][_ci])
+						id = tclStr(_dbevalRows9.Rows[_ri][_ci])
 					case "x1":
-						x1 = tclStr(_dbevalRows8.Rows[_ri][_ci])
+						x1 = tclStr(_dbevalRows9.Rows[_ri][_ci])
 					case "x2":
-						x2 = tclStr(_dbevalRows8.Rows[_ri][_ci])
+						x2 = tclStr(_dbevalRows9.Rows[_ri][_ci])
 				}
 			}
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 				_res = db.Exec(" ROLLBACK ")
 			}
 			res = tclListAppend(res, id, x1, x2)
-			if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
-			if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
+			if _dbevalRb10 { _dbevalErr11 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt12 { _dbevalErr11 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
 		db.EndActiveStatement()
-		if _dbevalErr10 != nil {
-			t.Errorf("db eval callback error: %v", _dbevalErr10)
+		if _dbevalErr11 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr11)
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 1.0 1.0 2 2.0 2.0 3 3.0 3.0 4 4.0 4.0")
@@ -255,20 +255,20 @@ func Test_rtreeJ(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows12 := db.Query(" SELECT * FROM t1 ")
-			var _dbevalRb13 bool
-			var _dbevalErr14 error
-			var _dbevalInt15 bool
+			_dbevalRows13 := db.Query(" SELECT * FROM t1 ")
+			var _dbevalRb14 bool
+			var _dbevalErr15 error
+			var _dbevalInt16 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows12.Rows) && _dbevalErr14 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows12.Columns); _ci++ {
-					switch _dbevalRows12.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows13.Rows) && _dbevalErr15 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows13.Columns); _ci++ {
+					switch _dbevalRows13.Columns[_ci] {
 						case "id":
-							id = tclStr(_dbevalRows12.Rows[_ri][_ci])
+							id = tclStr(_dbevalRows13.Rows[_ri][_ci])
 						case "x1":
-							x1 = tclStr(_dbevalRows12.Rows[_ri][_ci])
+							x1 = tclStr(_dbevalRows13.Rows[_ri][_ci])
 						case "x2":
-							x2 = tclStr(_dbevalRows12.Rows[_ri][_ci])
+							x2 = tclStr(_dbevalRows13.Rows[_ri][_ci])
 					}
 				}
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
@@ -276,12 +276,12 @@ func Test_rtreeJ(t *testing.T) {
 					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				res = tclListAppend(res, id, x1, x2)
-				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb14 { _dbevalErr15 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt16 { _dbevalErr15 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr14 != nil {
-				_catchErr = _dbevalErr14
+			if _dbevalErr15 != nil {
+				_catchErr = _dbevalErr15
 			}
 			if _catchErr != nil {
 				rc = "1"
@@ -291,9 +291,9 @@ func Test_rtreeJ(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list17 := tclList([]string{rc, msg})
+		_ = _list17
+		_r = _list17
 	}
 	{ // "1.9"
 		r = db.Query("\n  COMMIT;\n  SELECT * FROM t1;\n")
@@ -327,31 +327,31 @@ func Test_rtreeJ(t *testing.T) {
 			vtab.TclVarSet("res", "", "")
 			res = ""
 			_ = res // suppress unused warning
-			_dbevalRows16 := db.Query(" SELECT * FROM t1 ")
-			var _dbevalRb17 bool
-			var _dbevalErr18 error
-			var _dbevalInt19 bool
+			_dbevalRows18 := db.Query(" SELECT * FROM t1 ")
+			var _dbevalRb19 bool
+			var _dbevalErr20 error
+			var _dbevalInt21 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows16.Rows) && _dbevalErr18 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows16.Columns); _ci++ {
-					switch _dbevalRows16.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows18.Rows) && _dbevalErr20 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows18.Columns); _ci++ {
+					switch _dbevalRows18.Columns[_ci] {
 						case "id":
-							id = tclStr(_dbevalRows16.Rows[_ri][_ci])
+							id = tclStr(_dbevalRows18.Rows[_ri][_ci])
 						case "x1":
-							x1 = tclStr(_dbevalRows16.Rows[_ri][_ci])
+							x1 = tclStr(_dbevalRows18.Rows[_ri][_ci])
 						case "x2":
-							x2 = tclStr(_dbevalRows16.Rows[_ri][_ci])
+							x2 = tclStr(_dbevalRows18.Rows[_ri][_ci])
 					}
 				}
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 2 }() {
 				}
 				res = tclListAppend(res, id, x1, x2)
-				if _dbevalRb17 { _dbevalErr18 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt19 { _dbevalErr18 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb19 { _dbevalErr20 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt21 { _dbevalErr20 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr18 != nil {
-				_catchErr = _dbevalErr18
+			if _dbevalErr20 != nil {
+				_catchErr = _dbevalErr20
 			}
 			if _catchErr != nil {
 				rc = "1"
@@ -361,9 +361,9 @@ func Test_rtreeJ(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list22 := tclList([]string{rc, msg})
+		_ = _list22
+		_r = _list22
 	}
 	{ // "1.12"
 		r = db.Query("\n  COMMIT;\n  SELECT * FROM t1;\n")
@@ -396,18 +396,18 @@ func Test_rtreeJ(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows20 := db.Query(" SELECT x1, x2 FROM t1 ")
-			var _dbevalRb21 bool
-			var _dbevalErr22 error
-			var _dbevalInt23 bool
+			_dbevalRows23 := db.Query(" SELECT x1, x2 FROM t1 ")
+			var _dbevalRb24 bool
+			var _dbevalErr25 error
+			var _dbevalInt26 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows20.Rows) && _dbevalErr22 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows20.Columns); _ci++ {
-					switch _dbevalRows20.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows23.Rows) && _dbevalErr25 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows23.Columns); _ci++ {
+					switch _dbevalRows23.Columns[_ci] {
 						case "x1":
-							x1 = tclStr(_dbevalRows20.Rows[_ri][_ci])
+							x1 = tclStr(_dbevalRows23.Rows[_ri][_ci])
 						case "x2":
-							x2 = tclStr(_dbevalRows20.Rows[_ri][_ci])
+							x2 = tclStr(_dbevalRows23.Rows[_ri][_ci])
 					}
 				}
 				if func() bool { x1_n, _x1_e := strconv.Atoi(x1); if _x1_e != nil { return false }; return x1_n == 1 }() {
@@ -415,12 +415,12 @@ func Test_rtreeJ(t *testing.T) {
 					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				res = tclListAppend(res, x1, x2)
-				if _dbevalRb21 { _dbevalErr22 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt23 { _dbevalErr22 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb24 { _dbevalErr25 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt26 { _dbevalErr25 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr22 != nil {
-				_catchErr = _dbevalErr22
+			if _dbevalErr25 != nil {
+				_catchErr = _dbevalErr25
 			}
 			if _catchErr != nil {
 				rc = "1"
@@ -430,9 +430,9 @@ func Test_rtreeJ(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list27 := tclList([]string{rc, msg})
+		_ = _list27
+		_r = _list27
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE bak_node(nodeno, data);\n  CREATE TABLE bak_parent(nodeno, parentnode);\n  CREATE TABLE bak_rowid(rowid, nodeno);\n")
@@ -449,63 +449,7 @@ func Test_rtreeJ(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows24 := db.Query(" SELECT rowid, x1, x2 FROM t1 ")
-			var _dbevalRb25 bool
-			var _dbevalErr26 error
-			var _dbevalInt27 bool
-			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows24.Rows) && _dbevalErr26 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows24.Columns); _ci++ {
-					switch _dbevalRows24.Columns[_ci] {
-						case "x1":
-							x1 = tclStr(_dbevalRows24.Rows[_ri][_ci])
-						case "x2":
-							x2 = tclStr(_dbevalRows24.Rows[_ri][_ci])
-					}
-				}
-				if func() bool { x1_n, _x1_e := strconv.Atoi(x1); if _x1_e != nil { return false }; return x1_n == 1 }() {
-					// restore_t1 (unsupported command, not transpiled)
-				}
-				res = tclListAppend(res, x1, x2)
-				if _dbevalRb25 { _dbevalErr26 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt27 { _dbevalErr26 = errors.New("interrupted"); db.ClearInterrupt() }
-			}
-			db.EndActiveStatement()
-			if _dbevalErr26 != nil {
-				_catchErr = _dbevalErr26
-			}
-			if _catchErr != nil {
-				rc = "1"
-				msg = _catchErr.Error()
-			} else {
-				rc = "0"
-				msg = ""
-			}
-		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
-	}
-	{ // "2.4"
-		r = db.Query("\n  SELECT * FROM t1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 1.0 1.0 2 2.0 2.0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "2.5"
-		// save_t1 (unsupported command, not transpiled)
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
-	_ = rc // suppress unused warning
-	_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			_dbevalRows28 := db.Query(" SELECT x1 FROM t1 ")
+			_dbevalRows28 := db.Query(" SELECT rowid, x1, x2 FROM t1 ")
 			var _dbevalRb29 bool
 			var _dbevalErr30 error
 			var _dbevalInt31 bool
@@ -538,9 +482,65 @@ func Test_rtreeJ(t *testing.T) {
 				msg = ""
 			}
 		}
-		_list := tclList([]string{rc, msg})
-		_ = _list
-		_r = _list
+		_list32 := tclList([]string{rc, msg})
+		_ = _list32
+		_r = _list32
+	}
+	{ // "2.4"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1.0 1.0 2 2.0 2.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "2.5"
+		// save_t1 (unsupported command, not transpiled)
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(3, 3, 3);\n  ")
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			_dbevalRows33 := db.Query(" SELECT x1 FROM t1 ")
+			var _dbevalRb34 bool
+			var _dbevalErr35 error
+			var _dbevalInt36 bool
+			db.BeginActiveStatement()
+			for _ri := 0; _ri < len(_dbevalRows33.Rows) && _dbevalErr35 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows33.Columns); _ci++ {
+					switch _dbevalRows33.Columns[_ci] {
+						case "x1":
+							x1 = tclStr(_dbevalRows33.Rows[_ri][_ci])
+						case "x2":
+							x2 = tclStr(_dbevalRows33.Rows[_ri][_ci])
+					}
+				}
+				if func() bool { x1_n, _x1_e := strconv.Atoi(x1); if _x1_e != nil { return false }; return x1_n == 1 }() {
+					// restore_t1 (unsupported command, not transpiled)
+				}
+				res = tclListAppend(res, x1, x2)
+				if _dbevalRb34 { _dbevalErr35 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt36 { _dbevalErr35 = errors.New("interrupted"); db.ClearInterrupt() }
+			}
+			db.EndActiveStatement()
+			if _dbevalErr35 != nil {
+				_catchErr = _dbevalErr35
+			}
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		_list37 := tclList([]string{rc, msg})
+		_ = _list37
+		_r = _list37
 	}
 	{ // "2.6"
 		r = db.Query("\n  SELECT * FROM t1\n")
@@ -564,14 +564,14 @@ func Test_rtreeJ(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbevalRows32 := db.Query(" SELECT 'abc' FROM t1 ")
-			var _dbevalRb33 bool
-			var _dbevalErr34 error
-			var _dbevalInt35 bool
+			_dbevalRows38 := db.Query(" SELECT 'abc' FROM t1 ")
+			var _dbevalRb39 bool
+			var _dbevalErr40 error
+			var _dbevalInt41 bool
 			db.BeginActiveStatement()
-			for _ri := 0; _ri < len(_dbevalRows32.Rows) && _dbevalErr34 == nil; _ri++ {
-				for _ci := 0; _ci < len(_dbevalRows32.Columns); _ci++ {
-					switch _dbevalRows32.Columns[_ci] {
+			for _ri := 0; _ri < len(_dbevalRows38.Rows) && _dbevalErr40 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows38.Columns); _ci++ {
+					switch _dbevalRows38.Columns[_ci] {
 					}
 				}
 				if tclBool(res + "==" + "") {
@@ -581,12 +581,12 @@ func Test_rtreeJ(t *testing.T) {
 					_ = bDone // suppress unused warning
 				}
 				res = tclListAppend(res, "abc")
-				if _dbevalRb33 { _dbevalErr34 = errors.New("abort due to ROLLBACK") }
-				if _dbevalInt35 { _dbevalErr34 = errors.New("interrupted"); db.ClearInterrupt() }
+				if _dbevalRb39 { _dbevalErr40 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt41 { _dbevalErr40 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
 			db.EndActiveStatement()
-			if _dbevalErr34 != nil {
-				_catchErr = _dbevalErr34
+			if _dbevalErr40 != nil {
+				_catchErr = _dbevalErr40
 			}
 			if _catchErr != nil {
 				rc = "1"

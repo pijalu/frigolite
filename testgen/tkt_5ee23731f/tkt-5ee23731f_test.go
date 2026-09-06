@@ -101,5 +101,10 @@ func Test_tkt_5ee23731f(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, msg)
+		got := tclListFlatten(rc)
+		want := tclListFlatten("1 attempt to write a readonly database")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "tkt-5ee237-1.1")
+		}
 	}
 }

@@ -214,9 +214,9 @@ func Test_corrupt4(t *testing.T) {
 				if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 				if _catchErr != nil { _rc = "1" }
 			}
-			_list := tclList([]string{_rc, msg})
-			_ = _list
-			_r = _list
+			_list0 := tclList([]string{_rc, msg})
+			_ = _list0
+			_r = _list0
 		}
 	}
 }

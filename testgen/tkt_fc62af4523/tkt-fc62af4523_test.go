@@ -111,6 +111,7 @@ func Test_tkt_fc62af4523(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// close $::chan
 	}
 }

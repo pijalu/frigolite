@@ -110,6 +110,7 @@ func Test_temptable(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			r = db.Query("SELECT * FROM sqlite_master")
 			if r.Error != nil { _catchErr = r.Error }
 		}
@@ -437,6 +438,7 @@ func Test_temptable(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		_r = ""
 		// file attributes "test.db" -readonly (unsupported attribute)
 	}
 	{ // do_test "temptable-8.0"
@@ -444,6 +446,7 @@ func Test_temptable(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			_r = ""
 			os.Remove("test.db")
 		}
 		db, err = frigolite.Open("test.db")

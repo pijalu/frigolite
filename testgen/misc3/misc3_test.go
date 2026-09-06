@@ -298,6 +298,11 @@ func Test_misc3(t *testing.T) {
 			y = "0" // capability regexp "{" not matched (engine default)
 			y = tclListAppend(y, "regexp { 4.5678 } $x")
 			y = tclListAppend(y, "regexp {,-B} $x")
+			got := tclListFlatten(y)
+			want := tclListFlatten("1 1 1")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc3-6.11-utf16")
+			}
 		}
 	} else {
 		{ // do_test "misc3-6.11-utf8"
@@ -307,6 +312,11 @@ func Test_misc3(t *testing.T) {
 			y = tclListAppend(y, "regexp { 4.5678 } $x")
 			y = tclListAppend(y, "regexp { hello } $x")
 			y = tclListAppend(y, "regexp {,-B} $x")
+			got := tclListFlatten(y)
+			want := tclListFlatten("1 1 1 1")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc3-6.11-utf8")
+			}
 		}
 	}
 	{ // do_test "misc3-7.1"
