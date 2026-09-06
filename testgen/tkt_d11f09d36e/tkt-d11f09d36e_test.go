@@ -67,7 +67,12 @@ func Test_tkt_d11f09d36e(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	{ // do_test "tkt-d11f09d36e.1"
 		r = db.Query("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
 		if r.Error != nil {

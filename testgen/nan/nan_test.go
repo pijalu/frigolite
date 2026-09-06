@@ -223,7 +223,10 @@ func Test_nan(t *testing.T) {
 		{ // do_test "nan-3.1"
 			_res = db.Exec("DELETE FROM t1; INSERT INTO t1 VALUES(0.5); PRAGMA auto_vacuum=OFF; PRAGMA page_size=1024")
 			_ = _res // VACUUM skipped (P8.VACUUM); side effects run
-			// hexio_read test.db 2040 8 (unsupported command, not transpiled)
+			_r = tclHexioRead("test.db", int64(2040), int64(8))
+			if _r != "3FE0000000000000" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "3FE0000000000000", "nan-3.1")
+			}
 		}
 		{ // do_test "nan-3.2"
 			r = db.Query("\n      SELECT x, typeof(x) FROM t1\n    ")

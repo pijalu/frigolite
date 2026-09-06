@@ -111,7 +111,10 @@ func Test_corrupt4(t *testing.T) {
 	baseaddr = tclExprWith("($trunkpgno-1)*1024", map[string]string{"trunkpgno": trunkpgno})
 	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
-		// hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4] (unsupported command, not transpiled)
+		_r = strconv.FormatInt(tclHexioGetInt("hexio_read test.db [expr {$::baseaddr+4}] 4"), 10)
+		if _r != "1" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "1", "corrupt4-1.3")
+		}
 	}
 	{ // do_test "corrupt4-1.4"
 		// hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000] (unsupported arguments)

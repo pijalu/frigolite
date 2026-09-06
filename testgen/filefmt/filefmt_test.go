@@ -79,7 +79,10 @@ func Test_filefmt(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t1(x)")
 		db.Close()
-		// hexio_read test.db 0 16 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(0), int64(16))
+		if _r != "53514C69746520666F726D6174203300" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "53514C69746520666F726D6174203300", "filefmt-1.1")
+		}
 	}
 	{ // "filefmt-1.2" (prepare-step internals; SQL side effects only)
 		tclHexioWrite("test.db", int64(0), "54")
@@ -140,9 +143,9 @@ func Test_filefmt(t *testing.T) {
 			}
 		}
 		{ // do_test "filefmt-1.5." + pagesize + ".2"
-			// hexio_get_int [hexio_read test.db 16 2] (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), pagesize) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", pagesize, _res.Error, "filefmt-1.5." + pagesize + ".2")
+			_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(16), int64(2)), 10)
+			if _r != pagesize {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, pagesize, "filefmt-1.5." + pagesize + ".2")
 			}
 		}
 	}
@@ -188,7 +191,12 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	{ // "filefmt-2.1.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		if r.Error != nil {
@@ -197,11 +205,28 @@ func Test_filefmt(t *testing.T) {
 	}
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "filefmt-2.1.2"
-			// hexio_read test.db 28 4 (unsupported command, not transpiled)
+			_r = tclHexioRead("test.db", int64(28), int64(4))
+			if _r != "00000009" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00000009", "filefmt-2.1.2")
+			}
 		}
 	}
 	{ // do_test "filefmt-2.1.3"
-		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
+		_r36231A := tclHexioRead("test.db", 28, 4)
+		_r36231B := tclHexioRead("test.db", 92, 8)
+		db36231, _err36231 := frigolite.Open("test.db")
+		if _err36231 == nil {
+			db36231.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+				if len(args) < 1 || args[0] == nil { return "", nil }
+				return tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil
+			}, 1, 1)
+			_res36231 := db36231.Exec(" INSERT INTO t1 VALUES(a_string(3000)) ")
+			_ = _res36231
+			db36231.Close()
+		}
+		tclHexioWrite("test.db", 28, _r36231A)
+		tclHexioWrite("test.db", 92, _r36231B)
+		_r = ""
 	}
 	{ // "filefmt-2.1.4"
 		_res = db.Exec(" INSERT INTO t2 VALUES(2) ")
@@ -212,14 +237,22 @@ func Test_filefmt(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "filefmt-2.1.6"
-		// hexio_read test.db 28 4 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(28), int64(4))
+		if _r != "00000010" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00000010", "filefmt-2.1.6")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	{ // "filefmt-2.2.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		if r.Error != nil {
@@ -228,11 +261,28 @@ func Test_filefmt(t *testing.T) {
 	}
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "filefmt-2.2.2"
-			// hexio_read test.db 28 4 (unsupported command, not transpiled)
+			_r = tclHexioRead("test.db", int64(28), int64(4))
+			if _r != "00000009" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00000009", "filefmt-2.2.2")
+			}
 		}
 	}
 	{ // do_test "filefmt-2.2.3"
-		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
+		_r36231A := tclHexioRead("test.db", 28, 4)
+		_r36231B := tclHexioRead("test.db", 92, 8)
+		db36231, _err36231 := frigolite.Open("test.db")
+		if _err36231 == nil {
+			db36231.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+				if len(args) < 1 || args[0] == nil { return "", nil }
+				return tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil
+			}, 1, 1)
+			_res36231 := db36231.Exec(" INSERT INTO t1 VALUES(a_string(3000)) ")
+			_ = _res36231
+			db36231.Close()
+		}
+		tclHexioWrite("test.db", 28, _r36231A)
+		tclHexioWrite("test.db", 92, _r36231B)
+		_r = ""
 	}
 	{ // "filefmt-2.2.4"
 		r = db.Query(" \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
@@ -272,7 +322,21 @@ func Test_filefmt(t *testing.T) {
 		}
 	}
 	{ // do_test "filefmt-3.2"
-		// sql36231 { DROP TABLE t1 } (unsupported command, not transpiled)
+		_r36231A := tclHexioRead("test.db", 28, 4)
+		_r36231B := tclHexioRead("test.db", 92, 8)
+		db36231, _err36231 := frigolite.Open("test.db")
+		if _err36231 == nil {
+			db36231.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+				if len(args) < 1 || args[0] == nil { return "", nil }
+				return tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil
+			}, 1, 1)
+			_res36231 := db36231.Exec(" DROP TABLE t1 ")
+			_ = _res36231
+			db36231.Close()
+		}
+		tclHexioWrite("test.db", 28, _r36231A)
+		tclHexioWrite("test.db", 92, _r36231B)
+		_r = ""
 	}
 	{ // "filefmt-3.3"
 		r = db.Query("\n  SELECT * FROM sqlite_master;\n  PRAGMA integrity_check;\n")
@@ -300,7 +364,21 @@ func Test_filefmt(t *testing.T) {
 		}
 	}
 	{ // do_test "filefmt-4.2"
-		// sql36231 { INSERT INTO t2 SELECT * FROM t1 } (unsupported command, not transpiled)
+		_r36231A := tclHexioRead("test.db", 28, 4)
+		_r36231B := tclHexioRead("test.db", 92, 8)
+		db36231, _err36231 := frigolite.Open("test.db")
+		if _err36231 == nil {
+			db36231.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+				if len(args) < 1 || args[0] == nil { return "", nil }
+				return tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil
+			}, 1, 1)
+			_res36231 := db36231.Exec(" INSERT INTO t2 SELECT * FROM t1 ")
+			_ = _res36231
+			db36231.Close()
+		}
+		tclHexioWrite("test.db", 28, _r36231A)
+		tclHexioWrite("test.db", 92, _r36231B)
+		_r = ""
 	}
 	{ // do_test "filefmt-4.3"
 		os.Remove("bak.db")

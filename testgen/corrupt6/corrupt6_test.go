@@ -73,18 +73,30 @@ func Test_corrupt6(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt6-1.2"
-		// hexio_get_int [hexio_read test.db 16 2] (unsupported command, not transpiled)
+		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(16), int64(2)), 10)
+		if _r != "1024" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "1024", "corrupt6-1.2")
+		}
 	}
 	{ // do_test "corrupt6-1.3"
-		// hexio_get_int [hexio_read test.db 20 1] (unsupported command, not transpiled)
+		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(20), int64(1)), 10)
+		if _r != "0" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "0", "corrupt6-1.3")
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt6-1.5.1"
-		// hexio_read test.db 1923 2 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(1923), int64(2))
+		if _r != "8103" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "8103", "corrupt6-1.5.1")
+		}
 	}
 	{ // do_test "corrupt6-1.5.2"
-		// hexio_read test.db 1987 2 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(1987), int64(2))
+		if _r != "8103" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "8103", "corrupt6-1.5.2")
+		}
 	}
 	{ // do_test "corrupt6-1.6"
 		db.Close()

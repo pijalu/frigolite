@@ -65,7 +65,12 @@ func Test_walbig(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	{ // do_test "walbig-1.0"
 		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n  ")
 		if r.Error != nil {
@@ -82,7 +87,12 @@ func Test_walbig(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	{ // do_test "walbig-1.1"
 		_res = db.Exec(" INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
 		if _res.Error != nil {

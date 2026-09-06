@@ -93,7 +93,10 @@ func Test_corruptJ(t *testing.T) {
 	}
 	{ // do_test "2.2"
 		db.Close()
-		// hexio_read test.db [expr {9*1024+391}] 8 (unsupported command, not transpiled)
+		// hexio_read test.db [expr {9*1024+391}] 8 (unsupported arguments)
+		if _r != "00000008814D0401" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00000008814D0401", "2.2")
+		}
 	}
 	{ // do_test "2.2b"
 		// hexio_write test.db [expr {9*1024+391}] 00000002 (unsupported arguments)

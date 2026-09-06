@@ -340,7 +340,12 @@ func Test_pager1(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	// do_multiclient_test tn {\n\n  # Create and populate a database table using...} (unsupported command, not transpiled)
 	{ // do_test "pager1-3.1.1"
 		// db_delete_and_reopen: delete test.db* and reopen
@@ -1967,7 +1972,12 @@ func Test_pager1(t *testing.T) {
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							tcl_nullvalue = "{}" // fresh connection resets nullvalue
-							db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+							// db func a_string a_string (filefmt — counter-suffixed string)
+							db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+								if len(args) < 1 || args[0] == nil { return "", nil }
+								n := tclToInt(tclStr(args[0]))
+								return tclAString(&a_string_counter, n), nil
+							}, 1, 1)
 							{ // "pager1-11.1"
 								r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);\n")
 								if r.Error != nil {
@@ -2077,7 +2087,12 @@ func Test_pager1(t *testing.T) {
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							tcl_nullvalue = "{}" // fresh connection resets nullvalue
-							db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+							// db func a_string a_string (filefmt — counter-suffixed string)
+							db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+								if len(args) < 1 || args[0] == nil { return "", nil }
+								n := tclToInt(tclStr(args[0]))
+								return tclAString(&a_string_counter, n), nil
+							}, 1, 1)
 							{ // "pager1-13.1.1"
 								r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
 								if r.Error != nil {

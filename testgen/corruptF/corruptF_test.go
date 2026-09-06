@@ -81,10 +81,16 @@ func Test_corruptF(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		// hexio_read test.db 32 4 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(32), int64(4))
+		if _r != "00000003" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00000003", "1.3")
+		}
 	}
 	{ // do_test "1.4"
-		// hexio_read test.db [expr 2*1024] 12 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(2*1024), int64(12))
+		if _r != "000000000000000100000004" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "000000000000000100000004", "1.4")
+		}
 	}
 	{ // do_test "1.5"
 		tclHexioWrite("test.db", int64(2*1024 + 8), "00000006")
@@ -161,10 +167,16 @@ func Test_corruptF(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		// hexio_read test.db 32 4 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(32), int64(4))
+		if _r != "00000003" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00000003", "2.3")
+		}
 	}
 	{ // do_test "2.4"
-		// hexio_read test.db [expr 2*1024] 12 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(2*1024), int64(12))
+		if _r != "000000000000000100000004" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "000000000000000100000004", "2.4")
+		}
 	}
 	{ // do_test "2.5"
 		tclHexioWrite("test.db", int64(2*1024 + 8), "00000005")

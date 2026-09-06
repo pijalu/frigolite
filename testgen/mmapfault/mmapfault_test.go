@@ -71,7 +71,12 @@ func Test_mmapfault(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db func a_string a_string (filefmt — counter-suffixed string)
+	db.RegisterFunction("a_string", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return "", nil }
+		n := tclToInt(tclStr(args[0]))
+		return tclAString(&a_string_counter, n), nil
+	}, 1, 1)
 	{ // do_test "1-pre"
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		if _res.Error != nil {

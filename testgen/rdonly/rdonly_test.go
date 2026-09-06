@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -73,7 +74,10 @@ func Test_rdonly(t *testing.T) {
 	}
 	{ // do_test "rdonly-1.2"
 		db.Close()
-		// hexio_get_int [hexio_read test.db 18 1] (unsupported command, not transpiled)
+		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(18), int64(1)), 10)
+		if _r != "1" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "1", "rdonly-1.2")
+		}
 	}
 	{ // do_test "rdonly-1.3"
 		tclHexioWrite("test.db", int64(18), "03")

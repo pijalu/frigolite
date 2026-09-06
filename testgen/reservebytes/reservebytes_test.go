@@ -94,7 +94,10 @@ func Test_reservebytes(t *testing.T) {
 	}
 	// file_control_reservebytes db 8 (unsupported command, not transpiled)
 	{ // do_test "1.2.1"
-		// hexio_read test.db 20 1 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(20), int64(1))
+		if _r != "00" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "00", "1.2.1")
+		}
 	}
 	{ // "1.2.2"
 		r = db2.Query(" PRAGMA integrity_check ")
@@ -125,11 +128,17 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.5"
-		// hexio_read test.db 20 1 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(20), int64(1))
+		if _r != "08" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "08", "1.3.5")
+		}
 	}
 	// file_control_reservebytes db 16 (unsupported command, not transpiled)
 	{ // do_test "1.4.1"
-		// hexio_read test.db 20 1 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(20), int64(1))
+		if _r != "08" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "08", "1.4.1")
+		}
 	}
 	{ // "1.4.2" — skipped: VACUUM not implemented (P8.VACUUM)
 		_res = db.Exec(" VACUUM ")
@@ -148,6 +157,9 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4.4"
-		// hexio_read test.db 20 1 (unsupported command, not transpiled)
+		_r = tclHexioRead("test.db", int64(20), int64(1))
+		if _r != "10" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "10", "1.4.4")
+		}
 	}
 }
