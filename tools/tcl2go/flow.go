@@ -314,6 +314,13 @@ func bodyEndsWithQueryFunc(bodyCmds [][]tcl.RawWord, queryFuncs map[string]strin
 		return false
 	}
 	last := bodyCmds[len(bodyCmds)-1]
+	// Only a BARE proc call (no arguments) is a query-func result: a call
+	// with arguments (memdb.test's trailing `signature` in the .2 bodies is
+	// bare, but `set sig2 [signature two]`-style calls carry args) invokes
+	// a value-taking proc, not a db-eval query.
+	if len(last) != 1 {
+		return false
+	}
 	if len(last) == 0 {
 		return false
 	}

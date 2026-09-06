@@ -594,7 +594,8 @@ func (tp *transpiler) cmdExprStringRepeat(args []string) string {
 }
 
 // cmdExprStringUnary renders a unary [string OP STR] expression (length,
-// tolower, toupper, trim).
+// tolower, toupper, trim). memdb1.test's [string length $::db1] reads the
+// serialize image shadow (db1Blob), not the *frigolite.DB connection var.
 func (tp *transpiler) cmdExprStringUnary(op string, args []string) string {
 	if len(args) < 2 {
 		return cmdExprStringUnaryDefault(op)
@@ -746,6 +747,16 @@ func (tp *transpiler) cmdExprBinary(cmdName, cmdText string, args []string) stri
 // both forms).
 func (tp *transpiler) cmdExprDb(cmdName, cmdText string, args []string) string {
 	rest := strings.TrimSpace(cmdText)
+	// [db serialize ?SCHEMA?] — raw image bytes as a Go string
+	// (memdb1.test 100: [db serialize] length == page_size × page_count).
+	if strings.HasPrefix(rest, "db serialize") {
+		schema := strings.TrimSpace(strings.TrimPrefix(rest, "db serialize"))
+		schema = strings.Trim(schema, "{} ")
+		if schema == "" {
+			schema = "main"
+		}
+		return fmt.Sprintf("string(tclSerialize(%s, %q))", tp.dbVar, schema)
+	}
 	// [db eval {SQL}] — flattened query result via tclExecSQL.
 	if strings.HasPrefix(rest, "db eval") {
 		sql := strings.TrimSpace(rest[len("db eval"):])

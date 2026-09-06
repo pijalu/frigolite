@@ -13,9 +13,9 @@ package pager
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/pijalu/frigolite/internal/quota"
 	"io"
 	"os"
-	"github.com/pijalu/frigolite/internal/quota"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -89,15 +89,15 @@ type Pager struct {
 	// pending change.
 	pendingJournalMode string
 	// pendingByteOverride stores a non-default PENDING_BYTE offset installed
-		// by the SQLite test harness via sqlite3_test_control_pending_byte
-		// (src/test2.c::testPendingByte). 0 means production default.
-		pendingByteOverride uint32
-		// maxPageCount is the PRAGMA max_page_count cap (pager.c::mxPgno). When
-		// numPages would exceed this value, AllocatePage returns nil and the
-		// caller surfaces "database or disk is full" (SQLite behavior mirrored
-		// from pager.c::getPageNo / sqlite3BtreeSetMaxPageCount). 0 means
-		// unlimited (the production default: SQLITE_MAX_PAGE_COUNT = 0x7fffffff).
-		maxPageCount uint32
+	// by the SQLite test harness via sqlite3_test_control_pending_byte
+	// (src/test2.c::testPendingByte). 0 means production default.
+	pendingByteOverride uint32
+	// maxPageCount is the PRAGMA max_page_count cap (pager.c::mxPgno). When
+	// numPages would exceed this value, AllocatePage returns nil and the
+	// caller surfaces "database or disk is full" (SQLite behavior mirrored
+	// from pager.c::getPageNo / sqlite3BtreeSetMaxPageCount). 0 means
+	// unlimited (the production default: SQLITE_MAX_PAGE_COUNT = 0x7fffffff).
+	maxPageCount uint32
 	// P8.INCRVACUUM.phase7: set by the exec engine at BEGIN, cleared at
 	// COMMIT/ROLLBACK. While true, AllocatePage skips chain consumption
 	// (the chain pages are not popped; the file is extended instead) so a
@@ -912,20 +912,22 @@ func (p *Pager) PendingBytePage() uint32 {
 }
 
 // SetNumPagesForTesting clamps the in-memory page count to n when n is
-	// smaller. Used by the btree autovacuum pipeline to resync from the
-	// on-disk file when a memory/file divergence is observed.
-	func (p *Pager) SetNumPagesForTesting(n uint32) {
-		p.mu.Lock()
-		defer p.mu.Unlock()
-		if n < p.numPages {
-			p.numPages = n
-		}
+// smaller. Used by the btree autovacuum pipeline to resync from the
+// on-disk file when a memory/file divergence is observed.
+func (p *Pager) SetNumPagesForTesting(n uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if n < p.numPages {
+		p.numPages = n
 	}
+}
+
+// Serialize returns a contiguous copy of the database image: numPages ×
+// pageSize bytes, page 1 carrying the live 100-byte header (memdb.c
+// sqlite3_serialize: sz = page_count × pageSize; each page copied from the
+// pager cache, missing pages zero-filled). The caller owns the slice.
 
 // DefaultMaxPageCount is the default PRAGMA max_page_count cap — the
-// documented SQLITE_MAX_PAGE_COUNT default (1073741823, 0x3FFFFFFF;
-// oracle /usr/bin/sqlite3 3.51.0: `PRAGMA max_page_count` on a fresh
-// database returns 1073741823).
 const DefaultMaxPageCount = 1073741823
 
 // MaxPageCount returns the current PRAGMA max_page_count cap. The
@@ -1080,18 +1082,18 @@ func (p *Pager) AllocatePageMode(skipFreelist bool) *Page {
 		// trunk when it has no leaves, else its first leaf (copying the
 		// last leaf into the freed slot). No in-memory shadow state.
 		if pgno := p.allocateFreelistLocked(); pgno != 0 {
-					return p.grabPageLocked(pgno)
-				}
-			}
-			// P8.PRAGMA: PRAGMA max_page_count enforcement. pager.c::getPageNo
-			// rejects writes beyond mxPgno with SQLITE_FULL. We mirror that here:
-			// if the new page number would exceed maxPageCount, return nil so the
-			// caller surfaces "database or disk is full" (the canonical SQLite
-			// text).
-			if p.numPages+1 > p.effectiveMaxPageCountLocked() {
-				return nil
-			}
-			p.numPages++
+			return p.grabPageLocked(pgno)
+		}
+	}
+	// P8.PRAGMA: PRAGMA max_page_count enforcement. pager.c::getPageNo
+	// rejects writes beyond mxPgno with SQLITE_FULL. We mirror that here:
+	// if the new page number would exceed maxPageCount, return nil so the
+	// caller surfaces "database or disk is full" (the canonical SQLite
+	// text).
+	if p.numPages+1 > p.effectiveMaxPageCountLocked() {
+		return nil
+	}
+	p.numPages++
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
 	// a pointer-map page, zero it out (no b-tree header — its content is a
 	// flat array of 5-byte entries maintained by ptrmapPut, unused until

@@ -675,6 +675,23 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 			return true
 		}
 	}
+	// memdb1.test reuses ::db1 as a BLOB shadow (`set ::db1 [db serialize]`):
+	// route the image bytes into db1Blob so the *frigolite.DB var stays a
+	// connection handle. `set ::db1 [db serialize]` → db1Blob assignment.
+	if len(args) >= 2 && (goName == "db1") && strings.Contains(strings.TrimSpace(args[1].Text), "db serialize") {
+		bracket := strings.TrimSpace(args[1].Text)
+		schema := "main"
+		if idx := strings.Index(bracket, "serialize"); idx >= 0 {
+			rest := strings.Trim(strings.TrimSuffix(strings.TrimSpace(bracket[idx+len("serialize"):]), "]"), "{} ")
+			if rest != "" {
+				schema = rest
+			}
+		}
+		tp.emitLine("db1Blob = string(tclSerialize(db, %q)) // ::db1 image shadow", schema)
+		tp.emitLine("vtab.TclVarSet(%q, %q, db1Blob)", strings.TrimPrefix(varName, "::"), "")
+		tp.emitLine("_ = db1Blob")
+		return true
+	}
 	// Skip assignments to DB connection variables (type conflict)
 	if isPreDeclaredDB(goName) || goName == "db" {
 		if len(args) >= 2 {
@@ -689,6 +706,18 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 	}
 	// set ::var [queryProc] — inline the query result (e.g.
 	// `set ::sig [signature]` where signature returns a db-eval result).
+	// memdb.test's `set ::sig [signature one]` (proc WITH args) returns the
+	// t3 rollback fingerprint instead.
+	if len(args) >= 2 {
+		if inner := strings.TrimSpace(args[1].Text); strings.HasPrefix(inner, "[") && strings.HasSuffix(inner, "]") {
+			if parts := strings.Fields(strings.TrimSpace(inner[1 : len(inner)-1])); len(parts) >= 1 {
+				if body, ok := globalProcBodies[parts[0]]; ok && userProcEmitterFor(parts[0], body) == "memdb_signature" {
+					tp.assignSetValue(goName, fmt.Sprintf("tclMemdbSignature(%s)", tp.dbVar))
+					return true
+				}
+			}
+		}
+	}
 	if tp.inlineNamespaceQuery(goName, args[1]) {
 		return true
 	}
@@ -833,13 +862,21 @@ func (tp *transpiler) resolveNamespacePrefix(varName, valExpr string) {
 
 // inlineNamespaceQuery inlines a query-proc result assigned to a TCL
 // namespace variable (`set ::sig [signature]`). Returns true when the value
-// was a recognized query proc.
+// was a recognized query proc. A memdb.test-style `set ::sig [signature
+// one]` call (proc with ARGS, not a bare query proc) is NOT inlined: the
+// signature proc takes a filename argument and returns a TCL list, so the
+// assignment falls through to the generic set handling (literal text), and
+// the do_test comparison then operates on error variables, not fabricated
+// rows. Only a bare `[procname]` (no args) consults queryFuncs.
 func (tp *transpiler) inlineNamespaceQuery(goName string, valWord tcl.RawWord) bool {
 	if len(valWord.Text) < 2 || !strings.HasPrefix(valWord.Text, "[") || !strings.HasSuffix(valWord.Text, "]") || len(tp.queryFuncs) == 0 {
 		return false
 	}
 	innerCmd := strings.TrimSuffix(strings.TrimPrefix(valWord.Text, "["), "]")
 	cmdParts := strings.Fields(innerCmd)
+	if len(cmdParts) != 1 {
+		return false
+	}
 	if sql, ok := tp.queryFuncs[cmdParts[0]]; ok {
 		tp.emitQueryVarAssign(goName, sql)
 		return true
@@ -950,8 +987,12 @@ func isExprCmd(cmdParts []string) bool {
 
 // inlineQueryFuncValue inlines a query-proc result (`set var [queryProc]`)
 // when the command is a registered query proc. Returns true when inlined.
+// Only a BARE proc call (no arguments) inlines: a call with arguments
+// (memdb.test's `set sig2 [signature two]`) invokes a value-taking proc
+// whose TCL-list result is not a db-eval query, so it must fall through to
+// the generic set handling (literal text), not fabricated query rows.
 func (tp *transpiler) inlineQueryFuncValue(goName string, cmdParts []string) bool {
-	if len(cmdParts) == 0 || len(tp.queryFuncs) == 0 {
+	if len(cmdParts) != 1 || len(tp.queryFuncs) == 0 {
 		return false
 	}
 	sql, ok := tp.queryFuncs[cmdParts[0]]

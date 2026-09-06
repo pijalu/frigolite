@@ -68,6 +68,7 @@ type transpiler struct {
 	arrayMapVars        map[string]bool         // TCL array names using dynamic keys (set arr($k) V) → Go map var
 	rollbackFlag        string                  // when set, `db eval ROLLBACK` also assigns this Go bool var (db eval {SQL} {body} callback abort)
 	interruptFlag       string                  // when set, `sqlite3_interrupt` in a db-eval callback also assigns this Go bool var; the loop aborts after the body
+	inDBEvalCb          bool                    // transpiling inside a db-eval row callback body (deserialize errors feed _catchErr)
 	preupdateHookBody   string                  // body of the TCL `proc preupdate_hook {args} {...}` (emitted as the db preupdate hook closure)
 	commitHookBodies    map[string]string       // TCL proc name → body for commit_hook/rollback_hook/update_cb/preupdate_cb procs
 	seenProcs           map[string]string       // TCL proc name → body last seen by processProc (redefinition detection)

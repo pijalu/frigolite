@@ -18,6 +18,11 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 		return `""`
 	}
 	word := args[0].Text
+	// memdb1.test: `puts -nonewline $fd $db1` writes the serialize image
+	// shadow (db1Blob string), not the *frigolite.DB connection var.
+	if word == "$::db1" || word == "$db1" {
+		return "db1Blob"
+	}
 	if strings.HasPrefix(word, "$") {
 		name := tclVarToGo(strings.TrimPrefix(word, "$"))
 		// A bare word may hold ADJACENT references ($boundsign$bound):
@@ -429,18 +434,37 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 	}
 	tp.blobSeq = bodyTP.blobSeq
 	if hasResult {
-		// After body, set the error message if there was an error
-		tp.emitLine("if _catchErr != nil {")
-		tp.indent++
-		tp.emitLine("%s = \"1\"", resultVar)
-		tp.emitLine("%s = _catchErr.Error()", errVar)
-		tp.indent--
-		tp.emitLine("} else {")
-		tp.indent++
-		tp.emitLine("%s = \"0\"", resultVar)
-		tp.emitLine("%s = \"\"", errVar)
-		tp.indent--
-		tp.emitLine("}")
+		// After body, set the error message if there was an error.
+		// TCL catch with 2 args (`catch BODY rcVar` / `catch BODY msg` in
+		// a do_test like memdb1.test 150's `catch {db deserialize
+		// -unknown 1 $db1} msg; set msg`): the single trailing var holds
+		// the ERROR MESSAGE on failure ("unknown option: -unknown"),
+		// not the "1" code — the do_test value is that message.
+		// Disambiguate by the var name: `msg`/`err*` hold the message;
+		// anything else (rc) holds the code.
+		if resultVar == "msg" || strings.HasPrefix(resultVar, "err") || strings.HasPrefix(resultVar, "_err") {
+			tp.emitLine("if _catchErr != nil {")
+			tp.indent++
+			tp.emitLine("%s = _catchErr.Error()", resultVar)
+			tp.indent--
+			tp.emitLine("} else {")
+			tp.indent++
+			tp.emitLine("%s = \"\"", resultVar)
+			tp.indent--
+			tp.emitLine("}")
+		} else {
+			tp.emitLine("if _catchErr != nil {")
+			tp.indent++
+			tp.emitLine("%s = \"1\"", resultVar)
+			tp.emitLine("%s = _catchErr.Error()", errVar)
+			tp.indent--
+			tp.emitLine("} else {")
+			tp.indent++
+			tp.emitLine("%s = \"0\"", resultVar)
+			tp.emitLine("%s = \"\"", errVar)
+			tp.indent--
+			tp.emitLine("}")
+		}
 	}
 	tp.indent--
 	tp.emitLine("}")

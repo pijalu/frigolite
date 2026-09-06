@@ -411,6 +411,14 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 		body.WriteString(fmt.Sprintf("\tvar db%d *frigolite.DB\n", i))
 		body.WriteString(fmt.Sprintf("\t_ = db%d\n", i))
 	}
+	// memdb1.test reuses db1 as a BLOB shadow (`set ::db1 [db serialize]`):
+	// a package-level string shadow lets the serialize assignment compile
+	// while connection uses stay on the *frigolite.DB var. The shadow is
+	// only referenced by serialize/deserialize flows.
+	if strings.Contains(src, "db serialize") || strings.Contains(src, "db deserialize") {
+		body.WriteString("\tvar db1Blob string // memdb1 serialize image shadow of ::db1\n")
+		body.WriteString("\t_ = db1Blob\n")
+	}
 	// Pre-declare backup-object variables (sqlite3_backup B ...) so B is
 	// visible across do_test bodies regardless of block scoping.
 	for _, bn := range collectBackupNames(src) {

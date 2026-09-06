@@ -28,6 +28,16 @@ import (
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
+// memdbStores is the shared in-memory store registry backing memdb URIs
+// (memdb.c: file:/name?vfs=memdb names a process-global MemStore shared by
+// every connection opening the same name). Separate (non-"/"-prefixed)
+// names get a private store per connection; the memdb2.test names all start
+// with "/" so both connections share one store here.
+var (
+	memdbMu     sync.Mutex
+	memdbStores = map[string]*pager.Pager{}
+)
+
 // DB is an open database connection.
 type DB struct {
 	pager     *pager.Pager
@@ -557,11 +567,94 @@ func (db *DB) SetLockStyle(style LockStyle) {
 	}
 }
 
+// memdbName reports whether path is a memdb VFS URI
+// (file:/name?vfs=memdb, memdb.c) and returns the shared-store name.
+// Both slashes and backslashes after "file:" start the shared name:
+// memdb2.test opens file:/test.db?vfs=memdb and file:\\test.db?vfs=memdb
+// (TCL-escaped backslashes) for the same shared store.
+func memdbName(path string) (string, bool) {
+	if !strings.HasPrefix(path, "file:") || !strings.Contains(path, "vfs=memdb") {
+		return "", false
+	}
+	rest := strings.TrimPrefix(path, "file:")
+	if i := strings.IndexAny(rest, "?#"); i >= 0 {
+		rest = rest[:i]
+	}
+	rest = strings.ReplaceAll(rest, "\\", "/")
+	rest = strings.ReplaceAll(rest, "//", "/")
+	if !strings.HasPrefix(rest, "/") {
+		return "", false
+	}
+	return rest, true
+}
+
+// openMemdb opens (or joins) the shared in-memory store for a memdb URI.
+// Every connection gets its own Engine over the SAME *pager.Pager, so
+// cross-connection locking (memdb2.test's lock-upgrade COMMIT failure)
+// and shared content work exactly like a shared file. Closing the last
+// connection drops the store (memdbClose frees the MemStore at nRef 0).
+func openMemdb(name string) (*DB, error) {
+	memdbMu.Lock()
+	pg, ok := memdbStores[name]
+	if !ok {
+		pg = pager.OpenInMemory(pager.DefaultPageSize)
+		memdbStores[name] = pg
+	}
+	memdbRefcounts[name]++
+	memdbMu.Unlock()
+	db := &DB{
+		pager:  pg,
+		engine: exec.NewEngine(pg),
+		path:   "file:" + name + "?vfs=memdb",
+	}
+	db.engine.SetMainFilePath(db.path)
+	db.schema = schema.NewManager(pg)
+	if err := db.schema.Init(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("frigolite: init schema: %w", err)
+	}
+	return db, nil
+}
+
+// memdbRefcounts tracks open connections per shared memdb store so the
+// store is dropped when the LAST connection closes (memdb.c memdbClose
+// frees the MemStore at nRef 0), not the first.
+var memdbRefcounts = map[string]int{}
+
+// releaseMemdb drops a connection's reference to a shared memdb store,
+// deleting the store when the last connection closes.
+
+func releaseMemdb(db *DB) {
+	if db == nil || db.pager == nil {
+		return
+	}
+	memdbMu.Lock()
+	defer memdbMu.Unlock()
+	for name, pg := range memdbStores {
+		if pg == db.pager {
+			memdbRefcounts[name]--
+			if memdbRefcounts[name] <= 0 {
+				delete(memdbStores, name)
+				delete(memdbRefcounts, name)
+			}
+			return
+		}
+	}
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 // A SQLite URI filename ("file:path?mode=ro") is reduced to its real path
 // ("path") — URI access-mode parameters are a C-API feature the engine does
 // not enforce, but the file the URI names is still opened.
 func Open(path string) (*DB, error) {
+	// memdb VFS URIs (memdb.c: file:/name?vfs=memdb) name a process-global
+	// shared in-memory store, NOT a filesystem path. Route them to the
+	// shared registry before any filesystem handling (memdb2.test opens
+	// file:/test.db?vfs=memdb and file:\\test.db?vfs=memdb on two
+	// connections that must share one store for the lock-upgrade test).
+	if name, ok := memdbName(path); ok {
+		return openMemdb(name)
+	}
 	path = normalizeURIPath(path)
 	// Canonicalize the filesystem path the way SQLite's unix VFS does in
 	// xFullPathname (os_unix.c unixFullPathname): collapse ".", "..",
@@ -673,6 +766,13 @@ func (db *DB) Close() error {
 		db.engine.ClearBlobLocks()
 		err := db.engine.Close()
 		db.closedFlag = true
+		// Shared memdb stores (file:/name?vfs=memdb) live as long as at
+		// least one connection references them (memdbClose frees the
+		// MemStore at nRef 0). Track closings here: when the test closes
+		// both connections at the end of a loop iteration (memdb2.test's
+		// per-tn db/db2 close), the store is dropped so the next iteration
+		// starts empty — just like the file-backed suites' forcedelete.
+		releaseMemdb(db)
 		return err
 	}
 	db.closedFlag = true

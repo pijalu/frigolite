@@ -123,6 +123,8 @@ func (tp *transpiler) emitExprCompareCheck(nameExpr, expectedExpr string, bodyCm
 	}
 	lhs := strings.TrimPrefix(strings.TrimSpace(parts[0]), "$")
 	rhs := strings.TrimPrefix(strings.TrimSpace(parts[1]), "$")
+	// memdb1.test 100 is handled by the generic expr path (stringLengthExpr
+	// maps [string length $::db1] to len(db1Blob)); nothing special here.
 	lhsGo := tclVarToGo(lhs)
 	rhsGo := tclVarToGo(rhs)
 	if !isValidGoIdent(lhsGo) || !isValidGoIdent(rhsGo) {

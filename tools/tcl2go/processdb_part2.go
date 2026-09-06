@@ -564,6 +564,8 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 		collateGoFuncs: tp.collateGoFuncs,
 		rollbackFlag:   rbFlag,
 		interruptFlag:  intFlag,
+		catchMode:      tp.catchMode,
+		inDBEvalCb:     true,
 		preparedState:  tp.preparedState,
 		varConstValues: tp.varConstValues,
 	}

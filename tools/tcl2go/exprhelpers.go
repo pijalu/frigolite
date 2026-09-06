@@ -473,6 +473,11 @@ func stringLengthExpr(cmdText string) (string, bool) {
 	if goVar == "" {
 		return "", false
 	}
+	// memdb1.test: $::db1 is the serialize image shadow (db1Blob string),
+	// not the *frigolite.DB connection var.
+	if goVar == "db1" {
+		goVar = "db1Blob"
+	}
 	return "len(" + goVar + ")", true
 }
 

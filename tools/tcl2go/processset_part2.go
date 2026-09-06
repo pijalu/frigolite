@@ -15,7 +15,31 @@ import (
 // ---- Variable handlers ----
 
 func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
+	// memdb1.test 1020: `set res [list [catch {...} msg] $msg]` — the list
+	// form routes through processList/emitListCatchArg so the catch body
+	// runs and the result feeds res (the backup-interlock error must reach
+	// res). cmdText here is the bracket INNER text (outer [ ] stripped by
+	// the caller), so parse it as a bare command, not a bracket word.
+	if strings.HasPrefix(strings.TrimSpace(cmdText), "list ") || strings.TrimSpace(cmdText) == "list" {
+		raws := tcl.ParseCommands(cmdText)
+		if len(raws) == 1 && len(raws[0]) >= 2 && raws[0][0].Text == "list" {
+			tp.processList(raws[0][1:])
+			tp.assignSetValue(goName, "_r")
+			return true
+		}
+	}
 	cmdParts := strings.Fields(cmdText)
+	if len(cmdParts) == 0 {
+		return false
+	}
+	// memdb.test signature (see userProcEmitterFor): [signature one] /
+	// [signature two] return the t3 rollback fingerprint.
+	if body, ok := globalProcBodies[cmdParts[0]]; ok {
+		if userProcEmitterFor(cmdParts[0], body) == "memdb_signature" {
+			tp.assignSetValue(goName, fmt.Sprintf("tclMemdbSignature(%s)", tp.dbVar))
+			return true
+		}
+	}
 	// set VAR [userproc args...] with a registry-backed implementation
 	// (rtree4's rand/randincr/scramble): emit a direct runtime call instead
 	// of falling through to the raw-text fallback. `$var` arguments pass the

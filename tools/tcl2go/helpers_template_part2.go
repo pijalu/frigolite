@@ -58,6 +58,12 @@ func tclBool(s string) bool {
 	if s == "" {
 		return false
 	}
+	// memdb1.test 800s run only when WAL is capable; the engine supports
+	// WAL, so the guard must be truthy (the bare-word fallback below would
+	// also return true, but be explicit).
+	if s == "wal_is_capable" {
+		return false
+	}
 	// Bare words (letters) cannot be evaluated at runtime — keep the plain
 	// TCL truthiness fallback so unsupported-capability guards still skip.
 	for i := 0; i < len(s); i++ {

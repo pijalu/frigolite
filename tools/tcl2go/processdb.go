@@ -189,6 +189,8 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		tp.processDBCollate(rest)
 	case "deserialize":
 		tp.processDBDeserialize(rest)
+	case "serialize":
+		tp.processDBSerialize(rest)
 	case "progress":
 		tp.processDBProgress(rest)
 	case "authorizer":
@@ -275,6 +277,28 @@ func (tp *transpiler) processDBClose() {
 	tp.dbClosed = true
 }
 
+// processDBSerialize handles `db serialize ?SCHEMA?` (memdb1.test: [db
+// serialize] / [db serialize main]): the raw image bytes land in _r as a
+// Go string (length == page_size × page_count).
+func (tp *transpiler) processDBSerialize(rest []tcl.RawWord) {
+	schema := "main"
+	if len(rest) >= 1 {
+		schema = strings.Trim(rest[0].Text, "{} ")
+		if schema == "" {
+			schema = "main"
+		}
+	}
+	if len(rest) > 1 {
+		if tp.catchMode {
+			tp.emitLine("_catchErr = fmt.Errorf(%q)", "wrong # args: should be \"db serialize ?DATABASE?\"")
+		} else {
+			tp.emitLine("t.Errorf(%q)", "wrong # args: should be \"db serialize ?DATABASE?\"")
+		}
+		return
+	}
+	tp.emitLine("_r = string(tclSerialize(db, %q))", schema)
+}
+
 // processDBDeserialize handles `db deserialize [decode_hexdb {...}]`: it
 // builds the database image from the hexdb block, writes it to a temp file,
 // and reopens the connection on that file. The hexdb format is the .open
@@ -282,6 +306,20 @@ func (tp *transpiler) processDBClose() {
 // grouped by `| page N offset M`).
 func (tp *transpiler) processDBDeserialize(rest []tcl.RawWord) {
 	if len(rest) < 1 {
+		if tp.catchMode {
+			tp.emitLine("_catchErr = fmt.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
+		} else {
+			tp.emitLine("t.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
+		}
+		return
+	}
+	// memdb1.test forms: `db deserialize $db1` / `db deserialize main $ser` /
+	// `db deserialize -readonly 1 $db1` / `db deserialize -maxsize N $db1` /
+	// `db deserialize aux1 $direct` / `db deserialize {}` / `db deserialize
+	// not-a-database`. These carry a Go string/bytes variable (db1Blob for
+	// ::db1), NOT a hexdb block — route through DB.Deserialize.
+	if hexdb := extractHexdbBlock(rest[0].Text); hexdb == "" || !strings.Contains(rest[0].Text, "decode_hexdb") {
+		tp.emitDBDeserializeValue(rest)
 		return
 	}
 	// The argument is usually `[decode_hexdb {<block>}]`; extract the
@@ -306,6 +344,98 @@ func (tp *transpiler) processDBDeserialize(rest []tcl.RawWord) {
 	tp.emitLine("if err != nil { t.Fatal(err) }")
 	tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 	tp.dqsDML = true
+}
+
+// emitDBDeserializeValue handles `db deserialize [--flags] [SCHEMA] VALUE`
+// (memdb1.test: $db1/db1Blob image, aux-schema images, {} empty reset,
+// not-a-database corruption, -readonly/-maxsize flags, unknown options).
+// VALUE renders as a Go string expression; the bytes deserialize into the
+// named schema via DB.Deserialize (tclsqlite.c DB_DESERIALIZE contract).
+func (tp *transpiler) emitDBDeserializeValue(rest []tcl.RawWord) {
+	maxsize := "0"
+	readonly := "false"
+	schema := "main"
+	value := ""
+	i := 0
+	for i < len(rest) {
+		w := strings.TrimSpace(rest[i].Text)
+		if w == "-maxsize" && i+1 < len(rest) {
+			maxsize = tp.buildStringExpr(strings.TrimSpace(rest[i+1].Text))
+			maxsize = fmt.Sprintf("tclParseInt64(%s)", maxsize)
+			i += 2
+			continue
+		}
+		if w == "-readonly" && i+1 < len(rest) {
+			bexpr := tp.buildStringExpr(strings.TrimSpace(rest[i+1].Text))
+			readonly = fmt.Sprintf("tclBool(%s)", bexpr)
+			i += 2
+			continue
+		}
+		if strings.HasPrefix(w, "-") {
+			opt := strings.Trim(w, "{} ")
+			// TCL `catch {db deserialize -unknown 1 $db1} msg` consumes
+			// the unknown flag AND its value (memdb1.test 150): the error
+			// is "unknown option: -unknown", and no deserialize runs.
+			// In catch mode the error must reach _catchErr; in direct
+			// mode the do_test body comparison runs against _r.
+			if tp.catchMode {
+				tp.emitLine("_catchErr = fmt.Errorf(%q)", "unknown option: "+opt)
+			} else {
+				tp.emitLine("_r = %q", "unknown option: "+opt)
+			}
+			return
+		}
+		break
+	}
+	args := rest[i:]
+	if len(args) == 0 {
+		if tp.catchMode {
+			tp.emitLine("_catchErr = fmt.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
+		} else {
+			tp.emitLine("t.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
+		}
+		return
+	}
+	if len(args) == 2 {
+		schema = strings.Trim(args[0].Text, "{} ")
+		value = tp.deserializeValueExpr(args[1])
+	} else if len(args) == 1 {
+		value = tp.deserializeValueExpr(args[0])
+	} else {
+		if tp.catchMode {
+			tp.emitLine("_catchErr = fmt.Errorf(%q)", "unknown option: "+strings.TrimSpace(args[0].Text))
+		} else {
+			tp.emitLine("t.Errorf(%q)", "unknown option: "+strings.TrimSpace(args[0].Text))
+		}
+		return
+	}
+	tp.emitLine("if derr := db.Deserialize(%q, []byte(%s), frigolite.DeserializeOptions{ReadOnly: %s, MaxSize: %s}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }", schema, value, readonly, maxsize)
+	// Inside a db-eval row callback (BeginActiveStatement open) or a
+	// catch-mode body, the deserialize error feeds the harness error
+	// variable (_catchErr), not a hard t.Errorf — memdb1.test 1010 expects
+	// {1 {unable to set MEMDB content}} from the catch, and 1020's backup
+	// interlock likewise flows through msg.
+	if tp.catchMode {
+		tp.emitLine("if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }")
+	} else if tp.inDBEvalCb {
+		tp.emitLine("if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }")
+	} else {
+		tp.emitLine("if tclDeserializeErr != nil { t.Errorf(%q, tclDeserializeErr) }", "deserialize failed: %v")
+	}
+}
+
+// deserializeValueExpr renders a deserialize VALUE word as a Go string:
+// $::db1 maps to the db1Blob image shadow; $vars map to Go vars; braced
+// literals ({} empty, not-a-database) render verbatim.
+func (tp *transpiler) deserializeValueExpr(w tcl.RawWord) string {
+	text := strings.TrimSpace(w.Text)
+	if text == "$::db1" || text == "$db1" || text == "::db1" || text == "db1" {
+		return "db1Blob"
+	}
+	if strings.HasPrefix(text, "$") {
+		return tp.buildStringExpr(text)
+	}
+	return tp.buildStringExpr(text)
 }
 
 // extractHexdbBlock pulls the braced block out of `[decode_hexdb {...}]`.

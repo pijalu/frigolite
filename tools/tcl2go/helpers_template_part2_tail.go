@@ -1624,6 +1624,28 @@ func tclHexEncode(s string) string {
 	return hex.EncodeToString([]byte(s))
 }
 
+// tclSerialize implements TCL [db serialize ?SCHEMA?]: the raw database
+// image bytes (memdb.c sqlite3_serialize). Returned as []byte; callers
+// converting to string get the byte string whose length is
+// page_size × page_count (memdb1.test 100).
+func tclSerialize(db *frigolite.DB, schema string) []byte {
+	img, err := db.Serialize(schema)
+	if err != nil {
+		return nil
+	}
+	return img
+}
+
+// tclDeserializeErr carries the last deserialize error for catch-mode
+// bodies (db deserialize reports through _catchErr).
+var tclDeserializeErr error
+
+// tclParseInt64 parses a TCL integer string (deserialize -maxsize).
+func tclParseInt64(s string) int64 {
+	n, _ := strconv.ParseInt(strings.TrimSpace(s), 10, 64)
+	return n
+}
+
 // tclDbOne implements TCL [db one SQL]: run SQL and return the first column
 // of the first row as a TCL string. Blob results convert to their raw bytes
 // (never fmt's decimal slice rendering); NULL becomes "".

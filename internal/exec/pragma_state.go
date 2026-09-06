@@ -110,6 +110,17 @@ func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
 			return &execpragma.Result{Rows: [][]interface{}{{cur}}}
 		}
 		if err := ctx.Pager.SetJournalMode(m); err != nil {
+			// WAL on an in-memory pager: SQLite's memdb keeps the prior
+			// mode (memdb1.test 420 expects the WAL assignment to echo
+			// "delete", the pre-existing mode — the request is a no-op
+			// because :memory: has no WAL file). Echo the current mode.
+			if strings.Contains(err.Error(), "in-memory") {
+				cur := ctx.Pager.JournalMode()
+				if cur == "" {
+					cur = "delete"
+				}
+				return &execpragma.Result{Rows: [][]interface{}{{cur}}}
+			}
 			return &execpragma.Result{Error: err}
 		}
 		mode := ctx.Pager.JournalMode()

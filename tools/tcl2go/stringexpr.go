@@ -335,6 +335,10 @@ func (tp *transpiler) renderVarPart(vn string, sqlMode bool) string {
 		inner = "_err_tcl"
 	} else if vn == "db" {
 		inner = `""`
+	} else if vn == "::db1" || vn == "db1" {
+		// memdb1.test: $::db1 is the serialize image shadow (db1Blob
+		// string), not the *frigolite.DB connection var.
+		inner = "db1Blob"
 	} else {
 		inner = tclVarToGo(vn)
 	}

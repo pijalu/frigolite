@@ -149,6 +149,14 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 	chName := strings.TrimPrefix(strings.TrimPrefix(args[fdIdx].Text, "$"), "::")
 	if path, ok := activeFileChannels[chName]; ok {
 		msgExpr := tp.varValueExpr(args[fdIdx+1:])
+		// memdb1.test: `puts -nonewline $fd $db1` writes the serialize
+		// image (db1Blob shadow); the generic varValueExpr quotes the
+		// $::db1 reference as literal text — substitute the shadow.
+		// buildStringExpr now maps $::db1 to db1Blob directly (see
+		// renderVarPart), but keep this guard for the quoted-literal path.
+		if msgExpr == `"$::db1"` || msgExpr == `"$db1"` || msgExpr == `"db1"` {
+			msgExpr = "db1Blob"
+		}
 		dest := channelDestExpr(chName, path)
 		// Always honor the runtime fileChannelSeek value: when the test
 		// did a `seek $fd [expr X+Y]` with a non-foldable expression,

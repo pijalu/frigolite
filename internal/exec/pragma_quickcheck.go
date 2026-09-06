@@ -70,6 +70,25 @@ func (e *Engine) execPragmaForeignKeyList(tableName string) *Result {
 // verified by grouping the table rows by index key: a key repeated across
 // multiple rows (with no NULL in a nullable key column) is a violation,
 // reported once per duplicate row.
+// quickCheckPreempt handles degenerate images before the structural walk:
+// a deserialized/corrupt image (bad magic) fails with SQLITE_NOTADB "file
+// is not a database" (memdb1.test 510); an empty image (0 pages after `db
+// deserialize {}`) is a valid empty database reporting ok (memdb1.test 400).
+// Returns nil when no preemption applies.
+func (e *Engine) quickCheckPreempt(colName string) *Result {
+	ctx := e.GetDB("main")
+	if ctx == nil || ctx.Pager == nil {
+		return nil
+	}
+	if ctx.Pager.IsHeaderCorrupt() {
+		return &Result{Error: fmt.Errorf("file is not a database")}
+	}
+	if ctx.Pager.NumPages() == 0 {
+		return &Result{Columns: []string{colName}, Rows: [][]interface{}{{"ok"}}}
+	}
+	return nil
+}
+
 func (e *Engine) execQuickCheck(tableName string) *Result {
 	limit := 0 // 0 = unlimited
 	arg := strings.Trim(tableName, "'\"")
@@ -80,6 +99,9 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 
 	var rows [][]interface{}
 	colName := "integrity_check"
+	if early := e.quickCheckPreempt(colName); early != nil {
+		return early
+	}
 	emit := func(msg string) {
 		if limit > 0 && len(rows) >= limit {
 			return
