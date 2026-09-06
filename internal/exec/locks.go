@@ -85,7 +85,15 @@ func lockKey(ctx *DatabaseContext, connID int64) string {
 	if ctx == nil {
 		return ""
 	}
+	// Shared memdb stores (file:/name?vfs=memdb) are process-global like
+	// files: every connection opening the same name shares one pager, so
+	// the lock key must be the store identity, NOT per-connection
+	// (memdb2.test's COMMIT-upgrade refusal needs both connections on one
+	// key). Private :memory: databases stay per-connection.
 	if ctx.IsMemory {
+		if strings.HasPrefix(ctx.FilePath, "file:") {
+			return ctx.FilePath
+		}
 		return fmt.Sprintf("mem:%d:%s", connID, ctx.Name)
 	}
 	return ctx.FilePath

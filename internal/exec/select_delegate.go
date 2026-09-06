@@ -1,6 +1,8 @@
 package exec
 
 import (
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -18,6 +20,16 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// (held until COMMIT/ROLLBACK) so another connection's COMMIT cannot upgrade
 	// to EXCLUSIVE — lock2 PENDING model. Auto-commit reads take no mark.
 	e.registerSharedTx(selectSchema(s))
+	// Shared-memdb snapshot isolation (file:/name?vfs=memdb, memdb2.test
+	// 1.x.5): the pager is process-global, so a reader inside an explicit
+	// transaction restores its BEGIN snapshot around the scan — other
+	// connections' uncommitted dirty pages are skipped while this read
+	// runs, then re-published. The writer's own connection always reads
+	// live state (its dirty pages are its own writes). File-backed DBs
+	// need nothing (unflushed bytes are invisible to other FDs).
+	if unpin := e.isolateMemdbSelect(selectSchema(s)); unpin != nil {
+		defer unpin()
+	}
 	return e.selectEngine.ExecSelect(s)
 }
 
@@ -97,4 +109,41 @@ func (e *Engine) validateDMLSubqueries(stmt sql.Stmt) error {
 // compareOrderByValues compares two values under an ORDER BY term.
 func (e *Engine) compareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
 	return e.selectEngine.CompareOrderByValues(left, right, ob)
+}
+
+// isolateMemdbSelect restores this connection's BEGIN snapshot around one
+// in-transaction SELECT on a shared memdb store (file:/name?vfs=memdb) so
+// the scan skips other connections' uncommitted dirty pages, then returns
+// an unpin func that re-publishes the live pages. Returns nil when no
+// isolation applies (not in a transaction, not a memdb-shared pager, or no
+// BEGIN snapshot): the scan runs on live state as usual.
+func (e *Engine) isolateMemdbSelect(schemaName string) func() {
+	if !e.tx.inTransaction {
+		return nil
+	}
+	ctx := e.GetDB(schemaName)
+	if ctx == nil || ctx.Pager == nil || !ctx.Pager.IsMemory() {
+		return nil
+	}
+	if !strings.HasPrefix(ctx.FilePath, "file:") {
+		return nil
+	}
+	snap, ok := e.tx.txSnapshots[schemaName]
+	if !ok || snap == nil {
+		if schemaName != "" {
+			snap, ok = e.tx.txSnapshots["MAIN"]
+			if !ok || snap == nil {
+				return nil
+			}
+			ctx = e.GetDB("MAIN")
+			if ctx == nil || ctx.Pager == nil {
+				return nil
+			}
+		} else {
+			return nil
+		}
+	}
+	live := ctx.Pager.Snapshot()
+	ctx.Pager.Restore(snap)
+	return func() { ctx.Pager.Restore(live) }
 }
