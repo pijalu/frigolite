@@ -287,9 +287,15 @@ func Test_enc(t *testing.T) {
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // "enc-13.2"
-		_res = db.Exec("\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")
+		r = db.Query("\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok ok ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

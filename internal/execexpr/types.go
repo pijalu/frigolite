@@ -150,9 +150,35 @@ type Evaluator struct {
 	// aliasResolving tracks alias names currently being resolved (recursion
 	// guard for SELECT output-column aliases).
 	aliasResolving map[string]bool
+	// stmtAux holds statement-scoped auxdata (SQLite sqlite3_set_auxdata):
+	// function-call state that lives for the duration of the outermost
+	// statement and dies when the next one starts. Keyed by function name.
+	stmtAux map[string]interface{}
 }
 
 // New creates an Evaluator bound to the given engine context.
 func New(ctx ExprContext) *Evaluator {
 	return &Evaluator{ctx: ctx}
+}
+
+// AuxData returns the statement-scoped auxdata stored under key, or nil.
+func (ev *Evaluator) AuxData(key string) interface{} {
+	return ev.stmtAux[key]
+}
+
+// SetAuxData stores statement-scoped auxdata under key.
+func (ev *Evaluator) SetAuxData(key string, v interface{}) {
+	if ev.stmtAux == nil {
+		ev.stmtAux = make(map[string]interface{})
+	}
+	ev.stmtAux[key] = v
+}
+
+// ResetStatementAux clears statement-scoped auxdata. Called at the start of
+// each outermost statement: SQLite frees auxdata when a statement is reset,
+// so per-statement sequences (stmtrand()) restart with every statement.
+// Statements nested inside the outer one (triggers, eval()) share the outer
+// statement's auxdata.
+func (ev *Evaluator) ResetStatementAux() {
+	ev.stmtAux = nil
 }

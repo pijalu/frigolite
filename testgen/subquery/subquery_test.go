@@ -614,81 +614,159 @@ func Test_subquery(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "subquery-11.1"
-		_res = db.Exec("\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "text text text text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.2"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT 2 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT 2 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT 2 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT 2 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "blob blob blob blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.3"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT 2.0 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2.0) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT 2.0 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2.0) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT 2.0 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2.0) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT 2.0 UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2.0) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "blob blob blob blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.4"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT null UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT null UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT null UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT null UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "text text text text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.5"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT x'32' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT x'32' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT x'32' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT x'32' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "text text text text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.6"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT 3 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT 3 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT 3 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT 3 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "integer integer integer integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.7"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT 3.0 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3.0) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT 3.0 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3.0) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT 3.0 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3.0) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT 3.0 UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT 3.0) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "integer integer integer integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.8"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT '3' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT '3') SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT '3' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT '3') SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT '3' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT '3') SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT '3' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT '3') SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "blob blob blob blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.10"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT x'32' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT x'32' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT x'32' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT x'32' UNION SELECT ix FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT ix FROM t1 UNION SELECT x'32') SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "integer integer integer integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.11"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT 4 UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT 4) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT 4 UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT 4) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT 4 UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT 4) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT 4 UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT 4) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "real real real real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.12"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT '4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT '4') SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT '4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT '4') SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT '4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT '4') SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT '4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT '4') SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "blob blob blob blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.13"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT null UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT null UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT null UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT null UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT null) SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "real real real real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subquery-11.14"
-		_res = db.Exec("\n  WITH c(a) AS (SELECT x'b4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT x'b4') SELECT affinity(a) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(a) AS (SELECT x'b4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT x'b4') SELECT affinity(a) FROM c;\n")
+		r = db.Query("\n  WITH c(a) AS (SELECT x'b4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT x'b4') SELECT affinity(a) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(a) AS (SELECT x'b4' UNION SELECT rx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT rx FROM t1 UNION SELECT x'b4') SELECT affinity(a) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "real real real real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

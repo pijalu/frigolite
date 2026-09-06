@@ -129,9 +129,15 @@ func Test_with3(t *testing.T) {
 		}
 	}
 	{ // "4.0"
-		_res = db.Exec("\n  WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5\n")
+		r = db.Query("\n  WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.1"
@@ -165,9 +171,15 @@ func Test_with3(t *testing.T) {
 		}
 	}
 	{ // "5.2"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;\n")
+		r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.0"

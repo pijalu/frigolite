@@ -2340,15 +2340,27 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1500"
-			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
+			r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
+				return
+			}
+			got := flatten(r)
+			want := "32"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json102-1501"
-			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
+			r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
+				return
+			}
+			got := flatten(r)
+			want := "31"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
@@ -2371,15 +2383,27 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1610"
-			_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("0"+" "+"null"+" "+"json"+" "+"{}"+" "+"null"+" "+"{}"+" "+"null"+" "+"1"+" "+"123"+" "+"json"+" "+"123"+" "+"integer"+" "+"123"+" "+"integer"+" "+"2"+" "+"4.5"+" "+"json"+" "+"4.5"+" "+"real"+" "+"4.5"+" "+"real"+" "+"3"+" "+"{\"six\"}"+" "+"json"+" "+"six"+" "+"text"+" "+"six"+" "+"text"+" "+"4"+" "+"[7,8]"+" "+"json"+" "+"[7,8]"+" "+"text"+" "+"[7,8]"+" "+"json"+" "+"5"+" "+"{{\"b\":9}}"+" "+"json"+" "+"{{\"b\":9}}"+" "+"text"+" "+"{{\"b\":9}}"+" "+"json"+" "+"6"+" "+"{}"+" "+"null"+" "+"{}"+" "+"null"+" "+"{}"+" "+"null")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json102-1620"
-			_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten("0"+" "+"null"+" "+"json"+" "+"{}"+" "+"null"+" "+"{}"+" "+"null"+" "+"1"+" "+"123"+" "+"json"+" "+"123"+" "+"integer"+" "+"123"+" "+"integer"+" "+"2"+" "+"4.5"+" "+"json"+" "+"4.5"+" "+"real"+" "+"4.5"+" "+"real"+" "+"3"+" "+"{\"six\"}"+" "+"json"+" "+"six"+" "+"text"+" "+"six"+" "+"text"+" "+"4"+" "+"[7,8]"+" "+"json"+" "+"[7,8]"+" "+"text"+" "+"[7,8]"+" "+"json"+" "+"5"+" "+"{{\"b\":9}}"+" "+"json"+" "+"{{\"b\":9}}"+" "+"text"+" "+"{{\"b\":9}}"+" "+"json"+" "+"6"+" "+"{}"+" "+"null"+" "+"{}"+" "+"null"+" "+"{}"+" "+"null")
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()

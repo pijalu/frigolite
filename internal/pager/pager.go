@@ -787,10 +787,19 @@ func (p *Pager) AutoVacuum() bool {
 // is consulted by AllocatePage / AllocatePageLE when deciding whether
 // a candidate page lands on the reserved pending-byte slot. A value
 // of 0 restores the production default (0x40000000).
-func (p *Pager) SetPendingByte(byteOffset uint32) {
+//
+// Returns the previous offset (the override, or the production default
+// when none was installed) — the value sqlite3_test_control_pending_byte
+// hands back so tests can restore it.
+func (p *Pager) SetPendingByte(byteOffset uint32) uint32 {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	prev := p.pendingByteOverride
+	if prev == 0 {
+		prev = 0x40000000
+	}
 	p.pendingByteOverride = byteOffset
+	return prev
 }
 
 // PendingBytePage returns the page number holding the PENDING_BYTE lock

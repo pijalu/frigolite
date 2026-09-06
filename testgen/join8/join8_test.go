@@ -240,27 +240,15 @@ func Test_join8(t *testing.T) {
 	}
 	tcl_nullvalue = "-"
 	{ // "join8-7010"
-		r = db.Query("\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
-			return
-		}
-		got := flatten(r)
-		want := "6 106 206 306 106 6 206 6 - - - - - - - - 200 0 - - - - - - - - 203 3 - - - - - - - - 209 9 - - - - - - - - - - 300 0 - - - - - - - - 305 5 - - - - - - - - 310 10"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
 		}
 	}
 	{ // "join8-7011"
-		r = db.Query("\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
-			return
-		}
-		got := flatten(r)
-		want := "6 106 206 306 106 6 206 6 - - - - - - - - 200 0 - - - - - - - - 203 3 - - - - - - - - 209 9 - - - - - - - - - - 300 0 - - - - - - - - 305 5 - - - - - - - - 310 10"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);\n")
 		}
 	}
 	{ // "join8-7020" — skipped: BLOOM FILTER query plan not implemented (G3.INDEX) (SQL side effects only)
@@ -1106,9 +1094,15 @@ func Test_join8(t *testing.T) {
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-24000"
-		_res = db.Exec("\n  CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);\n")
+		r = db.Query("\n  CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);\n")
+			return
+		}
+		got := flatten(r)
+		want := "- - - - 200"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

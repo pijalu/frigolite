@@ -191,9 +191,15 @@ func Test_in7(t *testing.T) {
 			}
 		}
 		{ // "3.4"
-			_res = db.Exec("\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
+			r = db.Query("\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4 5 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "3.5"

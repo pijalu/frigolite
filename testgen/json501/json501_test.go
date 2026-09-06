@@ -70,9 +70,15 @@ func Test_json501(t *testing.T) {
 	testprefix = "json501"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{a:5,b:6}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{a:5,b:6}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{a:5,b:6}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{a:5,b:6}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "5 {\"a\":5,\"b\":6} 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2"
@@ -154,9 +160,15 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "2.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{\"a\":5, \"b\":6, }'))\n  SELECT x->>'b', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{\"a\":5, \"b\":6, }'))\n  SELECT x->>'b', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{\"a\":5, \"b\":6, }'))\n  SELECT x->>'b', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{\"a\":5, \"b\":6, }'))\n  SELECT x->>'b', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "6 {\"a\":5,\"b\":6} 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.2"
@@ -184,9 +196,15 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "3.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "6 [5,6] 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.2"
@@ -214,9 +232,15 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "4.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{\"a\": ''abcd''}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{\"a\": ''abcd''}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{\"a\": ''abcd''}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{\"a\": ''abcd''}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "abcd {\"a\":\"abcd\"} 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.2"
@@ -232,9 +256,15 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "5.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{a: \"abc'||char(0x5c,0x0a)||'xyz\"}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{a: \"abc'||char(0x5c,0x0a)||'xyz\"}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{a: \"abc'||char(0x5c,0x0a)||'xyz\"}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{a: \"abc'||char(0x5c,0x0a)||'xyz\"}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "abcxyz {\"a\":\"abcxyz\"} 0 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.2"
@@ -454,99 +484,195 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "8.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: 4.}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: 4.}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: 4.}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: 4.}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 {\"x\":4.0}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.2"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: +4.}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: +4.}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: +4.}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: +4.}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 {\"x\":4.0}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.3"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: -4.}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: -4.}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: -4.}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: -4.}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "-4.0 {\"x\":-4.0}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.3"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: .5}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: .5}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: .5}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: .5}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0.5 {\"x\":0.5}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.4"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: -.5}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: -.5}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: -.5}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: -.5}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "-0.5 {\"x\":-0.5}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.5"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: +.5}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: +.5}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: +.5}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: +.5}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0.5 {\"x\":0.5}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.6"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: 4.e0}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: 4.e0}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: 4.e0}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: 4.e0}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4.0 {\"x\":4.0e0}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.7"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: +4.e1}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: +4.e1}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: +4.e1}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: +4.e1}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "40.0 {\"x\":4.0e1}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.8"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: -4.e2}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: -4.e2}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: -4.e2}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: -4.e2}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "-400.0 {\"x\":-4.0e2}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.9"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: .5e3}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: .5e3}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: .5e3}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: .5e3}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "500.0 {\"x\":0.5e3}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.10"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: -.5e-1}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: -.5e-1}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: -.5e-1}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: -.5e-1}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "-0.05 {\"x\":-0.5e-1}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.11"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: +.5e-2}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: +.5e-2}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: +.5e-2}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: +.5e-2}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0.005 {\"x\":0.5e-2}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.1"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: +Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: +Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: +Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: +Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "Inf {\"x\":9e999}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.2"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: -Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: -Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: -Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: -Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "-Inf {\"x\":-9e999}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.3"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: Infinity}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "Inf {\"x\":9e999}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.4"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('{x: NaN}')) SELECT x->>'x', json(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('{x: NaN}')) SELECT x->>'x', json(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('{x: NaN}')) SELECT x->>'x', json(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('{x: NaN}')) SELECT x->>'x', json(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "{} {\"x\":null}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "10.1"

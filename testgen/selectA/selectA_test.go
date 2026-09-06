@@ -1282,9 +1282,15 @@ func Test_selectA(t *testing.T) {
 		}
 	}
 	{ // "selectA-3.98"
-		_res = db.Exec("\n  WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;\n")
+			return
+		}
+		got := flatten(r)
+		want := "MAD MAD+ MAD++"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc f returns constant 1 (registered via db func)

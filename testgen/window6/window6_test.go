@@ -388,9 +388,15 @@ func Test_window6(t *testing.T) {
 			}
 		}
 		{ // "9.0"
-			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
+			r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 2 1,2 3 1,2,3 4 2,3,4 5 3,4,5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "9.3"
@@ -445,9 +451,15 @@ func Test_window6(t *testing.T) {
 				}
 			}
 			{ // "10.0"
-				_res = db.Exec("\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
+				r = db.Query("\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// foreach {tn stmt} "1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\""

@@ -433,7 +433,7 @@ func Test_memdb1(t *testing.T) {
 		db.Close()
 		fd = "test.db"
 		_ = fd // suppress unused warning
-		data = tclReadFileWithLen(fd, [expr)
+		data = tclReadFileWithLen(fd, 20480)
 		_ = data // suppress unused warning
 		// close $fd
 		db, err = frigolite.Open("")

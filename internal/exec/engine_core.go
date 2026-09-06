@@ -695,6 +695,12 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// within a single statement start from 1).
 	e.testState.counterVal = 0
 	e.testState.nondeterVal = 0
+	// Statement-scoped auxdata (stmtrand() sequence state) dies when the next
+	// outermost statement starts, mirroring SQLite freeing auxdata at
+	// sqlite3_reset. Nested statements (triggers) share the outer aux.
+	if e.tx.execDepth == 1 {
+		e.expr.ResetStatementAux()
+	}
 	// Operator-overload probing is statement-scoped: materialization of a
 	// opted-in vtab during THIS statement re-arms it.
 	e.overloadProbe = false

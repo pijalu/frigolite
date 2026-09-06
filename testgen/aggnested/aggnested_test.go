@@ -493,9 +493,15 @@ func Test_aggnested(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
-		_res = db.Exec("\n  WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;\n")
+		r = db.Query("\n  WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.2"

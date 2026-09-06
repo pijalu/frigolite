@@ -154,9 +154,15 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	{ // "2.1.1"
-		_res = db.Exec("\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;\n")
+		r = db.Query("\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 one 1 1 ONE 2 2 two 2 2 TWO 3 3 three 3 3 THREE"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.1.2"
@@ -436,9 +442,15 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	{ // "6.1"
-		_res = db.Exec("\n  WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;\n")
+		r = db.Query("\n  WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;\n")
+			return
+		}
+		got := flatten(r)
+		want := "9 10 1000 100 9 10 1000 400 9 10 800 100 9 10 800 400"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -449,9 +461,15 @@ func Test_unionall(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.1"
-		_res = db.Exec("\n  WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;\n")
+		r = db.Query("\n  WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 | 0 101 | 0 102 | 1 1 | 1 101 | 1 102 | 100 1 | 100 101 | 100 102 | 101 1 | 101 101 | 101 102 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

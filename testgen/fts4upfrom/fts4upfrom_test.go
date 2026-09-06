@@ -156,9 +156,15 @@ func Test_fts4upfrom(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".8"
-				_res = db.Exec("\n    WITH x1(o, n) AS (\n        VALUES(1, 11) UNION ALL\n        VALUES(2, 12) UNION ALL\n        VALUES(3, 13) UNION ALL\n        VALUES(4, 14)\n    )\n    SELECT ft.rowid, a, b, c, o, n FROM ft, x1 WHERE ft.rowid = o;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH x1(o, n) AS (\n        VALUES(1, 11) UNION ALL\n        VALUES(2, 12) UNION ALL\n        VALUES(3, 13) UNION ALL\n        VALUES(4, 14)\n    )\n    SELECT ft.rowid, a, b, c, o, n FROM ft, x1 WHERE ft.rowid = o;\n  ")
+				r = db.Query("\n    WITH x1(o, n) AS (\n        VALUES(1, 11) UNION ALL\n        VALUES(2, 12) UNION ALL\n        VALUES(3, 13) UNION ALL\n        VALUES(4, 14)\n    )\n    SELECT ft.rowid, a, b, c, o, n FROM ft, x1 WHERE ft.rowid = o;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH x1(o, n) AS (\n        VALUES(1, 11) UNION ALL\n        VALUES(2, 12) UNION ALL\n        VALUES(3, 13) UNION ALL\n        VALUES(4, 14)\n    )\n    SELECT ft.rowid, a, b, c, o, n FROM ft, x1 WHERE ft.rowid = o;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 a {} apricot 1 11 2 b apple blueberry 2 12 3 c banana clementine 3 13 4 d cherry dewberry 4 14"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			vtab.TclVarSet("ROWID", "", "rowid")

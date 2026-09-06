@@ -161,6 +161,17 @@ func Test_pager1(t *testing.T) {
 	_ = r    // suppress unused warning
 	_ = _r   // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
+	// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size
+	// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).
+	var sqlite_pending_byte = "65536" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102
+	_ = sqlite_pending_byte
+	// Pager.SetPendingByte(0x10000) makes the engine skip page 65 (the
+	// pending-byte slot) when handing out rootpages — without this,
+	// autovacuum-2.4.5 allocates a table at the reserved slot and
+	// the btree reader later reports "database disk image is
+	// malformed". The test harness pins the byte in C via
+	// sqlite3_test_control_pending_byte; mirror that here.
+	db.SetPendingByte(0x10000)
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -3126,8 +3137,9 @@ func Test_pager1(t *testing.T) {
 										}
 										db.Close()
 										// tv delete (unsupported command, not transpiled)
-										pending_prev = "sqlite3_test_control_pending_byte 0x1000000"
-										_ = pending_prev // suppress unused warning
+										_r = strconv.FormatUint(uint64(db.SetPendingByte(16777216)), 10)
+										pending_prev = _r
+										sqlite_pending_byte = "16777216"
 										{ // do_test "42.1"
 											db.Close()
 											os.Remove("test.db")
@@ -3141,6 +3153,7 @@ func Test_pager1(t *testing.T) {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 											}
 											db.Close()
+											db.SetPendingByte(65536)
 											sqlite_pending_byte = "65536" // sqlite3_test_control_pending_byte 0x0010000
 											db, err = frigolite.Open("test.db")
 											tclConnRegister("db", db)
@@ -3175,7 +3188,8 @@ func Test_pager1(t *testing.T) {
 										}
 										db.Close()
 										// tv delete (unsupported command, not transpiled)
-										// sqlite3_test_control_pending_byte $pending_prev (parse error: strconv.ParseInt: parsing "$pending_prev": invalid syntax)
+										db.SetPendingByte(uint32(tclAtoi(pending_prev)))
+										sqlite_pending_byte = pending_prev
 										{ // "43.1" (prepare-step internals; SQL side effects only)
 											db.Close()
 											os.Remove("test.db")

@@ -164,6 +164,11 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "ROUND", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnROUND})
 	r.register(&Func{Name: "RANDOM", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnRANDOM})
 	r.register(&Func{Name: "RANDOMBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnRANDOMBLOB})
+	// STMTRAND: ext/misc/stmtrand.c static test extension — statement-scoped
+	// LCG (loaded by default in the TCL test harness). Statement-scoped
+	// sequences are dispatched in execexpr's evalEngineFunc; this fallback
+	// covers contexts without statement scope.
+	r.register(&Func{Name: "STMTRAND", Type: TypeScalar, MinArgs: 0, MaxArgs: 1, ScalarFn: fnSTMTRAND})
 	r.register(&Func{Name: "RANDSTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnRANDSTR})
 	r.register(&Func{Name: "ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnZEROBLOB})
 	// test_zeroblob: the TCL test-harness variant of zeroblob() that skips

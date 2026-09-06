@@ -685,17 +685,23 @@ func Test_zipfile(t *testing.T) {
 				return tclHexDecode(tclStr(args[0])), nil
 			}, 0, -1)
 			{ // "5.0"
-				_res = db.Exec("\n  WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )\n")
+				r = db.Query("\n  WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )\n")
+					return
+				}
+				got := flatten(r)
+				want := "a.txt 946684800 abc"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			if tclBool(tclBool01(vtab.TclVarExists("UNZIP", ""))) {
 				os.Remove("test1.zip")
 				{ // do_test "6.0"
-					_res = db.Exec("\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
+					r = db.Query("\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
 					}
 					os.Remove("test_unzip")
 					os.MkdirAll("test_unzip", 0755)
@@ -747,9 +753,9 @@ func Test_zipfile(t *testing.T) {
 			}
 			os.Remove("test.zip")
 			{ // do_test "7.0"
-				_res = db.Exec("\n    WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;\n  ")
+				r = db.Query("\n    WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;\n  ")
 				}
 				_rc := "0"
 				{
@@ -904,9 +910,15 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			{ // "9.0"
-				_res = db.Exec("\n  WITH src(nm) AS (\n    VALUES('dir1') UNION ALL\n    VALUES('dir2/') UNION ALL\n    VALUES('dir3//') UNION ALL\n    VALUES('dir4///') UNION ALL\n    VALUES('/') \n  )\n  SELECT name FROM zipfile((SELECT zipfile(nm, NULL) FROM src))\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH src(nm) AS (\n    VALUES('dir1') UNION ALL\n    VALUES('dir2/') UNION ALL\n    VALUES('dir3//') UNION ALL\n    VALUES('dir4///') UNION ALL\n    VALUES('/') \n  )\n  SELECT name FROM zipfile((SELECT zipfile(nm, NULL) FROM src))\n")
+				r = db.Query("\n  WITH src(nm) AS (\n    VALUES('dir1') UNION ALL\n    VALUES('dir2/') UNION ALL\n    VALUES('dir3//') UNION ALL\n    VALUES('dir4///') UNION ALL\n    VALUES('/') \n  )\n  SELECT name FROM zipfile((SELECT zipfile(nm, NULL) FROM src))\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH src(nm) AS (\n    VALUES('dir1') UNION ALL\n    VALUES('dir2/') UNION ALL\n    VALUES('dir3//') UNION ALL\n    VALUES('dir4///') UNION ALL\n    VALUES('/') \n  )\n  SELECT name FROM zipfile((SELECT zipfile(nm, NULL) FROM src))\n")
+					return
+				}
+				got := flatten(r)
+				want := "dir1/ dir2/ dir3/ dir4/ /"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{
@@ -1203,9 +1215,15 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				{ // "17.1"
-					_res = db.Exec("\n  WITH vlist(x) AS (\n     VALUES(9223372036854775807),\n           (-9223372036854775808),\n           (9223372036854775806),\n           (-9223372036854775807)\n  )\n  SELECT DISTINCT typeof(zipfile(0,0,x,0)) FROM vlist;\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH vlist(x) AS (\n     VALUES(9223372036854775807),\n           (-9223372036854775808),\n           (9223372036854775806),\n           (-9223372036854775807)\n  )\n  SELECT DISTINCT typeof(zipfile(0,0,x,0)) FROM vlist;\n")
+					r = db.Query("\n  WITH vlist(x) AS (\n     VALUES(9223372036854775807),\n           (-9223372036854775808),\n           (9223372036854775806),\n           (-9223372036854775807)\n  )\n  SELECT DISTINCT typeof(zipfile(0,0,x,0)) FROM vlist;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH vlist(x) AS (\n     VALUES(9223372036854775807),\n           (-9223372036854775808),\n           (9223372036854775806),\n           (-9223372036854775807)\n  )\n  SELECT DISTINCT typeof(zipfile(0,0,x,0)) FROM vlist;\n")
+						return
+					}
+					got := flatten(r)
+					want := "blob"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "18.1"

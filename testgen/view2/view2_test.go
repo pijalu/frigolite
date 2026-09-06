@@ -82,15 +82,27 @@ func Test_view2(t *testing.T) {
 		}
 	}
 	{ // "1.2"
-		_res = db.Exec("\n  CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;\n")
+		r = db.Query("\n  CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3"
-		_res = db.Exec("\n  CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;\n")
+		r = db.Query("\n  CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

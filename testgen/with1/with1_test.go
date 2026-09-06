@@ -96,9 +96,15 @@ func Test_with1(t *testing.T) {
 	testprefix = "with1" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10\n")
+		r = db.Query("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10\n")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.1"
@@ -144,9 +150,15 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "2.2"
-		_res = db.Exec("\n  WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;\n")
+		r = db.Query("\n  WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.3"
@@ -162,15 +174,27 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "2.4"
-		_res = db.Exec("\n  WITH tmp1(a) AS ( SELECT * FROM t1 ),\n       tmp2(x) AS ( SELECT * FROM tmp1)\n  SELECT * FROM tmp2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH tmp1(a) AS ( SELECT * FROM t1 ),\n       tmp2(x) AS ( SELECT * FROM tmp1)\n  SELECT * FROM tmp2;\n")
+		r = db.Query("\n  WITH tmp1(a) AS ( SELECT * FROM t1 ),\n       tmp2(x) AS ( SELECT * FROM tmp1)\n  SELECT * FROM tmp2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH tmp1(a) AS ( SELECT * FROM t1 ),\n       tmp2(x) AS ( SELECT * FROM tmp1)\n  SELECT * FROM tmp2;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.5"
-		_res = db.Exec("\n  WITH tmp2(x) AS ( SELECT * FROM tmp1),\n       tmp1(a) AS ( SELECT * FROM t1 )\n  SELECT * FROM tmp2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH tmp2(x) AS ( SELECT * FROM tmp1),\n       tmp1(a) AS ( SELECT * FROM t1 )\n  SELECT * FROM tmp2;\n")
+		r = db.Query("\n  WITH tmp2(x) AS ( SELECT * FROM tmp1),\n       tmp1(a) AS ( SELECT * FROM t1 )\n  SELECT * FROM tmp2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH tmp2(x) AS ( SELECT * FROM tmp1),\n       tmp1(a) AS ( SELECT * FROM t1 )\n  SELECT * FROM tmp2;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.1"
@@ -186,9 +210,15 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "3.3"
-		_res = db.Exec("\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  INSERT INTO t3 VALUES('T3');\n  INSERT INTO t4 VALUES('T4');\n\n  WITH t3(a) AS (SELECT * FROM t4)\n  SELECT * FROM t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  INSERT INTO t3 VALUES('T3');\n  INSERT INTO t4 VALUES('T4');\n\n  WITH t3(a) AS (SELECT * FROM t4)\n  SELECT * FROM t3;\n")
+		r = db.Query("\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  INSERT INTO t3 VALUES('T3');\n  INSERT INTO t4 VALUES('T4');\n\n  WITH t3(a) AS (SELECT * FROM t4)\n  SELECT * FROM t3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  INSERT INTO t3 VALUES('T3');\n  INSERT INTO t4 VALUES('T4');\n\n  WITH t3(a) AS (SELECT * FROM t4)\n  SELECT * FROM t3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "T4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.4"
@@ -258,9 +288,15 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "5.1"
-		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i)\n  SELECT x FROM i LIMIT 10;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i)\n  SELECT x FROM i LIMIT 10;\n")
+		r = db.Query("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i)\n  SELECT x FROM i LIMIT 10;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i)\n  SELECT x FROM i LIMIT 10;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.2"
@@ -270,21 +306,39 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "5.2.1"
-		_res = db.Exec("\n  CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
+		r = db.Query("\n  CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 1 10 2 20 3 30 4 40 5 50 6 60 7 70 8 80 9 90"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.2.2"
-		_res = db.Exec("\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 1 10 2 20 3 30 4 40 4 40 5 50 6 60 7 70 7 70 8 80 8 80 8 80 8 80 9 90 9 90 9 90 9 90"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.2.3"
-		_res = db.Exec("\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2 LIMIT 4 OFFSET 2\n      )\n  SELECT * FROM ancest;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2 LIMIT 4 OFFSET 2\n      )\n  SELECT * FROM ancest;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2 LIMIT 4 OFFSET 2\n      )\n  SELECT * FROM ancest;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2 LIMIT 4 OFFSET 2\n      )\n  SELECT * FROM ancest;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2 20 3 30 4 40 4 40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.3"
@@ -294,15 +348,27 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "5.4"
-		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
+		r = db.Query("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.5"
-		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
+		r = db.Query("\n  WITH i(x) AS ( VALUES(1) UNION SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH i(x) AS ( VALUES(1) UNION SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.6.1"
@@ -354,21 +420,39 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "6.2"
-		_res = db.Exec("\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;\n")
+		r = db.Query("\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "/bin /bin/false /bin/grep /bin/ls /bin/true /etc /etc/rc.d /etc/rc.d/rc.apache /etc/rc.d/rc.samba /home /home/dan /home/dan/public_html /home/dan/public_html/index.html /home/dan/public_html/index.html/logo.gif"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.3"
-		_res = db.Exec("\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT count(*) FROM flat;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT count(*) FROM flat;\n")
+		r = db.Query("\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT count(*) FROM flat;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT count(*) FROM flat;\n")
+			return
+		}
+		got := flatten(r)
+		want := "15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.4"
-		_res = db.Exec("\n  WITH x(i) AS (\n    SELECT 1\n    UNION ALL\n    SELECT i+1 FROM x WHERE i<10\n  )\n  SELECT count(*) FROM x\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x(i) AS (\n    SELECT 1\n    UNION ALL\n    SELECT i+1 FROM x WHERE i<10\n  )\n  SELECT count(*) FROM x\n")
+		r = db.Query("\n  WITH x(i) AS (\n    SELECT 1\n    UNION ALL\n    SELECT i+1 FROM x WHERE i<10\n  )\n  SELECT count(*) FROM x\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH x(i) AS (\n    SELECT 1\n    UNION ALL\n    SELECT i+1 FROM x WHERE i<10\n  )\n  SELECT count(*) FROM x\n")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.1"
@@ -378,15 +462,27 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "7.2"
-		_res = db.Exec("\n  WITH t(id, path) AS (\n    SELECT i, '' FROM tree WHERE p IS NULL\n    UNION ALL\n    SELECT i, path || '/' || i FROM tree, t WHERE p = id\n  ) \n  SELECT path FROM t;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t(id, path) AS (\n    SELECT i, '' FROM tree WHERE p IS NULL\n    UNION ALL\n    SELECT i, path || '/' || i FROM tree, t WHERE p = id\n  ) \n  SELECT path FROM t;\n")
+		r = db.Query("\n  WITH t(id, path) AS (\n    SELECT i, '' FROM tree WHERE p IS NULL\n    UNION ALL\n    SELECT i, path || '/' || i FROM tree, t WHERE p = id\n  ) \n  SELECT path FROM t;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t(id, path) AS (\n    SELECT i, '' FROM tree WHERE p IS NULL\n    UNION ALL\n    SELECT i, path || '/' || i FROM tree, t WHERE p = id\n  ) \n  SELECT path FROM t;\n")
+			return
+		}
+		got := flatten(r)
+		want := "{} /2 /3 /2/4 /2/4/5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.3"
-		_res = db.Exec("\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
+		r = db.Query("\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.4"
@@ -408,9 +504,16 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "8.1-mandelbrot"
-		_res = db.Exec("\n  WITH RECURSIVE\n    xaxis(x) AS (VALUES(-2.0) UNION ALL SELECT x+0.05 FROM xaxis WHERE x<1.2),\n    yaxis(y) AS (VALUES(-1.0) UNION ALL SELECT y+0.1 FROM yaxis WHERE y<1.0),\n    m(iter, cx, cy, x, y) AS (\n      SELECT 0, x, y, 0.0, 0.0 FROM xaxis, yaxis\n      UNION ALL\n      SELECT iter+1, cx, cy, x*x-y*y + cx, 2.0*x*y + cy FROM m \n       WHERE (x*x + y*y) < 4.0 AND iter<28\n    ),\n    m2(iter, cx, cy) AS (\n      SELECT max(iter), cx, cy FROM m GROUP BY cx, cy\n    ),\n    a(t) AS (\n      SELECT group_concat( substr(' .+*#', 1+min(iter/7,4), 1), '') \n      FROM m2 GROUP BY cy\n    )\n  SELECT group_concat(rtrim(t),x'0a') FROM a;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    xaxis(x) AS (VALUES(-2.0) UNION ALL SELECT x+0.05 FROM xaxis WHERE x<1.2),\n    yaxis(y) AS (VALUES(-1.0) UNION ALL SELECT y+0.1 FROM yaxis WHERE y<1.0),\n    m(iter, cx, cy, x, y) AS (\n      SELECT 0, x, y, 0.0, 0.0 FROM xaxis, yaxis\n      UNION ALL\n      SELECT iter+1, cx, cy, x*x-y*y + cx, 2.0*x*y + cy FROM m \n       WHERE (x*x + y*y) < 4.0 AND iter<28\n    ),\n    m2(iter, cx, cy) AS (\n      SELECT max(iter), cx, cy FROM m GROUP BY cx, cy\n    ),\n    a(t) AS (\n      SELECT group_concat( substr(' .+*#', 1+min(iter/7,4), 1), '') \n      FROM m2 GROUP BY cy\n    )\n  SELECT group_concat(rtrim(t),x'0a') FROM a;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    xaxis(x) AS (VALUES(-2.0) UNION ALL SELECT x+0.05 FROM xaxis WHERE x<1.2),\n    yaxis(y) AS (VALUES(-1.0) UNION ALL SELECT y+0.1 FROM yaxis WHERE y<1.0),\n    m(iter, cx, cy, x, y) AS (\n      SELECT 0, x, y, 0.0, 0.0 FROM xaxis, yaxis\n      UNION ALL\n      SELECT iter+1, cx, cy, x*x-y*y + cx, 2.0*x*y + cy FROM m \n       WHERE (x*x + y*y) < 4.0 AND iter<28\n    ),\n    m2(iter, cx, cy) AS (\n      SELECT max(iter), cx, cy FROM m GROUP BY cx, cy\n    ),\n    a(t) AS (\n      SELECT group_concat( substr(' .+*#', 1+min(iter/7,4), 1), '') \n      FROM m2 GROUP BY cy\n    )\n  SELECT group_concat(rtrim(t),x'0a') FROM a;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    xaxis(x) AS (VALUES(-2.0) UNION ALL SELECT x+0.05 FROM xaxis WHERE x<1.2),\n    yaxis(y) AS (VALUES(-1.0) UNION ALL SELECT y+0.1 FROM yaxis WHERE y<1.0),\n    m(iter, cx, cy, x, y) AS (\n      SELECT 0, x, y, 0.0, 0.0 FROM xaxis, yaxis\n      UNION ALL\n      SELECT iter+1, cx, cy, x*x-y*y + cx, 2.0*x*y + cy FROM m \n       WHERE (x*x + y*y) < 4.0 AND iter<28\n    ),\n    m2(iter, cx, cy) AS (\n      SELECT max(iter), cx, cy FROM m GROUP BY cx, cy\n    ),\n    a(t) AS (\n      SELECT group_concat( substr(' .+*#', 1+min(iter/7,4), 1), '') \n      FROM m2 GROUP BY cy\n    )\n  SELECT group_concat(rtrim(t),x'0a') FROM a;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse("                                    ....#\n                                   ..#*..\n                                 ..+####+.\n                            .......+####....   +\n                           ..##+*##########+.++++\n                          .+.##################+.\n              .............+###################+.+\n              ..++..#.....*#####################+.\n             ...+#######++#######################.\n          ....+*################################.\n #############################################...\n          ....+*################################.\n             ...+#######++#######################.\n              ..++..#.....*#####################+.\n              .............+###################+.+\n                          .+.##################+.\n                           ..##+*##########+.++++\n                            .......+####....   +\n                                 ..+####+.\n                                   ..#*..\n                                    ....#\n                                    +.")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.2-soduko"
@@ -460,15 +563,27 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "10.7.2"
-		_res = db.Exec("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t\n")
+		r = db.Query("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "10.7.3"
-		_res = db.Exec("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY c\n  ) \n  SELECT * FROM t\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY c\n  ) \n  SELECT * FROM t\n")
+		r = db.Query("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY c\n  ) \n  SELECT * FROM t\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY c\n  ) \n  SELECT * FROM t\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// insert_into_tree {\n  /a/b\n  /a/C\n  /a/d\n  /B/e\n  /B/F\n  /B/g\n...} (unsupported command, not transpiled)
@@ -521,27 +636,54 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "11.1"
-		_res = db.Exec("\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		r = db.Query("\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse("Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.2"
-		_res = db.Exec("\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse("Alice\n...Bob\n......Dave\n.........Harry\n.........Ingrid\n......Emma\n.........Jim\n.........Kate\n...Cindy\n......Fred\n.........Lanny\n.........Mary\n......Gail\n.........Noland\n.........Olivia")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.3"
-		_res = db.Exec("\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+			return
+		}
+		got := flatten(r)
+		want := tclListFlattenCollapse("Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia")
+		got = tclListFlattenCollapse(got)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "12.1"
-		_res = db.Exec("\nWITH RECURSIVE\n  t1(x) AS (VALUES(2) UNION ALL SELECT x+2 FROM t1 WHERE x<20),\n  t2(y) AS (VALUES(3) UNION ALL SELECT y+3 FROM t2 WHERE y<20)\nSELECT x FROM t1 EXCEPT SELECT y FROM t2 ORDER BY 1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\nWITH RECURSIVE\n  t1(x) AS (VALUES(2) UNION ALL SELECT x+2 FROM t1 WHERE x<20),\n  t2(y) AS (VALUES(3) UNION ALL SELECT y+3 FROM t2 WHERE y<20)\nSELECT x FROM t1 EXCEPT SELECT y FROM t2 ORDER BY 1;\n")
+		r = db.Query("\nWITH RECURSIVE\n  t1(x) AS (VALUES(2) UNION ALL SELECT x+2 FROM t1 WHERE x<20),\n  t2(y) AS (VALUES(3) UNION ALL SELECT y+3 FROM t2 WHERE y<20)\nSELECT x FROM t1 EXCEPT SELECT y FROM t2 ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\nWITH RECURSIVE\n  t1(x) AS (VALUES(2) UNION ALL SELECT x+2 FROM t1 WHERE x<20),\n  t2(y) AS (VALUES(3) UNION ALL SELECT y+3 FROM t2 WHERE y<20)\nSELECT x FROM t1 EXCEPT SELECT y FROM t2 ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 8 10 14 16 20"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "13.1"
@@ -593,9 +735,15 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "17.1"
-		_res = db.Exec("\n  WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x\n")
+		r = db.Query("\n  WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x\n")
+			return
+		}
+		got := flatten(r)
+		want := "9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "17.2"
@@ -645,27 +793,51 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "17.5"
-		_res = db.Exec("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x2\n  )\n  SELECT * FROM x3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x2\n  )\n  SELECT * FROM x3;\n")
+		r = db.Query("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x2\n  )\n  SELECT * FROM x3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x2\n  )\n  SELECT * FROM x3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "17.6"
-		_res = db.Exec("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+		r = db.Query("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "17.7"
-		_res = db.Exec("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+		r = db.Query("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "17.8"
-		_res = db.Exec("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+		r = db.Query("\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "17.9"
@@ -681,15 +853,27 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "18.1"
-		_res = db.Exec("\n  WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;\n")
+		r = db.Query("\n  WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;\n")
+			return
+		}
+		got := flatten(r)
+		want := "NULL"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "18.2"
-		_res = db.Exec("\n  WITH xyz(x) AS (\n    SELECT printf('%d', 5) * NULL\n    UNION SELECT round(1<1+x) \n    FROM xyz ORDER BY 1\n  )\n  SELECT 1 FROM xyz;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH xyz(x) AS (\n    SELECT printf('%d', 5) * NULL\n    UNION SELECT round(1<1+x) \n    FROM xyz ORDER BY 1\n  )\n  SELECT 1 FROM xyz;\n")
+		r = db.Query("\n  WITH xyz(x) AS (\n    SELECT printf('%d', 5) * NULL\n    UNION SELECT round(1<1+x) \n    FROM xyz ORDER BY 1\n  )\n  SELECT 1 FROM xyz;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH xyz(x) AS (\n    SELECT printf('%d', 5) * NULL\n    UNION SELECT round(1<1+x) \n    FROM xyz ORDER BY 1\n  )\n  SELECT 1 FROM xyz;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "19.1a"
@@ -705,21 +889,39 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "20.1"
-		_res = db.Exec("\n  WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;\n")
+		r = db.Query("\n  WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "20.2"
-		_res = db.Exec("\n  WITH c(i)AS(VALUES(5)UNIoN SELECT 0)SELECT min(1)-i fROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(i)AS(VALUES(5)UNIoN SELECT 0)SELECT min(1)-i fROM c;\n")
+		r = db.Query("\n  WITH c(i)AS(VALUES(5)UNIoN SELECT 0)SELECT min(1)-i fROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(i)AS(VALUES(5)UNIoN SELECT 0)SELECT min(1)-i fROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "21.1"
-		_res = db.Exec("\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
+		r = db.Query("\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "21.1b"
@@ -832,21 +1034,39 @@ func Test_with1(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "26.1"
-			_res = db.Exec("\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			r = db.Query("\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 a 2 a 3 b 1 b 2 b 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "26.2"
-			_res = db.Exec("\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			r = db.Query("\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 a 2 a 3 b 1 b 2 b 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "26.3"
-			_res = db.Exec("\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			r = db.Query("\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 a 2 a 3 b 1 b 2 b 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()

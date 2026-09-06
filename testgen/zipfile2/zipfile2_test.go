@@ -173,9 +173,15 @@ func Test_zipfile2(t *testing.T) {
 	_ = archive // suppress unused warning
 	if false {
 		{ // "3.1"
-			_res = db.Exec("\n    WITH contents(name,mtime,data) AS (\n        VALUES('a.txt', 1000000, 'contents of a.txt') UNION ALL\n        VALUES('b.txt', 1000000, 'contents of b.txt')\n    ) SELECT quote( zipfile(name,NULL,mtime,data) ) FROM contents;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH contents(name,mtime,data) AS (\n        VALUES('a.txt', 1000000, 'contents of a.txt') UNION ALL\n        VALUES('b.txt', 1000000, 'contents of b.txt')\n    ) SELECT quote( zipfile(name,NULL,mtime,data) ) FROM contents;\n  ")
+			r = db.Query("\n    WITH contents(name,mtime,data) AS (\n        VALUES('a.txt', 1000000, 'contents of a.txt') UNION ALL\n        VALUES('b.txt', 1000000, 'contents of b.txt')\n    ) SELECT quote( zipfile(name,NULL,mtime,data) ) FROM contents;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH contents(name,mtime,data) AS (\n        VALUES('a.txt', 1000000, 'contents of a.txt') UNION ALL\n        VALUES('b.txt', 1000000, 'contents of b.txt')\n    ) SELECT quote( zipfile(name,NULL,mtime,data) ) FROM contents;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "blobliteral $archive"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

@@ -83,9 +83,15 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	{ // "1.1-cte"
-		_res = db.Exec("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "1 0 1 17 2 1 4 2 8 3 16 4 .* 65536 16"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2"
@@ -101,9 +107,15 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	{ // "1.2-cte"
-		_res = db.Exec("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(32768,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(32768,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(32768,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(32768,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
+			return
+		}
+		got := flatten(r)
+		want := "32768 0 65536 1 65537 1 131072 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3"
@@ -119,9 +131,15 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	{ // "1.3-cte"
-		_res = db.Exec("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(16384,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(16384,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(16384,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(16384,0)\n       UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below on t1.y=below.id\n       WHERE below.depth<2\n    )\n  SELECT id, depth FROM below ORDER BY id;\n")
+			return
+		}
+		got := flatten(r)
+		want := "16384 0 32768 1 32769 1 65536 2 65537 2 65538 2 65539 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.4"
@@ -149,9 +167,15 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	{ // "1.5-cte"
-		_res = db.Exec("\n  WITH RECURSIVE\n    above(id,depth) AS (\n      VALUES(16384,0)\n      UNION ALL\n      SELECT t1.y, above.depth+1\n        FROM t1 JOIN above ON t1.x=above.id\n       WHERE above.depth<3\n    )\n  SELECT id FROM above WHERE depth=3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    above(id,depth) AS (\n      VALUES(16384,0)\n      UNION ALL\n      SELECT t1.y, above.depth+1\n        FROM t1 JOIN above ON t1.x=above.id\n       WHERE above.depth<3\n    )\n  SELECT id FROM above WHERE depth=3;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    above(id,depth) AS (\n      VALUES(16384,0)\n      UNION ALL\n      SELECT t1.y, above.depth+1\n        FROM t1 JOIN above ON t1.x=above.id\n       WHERE above.depth<3\n    )\n  SELECT id FROM above WHERE depth=3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    above(id,depth) AS (\n      VALUES(16384,0)\n      UNION ALL\n      SELECT t1.y, above.depth+1\n        FROM t1 JOIN above ON t1.x=above.id\n       WHERE above.depth<3\n    )\n  SELECT id FROM above WHERE depth=3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.6"
@@ -167,9 +191,15 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	{ // "1.6-cte"
-		_res = db.Exec("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<4\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<4\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<4\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<4\n    )\n  SELECT count(*), depth FROM below GROUP BY depth ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 2 1 4 2 8 3 16 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.7"
@@ -221,9 +251,15 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	{ // "1.10-cte"
-		_res = db.Exec("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<5\n    )\n  SELECT count(*), min(id), max(id) FROM below WHERE depth=5;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<5\n    )\n  SELECT count(*), min(id), max(id) FROM below WHERE depth=5;\n")
+		r = db.Query("\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<5\n    )\n  SELECT count(*), min(id), max(id) FROM below WHERE depth=5;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE\n    below(id,depth) AS (\n      VALUES(1,0)\n      UNION ALL\n      SELECT t1.x, below.depth+1\n        FROM t1 JOIN below ON t1.y=below.id\n       WHERE below.depth<5\n    )\n  SELECT count(*), min(id), max(id) FROM below WHERE depth=5;\n")
+			return
+		}
+		got := flatten(r)
+		want := "32 32 63"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  INSERT INTO t2 SELECT x, y FROM t1 WHERE x<32;\n  CREATE INDEX t2y ON t2(y);\n  CREATE VIRTUAL TABLE c2 \n   USING transitive_closure(tablename=t2, idcolumn=x, parentcolumn=y);\n")

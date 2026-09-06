@@ -113,9 +113,15 @@ func Test_date3(t *testing.T) {
 		}
 		// datetest 2.30 {date('2022-01-29','auto')==date('2022-01-29')} {1} (unsupported command, not transpiled)
 		{ // "date3-2.40"
-			_res = db.Exec("\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
+			r = db.Query("\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// datetest 3.1 {datetime(2459607.05,'+1 hour','unixepoch')} {NULL} (unsupported command, not transpiled)
@@ -124,9 +130,15 @@ func Test_date3(t *testing.T) {
 		// datetest 4.2 {datetime(2459607,'+1 hour','julianday')} {NULL} (unsupported command, not transpiled)
 		// datetest 4.3 {datetime('2022-01-27','julianday')} {NULL} (unsupported command, not transpiled)
 		{ // "date3-5.0"
-			_res = db.Exec("\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
+			r = db.Query("\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
+				return
+			}
+			got := flatten(r)
+			want := "63"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 }

@@ -340,7 +340,8 @@ func Test_misc7(t *testing.T) {
 			}
 			pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
 			_ = pending_byte_page // suppress unused warning
-			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (parse error: strconv.ParseInt: parsing "$::sqlite_pending_byte": invalid syntax)
+			db.SetPendingByte(uint32(tclAtoi(sqlite_pending_byte)))
+			sqlite_pending_byte = sqlite_pending_byte
 			{ // "misc7-17.3" — skipped: sqlite3_test_control_pending_byte + writable_schema rootpage corruption N-A (SQL side effects only)
 				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests

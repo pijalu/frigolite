@@ -571,15 +571,27 @@ func Test_percentile(t *testing.T) {
 							}
 						}
 						{ // "percentile-6.0"
-							_res = db.Exec("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
+							r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
+								return
+							}
+							got := flatten(r)
+							want := "0.55"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "percentile-7.0"
-							_res = db.Exec("\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
+							r = db.Query("\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
+								return
+							}
+							got := flatten(r)
+							want := "499998.0"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 }

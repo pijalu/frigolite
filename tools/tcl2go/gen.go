@@ -386,7 +386,10 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	// test file that mentions it. We also override the later
 	// pre-declared `var sqlite_pending_byte string` so the file
 	// compiles (the var-declared branch is suppressed for this name).
-	if strings.Contains(src, "sqlite_pending_byte") {
+	// Sources that only CALL sqlite3_test_control_pending_byte (pager1.test
+	// 42.x — the name "sqlite_pending_byte" never appears) still need the
+	// shadow var: the command handler assigns it.
+	if strings.Contains(src, "sqlite_pending_byte") || strings.Contains(src, "sqlite3_test_control_pending_byte") {
 		body.WriteString("\t// tester.tcl:102 pins pending byte to 0x10000 (65536) for small file-size\n")
 		body.WriteString("\t// checks (autovacuum-9.3 / 9.5, corrupt2, etc.).\n")
 		body.WriteString("\tvar sqlite_pending_byte = \"65536\" // shadow of ::sqlite_pending_byte, pinned by tester.tcl:102\n")

@@ -67,9 +67,15 @@ func Test_merge1(t *testing.T) {
 		t.Errorf("optimization_control all skip-scan error: %v", _res.Error)
 	}
 	{ // "100"
-		_res = db.Exec("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
+		r = db.Query("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 4 7 8 10 10 10 13 14 15 16 18 18 19 20 22 22 22 25 25 26 26 28 29 30 30 30 31 34 34 35 36 36 40 42 42 43 45 48 50 50 50 54 58 60 66 74"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "101"
@@ -80,9 +86,15 @@ func Test_merge1(t *testing.T) {
 	}
 	// optimization_control balanced-merge off (no PRAGMA equivalent; ignored)
 	{ // "110"
-		_res = db.Exec("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
+		r = db.Query("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 4 7 8 10 10 10 13 14 15 16 18 18 19 20 22 22 22 25 25 26 26 28 29 30 30 30 31 34 34 35 36 36 40 42 42 43 45 48 50 50 50 54 58 60 66 74"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "111"

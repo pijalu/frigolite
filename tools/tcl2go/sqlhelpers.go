@@ -66,47 +66,77 @@ func isQueryStmt(stmt string) bool {
 // cteMainVerbIsQuery reports whether a WITH statement's main verb (the first
 // keyword after the CTE definitions) is a query (SELECT/VALUES) rather than
 // DML (INSERT/UPDATE/DELETE). A WITH...INSERT produces no result rows.
+//
+// The scan is structured: for each CTE, skip the name, an optional balanced
+// column list (`c(x,y)` — a paren group in the NAME must not be mistaken for
+// the AS body, stmtrand 1.x), the AS keyword and its balanced body, then
+// either another `,`-separated CTE follows or the remainder is the main
+// statement.
 func cteMainVerbIsQuery(stmt string) bool {
 	rest := strings.TrimSpace(stmt[len("WITH"):])
 	// Skip RECURSIVE.
 	rest = strings.TrimSpace(strings.TrimPrefix(rest, "RECURSIVE"))
-	// Skip the CTE name and column list.
-	// Find the AS (...) of the first CTE, then the next keyword after it.
-	depth := 0
-	inParen := false
-	for i := 0; i < len(rest); i++ {
-		switch rest[i] {
-		case '(':
-			depth++
-			inParen = true
-		case ')':
-			depth--
+	for {
+		// Skip the CTE name (up to whitespace or '(').
+		nameEnd := len(rest)
+		for i := 0; i < len(rest); i++ {
+			if rest[i] == ' ' || rest[i] == '\t' || rest[i] == '\n' || rest[i] == '\r' || rest[i] == '(' {
+				nameEnd = i
+				break
+			}
 		}
-		if depth == 0 && inParen {
-			// End of the first CTE's parenthesized SELECT; the next token is
-			// the main verb.
-			tail := strings.TrimSpace(rest[i+1:])
-			// Strip a following comma+CTE (multiple CTEs).
-			upper := strings.ToUpper(tail)
-			if strings.HasPrefix(upper, "SELECT") || strings.HasPrefix(upper, "VALUES") {
-				return true
-			}
-			if strings.HasPrefix(upper, "INSERT") || strings.HasPrefix(upper, "UPDATE") || strings.HasPrefix(upper, "DELETE") {
-				return false
-			}
-			// A comma continues another CTE definition; keep scanning.
-			if strings.HasPrefix(upper, ",") {
-				rest = tail[1:]
-				depth = 0
-				inParen = false
-				continue
-			}
-			// Any other keyword after the CTE is the main verb; only SELECT/
-			// VALUES produce rows.
+		if nameEnd == 0 {
 			return false
 		}
+		rest = strings.TrimSpace(rest[nameEnd:])
+		// Skip an optional balanced column list.
+		if strings.HasPrefix(rest, "(") {
+			after, ok := skipBalancedParen(rest)
+			if !ok {
+				return false
+			}
+			rest = strings.TrimSpace(after)
+		}
+		// Skip AS and its balanced body.
+		if len(rest) < 2 || !strings.EqualFold(rest[:2], "AS") {
+			return false
+		}
+		rest = strings.TrimSpace(rest[2:])
+		if !strings.HasPrefix(rest, "(") {
+			return false
+		}
+		after, ok := skipBalancedParen(rest)
+		if !ok {
+			return false
+		}
+		rest = strings.TrimSpace(after)
+		// Either another CTE (comma) or the main statement.
+		if strings.HasPrefix(rest, ",") {
+			rest = strings.TrimSpace(rest[1:])
+			continue
+		}
+		upper := strings.ToUpper(rest)
+		return strings.HasPrefix(upper, "SELECT") || strings.HasPrefix(upper, "VALUES")
 	}
-	return false
+}
+
+// skipBalancedParen returns the text after the ')' matching the leading '('
+// of s (string literals and comments are not expected in a CTE column list
+// or its AS body separator position; nested parens are tracked).
+func skipBalancedParen(s string) (string, bool) {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				return s[i+1:], true
+			}
+		}
+	}
+	return "", false
 }
 
 // rowProducingQuery reports whether a statement is a top-level query that

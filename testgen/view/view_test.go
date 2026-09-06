@@ -730,9 +730,15 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // "view-26.1"
-		_res = db.Exec("\n  WITH v17(x,y) AS (SELECT max(a), min(b) FROM t16 GROUP BY c)\n  SELECT * FROM v17 AS one, v17 AS two WHERE one.x=1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH v17(x,y) AS (SELECT max(a), min(b) FROM t16 GROUP BY c)\n  SELECT * FROM v17 AS one, v17 AS two WHERE one.x=1;\n")
+		r = db.Query("\n  WITH v17(x,y) AS (SELECT max(a), min(b) FROM t16 GROUP BY c)\n  SELECT * FROM v17 AS one, v17 AS two WHERE one.x=1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH v17(x,y) AS (SELECT max(a), min(b) FROM t16 GROUP BY c)\n  SELECT * FROM v17 AS one, v17 AS two WHERE one.x=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1 1 1 1 2 2 1 1 3 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -945,9 +951,15 @@ func Test_view(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-31.1"
-		_res = db.Exec("\n  CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )\n    SELECT count(*) FROM x1 WHERE a IN c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )\n    SELECT count(*) FROM x1 WHERE a IN c;\n")
+		r = db.Query("\n  CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )\n    SELECT count(*) FROM x1 WHERE a IN c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )\n    SELECT count(*) FROM x1 WHERE a IN c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "view-31.2"

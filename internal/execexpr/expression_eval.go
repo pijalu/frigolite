@@ -354,6 +354,27 @@ func (ev *Evaluator) evalEngineFunc(f *sql.FuncCall, row Row) (interface{}, bool
 		// `set ::nondeter_ret 0` before each query.
 		ev.ctx.SetNondeterVal(ev.ctx.NondeterVal() + 1)
 		return ev.ctx.NondeterVal() % 2, true, nil
+	case "STMTRAND":
+		// stmtrand([SEED]) test function (ext/misc/stmtrand.c): a
+		// statement-scoped LCG. The seed is used by the first call in the
+		// statement only and ignored for subsequent calls (sqlite3 auxdata
+		// stands in for the C statement auxdata here); each new statement
+		// restarts the sequence (Engine.Exec resets the auxdata).
+		const stmtrandKey = "stmtrand"
+		st, _ := ev.AuxData(stmtrandKey).(*function.StmtrandState)
+		if st == nil {
+			var seed uint32
+			if len(f.Args) >= 1 {
+				v, err := ev.evalExpr(f.Args[0], row)
+				if err != nil {
+					return nil, true, err
+				}
+				seed = uint32(ToIntValue(util.UnwrapColumnValue(v)))
+			}
+			st = function.NewStmtrandState(seed)
+			ev.SetAuxData(stmtrandKey, st)
+		}
+		return function.StmtrandStep(st), true, nil
 	case "FTS3_TOKENIZER":
 		// fts3_tokenizer(name [, module]) — the tokenizer registry interface
 		// (fts3_tokenizer.c). One argument resolves the name (error "unknown

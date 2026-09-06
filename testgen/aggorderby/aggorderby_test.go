@@ -237,15 +237,27 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-6.0"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "abc,ABC,DEF,xyz,XYZ ABC,DEF,XYZ,abc,xyz"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "aggorderby-6.1"
-		_res = db.Exec("\n  WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1,2,3,4 2,4,1,3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "aggorderby-7.0" — skipped: json_group_array (JSON1 extension) not supported (SQL side effects only)
@@ -257,21 +269,39 @@ func Test_aggorderby(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "aggorderby-8.0"
-		_res = db.Exec("\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "c,b,a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "aggorderby-8.1"
-		_res = db.Exec("\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "c,b,a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "aggorderby-8.2"
-		_res = db.Exec("\n  WITH c(x,y) AS (VALUES(1,1),(2,2),(3,3),(3,4),(3,5),(3,6))\n  SELECT sum(DISTINCT x ORDER BY y) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x,y) AS (VALUES(1,1),(2,2),(3,3),(3,4),(3,5),(3,6))\n  SELECT sum(DISTINCT x ORDER BY y) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES(1,1),(2,2),(3,3),(3,4),(3,5),(3,6))\n  SELECT sum(DISTINCT x ORDER BY y) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES(1,1),(2,2),(3,3),(3,4),(3,5),(3,6))\n  SELECT sum(DISTINCT x ORDER BY y) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "aggorderby-9.0" — skipped: json_group_array (JSON1 extension) not supported (SQL side effects only)

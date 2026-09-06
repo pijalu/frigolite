@@ -35,6 +35,28 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 			fmt.Sprintf("callTclUserProc(%q, %s)", cmdParts[0], strings.Join(callArgs, ", ")))
 		return true
 	}
+	// set VAR [sqlite3_test_control_pending_byte N] — the C command sets the
+	// pending byte and returns the PREVIOUS offset (src/test2.c
+	// testPendingByte); pager1.test 42.x captures it in pending_prev to
+	// restore later. Perform the engine override, mirror the shadow var, and
+	// assign the previous value.
+	if cmdParts[0] == "sqlite3_test_control_pending_byte" && len(cmdParts) >= 2 {
+		arg := strings.TrimSpace(strings.Join(cmdParts[1:], " "))
+		if strings.HasPrefix(arg, "$") {
+			goVar := tclVarToGo(strings.TrimPrefix(arg, "$"))
+			if isValidGoIdent(goVar) && tp.isVarDeclared(goVar) {
+				tp.emitLine("_r = strconv.FormatUint(uint64(%s.SetPendingByte(uint32(tclAtoi(%s)))), 10)", tp.dbVar, goVar)
+				tp.emitLine("%s = _r", goName)
+				tp.emitLine("sqlite_pending_byte = %s", goVar)
+				return true
+			}
+		} else if n, err := strconv.ParseInt(arg, 0, 64); err == nil {
+			tp.emitLine("_r = strconv.FormatUint(uint64(%s.SetPendingByte(%d)), 10)", tp.dbVar, n)
+			tp.emitLine("%s = _r", goName)
+			tp.emitLine("sqlite_pending_byte = %q", strconv.FormatInt(n, 10))
+			return true
+		}
+	}
 	// set VAR [catch {sqlite3_intarray_create DB NAME} RESULTVAR] — the
 	// intarray create runs inside a catch; RESULTVAR receives the create's
 	// RETURN VALUE (the handle), while the bracket result (assigned to VAR) is
@@ -205,8 +227,17 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 			if len(cmdParts) >= 3 {
 				// `read $CHAN N` — read N bytes from the channel's current
 				// seek position. Used by corrupt* tests to capture cell
-				// pointers / child-page bytes.
-				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", chanGo, cmdParts[2]))
+				// pointers / child-page bytes. N may be a bracket-balanced
+				// `[expr ...]` that the Fields split fragments; reconstruct
+				// it from the raw cmdText.
+				prefix := cmdParts[0] + " " + cmdParts[1]
+				countText := strings.TrimSpace(cmdText)
+				countText = strings.TrimSpace(strings.TrimPrefix(countText, prefix))
+				countExpr, ok := tp.readCountExpr(countText)
+				if !ok {
+					countExpr = cmdParts[2]
+				}
+				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", chanGo, countExpr))
 			} else {
 				tp.assignSetValue(goName, "tclReadFile("+chanGo+")")
 			}
@@ -788,8 +819,33 @@ func (tp *transpiler) setSqlite3Value(goName string, cmdParts []string) bool {
 // setExprValue handles `set var [expr {...}]` — evaluate constant expressions
 // at generation time, or emit runtime evaluation for variable/command/query
 // expressions.
-func (tp *transpiler) setExprValue(goName, cmdText string) bool {
-	exprStr := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), "expr"))
+// readCountExpr renders the byte-count argument of `read $fd N` as a Go int
+// expression for tclReadFileWithLen. A plain literal or variable reference
+// passes through unchanged; a bracket-balanced `[expr ...]` count
+// (memdb1.test: `set data [read $fd [expr 20*1024]]`) is transpile-folded to
+// an integer literal when possible, otherwise evaluated at runtime via
+// toInt(runtimeExprValue(...)).
+func (tp *transpiler) readCountExpr(countText string) (string, bool) {
+	countText = strings.TrimSpace(countText)
+	if countText == "" {
+		return "", false
+	}
+	if strings.HasPrefix(countText, "[expr") && strings.HasSuffix(countText, "]") {
+		exprStr := strings.TrimSpace(countText[len("[expr") : len(countText)-1])
+		if len(exprStr) >= 2 && exprStr[0] == '{' && exprStr[len(exprStr)-1] == '}' {
+			exprStr = exprStr[1 : len(exprStr)-1]
+		}
+		if res, err := tcl.EvalExpr(exprStr, nil, nil); err == nil {
+			if n, perr := strconv.ParseInt(strings.TrimSpace(res), 10, 64); perr == nil {
+				return strconv.FormatInt(n, 10), true
+			}
+		}
+		return "toInt(" + tp.runtimeExprValue(exprStr) + ")", true
+	}
+	return countText, true
+}
+
+func (tp *transpiler) setExprValue(goName, cmdText string) bool {	exprStr := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), "expr"))
 	if len(exprStr) >= 2 && exprStr[0] == '{' && exprStr[len(exprStr)-1] == '}' {
 		exprStr = exprStr[1 : len(exprStr)-1]
 	}

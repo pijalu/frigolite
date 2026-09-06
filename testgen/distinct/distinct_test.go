@@ -316,9 +316,15 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			{ // "7.1"
-				_res = db.Exec("\n  WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a\n")
+				r = db.Query("\n  WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a\n")
+					return
+				}
+				got := flatten(r)
+				want := "2 2 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			db.Close()

@@ -148,10 +148,14 @@ func (db *DB) SetAuthorizer(a auth.Authorizer) {
 // byte to 0x10000 so file-size checks in autovacuum-9.3 / 9.5 / corrupt2
 // / lock4 etc. observe a small expected value without creating a 1GB
 // database. Pass 0 to restore the production default (0x40000000).
-func (db *DB) SetPendingByte(byteOffset uint32) {
+//
+// Returns the previous offset (default 0x40000000), as the C
+// sqlite3_test_control_pending_byte does, so callers can restore it.
+func (db *DB) SetPendingByte(byteOffset uint32) uint32 {
 	if db != nil && db.engine != nil {
-		db.engine.SetPendingByteMain(byteOffset)
+		return db.engine.SetPendingByteMain(byteOffset)
 	}
+	return 0x40000000
 }
 
 // BeginActiveStatement marks the start of a harness-emulated active read

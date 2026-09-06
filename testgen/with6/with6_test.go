@@ -62,9 +62,15 @@ func Test_with6(t *testing.T) {
 	testprefix = "with6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "100"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "000 001 010 011 100 101 110 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "101"
@@ -122,9 +128,15 @@ func Test_with6(t *testing.T) {
 		}
 	}
 	{ // "150"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "000 001 010 011 100 101 110 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "151"
@@ -134,9 +146,15 @@ func Test_with6(t *testing.T) {
 		}
 	}
 	{ // "160"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;\n")
+			return
+		}
+		got := flatten(r)
+		want := "100 301"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "161"
@@ -214,15 +232,9 @@ func Test_with6(t *testing.T) {
 		}
 	}
 	{ // "310"
-		r = db.Query("\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
-			return
-		}
-		got := flatten(r)
-		want := "4 5 6 - - 7 8 9 8 8 - 3 - 3 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
 		}
 	}
 	{ // "311"
@@ -232,15 +244,9 @@ func Test_with6(t *testing.T) {
 		}
 	}
 	{ // "320"
-		r = db.Query("\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
-			return
-		}
-		got := flatten(r)
-		want := "4 5 6 - - 7 8 9 8 8 - 3 - 3 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;\n")
 		}
 	}
 	{ // "321"

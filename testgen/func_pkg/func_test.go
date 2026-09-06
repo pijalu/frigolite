@@ -249,9 +249,15 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // "func-1.9"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(char(350,351,352,353,354)))\n  SELECT length(x), octet_length(x) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(char(350,351,352,353,354)))\n  SELECT length(x), octet_length(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES(char(350,351,352,353,354)))\n  SELECT length(x), octet_length(x) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(char(350,351,352,353,354)))\n  SELECT length(x), octet_length(x) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "5 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	tcl_nullvalue = ""
@@ -945,9 +951,15 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // "func-9.14"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (\n     VALUES(1)\n     UNION ALL\n     SELECT x+1 FROM c WHERE x<1040\n  )\n  SELECT \n    count(*),\n    sum(length(replace(printf('abc%.*cxyz',x,'m'),'m','nnnn'))-(6+x*4))\n  FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (\n     VALUES(1)\n     UNION ALL\n     SELECT x+1 FROM c WHERE x<1040\n  )\n  SELECT \n    count(*),\n    sum(length(replace(printf('abc%.*cxyz',x,'m'),'m','nnnn'))-(6+x*4))\n  FROM c;\n")
+		r = db.Query("\n  WITH RECURSIVE c(x) AS (\n     VALUES(1)\n     UNION ALL\n     SELECT x+1 FROM c WHERE x<1040\n  )\n  SELECT \n    count(*),\n    sum(length(replace(printf('abc%.*cxyz',x,'m'),'m','nnnn'))-(6+x*4))\n  FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (\n     VALUES(1)\n     UNION ALL\n     SELECT x+1 FROM c WHERE x<1040\n  )\n  SELECT \n    count(*),\n    sum(length(replace(printf('abc%.*cxyz',x,'m'),'m','nnnn'))-(6+x*4))\n  FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1040 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	vtab.TclVarSet("DB", "", "sqlite3_connection_pointer db")
@@ -1977,15 +1989,27 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // "func-38.100"
-			_res = db.Exec("\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
+			r = db.Query("\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "Inf Inf Inf -Inf -Inf -Inf"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-39.101"
-			_res = db.Exec("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
+			r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1.79769313486232e+308 1.79769313486232e+308 1.79769313486232e+308"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		vtab.TclVarSet("i", "", "2")
@@ -1993,9 +2017,15 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			{ // "func-39." + tclExprWith("10*$i+100", map[string]string{"i": i})
-				_res = db.Exec("\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<" + sqlLiteral(i) + ")\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<" + sqlLiteral(i) + ")\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+				r = db.Query("\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<" + sqlLiteral(i) + ")\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<" + sqlLiteral(i) + ")\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "Inf Inf Inf"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// incr i 1

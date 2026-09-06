@@ -441,9 +441,15 @@ func Test_values(t *testing.T) {
 			}
 		}
 		{ // "7.1"
-			_res = db.Exec("\n  WITH x1(a, b) AS (\n    VALUES(1, 2), ('a', 'b')\n  )\n  SELECT * FROM x1 one, x1 two\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH x1(a, b) AS (\n    VALUES(1, 2), ('a', 'b')\n  )\n  SELECT * FROM x1 one, x1 two\n")
+			r = db.Query("\n  WITH x1(a, b) AS (\n    VALUES(1, 2), ('a', 'b')\n  )\n  SELECT * FROM x1 one, x1 two\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH x1(a, b) AS (\n    VALUES(1, 2), ('a', 'b')\n  )\n  SELECT * FROM x1 one, x1 two\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 1 2 1 2 a b a b 1 2 a b a b"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()

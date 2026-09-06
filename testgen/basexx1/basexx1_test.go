@@ -120,9 +120,15 @@ func Test_basexx1(t *testing.T) {
 		}
 	}
 	{ // "102-b"
-		_res = db.Exec("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c wHERE n<5000)\n  SELECT sum(length(base64(randomblob(n)))) FROM c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c wHERE n<5000)\n  SELECT sum(length(base64(randomblob(n)))) FROM c;\n")
+		r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c wHERE n<5000)\n  SELECT sum(length(base64(randomblob(n)))) FROM c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c wHERE n<5000)\n  SELECT sum(length(base64(randomblob(n)))) FROM c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "16910656"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "103"

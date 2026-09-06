@@ -715,7 +715,15 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 		goChan := tclVarToGo(chanVar)
 		if isValidGoIdent(goChan) && tp.isVarDeclared(goChan) {
 			if len(parts) >= 2 {
-				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", goChan, parts[1]))
+				// The count may be a bracket-balanced `[expr ...]`
+				// (memdb1.test 8.x: `read $fd [expr 20*1024]`); take
+				// everything after the channel var so whitespace inside the
+				// expr survives the Fields split.
+				countExpr, ok := tp.readCountExpr(strings.TrimSpace(inner[len(chanVar):]))
+				if !ok {
+					return false
+				}
+				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", goChan, countExpr))
 			} else {
 				tp.assignSetValue(goName, "tclReadFile("+goChan+")")
 			}

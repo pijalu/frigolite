@@ -913,9 +913,15 @@ func Test_rtree1(t *testing.T) {
 				}
 			}
 			{ // "13.2"
-				_res = db.Exec("\n  WITH r(x) AS (\n    SELECT 1 UNION ALL\n    SELECT 2 UNION ALL\n    SELECT 3\n  )\n  SELECT * FROM r CROSS JOIN t9 WHERE id=x;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(x) AS (\n    SELECT 1 UNION ALL\n    SELECT 2 UNION ALL\n    SELECT 3\n  )\n  SELECT * FROM r CROSS JOIN t9 WHERE id=x;\n")
+				r = db.Query("\n  WITH r(x) AS (\n    SELECT 1 UNION ALL\n    SELECT 2 UNION ALL\n    SELECT 3\n  )\n  SELECT * FROM r CROSS JOIN t9 WHERE id=x;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH r(x) AS (\n    SELECT 1 UNION ALL\n    SELECT 2 UNION ALL\n    SELECT 3\n  )\n  SELECT * FROM r CROSS JOIN t9 WHERE id=x;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 1 0.0 0.0 2 2 0.0 0.0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "14.1"

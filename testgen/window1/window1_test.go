@@ -573,15 +573,27 @@ func Test_window1(t *testing.T) {
 				}
 			}
 			{ // "9.2"
-				_res = db.Exec("\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)\n  )\n  SELECT * FROM aaa ORDER BY 1;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)\n  )\n  SELECT * FROM aaa ORDER BY 1;\n")
+				r = db.Query("\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)\n  )\n  SELECT * FROM aaa ORDER BY 1;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)\n  )\n  SELECT * FROM aaa ORDER BY 1;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 g g 2 i i 3 l l 4 g i 5 a l 6 m m"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "9.3"
-				_res = db.Exec("\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (ORDER BY x)\n  )\n  SELECT *, min(z) OVER (ORDER BY x) FROM aaa ORDER BY 1;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (ORDER BY x)\n  )\n  SELECT *, min(z) OVER (ORDER BY x) FROM aaa ORDER BY 1;\n")
+				r = db.Query("\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (ORDER BY x)\n  )\n  SELECT *, min(z) OVER (ORDER BY x) FROM aaa ORDER BY 1;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (ORDER BY x)\n  )\n  SELECT *, min(z) OVER (ORDER BY x) FROM aaa ORDER BY 1;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 g g g 2 i i g 3 l l g 4 g l g 5 a l g 6 m m g"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "9.4"

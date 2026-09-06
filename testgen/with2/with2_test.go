@@ -131,9 +131,15 @@ func Test_with2(t *testing.T) {
 		}
 	}
 	{ // "1.4"
-		_res = db.Exec("\n  CREATE TABLE t2(i);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2 VALUES(3);\n  INSERT INTO t2 VALUES(5);\n\n  WITH x1   AS (SELECT i FROM t2),\n       i(a) AS (\n         SELECT min(i)-1 FROM x1 UNION SELECT a+1 FROM i WHERE a<10\n       )\n  SELECT a FROM i WHERE a NOT IN x1\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(i);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2 VALUES(3);\n  INSERT INTO t2 VALUES(5);\n\n  WITH x1   AS (SELECT i FROM t2),\n       i(a) AS (\n         SELECT min(i)-1 FROM x1 UNION SELECT a+1 FROM i WHERE a<10\n       )\n  SELECT a FROM i WHERE a NOT IN x1\n")
+		r = db.Query("\n  CREATE TABLE t2(i);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2 VALUES(3);\n  INSERT INTO t2 VALUES(5);\n\n  WITH x1   AS (SELECT i FROM t2),\n       i(a) AS (\n         SELECT min(i)-1 FROM x1 UNION SELECT a+1 FROM i WHERE a<10\n       )\n  SELECT a FROM i WHERE a NOT IN x1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(i);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2 VALUES(3);\n  INSERT INTO t2 VALUES(5);\n\n  WITH x1   AS (SELECT i FROM t2),\n       i(a) AS (\n         SELECT min(i)-1 FROM x1 UNION SELECT a+1 FROM i WHERE a<10\n       )\n  SELECT a FROM i WHERE a NOT IN x1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 4 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.5"
@@ -209,39 +215,75 @@ func Test_with2(t *testing.T) {
 		}
 	}
 	{ // "1.11"
-		_res = db.Exec("\n  WITH \n  i(x) AS ( \n    WITH \n    j(x) AS ( SELECT * FROM i ), \n    i(x) AS ( SELECT * FROM t1 )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  i(x) AS ( \n    WITH \n    j(x) AS ( SELECT * FROM i ), \n    i(x) AS ( SELECT * FROM t1 )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
+		r = db.Query("\n  WITH \n  i(x) AS ( \n    WITH \n    j(x) AS ( SELECT * FROM i ), \n    i(x) AS ( SELECT * FROM t1 )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  i(x) AS ( \n    WITH \n    j(x) AS ( SELECT * FROM i ), \n    i(x) AS ( SELECT * FROM t1 )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.12"
-		_res = db.Exec("\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, (\n      SELECT x FROM x INTERSECT SELECT y FROM y\n    ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) ),\n  y(y) AS ( VALUES(2) UNION ALL VALUES(4) UNION ALL VALUES(6) )\n\n  SELECT * FROM r;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, (\n      SELECT x FROM x INTERSECT SELECT y FROM y\n    ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) ),\n  y(y) AS ( VALUES(2) UNION ALL VALUES(4) UNION ALL VALUES(6) )\n\n  SELECT * FROM r;\n")
+		r = db.Query("\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, (\n      SELECT x FROM x INTERSECT SELECT y FROM y\n    ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) ),\n  y(y) AS ( VALUES(2) UNION ALL VALUES(4) UNION ALL VALUES(6) )\n\n  SELECT * FROM r;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, (\n      SELECT x FROM x INTERSECT SELECT y FROM y\n    ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) ),\n  y(y) AS ( VALUES(2) UNION ALL VALUES(4) UNION ALL VALUES(6) )\n\n  SELECT * FROM r;\n")
+			return
+		}
+		got := flatten(r)
+		want := ". .. ... .... ..... ...... ....... ........ ......... .........."
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.13"
-		_res = db.Exec("\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, ( SELECT x FROM x WHERE x=2 ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) )\n\n  SELECT * FROM r ORDER BY length(i) DESC;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, ( SELECT x FROM x WHERE x=2 ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) )\n\n  SELECT * FROM r ORDER BY length(i) DESC;\n")
+		r = db.Query("\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, ( SELECT x FROM x WHERE x=2 ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) )\n\n  SELECT * FROM r ORDER BY length(i) DESC;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, ( SELECT x FROM x WHERE x=2 ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) )\n\n  SELECT * FROM r ORDER BY length(i) DESC;\n")
+			return
+		}
+		got := flatten(r)
+		want := ".......... ......... ........ ....... ...... ..... .... ... .. ."
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.14"
-		_res = db.Exec("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+		r = db.Query("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.15"
-		_res = db.Exec("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM main.t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM main.t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+		r = db.Query("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM main.t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM main.t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.15.2"
-		_res = db.Exec("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM (SELECT * FROM main.t4) WHERE x<10\n  )\n  SELECT * FROM t4;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM (SELECT * FROM main.t4) WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+		r = db.Query("\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM (SELECT * FROM main.t4) WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM (SELECT * FROM main.t4) WHERE x<10\n  )\n  SELECT * FROM t4;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.16"
@@ -255,15 +297,27 @@ func Test_with2(t *testing.T) {
 	max = "9"
 	_ = max // suppress unused warning
 	{ // "2.1"
-		_res = db.Exec("\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT * FROM i;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT * FROM i;\n")
+		r = db.Query("\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT * FROM i;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT * FROM i;\n")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.2"
-		_res = db.Exec("\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT x FROM i JOIN i AS j USING (x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT x FROM i JOIN i AS j USING (x);\n")
+		r = db.Query("\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT x FROM i JOIN i AS j USING (x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH i(x) AS (\n    VALUES(" + sqlLiteral(min) + ") UNION ALL SELECT x+1 FROM i WHERE x < " + sqlLiteral(max) + "\n  )\n  SELECT x FROM i JOIN i AS j USING (x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5 6 7 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.1"
@@ -438,9 +492,15 @@ func Test_with2(t *testing.T) {
 		}
 	}
 	{ // "7.4"
-		_res = db.Exec("\n  WITH ss(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM ss WHERE x<49 )\n  SELECT * FROM t6 WHERE y IN (SELECT x FROM ss)\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH ss(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM ss WHERE x<49 )\n  SELECT * FROM t6 WHERE y IN (SELECT x FROM ss)\n")
+		r = db.Query("\n  WITH ss(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM ss WHERE x<49 )\n  SELECT * FROM t6 WHERE y IN (SELECT x FROM ss)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH ss(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM ss WHERE x<49 )\n  SELECT * FROM t6 WHERE y IN (SELECT x FROM ss)\n")
+			return
+		}
+		got := flatten(r)
+		want := "14 28 42"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.5"
@@ -462,15 +522,27 @@ func Test_with2(t *testing.T) {
 		}
 	}
 	{ // "8.2"
-		_res = db.Exec("\n  WITH q(a) AS (\n    SELECT 1\n    UNION \n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH q(a) AS (\n    SELECT 1\n    UNION \n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
+		r = db.Query("\n  WITH q(a) AS (\n    SELECT 1\n    UNION \n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH q(a) AS (\n    SELECT 1\n    UNION \n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "8.3"
-		_res = db.Exec("\n  WITH q(a) AS (\n    SELECT 1\n    UNION ALL\n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH q(a) AS (\n    SELECT 1\n    UNION ALL\n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
+		r = db.Query("\n  WITH q(a) AS (\n    SELECT 1\n    UNION ALL\n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH q(a) AS (\n    SELECT 1\n    UNION ALL\n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -481,16 +553,22 @@ func Test_with2(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
-		_res = db.Exec("\n  WITH xyz(a) AS (\n    WITH abc AS ( SELECT 1234 ) SELECT * FROM abc\n  )\n  SELECT * FROM xyz AS one, xyz AS two, (\n    SELECT * FROM xyz UNION ALL SELECT * FROM xyz\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH xyz(a) AS (\n    WITH abc AS ( SELECT 1234 ) SELECT * FROM abc\n  )\n  SELECT * FROM xyz AS one, xyz AS two, (\n    SELECT * FROM xyz UNION ALL SELECT * FROM xyz\n  );\n")
+		r = db.Query("\n  WITH xyz(a) AS (\n    WITH abc AS ( SELECT 1234 ) SELECT * FROM abc\n  )\n  SELECT * FROM xyz AS one, xyz AS two, (\n    SELECT * FROM xyz UNION ALL SELECT * FROM xyz\n  );\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH xyz(a) AS (\n    WITH abc AS ( SELECT 1234 ) SELECT * FROM abc\n  )\n  SELECT * FROM xyz AS one, xyz AS two, (\n    SELECT * FROM xyz UNION ALL SELECT * FROM xyz\n  );\n")
+			return
+		}
+		got := flatten(r)
+		want := "1234 1234 1234 1234 1234 1234"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// load_static_extension db series (unsupported command, not transpiled)
 	{ // "9.2"
-		_res = db.Exec("\n  WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3, 4, 5, 6, 7 , 8, 9, 10, 11\n    ),\n    ds(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT m, n, x,\n        y, x2,\n        y2,\n        title, size, mark, label, markmode\n      FROM ds0\n      WINDOW w AS (PARTITION BY m, x ORDER BY n)\n    ),\n    d(m, n, x, y, x2, y2, labelx,labely,title,size,mark,label,markmode) AS (\n      SELECT m, n, x, y,  x2, y2, x, y, title, size, mark, label, markmode\n      FROM ds, cst2\n    ),\n    ylabels(y, label) AS (\n      SELECT y, MIN(labely) FROM d GROUP BY y\n    ),\n    yaxis(maxy, miny, stepy , minstepy) AS (\n      WITH\n        xt0(minx, maxx) AS (\n          SELECT  coalesce(miny, min(min(y2),\n                  min(y))), coalesce(maxy, max(max(y2),\n                  max(y))) + qualitativey\n           FROM d, cst2\n        ),\n        xt1(mx, mn) AS (SELECT maxx, minx FROM xt0),\n        xt2(mx, mn, step) AS (SELECT mx, mn, (mx-mn)  FROM xt1),\n        \n        xt3(mx, mn, ms) AS (\n          SELECT mx, mn, first_value(rs) OVER (order by x desc) AS ms\n            FROM (SELECT mx, mn, step, f,(mx-mn) as rng,\n                         1.0*step/f as rs, 1.0*(mx-mn)/(step/f) AS x\n                    FROM xt2, (SELECT 1 AS f UNION ALL SELECT 2\n                                UNION ALL SELECT 4\n                                UNION ALL SELECT 5)) AS src\n                   WHERE x < 10 limit 1),\n        xt4(minstepy) AS (\n          SELECT MIN(abs(y2-y)) FROM d WHERE y2 != y\n        )\n      SELECT (mx/ms)*ms, (mn/ms)*ms, coalesce(stepy, ms),\n                     coalesce(minstepy, ms, stepy)  FROM xt3, cst2,xt4\n    ),\n    distinct_mark_n_m(mark, ze, zem, title) AS (\n      SELECT DISTINCT mark, n AS ze, m AS zem, title FROM ds0\n    ),\n    facet0(m, mi, title, radial) AS (\n      SELECT md, row_number() OVER () - 1, title, 'radial'\n                      IN (SELECT mark FROM distinct_mark_n_m WHERE zem = md)\n      FROM (SELECT DISTINCT zem AS md, title AS title\n                       FROM distinct_mark_n_m ORDER BY 2, 1)\n    ),\n    facet(m, mi, xorigin, yorigin, title, radial) AS (\n      SELECT m, mi,\n        rsx * 1.2 * IFNULL(CASE WHEN (\n          0\n        ) > 0 THEN mi / (\n          0\n        ) ELSE mi % (\n          2\n        )  END, mi),\n        rsy  * 1.2 * IFNULL(CASE WHEN (\n          2\n        ) > 0 THEN mi / (\n          2\n        ) ELSE mi / (\n          0\n        )  END, 0),\n        title, radial FROM facet0, cst\n    ),\n    radygrid(m, mi, tty, wty, ttx, ttx2, xorigin, yorigin) AS (\n      SELECT m, mi,  rsy / 2 / ((maxy-miny)/stepy) * (value-1) AS tty,\n             coalesce(NULL, miny + stepy * (value-1)) AS wty,\n             xorigin, xorigin+rsx, xorigin + rsx / 2,\n             yorigin + rsy / 2\n        FROM generate_series(1), yaxis, cst,\n             facet LEFT JOIN ylabels ON ylabels.y = (miny + (value-1) * stepy)\n       WHERE radial AND stop = 1+1.0*(maxy-miny)/stepy\n    ),\n    ypos(m, mi, pcx, pcy, radial) AS (\n      SELECT m, mi, xorigin, yorigin + CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END, radial FROM yaxis, cst, facet WHERE NOT radial\n      UNION ALL\n      SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n    )\n  SELECT * FROM radygrid , ypos;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3, 4, 5, 6, 7 , 8, 9, 10, 11\n    ),\n    ds(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT m, n, x,\n        y, x2,\n        y2,\n        title, size, mark, label, markmode\n      FROM ds0\n      WINDOW w AS (PARTITION BY m, x ORDER BY n)\n    ),\n    d(m, n, x, y, x2, y2, labelx,labely,title,size,mark,label,markmode) AS (\n      SELECT m, n, x, y,  x2, y2, x, y, title, size, mark, label, markmode\n      FROM ds, cst2\n    ),\n    ylabels(y, label) AS (\n      SELECT y, MIN(labely) FROM d GROUP BY y\n    ),\n    yaxis(maxy, miny, stepy , minstepy) AS (\n      WITH\n        xt0(minx, maxx) AS (\n          SELECT  coalesce(miny, min(min(y2),\n                  min(y))), coalesce(maxy, max(max(y2),\n                  max(y))) + qualitativey\n           FROM d, cst2\n        ),\n        xt1(mx, mn) AS (SELECT maxx, minx FROM xt0),\n        xt2(mx, mn, step) AS (SELECT mx, mn, (mx-mn)  FROM xt1),\n        \n        xt3(mx, mn, ms) AS (\n          SELECT mx, mn, first_value(rs) OVER (order by x desc) AS ms\n            FROM (SELECT mx, mn, step, f,(mx-mn) as rng,\n                         1.0*step/f as rs, 1.0*(mx-mn)/(step/f) AS x\n                    FROM xt2, (SELECT 1 AS f UNION ALL SELECT 2\n                                UNION ALL SELECT 4\n                                UNION ALL SELECT 5)) AS src\n                   WHERE x < 10 limit 1),\n        xt4(minstepy) AS (\n          SELECT MIN(abs(y2-y)) FROM d WHERE y2 != y\n        )\n      SELECT (mx/ms)*ms, (mn/ms)*ms, coalesce(stepy, ms),\n                     coalesce(minstepy, ms, stepy)  FROM xt3, cst2,xt4\n    ),\n    distinct_mark_n_m(mark, ze, zem, title) AS (\n      SELECT DISTINCT mark, n AS ze, m AS zem, title FROM ds0\n    ),\n    facet0(m, mi, title, radial) AS (\n      SELECT md, row_number() OVER () - 1, title, 'radial'\n                      IN (SELECT mark FROM distinct_mark_n_m WHERE zem = md)\n      FROM (SELECT DISTINCT zem AS md, title AS title\n                       FROM distinct_mark_n_m ORDER BY 2, 1)\n    ),\n    facet(m, mi, xorigin, yorigin, title, radial) AS (\n      SELECT m, mi,\n        rsx * 1.2 * IFNULL(CASE WHEN (\n          0\n        ) > 0 THEN mi / (\n          0\n        ) ELSE mi % (\n          2\n        )  END, mi),\n        rsy  * 1.2 * IFNULL(CASE WHEN (\n          2\n        ) > 0 THEN mi / (\n          2\n        ) ELSE mi / (\n          0\n        )  END, 0),\n        title, radial FROM facet0, cst\n    ),\n    radygrid(m, mi, tty, wty, ttx, ttx2, xorigin, yorigin) AS (\n      SELECT m, mi,  rsy / 2 / ((maxy-miny)/stepy) * (value-1) AS tty,\n             coalesce(NULL, miny + stepy * (value-1)) AS wty,\n             xorigin, xorigin+rsx, xorigin + rsx / 2,\n             yorigin + rsy / 2\n        FROM generate_series(1), yaxis, cst,\n             facet LEFT JOIN ylabels ON ylabels.y = (miny + (value-1) * stepy)\n       WHERE radial AND stop = 1+1.0*(maxy-miny)/stepy\n    ),\n    ypos(m, mi, pcx, pcy, radial) AS (\n      SELECT m, mi, xorigin, yorigin + CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END, radial FROM yaxis, cst, facet WHERE NOT radial\n      UNION ALL\n      SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n    )\n  SELECT * FROM radygrid , ypos;\n")
+		r = db.Query("\n  WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3, 4, 5, 6, 7 , 8, 9, 10, 11\n    ),\n    ds(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT m, n, x,\n        y, x2,\n        y2,\n        title, size, mark, label, markmode\n      FROM ds0\n      WINDOW w AS (PARTITION BY m, x ORDER BY n)\n    ),\n    d(m, n, x, y, x2, y2, labelx,labely,title,size,mark,label,markmode) AS (\n      SELECT m, n, x, y,  x2, y2, x, y, title, size, mark, label, markmode\n      FROM ds, cst2\n    ),\n    ylabels(y, label) AS (\n      SELECT y, MIN(labely) FROM d GROUP BY y\n    ),\n    yaxis(maxy, miny, stepy , minstepy) AS (\n      WITH\n        xt0(minx, maxx) AS (\n          SELECT  coalesce(miny, min(min(y2),\n                  min(y))), coalesce(maxy, max(max(y2),\n                  max(y))) + qualitativey\n           FROM d, cst2\n        ),\n        xt1(mx, mn) AS (SELECT maxx, minx FROM xt0),\n        xt2(mx, mn, step) AS (SELECT mx, mn, (mx-mn)  FROM xt1),\n        \n        xt3(mx, mn, ms) AS (\n          SELECT mx, mn, first_value(rs) OVER (order by x desc) AS ms\n            FROM (SELECT mx, mn, step, f,(mx-mn) as rng,\n                         1.0*step/f as rs, 1.0*(mx-mn)/(step/f) AS x\n                    FROM xt2, (SELECT 1 AS f UNION ALL SELECT 2\n                                UNION ALL SELECT 4\n                                UNION ALL SELECT 5)) AS src\n                   WHERE x < 10 limit 1),\n        xt4(minstepy) AS (\n          SELECT MIN(abs(y2-y)) FROM d WHERE y2 != y\n        )\n      SELECT (mx/ms)*ms, (mn/ms)*ms, coalesce(stepy, ms),\n                     coalesce(minstepy, ms, stepy)  FROM xt3, cst2,xt4\n    ),\n    distinct_mark_n_m(mark, ze, zem, title) AS (\n      SELECT DISTINCT mark, n AS ze, m AS zem, title FROM ds0\n    ),\n    facet0(m, mi, title, radial) AS (\n      SELECT md, row_number() OVER () - 1, title, 'radial'\n                      IN (SELECT mark FROM distinct_mark_n_m WHERE zem = md)\n      FROM (SELECT DISTINCT zem AS md, title AS title\n                       FROM distinct_mark_n_m ORDER BY 2, 1)\n    ),\n    facet(m, mi, xorigin, yorigin, title, radial) AS (\n      SELECT m, mi,\n        rsx * 1.2 * IFNULL(CASE WHEN (\n          0\n        ) > 0 THEN mi / (\n          0\n        ) ELSE mi % (\n          2\n        )  END, mi),\n        rsy  * 1.2 * IFNULL(CASE WHEN (\n          2\n        ) > 0 THEN mi / (\n          2\n        ) ELSE mi / (\n          0\n        )  END, 0),\n        title, radial FROM facet0, cst\n    ),\n    radygrid(m, mi, tty, wty, ttx, ttx2, xorigin, yorigin) AS (\n      SELECT m, mi,  rsy / 2 / ((maxy-miny)/stepy) * (value-1) AS tty,\n             coalesce(NULL, miny + stepy * (value-1)) AS wty,\n             xorigin, xorigin+rsx, xorigin + rsx / 2,\n             yorigin + rsy / 2\n        FROM generate_series(1), yaxis, cst,\n             facet LEFT JOIN ylabels ON ylabels.y = (miny + (value-1) * stepy)\n       WHERE radial AND stop = 1+1.0*(maxy-miny)/stepy\n    ),\n    ypos(m, mi, pcx, pcy, radial) AS (\n      SELECT m, mi, xorigin, yorigin + CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END, radial FROM yaxis, cst, facet WHERE NOT radial\n      UNION ALL\n      SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n    )\n  SELECT * FROM radygrid , ypos;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3, 4, 5, 6, 7 , 8, 9, 10, 11\n    ),\n    ds(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT m, n, x,\n        y, x2,\n        y2,\n        title, size, mark, label, markmode\n      FROM ds0\n      WINDOW w AS (PARTITION BY m, x ORDER BY n)\n    ),\n    d(m, n, x, y, x2, y2, labelx,labely,title,size,mark,label,markmode) AS (\n      SELECT m, n, x, y,  x2, y2, x, y, title, size, mark, label, markmode\n      FROM ds, cst2\n    ),\n    ylabels(y, label) AS (\n      SELECT y, MIN(labely) FROM d GROUP BY y\n    ),\n    yaxis(maxy, miny, stepy , minstepy) AS (\n      WITH\n        xt0(minx, maxx) AS (\n          SELECT  coalesce(miny, min(min(y2),\n                  min(y))), coalesce(maxy, max(max(y2),\n                  max(y))) + qualitativey\n           FROM d, cst2\n        ),\n        xt1(mx, mn) AS (SELECT maxx, minx FROM xt0),\n        xt2(mx, mn, step) AS (SELECT mx, mn, (mx-mn)  FROM xt1),\n        \n        xt3(mx, mn, ms) AS (\n          SELECT mx, mn, first_value(rs) OVER (order by x desc) AS ms\n            FROM (SELECT mx, mn, step, f,(mx-mn) as rng,\n                         1.0*step/f as rs, 1.0*(mx-mn)/(step/f) AS x\n                    FROM xt2, (SELECT 1 AS f UNION ALL SELECT 2\n                                UNION ALL SELECT 4\n                                UNION ALL SELECT 5)) AS src\n                   WHERE x < 10 limit 1),\n        xt4(minstepy) AS (\n          SELECT MIN(abs(y2-y)) FROM d WHERE y2 != y\n        )\n      SELECT (mx/ms)*ms, (mn/ms)*ms, coalesce(stepy, ms),\n                     coalesce(minstepy, ms, stepy)  FROM xt3, cst2,xt4\n    ),\n    distinct_mark_n_m(mark, ze, zem, title) AS (\n      SELECT DISTINCT mark, n AS ze, m AS zem, title FROM ds0\n    ),\n    facet0(m, mi, title, radial) AS (\n      SELECT md, row_number() OVER () - 1, title, 'radial'\n                      IN (SELECT mark FROM distinct_mark_n_m WHERE zem = md)\n      FROM (SELECT DISTINCT zem AS md, title AS title\n                       FROM distinct_mark_n_m ORDER BY 2, 1)\n    ),\n    facet(m, mi, xorigin, yorigin, title, radial) AS (\n      SELECT m, mi,\n        rsx * 1.2 * IFNULL(CASE WHEN (\n          0\n        ) > 0 THEN mi / (\n          0\n        ) ELSE mi % (\n          2\n        )  END, mi),\n        rsy  * 1.2 * IFNULL(CASE WHEN (\n          2\n        ) > 0 THEN mi / (\n          2\n        ) ELSE mi / (\n          0\n        )  END, 0),\n        title, radial FROM facet0, cst\n    ),\n    radygrid(m, mi, tty, wty, ttx, ttx2, xorigin, yorigin) AS (\n      SELECT m, mi,  rsy / 2 / ((maxy-miny)/stepy) * (value-1) AS tty,\n             coalesce(NULL, miny + stepy * (value-1)) AS wty,\n             xorigin, xorigin+rsx, xorigin + rsx / 2,\n             yorigin + rsy / 2\n        FROM generate_series(1), yaxis, cst,\n             facet LEFT JOIN ylabels ON ylabels.y = (miny + (value-1) * stepy)\n       WHERE radial AND stop = 1+1.0*(maxy-miny)/stepy\n    ),\n    ypos(m, mi, pcx, pcy, radial) AS (\n      SELECT m, mi, xorigin, yorigin + CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END, radial FROM yaxis, cst, facet WHERE NOT radial\n      UNION ALL\n      SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n    )\n  SELECT * FROM radygrid , ypos;\n")
 		}
 	}
 	db.Close()
@@ -582,9 +660,15 @@ func Test_with2(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.1"
-		_res = db.Exec("\n  WITH\n    t1(x) AS (SELECT 111),\n    t2(y) AS (SELECT 222),\n    t3(z) AS (SELECT * FROM t2 WHERE false UNION ALL SELECT * FROM t2)\n  SELECT * FROM t1, t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH\n    t1(x) AS (SELECT 111),\n    t2(y) AS (SELECT 222),\n    t3(z) AS (SELECT * FROM t2 WHERE false UNION ALL SELECT * FROM t2)\n  SELECT * FROM t1, t3;\n")
+		r = db.Query("\n  WITH\n    t1(x) AS (SELECT 111),\n    t2(y) AS (SELECT 222),\n    t3(z) AS (SELECT * FROM t2 WHERE false UNION ALL SELECT * FROM t2)\n  SELECT * FROM t1, t3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH\n    t1(x) AS (SELECT 111),\n    t2(y) AS (SELECT 222),\n    t3(z) AS (SELECT * FROM t2 WHERE false UNION ALL SELECT * FROM t2)\n  SELECT * FROM t1, t3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "111 222"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

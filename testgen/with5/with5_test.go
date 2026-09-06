@@ -69,33 +69,63 @@ func Test_with5(t *testing.T) {
 		}
 	}
 	{ // "110"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM closure, link WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM closure, link WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM closure, link WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM closure, link WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "111"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "112"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "113"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     INTERSECT\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     INTERSECT\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     INTERSECT\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     INTERSECT\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7 9 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "114"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 11 200 300 400"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "120"
@@ -111,15 +141,27 @@ func Test_with5(t *testing.T) {
 		}
 	}
 	{ // "130"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 5 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "131"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION ALL\n    SELECT 2\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION ALL\n    SELECT 2\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION ALL\n    SELECT 2\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION ALL\n    SELECT 2\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "200"
@@ -129,15 +171,27 @@ func Test_with5(t *testing.T) {
 		}
 	}
 	{ // "210"
-		_res = db.Exec("\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
+		r = db.Query("\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 11 13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "220"
-		_res = db.Exec("\n  CREATE TABLE linkA_ipk(aa1 INTEGER PRIMARY KEY,aa2);\n  INSERT INTO linkA_ipk(aa1,aa2) SELECT aa1, aa2 FROM linkA;\n  CREATE TABLE linkB_ipk(bb1 INTEGER PRIMARY KEY,bb2);\n  INSERT INTO linkB_ipk(bb1,bb2) SELECT bb1, bb2 FROM linkB;\n  CREATE TABLE linkC_ipk(cc1 INTEGER PRIMARY KEY,cc2);\n  INSERT INTO linkC_ipk(cc1,cc2) SELECT cc1, cc2 FROM linkC;\n  CREATE TABLE linkD_ipk(dd1 INTEGER PRIMARY KEY,dd2);\n  INSERT INTO linkD_ipk(dd1,dd2) SELECT dd1, dd2 FROM linkD;\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA_ipk JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB_ipk JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC_ipk JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD_ipk JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE linkA_ipk(aa1 INTEGER PRIMARY KEY,aa2);\n  INSERT INTO linkA_ipk(aa1,aa2) SELECT aa1, aa2 FROM linkA;\n  CREATE TABLE linkB_ipk(bb1 INTEGER PRIMARY KEY,bb2);\n  INSERT INTO linkB_ipk(bb1,bb2) SELECT bb1, bb2 FROM linkB;\n  CREATE TABLE linkC_ipk(cc1 INTEGER PRIMARY KEY,cc2);\n  INSERT INTO linkC_ipk(cc1,cc2) SELECT cc1, cc2 FROM linkC;\n  CREATE TABLE linkD_ipk(dd1 INTEGER PRIMARY KEY,dd2);\n  INSERT INTO linkD_ipk(dd1,dd2) SELECT dd1, dd2 FROM linkD;\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA_ipk JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB_ipk JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC_ipk JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD_ipk JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
+		r = db.Query("\n  CREATE TABLE linkA_ipk(aa1 INTEGER PRIMARY KEY,aa2);\n  INSERT INTO linkA_ipk(aa1,aa2) SELECT aa1, aa2 FROM linkA;\n  CREATE TABLE linkB_ipk(bb1 INTEGER PRIMARY KEY,bb2);\n  INSERT INTO linkB_ipk(bb1,bb2) SELECT bb1, bb2 FROM linkB;\n  CREATE TABLE linkC_ipk(cc1 INTEGER PRIMARY KEY,cc2);\n  INSERT INTO linkC_ipk(cc1,cc2) SELECT cc1, cc2 FROM linkC;\n  CREATE TABLE linkD_ipk(dd1 INTEGER PRIMARY KEY,dd2);\n  INSERT INTO linkD_ipk(dd1,dd2) SELECT dd1, dd2 FROM linkD;\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA_ipk JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB_ipk JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC_ipk JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD_ipk JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE linkA_ipk(aa1 INTEGER PRIMARY KEY,aa2);\n  INSERT INTO linkA_ipk(aa1,aa2) SELECT aa1, aa2 FROM linkA;\n  CREATE TABLE linkB_ipk(bb1 INTEGER PRIMARY KEY,bb2);\n  INSERT INTO linkB_ipk(bb1,bb2) SELECT bb1, bb2 FROM linkB;\n  CREATE TABLE linkC_ipk(cc1 INTEGER PRIMARY KEY,cc2);\n  INSERT INTO linkC_ipk(cc1,cc2) SELECT cc1, cc2 FROM linkC;\n  CREATE TABLE linkD_ipk(dd1 INTEGER PRIMARY KEY,dd2);\n  INSERT INTO linkD_ipk(dd1,dd2) SELECT dd1, dd2 FROM linkD;\n  WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA_ipk JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB_ipk JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC_ipk JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD_ipk JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 11 13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -154,9 +208,15 @@ func Test_with5(t *testing.T) {
 		}
 	}
 	{ // "310"
-		_res = db.Exec("\n  WITH RECURSIVE tt(ii) AS (\n      VALUES(1) UNION ALL SELECT id FROM tree, tt WHERE parent=ii ORDER BY id\n  )\n  SELECT * FROM tt ORDER BY ii;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE tt(ii) AS (\n      VALUES(1) UNION ALL SELECT id FROM tree, tt WHERE parent=ii ORDER BY id\n  )\n  SELECT * FROM tt ORDER BY ii;\n")
+		r = db.Query("\n  WITH RECURSIVE tt(ii) AS (\n      VALUES(1) UNION ALL SELECT id FROM tree, tt WHERE parent=ii ORDER BY id\n  )\n  SELECT * FROM tt ORDER BY ii;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE tt(ii) AS (\n      VALUES(1) UNION ALL SELECT id FROM tree, tt WHERE parent=ii ORDER BY id\n  )\n  SELECT * FROM tt ORDER BY ii;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

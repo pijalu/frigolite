@@ -405,10 +405,14 @@ func (e *Engine) SetExprDepthLimit(n int) int {
 // byte to 0x10000 so file-size checks in autovacuum-9.3 / 9.5 / corrupt2
 // / lock4 etc. observe a small expected value without creating a 1GB
 // database. Pass 0 to restore the production default (0x40000000).
-func (e *Engine) SetPendingByteMain(byteOffset uint32) {
+//
+// Returns the previous offset (default 0x40000000), as the C
+// sqlite3_test_control_pending_byte does, so callers can restore it.
+func (e *Engine) SetPendingByteMain(byteOffset uint32) uint32 {
 	if e.mainDB != nil && e.mainDB.Pager != nil {
-		e.mainDB.Pager.SetPendingByte(byteOffset)
+		return e.mainDB.Pager.SetPendingByte(byteOffset)
 	}
+	return 0x40000000
 }
 
 // SetTriggerDepthLimit sets the maximum trigger nesting depth

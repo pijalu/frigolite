@@ -243,15 +243,27 @@ func (tp *transpiler) processSqlite3TestControl(args []tcl.RawWord) {
 // processSqlite3TestControlPendingByte handles the standalone TCL command
 // `sqlite3_test_control_pending_byte 0x0010000` (tester.tcl:102, trans.tcl,
 // etc.) — the C-defined wrapper around sqlite3_test_control
-// SQLITE_TESTCTRL_PENDING_BYTE. We don't actually move the engine's
-// pending byte (the C-side byte stays at 0x40000000); we just record the
-// value in the Go shadow variable so file-size comparisons in the test
-// see the harness's expected value rather than the production default.
+// SQLITE_TESTCTRL_PENDING_BYTE. The call MOVES the engine's pending byte
+// (db.SetPendingByte, the src/test2.c testPendingByte override) and
+// records the value in the Go shadow variable so file-size comparisons in
+// the test see the harness's expected value rather than the production
+// default. A `$var` argument dispatches at runtime (pager1.test 42.x
+// restores the byte with `sqlite3_test_control_pending_byte $pending_prev`).
 func (tp *transpiler) processSqlite3TestControlPendingByte(args []tcl.RawWord) {
 	if len(args) < 1 {
 		return
 	}
 	val := strings.TrimSpace(args[0].Text)
+	if strings.HasPrefix(val, "$") {
+		goVar := tclVarToGo(strings.TrimPrefix(val, "$"))
+		if isValidGoIdent(goVar) && tp.isVarDeclared(goVar) {
+			tp.emitLine("%s.SetPendingByte(uint32(tclAtoi(%s)))", tp.dbVar, goVar)
+			tp.emitLine("sqlite_pending_byte = %s", goVar)
+			return
+		}
+		tp.emitLine("// sqlite3_test_control_pending_byte %s (undeclared var)", val)
+		return
+	}
 	var n int64
 	var err error
 	if strings.HasPrefix(val, "0x") || strings.HasPrefix(val, "0X") {
@@ -263,6 +275,7 @@ func (tp *transpiler) processSqlite3TestControlPendingByte(args []tcl.RawWord) {
 		tp.emitLine("// sqlite3_test_control_pending_byte %s (parse error: %v)", val, err)
 		return
 	}
+	tp.emitLine("%s.SetPendingByte(%d)", tp.dbVar, n)
 	tp.emitLine("sqlite_pending_byte = %q // sqlite3_test_control_pending_byte %s", strconv.FormatInt(n, 10), val)
 }
 

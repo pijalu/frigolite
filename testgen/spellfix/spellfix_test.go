@@ -657,9 +657,15 @@ func Test_spellfix(t *testing.T) {
 								_ = _res // catchsql
 							}
 							{ // "8.1"
-								_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
+								r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // "8.2"

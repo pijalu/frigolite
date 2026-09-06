@@ -2794,15 +2794,27 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-21.26"
-			_res = db.Exec("\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
+			r = db.Query("\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "[1,2.0,null,\"three\"]"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json101-21.27"
-			_res = db.Exec("\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
+			r = db.Query("\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{\"a\":1,\"b\":2.0,\"c\":null,\"e\":\"four\"}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json101-22.1"

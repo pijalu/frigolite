@@ -233,9 +233,9 @@ func Test_decimal(t *testing.T) {
 		}
 	}
 	{ // "2001"
-		_res = db.Exec("\n  WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;\n")
+		r = db.Query("\n  WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;\n")
 		}
 	}
 	{ // "2010"

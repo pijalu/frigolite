@@ -1369,9 +1369,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-27.4"
-		_res = db.Exec("\n  WITH t99(b) AS (SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3))\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t99(b) AS (SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3))\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
+		r = db.Query("\n  WITH t99(b) AS (SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3))\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t99(b) AS (SELECT b FROM t2 LEFT JOIN t1 ON c IN (SELECT x FROM t3))\n  SELECT 5 FROM t2 JOIN t99 ON b IN (1,2,3);\n")
 		}
 	}
 	{ // "join-27.5"
@@ -1382,9 +1382,15 @@ func Test_join(t *testing.T) {
 	}
 	tcl_nullvalue = "NULL"
 	{ // "join-27.6"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(3,4,NULL);\n  INSERT INTO t2 VALUES(1,2);\n  WITH t99(b) AS (\n    SELECT coalesce(b,3) FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IN (1,2,3) ORDER BY +d;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(3,4,NULL);\n  INSERT INTO t2 VALUES(1,2);\n  WITH t99(b) AS (\n    SELECT coalesce(b,3) FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IN (1,2,3) ORDER BY +d;\n")
+		r = db.Query("\n  INSERT INTO t1 VALUES(3,4,NULL);\n  INSERT INTO t2 VALUES(1,2);\n  WITH t99(b) AS (\n    SELECT coalesce(b,3) FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IN (1,2,3) ORDER BY +d;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(3,4,NULL);\n  INSERT INTO t2 VALUES(1,2);\n  WITH t99(b) AS (\n    SELECT coalesce(b,3) FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IN (1,2,3) ORDER BY +d;\n")
+			return
+		}
+		got := flatten(r)
+		want := "NULL NULL 3 NULL NULL 3 1 2 3 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "join-27.7"
@@ -1412,9 +1418,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-27.10"
-		_res = db.Exec("\n  WITH t99(b) AS (\n    SELECT b FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IS NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH t99(b) AS (\n    SELECT b FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IS NULL;\n")
+		r = db.Query("\n  WITH t99(b) AS (\n    SELECT b FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IS NULL;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t99(b) AS (\n    SELECT b FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)\n  )\n  SELECT d, e, b FROM t2 JOIN t99 ON b IS NULL;\n")
 		}
 	}
 	db.Close()
