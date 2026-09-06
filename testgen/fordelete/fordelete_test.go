@@ -94,12 +94,12 @@ func Test_fordelete(t *testing.T) {
 	_ = idxdelete // pre-declared from TCL source
 	var M_csr string
 	_ = M_csr // pre-declared from TCL source
+	OMap := map[string]string{}
+	_ = OMap // dynamic-key array from TCL source
 	TMap := map[string]string{}
 	_ = TMap // dynamic-key array from TCL source
 	MMap := map[string]string{}
 	_ = MMap // dynamic-key array from TCL source
-	OMap := map[string]string{}
-	_ = OMap // dynamic-key array from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	vtab.TclVarSet("testprefix", "", "fordelete")
