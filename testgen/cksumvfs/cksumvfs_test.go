@@ -78,7 +78,7 @@ func Test_cksumvfs(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	// file_control_reservebytes db 8 (unsupported command, not transpiled)
+	db.SetReservedBytes(toInt("8"))
 	r = db.Query("\n  PRAGMA page_size = 4096;\n")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 4096;\n")

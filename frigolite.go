@@ -199,6 +199,18 @@ func (db *DB) SetExprDepthLimit(n int) int {
 	return 0
 }
 
+// SetReservedBytes sets the per-page reserved-space byte count (the database
+// header's byte 20; sqlite3_file_control SQLITE_FCNTL_RESERVE_BYTES). The
+// btree usable size becomes page-size minus this value; the change is
+// flushed to the header with the next write.
+func (db *DB) SetReservedBytes(n int) {
+	if db != nil && db.engine != nil {
+		if pg := db.engine.Pager(); pg != nil {
+			pg.SetReservedBytes(uint32(n))
+		}
+	}
+}
+
 // SetTriggerDepthLimit sets the maximum trigger nesting depth
 // (SQLITE_LIMIT_TRIGGER_DEPTH). A negative value queries (and returns) the
 // current limit without changing it.

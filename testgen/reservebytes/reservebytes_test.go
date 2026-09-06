@@ -68,7 +68,7 @@ func Test_reservebytes(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	// file_control_reservebytes db 0 (unsupported command, not transpiled)
+	db.SetReservedBytes(toInt("0"))
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
 		if _res.Error != nil {
@@ -92,7 +92,7 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// file_control_reservebytes db 8 (unsupported command, not transpiled)
+	db.SetReservedBytes(toInt("8"))
 	{ // do_test "1.2.1"
 		_r = tclHexioRead("test.db", int64(20), int64(1))
 		if _r != "00" {
@@ -133,7 +133,7 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "08", "1.3.5")
 		}
 	}
-	// file_control_reservebytes db 16 (unsupported command, not transpiled)
+	db.SetReservedBytes(toInt("16"))
 	{ // do_test "1.4.1"
 		_r = tclHexioRead("test.db", int64(20), int64(1))
 		if _r != "08" {

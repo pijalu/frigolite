@@ -37,6 +37,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -385,4 +386,23 @@ func (tp *transpiler) processSqlite3QuotaFileTrueSize(args []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("_r = tclQuotaFileTrueSize(%s)", quotaArg(tp, args[0]))
+}
+
+// processFileControlReserveBytes handles
+// `file_control_reservebytes DB N` (SQLITE_FCNTL_RESERVE_BYTES): sets the
+// per-page reserved-space byte count on the connection's main database
+// (reservebytes.test 1.3.x/1.4.x).
+func (tp *transpiler) processFileControlReserveBytes(args []tcl.RawWord) {
+	if len(args) < 2 {
+		tp.emitLine("// file_control_reservebytes (malformed)")
+		return
+	}
+	conn := tp.dbArgGo(args[0].Text)
+	val := strings.TrimSpace(args[1].Text)
+	if strings.HasPrefix(val, "$") {
+		val = fmt.Sprintf("toInt(%s)", tclVarToGo(strings.TrimPrefix(val, "$")))
+	} else {
+		val = fmt.Sprintf("%q", val)
+	}
+	tp.emitLine("%s.SetReservedBytes(toInt(%s))", conn, val)
 }

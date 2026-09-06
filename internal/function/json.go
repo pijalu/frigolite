@@ -2116,6 +2116,11 @@ func (a *jsonGroupObjectAgg) Step(args []interface{}) error {
 	if len(args) < 2 {
 		return fmt.Errorf("json_group_object() needs two arguments")
 	}
+	// json.c jsonGroupObject: a NULL field name omits the pair entirely
+	// (json101-21.29: (NULL,'three') contributes nothing to the object).
+	if args[0] == nil {
+		return nil
+	}
 	key := fmt.Sprint(args[0])
 	v, err := jsonInsertValue(args[1])
 	if err != nil {

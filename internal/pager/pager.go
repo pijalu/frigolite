@@ -971,6 +971,34 @@ func (p *Pager) SetMaxPageCount(n uint32) {
 	p.maxPageCount = n
 }
 
+// SetReservedBytes sets the per-page reserved-space byte count (the database
+// header's byte 20; sqlite3_file_control SQLITE_FCNTL_RESERVE_BYTES). The
+// btree's usable size is pageSize minus this value. The header change is
+// materialized on page 1 and flushed with the next commit (reservebytes.test
+// 1.3.x/1.4.x reads it back via hexio).
+func (p *Pager) SetReservedBytes(n uint32) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if uint32(p.pageSize) < n {
+		return
+	}
+	p.reserved = n
+	if p.header != nil && len(p.header) >= 21 {
+		p.header[20] = byte(n)
+		p.dirty[1] = true
+		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
+			copy(pg.Data[:HeaderSize], p.header)
+		}
+	}
+}
+
+// ReservedBytes reports the per-page reserved-space byte count.
+func (p *Pager) ReservedBytes() uint32 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.reserved
+}
+
 // effectiveMaxPageCountLocked returns the cap AllocatePageMode enforces
 // (the zero-value field means the documented default). Caller holds p.mu.
 func (p *Pager) effectiveMaxPageCountLocked() uint32 {

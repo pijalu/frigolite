@@ -216,6 +216,7 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 				"sqlite3_quota_file_truesize":    (*transpiler).processSqlite3QuotaFileTrueSize,
 				"sqlite3_quota_ferror":           (*transpiler).processSqlite3QuotaFerror,
 				"file_control_vfsname":           (*transpiler).processFileControlVfsName,
+			"file_control_reservebytes":      (*transpiler).processFileControlReserveBytes,
 
 		// Prepared-statement metadata queries (value-producing statements).
 		// Only active for files using the runtime Stmt VM emulation; other

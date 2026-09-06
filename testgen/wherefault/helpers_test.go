@@ -5,6 +5,7 @@
 package wherefault
 
 import (
+	"encoding/json"
 	"bytes"
 	"crypto/md5"
 	"encoding/binary"
@@ -862,14 +863,26 @@ func tclListFlatten(s string) string {
 		// balanced braced unit is a list-quoting level around a braced datum
 		// (e.g. jsonb01's {{{doc}}} foreach items arrive as {{doc}} after
 		// TCL list parsing): strip exactly the quoting level.
-		if inner := s[1 : len(s)-1]; tclIsBracedUnit(inner) {
+		inner := s[1 : len(s)-1]
+		if tclIsBracedUnit(inner) {
+			// A stripped level that is itself a multi-element list needs
+			// another flatten pass (altercol-1.x: the 2-schema-entry
+			// want {{CREATE TABLE t1(a, d, c)} {CREATE INDEX ...}}).
+			if hasTopLevelSpace(inner) {
+				return tclListFlatten(inner)
+			}
 			return inner
 		}
-		// A single fully-braced element whose content carries structure
-		// (quotes, colons, nested brackets/braces — e.g. JSON output like
-		// {"a":1,"b":[2]}) is DATA, not list quoting: flatten() renders the
-		// cell verbatim, so the expectation must not be unwrapped.
-		return s
+		// Content that parses as a JSON document ({"b":9}, [7,8]) is DATA:
+		// the braces are the JSON container, not list quoting — keep them.
+		if json.Valid([]byte(s)) {
+			return s
+		}
+		// Otherwise the single balanced braced unit is TCL list quoting
+		// around a plain word whose special characters (quotes, colons,
+		// parens) are literal inside braces — strip the quoting level
+		// (altercol-1.x: {CREATE TABLE t1(a INTEGER, x TEXT, "d" BLOB)}).
+		return inner
 	}
 	var elems []string
 	depth := 0
@@ -888,7 +901,11 @@ func tclListFlatten(s string) string {
 					// (rowvalue4 2.2.x: (1, NULL) = (SELECT ...) is NULL).
 					wasEmpty = true
 				}
-				elem = inner
+				// An element that is itself a braced multi-element list is
+				// flattened recursively (altercol-1.x: the want
+				// {{CREATE TABLE t1(a, d, c)} {CREATE INDEX ...}} strips to
+				// its space-joined two entries).
+				elem = tclListFlatten(inner)
 			}
 			if wasEmpty {
 				elems = append(elems, "{}")
@@ -945,6 +962,13 @@ func tclIsStructuredSingleElement(s string) bool {
 			depth--
 			if depth == 0 && i != len(s)-1 {
 				return false // closes early: multiple top-level elements
+			}
+		case ' ', '\t', '\n':
+			// A space at the OUTERMOST brace level means the word contains
+			// multiple elements ({{A} {B}} is a 2-element list, not a
+			// single quoted word).
+			if depth == 1 {
+				return false
 			}
 		}
 	}
@@ -1027,6 +1051,27 @@ func tclCatchErrorMsg(s string) string {
 		t = t[1 : len(t)-1]
 	}
 	return t
+}
+
+// hasTopLevelSpace reports whether t contains a space/tab/newline OUTSIDE
+// every braced group (i.e. separating top-level list elements).
+func hasTopLevelSpace(t string) bool {
+	depth := 0
+	for i := 0; i < len(t); i++ {
+		switch t[i] {
+		case '{':
+			depth++
+		case '}':
+			if depth > 0 {
+				depth--
+			}
+		case ' ', '\t', '\n':
+			if depth == 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func tclSplitList(s string) []string {
