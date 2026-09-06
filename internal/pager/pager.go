@@ -182,13 +182,14 @@ func (p *Pager) Snapshot() *PagerState {
 	// small databases used in the testgen suites and matches SQLite's
 	// pager semantics where the cache is warmed by the first read of
 	// every page during the transaction.
-	if p.file != nil {
-		for n := uint32(2); n <= p.numPages; n++ {
-			if _, ok := p.pages[n]; !ok {
-				_, _ = p.readPageLocked(n)
-			}
-		}
-	}
+	// Pages NOT in the cache are deliberately not warmed here: the snapshot
+	// records only cached pages, and Restore evicts cache entries absent
+	// from the snapshot so those pages are re-read from disk (which still
+	// holds the pre-statement image until the next commit). Warming every
+	// page made each statement snapshot O(numPages) with a full byte copy,
+	// which made trigger cascades under rollback protection quadratic
+	// (sqllimits1-7.5: thousands of nested DML statements x a 1000-page
+	// database).
 	s := &PagerState{
 		pages:    make(map[uint32]*Page, len(p.pages)),
 		dirty:    make(map[uint32]bool, len(p.dirty)),
@@ -215,6 +216,19 @@ func (p *Pager) Restore(s *PagerState) {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// Evict pages the snapshot does not know about: they were loaded (and
+	// possibly modified) after the snapshot was taken, so their cached
+	// content is post-statement state. Dropping them sends the next read
+	// to disk, which still holds the snapshot-time image (pages reach the
+	// file only at commit; a mid-transaction spill is covered by the
+	// rollback journal).
+	for n, pg := range p.pages {
+		if _, ok := s.pages[n]; !ok {
+			delete(p.pages, n)
+			delete(p.dirty, n)
+			_ = pg
+		}
+	}
 	p.pages = make(map[uint32]*Page, len(s.pages))
 	for n, pg := range s.pages {
 		cp := &Page{PageNum: pg.PageNum, Data: append([]byte(nil), pg.Data...)}

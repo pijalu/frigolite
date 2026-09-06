@@ -104,6 +104,9 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if len(s.Joins) > 0 {
 	}
 	e.selectDepth++
+	if e.selectDepth == 1 {
+		e.resultTooWide = false // per-statement state
+	}
 	e.aggPendingErr = nil // per-statement state: a prior aborted SELECT must not leak its aggregate error
 	defer func() { e.selectDepth-- }()
 	// SQLite resolves TVF arguments against every FROM term of the query:
@@ -328,6 +331,14 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 		err := e.aggPendingErr
 		e.aggPendingErr = nil
 		return &Result{Error: err}
+	}
+	// select.c sqlite3SelectCallback: a result set wider than
+	// SQLITE_LIMIT_COLUMN errors "too many columns in result set"
+	// (sqllimits1-17.0: nested SELECT *,*,* expansion). The flag is set by
+	// buildColumnNames for any SELECT level (subqueries included).
+	if e.resultTooWide {
+		e.resultTooWide = false
+		return &Result{Error: fmt.Errorf("too many columns in result set")}
 	}
 	// The collation of each result column of a compound query comes from the
 	// leftmost SELECT member (SQLite's compound column collation rule).

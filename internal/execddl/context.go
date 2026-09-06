@@ -51,6 +51,7 @@ type DDLContext interface {
 	DQSAllowDML() bool
 	IgnoreCheckConstraints() bool
 	ColumnLimit() int
+	LengthLimit() int
 	TrustedSchema() bool
 	SchemaFunctionSafe(name string) bool
 

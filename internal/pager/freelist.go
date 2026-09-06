@@ -12,7 +12,6 @@ package pager
 import (
 	"encoding/binary"
 	"fmt"
-
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
@@ -564,3 +563,4 @@ func (p *Pager) freelistPagesAboveLocked(n uint32) uint32 {
 	}
 	return removed
 }
+

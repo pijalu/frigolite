@@ -1,6 +1,7 @@
 package execquery
 
 import (
+	"fmt"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/fts"
@@ -210,6 +211,9 @@ type SelectEngine struct {
 	inCompoundMember bool
 	// selectDepth is the current SELECT nesting depth (1 = top-level statement).
 	selectDepth int
+	// resultTooWide flags that a SELECT in the current statement expanded to
+	// more result columns than SQLITE_LIMIT_COLUMN (consumed at finalize).
+	resultTooWide bool
 	// nestDepth is the current view/subquery nesting depth.
 	nestDepth int
 	// usingAutoIndex tracks whether an ephemeral index is being used (for EQP).
@@ -339,7 +343,15 @@ var (
 
 // ExecSelect executes a SELECT statement and returns its result.
 func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
-	return e.execSelect(s)
+	res := e.execSelect(s)
+	// The result-width flag (buildColumnNames) must fire on every return
+	// path: finalizeSelectResult is bypassed when the FROM clause itself
+	// produces the result (ExecFrom over a subquery — sqllimits1-17.0).
+	if e.resultTooWide && res.Error == nil {
+		e.resultTooWide = false
+		return &Result{Error: fmt.Errorf("too many columns in result set")}
+	}
+	return res
 }
 
 // ExecSelectView executes a SELECT over a view body and returns its result.

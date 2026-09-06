@@ -786,3 +786,33 @@ func (t *BTree) findInsertPositionIndex(pg *pager.Page, page *storage.BTreePage,
 	}
 	return lo
 }
+
+// DeleteCellByRowID deletes the single table-leaf cell with the given rowid
+// using a direct O(log n) cursor seek instead of DeleteCellsWhere's full
+// sweep (a per-row sweep made UPDATE loops O(rows x tree): sqllimits1-7.5's
+// trigger cascade under rollback protection). Returns the number of cells
+// deleted (0 when the rowid is absent).
+func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
+	c, err := t.OpenCursor()
+	if err != nil {
+		return 0, err
+	}
+	found, err := c.SeekToRowID(rowID)
+	if err != nil {
+		return 0, err
+	}
+	if !found {
+		return 0, nil
+	}
+	leaf := c.pageNum
+	n, err := t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
+		return cell.RowID == rowID
+	})
+	if err != nil || n == 0 {
+		return n, err
+	}
+	if err := t.maybeRebalanceAfterDelete(leaf); err != nil {
+		return n, err
+	}
+	return n, nil
+}

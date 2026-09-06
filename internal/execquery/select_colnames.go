@@ -223,6 +223,12 @@ func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sq
 			names = append(names, sql.ExprString(col.Expr))
 		}
 	}
+	// select.c sqlite3SelectCallback: a result set wider than
+	// SQLITE_LIMIT_COLUMN errors "too many columns in result set"; the flag
+	// is consumed at finalizeSelectResult (subquery results included).
+	if limit := e.ctx.ColumnLimit(); limit != 0 && len(names) > limit {
+		e.resultTooWide = true
+	}
 	return names
 }
 

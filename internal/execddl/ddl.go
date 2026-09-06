@@ -77,6 +77,20 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 	if res != nil {
 		return res
 	}
+	// build.c sqlite3StartTable: a table (or column) name longer than
+	// SQLITE_LIMIT_LENGTH fails SQLITE_TOOBIG, "string or blob too big"
+	// (sqllimits1-17.x builds a >100000-char table name under
+	// LENGTH=100000).
+	if lim := e.ctx.LengthLimit(); lim > 0 {
+		if len(tableName) >= lim {
+			return &Result{Error: fmt.Errorf("string or blob too big")}
+		}
+		for _, cd := range s.Columns {
+			if len(cd.Name) >= lim {
+				return &Result{Error: fmt.Errorf("string or blob too big")}
+			}
+		}
+	}
 	if res := e.runCreateTableValidations(ctx, s, tableName); res != nil {
 		return res
 	}

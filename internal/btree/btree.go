@@ -119,7 +119,14 @@ func (t *BTree) allocPage() (*pager.Page, error) {
 	// through the normal AllocatePage path which pops from the
 	// freelist in chain order.
 	var pg *pager.Page
-	if t.isSchema {
+	// P8.INCRVACUUM.phase9: in AUTOVACUUM databases the schema btree's
+	// allocations extend the file (no freelist pop) so schema pages stay
+	// beyond the user rootpage range. In plain databases SQLite allocates
+	// schema pages from the freelist like any other (allocateBtreePage
+	// BTALLOC_ANY) — skipping it there left CREATE VIEW/TABLE failing with
+	// SQLITE_FULL while 1690 freelist pages were available
+	// (sqllimits1-8.8 at the max_page_count cap).
+	if t.isSchema && t.pager.AutoVacuum() {
 		pg = t.pager.AllocatePageSkipFreelist()
 	} else {
 		pg = t.pager.AllocatePage()

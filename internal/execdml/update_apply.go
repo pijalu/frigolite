@@ -172,6 +172,15 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 // conflict with a change's new values on a UNIQUE/PK column or UNIQUE index.
 // The row being updated is not a conflict.
 func (e *DMLExecutor) updateRowConflictsWithTable(tree *btree.BTree, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (bool, error) {
+	// A conflict can only arise on a UNIQUE/PK column or UNIQUE index. When
+	// the UPDATE's SET clause assigns none of them, no other row can
+	// conflict with the new values (all other columns keep their old
+	// values, which already satisfied the constraints) — skip the O(rows)
+	// scan. The trigger-cascade UPDATEs (sqllimits1-7.5: UPDATE trig SET
+	// a=1 over ~10k rows) made this quadratic via per-row full-table scans.
+	if !e.updateTouchesUniqueColumn(ch, colIndex, uniqueCols, idxColsList) {
+		return false, nil
+	}
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false, err
@@ -220,12 +229,16 @@ func cursorExhausted(cursor *btree.Cursor) bool {
 // writeUpdateCell replaces the row at ch.rowID with a new record at
 // writeRowID (delete old cell, insert new), maintaining the rowid caches.
 func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootPage uint32, ch updateChange, writeRowID int64, finalValues []interface{}) *Result {
-	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		return cell.RowID == ch.rowID
-	}); err != nil {
+	if _, err := tree.DeleteCellByRowID(ch.rowID); err != nil {
 		return &Result{Error: err}
 	}
-	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
+	// The cached largest rowid survives an in-place UPDATE (the rowid is
+	// rewritten, not removed). Invalidate only when the rowid itself
+	// changed: an unconditional invalidate here let the post-write
+	// BumpRowIDCache(writeRowID) re-seed the entry with just this row's
+	// rowid, so later auto-rowid INSERTs (trigger bodies inserting during
+	// the same statement) re-allocated existing rowids and the per-row
+	// write then clobbered them (sqllimits1-7.4 cascade lost rows).
 	newRecord, err := storage.EncodeRecord(finalValues)
 	if err != nil {
 		return &Result{Error: err}
@@ -238,7 +251,16 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 	if err := tree.InsertCell(newCell); err != nil {
 		return &Result{Error: err}
 	}
-	e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, writeRowID)
+	if writeRowID != ch.rowID {
+		// The old rowid (possibly the table's largest) is gone; force the
+		// next allocation to re-scan. Bump first so the new rowid is not
+		// lost, then drop the entry (bump is monotone-max but the largest
+		// rowid may have been the REMOVED one).
+		e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, writeRowID)
+		e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
+	} else {
+		e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, writeRowID)
+	}
 
 	// Fire the preupdate hook with the old and new row values. WITHOUT ROWID
 	// tables report rowid 0 (SQLite uses the key columns instead); rowid
@@ -500,4 +522,33 @@ func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Ent
 	// Delete the row being updated (no DELETE trigger: this is the UPDATE
 	// itself, not a conflict-replacement) and insert its new version.
 	return e.updateRowInPlace(tree, tableEntry, c, deletedByConflict, snap)
+}
+
+// updateTouchesUniqueColumn reports whether the UPDATE's SET clause assigns
+// at least one column that participates in the table's PRIMARY KEY/UNIQUE
+// constraints or a UNIQUE index (i.e. whether a uniqueness conflict is
+// possible at all).
+func (e *DMLExecutor) updateTouchesUniqueColumn(ch updateChange, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
+	if len(uniqueCols) == 0 && len(idxColsList) == 0 {
+		return false
+	}
+	for _, name := range e.updateSetColumns {
+		i, ok := colIndex[name]
+		if !ok {
+			continue
+		}
+		for _, u := range uniqueCols {
+			if u == i {
+				return true
+			}
+		}
+		for _, idx := range idxColsList {
+			for _, cn := range idx.Cols {
+				if j, ok := colIndex[cn]; ok && j == i {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
