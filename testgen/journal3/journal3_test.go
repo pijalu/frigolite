@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
-"strconv"
 "strings"
 "testing"
 )
@@ -107,7 +106,7 @@ func Test_journal3(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						os.Remove("test.db-journal")
 					}
-					if perm, _perr := strconv.ParseInt(strings.TrimPrefix(permissions, "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+					tclFileChmod("test.db", permissions)
 					if st, _err := os.Stat("test.db"); _err == nil { _perm := fmt.Sprintf("0%04o", st.Mode().Perm()); _r = "/" + strings.Replace(_perm, "00", "0.", 1) + "/" } else { _r = "" }
 					if _r != res {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res, "journal3-1.2." + tn + ".1")

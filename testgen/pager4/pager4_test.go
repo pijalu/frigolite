@@ -74,8 +74,8 @@ func Test_pager4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("-force")
-	// file rename test.db test-xyz.db
+	_ = os.Remove("test-xyz.db")
+	_ = os.Rename("test.db", "test-xyz.db")
 	{ // "pager4-1.2"
 		_res = db.Exec("\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
@@ -100,8 +100,8 @@ func Test_pager4(t *testing.T) {
 		}
 	}
 	if db2 != nil { db2.Close() }
-	os.Remove("-force")
-	// file rename test-xyz.db test.db
+	_ = os.Remove("test.db")
+	_ = os.Rename("test-xyz.db", "test.db")
 	{ // "pager4-1.5"
 		_res = db.Exec("\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {
@@ -114,7 +114,7 @@ func Test_pager4(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET a=537;\n  SELECT * FROM t1;\n")
 		}
 	}
-	// file rename test.db test-xyz.db
+	_ = os.Rename("test.db", "test-xyz.db")
 	{ // "pager4-1.7"
 		_res = db.Exec("\n  PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;\n")
 		if _res.Error != nil {

@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -126,7 +125,7 @@ func Test_extension01(t *testing.T) {
 	}
 	{ // do_test "1.6"
 		if tcl_platform_os != "Windows NT" {
-			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("./file2.txt", os.FileMode(perm)) }
+			tclFileChmod("./file2.txt", "r--r--r--")
 		} else {
 			// file attributes "./file2.txt" -readonly (unsupported attribute)
 		}
@@ -134,7 +133,7 @@ func Test_extension01(t *testing.T) {
 	}
 	{ // do_test "1.7"
 		if tcl_platform_os != "Windows NT" {
-			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("./file2.txt", os.FileMode(perm)) }
+			tclFileChmod("./file2.txt", "rw-r--r--")
 		} else {
 			// file attributes "./file2.txt" -readonly (unsupported attribute)
 		}

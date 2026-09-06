@@ -301,6 +301,7 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 	// the lexical equivalent (no symlink resolution, matching SQLite's
 	// no-readlink fallback).
 	cleanPath := filepath.Clean(path)
+	readOnlyFallback := false
 	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		// sqlite3OsOpen failure maps to SQLITE_CANTOPEN "unable to open
@@ -309,6 +310,22 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 		if strings.Contains(err.Error(), "is a directory") {
 			return nil, fmt.Errorf("pager: open %s: unable to open database file", path)
 		}
+		// os_unix.c unixOpen: a file that cannot be opened read-write
+		// (EACCES — e.g. mode r--r--r--) is opened READ-ONLY and the pager
+		// flagged readOnly; writes then fail with SQLITE_READONLY
+		// (readonly.test 1.1). Only an existing file can fall back — a
+		// missing file still surfaces the create error.
+		if os.IsPermission(err) {
+			if fi, serr := os.Stat(cleanPath); serr == nil && !fi.IsDir() {
+				if rf, rerr := os.OpenFile(cleanPath, os.O_RDONLY, 0644); rerr == nil {
+					f = rf
+					err = nil
+					readOnlyFallback = true
+				}
+			}
+		}
+	}
+	if err != nil {
 		return nil, fmt.Errorf("pager: open %s: %w", path, err)
 	}
 	info, err := f.Stat()
@@ -333,6 +350,7 @@ func Open(path string, pageSize uint32) (*Pager, error) {
 		// many bytes after a commit; negative means unlimited, 0 means zero.
 		journalSizeLimit: 32768,
 	}
+	pr.readOnly = readOnlyFallback
 	// Quota layer (test_quota.c quotaOpen): a database file opened while
 	// the quota layer is initialized joins its matching quota group and
 	// its size counts toward the group cap. No-op when uninitialized.
@@ -777,6 +795,34 @@ func (p *Pager) AutoVacuum() bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.autoVacuum
+}
+
+// ReadOnly reports whether the pager opened its file read-only (the
+// read-write open failed with a permission error, os_unix.c unixOpen
+// EACCES fallback). Writes against a read-only pager fail with
+// SQLITE_READONLY, "attempt to write a readonly database".
+func (p *Pager) ReadOnly() bool {
+	return p.readOnly
+}
+
+// databaseFileMoved reports whether the file at p.path is no longer the file
+// p.file was opened on (pager.c databaseIsUnmoved, surfaced through the
+// SQLITE_FCNTL_HAS_MOVED file control): the path has been deleted, or its
+// device/inode identity now differs (renamed and recreated). Memory pagers
+// and temp files (no path) are never "moved".
+func (p *Pager) databaseFileMoved() bool {
+	if p.file == nil || p.path == "" {
+		return false
+	}
+	pi, err := os.Stat(p.path)
+	if err != nil {
+		return true
+	}
+	fi, err := p.file.Stat()
+	if err != nil {
+		return false
+	}
+	return !os.SameFile(pi, fi)
 }
 
 // SetPendingByte overrides the PENDING_BYTE lock-byte offset for this

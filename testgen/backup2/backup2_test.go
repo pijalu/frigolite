@@ -9,8 +9,6 @@ import (
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
-"strconv"
-"strings"
 "testing"
 )
 
@@ -170,7 +168,7 @@ func Test_backup2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--------", "0"), 8, 32); _perr == nil { _ = os.Chmod("bu2.db", os.FileMode(perm)) }
+			tclFileChmod("bu2.db", "r--------")
 		}
 		{
 			var _catchErr error
@@ -202,7 +200,7 @@ func Test_backup2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-------", "0"), 8, 32); _perr == nil { _ = os.Chmod("bu2.db", os.FileMode(perm)) }
+			tclFileChmod("bu2.db", "rw-------")
 		}
 		_ = os.WriteFile("bu2.db", nil, 0644)
 		out = "bu2.db"

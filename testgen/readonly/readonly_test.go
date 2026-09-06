@@ -75,7 +75,7 @@ func Test_readonly(t *testing.T) {
 		}
 	}
 	db.Close()
-	if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+	tclFileChmod("test.db", "r--r--r--")
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }

@@ -196,6 +196,14 @@ func (p *Pager) openRollbackJournalLocked() error {
 	case "memory", "off", "wal":
 		return nil
 	}
+	// Verify the database still has the same name as when it was opened
+	// (pager.c databaseIsUnmoved at sqlite3PagerOpenJournal): a database
+	// file renamed or deleted out from under the pager makes it read-only
+	// for journaling modes (SQLITE_READONLY_DBMOVED — pager4.test 1.3/1.4;
+	// journal_mode OFF/MEMORY skip the journal and stay writable, 1.7/1.8).
+	if p.databaseFileMoved() {
+		return fmt.Errorf("attempt to write a readonly database")
+	}
 	jpath := journalPath(p.path)
 	if jpath == "" {
 		return nil

@@ -1166,7 +1166,7 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
-							if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--------", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db-journal", os.FileMode(perm)) }
+							tclFileChmod("test.db-journal", "r--------")
 						}
 						{
 							var _catchErr error
@@ -1187,7 +1187,7 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
-							if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-rw-rw-", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db-journal", os.FileMode(perm)) }
+							tclFileChmod("test.db-journal", "rw-rw-rw-")
 						}
 						{
 							var _catchErr error
@@ -1201,7 +1201,7 @@ func Test_pager1(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
-							if perm, _perr := strconv.ParseInt(strings.TrimPrefix("r--------", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+							tclFileChmod("test.db", "r--------")
 						}
 						{
 							var _catchErr error
@@ -1229,7 +1229,7 @@ func Test_pager1(t *testing.T) {
 							_ = msg // suppress unused warning
 							_ = _catchErrMsg // suppress unused warning
 							var _catchErr error
-							if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-rw-rw-", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+							tclFileChmod("test.db", "rw-rw-rw-")
 							if _catchErr != nil {
 								msg = "1"
 								_catchErrMsg = _catchErr.Error()
@@ -2898,12 +2898,12 @@ func Test_pager1(t *testing.T) {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('one');\n      INSERT INTO t1 VALUES('two');\n      BEGIN;\n        INSERT INTO t1 VALUES('three');\n        INSERT INTO t1 VALUES('four');\n    ")
 										}
 										os.Remove("bak-journal")
-										// file rename test.db-journal bak-journal
+										_ = os.Rename("test.db-journal", "bak-journal")
 										_res = db.Exec("COMMIT")
 										_ = _res // catchsql
 									}
 									{ // do_test "pager1-33.2"
-										// file rename bak-journal test.db-journal
+										_ = os.Rename("bak-journal", "test.db-journal")
 										r = db.Query(" SELECT * FROM t1 ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")

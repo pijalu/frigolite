@@ -394,6 +394,14 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 			return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
 		}
 	}
+	// A pager opened read-only (permission fallback) rejects DDL writes the
+	// same way (sqlite3PagerBegin SQLITE_READONLY); PRAGMA statements stay
+	// exempt so journal_mode can still be observed.
+	if e.mainReadOnly() {
+		if _, isPragma := stmt.(*sql.PragmaStmt); !isPragma {
+			return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
+		}
+	}
 	// Invalidate table cache on any DDL operation to ensure consistency
 	e.invalidateTableCache()
 

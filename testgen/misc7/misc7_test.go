@@ -332,7 +332,7 @@ func Test_misc7(t *testing.T) {
 	{ // "misc7-16.X" — skipped: do_ioerr_test fault-injection harness setup N-A
 	}
 	if tcl_platform_platform != "windows" {
-		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("rw-r--r--", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+		tclFileChmod("test.db", "rw-r--r--")
 		if tclBool("file attributes test.db -permissions" + "==0644") {
 			{ // "misc7-17.1" — skipped: file-permission manipulation to force readonly DB open N-A
 			}

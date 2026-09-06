@@ -204,10 +204,20 @@ func (e *Engine) registerWriteUnlessReadOnly(stmt sql.Stmt) {
 	e.registerWriteIfInTx()
 }
 
+// mainReadOnly reports whether the main database pager opened read-only
+// (permission fallback, os_unix.c unixOpen EACCES). Writes then fail with
+// SQLITE_READONLY regardless of journal mode.
+func (e *Engine) mainReadOnly() bool {
+	return e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.ReadOnly()
+}
+
 // execDMLWritable runs a DML statement, rejecting writes when queryOnly is set
 // and scoping WITH (CTE) definitions to the statement.
 func (e *Engine) execDMLWritable(ctes []sql.CTEDef, fn func() *Result) *Result {
 	if e.settings.queryOnly {
+		return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
+	}
+	if e.mainReadOnly() {
 		return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
 	}
 	return e.withDMLCTEs(ctes, fn)

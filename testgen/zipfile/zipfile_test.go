@@ -1099,7 +1099,7 @@ func Test_zipfile(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
-						os.Remove("-force")
+						_ = os.Remove("subdir")
 					}
 					// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
 					_items0 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")

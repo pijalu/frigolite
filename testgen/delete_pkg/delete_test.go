@@ -627,7 +627,7 @@ func Test_delete(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		if perm, _perr := strconv.ParseInt(strings.TrimPrefix("0444", "0"), 8, 32); _perr == nil { _ = os.Chmod("test.db", os.FileMode(perm)) }
+		tclFileChmod("test.db", "0444")
 	}
 	{
 		var _catchErr error

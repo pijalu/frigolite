@@ -371,7 +371,7 @@ func Test_lock5(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "2.dotfile.5"
-			os.Remove("test.db2.lock")
+			_ = os.Remove("test.db2.lock")
 			r = db2.Query("\n      PRAGMA integrity_check\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA integrity_check\n    ")

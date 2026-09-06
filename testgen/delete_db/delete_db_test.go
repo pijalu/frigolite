@@ -74,11 +74,11 @@ func Test_delete_db(t *testing.T) {
 	db.Close()
 	for _, f := range tclSplitList(tclGlob("test2*")) {
 	_ = f // suppress unused warning
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 	for _, f := range tclSplitList(tclGlob("test3*")) {
 	_ = f // suppress unused warning
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 	db, err = frigolite.Open("test2.database")
 	tclConnRegister("db", db)
@@ -110,11 +110,11 @@ func Test_delete_db(t *testing.T) {
 	db.Close()
 	for _, f := range tclSplitList(tclGlob("test2*")) {
 	_ = f // suppress unused warning
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 	for _, f := range tclSplitList(tclGlob("test3*")) {
 	_ = f // suppress unused warning
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test2.database")
@@ -216,11 +216,11 @@ func Test_delete_db(t *testing.T) {
 	db.Close()
 	for _, f := range tclSplitList(tclGlob("test2*")) {
 	_ = f // suppress unused warning
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 	for _, f := range tclSplitList(tclGlob("test3*")) {
 	_ = f // suppress unused warning
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 	{ // do_test "3.0"

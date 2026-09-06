@@ -134,7 +134,7 @@ func Test_rtree1(t *testing.T) {
 		}
 	}
 	{ // do_test "rtree-1.2.1"
-		os.Remove("-force")
+		_ = os.Remove("test2.db")
 		_res = db.Exec("\n    ATTACH 'test2.db' AS aux;\n    CREATE VIRTUAL TABLE aux.'a\" \"b' USING rtree(ii, x1, x2, y1, y2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test2.db' AS aux;\n    CREATE VIRTUAL TABLE aux.'a\" \"b' USING rtree(ii, x1, x2, y1, y2);\n  ")

@@ -2859,6 +2859,29 @@ func tclAtoi(s string) int64 {
 	return n
 }
 
+// tclFileChmod applies a TCL 'file attributes PATH -permissions MODE' value.
+// MODE is either a numeric octal string ("00644") or TCL's 9-character
+// symbolic form ("r--r--r--"); anything else is ignored (TCL errors, the
+// tests only use these two forms).
+func tclFileChmod(path, mode string) {
+	var perm os.FileMode
+	if n, err := strconv.ParseInt(mode, 8, 32); err == nil && n >= 0 {
+		perm = os.FileMode(n)
+	} else if len(mode) == 9 {
+		var v uint32
+		for i := 0; i < 9; i++ {
+			c := mode[i]
+			if (i%3 == 0 && c == 'r') || (i%3 == 1 && c == 'w') || (i%3 == 2 && c == 'x') {
+				v |= 1 << uint(8-i)
+			}
+		}
+		perm = os.FileMode(v)
+	} else {
+		return
+	}
+	_ = os.Chmod(path, perm)
+}
+
 // tclReadFileWithLen returns the first n bytes from the seek position
 // of the file channel held in path. When no seek has been recorded, or
 // the seek is at or past EOF, the bytes from offset 0 are returned.

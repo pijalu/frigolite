@@ -222,9 +222,22 @@ func (tp *transpiler) processFileCmd(args []tcl.RawWord) {
 			tp.emitLine("os.MkdirAll(%s, 0755)", pathExpr)
 		}
 	case "delete":
-		if len(rest) > 0 {
-			pathExpr := tp.goStringLiteral(rest[0])
-			tp.emitLine("os.Remove(%s)", pathExpr)
+		// `file delete -force PATH` (-force = ignore missing-file errors);
+		// the flag is consumed, the PATH is what gets removed. Pager4.test
+		// 1.5 deletes the db file out from under an open connection.
+		paths := rest
+		if len(paths) > 0 && paths[0].Text == "-force" {
+			paths = paths[1:]
+		}
+		if len(paths) > 0 {
+			pathExpr := tp.goStringLiteral(paths[0])
+			tp.emitLine("_ = os.Remove(%s)", pathExpr)
+		}
+	case "rename":
+		// `file rename OLD NEW` — os.Rename. Pager4.test renames the db file
+		// out from under an open connection (SQLITE_READONLY_DBMOVED).
+		if len(rest) >= 2 {
+			tp.emitLine("_ = os.Rename(%s, %s)", tp.goStringLiteral(rest[0]), tp.goStringLiteral(rest[1]))
 		}
 	case "exists":
 		if len(rest) > 0 {
@@ -276,9 +289,10 @@ func (tp *transpiler) processFileCmd(args []tcl.RawWord) {
 								// perm string set via `set res "/[regsub {^00} $perms {0.}]/"`.
 								tp.emitLine("if st, _err := os.Stat(%s); _err == nil { _perm := fmt.Sprintf(\"0%%04o\", st.Mode().Perm()); _r = \"/\" + strings.Replace(_perm, \"00\", \"0.\", 1) + \"/\" } else { _r = \"\" }", pathExpr)
 				} else {
-					// Setter: chmod to the requested mode.
+					// Setter: chmod to the requested mode (octal "00644" or
+					// TCL symbolic "r--r--r--"; readonly.test 1.1).
 					modeExpr := tp.goStringLiteral(rest[2])
-					tp.emitLine("if perm, _perr := strconv.ParseInt(strings.TrimPrefix(%s, \"0\"), 8, 32); _perr == nil { _ = os.Chmod(%s, os.FileMode(perm)) }", modeExpr, pathExpr)
+					tp.emitLine("tclFileChmod(%s, %s)", pathExpr, modeExpr)
 				}
 			} else {
 				tp.emitLine("// file attributes %s -%s (unsupported attribute)", pathExpr, attrName)
