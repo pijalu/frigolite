@@ -124,11 +124,9 @@ func Test_walsetlk_recover(t *testing.T) {
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil { _catchErr = _res.Error }
 		if _catchErr != nil {
-			msg = "1"
-			_catchErrMsg = _catchErr.Error()
+			msg = _catchErr.Error()
 		} else {
-			msg = "0"
-			_catchErrMsg = ""
+			msg = ""
 		}
 	}
 	tm = "0"

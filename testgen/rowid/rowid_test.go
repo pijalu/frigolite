@@ -199,7 +199,10 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.8"
 		v = tclExecSQL(db, "SELECT x, oid FROM t1 order by x")
 		_ = v // suppress unused warning
-		v2 = "1 " + x2rowid_1 + " 3 " + x2rowid_3
+		_list := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
+		_ = _list
+		_r = _list
+		v2 = _r
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
 		got := v == v2
@@ -211,7 +214,10 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.9"
 		v = tclExecSQL(db, "SELECT x, RowID FROM t1 order by x")
 		_ = v // suppress unused warning
-		v2 = "1 " + x2rowid_1 + " 3 " + x2rowid_3
+		_list := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
+		_ = _list
+		_r = _list
+		v2 = _r
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
 		got := v == v2
@@ -223,7 +229,10 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.10"
 		v = tclExecSQL(db, "SELECT x, _rowid_ FROM t1 order by x")
 		_ = v // suppress unused warning
-		v2 = "1 " + x2rowid_1 + " 3 " + x2rowid_3
+		_list := tclList([]string{"1", x2rowid_1, "3", x2rowid_3})
+		_ = _list
+		_r = _list
+		v2 = _r
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
 		got := v == v2

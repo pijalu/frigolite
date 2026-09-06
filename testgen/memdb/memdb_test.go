@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -120,8 +119,7 @@ func Test_memdb(t *testing.T) {
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
-		vtab.TclVarSet("sig", "", "signature one")
-		sig = "signature one" // TCL namespace variable
+		sig = tclMemdbSignature(db)
 		_ = sig // suppress unused warning
 		cnt = tclLIndex(sig, "0")
 		_ = cnt // suppress unused warning
@@ -141,7 +139,7 @@ func Test_memdb(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			sig2 = "signature two"
+			sig2 = tclMemdbSignature(db)
 			_ = sig2 // suppress unused warning
 			got := tclListFlatten(sig2)
 			want := tclListFlatten(sig)
@@ -154,9 +152,9 @@ func Test_memdb(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			// signature (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "memdb-1." + i + ".2-" + cnt)
+			_r = tclMemdbSignature(db)
+			if _r != sig {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "memdb-1." + i + ".2-" + cnt)
 			}
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {

@@ -245,7 +245,7 @@ func Test_rtreedoc2(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".2"
 				_ = strconv.Itoa(tclLLength(tclLIndex(box_geom, "0"))) // llength result
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), nCoord) {
+				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), nCoord) {
 					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nCoord, _res.Error, "1." + tn + ".2")
 				}
 			}

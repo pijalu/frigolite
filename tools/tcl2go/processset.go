@@ -216,7 +216,7 @@ func (tp *transpiler) processSetPlain(args []tcl.RawWord) {
 	// off !Braced, so also accept any single word whose trimmed text starts
 	// with "[" as a command substitution.
 	if len(rest) == 1 && (isBracketWord(rest[0]) || strings.HasPrefix(strings.TrimSpace(rest[0].Text), "[")) {
-		cmdText := strings.TrimSuffix(strings.TrimPrefix(rest[0].Text, "["), "]")
+		cmdText := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(rest[0].Text), "["), "]"))
 		// Dynamic-key array assignment (`set ARR($key) [cmd]`): store into
 		// the XxxMap Go map instead of a scalar variable.
 		if base, key, isDyn := tp.dynamicArraySet(args[0].Text); isDyn {

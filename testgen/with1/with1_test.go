@@ -522,7 +522,10 @@ func Test_with1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;\n")
 		}
 	}
-	I = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
+	_list := tclList([]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
+	_ = _list
+	_r = _list
+	I = _r
 	_ = I // suppress unused warning
 	// proc definition (not transpiled)
 	// limit_test 9.1 20 0 (unsupported command, not transpiled)

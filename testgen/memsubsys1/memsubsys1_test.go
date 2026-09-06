@@ -106,7 +106,7 @@ func Test_memsubsys1(t *testing.T) {
 	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
 	// build_test_db memsubsys1-1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-1.3"
-		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		pg_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "2")
 		_ = pg_used // suppress unused warning
 		got := tclListFlatten(pg_used)
 		want := tclListFlatten("0")
@@ -115,7 +115,7 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-1.4"
-		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		s_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_SCRATCH_USED"), "2")
 		_ = s_used // suppress unused warning
 		got := tclListFlatten(s_used)
 		want := tclListFlatten("0")
@@ -123,7 +123,7 @@ func Test_memsubsys1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "memsubsys1-1.4")
 		}
 	}
-	max_pagecache = tclLIndex(tclStatus(db, "0"), "2")
+	max_pagecache = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_OVERFLOW"), "2")
 	_ = max_pagecache // suppress unused warning
 	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -143,7 +143,7 @@ func Test_memsubsys1(t *testing.T) {
 	MEMORY_MANAGEMENT = sqlite_options_memorymanage
 	_ = MEMORY_MANAGEMENT // suppress unused warning
 	{ // do_test "memsubsys1-2.4"
-		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		pg_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "2")
 		_ = pg_used // suppress unused warning
 		got := tclListFlatten(pg_used)
 		want := tclListFlatten("20")
@@ -152,7 +152,7 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-2.5"
-		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		s_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_SCRATCH_USED"), "2")
 		_ = s_used // suppress unused warning
 		got := tclListFlatten(s_used)
 		want := tclListFlatten("0")
@@ -176,7 +176,7 @@ func Test_memsubsys1(t *testing.T) {
 	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
 	// build_test_db memsubsys1-3.1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-3.1.3"
-		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		pg_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "2")
 		_ = pg_used // suppress unused warning
 		got := tclListFlatten(pg_used)
 		want := tclListFlatten("0")
@@ -185,12 +185,12 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-3.1.4"
-		overflow = tclLIndex(tclStatus(db, "0"), "2")
+		overflow = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_OVERFLOW"), "2")
 		_ = overflow // suppress unused warning
 		// expr $overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05 (not evaluated)
 	}
 	{ // do_test "memsubsys1-3.1.5"
-		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		s_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_SCRATCH_USED"), "2")
 		_ = s_used // suppress unused warning
 		got := tclListFlatten(s_used)
 		want := tclListFlatten("0")
@@ -225,7 +225,7 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-3.2.4"
-		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		pg_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "2")
 		_ = pg_used // suppress unused warning
 		got := tclListFlatten(pg_used)
 		want := tclListFlatten("20")
@@ -234,7 +234,7 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-3.2.5"
-		s_used = tclLIndex(tclStatus(db, "0"), "2")
+		s_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_SCRATCH_USED"), "2")
 		_ = s_used // suppress unused warning
 		got := tclListFlatten(s_used)
 		want := tclListFlatten("0")
@@ -257,12 +257,12 @@ func Test_memsubsys1(t *testing.T) {
 	// sqlite3_status SQLITE_STATUS_PARSER_STACK 1 (unsupported command, not transpiled)
 	// build_test_db memsubsys1-4 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-4.3"
-		pg_used = tclLIndex(tclStatus(db, "0"), "2")
+		pg_used = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "2")
 		_ = pg_used // suppress unused warning
 		// expr $pg_used>=45 && $pg_used<=50 (not evaluated)
 	}
 	{ // do_test "memsubsys1-4.4"
-		pg_ovfl = tclLIndex(tclStatus(db, "0"), "2")
+		pg_ovfl = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_OVERFLOW"), "2")
 		_ = pg_ovfl // suppress unused warning
 		got := tclListFlatten(pg_ovfl)
 		want := tclListFlatten("0")
@@ -271,7 +271,7 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-4.5"
-		maxreq = tclLIndex(tclStatus(db, "0"), "2")
+		maxreq = tclLIndex(tclStatus(db, "SQLITE_STATUS_MALLOC_SIZE"), "2")
 		_ = maxreq // suppress unused warning
 		// expr $maxreq<9000 (not evaluated)
 	}

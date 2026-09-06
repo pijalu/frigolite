@@ -2793,8 +2793,12 @@ func Test_e_fkey(t *testing.T) {
 									{ // do_test "e_fkey-63.1.4"
 										// test_on_delete_recursion 6 (unsupported command, not transpiled)
 									}
-									{ // do_test "e_fkey-63.1.5"
-										db.SetTriggerDepthLimit(toInt(1000000))
+									{ // do_test "e_fkey-63.1.5" (sqlite3_limit SQLITE_LIMIT_TRIGGER_DEPTH set-prior)
+										prior := db.Limit("SQLITE_LIMIT_TRIGGER_DEPTH")
+										db.SetLimit("SQLITE_LIMIT_TRIGGER_DEPTH", toInt("1000000"))
+										if strconv.Itoa(prior) != "5" {
+											t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", prior, "5", "e_fkey-63.1.5")
+										}
 									}
 									{ // do_test "e_fkey-63.2.1"
 										// test_on_update_recursion $SQLITE_MAX_TRIGGER_DEPTH (unsupported command, not transpiled)
@@ -2809,8 +2813,12 @@ func Test_e_fkey(t *testing.T) {
 									{ // do_test "e_fkey-63.2.4"
 										// test_on_update_recursion 6 (unsupported command, not transpiled)
 									}
-									{ // do_test "e_fkey-63.2.5"
-										db.SetTriggerDepthLimit(toInt(1000000))
+									{ // do_test "e_fkey-63.2.5" (sqlite3_limit SQLITE_LIMIT_TRIGGER_DEPTH set-prior)
+										prior := db.Limit("SQLITE_LIMIT_TRIGGER_DEPTH")
+										db.SetLimit("SQLITE_LIMIT_TRIGGER_DEPTH", toInt("1000000"))
+										if strconv.Itoa(prior) != "5" {
+											t.Errorf("limit mismatch\n  got:  [%d]\n  want: [%s]\n  body: do_test %s", prior, "5", "e_fkey-63.2.5")
+										}
 									}
 								}
 								for _, recursive_triggers_setting := range tclSplitList("0 1 ON OFF") {

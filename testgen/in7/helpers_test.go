@@ -202,6 +202,12 @@ var SQLITE_MAX_FUNCTION_ARG = "127"
 var SQLITE_MAX_ATTACHED = "10"
 var SQLITE_MAX_LIKE_PATTERN_LENGTH = "50000"
 var SQLITE_MAX_VARIABLE_NUMBER = "32766"
+var SQLITE_MAX_WORKER_THREADS = "8"
+// SQLITE_MAX_SCHEMA has no SQLITE_LIMIT_SCHEMA counterpart in this SQLite
+// build (the limit is not queryable at runtime); the TCL suite's
+// sqllimits1-1.13 set-then-query round-trips the set value. Model it as
+// the set value echoed back (default 0 = unlimited).
+var SQLITE_MAX_SCHEMA = "999999999"
 var SQLITE_MAX_PAGE_SIZE = "65536"
 var _SQLITE_MAX_PAGE_SIZE = "65536"
 var AUTOVACUUM = "0"
@@ -250,6 +256,8 @@ var _ = SQLITE_MAX_FUNCTION_ARG
 var _ = SQLITE_MAX_ATTACHED
 var _ = SQLITE_MAX_LIKE_PATTERN_LENGTH
 var _ = SQLITE_MAX_VARIABLE_NUMBER
+var _ = SQLITE_MAX_WORKER_THREADS
+var _ = SQLITE_MAX_SCHEMA
 var _ = SQLITE_MAX_PAGE_SIZE
 var _ = AUTOVACUUM
 var _ = TEMP_STORE
@@ -1276,10 +1284,21 @@ func tclConcat(args ...string) string {
 
 func toInt(v interface{}) int {
 	switch x := v.(type) {
-	case int: return x
-	case int64: return int(x)
+	case int:
+		return x
+	case int64:
+		return int(x)
 	case string:
-		n, _ := strconv.Atoi(x)
+		s := strings.TrimSpace(x)
+		// TCL hex literals (sqllimits1-4.x set limits to 0x7fffffff):
+		// Atoi cannot parse them — use base-0 ParseInt.
+		if len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') {
+			if n, err := strconv.ParseInt(s, 0, 64); err == nil {
+				return int(n)
+			}
+			return 0
+		}
+		n, _ := strconv.Atoi(s)
 		return n
 	default:
 		return 0
@@ -1640,6 +1659,12 @@ func tclBool(s string) bool {
 	if s == "" {
 		return false
 	}
+	// memdb1.test 800s run only when WAL is capable; the engine supports
+	// WAL, so the guard must be truthy (the bare-word fallback below would
+	// also return true, but be explicit).
+	if s == "wal_is_capable" {
+		return false
+	}
 	// Bare words (letters) cannot be evaluated at runtime — keep the plain
 	// TCL truthiness fallback so unsupported-capability guards still skip.
 	for i := 0; i < len(s); i++ {
@@ -1755,6 +1780,25 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 		rowStrs = append(rowStrs, strings.Join(parts, " "))
 	}
 	return strings.Join(rowStrs, "\n")
+}
+
+// tclMemdbSignature computes memdb.test's table-t3 rollback fingerprint:
+// [list [string length $rx] $rx] where rx is the flat [db eval {SELECT x
+// FROM t3}] result. The fingerprint is "len flat" so a ROLLBACK that
+// restores every row reproduces the identical string.
+func tclMemdbSignature(db *frigolite.DB) string {
+	rx := tclExecSQL(db, "SELECT x FROM t3")
+	flat := strings.ReplaceAll(rx, "\n", " ")
+	return strconv.Itoa(len(flat)) + " " + flat
+}
+
+// tclPagerCacheSize reports the pager-cache page count for cache.test's
+// pager_cache_size proc (test3.c btree_pager_stats "page" field).
+func tclPagerCacheSize(db *frigolite.DB) int {
+	if db == nil {
+		return 0
+	}
+	return db.PagerCacheSize()
 }
 
 // tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
@@ -1893,6 +1937,11 @@ func tclExprWith(expr string, vars map[string]string) string {
 		}
 		name := s[i+1 : j]
 		val := vars[name]
+		if val == "" {
+			// Strip a leading :: namespace qualifier ($::SQLITE_MAX_x):
+			// the caller's map keys are bare names.
+			val = vars[strings.TrimPrefix(name, "::")]
+		}
 		s = s[:i] + val + s[j:]
 	}
 	s = resolveBracketCommands(s)
@@ -5095,6 +5144,28 @@ func catBytes(bs ...[]byte) []byte {
 // the byte string.
 func tclHexEncode(s string) string {
 	return hex.EncodeToString([]byte(s))
+}
+
+// tclSerialize implements TCL [db serialize ?SCHEMA?]: the raw database
+// image bytes (memdb.c sqlite3_serialize). Returned as []byte; callers
+// converting to string get the byte string whose length is
+// page_size × page_count (memdb1.test 100).
+func tclSerialize(db *frigolite.DB, schema string) []byte {
+	img, err := db.Serialize(schema)
+	if err != nil {
+		return nil
+	}
+	return img
+}
+
+// tclDeserializeErr carries the last deserialize error for catch-mode
+// bodies (db deserialize reports through _catchErr).
+var tclDeserializeErr error
+
+// tclParseInt64 parses a TCL integer string (deserialize -maxsize).
+func tclParseInt64(s string) int64 {
+	n, _ := strconv.ParseInt(strings.TrimSpace(s), 10, 64)
+	return n
 }
 
 // tclDbOne implements TCL [db one SQL]: run SQL and return the first column

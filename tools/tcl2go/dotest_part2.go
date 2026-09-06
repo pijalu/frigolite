@@ -147,7 +147,7 @@ func (tp *transpiler) emitExprCompareCheck(nameExpr, expectedExpr string, bodyCm
 // emitErrorResultCheck emits the default error-message comparison for a
 // multi-command body whose expected value is a bare Go identifier.
 func (tp *transpiler) emitErrorResultCheck(nameExpr, expectedExpr string) {
-	tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
+	tp.emitLine("if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
 	tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %%s\", %s, _res.Error, %s)", expectedExpr, nameExpr)
 	tp.emitLine("}")
 }

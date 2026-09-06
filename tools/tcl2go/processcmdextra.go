@@ -332,6 +332,26 @@ func limitExprValue(exprBody string) string {
 	return fmt.Sprintf("tclExpr(%q)", exprBody)
 }
 
+// limitValueExpr resolves a sqlite3_limit do_test set argument to a Go int
+// expression: integers/$vars pass through, [expr ...] resolves via
+// limitExprValue (SQLITE_MAX_* constants substituted).
+func (tp *transpiler) limitValueExpr(setVal string) string {
+	setVal = strings.TrimSpace(setVal)
+	if strings.HasPrefix(setVal, "[expr ") {
+		return limitExprValue(strings.TrimSuffix(strings.TrimPrefix(setVal, "[expr "), "]"))
+	}
+	if isIntegerLiteral(setVal) {
+		return strconv.Quote(setVal)
+	}
+	// TCL hex literals (sqllimits1-4.x set limits to 0x7fffffff):
+	// not decimal literals — pass through as Go hex ints (toInt's
+	// string case only handles decimal via Atoi).
+	if len(setVal) > 2 && setVal[0] == '0' && (setVal[1] == 'x' || setVal[1] == 'X') {
+		return setVal
+	}
+	return replaceVarRefsRaw(setVal)
+}
+
 // emitTriggerDepthLimit emits db.SetTriggerDepthLimit for a sqlite3_limit
 // SQLITE_LIMIT_TRIGGER_DEPTH argument, resolving plain integers, declared TCL
 // variables, and [expr ...] constants at transpile time.

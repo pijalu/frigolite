@@ -305,6 +305,15 @@ func (db *DB) Status(name string) (current, highwater int64) {
 	return 0, 0
 }
 
+// PagerCacheSize reports the number of pages currently held in the pager
+// cache (test3.c btree_pager_stats "page" field; cache.test pager_cache_size).
+func (db *DB) PagerCacheSize() int {
+	if db != nil && db.pager != nil {
+		return int(db.pager.NumPages())
+	}
+	return 0
+}
+
 // StmtStatus reports a prepared-statement status counter (sqlite3_stmt_status).
 // name is a SQLITE_STMTSTATUS_* name ("SQLITE_STMTSTATUS_VM_STEP", ...).
 func (db *DB) StmtStatus(name string) int64 {

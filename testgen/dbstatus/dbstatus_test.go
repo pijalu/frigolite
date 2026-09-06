@@ -179,7 +179,7 @@ func Test_dbstatus(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				nAlloc1 = tclLIndex(tclStatus(db, "0"), "1")
+				nAlloc1 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 				_ = nAlloc1 // suppress unused warning
 				// incr nAlloc1 lookaside db
 				{
@@ -208,7 +208,7 @@ func Test_dbstatus(t *testing.T) {
 					}
 				}
 				_res = db.Exec("PRAGMA foreign_keys = ON")
-				nAlloc2 = tclLIndex(tclStatus(db, "0"), "1")
+				nAlloc2 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 				_ = nAlloc2 // suppress unused warning
 				// incr nAlloc2 lookaside db
 				{
@@ -223,7 +223,7 @@ func Test_dbstatus(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				nAlloc3 = tclLIndex(tclStatus(db, "0"), "1")
+				nAlloc3 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 				_ = nAlloc3 // suppress unused warning
 				// incr nAlloc3 lookaside db
 				{
@@ -252,7 +252,7 @@ func Test_dbstatus(t *testing.T) {
 					}
 				}
 				_res = db.Exec("PRAGMA foreign_keys = ON")
-				nAlloc4 = tclLIndex(tclStatus(db, "0"), "1")
+				nAlloc4 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 				_ = nAlloc4 // suppress unused warning
 				// incr nAlloc4 lookaside db
 				{
@@ -272,7 +272,7 @@ func Test_dbstatus(t *testing.T) {
 				} else {
 					{ // do_test "dbstatus-2." + tn + ".a"
 						// expr $nSchema1-$nSchema2 (not evaluated)
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), nFree) {
+						if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), nFree) {
 							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nFree, _res.Error, "dbstatus-2." + tn + ".a")
 						}
 					}
@@ -320,7 +320,7 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc1 = tclLIndex(tclStatus(db, "0"), "1")
+					nAlloc1 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 					_ = nAlloc1 // suppress unused warning
 					// incr nAlloc1 lookaside db
 					{
@@ -335,7 +335,7 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc2 = tclLIndex(tclStatus(db, "0"), "1")
+					nAlloc2 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 					_ = nAlloc2 // suppress unused warning
 					// incr nAlloc2 lookaside db
 					{
@@ -350,7 +350,7 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc3 = tclLIndex(tclStatus(db, "0"), "1")
+					nAlloc3 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 					_ = nAlloc3 // suppress unused warning
 					// incr nAlloc3 lookaside db
 					{
@@ -365,7 +365,7 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc4 = tclLIndex(tclStatus(db, "0"), "1")
+					nAlloc4 = tclLIndex(tclStatus(db, "SQLITE_STATUS_MEMORY_USED"), "1")
 					_ = nAlloc4 // suppress unused warning
 					// incr nAlloc4 lookaside db
 					{

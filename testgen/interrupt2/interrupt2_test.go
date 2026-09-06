@@ -5,9 +5,11 @@
 package interrupt2
 
 import (
+"errors"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -172,7 +174,66 @@ func Test_interrupt2(t *testing.T) {
 		vtab.TclVarSet("i", "", "10")
 		i = "10"
 		_ = i // suppress unused warning
-		res = "0" + " " + msg
+		_rc := "0"
+		{
+			var _catchErr error
+			vtab.TclVarSet("i", "", "10")
+			i = "10"
+			_ = i // suppress unused warning
+			_dbevalRows0 := db.Query("SELECT * FROM z1")
+			var _dbevalRb1 bool
+			var _dbevalErr2 error
+			var _dbevalInt3 bool
+			db.BeginActiveStatement()
+			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+					switch _dbevalRows0.Columns[_ci] {
+						case "i":
+							i = tclStr(_dbevalRows0.Rows[_ri][_ci])
+						case "msg":
+							msg = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					}
+				}
+				// incr i -1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + -1)
+					}
+				}
+				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 0 }() {
+					vtab.TclVarSet("trigger_interrupt", "", "10")
+					trigger_interrupt = "10" // TCL namespace variable
+					_ = trigger_interrupt // suppress unused warning
+	_ = cres // suppress unused warning
+	_ = msg // suppress unused warning
+					{ // catch block
+						var _catchErr error
+						// sqlite3_wal_checkpoint_v2 db truncate (unsupported command, not transpiled)
+						if _catchErr != nil {
+							cres = "1"
+							msg = _catchErr.Error()
+						} else {
+							cres = "0"
+							msg = ""
+						}
+					}
+					cres = tclListAppend(cres, msg)
+				}
+				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
+			}
+			db.EndActiveStatement()
+			if _dbevalErr2 != nil {
+				_catchErr = _dbevalErr2
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+		res = _r
 		_ = res // suppress unused warning
 		_list := tclList([]string{cres, res})
 		_ = _list

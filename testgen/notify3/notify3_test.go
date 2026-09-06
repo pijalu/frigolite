@@ -146,11 +146,9 @@ func Test_notify3(t *testing.T) {
 			_ = tail // suppress unused warning
 			_ = stmt // prepared statement handle
 			if _catchErr != nil {
-				msg = "1"
-				_catchErrMsg = _catchErr.Error()
+				msg = _catchErr.Error()
 			} else {
-				msg = "0"
-				_catchErrMsg = ""
+				msg = ""
 			}
 		}
 		got := tclListFlattenCollapse(msg)

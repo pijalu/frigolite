@@ -75,7 +75,7 @@ func Test_pcache2(t *testing.T) {
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
-		_r = tclLIndex(tclStatus(db, "0"), "1") // lindex result
+		_r = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "1") // lindex result
 		if _r != "2" {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "2", "pcache2-1.2")
 		}
@@ -87,7 +87,7 @@ func Test_pcache2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		_res = db2.Exec("PRAGMA cache_size=50; SELECT 1 FROM sqlite_master;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		_r = tclLIndex(tclStatus(db, "0"), "1") // lindex result
+		_r = tclLIndex(tclStatus(db, "SQLITE_STATUS_PAGECACHE_USED"), "1") // lindex result
 		if _r != "4" {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "4", "pcache2-1.3")
 		}

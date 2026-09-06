@@ -471,7 +471,10 @@ func Test_capi3c(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	code2english = "SQLITE_OK         {not an error}  SQLITE_ERROR      {SQL logic error}  SQLITE_PERM       {access permission denied}  SQLITE_ABORT      {query aborted}  SQLITE_BUSY       {database is locked}  SQLITE_LOCKED     {database table is locked}  SQLITE_NOMEM      {out of memory}  SQLITE_READONLY   {attempt to write a readonly database}  SQLITE_INTERRUPT  {interrupted}  SQLITE_IOERR      {disk I/O error}  SQLITE_CORRUPT    {database disk image is malformed}  SQLITE_FULL       {database or disk is full}  SQLITE_CANTOPEN   {unable to open database file}  SQLITE_EMPTY      {unknown error}  SQLITE_SCHEMA     {database schema has changed}  SQLITE_CONSTRAINT {constraint failed}  SQLITE_MISMATCH   {datatype mismatch}  SQLITE_MISUSE     {bad parameter or other API misuse}  SQLITE_AUTH       {authorization denied}  SQLITE_RANGE      {column index out of range}  SQLITE_NOTADB     {file is not a database}  unknownerror      {unknown error}"
+	_list := tclList([]string{"SQLITE_OK", "not an error", "SQLITE_ERROR", "SQL logic error", "SQLITE_PERM", "access permission denied", "SQLITE_ABORT", "query aborted", "SQLITE_BUSY", "database is locked", "SQLITE_LOCKED", "database table is locked", "SQLITE_NOMEM", "out of memory", "SQLITE_READONLY", "attempt to write a readonly database", "SQLITE_INTERRUPT", "interrupted", "SQLITE_IOERR", "disk I/O error", "SQLITE_CORRUPT", "database disk image is malformed", "SQLITE_FULL", "database or disk is full", "SQLITE_CANTOPEN", "unable to open database file", "SQLITE_EMPTY", "unknown error", "SQLITE_SCHEMA", "database schema has changed", "SQLITE_CONSTRAINT", "constraint failed", "SQLITE_MISMATCH", "datatype mismatch", "SQLITE_MISUSE", "bad parameter or other API misuse", "SQLITE_AUTH", "authorization denied", "SQLITE_RANGE", "column index out of range", "SQLITE_NOTADB", "file is not a database", "unknownerror", "unknown error", "\\"})
+	_ = _list
+	_r = _list
+	code2english = _r
 	_ = code2english // suppress unused warning
 	vtab.TclVarSet("test_number", "", "1")
 	test_number = "1"

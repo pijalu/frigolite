@@ -203,7 +203,10 @@ func Test_fts3ab(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
-		vset = tclWordset(i) + " " + tclWordset(tclExprWith("$i+1", map[string]string{"i": i})) + " " + tclWordset(tclExprWith("~$i", map[string]string{"i": i}))
+		_list := tclList([]string{tclWordset(i), tclWordset(tclExprWith("$i+1", map[string]string{"i": i})), tclWordset(tclExprWith("~$i", map[string]string{"i": i}))})
+		_ = _list
+		_r = _list
+		vset = _r
 		_ = vset // suppress unused warning
 		_res = db.Exec("INSERT INTO t4(norm,plusone,invert) VALUES(" + strings.Join(tclSplitList(vset), ",") + ");")
 		// incr i 1

@@ -1413,7 +1413,39 @@ func Test_vtab1(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);\n  ")
 				}
-				res2 = "0" + " " + msg
+				_rc := "0"
+				{
+					var _catchErr error
+					_dbevalRows6 := db.Query("\n      SELECT value FROM t2 UNION ALL \n      SELECT value FROM t1 WHERE value<10\n    ")
+					var _dbevalRb7 bool
+					var _dbevalErr8 error
+					var _dbevalInt9 bool
+					db.BeginActiveStatement()
+					for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
+						for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
+							switch _dbevalRows6.Columns[_ci] {
+								case "value":
+									value = tclStr(_dbevalRows6.Rows[_ri][_ci])
+							}
+						}
+						if func() bool { value_n, _value_e := strconv.Atoi(value); if _value_e != nil { return false }; return value_n == 2 }() {
+							_res = db.Exec(" DROP TABLE t1 ")
+							res1 = tclCatchsqlString(_res)
+						}
+						if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
+						if _dbevalInt9 { _dbevalErr8 = errors.New("interrupted"); db.ClearInterrupt() }
+					}
+					db.EndActiveStatement()
+					if _dbevalErr8 != nil {
+						_catchErr = _dbevalErr8
+					}
+					if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+					if _catchErr != nil { _rc = "1" }
+				}
+				_list := tclList([]string{_rc, msg})
+				_ = _list
+				_r = _list
+				res2 = _r
 				_ = res2 // suppress unused warning
 				_list := tclList([]string{res1, res2})
 				_ = _list

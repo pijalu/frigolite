@@ -259,7 +259,10 @@ func Test_cost(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ANALYZE;\n    CREATE INDEX i2 ON t1(a,b,c,d,e,f,g,h,i,j);\n  ")
 		}
 	}
-	L = "a=? b=? c=? d=? e=? f=? g=? h=? i=? j=?"
+	_list := tclList([]string{"a=?", "b=?", "c=?", "d=?", "e=?", "f=?", "g=?", "h=?", "i=?", "j=?"})
+	_ = _list
+	_r = _list
+	L = _r
 	_ = L // suppress unused warning
 	// foreach {tn nTerm nRow} "1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5"
 	_items0 := tclSplitList("1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5")

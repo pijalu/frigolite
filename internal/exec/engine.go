@@ -264,6 +264,15 @@ type engineSettings struct {
 	exprDepthLimit         int              // SQLITE_LIMIT_EXPR_DEPTH: max view/subquery nesting depth (default 1000)
 	columnLimit            int              // SQLITE_LIMIT_COLUMN: max columns per table/index/view (default 2000)
 	lengthLimit            int              // SQLITE_LIMIT_LENGTH: max length of a string/blob value (default 1000000000)
+	sqlLengthLimit         int              // SQLITE_LIMIT_SQL_LENGTH: max SQL text bytes (default 1000000000)
+	compoundSelectLimit    int              // SQLITE_LIMIT_COMPOUND_SELECT: max UNION terms (default 500)
+	vdbeOpLimit            int              // SQLITE_LIMIT_VDBE_OP: max VDBE ops (default 250000000)
+	functionArgLimit       int              // SQLITE_LIMIT_FUNCTION_ARG: max function args (default 127)
+	likePatternLimit       int              // SQLITE_LIMIT_LIKE_PATTERN_LENGTH: max LIKE pattern (default 50000)
+	variableNumberLimit    int              // SQLITE_LIMIT_VARIABLE_NUMBER: max bound variables (default 32766)
+	workerThreadsLimit     int              // SQLITE_LIMIT_WORKER_THREADS: max worker threads (default 8)
+	schemaLimit            int              // SQLITE_LIMIT_SCHEMA: max schema objects (default 0 = unlimited)
+	attachedLimit          int              // SQLITE_LIMIT_ATTACHED: max attached DBs (default 10, lowerable at runtime)
 	skipScanEnabled        bool             // PRAGMA skip_scan: toggle skip-scan query optimization (default ON)
 	secureDeletes          map[string]int64 // per-schema PRAGMA secure_delete value (inherits MAIN's value on ATTACH)
 	mainSecureDelete       int64            // MAIN's per-schema PRAGMA secure_delete value (seeded from defaultSecureDelete on Open)
@@ -428,26 +437,93 @@ func (e *Engine) SetTriggerDepthLimit(n int) int {
 // changing it. SQLITE_LIMIT_EXPR_DEPTH / TRIGGER_DEPTH use their dedicated
 // setters. A raise above the compile-time default is capped at the default
 // (SQLite: "it is not possible to raise the column limit above its default
-// compile time value").
 func (e *Engine) SetLimit(name string, n int) int {
 	if n < 0 {
 		return e.Limit(name)
 	}
+	// sqlite3_limit returns the PRIOR limit (R-53341-35419); the call
+	// installs the clamped new value. LENGTH has a floor of
+	// SQLITE_MIN_LENGTH 30 (main.c sqlite3_limit).
+	prior := e.Limit(name)
 	switch strings.ToUpper(name) {
+	case "SQLITE_LIMIT_EXPR_DEPTH":
+		// Raises above the compile-time default are capped (main.c
+		// sqlite3_limit: newLimit > aHardLimit → hard max). sqllimits1-4.4
+		// sets 0x7fffffff and reads back SQLITE_MAX_EXPR_DEPTH=1000.
+		if n > 1000 {
+			n = 1000
+		}
+		e.settings.exprDepthLimit = n
+	case "SQLITE_LIMIT_TRIGGER_DEPTH":
+		if n > 1000 {
+			n = 1000
+		}
+		e.triggers.SetDepthLimit(n)
+	case "SQLITE_LIMIT_ATTACHED":
+		// SQLite: db->aLimit[] is writable both ways; raises cap at the
+		// hard max (main.c: newLimit > aHardLimit → hard max).
+		// sqllimits1-2.8 lowers to 5; 4.8.1 sets 0x7fffffff → reads
+		// back SQLITE_MAX_ATTACHED=10. A LOWERED limit stays lowered
+		// until raised again (test order: 2.8 halves db's limit to 5,
+		// then 4.8 raises it back to 10).
+		if n > execddl.MaxAttachedDatabases {
+			n = execddl.MaxAttachedDatabases
+		}
+		e.settings.attachedLimit = n
 	case "SQLITE_LIMIT_COLUMN":
 		if n > sqliteMaxColumnDefault {
 			n = sqliteMaxColumnDefault
 		}
 		e.settings.columnLimit = n
-		return n
 	case "SQLITE_LIMIT_LENGTH":
 		if n > sqliteMaxLengthDefault {
 			n = sqliteMaxLengthDefault
 		}
+		if n < 30 {
+			n = 30
+		}
 		e.settings.lengthLimit = n
-		return n
+	case "SQLITE_LIMIT_SQL_LENGTH":
+		if n > sqliteMaxLengthDefault {
+			n = sqliteMaxLengthDefault
+		}
+		e.settings.sqlLengthLimit = n
+	case "SQLITE_LIMIT_COMPOUND_SELECT":
+		if n > sqliteMaxCompoundSelectDefault {
+			n = sqliteMaxCompoundSelectDefault
+		}
+		e.settings.compoundSelectLimit = n
+	case "SQLITE_LIMIT_VDBE_OP":
+		if n > sqliteMaxVDBEOpDefault {
+			n = sqliteMaxVDBEOpDefault
+		}
+		e.settings.vdbeOpLimit = n
+	case "SQLITE_LIMIT_FUNCTION_ARG":
+		if n > sqliteMaxFunctionArgDefault {
+			n = sqliteMaxFunctionArgDefault
+		}
+		e.settings.functionArgLimit = n
+	case "SQLITE_LIMIT_LIKE_PATTERN_LENGTH":
+		if n > sqliteMaxLikePatternDefault {
+			n = sqliteMaxLikePatternDefault
+		}
+		e.settings.likePatternLimit = n
+	case "SQLITE_LIMIT_VARIABLE_NUMBER":
+		if n > sqliteMaxVariableNumberDefault {
+			n = sqliteMaxVariableNumberDefault
+		}
+		e.settings.variableNumberLimit = n
+	case "SQLITE_LIMIT_WORKER_THREADS":
+		if n > sqliteMaxWorkerThreadsDefault {
+			n = sqliteMaxWorkerThreadsDefault
+		}
+		e.settings.workerThreadsLimit = n
+	case "SQLITE_LIMIT_SCHEMA":
+		e.settings.schemaLimit = n
+	default:
+		return e.Limit(name)
 	}
-	return e.Limit(name)
+	return prior
 }
 
 // sqliteMaxColumnDefault is the SQLite compile-time default SQLITE_MAX_COLUMN.
@@ -456,6 +532,17 @@ const sqliteMaxColumnDefault = 2000
 // sqliteMaxLengthDefault is the SQLite compile-time default SQLITE_MAX_LENGTH.
 const sqliteMaxLengthDefault = 1000000000
 
+// Additional compile-time limit defaults (src/limit.h) exercised by
+// sqllimits1.test.
+const (
+	sqliteMaxCompoundSelectDefault = 500
+	sqliteMaxVDBEOpDefault         = 250000000
+	sqliteMaxFunctionArgDefault    = 127
+	sqliteMaxLikePatternDefault    = 50000
+	sqliteMaxVariableNumberDefault = 32766
+	sqliteMaxWorkerThreadsDefault  = 8
+)
+
 // Limit returns the current value of a named SQLite compile-time/run-time
 // limit (e.g. "SQLITE_LIMIT_ATTACHED", "SQLITE_LIMIT_EXPR_DEPTH").
 // Unknown limits return 0. Used by the test harness to query the engine's
@@ -463,6 +550,9 @@ const sqliteMaxLengthDefault = 1000000000
 func (e *Engine) Limit(name string) int {
 	switch strings.ToUpper(name) {
 	case "SQLITE_LIMIT_ATTACHED":
+		if e.settings.attachedLimit > 0 {
+			return e.settings.attachedLimit
+		}
 		return execddl.MaxAttachedDatabases
 	case "SQLITE_LIMIT_EXPR_DEPTH":
 		return e.settings.exprDepthLimit
@@ -472,8 +562,27 @@ func (e *Engine) Limit(name string) int {
 		return e.settings.columnLimit
 	case "SQLITE_LIMIT_LENGTH":
 		return e.settings.lengthLimit
+	case "SQLITE_LIMIT_SQL_LENGTH":
+		return e.settings.sqlLengthLimit
+	case "SQLITE_LIMIT_COMPOUND_SELECT":
+		return e.settings.compoundSelectLimit
+	case "SQLITE_LIMIT_VDBE_OP":
+		return e.settings.vdbeOpLimit
+	case "SQLITE_LIMIT_FUNCTION_ARG":
+		return e.settings.functionArgLimit
+	case "SQLITE_LIMIT_LIKE_PATTERN_LENGTH":
+		return e.settings.likePatternLimit
+	case "SQLITE_LIMIT_VARIABLE_NUMBER":
+		return e.settings.variableNumberLimit
+	case "SQLITE_LIMIT_WORKER_THREADS":
+		return e.settings.workerThreadsLimit
+	case "SQLITE_LIMIT_SCHEMA":
+		return e.settings.schemaLimit
 	default:
-		return 0
+		// Out-of-range limit ids (sqllimits1-1.20..1.23
+		// SQLITE_LIMIT_TOOSMALL/TOOBIG): sqlite3_limit returns -1
+		// without touching state (src/main.c sqlite3_limit default).
+		return -1
 	}
 }
 
@@ -921,6 +1030,14 @@ func newEngineSettings() engineSettings {
 		exprDepthLimit:      1000,       // SQLite default SQLITE_LIMIT_EXPR_DEPTH
 		columnLimit:         2000,       // SQLite default SQLITE_MAX_COLUMN
 		lengthLimit:         1000000000, // SQLite default SQLITE_MAX_LENGTH
+		sqlLengthLimit:      1000000000, // SQLITE_LIMIT_SQL_LENGTH
+		compoundSelectLimit: 500,        // SQLITE_LIMIT_COMPOUND_SELECT
+		vdbeOpLimit:         250000000,  // SQLITE_LIMIT_VDBE_OP
+		functionArgLimit:    127,        // SQLITE_LIMIT_FUNCTION_ARG
+		likePatternLimit:    50000,      // SQLITE_LIMIT_LIKE_PATTERN_LENGTH
+		variableNumberLimit: 32766,      // SQLITE_LIMIT_VARIABLE_NUMBER
+		workerThreadsLimit:  8,          // SQLITE_LIMIT_WORKER_THREADS
+		schemaLimit:         0,          // SQLITE_LIMIT_SCHEMA (0 = unlimited)
 		dqsDDL:              true,       // SQLite default: double-quoted strings allowed in DDL
 		dqsDML:              true,       // SQLite default: double-quoted strings allowed in DML
 		shortColumnNames:    true,       // SQLite default: short_column_names=ON

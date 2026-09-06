@@ -711,7 +711,10 @@ func Test_view(t *testing.T) {
 		_res = db.Exec("DROP VIEW x1;")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	res = "{SQLITE_DELETE sqlite_stat1 {} main {}}"
+	_list := tclList([]string{"SQLITE_DELETE sqlite_stat1 {} main {}"})
+	_ = _list
+	_r = _list
+	res = _r
 	_ = res // suppress unused warning
 	{ // "view-25.2" — skipped: authorizer framework test (db authorizer) not supported by transpiler; DROP TABLE ANALYZE-stats cleanup authorizer events (SQL side effects only)
 		_res = db.Exec("DROP TABLE t25;")

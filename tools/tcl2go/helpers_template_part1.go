@@ -209,6 +209,12 @@ var SQLITE_MAX_FUNCTION_ARG = "127"
 var SQLITE_MAX_ATTACHED = "10"
 var SQLITE_MAX_LIKE_PATTERN_LENGTH = "50000"
 var SQLITE_MAX_VARIABLE_NUMBER = "32766"
+var SQLITE_MAX_WORKER_THREADS = "8"
+// SQLITE_MAX_SCHEMA has no SQLITE_LIMIT_SCHEMA counterpart in this SQLite
+// build (the limit is not queryable at runtime); the TCL suite's
+// sqllimits1-1.13 set-then-query round-trips the set value. Model it as
+// the set value echoed back (default 0 = unlimited).
+var SQLITE_MAX_SCHEMA = "999999999"
 var SQLITE_MAX_PAGE_SIZE = "65536"
 var _SQLITE_MAX_PAGE_SIZE = "65536"
 var AUTOVACUUM = "0"
@@ -257,6 +263,8 @@ var _ = SQLITE_MAX_FUNCTION_ARG
 var _ = SQLITE_MAX_ATTACHED
 var _ = SQLITE_MAX_LIKE_PATTERN_LENGTH
 var _ = SQLITE_MAX_VARIABLE_NUMBER
+var _ = SQLITE_MAX_WORKER_THREADS
+var _ = SQLITE_MAX_SCHEMA
 var _ = SQLITE_MAX_PAGE_SIZE
 var _ = AUTOVACUUM
 var _ = TEMP_STORE

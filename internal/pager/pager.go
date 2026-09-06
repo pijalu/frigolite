@@ -1915,6 +1915,17 @@ func (p *Pager) HasDirtyPages() bool {
 	return len(p.dirty) > 0
 }
 
+// DirtyPageCount reports the number of unflushed dirty pages. The engine
+// uses it for PRAGMA lock_status: SQLite escalates the transaction lock
+// from RESERVED to EXCLUSIVE when the pager spills dirty pages to the
+// database file (pager.c WRITER_CACHEMOD→WRITER_DBMOD), which happens
+// when the dirty count exceeds the spill threshold (pcache.c szSpill).
+func (p *Pager) DirtyPageCount() int {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return len(p.dirty)
+}
+
 // FileChangeCounter reads the database file's change counter (header offset
 // 24) directly from the file, bypassing the page cache (so commits by other
 // connections are observed even before a cache invalidation). It reports

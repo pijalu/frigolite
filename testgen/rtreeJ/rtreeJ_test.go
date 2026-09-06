@@ -115,6 +115,7 @@ func Test_rtreeJ(t *testing.T) {
 				}
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 					_res = db.Exec(" ROLLBACK ")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				res = tclListAppend(res, id, x1, x2)
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
@@ -272,6 +273,7 @@ func Test_rtreeJ(t *testing.T) {
 				}
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 1 }() {
 					_res = db.Exec(" ROLLBACK TO 'one'; ")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				res = tclListAppend(res, id, x1, x2)
 				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
@@ -410,6 +412,7 @@ func Test_rtreeJ(t *testing.T) {
 				}
 				if func() bool { x1_n, _x1_e := strconv.Atoi(x1); if _x1_e != nil { return false }; return x1_n == 1 }() {
 					_res = db.Exec(" ROLLBACK ")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				res = tclListAppend(res, x1, x2)
 				if _dbevalRb21 { _dbevalErr22 = errors.New("abort due to ROLLBACK") }

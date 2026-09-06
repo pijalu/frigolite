@@ -133,6 +133,7 @@ func Test_rtree8(t *testing.T) {
 				res = tclListAppend(res, x1, x2)
 				if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; return id_n == 3 }() {
 					_res = db.Exec(" DELETE FROM t1 WHERE id>3 ")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }

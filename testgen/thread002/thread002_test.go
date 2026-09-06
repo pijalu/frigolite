@@ -129,7 +129,10 @@ func Test_thread002(t *testing.T) {
 	thread_program, err = frigolite.Open("test.db]")
 	if err != nil { t.Fatal(err) }
 	defer thread_program.Close()
-	order_list = "{0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0}"
+	_list := tclList([]string{"0 1 2", "0 2 1", "1 0 2", "1 2 0", "2 0 1", "2 1 0"})
+	_ = _list
+	_r = _list
+	order_list = _r
 	_ = order_list // suppress unused warning
 	// array unset (not transpiled)
 	vtab.TclVarSet("ii", "", "0")
@@ -179,7 +182,10 @@ func Test_thread002(t *testing.T) {
 			if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 			_ = err
 			db.ResetChangesCounters()
-			res = tclExecSQL(db, "SELECT count(*) FROM t1") + "        " + tclExecSQL(db, "PRAGMA integrity_check")
+			_list := tclList([]string{tclExecSQL(db, "SELECT count(*) FROM t1"), tclExecSQL(db, "PRAGMA integrity_check"), "\\"})
+			_ = _list
+			_r = _list
+			res = _r
 			_ = res // suppress unused warning
 			db.Close()
 			got := tclListFlatten(res)

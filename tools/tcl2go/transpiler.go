@@ -196,6 +196,7 @@ var stmtVMTestFiles = map[string]bool{
 	"bind": true, "bind2": true,
 	"capi2": true, "capi3": true, "capi3b": true,
 	"capi3c": true, "capi3d": true, "capi3e": true,
+	"sqllimits1": true,
 }
 
 // stmtVMEnabled reports whether the file currently being generated uses the

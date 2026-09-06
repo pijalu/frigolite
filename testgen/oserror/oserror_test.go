@@ -109,7 +109,10 @@ func Test_oserror(t *testing.T) {
 				x = "ok"
 				_ = x // suppress unused warning
 			} else {
-				x = rc + " " + msg
+				_list := tclList([]string{rc, msg})
+				_ = _list
+				_r = _list
+				x = _r
 				_ = x // suppress unused warning
 			}
 		}
@@ -131,7 +134,7 @@ func Test_oserror(t *testing.T) {
 					}
 				}
 			}
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
+			if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "1.1.2")
 			}
 		}

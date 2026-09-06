@@ -175,6 +175,7 @@ func Test_savepoint7(t *testing.T) {
 					}
 				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
+				if _res.Error != nil { _catchErr = _res.Error }
 				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -218,6 +219,7 @@ func Test_savepoint7(t *testing.T) {
 					}
 				}
 				_res = db.Exec("\n        SAVEPOINT x2;\n        CREATE TABLE t5(pqr);\n        INSERT INTO t2 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n        ROLLBACK TO x2;\n      ")
+				if _res.Error != nil { _catchErr = _res.Error }
 				if _dbevalRb17 { _dbevalErr18 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt19 { _dbevalErr18 = errors.New("interrupted"); db.ClearInterrupt() }
 			}

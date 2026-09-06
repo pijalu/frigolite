@@ -422,7 +422,7 @@ func Test_notify1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
 				_ = tclSort("-integer") // lsort result
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), lUnlockFinal) {
+				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), lUnlockFinal) {
 					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lUnlockFinal, _res.Error, "notify1-" + tn + ".4")
 				}
 			}

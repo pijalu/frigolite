@@ -158,7 +158,10 @@ func Test_rtree1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DROP TABLE aux.'a\" \"b'; \n    SELECT name FROM aux.sqlite_master ORDER BY name;\n  ")
 		}
 	}
-	cols = "i1 i2 i3 i4 i5 i6 i7 i8 i9 iA iB iC iD iE iF iG iH iI iJ iK"
+	_list := tclList([]string{"i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9", "iA", "iB", "iC", "iD", "iE", "iF", "iG", "iH", "iI", "iJ", "iK"})
+	_ = _list
+	_r = _list
+	cols = _r
 	_ = cols // suppress unused warning
 	vtab.TclVarSet("nCol", "", "1")
 	nCol = "1"

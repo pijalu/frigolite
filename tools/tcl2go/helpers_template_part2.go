@@ -191,6 +191,15 @@ func tclMemdbSignature(db *frigolite.DB) string {
 	return strconv.Itoa(len(flat)) + " " + flat
 }
 
+// tclPagerCacheSize reports the pager-cache page count for cache.test's
+// pager_cache_size proc (test3.c btree_pager_stats "page" field).
+func tclPagerCacheSize(db *frigolite.DB) int {
+	if db == nil {
+		return 0
+	}
+	return db.PagerCacheSize()
+}
+
 // tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
 // list of the form "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}"
 // or "0 {}"). count "0" means the statement must succeed; count "1" means it
@@ -327,6 +336,11 @@ func tclExprWith(expr string, vars map[string]string) string {
 		}
 		name := s[i+1 : j]
 		val := vars[name]
+		if val == "" {
+			// Strip a leading :: namespace qualifier ($::SQLITE_MAX_x):
+			// the caller's map keys are bare names.
+			val = vars[strings.TrimPrefix(name, "::")]
+		}
 		s = s[:i] + val + s[j:]
 	}
 	s = resolveBracketCommands(s)

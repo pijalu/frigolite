@@ -699,6 +699,20 @@ func (ev *Evaluator) evalBinaryOpValues(op string, left, right interface{}) (int
 	// internally. For || (concatenation), we preserve collation through
 	// evalConcat.
 	left, right = extractCollatedValues(op, left, right)
+	if op == "||" {
+		// vdbe.c OP_Concat: output longer than SQLITE_LIMIT_LENGTH
+		// fails with "string or blob too big" (sqllimits1-5.17.3/5.21).
+		res, err := evalConcat(left, right)
+		if err != nil {
+			return nil, err
+		}
+		if s, ok := res.(string); ok {
+			if int64(len(s)) > int64(ev.ctx.LengthLimit()) {
+				return nil, fmt.Errorf("string or blob too big")
+			}
+		}
+		return res, nil
+	}
 	if fn, ok := binaryOpDispatch[op]; ok {
 		return fn(ev, left, right)
 	}
@@ -749,6 +763,20 @@ var binaryOpDispatch = map[string]binaryOpFn{
 	"->":         func(ev *Evaluator, l, r interface{}) (interface{}, error) { return function.JSONArrowExtract(l, r) },
 	"->>":        func(ev *Evaluator, l, r interface{}) (interface{}, error) { return function.JSONArrowExtractSQL(l, r) },
 	"COLLATE":    func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalCollateOp(l, r) },
+	"||": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
+		res, err := evalConcat(l, r)
+		if err != nil {
+			return nil, err
+		}
+		// vdbe.c OP_Concat: output longer than SQLITE_LIMIT_LENGTH fails
+		// with "string or blob too big" (sqllimits1-5.17.3/5.21).
+		if s, ok := res.(string); ok {
+			if int64(len(s)) > int64(ev.ctx.LengthLimit()) {
+				return nil, fmt.Errorf("string or blob too big")
+			}
+		}
+		return res, nil
+	},
 }
 
 // nilBinaryFn returns a fixed integer result for an operator.

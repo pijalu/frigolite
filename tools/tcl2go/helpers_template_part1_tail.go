@@ -255,10 +255,21 @@ func tclConcat(args ...string) string {
 
 func toInt(v interface{}) int {
 	switch x := v.(type) {
-	case int: return x
-	case int64: return int(x)
+	case int:
+		return x
+	case int64:
+		return int(x)
 	case string:
-		n, _ := strconv.Atoi(x)
+		s := strings.TrimSpace(x)
+		// TCL hex literals (sqllimits1-4.x set limits to 0x7fffffff):
+		// Atoi cannot parse them — use base-0 ParseInt.
+		if len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') {
+			if n, err := strconv.ParseInt(s, 0, 64); err == nil {
+				return int(n)
+			}
+			return 0
+		}
+		n, _ := strconv.Atoi(s)
 		return n
 	default:
 		return 0

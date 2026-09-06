@@ -76,7 +76,7 @@ func Test_cache(t *testing.T) {
 	// proc definition (not transpiled)
 	if "" == "" {
 		{ // do_test "cache-1.1"
-			// pager_cache_size db (unsupported command, not transpiled)
+			_r = strconv.Itoa(tclPagerCacheSize(db))
 		}
 	}
 	{ // do_test "cache-1.2"
@@ -84,9 +84,9 @@ func Test_cache(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 		}
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
-	cache_size = "pager_cache_size db"
+	cache_size = strconv.Itoa(tclPagerCacheSize(db))
 	_ = cache_size // suppress unused warning
 	vtab.TclVarSet("ii", "", "0")
 	ii = "0"
@@ -97,8 +97,8 @@ func Test_cache(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 			}
-			// pager_cache_size db (unsupported command, not transpiled)
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), cache_size) {
+			_r = strconv.Itoa(tclPagerCacheSize(db))
+			if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cache_size) {
 				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cache_size, _res.Error, "cache-1.3." + ii)
 			}
 		}
@@ -249,7 +249,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.2"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.3.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
@@ -264,7 +264,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.4"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.3.5"
 		_res = db.Exec("COMMIT")
@@ -273,7 +273,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.6"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.3.7"
 		r = db.Query("\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
@@ -288,7 +288,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.8"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.4.1"
 		r = db.Query("\n  PRAGMA cache_size = 0;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;\n")
@@ -303,7 +303,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.2"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.4.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
@@ -318,7 +318,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.4"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.4.5"
 		_res = db.Exec("COMMIT")
@@ -327,7 +327,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.6"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	{ // "cache-2.4.7"
 		r = db.Query("\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
@@ -342,7 +342,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.8"
-		// pager_cache_size db (unsupported command, not transpiled)
+		_r = strconv.Itoa(tclPagerCacheSize(db))
 	}
 	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

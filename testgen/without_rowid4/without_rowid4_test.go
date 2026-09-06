@@ -110,7 +110,10 @@ func Test_without_rowid4(t *testing.T) {
 	vtab.TclVarSet("ii", "", "0")
 	ii = "0"
 	_ = ii // suppress unused warning
-	tbl_definitions = "{CREATE TABLE tbl (a INTEGER PRIMARY KEY, b) WITHOUT rowid;}             {CREATE TABLE tbl (a, b PRIMARY KEY) WITHOUT rowid;}               \t{CREATE TABLE tbl (a PRIMARY KEY, b) WITHOUT rowid;\n         CREATE INDEX tbl_idx ON tbl(b);}"
+	_list := tclList([]string{"CREATE TABLE tbl (a INTEGER PRIMARY KEY, b) WITHOUT rowid;", "CREATE TABLE tbl (a, b PRIMARY KEY) WITHOUT rowid;", "CREATE TABLE tbl (a PRIMARY KEY, b) WITHOUT rowid;\n         CREATE INDEX tbl_idx ON tbl(b);", "\\"})
+	_ = _list
+	_r = _list
+	tbl_definitions = _r
 	_ = tbl_definitions // suppress unused warning
 	tbl_definitions = tclListAppend(tbl_definitions, "CREATE TEMP TABLE tbl (a PRIMARY KEY, b) WITHOUT rowid;\n         CREATE INDEX tbl_idx ON tbl(b);")
 	tbl_definitions = tclListAppend(tbl_definitions, "CREATE TEMP TABLE tbl (a PRIMARY KEY, b) WITHOUT rowid")
@@ -393,7 +396,10 @@ func Test_without_rowid4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE tbl;\n  DROP TABLE log;\n")
 	}
-	when_triggers = "{t1 BEFORE INSERT ON tbl WHEN new.a > 20}"
+	_list := tclList([]string{"t1 BEFORE INSERT ON tbl WHEN new.a > 20"})
+	_ = _list
+	_r = _list
+	when_triggers = _r
 	_ = when_triggers // suppress unused warning
 	when_triggers = tclListAppend(when_triggers, "t2 BEFORE INSERT ON tbl WHEN (SELECT count(*) FROM tbl) = 0")
 	_res = db.Exec("\n  CREATE TABLE tbl (a, b, c, d);\n  CREATE TABLE log (a);\n  INSERT INTO log VALUES (0);\n")

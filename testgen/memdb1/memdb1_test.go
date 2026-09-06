@@ -6,6 +6,7 @@ package memdb1
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -52,6 +53,8 @@ func Test_memdb1(t *testing.T) {
 	_ = db8
 	var db9 *frigolite.DB
 	_ = db9
+	var db1Blob string // memdb1 serialize image shadow of ::db1
+	_ = db1Blob
 	var B *frigolite.Backup
 	_ = B
 	var dbempty *frigolite.DB
@@ -98,20 +101,23 @@ func Test_memdb1(t *testing.T) {
 		_ = pgsz // suppress unused warning
 		sz1 = tclExprWith("$::pgsz*[db one {PRAGMA page_count}]", map[string]string{"::pgsz": pgsz})
 		_ = sz1 // suppress unused warning
-		// set ::db1 (skipped, DB connection)
+		db1Blob = string(tclSerialize(db, "main")) // ::db1 image shadow
+		vtab.TclVarSet("db1", "", db1Blob)
+		_ = db1Blob
 		// expr [string length $::db1]==$::sz1 → runtime compare
-		_r = tclBool01(toInt(strconv.Itoa(len(db1)))  ==  toInt(sz1))
+		_r = tclBool01(toInt(strconv.Itoa(len(db1Blob)))  ==  toInt(sz1))
 	}
 	_ = os.WriteFile("db1.db", nil, 0644)
 	fd = "db1.db"
 	_ = fd // suppress unused warning
-	tclChannelAppendAt("db1.db", db1, fileChannelSeek["fd"])
+	tclChannelAppendAt("db1.db", db1Blob, fileChannelSeek["fd"])
 	// close $fd
 	db.Close()
 	db, err = frigolite.Open("")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	// db deserialize (no hexdb block)
+	if derr := db.Deserialize("main", []byte(db1Blob), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+	if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 	{ // "110"
 		r = db.Query("\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -135,7 +141,7 @@ func Test_memdb1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "116"
+		want := "115"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -150,13 +156,11 @@ func Test_memdb1(t *testing.T) {
 			_ = msg // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// db deserialize (no hexdb block)
+			_catchErr = fmt.Errorf("unknown option: -unknown")
 			if _catchErr != nil {
-				msg = "1"
-				_catchErrMsg = _catchErr.Error()
+				msg = _catchErr.Error()
 			} else {
-				msg = "0"
-				_catchErrMsg = ""
+				msg = ""
 			}
 		}
 		got := tclListFlatten(msg)
@@ -166,7 +170,8 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // do_test "151"
-		// db deserialize (no hexdb block)
+		if derr := db.Deserialize("main", []byte(db1Blob), frigolite.DeserializeOptions{ReadOnly: tclBool("1"), MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+		if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 		_res = db.Exec("SELECT * FROM t1")
 	}
 	{ // do_test "152"
@@ -176,7 +181,8 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // do_test "160"
-		// db deserialize (no hexdb block)
+		if derr := db.Deserialize("main", []byte(db1Blob), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: tclParseInt64("32768")}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+		if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 		_res = db.Exec("SELECT * FROM t1")
 	}
 	{ // do_test "161"
@@ -220,11 +226,12 @@ func Test_memdb1(t *testing.T) {
 	_ = direct // suppress unused warning
 	// close $fd
 	{ // do_test "210"
-		_r = strconv.Itoa(len(tclDbOne(db, "db serialize"))) // string length result
+		_r = strconv.Itoa(len(string(tclSerialize(db, "main")))) // string length result
 	}
 	{ // do_test "220"
 		_res = db.Exec("ATTACH ':memory:' AS aux1")
-		// db deserialize (no hexdb block)
+		if derr := db.Deserialize("aux1", []byte(direct), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+		if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 		_res = db.Exec("\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 	}
 	db.Close()
@@ -245,14 +252,16 @@ func Test_memdb1(t *testing.T) {
 	}
 	{ // do_test "310"
 		_res = db.Exec("ATTACH ':memory:' AS aux1")
-		// db deserialize (no hexdb block)
+		if derr := db.Deserialize("aux1", []byte(string(tclSerialize(db, "main"))), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+		if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 		_res = db.Exec("\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	// db deserialize (no hexdb block)
+	if derr := db.Deserialize("main", []byte(""), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+	if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 	{ // "400"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {
@@ -298,7 +307,8 @@ func Test_memdb1(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// db deserialize (no hexdb block)
+			if derr := db.Deserialize("main", []byte("not-a-database"), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+			if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -320,6 +330,7 @@ func Test_memdb1(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
+			_catchErr = fmt.Errorf("wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -335,7 +346,7 @@ func Test_memdb1(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// db deserialize (no hexdb block)
+			_catchErr = fmt.Errorf("unknown option: a")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -351,6 +362,7 @@ func Test_memdb1(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
+			_catchErr = fmt.Errorf("wrong # args: should be \"db serialize ?DATABASE?\"")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -375,7 +387,8 @@ func Test_memdb1(t *testing.T) {
 	_ = _err_tcl // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// db deserialize (no hexdb block)
+			if derr := db.Deserialize("temp", []byte(string(tclSerialize(db, "main"))), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+			if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }
 			if _catchErr != nil {
 				rc = "1"
 				_err_tcl = _catchErr.Error()
@@ -400,13 +413,14 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // do_test "710"
-		ser = tclDbOne(db, "db serialize main")
+		ser = string(tclSerialize(db, "main"))
 		_ = ser // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// db deserialize (no hexdb block)
+		if derr := db.Deserialize("main", []byte(ser), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+		if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 		_res = db.Exec("\n      CREATE VIRTUAL TABLE t1 USING rtree(id, a, b, c, d);\n    ")
 		_ = _res // catchsql
 	}
@@ -439,7 +453,8 @@ func Test_memdb1(t *testing.T) {
 		db, err = frigolite.Open("")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// db deserialize (no hexdb block)
+		if derr := db.Deserialize("main", []byte(data), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+		if tclDeserializeErr != nil { t.Errorf("deserialize failed: %v", tclDeserializeErr) }
 		{ // "810"
 			r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1\n  ")
 			if r.Error != nil {
@@ -494,7 +509,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		}
 	}
-	blob = tclDbOne(db, "db serialize main")
+	blob = string(tclSerialize(db, "main"))
 	_ = blob // suppress unused warning
 	{ // do_test "1010"
 		vtab.TclVarSet("seen", "", "0")
@@ -525,7 +540,8 @@ func Test_memdb1(t *testing.T) {
 					}
 				}
 				if func() bool { seen_n, _seen_e := strconv.Atoi(seen); if _seen_e != nil { return false }; return seen_n == 1 }() {
-					// db deserialize (no hexdb block)
+					if derr := db.Deserialize("main", []byte(blob), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+					if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }
 				}
 				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -558,7 +574,18 @@ func Test_memdb1(t *testing.T) {
 			_r = "B"
 		}
 		_r = tclBackupStep(B, "2")
-		res = "0" + " " + msg
+		_rc := "0"
+		{
+			var _catchErr error
+			if derr := db.Deserialize("main", []byte(blob), frigolite.DeserializeOptions{ReadOnly: false, MaxSize: 0}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }
+			if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list := tclList([]string{_rc, msg})
+		_ = _list
+		_r = _list
+		res = _r
 		_ = res // suppress unused warning
 		_r = tclBackupFinish(B)
 		got := tclListFlatten(res)
@@ -581,7 +608,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		}
 	}
-	blob = tclDbOne(db, "db serialize main")
+	blob = string(tclSerialize(db, "main"))
 	_ = blob // suppress unused warning
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")

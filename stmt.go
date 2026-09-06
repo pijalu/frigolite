@@ -132,9 +132,31 @@ func (s *Stmt) Bind(index int, value interface{}) error {
 	if index < 1 || index > len(s.paramNames) {
 		return errOutOfRange
 	}
+	// vdbeapi.c bindText / MemSetStr: binding a string/blob longer than
+	// SQLITE_LIMIT_LENGTH fails with SQLITE_TOOBIG ("string or blob too
+	// big"). sqllimits1-5.14.4/5.14.6 bind a LIMIT+1 text and expect
+	// SQLITE_TOOBIG from the bind itself.
+	if s.db != nil {
+		if n, ok := bindValueLen(value); ok && n > int64(s.db.Limit("SQLITE_LIMIT_LENGTH")) {
+			return fmt.Errorf("string or blob too big")
+		}
+	}
 	s.args[index] = value
 	return nil
 }
+
+// bindValueLen reports the byte length of a string/blob bind value for the
+// SQLITE_LIMIT_LENGTH check (vdbeapi.c bindText → MemSetStr TOOBIG).
+func bindValueLen(v interface{}) (int64, bool) {
+	switch x := v.(type) {
+	case string:
+		return int64(len(x)), true
+	case []byte:
+		return int64(len(x)), true
+	}
+	return 0, false
+}
+
 
 // BindInt binds an integer parameter.
 func (s *Stmt) BindInt(index, value int) error { return s.Bind(index, value) }

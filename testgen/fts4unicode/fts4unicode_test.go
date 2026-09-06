@@ -153,34 +153,64 @@ func Test_fts4unicode(t *testing.T) {
 	// do_unicode_token_test2 1.9 x\uC4x x\uD6x x\uDCx 0 xax x\uC4x 1 xox x\uD6x 2 xux x\uDCx (unsupported command, not transpiled)
 	// do_unicode_token_test2 1.10 xx\u0301xx 0 xxxx xx\u301xx (unsupported command, not transpiled)
 	// do_unicode_token_test 1.11 \u01c5 0 \u01c6 \u01c5 (unsupported command, not transpiled)
-	docs = "{\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n} {\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n} {\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n} {\n  Added the sqlite3_db_readonly() interface.\n} {\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n} {\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n} {\n  Added support for the FTS4 languageid option.\n} {\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n} {\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n} {\n  Improvements to the handling of CSV inputs in the command-line shell\n} {\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n}"
+	_list := tclList([]string{"\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n", "\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n", "\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n", "\n  Added the sqlite3_db_readonly() interface.\n", "\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n", "\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n", "\n  Added support for the FTS4 languageid option.\n", "\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n", "\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n", "\n  Improvements to the handling of CSV inputs in the command-line shell\n", "\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n"})
+	_ = _list
+	_r = _list
+	docs = _r
 	_ = docs // suppress unused warning
 	vtab.TclVarSet("map", "a", "Ä"+" "+"ä")
-	map_a = "\"u00C4\" \"u00E4\""
+	_list := tclList([]string{"Ä", "ä"})
+	_ = _list
+	_r = _list
+	map_a = _r
 	_ = map_a // suppress unused warning
 	vtab.TclVarSet("map", "e", "Ë"+" "+"ë")
-	map_e = "\"u00CB\" \"u00EB\""
+	_list := tclList([]string{"Ë", "ë"})
+	_ = _list
+	_r = _list
+	map_e = _r
 	_ = map_e // suppress unused warning
 	vtab.TclVarSet("map", "i", "Ï"+" "+"ï")
-	map_i = "\"u00CF\" \"u00EF\""
+	_list := tclList([]string{"Ï", "ï"})
+	_ = _list
+	_r = _list
+	map_i = _r
 	_ = map_i // suppress unused warning
 	vtab.TclVarSet("map", "o", "Ö"+" "+"ö")
-	map_o = "\"u00D6\" \"u00F6\""
+	_list := tclList([]string{"Ö", "ö"})
+	_ = _list
+	_r = _list
+	map_o = _r
 	_ = map_o // suppress unused warning
 	vtab.TclVarSet("map", "u", "Ü"+" "+"ü")
-	map_u = "\"u00DC\" \"u00FC\""
+	_list := tclList([]string{"Ü", "ü"})
+	_ = _list
+	_r = _list
+	map_u = _r
 	_ = map_u // suppress unused warning
 	vtab.TclVarSet("map", "y", "Ÿ"+" "+"ÿ")
-	map_y = "\"u0178\" \"u00FF\""
+	_list := tclList([]string{"Ÿ", "ÿ"})
+	_ = _list
+	_r = _list
+	map_y = _r
 	_ = map_y // suppress unused warning
 	vtab.TclVarSet("map", "h", "Ḧ"+" "+"ḧ")
-	map_h = "\"u1E26\" \"u1E27\""
+	_list := tclList([]string{"Ḧ", "ḧ"})
+	_ = _list
+	_r = _list
+	map_h = _r
 	_ = map_h // suppress unused warning
 	vtab.TclVarSet("map", "w", "Ẅ"+" "+"ẅ")
-	map_w = "\"u1E84\" \"u1E85\""
+	_list := tclList([]string{"Ẅ", "ẅ"})
+	_ = _list
+	_r = _list
+	map_w = _r
 	_ = map_w // suppress unused warning
 	vtab.TclVarSet("map", "x", "Ẍ"+" "+"ẍ")
-	map_x = "\"u1E8C\" \"u1E8D\""
+	_list := tclList([]string{"Ẍ", "ẍ"})
+	_ = _list
+	_r = _list
+	map_x = _r
 	_ = map_x // suppress unused warning
 	for _, k := range tclSplitList("array names map") {
 	_ = k // suppress unused warning
@@ -339,7 +369,10 @@ func Test_fts4unicode(t *testing.T) {
 		// do_unicode_token_test3 5.11 tokenchars=\u0301 remove_diacritics=0 hello\u0301world \u0301helloworld 0 h... (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
-		tokenizers = "unicode61"
+		_list := tclList([]string{"unicode61"})
+		_ = _list
+		_r = _list
+		tokenizers = _r
 		_ = tokenizers // suppress unused warning
 		for _, T := range tclSplitList(tokenizers) {
 		_ = T // suppress unused warning

@@ -81,7 +81,7 @@ func Test_memsubsys2(t *testing.T) {
 	}
 	{ // do_test "memsubsys2-1.2"
 		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), highwater) {
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), highwater) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", highwater, _res.Error, "memsubsys2-1.2")
 		}
 	}

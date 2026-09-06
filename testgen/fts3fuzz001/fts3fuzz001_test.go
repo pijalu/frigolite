@@ -51,6 +51,8 @@ func Test_fts3fuzz001(t *testing.T) {
 	_ = db8
 	var db9 *frigolite.DB
 	_ = db9
+	var db1Blob string // memdb1 serialize image shadow of ::db1
+	_ = db1Blob
 
 	var testdir string
 	_ = testdir // pre-declared from TCL source

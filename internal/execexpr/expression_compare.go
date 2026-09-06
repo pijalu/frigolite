@@ -148,6 +148,11 @@ func evalConcat(left, right interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	// vdbe.c OP_Concat: output longer than SQLITE_LIMIT_LENGTH fails
+	// with "string or blob too big" (sqllimits1-5.17.3/5.21: 'A' ||
+	// 100000-char strvalue with LENGTH=100000). Length enforcement for
+	// the operator lives at the call site (evalConcatOp), which has the
+	// engine context; this helper stays context-free.
 	// SQLite's || operator returns a value with BINARY collation regardless
 	// of its operands' collations (datatype3.html: "the || operator...
 	// result has no collation sequence"). Propagating a column's COLLATE

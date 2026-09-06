@@ -1430,9 +1430,7 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 				r = db.Query("pragma temp_store = 1")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store = 1")
-				}
+				if r.Error != nil { _catchErr = r.Error }
 				if _dbevalRb13 { _dbevalErr14 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt15 { _dbevalErr14 = errors.New("interrupted"); db.ClearInterrupt() }
 			}

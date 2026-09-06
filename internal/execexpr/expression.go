@@ -16,8 +16,18 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 	case *sql.NumericLit:
 		return evalNumericLit(v)
 	case *sql.StringLit:
+		// vdbe.c OP_String8: a string literal longer than
+		// SQLITE_LIMIT_LENGTH fails with "string or blob too big".
+		// sqllimits1-5.17.1/5.19 build 100001-char literals with
+		// LENGTH=100000 and expect TOOBIG.
+		if int64(len(v.Value)) > int64(ev.ctx.LengthLimit()) {
+			return nil, fmt.Errorf("string or blob too big")
+		}
 		return v.Value, nil
 	case *sql.BlobLit:
+		if int64(len(v.Value)) > int64(ev.ctx.LengthLimit()) {
+			return nil, fmt.Errorf("string or blob too big")
+		}
 		return v.Value, nil
 	case *sql.NullLit:
 		return nil, nil

@@ -508,7 +508,7 @@ func Test_rtreedoc(t *testing.T) {
 							}
 							{ // do_test "1." + tn + ".2"
 								// column_name_list db $name (unsupported command, not transpiled)
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), clist) {
+								if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), clist) {
 									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", clist, _res.Error, "1." + tn + ".2")
 								}
 							}
@@ -619,7 +619,7 @@ func Test_rtreedoc(t *testing.T) {
 								}
 								{ // do_test "1." + tn + ".2"
 									// column_name_list db abc (unsupported command, not transpiled)
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), lCol) {
+									if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), lCol) {
 										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lCol, _res.Error, "1." + tn + ".2")
 									}
 								}
@@ -1887,7 +1887,10 @@ func Test_rtreedoc(t *testing.T) {
 														{ // do_test "3.1"
 															cell = tclLIndex(tclExecSQL(db, "SELECT rnode(data) FROM rt2_node WHERE nodeno=3"), "0")
 															_ = cell // suppress unused warning
-															cell = tclLIndex(cell, "0") + "            " + tclLIndex(cell, "2") + " " + tclLIndex(cell, "1") + "        " + tclLIndex(cell, "3") + " " + tclLIndex(cell, "4")
+															_list := tclList([]string{tclLIndex(cell, "0"), tclLIndex(cell, "2"), tclLIndex(cell, "1"), tclLIndex(cell, "3"), tclLIndex(cell, "4"), "\\"})
+															_ = _list
+															_r = _list
+															cell = _r
 															_ = cell // suppress unused warning
 															_res = db.Exec(" \n    UPDATE rt2_node SET data=rnode_replace_cell(data, 3, " + sqlLiteral(cell) + ") WHERE nodeno=3 \n  ")
 															if _res.Error != nil {

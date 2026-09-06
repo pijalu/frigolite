@@ -115,7 +115,7 @@ func Test_bigfile2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
 			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "1.3")
 		}
 	}

@@ -122,11 +122,9 @@ func Test_lock2(t *testing.T) {
 				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
 				if _res.Error != nil { _catchErr = _res.Error }
 				if _catchErr != nil {
-					msg = "1"
-					_catchErrMsg = _catchErr.Error()
+					msg = _catchErr.Error()
 				} else {
-					msg = "0"
-					_catchErrMsg = ""
+					msg = ""
 				}
 			}
 			_ = db
@@ -166,11 +164,9 @@ func Test_lock2(t *testing.T) {
 				_res = db.Exec("\n      BEGIN;\n      SELECT * FROM sqlite_master;\n    ")
 				if _res.Error != nil { _catchErr = _res.Error }
 				if _catchErr != nil {
-					msg = "1"
-					_catchErrMsg = _catchErr.Error()
+					msg = _catchErr.Error()
 				} else {
-					msg = "0"
-					_catchErrMsg = ""
+					msg = ""
 				}
 			}
 			_ = db

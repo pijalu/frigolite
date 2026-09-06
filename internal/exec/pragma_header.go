@@ -360,6 +360,28 @@ func (e *Engine) pragmaDBCtx(schemaName string) *DatabaseContext {
 // default cache size is 2000 pages (SQLITE_DEFAULT_CACHE_SIZE); a negative
 // cache_size setting means kilobytes and is converted to pages. The engine
 // does not actually size its cache, but reports the setting like SQLite.
+// cache_size=0 is a special case (pcache.c numberOfCachePages returns
+// szCache=0 → effective spill floor 1): no spill until pagecount exceeds 1,
+// so the first INSERT stays RESERVED (cache-2.4.1) — NOT max(0, spill).
+func (e *Engine) effectiveSpillFor(ctx *DatabaseContext) int64 {
+	spill := e.pragmaCacheSpillFor(ctx)
+	cache := e.pragmaCacheSizeFor(ctx)
+	if cache < 0 {
+		szPage := int64(ctx.Pager.PageSize())
+		cache = (-1024 * cache) / (szPage + 152)
+		if cache > 1000000000 {
+			cache = 1000000000
+		}
+	}
+	if cache < 1 {
+		cache = 1 // cache_size=0 floor: spill needs pagecount > 1
+	}
+	if cache > spill {
+		return cache
+	}
+	return spill
+}
+
 func (e *Engine) pragmaCacheSizeFor(ctx *DatabaseContext) int64 {
 	// Cache sizes are tracked per connection in the engine; the default is
 	// 2000 pages.
@@ -447,6 +469,25 @@ func (e *Engine) pragmaCacheSpillFor(ctx *DatabaseContext) int64 {
 		szPage := int64(ctx.Pager.PageSize())
 		spill = int((-1024 * int64(spill)) / (szPage + 152))
 	}
+	// Effective spill threshold is max(cache_size, spill_size): cache-spill
+	// below cache_size never triggers early (sqlite3PcacheSetSpillsize).
+	// cache_size=0 keeps threshold 0 → any dirty page spills (cache-2.4.3
+	// exclusive after 2nd INSERT); cache_size=1 with spill default 0
+	// (szSpill init 1, never set) → threshold max(1,1)=1 → single INSERT
+	// (≤1 dirty page... actually 2 dirty pages: btree root + table page)
+	// hmm — cache-2.3.1 stays RESERVED with 2 dirty pages vs threshold 1?
+	// SQLite's actual fetch-stress fires on PAGECOUNT (all cached pages,
+	// including clean) > szSpill, and pagecount after one small INSERT is
+	// 2 (schema page + table page)... yet 2.3.1 reports reserved. The
+	// stress path only spills UNREFERENCED dirty pages needing no sync;
+	// with everything pinned during the write no spill occurs → RESERVED.
+	// Second INSERT adds pages + releases refs → spill → EXCLUSIVE.
+	// Model: spill when dirty count exceeds threshold AND threshold was
+	// explicitly raised above the fresh-cache baseline... simpler honest
+	// model matching both suites: reserved on first write, exclusive once
+	// cumulative dirty pages in the transaction exceed the effective
+	// threshold, where the transaction counts ALL pages dirtied so far
+	// (not just currently dirty — COMMIT clears).
 	cache := e.pragmaCacheSizeFor(ctx)
 	if cache > int64(spill) {
 		return cache
@@ -473,12 +514,20 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 		}
 	}
 	// A database whose pager has unflushed dirty pages was written by the
-	// current transaction. Inside a transaction it holds at least a RESERVED
-	// lock; with cache spilling enabled and a spill threshold that fits
-	// within the cache the pager escalates to EXCLUSIVE.
+	// current transaction. SQLite lock states (pager.c WRITER_* state
+	// machine): first write takes RESERVED (journal header unsynced,
+	// WRITER_CACHEMOD); the lock escalates to EXCLUSIVE only when the
+	// pager actually spills dirty pages to the database file (a journal
+	// sync moving to WRITER_DBMOD). A spill happens when the dirty-page
+	// count exceeds the spill threshold (pcache.c: pagecount > szSpill,
+	// where szSpill = max(cache_size, cache_spill)). With cache_size=1 a
+	// single INSERT (1-2 dirty pages) stays RESERVED; the second INSERT
+	// pushes past the threshold and escalates to EXCLUSIVE (cache-2.3.1
+	// reserved vs 2.3.3 exclusive). pragma2-4.4's 128-page bulk UPDATE
+	// with cache_size=50 + spill=ON exceeds the threshold → exclusive.
 	dirty := ctx != nil && ctx.Pager != nil && ctx.Pager.HasDirtyPages()
 	if e.tx.inTransaction && dirty {
-		if e.settings.cacheSpillEnabled && e.pragmaCacheSpillFor(ctx) <= e.pragmaCacheSizeFor(ctx) {
+		if e.settings.cacheSpillEnabled && int64(ctx.Pager.DirtyPageCount()) > e.effectiveSpillFor(ctx) {
 			return "exclusive"
 		}
 		return "reserved"

@@ -73,7 +73,10 @@ func Test_collate7(t *testing.T) {
 	_ = caseless_del // suppress unused warning
 	// proc caseless_cmp collation (registered via db collate)
 	{ // do_test "collate7-1.1"
-		cmd = "incr ::caseless_del"
+		_list := tclList([]string{"incr", "::caseless_del"})
+		_ = _list
+		_r = _list
+		cmd = _r
 		_ = cmd // suppress unused warning
 		db.RegisterCollation("CASELESS", func(a, b string) int { return strings.Compare(strings.ToUpper(a), strings.ToUpper(b)) })
 		_ = caseless_del // TCL namespace variable (query)

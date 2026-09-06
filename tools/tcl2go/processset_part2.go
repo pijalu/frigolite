@@ -15,6 +15,33 @@ import (
 // ---- Variable handlers ----
 
 func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
+	// set VAR [sqlite3_limit ...] — sqlite3_limit forms (sqllimits1-1.30:
+	// `set prior [sqlite3_limit db SQLITE_LIMIT_LENGTH 1]` binds VAR to
+	// the PRIOR value; `... -1` queries without changing).
+	if parts := strings.Fields(cmdText); len(parts) >= 3 && parts[0] == "sqlite3_limit" {
+		// Forms: [sqlite3_limit db LIMIT VAL] (4 parts) or
+		// [sqlite3_limit LIMIT VAL] (3 parts, db omitted).
+		lim, val := "", ""
+		if len(parts) == 4 {
+			lim, val = parts[2], parts[3]
+		} else if len(parts) == 3 {
+			lim, val = parts[1], parts[2]
+		}
+		if lim != "" {
+			if strings.TrimSpace(val) == "-1" {
+				tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", lim))
+			} else {
+				tp.emitLine("{ // set %s [sqlite3_limit %s %s]", goName, lim, val)
+				tp.indent++
+				tp.emitLine("_prior := db.Limit(%q)", lim)
+				tp.emitLine("db.SetLimit(%q, toInt(%q))", lim, val)
+				tp.assignSetValue(goName, "strconv.Itoa(_prior)")
+				tp.indent--
+				tp.emitLine("}")
+			}
+			return true
+		}
+	}
 	// memdb1.test 1020: `set res [list [catch {...} msg] $msg]` — the list
 	// form routes through processList/emitListCatchArg so the catch body
 	// runs and the result feeds res (the backup-interlock error must reach
@@ -32,11 +59,19 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 	if len(cmdParts) == 0 {
 		return false
 	}
+	// set VAR [sqlite3_limit ...] is handled at the top of this function
+	// (prior-value capture); reaching here means the top handler declined
+	// (unexpected arity) — fall through to the generic handlers below.
 	// memdb.test signature (see userProcEmitterFor): [signature one] /
 	// [signature two] return the t3 rollback fingerprint.
 	if body, ok := globalProcBodies[cmdParts[0]]; ok {
 		if userProcEmitterFor(cmdParts[0], body) == "memdb_signature" {
 			tp.assignSetValue(goName, fmt.Sprintf("tclMemdbSignature(%s)", tp.dbVar))
+			return true
+		}
+		// cache.test pager_cache_size (btree_pager_stats "page" count).
+		if userProcEmitterFor(cmdParts[0], body) == "cache_pager_size" {
+			tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(tclPagerCacheSize(%s))", tp.dbVar))
 			return true
 		}
 	}
@@ -225,6 +260,26 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 	if isSqlite3OpenCmd(cmdParts) {
 		return tp.setSqlite3Value(goName, cmdParts)
 	}
+	// set VAR [sqlite3_limit ...] with a `db` connection arg is handled
+	// by the top-of-function prior-value branch; the 3-part db-less form
+	// below covers the harness shorthand. This fallback catches any arity
+	// the top branch declined.
+	if len(cmdParts) >= 3 && cmdParts[0] == "sqlite3_limit" {
+		lim := cmdParts[len(cmdParts)-2]
+		val := strings.TrimSpace(cmdParts[len(cmdParts)-1])
+		if strings.TrimSpace(val) == "-1" {
+			tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", lim))
+		} else {
+			tp.emitLine("{ // set %s [sqlite3_limit %s %s]", goName, lim, val)
+			tp.indent++
+			tp.emitLine("_prior := db.Limit(%q)", lim)
+			tp.emitLine("db.SetLimit(%q, toInt(%q))", lim, val)
+			tp.assignSetValue(goName, "strconv.Itoa(_prior)")
+			tp.indent--
+			tp.emitLine("}")
+		}
+		return true
+	}
 	if isExprCmd(cmdParts) {
 		return tp.setExprValue(goName, cmdText)
 	}
@@ -373,6 +428,40 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 	// restore pattern). The -1 argument means "query, don't change".
 	if cmdParts[0] == "sqlite3_limit" && len(cmdParts) >= 4 && strings.TrimSpace(cmdParts[3]) == "-1" {
 		tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", cmdParts[2]))
+		return true
+	}
+	// set VAR [sqlite3_limit db LIMIT N] — set the limit, return the PRIOR
+	// value (sqllimits1-1.30: `set prior [sqlite3_limit db
+	// SQLITE_LIMIT_LENGTH 1]` captures the old limit for restore).
+	// NOTE: `set prior [sqlite3_limit SQLITE_LIMIT_LENGTH 1]` (no db
+	// arg, as emitted for 1.30's inner set) has cmdParts = [sqlite3_limit
+	// LIMIT VAL]: db is args[1], so the limit is cmdParts[1].
+	if cmdParts[0] == "sqlite3_limit" && (len(cmdParts) == 4 || len(cmdParts) == 3) {
+		lim, val := "", ""
+		if len(cmdParts) == 4 {
+			lim = cmdParts[2]
+			val = strings.TrimSpace(cmdParts[3])
+		} else {
+			lim = cmdParts[1]
+			val = strings.TrimSpace(cmdParts[2])
+		}
+		if strings.TrimSpace(val) == "-1" {
+			tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", lim))
+			return true
+		}
+		tp.emitLine("{ // set %s [sqlite3_limit %s %s]", goName, lim, val)
+		tp.indent++
+		tp.emitLine("_prior := db.Limit(%q)", lim)
+		tp.emitLine("db.SetLimit(%q, toInt(%q))", lim, val)
+		if tp.isVarDeclared(goName) {
+			tp.emitLine("%s = strconv.Itoa(_prior)", goName)
+		} else {
+			tp.emitLine("var %s = strconv.Itoa(_prior)", goName)
+			tp.vars = append(tp.vars, goName)
+		}
+		tp.emitLine("_ = %s", goName)
+		tp.indent--
+		tp.emitLine("}")
 		return true
 	}
 	if tp.setMiscBracketValue(goName, cmdText, cmdParts) {

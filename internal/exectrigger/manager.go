@@ -54,8 +54,14 @@ func (m *Manager) Depth() int { return m.depth }
 // SetDepth sets the current trigger execution depth.
 func (m *Manager) SetDepth(depth int) { m.depth = depth }
 
-// DepthLimit returns the maximum trigger nesting depth (0 = default).
-func (m *Manager) DepthLimit() int { return m.depthLimit }
+// DepthLimit returns the maximum trigger nesting depth
+// (SQLITE_LIMIT_TRIGGER_DEPTH; SQLite default 1000).
+func (m *Manager) DepthLimit() int {
+	if m.depthLimit == 0 {
+		return 1000
+	}
+	return m.depthLimit
+}
 
 // SetDepthLimit sets the maximum trigger nesting depth. A negative value
 // queries the current limit without changing it.

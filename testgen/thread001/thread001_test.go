@@ -114,7 +114,7 @@ func Test_thread001(t *testing.T) {
 				db.Close()
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), shared_cache) {
+				if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), shared_cache) {
 					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", shared_cache, _res.Error, "thread001." + tn + ".0")
 				}
 			}
@@ -125,7 +125,10 @@ func Test_thread001(t *testing.T) {
 			dbconfig = ""
 			_ = dbconfig // suppress unused warning
 			if tclBool(same_db) {
-				dbconfig = "set ::DB " + "sqlite3_connection_pointer db"
+				_list := tclList([]string{"set", "::DB", "sqlite3_connection_pointer db"})
+				_ = _list
+				_r = _list
+				dbconfig = _r
 				_ = dbconfig // suppress unused warning
 			}
 			{ // do_test "thread001." + tn + ".1"

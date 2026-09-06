@@ -480,7 +480,10 @@ func Test_select6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);\n")
 		}
 	}
-	_err_tcl = "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+	_list := tclList([]string{"1", "SELECTs to the left and right of UNION ALL do not have the same number of result columns"})
+	_ = _list
+	_r = _list
+	_err_tcl = _r
 	_ = _err_tcl // suppress unused warning
 	{ // "10.2"
 		r = db.Query("\n  SELECT * FROM (SELECT * FROM t), j;\n")

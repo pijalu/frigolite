@@ -35,6 +35,10 @@ func userProcEmitterFor(name, body string) string {
 		if strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length") {
 			return "memdb_signature"
 		}
+	case "pager_cache_size":
+		if strings.Contains(body, "btree_pager_stats") {
+			return "cache_pager_size" // cache.test: btree_pager_stats "page" count
+		}
 	}
 	return ""
 }
@@ -143,6 +147,8 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 		tp.emitLine("}")
 	case "memdb_signature":
 		tp.emitLine("_r = tclMemdbSignature(%s)", tp.dbVar)
+	case "cache_pager_size":
+		tp.emitLine("_r = strconv.Itoa(tclPagerCacheSize(%s))", tp.dbVar)
 	}
 }
 

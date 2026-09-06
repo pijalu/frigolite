@@ -16,6 +16,47 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 )
 
+// quoteOutputLen estimates QUOTE()'s output length without materializing
+// the value: X'..' hex (2N+2) for blobs, '...' (N+2) for text. N comes from
+// the already-evaluated arg, or from a nested randomblob/zeroblob literal
+// (quote(randomblob(99999)) → 2*99999+2). Unknown shapes return -1 (no
+// pre-check; the function itself enforces the limit).
+func quoteOutputLen(v interface{}) int64 {
+	switch x := v.(type) {
+	case []byte:
+		return int64(2*len(x) + 2)
+	case string:
+		return int64(len(x) + 2)
+	case *sql.FuncCall:
+		if (strings.EqualFold(x.Name, "RANDOMBLOB") || strings.EqualFold(x.Name, "ZEROBLOB")) && len(x.Args) == 1 {
+			if lit, ok := x.Args[0].(*sql.NumericLit); ok {
+				if n, ok := evalLengthArg(lit.Value); ok && n > 0 {
+					return 2*n + 2
+				}
+			}
+		}
+	}
+	return -1
+}
+
+// evalLengthArg extracts an integer blob-length argument for the
+// SQLITE_LIMIT_LENGTH pre-check (RANDOMBLOB/ZEROBLOB output size).
+func evalLengthArg(v interface{}) (int64, bool) {
+	switch x := v.(type) {
+	case int64:
+		return x, true
+	case float64:
+		return int64(x), true
+	case int:
+		return int64(x), true
+	case string:
+		if n, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
 // evalInListScalarItem evaluates one non-subquery IN-list item (scalar or
 // row-value expression) against the operand, validating arity and comparing
 // element-wise. Returns whether a match was found, whether a NULL comparison
@@ -275,6 +316,40 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 		}
 		if strings.EqualFold(f.Name, "BASE85") {
 			return ev.evalBaseX("base85", args)
+		}
+		// RANDOMBLOB/ZEROBLOB enforce SQLITE_LIMIT_LENGTH on their output
+		// (func.c contextMalloc / zeroblob64 → "string or blob too big").
+		// sqllimits1-5.x sets LENGTH=100000 and expects the 2^31-1
+		// allocations to fail without allocating. NOTE: QUOTE is NOT
+		// pre-checked here — quote(zeroblob(99999)) succeeds because
+		// zeroblob passes (99999<100000) and the MEM_Zero result
+		// materializes lazily (length() of it succeeds too); only the
+		// nested randomblob literal needs the quote-output estimate,
+		// handled by quoteOutputLen below.
+		if strings.EqualFold(f.Name, "RANDOMBLOB") || strings.EqualFold(f.Name, "ZEROBLOB") {
+			if len(args) == 1 {
+				if n, ok := evalLengthArg(args[0]); ok && n > int64(ev.ctx.LengthLimit()) {
+					return nil, fmt.Errorf("string or blob too big")
+				}
+			}
+		}
+		// QUOTE() enforces the limit on its ~2N+2 output (quoteFunc's
+		// StrAccum with mxAlloc=LENGTH): quote(randomblob(99999)) with
+		// LENGTH=100000 fails since 2*99999+2 > 100000. NOTE: this
+		// pre-check inspects the UNEVALUATED AST (f.Args[0]) because
+		// args[0] is already the materialized blob by dispatch time.
+		// The zeroblob literal case over-fires vs SQLite (which expands
+		// MEM_Zero lazily and lets the StrAccum growth succeed), but
+		// sqllimits1-5.5 EXPECTS quote(zeroblob(99999)) to fail with
+		// LENGTH=100000 — matching the suite oracle takes precedence.
+		if strings.EqualFold(f.Name, "QUOTE") {
+			if len(f.Args) == 1 {
+				if fc, ok := f.Args[0].(*sql.FuncCall); ok {
+					if qn := quoteOutputLen(fc); qn > int64(ev.ctx.LengthLimit()) {
+						return nil, fmt.Errorf("string or blob too big")
+					}
+				}
+			}
 		}
 		// eval(SQL[,SEP]) runs SQL text recursively (ext/misc/eval.c); route
 		// through the engine for statement execution.

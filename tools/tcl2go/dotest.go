@@ -322,6 +322,7 @@ func (tp *transpiler) runDoTestBody(bodyCmds [][]tcl.RawWord) *preparedState {
 		indent:        tp.indent,
 		dbVar:         tp.dbVar,
 		t:             tp.t,
+		catchMode:     tp.catchMode,
 		varCount:      tp.varCount,
 		vars:          tp.vars,
 		arrayKeys:     tp.arrayKeys,
@@ -483,9 +484,96 @@ func isCommentOnlyBody(args []tcl.RawWord) bool {
 	return true
 }
 
-// emitLimitComparison handles a single `sqlite3_limit db LIMIT -1` do_test
-// body. Returns true when handled.
+// limitSetRuntimeExpr renders a sqlite3_limit SET value as a runtime Go
+// int expression: [expr {$::SQLITE_MAX_*/2}] becomes
+// tclExprWith("$SQLITE_MAX_*/2", map[...]) so the helper-test constants
+// divide at runtime; plain values reuse limitValueExpr.
+func (tp *transpiler) limitSetRuntimeExpr(rawVal string) string {
+	rawVal = strings.TrimSpace(rawVal)
+	if strings.HasPrefix(rawVal, "[expr ") {
+		inner := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(rawVal, "[expr "), "]"))
+		inner = strings.Trim(inner, "{}")
+		varNames := []string{}
+		for _, tok := range strings.FieldsFunc(inner, func(r rune) bool {
+			return !(r == '_' || r == ':' || (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
+		}) {
+			t := strings.Trim(tok, ":")
+			if strings.HasPrefix(t, "SQLITE_MAX_") {
+				found := false
+				for _, v := range varNames {
+					if v == t {
+						found = true
+						break
+					}
+				}
+				if !found {
+					varNames = append(varNames, t)
+				}
+			}
+		}
+		if len(varNames) > 0 {
+			pairs := make([]string, 0, len(varNames)*2)
+			for _, v := range varNames {
+				pairs = append(pairs, fmt.Sprintf("%q: %s", v, v))
+			}
+			return fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", inner, strings.Join(pairs, ", "))
+		}
+	}
+	return tp.limitValueExpr(rawVal)
+}
+
+// emitLimitComparison handles `sqlite3_limit db LIMIT ...` do_test
+// bodies: single `-1` bodies query the current limit (e.g. attach4-1.1);
+// single SET bodies (sqllimits1-2.x) return the PRIOR limit, so capture it
+// before setting; two-command set-then-query bodies (sqllimits1-1.12/1.13)
+// compare the clamped new value. Returns true when handled.
 func (tp *transpiler) emitLimitComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord) bool {
+	// The connection is bodyCmds[0][1] (db or db2 — sqllimits1-3.x verify
+	// the UNTOUCHED db2 connection, so the check must read that handle).
+	conn := "db"
+	if len(bodyCmds) > 0 && len(bodyCmds[0]) >= 2 && bodyCmds[0][0].Text == "sqlite3_limit" {
+		if gv := tclVarToGo(strings.TrimSpace(bodyCmds[0][1].Text)); gv == "db" || gv == "db2" {
+			conn = gv
+		}
+	}
+	// sqlite3_limit's first argument is the connection (db or db2):
+	// resolve it to the matching Go variable so per-connection limits
+	// (sqllimits1-3.x verify db2 is unchanged by db's 2.x halves) read
+	// the right engine.
+	connVar := conn
+	if len(bodyCmds) == 2 && len(bodyCmds[0]) >= 4 && len(bodyCmds[1]) >= 4 &&
+		bodyCmds[0][0].Text == "sqlite3_limit" && bodyCmds[1][0].Text == "sqlite3_limit" &&
+		strings.TrimSpace(bodyCmds[1][3].Text) == "-1" &&
+		strings.TrimSpace(bodyCmds[0][2].Text) == strings.TrimSpace(bodyCmds[1][2].Text) {
+		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		setVal := strings.TrimSpace(bodyCmds[0][3].Text)
+		tp.emitLine("{ // do_test %s (sqlite3_limit %s set+query)", nameExpr, limitName)
+		tp.indent++
+		tp.emitLine("%s.SetLimit(%q, toInt(%s))", connVar, limitName, tp.limitValueExpr(setVal))
+		tp.emitLine("got := %s.Limit(%q)", connVar, limitName)
+		tp.emitLine("if strconv.Itoa(got) != %s {", expectedExpr)
+		tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", got, %s, %s)", expectedExpr, nameExpr)
+		tp.emitLine("}")
+		tp.indent--
+		tp.emitLine("}")
+		return true
+	}
+	if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
+		bodyCmds[0][0].Text == "sqlite3_limit" &&
+		strings.TrimSpace(bodyCmds[0][3].Text) != "-1" {
+		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		rawVal := strings.TrimSpace(bodyCmds[0][3].Text)
+		tp.emitLine("{ // do_test %s (sqlite3_limit %s set-prior)", nameExpr, limitName)
+		tp.indent++
+		tp.emitLine("prior := %s.Limit(%q)", connVar, limitName)
+		tp.emitLine("%s.SetLimit(%q, toInt(%s))", connVar, limitName, tp.limitSetRuntimeExpr(rawVal))
+		tp.emitLine("if strconv.Itoa(prior) != %s {", expectedExpr)
+		tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", prior, %s, %s)", expectedExpr, nameExpr)
+		tp.emitLine("}")
+		tp.indent--
+		tp.emitLine("}")
+		return true
+	}
 	if !(len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
 		bodyCmds[0][0].Text == "sqlite3_limit" &&
 		strings.TrimSpace(bodyCmds[0][3].Text) == "-1") {
@@ -494,7 +582,7 @@ func (tp *transpiler) emitLimitComparison(nameExpr, expectedExpr string, bodyCmd
 	limitName := strings.TrimSpace(bodyCmds[0][2].Text)
 	tp.emitLine("{ // do_test %s (sqlite3_limit %s -1)", nameExpr, limitName)
 	tp.indent++
-	tp.emitLine("got := db.Limit(%q)", limitName)
+	tp.emitLine("got := %s.Limit(%q)", connVar, limitName)
 	tp.emitLine("if strconv.Itoa(got) != %s {", expectedExpr)
 	tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", got, %s, %s)", expectedExpr, nameExpr)
 	tp.emitLine("}")

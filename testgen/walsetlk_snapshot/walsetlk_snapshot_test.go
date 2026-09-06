@@ -112,11 +112,9 @@ func Test_walsetlk_snapshot(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 		// sqlite3_snapshot_open db main $::snap (unsupported command, not transpiled)
 		if _catchErr != nil {
-			msg = "1"
-			_catchErrMsg = _catchErr.Error()
+			msg = _catchErr.Error()
 		} else {
-			msg = "0"
-			_catchErrMsg = ""
+			msg = ""
 		}
 	}
 	tm = "0"

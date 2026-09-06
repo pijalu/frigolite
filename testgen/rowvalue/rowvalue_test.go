@@ -256,14 +256,20 @@ func Test_rowvalue(t *testing.T) {
 						_map_arr = ""
 						_ = _map_arr // suppress unused warning
 						vtab.TclVarSet("map", "1", "1")
-						map_1 = "1"
+						_list := tclList([]string{"1"})
+						_ = _list
+						_r = _list
+						map_1 = _r
 						_ = map_1 // suppress unused warning
 						{ // tn2 + ".where1" — skipped: TCL associative-array expected-value lookup not transpiled N-A (SQL side effects only)
 							_res = db.Exec("SELECT * FROM one WHERE " + expr)
 							_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 						}
 						vtab.TclVarSet("map", "0", "1")
-						map_0 = "1"
+						_list := tclList([]string{"1"})
+						_ = _list
+						_r = _list
+						map_0 = _r
 						_ = map_0 // suppress unused warning
 						vtab.TclVarSet("map", "", "")
 						_map_arr = ""

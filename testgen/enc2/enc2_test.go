@@ -107,7 +107,10 @@ func Test_enc2(t *testing.T) {
 	dbcontents = "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n"
 	_ = dbcontents // suppress unused warning
 	// proc definition (not transpiled)
-	encodings = "UTF-8 UTF-16le UTF-16be"
+	_list := tclList([]string{"UTF-8", "UTF-16le", "UTF-16be"})
+	_ = _list
+	_r = _list
+	encodings = _r
 	_ = encodings // suppress unused warning
 	vtab.TclVarSet("sqlite_os_trace", "", "0")
 	sqlite_os_trace = "0"
