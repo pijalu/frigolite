@@ -161,7 +161,10 @@ func (t *Tokenizer) Next() Token {
 		return t.Next()
 	}
 	t.pos++
-	t.last = Token{Type: TokenError, Value: string(ch), Pos: pos}
+	// Any unrecognized character is TK_ILLEGAL in SQLite's tokenizer
+	// (tokenize.c), reported as "unrecognized token: %T" — not a syntax
+	// error (main-3.1/3.2: "!", "^").
+	t.last = Token{Type: TokenUnrecognized, Value: string(ch), Pos: pos}
 	return t.last
 }
 
@@ -382,7 +385,8 @@ func (t *Tokenizer) readBangOp(pos int) Token {
 		t.pos++
 		return Token{Type: TokenNeq, Value: "!=", Pos: pos}
 	}
-	return Token{Type: TokenError, Value: "!", Pos: pos}
+	// A bare "!" (not followed by '=') is TK_ILLEGAL: "unrecognized token".
+	return Token{Type: TokenUnrecognized, Value: "!", Pos: pos}
 }
 
 func (t *Tokenizer) readPipeOp(pos int) Token {

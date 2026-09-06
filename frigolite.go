@@ -862,7 +862,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 	stmts, err := db.engine.Prepare(sqlStr)
 	if err != nil && len(stmts) == 0 {
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
-		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err)}
+		return &Result{Error: err}
 	}
 
 	var lastResult *exec.Result
@@ -885,7 +885,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 		// The parseable prefix executed without error; report the trailing
 		// syntax error (SQLite reaches it only after the prefix runs).
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
-		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err)}
+		return &Result{Error: err}
 	}
 
 	// A successful statement clears the connection's last-error state
@@ -912,7 +912,7 @@ func (db *DB) Query(sqlStr string) *Result {
 	stmts, err := db.engine.Prepare(sqlStr)
 	if err != nil && len(stmts) == 0 {
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
-		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err), SQL: sqlStr}
+		return &Result{Error: err, SQL: sqlStr}
 	}
 
 	if len(stmts) == 0 {
