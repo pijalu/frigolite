@@ -2543,266 +2543,46 @@ SESSION 7g (RTREE slice8): rtree2/rtreecheck green; three root causes.
   13-package tranche with detailed evidence (portplan/NA_EVIDENCE.md P8.CORRUPT)
   and route as a dedicated P8.CORRUPT.fix follow-up phase.
 
-## P8.INCRVACUUM blocked (recorded 2026-09)
+## P8.INCRVACUUM — pre-work investigation archive (consolidated 2026-09-06)
 
-- **Pristine auto-vacuum DB integrity_check**: a fresh `PRAGMA auto_vacuum=2;
-  CREATE TABLE` reports "Page 2: never used" because the reserved ptrmap page
-  is invisible to checkTreePage's orphan walk. Fix: export `pager.IsPtrmapPageNo`
-  and skip ptrmap pages in findOrphans when `ctx.Pager.AutoVacuum()` is on.
-  This unblocks incrvacuum3 (the only INCRVACUUM package that did not hinge on
-  actual file shrinkage).
-- **Engine gap: actual file shrinkage**: frigolite's pager keeps the on-disk
-  freelist empty — `FreePage` is only called for orphaned overflow pages
-  (btree_tail.go `deleteAllMatchingFromLeaf`), never for the emptied leaf
-  itself. Even if the freelist were populated, no code consumes it back into
-  the file (no `incrVacuumStep` / `relocatePage` / `autoVacuumCommit`).
-  SQLite's btree.c sqlite3BtreeIncrVacuum (~120 lines) + autoVacuumCommit
-  (~80 lines) + relocatePage (~100 lines) + ptrmap management would port to
-  ~500-1000 lines of focused pager+btree Go. Beyond single-goal scope.
-- **Test loop without incremental_vacuum rows**: incrvacuum-7's `while 1 {
-  ... if {$nRow == $iWrite} break }` never terminates because the test's
-  `db eval {PRAGMA incremental_vacuum}` body increments nRow, and frigolite's
-  IncrementalVacuum pragma returns no rows when nFree==0. Even after
-  freeing empty leaves (engine work), the test requires actual page
-  relocation for file-shrinkage assertions.
-- **autovacuum2 sqlite3_autovacuum_pages callback**: the test hinges on a C-API
-  extension (`sqlite3_autovacuum_pages`) that frigolite does not surface. Pure
-  C-extension gap.
-- **Transpiler gaps in autovacuum/incrvacuum family**: `[make_str $i $len]`
-  user-proc calls (defined at file top: `proc make_str {char len} { set str
-  [string repeat $char. $len]; return [string range $str 0 [expr $len-1]] }`)
-  are emitted as literal strings instead of evaluating the proc body.
-  `[join $delete " OR oid = "]` drops the separator argument. `[eval concat
-  $delete_order]` and `[lsort -integer [eval ...]]` chains are not
-  recognized. `[file_pages]` TCL proc returns `[expr [file size test.db] /
-  1024]` — transpiler emits "// file_pages (unsupported command, not
-  transpiled)" which silently drops the assertion.
-- **tclExecSQL row-separator decision**: the P8.CORRUPT-era lesson to join
-  rows with `\n` conflicts with TCL's actual `[db eval {SELECT * FROM t}]`
-  semantics (space-joined flat list). For tests like autovacuum-2.2.9 where
-  `av1_data` is set via `[db eval {SELECT * FROM av1}]` then compared in a
-  later do_test body (flatten: space-joined), both sides should match the
-  TCL flat list. The current `\n` join in tclExecSQL causes 2.2.9 to fail
-  even when the engine is correct.
+The goal CLOSED 5/5 green on 2026-09-04 (S6/S7: IncrVacuumStep btree.c:4010-4104,
+autoVacuumCommit, relocatePage, ptrmap persistence, btree divider a433c318,
+wal_checkpoint PASSIVE 001af0a8). The four investigation sections that
+previously lived here ("blocked", "unblocking investigation", "round 2",
+"round 3") all concluded the goal was infeasible short-term — verdicts are
+OBSOLETE. Durable points that survived:
 
-## P8.INCRVACUUM unblocking investigation (2026-09)
+- Ptrmap pages are invisible to the integrity_check orphan walk; skip
+  pager.IsPtrmapPageNo pages in findOrphans when AutoVacuum() is on.
+- `PRAGMA auto_vacuum = 'invalid'/5` returns the current value (no error);
+  validate loosely (int 0-2 silently accepted).
+- Transpiler skip logic must be per-statement, not per-execsql-block
+  (a single unsupported statement used to no-op whole blocks, cascading
+  "no such table" failures forward).
+- FreePage must NOT zero page content wholesale — byte0 must survive as a
+  parseable page type or cache re-reads fail with "unknown page type 0x00".
+- `sqlite3_autovacuum_pages` callback: transpiler must emit a Go closure
+  variable shared across do_test blocks; the `*_off` variant does all the
+  work and returns 0.
+- `db eval {PRAGMA incremental_vacuum}` yields one row per freed page;
+  loops like incrvacuum-7 break only when rows appear.
+- autoVacuumCommit must run AFTER updateFileChangeCounter and BEFORE the
+  final flush; pager AutoVacuum() getter (not the PRAGMA value) is the
+  source of truth — the mode only adopts on an empty DB.
 
-**Verdict**: Original blocker stands. Investigation confirms the 4 packages
-(autovacuum, incrvacuum, incrvacuum2, autovacuum2) need multi-day engine work
-that cannot complete within a single goal budget. Key findings from the
-investigation:
 
-- **`sqlite_options_default_autovacuum` is a TCL array reference**
-  (`$sqlite_options(default_autovacuum)`) that the transpiler maps to Go
-  variable `sqlite_options_default_autovacuum`. The helper template
-  (`tools/tcl2go/helpers_template_part1.go`) declares `sqlite_options = "0"`
-  but NOT the per-key `sqlite_options_default_autovacuum`. Test 1.1 in
-  incrvacuum.test expects this to be "0" but the testgen uses it as empty
-  string (var declaration but never assigned). Small fixable gap: add the
-  per-key vars in helpers_template_part1.go.
+## P8.INCRVACUUM.phase1 partial outcome (2026-09) — consolidated
 
-- **`PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)` skip pattern**
-  affects tests in incrvacuum-5.2.3 (which has `PRAGMA incremental_vacuum`
-  followed by `CREATE TABLE tbl2` then `INSERT`). The skip message is
-  misleading: it actually skips when the SQL string contains
-  `PRAGMA FREELIST_COUNT`, not `PRAGMA incremental_vacuum`. The actual SQL
-  in 5.2.3 has only `PRAGMA incremental_vacuum` and `CREATE TABLE` /
-  `INSERT`, so the skip should not fire. Looking again — the transpiler
-  marks 5.2.3 as skipped via a different mechanism (the testgen emits
-  `// execsql skipped: VACUUM not implemented (P8.VACUUM)`). Root cause:
-  the comment-based skip logic in flow.go / processdb.go treats the entire
-  execsql block as skipped if any statement is unsupported. Fix: skip
-  per-statement, not per-block.
+FreePage-on-emptied-leaves was staged via `DeleteCellsWhere` (commit a801c6a7:
+FreePage keeps content, AllocatePage pops an in-memory free set). It initially
+required nulling parent child pointers without rebalance, which left zeroed
+children the cursor could loop on. RESOLVED by later phases: balance_nonroot /
+page-packing landed and freed leaves are removed from the parent's cell array
+properly.
 
-- **Infinite loop in incrvacuum-7**: the loop break condition
-  `if {$::nRow == $::iWrite} break` requires `db eval {PRAGMA
-  incremental_vacuum}` to yield at least 1 row. frigolite's
-  `IncrementalVacuum` returns no rows when nFree==0. Even after freeing
-  empty leaves (engine work), the test requires actual page relocation for
-  the file-shrinkage assertions (`file_pages` after vacuum).
-
-- **Test 5.2.4 fails with "no such table: tbl2"**: 5.2.3 was skipped (transpiler
-  emitted no-op), so tbl2 was never created, so 5.2.4's SELECT fails.
-  Fixing the per-statement skip would cascade 5.2.3 → 5.2.4/5.2.5 forward.
-
-- **`PRAGMA auto_vacuum = 'invalid'` and `PRAGMA auto_vacuum = 5`**:
-  frigolite returns "malformed database schema" error. SQLite returns the
-  current value (no error). Fix: tighten the validator to accept any int
-  0-2 silently, only erroring when truly malformed (e.g. non-integer, negative).
-
-## P8.INCRVACUUM unblocking round 2 (2026-09)
-
-The investigation continued with attempted minimal engine changes:
-
-- **FreePage + re-read collision**: adding FreePage(rootPage) on emptied
-  leaves triggered "storage: unknown page type: 0x00" during DELETE. Root
-  cause: pager.FreePage zeros pg.Data fully (including byte0 = page-type
-  byte), but a subsequent pager cache lookup re-reads the page via
-  storage.ParsePage which validates byte0 against known b-tree page types.
-  Patched: FreePage now preserves bytes [0, 4) so the freed page still
-  looks like a valid b-tree leaf to a later integrity_check walk (the
-  page's pgno stays in the file until autoVacuumCommit / incremental_vacuum
-  truncates, and the isFreelistPage check skips it from the orphan list).
-
-- **DecrementFreelistCount(n)**: added to pager so PRAGMA incremental_vacuum
-  can yield one row per call when nFree>0 (matching
-  sqlite3BtreeIncrVacuum's per-step return). Caps at zero, sets header
-  dirty. Without an actual page-relocation pass the file does not
-  shrink — only the header counter is decremented. Used by the
-  testgen-callback `db eval {PRAGMA incremental_vacuum}` body loops
-  (incrvacuum-7.*) to terminate. Deeper page-swap mechanics required for
-  file-size assertions.
-
-- **TestParseSkipMaps floor 293 → 288**: P8.ENCODING left the floor at 293
-  after un-skipping 5 (enc/enc2/enc4/securedel/securedel2). P8.INCRVACUUM
-  un-skipped 5 more (autovacuum/autovacuum2/incrvacuum/incrvacuum2/incrvacuum3)
-  → 288. The tools/status/status_test.go was already updated (it had 288
-  when re-checked after this investigation).
-
-**Implementation plan for next session** (in priority order):
-
-1. **FreePage from btree_tail.go** (engine): call `t.pager.FreePage(leafNum)`
-   inside `deleteAllMatchingFromLeaf` when `len(newPtrs)==0 && leafNum==t.rootPage
-   && t.pager.AutoVacuum()`. Test with a pure-Go script: PRAGMA auto_vacuum=1;
-   CREATE TABLE t1; INSERT 2 rows; DELETE FROM t1; SELECT freelist_count==1.
-   (This already worked in my session but I rolled back the btree call to
-   keep things stable — the FreePage-side fix is in pager.go.)
-
-2. **sqlite3_autovacuum_pages callback** (engine): new Engine method
-   `RegisterAutovacuumPagesCallback(fn func(schema string, filesize, freesize,
-   pagesize uint32) uint32)`. When the callback is set and auto-vacuum
-   commits, call it before autoVacuumCommit to ask the user how many pages
-   to vacuum (nVac). Replace the `nVac = nFree` default in the loop. Test
-   autovacuum2-1.3 → autovacuum2-1.5.
-
-3. **incrVacuumStep + autoVacuumCommit** (engine): the hard part. Port
-   btree.c sqlite3BtreeIncrVacuum (~30 lines) and autoVacuumCommit
-   (~80 lines). For each step: take the last page of the file, allocate
-   a free page near the front (use AllocatePage with the BTALLOC_LE
-   mode), call relocatePage to swap content + fix parent pointers +
-   ptrmap, decrement the file size. Pages not relocated stay in the
-   freelist for the next vacuum. Without this, no autovacuum test can
-   pass — file size never shrinks.
-
-4. **Transpiler gaps** (smaller, isolated):
-   - `[make_str $i $ENTRY_LEN]` user-proc call → emit `tclMakeStr(...)` Go
-     helper that runs string-repeat + string-range and returns the value.
-   - `[join $delete " OR oid = "]` separator dropped → cmdExprJoin already
-     handles 2 args; check why the separator is missing.
-   - `[eval concat $delete_order]` chain → either recognize `eval` as
-     no-op (TCL eval evaluates a string as a script — for `eval concat`
-     it splices lists) or stub `eval` to splice its argument.
-   - `[lsort -integer [eval ...]]` chain → `lsort -integer` needs the
-     -integer flag handling; `eval concat` needs proper splicing.
-   - `[file_pages]` TCL proc → already transpiled as
-     `tclExpr("[file size test.db] / 1024")` in some paths; check the
-     proc body emission.
-   - `PRAGMA auto_vacuum = 'invalid'` / `5` returns error: tighten the
-     validator to silently accept any integer in {0,1,2}.
-
-5. **WAL mode in incrvacuum3**: the test file uses `PRAGMA journal_mode
-   = 'wal'` followed by `PRAGMA incremental_vacuum`. frigolite has WAL
-   implemented (per the P7.WAL-E / P8.STORAGE handover) so this should
-   work — verify after #1-#4.
-
-The investigation's conclusion: the original blocker is genuine.
-Auto-vacuum and incremental-vacuum with actual file shrinkage is the
-SQLite btree.c core (~300 lines of faithful port). A focused 2-3 session
-effort on engine work + the autovacuum_pages callback + transpiler
-fixes should bring all 5 packages green.
-
-## P8.INCRVACUUM unblocking round 3 (2026-09) — investigation conclusion
-
-Re-verified the blocker with empirical evidence. Single-session engine work is
-insufficient; the gap is too deep. Concrete observations:
-
-- **`freelist_count` after DELETE in INCREMENTAL mode is still 0**: a
-  pure-Go scratch test (`PRAGMA page_size=1024; PRAGMA auto_vacuum=incremental;
-  CREATE TABLE tbl1; INSERT 1000 rows; DROP TABLE tbl1;`) reports
-  `freelist_count=0` after DROP. The 29 pages of tbl1 are not added to the
-  on-disk freelist. Without this, every test that asserts freelist_count > 0
-  after DELETE/DROP fails, and `PRAGMA incremental_vacuum` has nothing to
-  consume. Root cause: the btree's `DeleteCellsWhere` flow only frees
-  overflow pages (btree_tail.go line 125), never the leaf page itself.
-- **File size never shrinks**: `PRAGMA page_count` after DROP = 30 (same as
-  before). SQLite btree.c: `autoVacuumCommit` (FULL mode) and
-  `sqlite3BtreeIncrVacuum` (INCREMENTAL mode) both physically relocate the
-  last page of the file to a free page near the front, then truncate. This
-  is the ~300-line intricate page-swap machinery from btree.c that has no
-  frigolite equivalent. Without it, no test that asserts `file size == N*1024`
-  after autovacuum can pass.
-- **Transpiler gaps compound the engine gap**: the autovacuum-1.x,
-  autovacuum-2.x and 9.x test bodies use `[make_str $i $len]`,
-  `[file_pages]`, `[eval concat ...]`, `[lsort -integer ...]`, all of which
-  the transpiler emits as no-op comments. Even if the engine worked, the
-  autovacuum tests would still need ~200 lines of transpiler fixes.
-- **sqlite3_autovacuum_pages callback** is a C-API extension gap; it is
-  reachable in ~100 lines of engine code (new Engine method, plumb into
-  autoVacuumCommit) but alone only unblocks autovacuum2-1.3.
-
-**Verdict for next session**:
-- Best case (full 5/5 green): ~500-1000 lines of focused pager+btree
-  work (FreePage on emptied non-root leaves, incrVacuumStep, relocatePage,
-  autoVacuumCommit, ptrmap read/write) + ~200 lines of transpiler
-  work + ~100 lines for autovacuum_pages callback. Multi-day scope.
-- Pragmatic case (1/5 green, 4/5 N-A): keep incrvacuum3; re-classify the
-  other 4 as N-A G7 (deferred) with native oracle-verified tests as
-  evidence, matching the 2026-05 supersession policy.
-
-The investigation goal exhausts autonomous options: the page-swap
-machinery cannot be ported in a single session without prior authorization
-to commit to the multi-day investment.
-
-## P8.INCRVACUUM.phase1 partial outcome (2026-09)
-
-Phase 1 attempted to add FreePage-on-emptied-leaves via
-`internal/btree/btree_tail.go::DeleteCellsWhere`. Outcome:
-
-- **pager.FreePage/AllocatePage refactored** (commit a801c6a7):
-  FreePage no longer zeros the freed page's content (keeps it as a
-  valid empty b-tree leaf), and AllocatePage pops from a new
-  in-memory `p.freePages` set for O(1) freelist consumption. The
-  on-disk SQLite-format freelist (header.trunk/count) is still
-  maintained for compatibility with corrupt2-14.x tests.
-- **btree/btree_tail.go**: `collectLeafPages` extended to populate
-  `parentRefs` (one `leafRef` per leaf), so callers can update
-  parents when freeing. `DeleteCellsWhere` was modified but the
-  FreePage call is currently a no-op (commented out) — see below.
-- **Tests**: `internal/btree/btree_vacuum_test.go` added with
-  TestFreePageEmptiedLeaf / TestFreePageRootEmptied /
-  TestFreePageSelectiveDelete. The first and third currently FAIL
-  because the FreePage call is not wired in (intentional). The
-  second passes (single-leaf btree case).
-- **Regression test**: incrvacuum3 testgen stays green (verified
-  after the refactor).
-
-**Why FreePage-on-leaf is hard**:
-
-Calling `pager.FreePage(leafNum)` from `DeleteCellsWhere` requires
-also nulling the parent's `leftChild` (or `rightmostPtr`) so the
-freed leaf is no longer reachable. But the btree's interior page
-now has a mix of valid children and zeroed children. The cursor's
-traversal (descendToFirstLeaf, navigateToNextChild) must skip
-zeroed children, which it can do — but the btree is in an
-unbalanced state: an interior page may have `cellCount = 10` with
-9 zeroed children and 1 valid one. The cursor's path stack and
-seek logic are not designed for this and may enter infinite loops
-when the freed leaf's content (still valid empty leaf data) is
-re-encountered via stale path entries.
-
-**Resolution path** (for phase 2/3):
-
-The proper fix requires btree rebalance (SQLite's
-`balance_nonroot`) so that freed leaves are removed from the
-parent's cell array entirely (cell pointer count decrements), not
-just have their leftChild zeroed. balance_nonroot is ~500 lines of
-intricate C port. Phase 3 (relocatePage + IncrVacuumStep) will
-land the rebalance as part of the page-swap machinery. Until
-then, the FreePage call is staged but not active.
-
-**Lesson**: Always test the btree's full read path (cursor, scan,
-seek) after modifying the btree structure. A change that "looks
-correct" in isolation can break traversals in subtle ways.
+**Durable lesson**: always exercise the btree's full read path (cursor, scan,
+seek) after structural edits — a change that looks correct in isolation can
+break traversal subtly.
 
 ## P8.INCRVACUUM.phase4 outcome (2026-09) — autoVacuumCommit + callback
 
@@ -2858,60 +2638,18 @@ shrinkage is visible in the committed file. The pager
 alone is insufficient: the pager only adopts the mode on an
 empty DB).
 
-## P8.INCRVACUUM.phase5 outcome (2026-09) — transpiler gaps (partial)
+## P8.INCRVACUUM.phase5 outcome (2026-09) — transpiler gaps — ALL RESOLVED
 
-Phase 5 was scoped to 5 transpiler gaps (make_str, file_pages,
-eval concat, lsort -integer, join separator). Three of the five
-made the transpile → runtime wire green:
+The five gaps (make_str, file_pages, eval concat, lsort -integer, join
+separator) were all closed before goal completion. Durable lessons:
 
-- `[make_str CHAR LEN]` → tclMakeStr(CHAR, tclToInt(LEN)) (helpers
-  + 2-arg special funcs template)
-- `file_pages` proc → tclFilePages("test.db") (helper +
-  processCommand dispatch entry)
-- `[lreplace $list $first $last ...]` → tclLReplace(...) (cmdExpr
-  handler)
-
-The remaining two transpiler gaps are PARTIAL but functional:
-
-- `[join $list " sep "]` separator is preserved correctly when
-  the whole bracketed text is inside a quoted SQL string
-  (readQuoteWord now tracks bracket depth so the inner `" OR
-  oid = "` doesn't terminate the outer string early). All
-  1231 testgen packages regenerated cleanly.
-- `[lsort -integer ...]` was already in cmdExprLSort.
-
-The two transpiler gaps that REMAIN UNIMPLEMENTED and block
-autovacuum.test / incrvacuum*.test pass:
-
-- `[eval concat $list]` in command position: the transpiler
-  treats the literal text "eval concat $delete_order" as a list
-  to sort (it returns the words ["eval", "concat",
-  "$delete_order"] not the expanded list). A proper
-  implementation must recognize eval-as-noop-for-list-result and
-  splice the result through the foreach list builder.
-- The btree rebalance (balance_nonroot) needed for the engine to
-  actually free pages on DELETE/DROP and shrink the file. This
-  is multi-day scope (commit 7314a69a reverted the FreePage-on-
-  leaves integration because the btree wasn't ready). Phase 5
-  alone cannot unblock autovacuum/incrvacuum/incrvacuum2 — the
-  engine must also be brought up.
-
-**Lesson (parser + transpiler)**: when the TCL parser produces a
-single RawWord for a bracket expression, downstream consumers
-must respect the bracket's internal structure (re-tokenize with
-tclCmdWords) instead of using strings.Fields, which silently
-breaks nested brackets. The bug surfaced in setLsearchValue:
-`strings.Fields("[lsearch $::tbl_data [make_str $d $ENTRY_LEN]]")`
-produces 5 words; `tclCmdWords` produces 3 with the bracket as
-one word. Always prefer the TCL tokenizer.
-
-**Lesson (2-arg special funcs)**: the existing $data placeholder
-in collectSpecialFuncs only supports 1-arg procs. A 2-arg variant
-needs new placeholders ($a, $b) and a wrapper that converts
-string args to int where the runtime helper expects one. The
-template string itself signals the arity (contains $a and $b?
-treat as 2-arg).
-
+- readQuoteWord tracks bracket depth so an inner quoted separator inside a
+  bracketed expr doesn't terminate an outer SQL string.
+- When the TCL parser produces a single RawWord for a bracket expression,
+  re-tokenize with tclCmdWords — strings.Fields silently breaks nested
+  brackets (bit setLsearchValue).
+- 2-arg special-func templates need $a/$b placeholders + int coercion; the
+  template string's own arity signals the wrapper shape.
 ## TCL helper helpers must preserve list semantics, not brace-wrap
 
 - tclConcat: TCL's `concat` returns a flat list of elements, not a
@@ -5168,3 +4906,55 @@ fixtures. S8 backfills them, learning:
   inner statement back too via the parent's statement journal; frigolite
   does not (separate Exec paths). N-A with engine-visible contract
   pinned by `frigolite_misc_native_test.go::TestNativeMiscUDFF1F2`.
+
+
+## P8.PRAGMA session (2026-09-05/06) — quota VFS, max_page_count, pragma edge cases
+
+Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
+
+- **Quota deny used to leave the DB "malformed"**: the deny path (flush
+  error) must restore the engine snapshot AND roll back from the journal —
+  the header claimed more pages than the file had. General rule: ANY
+  flush/write failure at COMMIT needs execRollback, not just an error
+  return; and when a quota VFS is active, DDL needs snapshots too
+  (`dmlCanSkipSnapshot` vetoed by `quota.Active()`).
+- **UnregisterDBFile must run ALWAYS in pager.Close** (defer-style), even
+  on the flush-error path — an early return leaked the quota nref and a
+  later CREATE wrongly succeeded past the cap.
+- **Rowid-alias PK columns store NULL on disk**: UNIQUE-conflict error
+  messages must substitute the REAL rowid; callers that pass 0,0 collapse
+  two distinct rows into one message. Thread rowids alongside values.
+- **Empty-join short-circuit must skip TVF operands** (PRAGMA_* table-valued
+  functions resolve through synthetic schema entries with RootPage=1/0 rows —
+  FindTable-based emptiness checks wrongly empty the join).
+- **ValidateHeader must NOT validate freelist header fields at schema-read
+  time** — SQLite reads trunk/count/largestRoot lazily; eager validation
+  made integrity_check of a corrupt DB error out instead of reporting rows.
+  Corruption surfaces as ROWS (checkList/checkRef message formats), never
+  as an exec error (pragma6-1.2).
+- **quotaStrglob**: port as a DIRECT C transliteration — the `zGlob-1`
+  recursion for `*[...]`, `'/'` matching both separators, and literal-`]`-first
+  classes are load-bearing; a "clean" reimplementation diverges on
+  quota-glob 10.2/12.2/53.
+- **sqlite3_quota_* TCL commands**: `sqlite3_quota_set` takes a callback
+  whose limit-extension must round-trip into the group limit (quota-2.2.x);
+  fwrite's C semantics cap `nmemb=(iEnd-iOfst)/size` (quota2 4000-vs-5000
+  cases). Dynamic connection names (`sqlite3 $con test.db`) need a
+  registry: tclConnByName dispatches `$db close` and method calls by
+  variable VALUE at runtime.
+- **GREEN-LEDGER baseline trap**: the "2026-09-05T00:00Z" seeded baseline
+  was a RE-STAMPED copy of the 2026-09-03 run — all 1,219 per-package
+  durations were byte-identical. A seed must always be validated against a
+  REAL run (durations differ); the first real run (2026-09-06) surfaced 46
+  fail→pass improvements and 5 pass→fail regressions that the stale ledger
+  had hidden. Flip triage protocol: worktree-bisect suspicious flips at
+  the pre-goal commit BEFORE attributing them to the active goal — all 5
+  (lock, pcache, corruptB, fts3corrupt4, tkt_fc62af4523) failed at 4
+  pre-P8.PRAGMA commits → owner FULL-SUITE-DRIFT, not the active goal.
+- **quality_gate pre-existing failures**: verify against the PRE-GOAL
+  commit (line counts, test failures) before treating a gate failure as
+  goal fallout; pager.go's >1000-line finding predates the goal.
+- **Missing test fixtures**: TestWALConformance*/walview tests reference
+  testdata/walconformance/wal-single-commit.db* that is NOT in the repo —
+  the fixtures must be regenerated (oracle) and committed, or the tests
+  skip their absence explicitly.
