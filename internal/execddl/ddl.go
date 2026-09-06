@@ -743,6 +743,14 @@ func (e *DDLExecutor) ensureSQLiteSequenceTable(ctx *DatabaseContext) error {
 	if err == nil {
 		for _, ent := range entries {
 			if strings.EqualFold(ent.Name, "sqlite_sequence") || strings.EqualFold(ent.TblName, "sqlite_sequence") {
+				// sqlite_sequence must be an ordinary rowid table: a WITHOUT
+				// ROWID impostor (planted via writable_schema, autoinc-12.x)
+				// makes the sequence btree unreadable as a table — SQLite
+				// reports SQLITE_CORRUPT, "database disk image is malformed",
+				// at the next AUTOINCREMENT sequence open.
+				if strings.Contains(strings.ToUpper(ent.SQL), "WITHOUT ROWID") {
+					return fmt.Errorf("database disk image is malformed")
+				}
 				return nil // already exists (real or user-created)
 			}
 		}

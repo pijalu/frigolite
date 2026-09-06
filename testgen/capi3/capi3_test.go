@@ -5,6 +5,7 @@
 package capi3
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -849,7 +850,7 @@ func Test_capi3(t *testing.T) {
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					// sqlite3_bind_text $v_0 (unknown prepared statement)
+					_catchErr = fmt.Errorf("SQLITE_MISUSE")
 					if _catchErr != nil {
 						rc = "1"
 						msg = _catchErr.Error()

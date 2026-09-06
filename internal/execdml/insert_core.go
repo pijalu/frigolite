@@ -57,6 +57,13 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) (ret *Result) {
 	// write the running max back to the real sqlite_sequence table. The
 	// write is skipped for empty statements that do not touch the table.
 	if e.ctx.TableHasAutoIncrement(tableEntry.Name) && dbCtx != nil {
+		// The sqlite_sequence table must exist and be an ordinary rowid
+		// table before an AUTOINCREMENT insert uses it (autoinc-12.2/12.3:
+		// a renamed-away or impostor sqlite_sequence fails the insert with
+		// SQLITE_CORRUPT, "database disk image is malformed").
+		if res := e.validateSequenceTable(dbCtx); res != nil {
+			return res
+		}
 		seqTable := tableEntry.Name
 		seqPg := dbCtx.Pager
 		seqRoot := tableEntry.RootPage
@@ -816,3 +823,40 @@ func visitSelectExprs(s *sql.SelectStmt, fn func(sql.Expr)) {
 // isTempTrigger reports whether a trigger entry lives in the TEMP schema
 // (TEMP triggers are always trusted, so the trusted_schema function-safety
 // check skips them — trustschema1-2.120/2.150/3.120).
+
+// validateSequenceTable checks the sqlite_sequence schema entry before an
+// AUTOINCREMENT insert reads or writes it: the table must exist and be an
+// ordinary rowid table. A renamed-away sequence or an impostor (WITHOUT
+// ROWID / virtual table planted via writable_schema) is SQLITE_CORRUPT,
+// "database disk image is malformed" (autoinc-12.2/12.3/12.4).
+func (e *DMLExecutor) validateSequenceTable(dbCtx *DatabaseContext) *Result {
+	entries, err := dbCtx.Schema.GetEntries(schema.TypeTable)
+	if err != nil {
+		return nil
+	}
+	for _, ent := range entries {
+		if strings.EqualFold(ent.Name, "sqlite_sequence") || strings.EqualFold(ent.TblName, "sqlite_sequence") {
+			up := strings.ToUpper(ent.SQL)
+			if strings.Contains(up, "WITHOUT ROWID") || strings.Contains(up, "VIRTUAL TABLE") {
+				return &Result{Error: fmt.Errorf("database disk image is malformed")}
+			}
+			// A rootpage swap (autoinc-12.4: writable_schema points
+			// sqlite_sequence at another table's btree) leaves an index-type
+			// page where a table btree must be — SQLite reports corruption
+			// when the sequence btree opens.
+			if pg, pgErr := dbCtx.Pager.ReadPage(ent.RootPage); pgErr == nil && len(pg.Data) > 0 {
+				coff := 0
+				if ent.RootPage == 1 {
+					coff = 100
+				}
+				switch pg.Data[coff] {
+				case 0x0D, 0x05: // table leaf / table interior
+				default:
+					return &Result{Error: fmt.Errorf("database disk image is malformed")}
+				}
+			}
+			return nil
+		}
+	}
+	return &Result{Error: fmt.Errorf("database disk image is malformed")}
+}

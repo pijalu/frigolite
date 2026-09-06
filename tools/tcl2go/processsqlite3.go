@@ -368,6 +368,13 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 	ps := tp.preparedStateRef()
 	sql, known := ps.stmts[stmtVar]
 	if !known {
+		if tp.catchMode {
+			// sqlite3_bind_* on a nil/closed statement handle (the TCL
+			// wrapper passes handle "0") raises SQLITE_MISUSE
+			// (test1.c test_bind — capi3-14.1-misuse).
+			tp.emitLine("_catchErr = fmt.Errorf(\"SQLITE_MISUSE\")")
+			return
+		}
 		if debugTcl2go {
 			fmt.Fprintf(os.Stderr, "DEBUG bind unknown: %q known=%v\n", stmtVar, keys(ps.stmts))
 		}
