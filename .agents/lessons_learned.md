@@ -4958,3 +4958,39 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   testdata/walconformance/wal-single-commit.db* that is NOT in the repo —
   the fixtures must be regenerated (oracle) and committed, or the tests
   skip their absence explicitly.
+
+## P8.PAGER session (2026-09-06/07 — batches 8-17, goal closed)
+
+- **Greedy interior splits**: SQLite balance_nonroot packs cells greedily —
+  the left page keeps everything that fit; only the tail moves right. A
+  midpoint interior split left interiors half-full (11 vs 7) and shifted
+  total page counts by ~0.2%. An empty right interior (0 cells) must still
+  write cell-content-start = pageSize (0 reads as 65536/malformed).
+- **Rowid-cache invalidation on UPDATE**: writeUpdateCell invalidating the
+  rowid cache on EVERY row write let the following monotone bump re-seed it
+  with one row's rowid — nested trigger INSERTs then re-allocated live
+  rowids and the per-row UPDATE clobbered them (silent row LOSS). Only
+  invalidate when the rowid actually changed.
+- **Schema btree freelist**: schema-btree allocations must pop the freelist
+  in non-autovacuum databases (skipFreelist is autovacuum-only) — else
+  CREATE VIEW fails SQLITE_FULL at the page cap with thousands of free
+  pages.
+- ** TCL catch semantics**: `catch BODY var` puts the ERROR MESSAGE in var
+  on failure and the body RESULT on success — never the 0/1 code. JSON-like
+  braced content (json.Valid) keeps its braces; plain-word braced units are
+  list quoting and strip. A stripped element that is itself a braced
+  multi-element list recurses.
+- **sqlite3_limit db NAME VALUE** (4-word form) was silently dropped for
+  SQL_LENGTH/COMPOUND_SELECT/FUNCTION_ARG/LIKE_PATTERN/VARIABLE_NUMBER.
+- **strftime cap**: StrAccum reserves the NUL terminator — output >= LIMIT
+  fails (nChar+N+1 > nMax), exact-fit included.
+- **Corpus constants can be stale**: sqllimits1-7.7.3's hardcoded 1691 does
+  not match the 3.51.0 reference build's actual 1690 (census-identical
+  engines). Verify against the reference BINARY, not the constant.
+- **Apple /usr/bin/sqlite3 (3.51.0 "apl") creates dbs with reserved=12** —
+  its file sizes embed that; use the source-tree build for reserved=0
+  comparisons.
+- **tools/status --check** needs the re-seed to update baseline_run_stamp
+  AND the per-package states; a pass->skipped transition must be blessed by
+  setting the ledger state to skipped with NA_EVIDENCE in the evidence
+  field.

@@ -1,7 +1,7 @@
 {
  "version": 1,
  "generated_at": "2026-09-06T06:46:07Z",
- "baseline_run_stamp": "2026-09-07T00:18:59Z",
+ "baseline_run_stamp": "2026-09-07T00:35:51Z",
  "baseline_total": null,
  "baseline_pass": 0,
  "baseline_fail": 0,
@@ -733,7 +733,7 @@
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
   "changes": {
-   "state": "fail",
+   "state": "pass",
    "evidence": "baseline 2026-09-06T06:33:30Z FAIL; drift-triage owner FULL-SUITE-DRIFT; tail: ine_core.go:737 +0x360\ngithub.com/pijalu/frigolite.(*DB).Exec(0x2b05d06be120, {0x2b05d07d6200, 0x7b})\n\t/Users/muaddib/dev/frigolite/frigolite.go:745 +0x258\ng...",
    "source": "/Users/muaddib/dev/frigolite/tools/status/last_run.json"
   },
@@ -7300,5 +7300,5 @@
    "speed3"
   ]
  },
- "baseline": "2026-09-07T00:18:59Z"
+ "baseline": "2026-09-07T00:35:51Z"
 }
