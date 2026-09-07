@@ -250,6 +250,15 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 	if err != nil {
 		return err
 	}
+	// Page-type-aware WITHOUT ROWID mapping: oracle files store WR
+	// tables as index btrees (0x0a/0x02, PK-first iField layout per
+	// PRAGMA index_xinfo); frigolite's writer stores declared-column
+	// order on 0x0d table-leaf pages, which need identity mapping.
+	wrIdentity := isDeclaredOrderWR(pg, e)
+	var ifield []int
+	if e.withoutRowid && !wrIdentity {
+		ifield = e.iField()
+	}
 	for {
 		payload, rowID, err := cursor.ReadCellData()
 		if err != nil {
@@ -268,16 +277,17 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 		}
 		var values []string
 		if e.withoutRowid {
-			// WITHOUT ROWID index records store PK columns in key order
-			// first, then the remaining declared columns in declared
-			// order (sqlite3recover.c iField from PRAGMA index_xinfo;
-			// oracle bytes for (1,2,3) PK(b,c) are [2 3 1]).
-			ifield := e.iField()
+			// wrIdentity (0x0d engine pages): declared order, map
+			// by identity. Index pages: PK-first iField layout.
 			values = make([]string, len(e.columns))
 			for di := range e.columns {
 				v := "NULL"
-				if ifield[di] < len(rec) {
-					v = renderValue(rec[ifield[di]])
+				si := di
+				if !wrIdentity {
+					si = ifield[di]
+				}
+				if si < len(rec) {
+					v = renderValue(rec[si])
 				}
 				values[di] = v
 			}
@@ -309,6 +319,26 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 		}
 	}
 	return nil
+}
+
+// isDeclaredOrderWR reports whether a WITHOUT ROWID table's root page
+// holds declared-column-order records on table-btree pages (0x0d/0x05,
+// frigolite's writer layout) rather than PK-first index records
+// (0x0a/0x02, oracle layout per PRAGMA index_xinfo iField).
+func isDeclaredOrderWR(pg *pager.Pager, e tableEntry) bool {
+	if !e.withoutRowid || e.rootPage <= 0 {
+		return false
+	}
+	raw, rerr := pg.ReadPage(uint32(e.rootPage))
+	if rerr != nil {
+		return false
+	}
+	coff := contentOffset(uint32(e.rootPage))
+	if coff >= len(raw.Data) {
+		return false
+	}
+	pt := raw.Data[coff]
+	return pt == 0x0d || pt == 0x05
 }
 
 // appendSequenceRows reads the input's sqlite_sequence rows and queues them
