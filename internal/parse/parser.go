@@ -669,43 +669,14 @@ func readDMLIdent(s string) (string, int) {
 		}
 		return s[1 : i-1], i
 	}
-	// Plain scan. A dot may continue a schema-qualified reference whose
-	// following segment is quoted — and that quoted segment may contain
-	// spaces ("vac.\"abc abc\""): the spaces are part of the name, so the
-	// scan must not stop there. Segments are joined with "." (matching the
-	// grammar's xfullname a+"."+b convention, unquoted).
-	var parts []string
-	for {
-		start := i
-		for i < len(s) {
-			c := s[i]
-			if c == '.' || c == '(' || c == ',' || isSpaceByte(c) {
-				break
-			}
-			i++
-		}
-		if i > start {
-			parts = append(parts, s[start:i])
-		}
-		if i < len(s) && s[i] == '.' {
-			i++
-			if i < len(s) && (s[i] == '\'' || s[i] == '"' || s[i] == '`' || s[i] == '[') {
-				seg, consumed := readDMLIdent(s[i:])
-				parts = append(parts, seg)
-				i += consumed
-				if i < len(s) && s[i] == '.' {
-					i++
-					continue
-				}
-			}
+	for i < len(s) {
+		c := s[i]
+		if c == '(' || c == ',' || isSpaceByte(c) {
 			break
 		}
-		break
+		i++
 	}
-	if len(parts) == 0 {
-		return "", 0
-	}
-	return strings.Join(parts, "."), i
+	return s[:i], i
 }
 
 // isSpaceByte reports whether c is ASCII whitespace.

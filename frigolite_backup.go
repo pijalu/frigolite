@@ -371,21 +371,21 @@ func (b *Backup) copyLocked() error {
 	dropQual := schemaQualifier(b.dstSchema)
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeTrigger {
-			if r := b.dst.Exec("DROP TRIGGER " + dropQual + quotedTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP TRIGGER " + dropQual + bareTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
 	}
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeView {
-			if r := b.dst.Exec("DROP VIEW " + dropQual + quotedTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP VIEW " + dropQual + bareTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
 	}
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeTable && !isSystemSchemaTable(e.Name) {
-			if r := b.dst.Exec("DROP TABLE " + dropQual + quotedTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP TABLE " + dropQual + bareTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
@@ -446,11 +446,11 @@ func (b *Backup) copyStatTable(e *schema.Entry) error {
 		}
 	}
 	srcQual := schemaQualifier(b.srcSchema)
-	r := b.src.Query("SELECT * FROM " + qualifiedTableRef(srcQual, e.Name))
+	r := b.src.Query("SELECT * FROM " + srcQual + bareTableName(e.Name))
 	if r.Error != nil {
 		return r.Error
 	}
-	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
+	destTable := schemaQualifier(b.dstSchema) + bareTableName(e.Name)
 	for _, row := range r.Rows {
 		var vals []string
 		for _, v := range row {
@@ -498,7 +498,7 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	// quoted table after a schema prefix ("temp.\"t1\"").
 	withoutRowid := strings.Contains(strings.ToUpper(e.SQL), "WITHOUT ROWID")
 	srcQual := schemaQualifier(b.srcSchema)
-	tableRef := qualifiedTableRef(srcQual, e.Name)
+	tableRef := srcQual + bareTableName(e.Name)
 	var srcQuery string
 	var colNames []string
 	if withoutRowid {
@@ -512,7 +512,7 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	}
 	// Column list for the INSERT: for rowid tables the first SELECT column is
 	// rowid (insert as "rowid"); the rest are the table's columns.
-	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
+	destTable := schemaQualifier(b.dstSchema) + bareTableName(e.Name)
 	if !withoutRowid {
 		colNames = append(colNames, "rowid")
 	}

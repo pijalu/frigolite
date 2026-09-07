@@ -221,7 +221,8 @@ func Test_nan(t *testing.T) {
 	// sqlite3_finalize $STMT
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "nan-3.1"
-			// db eval skipped: VACUUM not implemented (P8.VACUUM)
+			_res = db.Exec("DELETE FROM t1; INSERT INTO t1 VALUES(0.5); PRAGMA auto_vacuum=OFF; PRAGMA page_size=1024")
+			_ = _res // VACUUM skipped (P8.VACUUM); side effects run
 			_r = tclHexioRead("test.db", int64(2040), int64(8))
 			if _r != "3FE0000000000000" {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "3FE0000000000000", "nan-3.1")
