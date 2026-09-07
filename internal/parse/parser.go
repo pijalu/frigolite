@@ -639,113 +639,44 @@ func readDMLIdent(s string) (string, int) {
 		return "", 0
 	}
 	i := 0
-	if isDMLQuoteByte(s[0]) {
-		inner, consumed := scanQuotedSegment(s, i)
-		if s[0] != '[' {
-			return inner, consumed
+	if c := s[0]; c == '\'' || c == '"' || c == '`' || c == '[' {
+		closer := byte(']')
+		if c == '\'' {
+			closer = '\''
+		} else if c != '[' {
+			closer = c
 		}
-		if consumed > 0 {
-			return s[1 : consumed-1], consumed
-		}
-		return "", 0
-	}
-	// A dot here continues a schema-qualified reference whose segments may
-	// be quoted ("vac.\"abc abc\"") — hand off to the segment scanner.
-	if i < len(s) && s[i] == '.' {
-		return readQualifiedSegments(s, i)
-	}
-	return s[:i], i
-}
-
-// isDMLQuoteByte reports whether c opens a quoted identifier segment.
-func isDMLQuoteByte(c byte) bool {
-	return c == '\'' || c == '"' || c == '`' || c == '['
-}
-
-// scanQuotedSegment scans the quoted identifier starting at s[i] (a single
-// quote, double quote, backtick, or bracket). Returns the unquoted inner
-// text (doubled-quote escapes collapsed) and the number of bytes consumed.
-func scanQuotedSegment(s string, i int) (string, int) {
-	c := s[i]
-	closer := byte(']')
-	if c == '\'' {
-		closer = '\''
-	} else if c != '[' {
-		closer = c
-	}
-	i++
-	var inner []byte
-	for i < len(s) {
-		if s[i] == closer {
-			if closer != ']' && i+1 < len(s) && s[i+1] == closer {
-				inner = append(inner, closer)
-				i += 2
-				continue
+		i = 1
+		var inner []byte
+		for i < len(s) {
+			if s[i] == closer {
+				if closer != ']' && i+1 < len(s) && s[i+1] == closer {
+					inner = append(inner, closer)
+					i += 2
+					continue
+				}
+				i++
+				break
 			}
+			inner = append(inner, s[i])
 			i++
-			break
 		}
-		inner = append(inner, s[i])
-		i++
-	}
-	if i > len(s) {
-		i = len(s)
-	}
-	return string(inner), i
-}
-
-// readQualifiedSegments scans a dot-separated identifier reference starting
-// just before a dot (parser.go readDMLIdent helper). Each dot is followed by
-// a plain or quoted segment; quoted segments may contain spaces. Returns the
-// joined name ("schema.table") and the consumed length.
-func readQualifiedSegments(s string, i int) (string, int) {
-	var parts []string
-	for i < len(s) && s[i] == '.' {
-		i++
-		seg, consumed, quoted, ok := scanIdentSegment(s, i)
-		if !ok {
-			break
+		if i > len(s) {
+			i = len(s)
 		}
-		parts = append(parts, seg)
-		i += consumed
-		if !quoted {
-			// A plain segment ends the reference unless a dot follows.
-			if i < len(s) && s[i] == '.' {
-				continue
-			}
-			break
+		if c == '\'' || c == '"' || c == '`' {
+			return string(inner), i
 		}
-		if i >= len(s) || s[i] != '.' {
-			break
-		}
+		return s[1 : i-1], i
 	}
-	if len(parts) == 0 {
-		return "", 0
-	}
-	return strings.Join(parts, "."), i
-}
-
-// scanIdentSegment scans one identifier segment at i: a quoted identifier
-// (which may contain spaces) or a plain one. Returns the name, the bytes
-// consumed, whether the segment was quoted, and ok=false at a
-// non-identifier position.
-func scanIdentSegment(s string, i int) (string, int, bool, bool) {
-	if isDMLQuoteByte(s[i]) {
-		seg, consumed := scanQuotedSegment(s, i)
-		return seg, consumed, true, true
-	}
-	start := i
 	for i < len(s) {
 		c := s[i]
-		if c == '.' || c == '(' || c == ',' || isSpaceByte(c) {
+		if c == '(' || c == ',' || isSpaceByte(c) {
 			break
 		}
 		i++
 	}
-	if i == start {
-		return "", 0, false, false
-	}
-	return s[start:i], i - start, false, true
+	return s[:i], i
 }
 
 // isSpaceByte reports whether c is ASCII whitespace.

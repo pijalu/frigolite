@@ -30,7 +30,9 @@ func (db *DB) execVacuumStmt(vs *sql.VacuumStmt) *exec.Result {
 	if vs.Into != "" {
 		return db.vacuumInto(schema, vs.Into)
 	}
-	return db.vacuumRebuild(schema)
+	// TEMP-BISECT
+	return &exec.Result{}
+	// return db.vacuumRebuild(schema)
 }
 
 // vacuumInto implements VACUUM INTO: back up the database into a brand-new
