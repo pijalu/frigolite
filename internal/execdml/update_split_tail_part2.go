@@ -268,11 +268,7 @@ func (e *DMLExecutor) applyIPKRowidAssignment(a sql.Assignment, row Row, colInde
 func (e *DMLExecutor) applyUpdateColumnSet(a sql.Assignment, row Row, colIndex map[string]int, colDefs []sql.ColumnDef, values []interface{}) error {
 	idx, ok := colIndex[strings.ToLower(a.Column)]
 	if !ok {
-		// Column not in schema - this happens when SQLite tests dynamically
-		// add columns via PRAGMA writable_schema. Extend values array.
-		idx = len(values)
-		values = append(values, nil)
-		colIndex[strings.ToLower(a.Column)] = idx
+		return fmt.Errorf("no such column: %s", a.Column)
 	}
 	v, err := e.ctx.EvalExpr(a.Value, row)
 	if err != nil {

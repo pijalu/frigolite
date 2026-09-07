@@ -13,7 +13,15 @@ import (
 )
 
 func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, s *sql.InsertStmt) (*Result, []interface{}) {
-	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, values, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))))
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	stored := values
+	if withoutRowid {
+		// WITHOUT ROWID rows live in an index btree in PK-first storage
+		// order (index_xinfo iField layout); see wr_order.go. Must match
+		// writeTableRow or mixed cell types corrupt the scan path.
+		stored = reorderToStorage(values, withoutRowidStorageOrder(tableEntry.SQL, colDefs))
+	}
+	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, stored, withoutRowid))
 	if err != nil {
 		return &Result{Error: err}, nil
 	}
@@ -22,7 +30,10 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 		RowID:   rowID,
 		Payload: record,
 	}
-	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	if withoutRowid {
+		cell.Type = storage.CellIndexLeaf
+	}
+	tree := e.wrTableBTree(e.dmlPager(tableEntry.Name), tableEntry, colDefs)
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}, nil
 	}
@@ -647,6 +658,9 @@ func (e *DMLExecutor) scanTableForMatch(tableEntry *schema.Entry, match func(rec
 	if err != nil {
 		return nil, nil, err
 	}
+	// WITHOUT ROWID records are PK-first storage order; remap once per
+	// decoded record so positional matchers (allMatch) see declared order.
+	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil || cell == nil {
@@ -656,6 +670,7 @@ func (e *DMLExecutor) scanTableForMatch(tableEntry *schema.Entry, match func(rec
 		if err != nil || rec == nil {
 			break
 		}
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 		if match(rec, cell) {
 			return cell, rec, nil
 		}

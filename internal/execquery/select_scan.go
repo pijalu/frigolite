@@ -348,8 +348,21 @@ func distinctIndexOrder(e *SelectEngine, entry *schema.Entry, tableEntry *schema
 
 // scanTableRows iterates over all cells, applies WHERE, builds output rows.
 func (e *SelectEngine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap, error) {
+	return e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, "")
+}
+
+// scanTableRowsWithSQL scans with the table's CREATE SQL so WITHOUT ROWID
+// index-leaf records (PK-first) can be remapped to declared order. Empty
+// createSQL disables the remap (legacy callers without schema context).
+func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string) ([][]interface{}, []RowMap, error) {
 
 	st := newScanState(e, s, colDefs, needMaps)
+	if createSQL != "" && cursor.RootPageType() == storage.PageTypeLeafIndex {
+		st.wrOrder = wrStorageOrder(createSQL, colDefs)
+		// Lazy decode indexes positional slots; a permutation would decode
+		// the wrong columns in phase 1, so force full decode under remap.
+		st.useLazyDecode = false
+	}
 	if err := st.runScan(cursor); err != nil {
 		return nil, nil, err
 	}
@@ -412,12 +425,16 @@ func advanceCursor(cursor *btree.Cursor) (bool, error) {
 // scanState holds the per-scan configuration and output accumulators for
 // scanTableRows, keeping the scan loop body small and low-complexity.
 type scanState struct {
-	e                      *SelectEngine
-	s                      *sql.SelectStmt
-	colDefs                []sql.ColumnDef
-	hasJoins               bool
-	affinityCols           map[string]bool
-	reuseSRow              *StructRow
+	e            *SelectEngine
+	s            *sql.SelectStmt
+	colDefs      []sql.ColumnDef
+	hasJoins     bool
+	affinityCols map[string]bool
+	reuseSRow    *StructRow
+	// wrOrder permutes PK-first index-leaf records back to declared order
+	// (nil for rowid tables and legacy table-leaf WR roots). Set by
+	// execSelectScanPhase via initWROrder; decodeRowFull applies it.
+	wrOrder                []int
 	useLazyDecode          bool
 	whereDecodeIndices     map[int]bool
 	remainingDecodeIndices map[int]bool
@@ -505,6 +522,11 @@ func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataSta
 // decodeRowFull decodes all columns at once, then evaluates WHERE.
 func (st *scanState) decodeRowFull(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
 	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, nil)
+	// WITHOUT ROWID index-leaf pages store PK-first records; remap the
+	// decoded StructRow back to declared order before WHERE/output.
+	if len(st.wrOrder) > 0 {
+		wrRemapToDeclared(st.reuseSRow.Values, st.wrOrder, st.colDefs)
+	}
 	passesWhere, err := st.evalRowWhere(cursor)
 	return passesWhere, false, err
 }

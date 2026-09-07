@@ -229,6 +229,18 @@ func dedupeUpdateChanges(changes []updateChange) []updateChange {
 	if len(changes) < 2 {
 		return changes
 	}
+	// WITHOUT ROWID rows share synthetic RowID 0: dedupe by rowid would
+	// collapse every change into one. Only dedupe nonzero rowids.
+	allZero := true
+	for _, c := range changes {
+		if c.rowID != 0 {
+			allZero = false
+			break
+		}
+	}
+	if allZero {
+		return changes
+	}
 	last := make(map[int64]int, len(changes))
 	for i, c := range changes {
 		last[c.rowID] = i
@@ -270,10 +282,40 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 		toUpdate[c.rowID] = true
 	}
 
+	// WITHOUT ROWID tables live in an index btree: rows are addressed by
+	// PK key (cell.RowID is a synthetic 0 shared by every row), so match
+	// the OLD PK payloads instead of rowids. Snapshot each change's old
+	// PK key (declared order) for the delete predicate below.
+	var wrOldKeys [][]interface{}
+	var wrEntry *schema.Entry
+	if te, _, ferr := e.ctx.FindTable(tableName); ferr == nil && te != nil && hasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+		wrEntry = te
+		wrColDefs := e.ctx.ParseColumnDefs(tableName, te.SQL)
+		if idx := wrPKIndices(te.SQL, wrColDefs); len(idx) > 0 {
+			for _, c := range changes {
+				key := make([]interface{}, len(idx))
+				for k, ci := range idx {
+					if ci < len(c.oldValues) {
+						key[k] = c.oldValues[ci]
+					}
+				}
+				wrOldKeys = append(wrOldKeys, key)
+			}
+		}
+	}
+
 	tree := e.dmlTableBTree(tableName, rootPage)
+	if wrEntry != nil {
+		// Route through the WR storage tree (index btree + PK-aware
+		// comparator) so the re-insert keeps PK ordering.
+		tree = e.wrTableBTree(e.dmlPager(tableName), wrEntry, e.ctx.ParseColumnDefs(tableName, wrEntry.SQL))
+	}
 
 	// Step 1: Delete all existing rows in a single pass
 	_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+		if wrEntry != nil {
+			return wrCellMatchesOldKey(cell, wrOldKeys, wrEntry, e.ctx)
+		}
 		return toUpdate[cell.RowID]
 	})
 	if delErr != nil {
@@ -283,7 +325,7 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 
 	// Step 2: Insert all new rows, firing the preupdate hook per row.
 	for _, c := range changes {
-		if err := e.writeUpdatedCell(tableName, tree, rootPage, c); err != nil {
+		if err := e.writeUpdatedCellWR(tableName, tree, rootPage, c, wrEntry); err != nil {
 			return &Result{Error: err}
 		}
 		if res := e.fireUpdatePreupdate(tableName, c); res != nil {
@@ -309,7 +351,21 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 // writeUpdatedCell re-inserts one updated row (encode, insert at the
 // possibly re-keyed rowid, bump the rowid cache).
 func (e *DMLExecutor) writeUpdatedCell(tableName string, tree *btree.BTree, rootPage uint32, c updateChange) error {
-	newRecord, err := storage.EncodeRecord(c.values)
+	return e.writeUpdatedCellWR(tableName, tree, rootPage, c, nil)
+}
+
+// writeUpdatedCellWR re-inserts one updated row; for WITHOUT ROWID tables
+// (wrEntry != nil) values are reordered PK-first into an index-leaf cell,
+// otherwise the legacy table-leaf path is used.
+func (e *DMLExecutor) writeUpdatedCellWR(tableName string, tree *btree.BTree, rootPage uint32, c updateChange, wrEntry *schema.Entry) error {
+	vals := c.values
+	cellType := storage.CellTableLeaf
+	if wrEntry != nil {
+		colDefs := e.ctx.ParseColumnDefs(tableName, wrEntry.SQL)
+		vals = reorderToStorage(c.values, withoutRowidStorageOrder(wrEntry.SQL, colDefs))
+		cellType = storage.CellIndexLeaf
+	}
+	newRecord, err := storage.EncodeRecord(vals)
 	if err != nil {
 		return err
 	}
@@ -318,7 +374,7 @@ func (e *DMLExecutor) writeUpdatedCell(tableName string, tree *btree.BTree, root
 		writeRowID = *c.newRowID
 	}
 	newCell := &storage.Cell{
-		Type:    storage.CellTableLeaf,
+		Type:    cellType,
 		RowID:   writeRowID,
 		Payload: newRecord,
 	}

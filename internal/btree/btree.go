@@ -75,7 +75,13 @@ type BTree struct {
 	pageSize   uint32
 	usableSize uint32 // pageSize - reserved bytes (payload math, SQLite usable-size formulas)
 	isTable    bool   // true for table b-trees, false for index b-trees
-	isSchema   bool   // true for the sqlite_schema btree (sqlite_schema's allocations bypass the freelist so the schema btree's pages don't take slots from the user-rootpage range; SQLite btree.c::btreeCreateTable uses meta[3] to track the highest rootpage and allocates rootpages at meta[3]+1)
+	// keyCompare orders index-leaf payloads (raw record bytes). The
+	// default is a raw byte comparison; WITHOUT ROWID table trees set a
+	// PK-aware record comparator (raw memcmp does not match PK ordering
+	// once serial-type bytes differ, e.g. [2,3,1] vs [5,6,4]). Mirrors
+	// btree.c's unpacked-record comparison (sqlite3VdbeRecordCompare).
+	keyCompare func(a, b []byte) int
+	isSchema   bool // true for the sqlite_schema btree (sqlite_schema's allocations bypass the freelist so the schema btree's pages don't take slots from the user-rootpage range; SQLite btree.c::btreeCreateTable uses meta[3] to track the highest rootpage and allocates rootpages at meta[3]+1)
 }
 
 // NewBTree creates a new BTree instance.
@@ -87,6 +93,21 @@ func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
 		usableSize: pg.UsableSize(),
 		isTable:    isTable,
 	}
+}
+
+// SetKeyCompare installs a custom index-payload comparator (used for
+// WITHOUT ROWID table trees whose records need PK-aware ordering).
+func (t *BTree) SetKeyCompare(fn func(a, b []byte) int) {
+	t.keyCompare = fn
+}
+
+// compareKey orders two index-leaf payloads using the installed comparator
+// or the default raw-byte comparison.
+func (t *BTree) compareKey(a, b []byte) int {
+	if t.keyCompare != nil {
+		return t.keyCompare(a, b)
+	}
+	return util.CompareValues(a, b)
 }
 
 // NewSchemaBTree creates a BTree for the sqlite_schema btree. Schema
@@ -278,6 +299,29 @@ func (c *Cursor) descendToFirstLeafFromCurrent() {
 // RootPage returns the current root page number (may change after splits).
 func (t *BTree) RootPage() uint32 {
 	return t.rootPage
+}
+
+// RootPageType returns the b-tree page type byte of the root page
+// (storage.PageTypeLeafTable / PageTypeLeafIndex / interior variants).
+// Callers use it to distinguish legacy table-leaf WITHOUT ROWID roots
+// (0x0D, declared-order records) from index-leaf roots (0x0A, PK-first).
+func (c *Cursor) RootPageType() byte {
+	return c.tx.RootPageType()
+}
+
+func (t *BTree) RootPageType() byte {
+	pg, err := t.pager.ReadPage(t.rootPage)
+	if err != nil || len(pg.Data) == 0 {
+		return 0
+	}
+	off := 0
+	if t.rootPage == 1 {
+		off = 100
+	}
+	if off >= len(pg.Data) {
+		return 0
+	}
+	return pg.Data[off]
 }
 
 // LastRowID returns the largest rowid in the table b-tree (SQLite's
@@ -515,7 +559,7 @@ func (c *Cursor) seekInLeafIndex(pg *pager.Page, page *storage.BTreePage, key []
 		if err != nil {
 			return false, err
 		}
-		cmp := util.CompareValues(cell.Payload, key)
+		cmp := c.tx.compareKey(cell.Payload, key)
 		switch {
 		case cmp < 0:
 			lo = mid + 1
@@ -544,7 +588,7 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 		if err != nil {
 			return false, err
 		}
-		cmp := util.CompareValues(cell.Payload, key)
+		cmp := c.tx.compareKey(cell.Payload, key)
 		if cmp < 0 {
 			lo = mid + 1
 		} else {

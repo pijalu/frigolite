@@ -390,7 +390,7 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	// Pass 1: scan the table once, collecting for every branch the rowids of
 	// rows whose prefix columns match, along with the index key values used
 	// to reproduce the index scan order.
-	matches := e.collectOrBranchMatches(cursor, branches, colDefs, colIndex)
+	matches := e.collectOrBranchMatches(cursor, branches, tableEntry, colDefs, colIndex)
 
 	// Union the rowids in branch scan order, deduplicating.
 	ordered := unionBranchRowIDs(matches)
@@ -412,15 +412,18 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 }
 
 // branchMatch records one row that matched an OR branch's prefix, together
-// with the index key values used to reproduce the index scan order.
+// with the index key values used to reproduce the index scan order. For
+// WITHOUT ROWID tables rowID is synthetic 0 for every row, so rawKey (the
+// storage-order cell payload) identifies the row instead.
 type branchMatch struct {
-	rowID int64
-	key   []interface{}
+	rowID  int64
+	rawKey string
+	key    []interface{}
 }
 
 // collectOrBranchMatches scans the table once, collecting for every branch the
 // rowids of rows whose prefix columns match, plus their index key values.
-func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []orBranchPlan, colDefs []sql.ColumnDef, colIndex map[string]int) [][]branchMatch {
+func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []orBranchPlan, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int) [][]branchMatch {
 	matches := make([][]branchMatch, len(branches))
 	for {
 		cell, err := cursor.ReadCell()
@@ -431,7 +434,12 @@ func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []or
 		if err != nil || rec == nil {
 			break
 		}
-		e.matchRowAgainstBranches(rec, cell.RowID, branches, colDefs, colIndex, matches)
+		// WITHOUT ROWID records are PK-first storage order; remap so the
+		// positional prefix matcher sees declared column order.
+		if tableEntry != nil {
+			e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+		}
+		e.matchRowAgainstBranches(rec, cell.RowID, string(cell.Payload), branches, colDefs, colIndex, matches)
 
 		ok, err := cursor.Next()
 		if err != nil || !ok {
@@ -443,13 +451,13 @@ func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []or
 
 // matchRowAgainstBranches checks one decoded record against every OR branch
 // and appends a branchMatch for each branch whose prefix it satisfies.
-func (e *DMLExecutor) matchRowAgainstBranches(rec *storage.Record, rowID int64, branches []orBranchPlan, colDefs []sql.ColumnDef, colIndex map[string]int, matches [][]branchMatch) {
+func (e *DMLExecutor) matchRowAgainstBranches(rec *storage.Record, rowID int64, rawKey string, branches []orBranchPlan, colDefs []sql.ColumnDef, colIndex map[string]int, matches [][]branchMatch) {
 	row := e.ctx.BuildRowMap(rec, colDefs, rowID)
 	for bi, br := range branches {
 		if !e.orRowMatchesPrefix(row, br.Prefix) {
 			continue
 		}
-		matches[bi] = append(matches[bi], branchMatch{rowID: rowID, key: branchKeyValues(rec, br, colIndex, rowID)})
+		matches[bi] = append(matches[bi], branchMatch{rowID: rowID, rawKey: rawKey, key: branchKeyValues(rec, br, colIndex, rowID)})
 	}
 }
 
@@ -473,15 +481,23 @@ func branchKeyValues(rec *storage.Record, br orBranchPlan, colIndex map[string]i
 // order, deduplicating. Within a branch, rows are sorted by the index key
 // values (SQLite compares index keys value-wise, not by their serial-type
 // byte encoding, so int 1 vs int 2 must order numerically).
-func unionBranchRowIDs(matches [][]branchMatch) []int64 {
+func unionBranchRowIDs(matches [][]branchMatch) []branchMatch {
 	seen := make(map[int64]bool)
-	ordered := make([]int64, 0)
+	seenWR := make(map[string]bool)
+	ordered := make([]branchMatch, 0)
 	for _, ms := range matches {
 		sort.Slice(ms, func(i, j int) bool { return compareValueLists(ms[i].key, ms[j].key) < 0 })
 		for _, m := range ms {
+			if m.rowID == 0 {
+				if !seenWR[m.rawKey] {
+					seenWR[m.rawKey] = true
+					ordered = append(ordered, m)
+				}
+				continue
+			}
 			if !seen[m.rowID] {
 				seen[m.rowID] = true
-				ordered = append(ordered, m.rowID)
+				ordered = append(ordered, m)
 			}
 		}
 	}
@@ -490,11 +506,11 @@ func unionBranchRowIDs(matches [][]branchMatch) []int64 {
 
 // fetchOrPlanRows fetches the matching rows in index order and applies the
 // full WHERE predicate as a safety filter, building output rows and maps.
-func (e *DMLExecutor) fetchOrPlanRows(cursor *btree.Cursor, ordered []int64, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap, *Result) {
+func (e *DMLExecutor) fetchOrPlanRows(cursor *btree.Cursor, ordered []branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap, *Result) {
 	var allRows [][]interface{}
 	var allRowMaps []RowMap
-	for _, rid := range ordered {
-		row, ok, res := e.fetchOrPlanRow(cursor, rid, s, colDefs)
+	for _, m := range ordered {
+		row, ok, res := e.fetchOrPlanRow(cursor, m, s, tableEntry, colDefs)
 		if res != nil {
 			return nil, nil, res
 		}
@@ -512,8 +528,26 @@ func (e *DMLExecutor) fetchOrPlanRows(cursor *btree.Cursor, ordered []int64, s *
 // fetchOrPlanRow seeks to a rowid, decodes the record, and applies the full
 // WHERE predicate as a safety filter. Returns ok=false when the rowid is not
 // found or the WHERE rejects the row.
-func (e *DMLExecutor) fetchOrPlanRow(cursor *btree.Cursor, rid int64, s *sql.SelectStmt, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
-	found, err := cursor.SeekToRowID(rid)
+func (e *DMLExecutor) fetchOrPlanRow(cursor *btree.Cursor, m branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
+	if m.rowID == 0 && tableEntry != nil {
+		rec, err := storage.DecodeRecord([]byte(m.rawKey))
+		if err != nil || rec == nil {
+			return nil, false, nil
+		}
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+		row := e.ctx.BuildRowMap(rec, colDefs, 0)
+		if s.Where != nil {
+			pass, err := e.ctx.RowPassesWhere(s.Where, row, cursor)
+			if err != nil {
+				return nil, false, &Result{Error: err}
+			}
+			if !pass {
+				return nil, false, nil
+			}
+		}
+		return row, true, nil
+	}
+	found, err := cursor.SeekToRowID(m.rowID)
 	if err != nil || !found {
 		return nil, false, nil
 	}

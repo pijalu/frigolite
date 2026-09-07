@@ -68,6 +68,19 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 	return e.selectEngine.BuildRowMap(rec, colDefs, rowID)
 }
 
+// RemapWRRecordToDeclared permutes a PK-first WITHOUT ROWID storage-order
+// record back to declared column order in place (inverse of the PK-first
+// write reorder). No-op for rowid tables or identity layouts.
+func (e *Engine) RemapWRRecordToDeclared(rec *storage.Record, createSQL string, colDefs []sql.ColumnDef) {
+	e.selectEngine.RemapWRRecordToDeclared(rec, createSQL, colDefs)
+}
+
+// WRStorageOrder exposes the WITHOUT ROWID PK-first storage layout (nil for
+// rowid tables) so DML decode sites share one layout computation.
+func (e *Engine) WRStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
+	return e.selectEngine.WRStorageOrder(createSQL, colDefs)
+}
+
 // buildOutputRow builds one output row from an expression list. Used by the
 // DML/DDL RETURNING path via BuildOutputRow (errors render NULL); the
 // execquery SELECT path calls BuildOutputRowWithErr for error propagation.

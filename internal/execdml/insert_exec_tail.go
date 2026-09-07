@@ -275,15 +275,37 @@ func unwrapCollationWrappers(values []interface{}) {
 // writeTableRow encodes and inserts a table row, returning the tree (for
 // index-failure cleanup) and any write result.
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
-	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, values, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))))
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	stored := values
+	if withoutRowid {
+		// WITHOUT ROWID rows live in an index btree in PK-first storage
+		// order (index_xinfo iField layout); see wr_order.go.
+		stored = reorderToStorage(values, withoutRowidStorageOrder(tableEntry.SQL, colDefs))
+	}
+	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, stored, withoutRowid))
 	if err != nil {
 		return nil, &Result{Error: err}
 	}
-	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, !withoutRowid)
+	if withoutRowid {
+		// Index-leaf insertion order must follow PK value ordering, not
+		// raw record bytes (serial-type bytes break memcmp once values
+		// differ in magnitude class). Install a PK-aware comparator over
+		// the storage-order record (PK slots first).
+		if order := withoutRowidStorageOrder(tableEntry.SQL, colDefs); len(order) == len(colDefs) {
+			npk := wrPKSlotCount(tableEntry.SQL, colDefs)
+			if npk > 0 {
+				tree.SetKeyCompare(wrRecordComparator(npk, colDefs, order))
+			}
+		}
+	}
 	cell := &storage.Cell{
 		Type:    storage.CellTableLeaf,
 		RowID:   nextRowID,
 		Payload: record,
+	}
+	if withoutRowid {
+		cell.Type = storage.CellIndexLeaf
 	}
 	if err := tree.InsertCell(cell); err != nil {
 		return tree, &Result{Error: err}

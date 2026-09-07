@@ -87,6 +87,8 @@ type DMLContext interface {
 	ExecSelect(s *sql.SelectStmt) *Result
 	ExecSelectView(viewEntry *schema.Entry) *Result
 	BuildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) RowMap
+	RemapWRRecordToDeclared(rec *storage.Record, createSQL string, colDefs []sql.ColumnDef)
+	WRStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int
 	BuildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string
 	BuildOutputRow(columns []sql.SelectColumn, colDefs []sql.ColumnDef, row Row) []interface{}
 	HandleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDefs []sql.ColumnDef) *Result

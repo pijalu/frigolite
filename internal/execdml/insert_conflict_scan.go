@@ -83,6 +83,10 @@ func (e *DMLExecutor) compositeConflictRow(tableName string, rootPage uint32, co
 	if err != nil {
 		return 0, nil, -1, false
 	}
+	createSQL := ""
+	if tableEnt != nil {
+		createSQL = tableEnt.SQL
+	}
 	for _, group := range e.compositeUniqueGroups(tableName, tableEnt.SQL, colDefs) {
 		// Skip if any group value is NULL (NULL never conflicts).
 		if groupHasNull(group, values) {
@@ -93,7 +97,7 @@ func (e *DMLExecutor) compositeConflictRow(tableName string, rootPage uint32, co
 		if err != nil {
 			continue
 		}
-		if rowID, vals, col, ok := e.scanGroupForMatch(cursor, colDefs, group, values); ok {
+		if rowID, vals, col, ok := e.scanGroupForMatchWR(cursor, colDefs, group, values, createSQL); ok {
 			return rowID, vals, col, true
 		}
 	}
@@ -113,6 +117,13 @@ func groupHasNull(group []int, values []interface{}) bool {
 // scanGroupForMatch walks a cursor looking for a record matching all group
 // columns against the inserted values.
 func (e *DMLExecutor) scanGroupForMatch(cursor *btree.Cursor, colDefs []sql.ColumnDef, group []int, values []interface{}) (int64, []interface{}, int, bool) {
+	return e.scanGroupForMatchWR(cursor, colDefs, group, values, "")
+}
+
+// scanGroupForMatchWR is scanGroupForMatch with the table's CREATE SQL so
+// WITHOUT ROWID PK-first records are remapped to declared order before the
+// positional allMatch comparison.
+func (e *DMLExecutor) scanGroupForMatchWR(cursor *btree.Cursor, colDefs []sql.ColumnDef, group []int, values []interface{}, createSQL string) (int64, []interface{}, int, bool) {
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil || cell == nil {
@@ -122,6 +133,7 @@ func (e *DMLExecutor) scanGroupForMatch(cursor *btree.Cursor, colDefs []sql.Colu
 		if err != nil || rec == nil {
 			return 0, nil, -1, false
 		}
+		e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
 		if e.allMatch(colDefs, rec.Values, group, values) {
 			return cell.RowID, rec.Values, group[0], true
 		}

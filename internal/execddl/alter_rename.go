@@ -227,9 +227,63 @@ func (e *DDLExecutor) renameSQLiteSequence(oldName, newName string) {
 	if err != nil || isSyntheticSequence(entry) {
 		return
 	}
+	// WITHOUT ROWID sqlite_sequence (user-created via PRAGMA writable_schema)
+	// stores names keyed by PK, not rowid: match by decoded NAME value.
+	if strings.Contains(strings.ToUpper(entry.SQL), "WITHOUT ROWID") {
+		e.renameWRSequenceRows(entry, oldName, newName)
+		return
+	}
 	tree := e.ctx.TableBTreeForName(entry.Name, entry.RootPage, true)
 	for _, rowID := range collectSequenceRenameRows(tree, oldName) {
 		e.rewriteSequenceRow(entry, tree, rowID, newName)
+	}
+}
+
+// renameWRSequenceRows renames a WITHOUT ROWID sqlite_sequence entry by NAME
+// value: index-leaf cells share synthetic RowID 0, so rowid-addressed
+// rewrite misses. Decodes each cell, swaps values[0] == oldName, and
+// re-inserts the PK-first record as an index-leaf cell.
+func (e *DDLExecutor) renameWRSequenceRows(entry *schema.Entry, oldName, newName string) {
+	tree := e.ctx.TableBTreeForName(entry.Name, entry.RootPage, false)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return
+	}
+	type wrRename struct {
+		old []byte
+		new []byte
+	}
+	var renames []wrRename
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil || len(rec.Values) == 0 {
+			if ok, _ := cursor.Next(); !ok {
+				break
+			}
+			continue
+		}
+		if name, ok := rec.Values[0].(string); ok && name == oldName {
+			rec.Values[0] = newName
+			newPayload, err := storage.EncodeRecord(rec.Values)
+			if err == nil {
+				renames = append(renames, wrRename{old: append([]byte(nil), cell.Payload...), new: newPayload})
+			}
+		}
+		if ok, _ := cursor.Next(); !ok {
+			break
+		}
+	}
+	for _, rn := range renames {
+		if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return string(c.Payload) == string(rn.old)
+		}); err != nil {
+			return
+		}
+		_ = tree.InsertCell(&storage.Cell{Type: storage.CellIndexLeaf, Payload: rn.new})
 	}
 }
 

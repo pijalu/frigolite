@@ -27,7 +27,7 @@ func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Curs
 			needMaps = true
 		}
 	}
-	allRows, allRowMaps, err := e.scanTableRows(cursor, s, colDefs, needMaps)
+	allRows, allRowMaps, err := e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, tableEntry.SQL)
 	if err != nil {
 		return nil, nil, err
 	}

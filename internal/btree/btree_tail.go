@@ -778,7 +778,7 @@ func (t *BTree) findInsertPositionIndex(pg *pager.Page, page *storage.BTreePage,
 		if err != nil {
 			return lo
 		}
-		if util.CompareValues(full.Payload, key) < 0 {
+		if t.compareKey(full.Payload, key) < 0 {
 			lo = mid + 1
 		} else {
 			hi = mid - 1

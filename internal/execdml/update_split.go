@@ -354,13 +354,14 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	tree := e.dmlTableBTree(tableName, tableEntry.RootPage)
 	for i := range changes {
 		c := changes[i]
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 			return res
 		}
-		if res := e.checkLiveTableConflicts(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
+		if res := e.checkLiveTableConflictsWR(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
 			return res
 		}
 		// FOREIGN KEY parent action for this row, before the write (a

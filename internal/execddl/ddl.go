@@ -104,10 +104,15 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 	e.ctx.ClearRowIDState(ctx.Pager, pg.PageNum)
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.
+	// WITHOUT ROWID tables live in an index btree (SQLite build.c: the
+	// table root is created with BTREE_WRDATA / index-leaf pages).
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}
 	pg.Data[0] = storage.PageTypeLeafTable
+	if s.WithoutRowid {
+		pg.Data[0] = storage.PageTypeLeafIndex
+	}
 	coff := 0
 	if pg.PageNum == 1 {
 		coff = 100

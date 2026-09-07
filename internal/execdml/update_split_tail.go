@@ -151,6 +151,12 @@ func limitUpdateViewPairs(e *DMLExecutor, s *sql.UpdateStmt, pairs []viewUpdateP
 
 func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool) ([]updateChange, error) {
 	tree := e.dmlTableBTree(tableName, rootPage)
+	// WITHOUT ROWID tables store PK-first records; resolve the layout once
+	// so every decoded record below is remapped to declared order.
+	createSQL := ""
+	if tableEntry, _, ferr := e.ctx.FindTable(tableName); ferr == nil && tableEntry != nil {
+		createSQL = tableEntry.SQL
+	}
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, fmt.Errorf("exec: cursor error: %w", err)
@@ -178,6 +184,7 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 		if err != nil {
 			break
 		}
+		e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
 
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)

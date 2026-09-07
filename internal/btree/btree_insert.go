@@ -725,7 +725,7 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	if err != nil {
 		return nil, err
 	}
-	sortSplitCells(cells, t.isTable)
+	sortSplitCells(cells, t.isTable, t.compareKey)
 
 	// Greedily partition the sorted cells into pages: each page takes the
 	// longest prefix that fits. Every page holds at least one cell (a single
@@ -888,7 +888,7 @@ func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff 
 
 // sortSplitCells orders cells by key (rowid for tables, full payload for
 // indexes).
-func sortSplitCells(cells []splitEntry, isTable bool) {
+func sortSplitCells(cells []splitEntry, isTable bool, cmp func(a, b []byte) int) {
 	if isTable {
 		bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
 			return a.cell.RowID > b.cell.RowID
@@ -896,7 +896,7 @@ func sortSplitCells(cells []splitEntry, isTable bool) {
 		return
 	}
 	bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
-		return util.CompareValues(a.key, b.key) > 0
+		return cmp(a.key, b.key) > 0
 	})
 }
 

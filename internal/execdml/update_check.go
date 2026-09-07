@@ -17,7 +17,8 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
-	if len(uniqueCols) == 0 && len(idxColsList) == 0 {
+	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	if len(uniqueCols) == 0 && len(idxColsList) == 0 && len(wrOrder) == 0 {
 		return &Result{}
 	}
 
@@ -27,7 +28,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 			return res
 		}
-		if res := e.checkLiveTableConflicts(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
+		if res := e.checkLiveTableConflictsWR(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
 			return res
 		}
 	}
@@ -55,9 +56,21 @@ func (e *DMLExecutor) checkEarlierChanges(changes []updateChange, i int, c updat
 // rows already processed (j < i), whose current NEW values were checked
 // pairwise by checkEarlierChanges.
 func (e *DMLExecutor) checkLiveTableConflicts(tree *btree.BTree, earlier []updateChange, c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableName string) *Result {
+	entry, _, err := e.ctx.FindTable(tableName)
+	if err != nil || entry == nil {
+		return &Result{Error: err}
+	}
+	return e.checkLiveTableConflictsWR(tree, earlier, c, colDefs, colIndex, uniqueCols, idxColsList, entry, e.ctx.WRStorageOrder(entry.SQL, colDefs))
+}
+
+func (e *DMLExecutor) checkLiveTableConflictsWR(tree *btree.BTree, earlier []updateChange, c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableEntry *schema.Entry, wrOrder []int) *Result {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{Error: err}
+	}
+	var wrSkip []wrOldKey
+	if len(wrOrder) > 0 {
+		wrSkip = wrSkipKeys(append(append([]updateChange{}, earlier...), c), tableEntry.SQL, colDefs)
 	}
 	skip := updateSkipRowIDs(earlier, c.rowID)
 	for {
@@ -65,7 +78,7 @@ func (e *DMLExecutor) checkLiveTableConflicts(tree *btree.BTree, earlier []updat
 		if err != nil || cell == nil {
 			break
 		}
-		if res := e.checkCellConflict(cell, c, skip, colDefs, colIndex, uniqueCols, idxColsList, tableName); res != nil {
+		if res := e.checkCellConflictWR(cell, c, skip, wrSkip, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res != nil {
 			return res
 		}
 		if cursorExhausted(cursor) {
@@ -73,6 +86,91 @@ func (e *DMLExecutor) checkLiveTableConflicts(tree *btree.BTree, earlier []updat
 		}
 	}
 	return &Result{}
+}
+
+// wrOldKey is a declared-order PK projection identifying one WITHOUT ROWID
+// row independently of its synthetic RowID 0.
+type wrOldKey struct {
+	vals []interface{}
+}
+
+// wrSkipKeys snapshots the OLD PK projections of the given changes.
+func wrSkipKeys(changes []updateChange, createSQL string, colDefs []sql.ColumnDef) []wrOldKey {
+	idx := wrPKIndices(createSQL, colDefs)
+	if len(idx) == 0 {
+		return nil
+	}
+	out := make([]wrOldKey, 0, len(changes))
+	for _, ch := range changes {
+		key := make([]interface{}, len(idx))
+		for k, ci := range idx {
+			if ci < len(ch.oldValues) {
+				key[k] = ch.oldValues[ci]
+			}
+		}
+		out = append(out, wrOldKey{vals: key})
+	}
+	return out
+}
+
+// wrKeyMatchesCell reports whether a storage-order cell payload projects to
+// one of the OLD PK keys (declared order, per-column collation).
+func wrKeyMatchesCell(cell *storage.Cell, keys []wrOldKey, createSQL string, colDefs []sql.ColumnDef) bool {
+	if len(keys) == 0 {
+		return false
+	}
+	order := withoutRowidStorageOrder(createSQL, colDefs)
+	idx := wrPKIndices(createSQL, colDefs)
+	if len(order) != len(colDefs) || len(idx) == 0 {
+		return false
+	}
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil {
+		return false
+	}
+	decl := reorderToDeclared(rec.Values, order)
+	for _, key := range keys {
+		if len(key.vals) != len(idx) {
+			continue
+		}
+		match := true
+		for k, ci := range idx {
+			var have interface{}
+			if ci < len(decl) {
+				have = decl[ci]
+			}
+			if !wrValuesEqual(have, key.vals[k], colDefs[ci]) {
+				match = false
+				break
+			}
+		}
+		if match {
+			return true
+		}
+	}
+	return false
+}
+
+// checkCellConflictWR is checkCellConflict with WITHOUT ROWID awareness:
+// PK-first records are remapped to declared order, and rows in wrSkip
+// (matched by OLD PK key) are ignored instead of every RowID-0 row.
+func (e *DMLExecutor) checkCellConflictWR(cell *storage.Cell, c updateChange, skip map[int64]bool, wrSkip []wrOldKey, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, tableEntry *schema.Entry, wrOrder []int) *Result {
+	if len(wrOrder) > 0 {
+		if wrKeyMatchesCell(cell, wrSkip, tableEntry.SQL, colDefs) {
+			return nil
+		}
+	} else if skip[cell.RowID] {
+		return nil
+	}
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil {
+		return &Result{}
+	}
+	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+	if e.valuesConflict(rec.Values, c.values, cell.RowID, c.rowID, colDefs, colIndex, uniqueCols, idxColsList) {
+		return &Result{Error: e.uniqueConflictError(tableEntry.Name, colDefs, colIndex, rec.Values, c.values, cell.RowID, c.rowID, uniqueCols, idxColsList)}
+	}
+	return nil
 }
 
 // updateSkipRowIDs returns the set of rowIDs the conflict scan must skip: the

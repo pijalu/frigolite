@@ -320,7 +320,7 @@ func (e *DMLExecutor) findOnConflictRow(tableEntry *schema.Entry, colDefs []sql.
 		if err != nil {
 			continue
 		}
-		if rowID, rv, _, ok := e.scanGroupForMatch(cursor, colDefs, group, values); ok {
+		if rowID, rv, _, ok := e.scanGroupForMatchWR(cursor, colDefs, group, values, tableEntry.SQL); ok {
 			var keys []conflictKeyTerm
 			for _, idx := range group {
 				keys = append(keys, conflictKeyTerm{isCol: true, name: colDefs[idx].Name})
