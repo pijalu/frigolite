@@ -147,8 +147,27 @@ func RecoverSQL(pg *pager.Pager, opts Options) (string, error) {
 		return "", err
 	}
 	if len(orphans) > 0 {
+		// The output name must not collide with a table the schema
+		// CREATEs already emitted (recoverLostAndFoundCreate probes
+		// sqlite_schema: lost_and_found, lost_and_found_0, ...).
+		lafName := opts.LostAndFound
+		taken := map[string]bool{}
+		for _, e := range entries {
+			if e.typ == "table" {
+				taken[e.name] = true
+			}
+		}
+		if taken[lafName] {
+			for i := 0; ; i++ {
+				cand := opts.LostAndFound + "_" + strconv.Itoa(i)
+				if !taken[cand] {
+					lafName = cand
+					break
+				}
+			}
+		}
 		fmt.Fprintf(&sb, "CREATE TABLE %s(rootpgno INTEGER, pgno INTEGER, nfield INTEGER, id INTEGER",
-			opts.LostAndFound)
+			lafName)
 		for i := 0; i < maxFields; i++ {
 			fmt.Fprintf(&sb, ", c%d", i)
 		}
@@ -168,7 +187,7 @@ func RecoverSQL(pg *pager.Pager, opts Options) (string, error) {
 				parts = append(parts, v)
 			}
 			fmt.Fprintf(&sb, "INSERT INTO %s VALUES(%s);\n",
-				opts.LostAndFound, strings.Join(parts, ", "))
+				lafName, strings.Join(parts, ", "))
 		}
 	}
 
@@ -249,8 +268,10 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 		}
 		var values []string
 		if e.withoutRowid {
-			// Without-rowid tables store the record in PRIMARY-KEY-then-declared
-			// order; recover.c uses iField[declaredCol] = storagePosition.
+			// WITHOUT ROWID index records store PK columns in key order
+			// first, then the remaining declared columns in declared
+			// order (sqlite3recover.c iField from PRAGMA index_xinfo;
+			// oracle bytes for (1,2,3) PK(b,c) are [2 3 1]).
 			ifield := e.iField()
 			values = make([]string, len(e.columns))
 			for di := range e.columns {
@@ -339,28 +360,27 @@ func quotedColumnList(columns []string, ipkIndex int, withoutRowid bool) string 
 
 // iField returns, for each declared column index i, the storage-field index
 // in the WITHOUT ROWID index btree's record (sqlite3recover.c's
-// RecoverColumn.iField, populated from PRAGMA index_xinfo: PK columns appear
-// in storage order matching PK order, then the remaining declared columns in
-// declared order).
+// RecoverColumn.iField, populated from PRAGMA index_xinfo: PK columns in key
+// order first, then the remaining declared columns in declared order;
+// oracle bytes for (1,2,3) with PK(b,c) are [2 3 1]).
 func (e tableEntry) iField() []int {
 	declared := e.columns
 	pkCols := e.primaryKeyColumns()
-	pkSet := map[string]int{}
-	for i, c := range declared {
-		pkSet[strings.ToLower(c)] = i
-	}
+	pkSet := map[string]bool{}
 	ifield := make([]int, len(declared))
 	storage := 0
-	used := make([]bool, len(declared))
 	for _, pk := range pkCols {
-		if di, ok := pkSet[strings.ToLower(pk)]; ok && !used[di] {
-			ifield[di] = storage
-			storage++
-			used[di] = true
+		for di, c := range declared {
+			if strings.EqualFold(c, pk) && !pkSet[strings.ToLower(c)] {
+				pkSet[strings.ToLower(c)] = true
+				ifield[di] = storage
+				storage++
+				break
+			}
 		}
 	}
 	for i := range declared {
-		if !used[i] {
+		if !pkSet[strings.ToLower(declared[i])] {
 			ifield[i] = storage
 			storage++
 		}

@@ -534,7 +534,6 @@ var skipTestFiles = map[string]string{
 	// (3.x/4.x/5.x/7.x) the transpiler emits pass natively.
 	"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
-	"recover":      "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollback2":     "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	"rollbackfault": "VFS/fault-injection harness N-A",
 	// P7.LOCK-C re-skips (evidence-based). scanstatus.test calls

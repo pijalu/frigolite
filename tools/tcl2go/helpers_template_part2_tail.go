@@ -1888,4 +1888,39 @@ func tclContents(pattern string) string {
 	}
 	return strings.Join(out, " ")
 }
+
+
+// tclRecoverCompareResult compares one query's flattened rows across two
+// connections (recover.test compare_result): t.Error on mismatch.
+func tclRecoverCompareResult(t interface {
+	Errorf(string, ...interface{})
+}, db1, db2 *frigolite.DB, sql string) {
+	r1 := tclExecSQL(db1, sql)
+	r2 := tclExecSQL(db2, sql)
+	if r1 != r2 {
+		t.Errorf("mismatch for %%s\nr1: %%s\nr2: %%s", sql, r1, r2)
+	}
+}
+
+// tclRecoverCompareDBs compares schema SQL plus per-table contents across
+// two connections (recover.test compare_dbs).
+func tclRecoverCompareDBs(t interface {
+	Errorf(string, ...interface{})
+}, db1, db2 *frigolite.DB) {
+	tclRecoverCompareResult(t, db1, db2, "SELECT sql FROM sqlite_master ORDER BY 1")
+	r := db1.Query("SELECT name FROM sqlite_master WHERE type='table'")
+	if r.Error != nil {
+		t.Errorf("compare_dbs tables: %%v", r.Error)
+		return
+	}
+	seen := map[string]bool{}
+	for _, row := range r.Rows {
+		name := tclRenderCell(row[0])
+		if seen[name] {
+			continue
+		}
+		seen[name] = true
+		tclRecoverCompareResult(t, db1, db2, "SELECT * FROM "+name)
+	}
+}
 `

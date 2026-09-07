@@ -4996,3 +4996,29 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   field.
 
 - P8.RECOVER T4: storage.CellPointer takes the cell-pointer ARRAY base (contentOffset), not the header base. Leaf pages: base=coff; interior: base=coff+4 (rightmost ptr occupies coff+8..12). Passing coff+8/coff+12 shifts every pointer read by 8 bytes and silently decodes garbage/panics. Reference: dbdata.c dbdataColumn DBPTR child path (iOff=pgno==1?100:0; cell rows read u16 at iOff+12+iCell*2 only for bPtr; data rows read at iOff+8+nPointer+iCell*2 then add nPointer). Also: readLeafCellPayload must return an error (not clamp) on truncated local payload or missing overflow pointer, else corrupt/empty cells fabricate lost_and_found rows.
+
+- **P8.RECOVER WITHOUT ROWID storage-order divergence (root cause, 2026-09).**
+  Frigolite writes WITHOUT ROWID tables as table-leaf (0x0D) pages in
+  declared-column order; SQLite writes them as index-leaf (0x0A) pages in
+  PK-first order (index_xinfo: PK cols then payload cols; oracle bytes for
+  (1,2,3) PK(b,c) are [2 3 1]). Consequences: (a) recoverTableRows MUST use
+  the PK-first iField mapping to match conformance fixtures (s2_1) — an
+  identity mapping breaks s2_1; (b) recover_pkg 2.1.1 (round-trip on a
+  Frigolite-written DB) then necessarily emits VALUES in PK-first order
+  which the engine replays in declared order, transposing rows — this is an
+  ENGINE write-path gap, not a recover gap. (c) Orphan decoding must special-
+  case page type: index-leaf 0x0A rows have id NULL + storage-order fields;
+  table-leaf 0x0D rows carry a rowid + declared-order fields. Fixing (b)/(c)
+  completely requires the WITHOUT ROWID index-btree write-path port
+  (DDL root as index-leaf + writeTableRow PK-first reorder + scan/decode
+  key-order mapping + rowid-less UPDATE/DELETE addressing); recover alone
+  cannot paper over it.
+- **P8.RECOVER lost_and_found collision naming (sqlite3recover.c
+  recoverLostAndFoundCreate).** When the schema already contains
+  lost_and_found, the orphan table must be lost_and_found_0, then _1, etc.
+  (probe sqlite_schema in order). Implemented in internal/recover.
+- **tcl2go regen staleness trap.** helpers_test.go content comes from
+  fmt.Sprintf(helpersTemplate, pkg): single % in template consts become
+  %!s(MISSING) in output. The checked-in template already had %% but the
+  generated files were stale; always `go build ./tools/tcl2go/` with a fresh
+  binary before `go run`/regen, then verify the generated helper text.

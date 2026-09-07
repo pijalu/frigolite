@@ -24,6 +24,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/exec"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/recover"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
@@ -885,6 +886,23 @@ func (db *DB) EvalExecSQL(sqlStr, sep string) (string, error) {
 		return "", fmt.Errorf("frigolite: database not initialized")
 	}
 	return db.engine.EvalExecSQL(sqlStr, sep)
+}
+
+// RecoverSQL produces the .recover-style SQL rebuild script for this
+// connection's database, reading pages in-process through the pager
+// (SQLite ext/misc/recover.c sqlite3recover port in internal/recover).
+// Pending writes are flushed first so the script reflects committed state.
+// ignoreFreelist selects the .recover -ignore-freelist option: freelist
+// pages are skipped when scanning for orphaned content, so no
+// lost_and_found rows are emitted for them.
+func (db *DB) RecoverSQL(ignoreFreelist bool) (string, error) {
+	if db == nil || db.pager == nil {
+		return "", fmt.Errorf("frigolite: database not initialized")
+	}
+	if err := db.pager.Flush(); err != nil {
+		return "", fmt.Errorf("frigolite: recover flush: %w", err)
+	}
+	return recover.RecoverSQL(db.pager, recover.Options{IgnoreFreelist: ignoreFreelist})
 }
 
 // Exec executes a SQL statement that does not return rows.

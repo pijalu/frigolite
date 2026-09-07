@@ -81,6 +81,14 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		},
 		"capture_pragma": (*transpiler).processCapturePragma,
 
+		// recover.test: .recover harness procs (in-process RecoverSQL port;
+		// ext/misc/recover.c sqlite3recover semantics, no CLI subprocess).
+		"recover_with_opts": (*transpiler).processRecoverWithOpts,
+		"do_recover_test":   (*transpiler).processDoRecoverTest,
+		"compare_result":    (*transpiler).processCompareResult,
+		"compare_dbs":       (*transpiler).processCompareDBs,
+		"test_find_cli":     (*transpiler).processTestFindCli,
+
 		// Control flow
 		"foreach":  (*transpiler).processForeach,
 		"for":      (*transpiler).processForCommand,
@@ -130,30 +138,30 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		"join":     (*transpiler).processJoin,
 
 		// sqlite3 C API
-		"sqlite3":                     (*transpiler).processSqlite3,
-		"sqlite3_exec":                (*transpiler).processSqlite3Exec,
-		"sqlite3_test_control":        (*transpiler).processSqlite3TestControl,
+		"sqlite3":              (*transpiler).processSqlite3,
+		"sqlite3_exec":         (*transpiler).processSqlite3Exec,
+		"sqlite3_test_control": (*transpiler).processSqlite3TestControl,
 		// `sqlite3_test_control_pending_byte 0x0010000` — the C-defined
 		// TCL command in src/test2.c::testPendingByte. Updates the global
 		// pending byte (tester.tcl:102 calls it on harness init). The
 		// transpiler emits an assignment to the Go shadow variable.
 		"sqlite3_test_control_pending_byte": (*transpiler).processSqlite3TestControlPendingByte,
-			"sqlite3_limit":               (*transpiler).processSqlite3Limit,
-			"sqlite3_db_config":           (*transpiler).processDBConfig,
-			"optimization_control":        (*transpiler).processOptimizationControl,
-	"dbconfig_maindbname_icecube": (*transpiler).processDBConfigMainDBNameIcecube,
-	"sqlite3_create_collation_v2": (*transpiler).processCreateCollation,
-		"sqlite_delete_collation":     (*transpiler).processDeleteCollation,
-		"sqlite3_backup":              (*transpiler).processSqlite3Backup,
-		"sqlite3_errmsg":              (*transpiler).processSqlite3Errmsg,
-		"sqlite3_errcode":             (*transpiler).processSqlite3Errcode,
-		"sqlite3_close":               (*transpiler).processSqlite3Close,
-		"sqlite3_interrupt":           (*transpiler).processSqlite3Interrupt,
-		"sqlite3_is_interrupted":      (*transpiler).processSqlite3IsInterrupted,
-		"sqlite3_stmt_status":         (*transpiler).processSqlite3StmtStatus,
-		"sqlite3_autovacuum_pages":    (*transpiler).processSqlite3AutovacuumPages,
-		"dbcksum":                     (*transpiler).processDBCksum,
-		"file_control_data_version":   (*transpiler).processFileControlDataVersion,
+		"sqlite3_limit":                     (*transpiler).processSqlite3Limit,
+		"sqlite3_db_config":                 (*transpiler).processDBConfig,
+		"optimization_control":              (*transpiler).processOptimizationControl,
+		"dbconfig_maindbname_icecube":       (*transpiler).processDBConfigMainDBNameIcecube,
+		"sqlite3_create_collation_v2":       (*transpiler).processCreateCollation,
+		"sqlite_delete_collation":           (*transpiler).processDeleteCollation,
+		"sqlite3_backup":                    (*transpiler).processSqlite3Backup,
+		"sqlite3_errmsg":                    (*transpiler).processSqlite3Errmsg,
+		"sqlite3_errcode":                   (*transpiler).processSqlite3Errcode,
+		"sqlite3_close":                     (*transpiler).processSqlite3Close,
+		"sqlite3_interrupt":                 (*transpiler).processSqlite3Interrupt,
+		"sqlite3_is_interrupted":            (*transpiler).processSqlite3IsInterrupted,
+		"sqlite3_stmt_status":               (*transpiler).processSqlite3StmtStatus,
+		"sqlite3_autovacuum_pages":          (*transpiler).processSqlite3AutovacuumPages,
+		"dbcksum":                           (*transpiler).processDBCksum,
+		"file_control_data_version":         (*transpiler).processFileControlDataVersion,
 		"sqlite3_prepare": func(tp *transpiler, args []tcl.RawWord) {
 			if tp.catchMode && len(args) >= 4 {
 				tp.emitPrepareInCatch(args)
@@ -186,37 +194,37 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 		// intarray test-only C-API (src/test_intarray.c), emulated so the
 		// intarray virtual table can be created and populated by the harness.
 		"sqlite3_intarray_create": (*transpiler).processIntarrayCreate,
-				"sqlite3_intarray_bind":   (*transpiler).processIntarrayBind,
-				"sqlite3_reset":           (*transpiler).processReset,
-				"sqlite3_finalize":        (*transpiler).processFinalize,
-				"sqlite3_clear_bindings":  (*transpiler).processClearBindings,
-				"sqlite3_create_function": (*transpiler).processCreateFunction,
+		"sqlite3_intarray_bind":   (*transpiler).processIntarrayBind,
+		"sqlite3_reset":           (*transpiler).processReset,
+		"sqlite3_finalize":        (*transpiler).processFinalize,
+		"sqlite3_clear_bindings":  (*transpiler).processClearBindings,
+		"sqlite3_create_function": (*transpiler).processCreateFunction,
 
-				// quota VFS (src/test_quota.c). Each command returns its result via
-				// the runtime helper of the same name (defined in helpersTemplatePart2).
-				"sqlite3_quota_initialize":       (*transpiler).processSqlite3QuotaInitialize,
-				"sqlite3_quota_shutdown":         (*transpiler).processSqlite3QuotaShutdown,
-				"sqlite3_quota_set":              (*transpiler).processSqlite3QuotaSet,
-				"sqlite3_quota_remove":           (*transpiler).processSqlite3QuotaRemove,
-				"sqlite3_quota_file":             (*transpiler).processSqlite3QuotaFile,
-				"sqlite3_quota_dump":             (*transpiler).processSqlite3QuotaDump,
-				"sqlite3_quota_glob":             (*transpiler).processSqlite3QuotaGlob,
-				"sqlite3_quota_dir":              (*transpiler).processSqlite3QuotaDir,
-				"sqlite3_quota_fopen":            (*transpiler).processSqlite3QuotaFopen,
-				"sqlite3_quota_fclose":           (*transpiler).processSqlite3QuotaFclose,
-				"sqlite3_quota_fread":            (*transpiler).processSqlite3QuotaFread,
-				"sqlite3_quota_fwrite":           (*transpiler).processSqlite3QuotaFwrite,
-				"sqlite3_quota_fflush":           (*transpiler).processSqlite3QuotaFflush,
-				"sqlite3_quota_fseek":            (*transpiler).processSqlite3QuotaFseek,
-				"sqlite3_quota_rewind":           (*transpiler).processSqlite3QuotaRewind,
-				"sqlite3_quota_ftell":            (*transpiler).processSqlite3QuotaFTell,
-				"sqlite3_quota_ftruncate":        (*transpiler).processSqlite3QuotaFtruncate,
-				"sqlite3_quota_file_available":   (*transpiler).processSqlite3QuotaFileAvailable,
-				"sqlite3_quota_file_size":        (*transpiler).processSqlite3QuotaFileSize,
-				"sqlite3_quota_file_truesize":    (*transpiler).processSqlite3QuotaFileTrueSize,
-				"sqlite3_quota_ferror":           (*transpiler).processSqlite3QuotaFerror,
-				"file_control_vfsname":           (*transpiler).processFileControlVfsName,
-			"file_control_reservebytes":      (*transpiler).processFileControlReserveBytes,
+		// quota VFS (src/test_quota.c). Each command returns its result via
+		// the runtime helper of the same name (defined in helpersTemplatePart2).
+		"sqlite3_quota_initialize":     (*transpiler).processSqlite3QuotaInitialize,
+		"sqlite3_quota_shutdown":       (*transpiler).processSqlite3QuotaShutdown,
+		"sqlite3_quota_set":            (*transpiler).processSqlite3QuotaSet,
+		"sqlite3_quota_remove":         (*transpiler).processSqlite3QuotaRemove,
+		"sqlite3_quota_file":           (*transpiler).processSqlite3QuotaFile,
+		"sqlite3_quota_dump":           (*transpiler).processSqlite3QuotaDump,
+		"sqlite3_quota_glob":           (*transpiler).processSqlite3QuotaGlob,
+		"sqlite3_quota_dir":            (*transpiler).processSqlite3QuotaDir,
+		"sqlite3_quota_fopen":          (*transpiler).processSqlite3QuotaFopen,
+		"sqlite3_quota_fclose":         (*transpiler).processSqlite3QuotaFclose,
+		"sqlite3_quota_fread":          (*transpiler).processSqlite3QuotaFread,
+		"sqlite3_quota_fwrite":         (*transpiler).processSqlite3QuotaFwrite,
+		"sqlite3_quota_fflush":         (*transpiler).processSqlite3QuotaFflush,
+		"sqlite3_quota_fseek":          (*transpiler).processSqlite3QuotaFseek,
+		"sqlite3_quota_rewind":         (*transpiler).processSqlite3QuotaRewind,
+		"sqlite3_quota_ftell":          (*transpiler).processSqlite3QuotaFTell,
+		"sqlite3_quota_ftruncate":      (*transpiler).processSqlite3QuotaFtruncate,
+		"sqlite3_quota_file_available": (*transpiler).processSqlite3QuotaFileAvailable,
+		"sqlite3_quota_file_size":      (*transpiler).processSqlite3QuotaFileSize,
+		"sqlite3_quota_file_truesize":  (*transpiler).processSqlite3QuotaFileTrueSize,
+		"sqlite3_quota_ferror":         (*transpiler).processSqlite3QuotaFerror,
+		"file_control_vfsname":         (*transpiler).processFileControlVfsName,
+		"file_control_reservebytes":    (*transpiler).processFileControlReserveBytes,
 
 		// Prepared-statement metadata queries (value-producing statements).
 		// Only active for files using the runtime Stmt VM emulation; other
@@ -409,6 +417,15 @@ func buildTclCommandHandlers() map[string]tclCmdHandler {
 // equivalent (source, finish_test, namespace, etc.).
 func noopTclCommand(tp *transpiler, args []tcl.RawWord) {}
 
+// recoverProcNames are TCL proc names whose hardcoded in-process handlers
+// take precedence over file-local proc bodies (see processCommand).
+var recoverProcNames = map[string]bool{
+	"recover_with_opts": true,
+	"do_recover_test":   true,
+	"compare_result":    true,
+	"compare_dbs":       true,
+}
+
 // processCommand dispatches a single TCL command to its Go emitter.
 func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	if len(words) == 0 {
@@ -423,14 +440,20 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		return
 	}
 
-	// File-local proc bodies override same-named hardcoded handlers:
+	// File-local proc bodies override same-named hardcoded handlers,
+	// EXCEPT the recover.test harness procs (recover_with_opts /
+	// do_recover_test / compare_result / compare_dbs), which the TCL file
+	// defines as CLI-subprocess wrappers: the hardcoded in-process
+	// RecoverSQL handlers always win for those names.
 	// rtree8.test and rtreeA.test define their own create_t1/populate_t1/
 	// truncate_node (unrelated to incrblob4's), which previously hijacked
 	// the incrblob4 fillers and corrupted the fixture.
-	if body, ok := globalProcBodies[cmdName]; ok {
-		if em := userProcEmitterFor(cmdName, body); em != "" {
-			tp.emitUserProc(em, goArgWords(args))
-			return
+	if _, isRecover := recoverProcNames[cmdName]; !isRecover {
+		if body, ok := globalProcBodies[cmdName]; ok {
+			if em := userProcEmitterFor(cmdName, body); em != "" {
+				tp.emitUserProc(em, goArgWords(args))
+				return
+			}
 		}
 	}
 	if handler, ok := tclHandlers()[cmdName]; ok {
