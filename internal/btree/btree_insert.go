@@ -1124,8 +1124,17 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 	}
 	rightmostChild := page.RightmostPtr
 
-	// Split at midpoint
-	splitIdx := len(entries) / 2
+	// Greedy tail split (btree.c balance_nonroot): the left page keeps
+	// every cell that already fit — it was full, not half-full — and only
+	// the LAST cell moves to the new right page (together with the old
+	// rightmost pointer). The next divider inserted by the parent then
+	// finds room in whichever half it sorts into. A midpoint split left
+	// interiors permanently half-full, doubling their count
+	// (sqllimits1-7.7.3: 11 interior pages vs the reference 7).
+	splitIdx := len(entries) - 1
+	if splitIdx < 0 {
+		splitIdx = 0
+	}
 
 	// The key at splitIdx goes up to the parent (it's the separator between the two halves)
 	splitKey := entries[splitIdx].key
@@ -1192,7 +1201,10 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 	if rightCount > 0 {
 		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(rightCellContentEnd))
 	} else {
-		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], 0)
+		// An empty interior page (balance_nonroot's tail split moves no
+		// cells when the overflow divider appends at the end) still needs a
+		// valid content-start: the page size, not 0 (0 encodes 65536).
+		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(t.pageSize))
 	}
 	binary.BigEndian.PutUint32(newPg.Data[newCoff+8:newCoff+12], rightmostChild)
 

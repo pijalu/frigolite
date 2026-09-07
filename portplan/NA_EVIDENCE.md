@@ -1447,3 +1447,74 @@ The current state preserves all work-in-progress (committed) and
 provides reproducible evidence (testgen output, sqlite3 oracle
 comparison) for each failure. No regression in `go test ./...`
 (Nolock failure is pre-existing).
+
+## sqllimits1-7.7.3 (2026-09-07)
+
+**Assertion**: `PRAGMA max_page_count` after reopening the db built by the
+7.7.1 abc doubling workload — corpus hardcodes 1691 pages (page_size 1024,
+non-autovacuum, reserved 0).
+
+**Evidence**: the project's reference build (source tree
+/Users/muaddib/dev/sqlite, VERSION 3.51.0, built binary `./sqlite3`,
+reserved=0) measures **1690** pages on the identical statement sequence —
+page-type census byte-identical to frigolite's: leaf=699, interior=7,
+overflow=984. The stock Homebrew 3.53.4 build also gives 1689 on the same
+fresh-workload comparison (leaf/interior/overflow 698/7/984 both engines,
+per-step page counts identical through every doubling). The hardcoded 1691
+is a corpus constant that does not match the reference tree's actual
+behavior (off by one page).
+
+**Disposition**: per-test skip (skiptests.go "sqllimits1-7.7.3") citing
+this entry. The engine's balance_nonroot greedy tail-split, overflow
+local/offset formulas, and freelist accounting are census-verified
+stock-exact; a native test pins the engine page count for the workload.
+
+## oserror (2026-09-07)
+
+**File mechanism**: oserror.test asserts sqlite3_log() captures os_* error
+messages produced by the default unix/windows VFS, driven by the
+`test_syscall` C command (VFS syscall interception). The file SELF-SKIPS on
+builds lacking test_syscall (`if {[llength [info commands test_syscall]]==0}
+{ finish_test; return }`).
+
+**Evidence**: frigolite is a pure-Go engine with no C unix-VFS syscall layer
+to intercept; the transpiled sequence (sqlite3_shutdown + test_syscall +
+repeated opens) panics on a nil connection handle. The guarded-class rule
+applies: the file is a no-op on any build without the C test harness.
+
+**Disposition**: skiptestfiles "oserror" N/A (C test VFS / platform,
+PORTPLAN section 1 class). The engine-visible contract (error logging
+surface) is covered by the log-related native tests.
+
+## memsubsys1 / memsubsys2 (2026-09-07)
+
+**File mechanism**: both files install a custom memory allocator with
+`sqlite3_config(SQLITE_CONFIG_MALLOC)` (the memsubsys TCL harness,
+memsubsys1.test:62-64) and assert SQLITE_STATUS_MEMORY_USED /
+SQLITE_STATUS_MALLOC_SIZE / SQLITE_STATUS_PAGECACHE_USED high-water
+counters of that C allocator.
+
+**Evidence**: frigolite is garbage-collected pure Go — there is no C
+allocator to replace or instrument; the counters have no engine
+equivalent. The same class as the malloc/malloc3-9 family already in
+PORTPLAN section 1 (genuine N/A). The SQL-visible db_status surface is
+tested by the dbstatus/dbstatus2 packages (P5.HOOKS, green).
+
+**Disposition**: skiptestfiles memsubsys1/memsubsys2 N/A (C-allocator
+class).
+
+## sqldiff1 (2026-09-07)
+
+**File mechanism**: sqldiff1.test drives the EXTERNAL sqldiff tool binary
+(`set PROG [test_find_sqldiff]` — the harness builds ../sqldiff.c and
+invokes it as a subprocess), asserting its SQL-diff output between
+database files.
+
+**Evidence**: frigolite is an embedded Go library; the suite has no
+external tool binary to locate or build (test_find_sqldiff fails
+silently, yielding empty diffs). The engine-visible row differences the
+tool reports are covered by the engine's own CRUD family.
+
+**Disposition**: skiptestfiles sqldiff1 N/A (external tool-binary seam,
+same class as the P5.SHELL CLI-only N/A). A Go sqldiff implementation is
+queued with P9.PERF closeout if the suite needs it.

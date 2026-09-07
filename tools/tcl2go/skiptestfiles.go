@@ -12,6 +12,42 @@ package main
 // gaps tracked by later-phase follow-ups.
 
 var skipTestFiles = map[string]string{
+	// sqldiff1: drives the EXTERNAL sqldiff tool binary (test_find_sqldiff
+	// builds ../sqldiff.c and invokes it as a subprocess) — an external
+	// tool-binary seam, same class as the P5.SHELL CLI-only N/A. See
+	// NA_EVIDENCE sqldiff1.
+	"sqldiff1": "N/A: external sqldiff tool binary seam (test_find_sqldiff); frigolite is an embedded library with no tool binaries (NA_EVIDENCE sqldiff1)",
+
+	// memsubsys1/memsubsys2: install a custom C allocator via
+	// sqlite3_config(SQLITE_CONFIG_MALLOC) (the memsubsys harness) and
+	// assert SQLITE_STATUS_MEMORY_USED / MALLOC_SIZE / PAGECACHE
+	// high-water counters of that allocator. Pure-Go frigolite has no C
+	// allocator subsystem; the same class as the malloc/malloc3 family in
+	// the genuine N/A list (PORTPLAN section 1). The SQL-visible
+	// sqlite3_status surface is covered by the dbstatus family (P5.HOOKS).
+	// See NA_EVIDENCE memsubsys.
+	"memsubsys1": "N/A: SQLITE_CONFIG_MALLOC custom C-allocator subsystem + SQLITE_STATUS_* allocator high-water counters (PORTPLAN section 1 C-allocator class; NA_EVIDENCE memsubsys)",
+	"memsubsys2": "N/A: SQLITE_CONFIG_MALLOC custom C-allocator subsystem + SQLITE_STATUS_* allocator high-water counters (PORTPLAN section 1 C-allocator class; NA_EVIDENCE memsubsys)",
+
+	// oserror: asserts sqlite3_log() captures os_* messages from the unix
+	// VFS, driven by the test_syscall C command (VFS syscall injection).
+	// The TCL file itself self-skips (`if {[llength [info commands
+	// test_syscall]]==0} { finish_test; return }`) on builds without the
+	// C harness; frigolite has no C VFS syscall layer to inject into
+	// (PORTPLAN section 1 N/A: C test VFS / platform). See NA_EVIDENCE
+	// oserror.
+	"oserror": "N/A: C VFS syscall injection via test_syscall + sqlite3_log os_* capture from the unix VFS; file self-skips without the C harness (NA_EVIDENCE oserror)",
+
+	// bitvec: every do_test drives sqlite3BitvecBuiltinTest — a test1.c
+	// wrapper around the C Bitvec subsystem's self-test — and the 3.x block
+	// wraps it in sqlite3_memdebug_fail (SQLITE_MEMDEBUG malloc-failure
+	// injection). Both are C-internal/test-only surfaces with no SQL; the
+	// transpiled while-loop loses its memdebug-driven exit and hangs
+	// (PORTPLAN section 1 N/A: C allocator fault injection). Native
+	// coverage of the same functionality (page tracking for incremental
+	// blob I/O) lives in the incrblob family. See NA_EVIDENCE bitvec.
+	"bitvec": "N/A: test-only C Bitvec self-test + SQLITE_MEMDEBUG malloc-failure injection, no SQL surface (NA_EVIDENCE bitvec)",
+
 	// savepoint4: crash-simulation test (crashsql -delay + a while loop driven
 	// by the crash result). The transpiler cannot model the crashsql harness
 	// command (the loop condition never becomes false, so the generated Go
