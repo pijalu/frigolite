@@ -5012,7 +5012,12 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   completely requires the WITHOUT ROWID index-btree write-path port
   (DDL root as index-leaf + writeTableRow PK-first reorder + scan/decode
   key-order mapping + rowid-less UPDATE/DELETE addressing); recover alone
-  cannot paper over it.
+  cannot paper over it. UPDATE 2026-09-07 (commit 16524863): recoverTableRows
+  now probes the WR root page type once (isDeclaredOrderWR helper) — index
+  pages keep the PK-first iField remap, table-leaf pages use identity — so
+  (b) is fixed recover-side for engine-written files while oracle fixtures
+  stay green. Orphan rows (c, test 2.4.1) remain blocked: orphans carry no
+  schema so the PK is unknowable in recover.
 - **P8.RECOVER lost_and_found collision naming (sqlite3recover.c
   recoverLostAndFoundCreate).** When the schema already contains
   lost_and_found, the orphan table must be lost_and_found_0, then _1, etc.
