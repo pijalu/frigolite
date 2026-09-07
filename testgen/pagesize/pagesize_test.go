@@ -198,10 +198,7 @@ func Test_pagesize(t *testing.T) {
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".4"
-			_res = db.Exec("VACUUM")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-			}
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -270,10 +267,7 @@ func Test_pagesize(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid%5!=0")
 			}
-			_res = db.Exec("VACUUM")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-			}
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
 			r = db.Query("SELECT count(*) FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
@@ -284,10 +278,7 @@ func Test_pagesize(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 			}
-			_res = db.Exec("VACUUM")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-			}
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

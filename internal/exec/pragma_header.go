@@ -269,9 +269,10 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 		if e.tx.inTransaction {
 			return &Result{}
 		}
-		// Only honored before any table exists (SQLite errors with
-		// "unsupported file format" only for a mismatch at open; setting
-		// after creation is silently ignored).
+		// Only honored immediately before any table exists (SQLite errors
+		// with "unsupported file format" only for a mismatch at open).
+		// Otherwise the value is REMEMBERED and applied by the next VACUUM
+		// (pragma.c pNextPagesize, applied by sqlite3RunVacuum).
 		if e.schemaIsEmpty(ctx) {
 			ctx.Pager.SetPageSize(uint32(n))
 			if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
@@ -279,6 +280,9 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 			}); err != nil {
 				return &Result{Error: err}
 			}
+			ctx.PendingPageSize = 0
+		} else {
+			ctx.PendingPageSize = uint32(n)
 		}
 		return &Result{}
 	}

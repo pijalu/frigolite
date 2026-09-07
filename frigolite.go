@@ -986,6 +986,20 @@ func (db *DB) Query(sqlStr string) *Result {
 	var allRows [][]interface{}
 	var allColumns []string
 	for _, stmt := range stmts {
+		if vs, ok := stmt.(*sql.VacuumStmt); ok {
+			res := db.execVacuumStmt(vs)
+			if res.Error != nil {
+				db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
+				r := execResult(res)
+				r.SQL = sqlStr
+				return r
+			}
+			allRows = append(allRows, res.Rows...)
+			if allColumns == nil {
+				allColumns = res.Columns
+			}
+			continue
+		}
 		res := db.engine.Exec(stmt)
 		if res.Error != nil {
 			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))

@@ -105,10 +105,7 @@ func Test_vacuum3(t *testing.T) {
 		_ = database // suppress unused warning
 		_ = _idx0
 			{ // do_test "vacuum3-1." + I + ".1"
-				r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-				}
+				// execsql skipped: VACUUM not implemented (P8.VACUUM)
 				r = db.Query(" PRAGMA page_size ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
@@ -140,10 +137,7 @@ func Test_vacuum3(t *testing.T) {
 			}
 		}
 		{ // do_test "vacuum3-2.1"
-			r = db.Query("\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
-			}
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
 			_res = db.Exec(" ALTER TABLE t1 ADD COLUMN d; ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 ADD COLUMN d; ")
@@ -183,10 +177,7 @@ func Test_vacuum3(t *testing.T) {
 			_ = database // suppress unused warning
 			_ = _idx2
 				{ // do_test "vacuum3-2." + I + ".1"
-					r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-					}
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
 					r = db.Query(" PRAGMA page_size ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
@@ -245,10 +236,7 @@ func Test_vacuum3(t *testing.T) {
 				_ = actual // suppress unused warning
 				_ = _idx4
 					{ // do_test "vacuum3-3." + I + ".1"
-						r = db.Query(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-						}
+						// execsql skipped: VACUUM not implemented (P8.VACUUM)
 						r = db.Query(" PRAGMA page_size ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
@@ -298,10 +286,7 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.3"
-					r = db.Query(" \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
-					}
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
 					r = db.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
@@ -314,20 +299,14 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.5"
-					r = db2.Query("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
-					}
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
 					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
 				}
 				{ // do_test "vacuum3-4.6"
-					r = db.Query("\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
-					}
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
 					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")

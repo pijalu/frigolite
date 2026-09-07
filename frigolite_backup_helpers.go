@@ -15,6 +15,33 @@ func bareTableName(name string) string {
 	return name
 }
 
+// quotedTableName renders a table reference with the name quoted when it
+// contains characters outside identifier-safe ASCII (spaces, quotes,
+// punctuation): "abc abc" etc. Qualified references built by concatenating
+// a bare name break on the first space (the engine resolves main.abc abc
+// as main.abc with an alias).
+func quotedTableName(name string) string {
+	safe := len(name) > 0
+	for _, c := range name {
+		if !(c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+			safe = false
+			break
+		}
+	}
+	if safe {
+		return name
+	}
+	return "\"" + strings.ReplaceAll(name, "\"", "\"\"") + "\""
+}
+
+// qualifiedTableRef renders qual.name with both parts properly quoted.
+func qualifiedTableRef(qual, name string) string {
+	if qual == "" {
+		return quotedTableName(name)
+	}
+	return qual + "." + quotedTableName(name)
+}
+
 // qualifyCreateObjectSQL rewrites a stored CREATE VIEW/INDEX/TRIGGER DDL to
 // create the object in the destination schema (e.g. "CREATE VIEW v1(...)" →
 // "CREATE VIEW temp.v1(...)") for non-main destination schemas. kind is the

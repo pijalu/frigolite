@@ -28,6 +28,11 @@ type Backup struct {
 
 	initChange uint32 // source change counter at init/restart
 	hasChange  bool   // the source exposes a change counter
+
+	// KeepDestPageSize disables setDestPgsz's page-size adoption: VACUUM
+	// pre-sizes the vacuum database at a PENDING page size
+	// (pragma.c pNextPagesize) that must survive the copy.
+	KeepDestPageSize bool
 }
 
 // NewBackup starts a backup of srcSchema on src into dstSchema on dst,
@@ -121,9 +126,11 @@ func (b *Backup) Step(nPages int) string {
 				b.lastErr = "attempt to write a readonly database"
 				return b.rc
 			}
-			dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
+			if !b.KeepDestPageSize {
+				dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
+			}
 			dstCtx.Schema.InvalidateCache()
-		} else if dstCtx.Pager.OpenedEmpty() || dstCtx.Pager.NumPages() == 0 {
+		} else if !b.KeepDestPageSize && (dstCtx.Pager.OpenedEmpty() || dstCtx.Pager.NumPages() == 0) {
 			// setDestPgsz for a file destination never written to:
 			// re-create it at the source page size. ResetToEmpty +
 			// immediate Flush keeps the on-disk image self-consistent
@@ -364,21 +371,21 @@ func (b *Backup) copyLocked() error {
 	dropQual := schemaQualifier(b.dstSchema)
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeTrigger {
-			if r := b.dst.Exec("DROP TRIGGER " + dropQual + bareTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP TRIGGER " + dropQual + quotedTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
 	}
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeView {
-			if r := b.dst.Exec("DROP VIEW " + dropQual + bareTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP VIEW " + dropQual + quotedTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
 	}
 	for _, e := range dstEntries {
 		if e.Type == schema.TypeTable && !isSystemSchemaTable(e.Name) {
-			if r := b.dst.Exec("DROP TABLE " + dropQual + bareTableName(e.Name)); r.Error != nil {
+			if r := b.dst.Exec("DROP TABLE " + dropQual + quotedTableName(e.Name)); r.Error != nil {
 				return r.Error
 			}
 		}
@@ -439,11 +446,11 @@ func (b *Backup) copyStatTable(e *schema.Entry) error {
 		}
 	}
 	srcQual := schemaQualifier(b.srcSchema)
-	r := b.src.Query("SELECT * FROM " + srcQual + bareTableName(e.Name))
+	r := b.src.Query("SELECT * FROM " + qualifiedTableRef(srcQual, e.Name))
 	if r.Error != nil {
 		return r.Error
 	}
-	destTable := schemaQualifier(b.dstSchema) + bareTableName(e.Name)
+	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
 	for _, row := range r.Rows {
 		var vals []string
 		for _, v := range row {
@@ -491,7 +498,7 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	// quoted table after a schema prefix ("temp.\"t1\"").
 	withoutRowid := strings.Contains(strings.ToUpper(e.SQL), "WITHOUT ROWID")
 	srcQual := schemaQualifier(b.srcSchema)
-	tableRef := srcQual + bareTableName(e.Name)
+	tableRef := qualifiedTableRef(srcQual, e.Name)
 	var srcQuery string
 	var colNames []string
 	if withoutRowid {
@@ -505,7 +512,7 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	}
 	// Column list for the INSERT: for rowid tables the first SELECT column is
 	// rowid (insert as "rowid"); the rest are the table's columns.
-	destTable := schemaQualifier(b.dstSchema) + bareTableName(e.Name)
+	destTable := qualifiedTableRef(schemaQualifier(b.dstSchema), e.Name)
 	if !withoutRowid {
 		colNames = append(colNames, "rowid")
 	}

@@ -121,6 +121,10 @@ type DatabaseContext struct {
 	FilePath string          // path to .db file
 	IsMemory bool            // in-memory database
 	IsTemp   bool            // temp database
+	// PendingPageSize holds a PRAGMA page_size value that could not be
+	// applied immediately (tables already exist) and is applied by the next
+	// VACUUM (pragma.c pNextPagesize; 0 = none pending).
+	PendingPageSize uint32
 }
 
 // StructRow is an index-based Row that stores values in a slice

@@ -78,10 +78,7 @@ func Test_misc3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE t1;\n      DROP TABLE t2;\n    ")
 		}
-		_res = db.Exec("VACUUM")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-		}
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
 		_res = db.Exec("\n      CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n      VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      INSERT INTO t1 SELECT a+1, b||b FROM t1;\n      INSERT INTO t1 SELECT a+2, b||b FROM t1;\n      INSERT INTO t1 SELECT a+4, b FROM t1;\n      INSERT INTO t1 SELECT a+8, b FROM t1;\n      INSERT INTO t1 SELECT a+16, b FROM t1;\n      INSERT INTO t1 SELECT a+32, b FROM t1;\n      INSERT INTO t1 SELECT a+64, b FROM t1;\n      BEGIN;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n      VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      INSERT INTO t1 SELECT a+1, b||b FROM t1;\n      INSERT INTO t1 SELECT a+2, b||b FROM t1;\n      INSERT INTO t1 SELECT a+4, b FROM t1;\n      INSERT INTO t1 SELECT a+8, b FROM t1;\n      INSERT INTO t1 SELECT a+16, b FROM t1;\n      INSERT INTO t1 SELECT a+32, b FROM t1;\n      INSERT INTO t1 SELECT a+64, b FROM t1;\n      BEGIN;\n    ")

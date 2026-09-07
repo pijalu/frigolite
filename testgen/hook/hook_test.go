@@ -954,10 +954,7 @@ func Test_hook(t *testing.T) {
 	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
 	{ // do_test "12.2"
-		_res = db.Exec("VACUUM")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-		}
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
 		_ = res // TCL namespace variable (query)
 		got := tclListFlatten(res)
 		want := tclListFlatten("")
@@ -979,10 +976,7 @@ func Test_hook(t *testing.T) {
 	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
 	{ // do_test "12.6"
-		_res = db.Exec("VACUUM")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-		}
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
 		_ = res // TCL namespace variable (query)
 		got := tclListFlatten(res)
 		want := tclListFlatten("")

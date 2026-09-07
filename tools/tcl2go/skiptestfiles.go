@@ -431,6 +431,11 @@ var skipTestFiles = map[string]string{
 	// UTF-16le magic to the header directly and validates the engine's
 	// checkAttachEncoding returns the canonical error.
 	"enc3": "UTF-16 storage not implemented N-A (evidence frigolite_enc3_test.go)",
+	// vacuummem: sqlite3_memory_used/highwater watermark assertions around
+	// VACUUM are C-allocator instrumentation (PORTPLAN section 1 malloc
+	// class, same as memsubsys1); it only "passed" while VACUUM was a
+	// no-op. NA_EVIDENCE vacuummem.
+	"vacuummem": "N/A: sqlite3_memory_used/highwater C-allocator watermark assertions (PORTPLAN section 1 malloc class; NA_EVIDENCE vacuummem)",
 	// enc4: passes natively.
 	"eval":       "deep-engine applicable gap DEFERRED (tracked for later phase)",
 	// (extension01 un-skipped under P6.EXT — see plan/goals/P6.EXT.md)
