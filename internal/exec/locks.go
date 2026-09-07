@@ -257,6 +257,13 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	if key == "" {
 		return nil
 	}
+	// locking_mode=EXCLUSIVE: the first access to the database establishes a
+	// SHARED lock that is never released between transactions (pager.c keeps
+	// the pager lock while lockingMode is EXCLUSIVE), blocking every other
+	// connection's EXCLUSIVE upgrade.
+	if strings.EqualFold(e.currentLockingMode(), "exclusive") {
+		lockreg.Global.SetPersistentShared(key, e.connID, true)
+	}
 	switch e.lockStyle {
 	case LockStyleNone:
 		// unix-none / nolock=1: no cross-connection locking at all.
@@ -283,7 +290,24 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 		if write && lockreg.Global.WriteTxByOther(key, e.connID) {
 			return fmt.Errorf("database is locked")
 		}
+		// Another connection's persistent SHARED (locking_mode=EXCLUSIVE)
+		// blocks the EXCLUSIVE upgrade: immediately for an autocommit write
+		// (the statement cannot commit), at COMMIT for a write inside an
+		// explicit transaction (RESERVED is still acquirable —
+		// exclusive.test 2.5 vs 2.6/2.7).
+		if write && !e.tx.inTransaction && lockreg.Global.PersistentSharedByOther(key, e.connID) {
+			return fmt.Errorf("database is locked")
+		}
 		return nil
+	}
+}
+
+// clearPersistentShared releases this connection's persistent SHARED marks
+// (PRAGMA locking_mode=normal downgrades the pager locks back to normal
+// release-at-transaction-end behavior).
+func (e *Engine) clearPersistentShared() {
+	for _, k := range e.allLockKeys() {
+		lockreg.Global.SetPersistentShared(k, e.connID, false)
 	}
 }
 
@@ -338,6 +362,9 @@ func (e *Engine) commitLockError() error {
 				return fmt.Errorf("database is locked")
 			}
 			continue
+		}
+		if lockreg.Global.PersistentSharedByOther(k, e.connID) {
+			return fmt.Errorf("database is locked")
 		}
 		if lockreg.Global.SharedTxByOther(k, e.connID) {
 			return fmt.Errorf("database is locked")

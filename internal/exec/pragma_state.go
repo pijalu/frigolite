@@ -161,6 +161,12 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 		switch m {
 		case "normal", "exclusive":
 			e.lockingMode = m
+			if m == "normal" {
+				// Reverting to normal releases the never-unlocked SHARED
+				// locks held in exclusive mode (pager.c drops back to
+				// unlock-at-transaction-end).
+				e.clearPersistentShared()
+			}
 		default:
 			// Unrecognised token: leave the current mode unchanged (no error),
 			// matching SQLite's lenient handling of invalid pragma values.

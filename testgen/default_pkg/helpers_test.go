@@ -4796,6 +4796,14 @@ var tclConnRegistry = map[string]*frigolite.DB{}
 // or "db_tmp_5" at execsql time.
 func tclConnRegister(name string, db *frigolite.DB) {
 	name = strings.TrimSpace(name)
+	if prev, ok := tclConnRegistry[name]; ok && prev != nil && prev != db && !prev.IsClosed() {
+		// TCL's "sqlite3 NAME FILE" closes the connection previously bound
+		// to NAME before rebinding the handle; the generated Go must do the
+		// same or the leaked connection keeps its cross-connection locks
+		// (exclusive.test 6.x: the leaked writer blocks hot-journal
+		// playback on the recreated file).
+		_ = prev.Close()
+	}
 	tclConnRegistry[name] = db
 	// Quota VFS snapshot (quota-2.1.2.1): a connection opened while the
 	// quota VFS is the default reports "quota/unix" from

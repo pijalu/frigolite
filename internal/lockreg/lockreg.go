@@ -46,6 +46,12 @@ type Registry struct {
 	// transaction-level SHARED lock (BEGIN + first read, held until
 	// COMMIT/ROLLBACK — pager.c holds SHARED for the whole read txn).
 	sharedTx map[string]map[int64]bool
+	// persistentShared maps a file path to the set of connection IDs holding
+	// a never-released SHARED lock (PRAGMA locking_mode=EXCLUSIVE: the pager
+	// stops unlocking between transactions, src/pager.c
+	// sqlite3PagerUnlock... the lock is held until the connection closes or
+	// the mode reverts to normal).
+	persistentShared map[string]map[int64]bool
 	// pending maps a file path to the connection ID whose COMMIT failed the
 	// EXCLUSIVE upgrade and now sits in PENDING: new SHARED acquisitions by
 	// other connections are denied until the holder releases (lock2-1.7).
@@ -61,13 +67,14 @@ type Registry struct {
 // New returns an empty registry.
 func New() *Registry {
 	return &Registry{
-		exclusive:   make(map[string]int64),
-		writeTx:     make(map[string]map[int64]bool),
-		backupLock:  make(map[string]int),
-		readTx:      make(map[string]map[int64]int),
-		sharedTx:    make(map[string]map[int64]bool),
-		pending:     make(map[string]int64),
-		dotfileRefs: make(map[string]int),
+		exclusive:        make(map[string]int64),
+		writeTx:          make(map[string]map[int64]bool),
+		backupLock:       make(map[string]int),
+		readTx:           make(map[string]map[int64]int),
+		sharedTx:         make(map[string]map[int64]bool),
+		persistentShared: make(map[string]map[int64]bool),
+		pending:          make(map[string]int64),
+		dotfileRefs:      make(map[string]int),
 	}
 }
 
@@ -230,6 +237,12 @@ func (r *Registry) ClearConn(connID int64) {
 			delete(r.sharedTx, path)
 		}
 	}
+	for path, set := range r.persistentShared {
+		delete(set, connID)
+		if len(set) == 0 {
+			delete(r.persistentShared, path)
+		}
+	}
 	for path, holder := range r.pending {
 		if holder == connID {
 			delete(r.pending, path)
@@ -255,6 +268,40 @@ func (r *Registry) SetSharedTx(path string, connID int64, on bool) {
 			delete(r.sharedTx, path)
 		}
 	}
+}
+
+// SetPersistentShared records (on=true) a never-released SHARED lock on path
+// held by connID (PRAGMA locking_mode=EXCLUSIVE). on=false clears it (mode
+// reverted to normal).
+func (r *Registry) SetPersistentShared(path string, connID int64, on bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if on {
+		if r.persistentShared[path] == nil {
+			r.persistentShared[path] = make(map[int64]bool)
+		}
+		r.persistentShared[path][connID] = true
+		return
+	}
+	if set := r.persistentShared[path]; set != nil {
+		delete(set, connID)
+		if len(set) == 0 {
+			delete(r.persistentShared, path)
+		}
+	}
+}
+
+// PersistentSharedByOther reports whether a connection other than self holds
+// a persistent SHARED lock on path (an EXCLUSIVE upgrade by self is blocked).
+func (r *Registry) PersistentSharedByOther(path string, self int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for holder := range r.persistentShared[path] {
+		if holder != self {
+			return true
+		}
+	}
+	return false
 }
 
 // SharedTxByOther reports whether a connection other than self holds a
