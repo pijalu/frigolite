@@ -552,7 +552,12 @@ type AttachStmt struct {
 func (s *AttachStmt) stmt() {}
 
 // VacuumStmt represents a VACUUM statement.
-type VacuumStmt struct{}
+type VacuumStmt struct {
+	// Into holds the VACUUM INTO target filename (empty for plain VACUUM).
+	Into string
+	// Schema is the optional schema being vacuumed (empty = "main").
+	Schema string
+}
 
 func (s *VacuumStmt) stmt() {}
 

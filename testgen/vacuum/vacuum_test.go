@@ -5,8 +5,410 @@
 package vacuum
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_vacuum(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_vacuum(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+	var TAIL string
+	_ = TAIL // prepared-statement tail var
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fcnt string
+	_ = fcnt // pre-declared from TCL source
+	var size1 string
+	_ = size1 // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var sql_script string
+	_ = sql_script // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var VM string
+	_ = VM // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	if tclBool(AUTOVACUUM) {
+		// omit_test vacuum.test {Auto-vacuum is enabled} (unsupported command, not transpiled)
+		return
+	}
+	vtab.TclVarSet("fcnt", "", "1")
+	fcnt = "1"
+	_ = fcnt // suppress unused warning
+	{ // "vacuum-1.1" (prepare-step internals; SQL side effects only)
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE UNIQUE INDEX i2 ON t1(c,a);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE UNIQUE INDEX i2 ON t1(c,a);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t2;\n  ")
+		}
+		vtab.TclVarSet("size1", "", strconv.Itoa(tclFileSize("test.db")))
+		size1 = strconv.Itoa(tclFileSize("test.db")) // TCL namespace variable
+		_ = size1 // suppress unused warning
+		vtab.TclVarSet("cksum", "", "cksum")
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// expr $::cksum!="" (not evaluated)
+	}
+	// proc definition (not transpiled)
+	{ // do_test "vacuum-1.1b"
+		db.RegisterFunction("substr", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		db.RegisterFunction("quote", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		_res = db.Exec("SELECT substr(name,1,3) FROM sqlite_master")
+		_ = _res // catchsql
+	}
+	{ // do_test "vacuum-1.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum-1.2")
+		}
+	}
+	{ // do_test "vacuum-1.3"
+		// expr [file size test.db]<$::size1 → runtime compare
+		_r = tclBool01(toInt(strconv.Itoa(tclFileSize("test.db")))  <  toInt(size1))
+	}
+	{ // "vacuum-1.4" (prepare-step internals; SQL side effects only)
+		vtab.TclVarSet("sql_script", "", "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  ")
+		sql_script = "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  "
+		_ = sql_script // suppress unused warning
+		_res = db.Exec(sql_script)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql_script)
+		}
+		vtab.TclVarSet("size1", "", strconv.Itoa(tclFileSize("test.db")))
+		size1 = strconv.Itoa(tclFileSize("test.db")) // TCL namespace variable
+		_ = size1 // suppress unused warning
+		vtab.TclVarSet("cksum", "", "cksum")
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// expr $::cksum!="" (not evaluated)
+	}
+	{ // do_test "vacuum-1.5"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum-1.5")
+		}
+	}
+	{ // do_test "vacuum-1.6"
+		// expr [file size test.db]<$::size1 → runtime compare
+		_r = tclBool01(toInt(strconv.Itoa(tclFileSize("test.db")))  <  toInt(size1))
+	}
+	{ // do_test "vacuum-2.1.1"
+		_res = db.Exec("\n      BEGIN;\n      VACUUM;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot VACUUM from within a transaction") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot VACUUM from within a transaction", resErrString(_res), "\n      BEGIN;\n      VACUUM;\n    ")
+		}
+	}
+	{ // "vacuum-2.1.2" (prepare-step internals; SQL side effects only)
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
+	}
+	{ // do_test "vacuum-2.1.3"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "COMMIT")
+		}
+	}
+	{ // do_test "vacuum-2.2"
+		db2, err = frigolite.Open("test.db")
+		tclConnRegister("db2", db2)
+		if err != nil { t.Fatal(err) }
+		_res = db2.Exec("\n    BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;\n  ")
+		}
+		vtab.TclVarSet("cksum", "", "cksum db2")
+		cksum = "cksum db2" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum-2.3"
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum-2.3")
+		}
+	}
+	{ // do_test "vacuum-2.4"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_r = ""
+			_res = db2.Exec("SELECT count(*) FROM sqlite_master")
+			if _res.Error != nil { _catchErr = _res.Error }
+		}
+		// cksum db2 (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum-2.4")
+		}
+	}
+	{ // do_test "vacuum-2.5"
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;\n  ")
+		}
+		db3, err = frigolite.Open("test.db")
+		tclConnRegister("db3", db3)
+		if err != nil { t.Fatal(err) }
+		r = db3.Query("\n    -- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 LIMIT 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    -- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 LIMIT 1\n  ")
+		}
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db3.Exec("\n    INSERT INTO t7 VALUES(1234567890,'hello','world');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t7 VALUES(1234567890,'hello','world');\n  ")
+		}
+		r = db.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "vacuum-2.7"
+		r = db3.Query("\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t7 WHERE a=1234567890\n  ")
+		}
+	}
+	{ // do_test "vacuum-2.8"
+		r = db.Query("\n    INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "vacuum-2.10"
+		r = db3.Query("\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t7;\n    SELECT count(*) FROM t7;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	if db3 != nil { db3.Close() }
+	{ // do_test "vacuum-3.1"
+		db.Close()
+		if db2 != nil { db2.Close() }
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // "vacuum-4.1" (prepare-step internals; SQL side effects only)
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		DB = "db"
+		_ = DB // suppress unused warning
+		// prepared VM: VACUUM (bind/step emulation)
+		TAIL = tclSqlTail("VACUUM")
+		_ = TAIL // suppress unused warning
+		_ = VM // prepared statement handle
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil { db.SetLastErr(_res.Error.Error(), db.ErrorCodeFor(_res.Error)) }
+		_ = _res // step result (SQLITE_ROW/SQLITE_CONSTRAINT) is C-API state; side effect only
+	}
+	{ // "vacuum-4.2" (prepare-step internals; SQL side effects only)
+		tclFinalizePrepared("VM")
+		// sqlite3_finalize $VM
+	}
+	{ // do_test "vacuum-5.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum-5.2"
+		_res = db.Exec("\n    VACUUM;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    VACUUM;\n  ")
+		}
+	}
+	{ // do_test "vacuum-6.1"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum-6.2"
+		r = db.Query("\n    select * from \"abc abc\";\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from \"abc abc\";\n  ")
+		}
+	}
+	{ // do_test "vacuum-6.3"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum-6.4"
+		r = db.Query("\n      select count(*) from \"abc abc\" WHERE a = X'00112233';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select count(*) from \"abc abc\" WHERE a = X'00112233';\n    ")
+		}
+	}
+	os.Remove(":memory:")
+	{ // do_test "vacuum-7.0"
+		db2, err = frigolite.Open(":memory:")
+		tclConnRegister("db2", db2)
+		if err != nil { t.Fatal(err) }
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum-7.1"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "vacuum-7.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum-7.3"
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+	}
+	{ // do_test "vacuum-7.4"
+		r = db2.Query(" PRAGMA auto_vacuum ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+		}
+	}
+	{ // do_test "vacuum-7.5"
+		r = db2.Query(" PRAGMA auto_vacuum = 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 1")
+		}
+		r = db2.Query(" PRAGMA auto_vacuum ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+		}
+	}
+	{ // do_test "vacuum-7.6"
+		r = db2.Query(" PRAGMA auto_vacuum = 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 1")
+		}
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		r = db2.Query(" PRAGMA auto_vacuum ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "vacuum-8.1"
+		os.Remove("a'z.db")
+		os.Remove("a'z.db-journal")
+		db2, err = frigolite.Open("a'z.db")
+		tclConnRegister("db2", db2)
+		if err != nil { t.Fatal(err) }
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "vacuum-9.1"
+		_res = db.Exec("\n      DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;\n    ")
+		}
+		vtab.TclVarSet("cksum", "", "cksum")
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// expr $::cksum!="" (not evaluated)
+	}
+	{ // do_test "vacuum-9.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum-9.2")
+		}
+	}
+	{ // do_test "vacuum-9.3"
+		_res = db.Exec("\n      INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');\n    ")
+		}
+		vtab.TclVarSet("cksum", "", "cksum")
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// expr $::cksum!="" (not evaluated)
+	}
+	{ // do_test "vacuum-9.4"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum-9.4")
+		}
+	}
+	os.Remove("a'z.db")
+	{ // do_test "vacuum-10.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;\n  ")
+		}
+	}
+	{ // do_test "vacuum-10.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // "vacuum-11.1" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  PRAGMA page_size=1024;\n  VACUUM;\n  PRAGMA page_size;\n")
+		_ = _res
+	}
+	// sqlite3_db_config ATTACH_CREATE (unhandled flag)
+	{ // "vacuum-11.2" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  PRAGMA page_size=2048;\n  VACUUM;\n  PRAGMA page_size;\n")
+		_ = _res
+	}
+	// sqlite3_db_config ATTACH_CREATE (unhandled flag)
+	// sqlite3_db_config ATTACH_WRITE (unhandled flag)
+	{ // "vacuum-11.3" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  PRAGMA page_size=4096;\n  VACUUM;\n  PRAGMA page_size;\n")
+		_ = _res
+	}
+}

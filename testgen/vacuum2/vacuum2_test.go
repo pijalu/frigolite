@@ -5,8 +5,355 @@
 package vacuum2
 
 import (
+"errors"
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
+"strings"
 "testing"
 )
 
-func Test_vacuum2(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_vacuum2(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var pageSize string
+	_ = pageSize // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "vacuum2")
+	testprefix = "vacuum2"
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
+	if tclBool(AUTOVACUUM) {
+		return
+	}
+	{ // do_test "vacuum2-1.1"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum2-2.1"
+		_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);\n  ")
+		}
+		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(24), int64(4)), 10)
+		if _r != tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+3") {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+3"), "vacuum2-2.1")
+		}
+	}
+	{ // do_test "vacuum2-2.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(24), int64(4)), 10)
+		if _r != tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+1") {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+1"), "vacuum2-2.2")
+		}
+	}
+	db2, err = frigolite.Open("test.db")
+	tclConnRegister("db2", db2)
+	if err != nil { t.Fatal(err) }
+	_dbeval0 := tclExecSQL(db, "pragma page_size")
+	pageSize = _dbeval0
+	_ = pageSize // suppress unused warning
+	{ // do_test "vacuum2-3.1"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');\n  ")
+		}
+		// expr [file size test.db]/$pageSize (not evaluated)
+	}
+	cksum = "cksum"
+	_ = cksum // suppress unused warning
+	{ // do_test "vacuum2-3.2"
+		// cksum db2 (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum2-3.2")
+		}
+	}
+	{ // do_test "vacuum2-3.3"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		// expr [file size test.db]/$pageSize (not evaluated)
+	}
+	{ // do_test "vacuum2-3.4"
+		// cksum db2 (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum2-3.4")
+		}
+	}
+	{ // do_test "vacuum2-3.5"
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum2-3.5")
+		}
+	}
+	{ // do_test "vacuum2-3.6"
+		r = db2.Query("PRAGMA integrity_check")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+		}
+	}
+	{ // do_test "vacuum2-3.7"
+		r = db.Query("PRAGMA integrity_check")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+		}
+	}
+	{ // do_test "vacuum2-3.13"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		// expr [file size test.db]/$pageSize (not evaluated)
+	}
+	{ // do_test "vacuum2-3.14"
+		// cksum db2 (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum2-3.14")
+		}
+	}
+	{ // do_test "vacuum2-3.15"
+		// cksum (unsupported command, not transpiled)
+		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, resErrString(_res), "vacuum2-3.15")
+		}
+	}
+	{ // do_test "vacuum2-3.16"
+		r = db2.Query("PRAGMA integrity_check")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+		}
+	}
+	{ // do_test "vacuum2-3.17"
+		r = db.Query("PRAGMA integrity_check")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
+		}
+	}
+	if db2 != nil { db2.Close() }
+	{ // do_test "vacuum2-4.1"
+		db.Close()
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum2-4.2"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum2-4.3"
+		r = db.Query("\n      pragma integrity_check\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma integrity_check\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.4"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum;\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.5"
+		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	}
+	{ // do_test "vacuum2-4.6"
+		r = db.Query("\n      pragma integrity_check\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma integrity_check\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.7"
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		tclConnRegister("db", db)
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum;\n    ")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
+	tclConnRegister("db", db)
+	if err != nil { t.Fatal(err) }
+	{ // "vacuum2-5.1"
+		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16 \n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16 \n")
+		}
+	}
+	{ // do_test "vacuum2-5.2"
+		_rc := "0"
+		{
+			var _catchErr error
+			_dbevalRows1 := db.Query("SELECT a, b FROM t1")
+			var _dbevalRb2 bool
+			var _dbevalErr3 error
+			var _dbevalInt4 bool
+			db.BeginActiveStatement()
+			for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+					switch _dbevalRows1.Columns[_ci] {
+						case "a":
+							a = tclStr(_dbevalRows1.Rows[_ri][_ci])
+					}
+				}
+				if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 8 }() {
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
+				}
+				if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); db.ClearInterrupt() }
+			}
+			db.EndActiveStatement()
+			if _dbevalErr3 != nil {
+				_catchErr = _dbevalErr3
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list1 := tclList([]string{_rc, msg})
+		_ = _list1
+		_r = _list1
+	}
+	{ // do_test "vacuum2-5.3"
+		_rc := "0"
+		{
+			var _catchErr error
+			_dbevalRows2 := db.Query("SELECT 1, 2, 3")
+			var _dbevalRb3 bool
+			var _dbevalErr4 error
+			var _dbevalInt5 bool
+			db.BeginActiveStatement()
+			for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+				for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
+					switch _dbevalRows2.Columns[_ci] {
+					}
+				}
+				// execsql skipped: VACUUM not implemented (P8.VACUUM)
+				if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
+				if _dbevalInt5 { _dbevalErr4 = errors.New("interrupted"); db.ClearInterrupt() }
+			}
+			db.EndActiveStatement()
+			if _dbevalErr4 != nil {
+				_catchErr = _dbevalErr4
+			}
+			if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
+			if _catchErr != nil { _rc = "1" }
+		}
+		_list2 := tclList([]string{_rc, msg})
+		_ = _list2
+		_r = _list2
+	}
+	{ // do_test "vacuum2-5.4"
+		vtab.TclVarSet("res", "", "")
+		res = ""
+		_ = res // suppress unused warning
+		vtab.TclVarSet("res2", "", "")
+		res2 = ""
+		_ = res2 // suppress unused warning
+		_dbevalRows3 := db.Query("SELECT a, b FROM t1 WHERE a<=10")
+		var _dbevalRb4 bool
+		var _dbevalErr5 error
+		var _dbevalInt6 bool
+		db.BeginActiveStatement()
+		for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+				switch _dbevalRows3.Columns[_ci] {
+					case "a":
+						a = tclStr(_dbevalRows3.Rows[_ri][_ci])
+				}
+			}
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 6 }() {
+				_res = db.Exec("VACUUM")
+				res = tclCatchsqlString(_res)
+			}
+			res2 = tclListAppend(res2, a)
+			if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt6 { _dbevalErr5 = errors.New("interrupted"); db.ClearInterrupt() }
+		}
+		db.EndActiveStatement()
+		if _dbevalErr5 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr5)
+		}
+		res2 = tclListAppend(res2, res)
+		got := tclListFlatten(res2)
+		want := tclListFlatten("1 2 3 4 5 6 7 8 9 10 1 {cannot VACUUM - SQL statements in progress}")
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "vacuum2-5.4")
+		}
+	}
+	// proc cmp collation (registered via db collate)
+	db.RegisterCollation("cmp", func(a, b string) int { return strings.Compare(a, b) })
+	{ // "6.0"
+		_res = db.Exec("\n  CREATE TABLE t6(x PRIMARY KEY COLLATE cmp, y) WITHOUT ROWID;\n  CREATE INDEX t6y ON t6(y);\n  INSERT INTO t6 VALUES('i', 'one');\n  INSERT INTO t6 VALUES('ii', 'one');\n  INSERT INTO t6 VALUES('iii', 'one');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t6(x PRIMARY KEY COLLATE cmp, y) WITHOUT ROWID;\n  CREATE INDEX t6y ON t6(y);\n  INSERT INTO t6 VALUES('i', 'one');\n  INSERT INTO t6 VALUES('ii', 'one');\n  INSERT INTO t6 VALUES('iii', 'one');\n")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	// proc cmp collation (registered via db collate)
+	{ // "6.2" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
+		_ = _res
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+}

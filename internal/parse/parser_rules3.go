@@ -771,11 +771,14 @@ func rule248(ruleNo int, p *Parser) interface{} {
 
 // Rule 249: cmd ::= VACUUM into_opt
 // VACUUM with an optional INTO <file> clause (into_opt: empty, rule 252,
-// or "INTO ids", rule 251). The exec handler is a no-op, so the INTO
-// target is not retained.
+// or "INTO ids", rule 251).
 func rule249(ruleNo int, p *Parser) interface{} {
-	return &sql.VacuumStmt{}
+	return &sql.VacuumStmt{Into: getString(getRHS(p, ruleNo, 2))}
+}
 
+// Rule 251: into_opt ::= INTO ids — the VACUUM INTO target filename.
+func rule251(ruleNo int, p *Parser) interface{} {
+	return getString(getRHS(p, ruleNo, 2))
 }
 
 // Rule 253: cmd ::= PRAGMA nm dbnm

@@ -5,8 +5,334 @@
 package vacuum3
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
+"strconv"
 "testing"
 )
 
-func Test_vacuum3(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_vacuum3(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var I string
+	_ = I // pre-declared from TCL source
+	var request string
+	_ = request // pre-declared from TCL source
+	var actual string
+	_ = actual // pre-declared from TCL source
+	var database string
+	_ = database // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var create_database_sql string
+	_ = create_database_sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	{ // do_test "vacuum3-1.1"
+		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
+		}
+	}
+	{ // do_test "vacuum3-1.2"
+		r = db.Query(" PRAGMA page_size ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+		}
+	}
+	{ // do_test "vacuum3-1.3" (file size test.db)
+		got := strconv.Itoa(tclFileSize("test.db"))
+		if got != "2048" {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, "2048", "vacuum3-1.3")
+		}
+	}
+	vtab.TclVarSet("I", "", "4")
+	I = "4"
+	_ = I // suppress unused warning
+	// foreach {request actual database} "\\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\\n"
+	_items0 := tclSplitList("\\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		request := _items0[_idx0+0]
+		_ = request // suppress unused warning
+		actual := _items0[_idx0+1]
+		_ = actual // suppress unused warning
+		database := _items0[_idx0+2]
+		_ = database // suppress unused warning
+		_ = _idx0
+			{ // do_test "vacuum3-1." + I + ".1"
+				// execsql skipped: VACUUM not implemented (P8.VACUUM)
+				r = db.Query(" PRAGMA page_size ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+				}
+				if flatten(r) != tclListFlatten(actual) {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(actual), "vacuum3-1." + I + ".1")
+				}
+			}
+			{ // do_test "vacuum3-1." + I + ".2" (file size test.db)
+				got := strconv.Itoa(tclFileSize("test.db"))
+				if got != database {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, database, "vacuum3-1." + I + ".2")
+				}
+			}
+			{ // do_test "vacuum3-1." + I + ".3"
+				r = db.Query(" SELECT * FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				}
+			}
+			_res = db.Exec("PRAGMA integrity_check")
+			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+			// incr I 1
+			{
+				_n, _err := strconv.Atoi(I)
+				if _err == nil {
+					I = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		{ // do_test "vacuum3-2.1"
+			// execsql skipped: VACUUM not implemented (P8.VACUUM)
+			_res = db.Exec(" ALTER TABLE t1 ADD COLUMN d; ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 ADD COLUMN d; ")
+			}
+			_res = db.Exec("\n    UPDATE t1 SET d = randomblob(1000);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = randomblob(1000);\n  ")
+			}
+			_r = strconv.Itoa(tclFileSize("test.db"))
+			if _r != "3072" {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "3072", "vacuum3-2.1")
+			}
+		}
+		{ // do_test "vacuum3-2.2"
+			r = db.Query(" PRAGMA page_size ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+			}
+		}
+		{ // do_test "vacuum3-2.3"
+			_dbone1 := tclExecSQL(db, "{select d from t1}")
+			blob = _dbone1
+			_ = blob // suppress unused warning
+			_r = strconv.Itoa(len(blob)) // string length result
+		}
+		vtab.TclVarSet("I", "", "4")
+		I = "4"
+		_ = I // suppress unused warning
+		// foreach {request actual database} "\\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\\n"
+		_items2 := tclSplitList("\\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\\n")
+		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+			request := _items2[_idx2+0]
+			_ = request // suppress unused warning
+			actual := _items2[_idx2+1]
+			_ = actual // suppress unused warning
+			database := _items2[_idx2+2]
+			_ = database // suppress unused warning
+			_ = _idx2
+				{ // do_test "vacuum3-2." + I + ".1"
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
+					r = db.Query(" PRAGMA page_size ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+					}
+					if flatten(r) != tclListFlatten(actual) {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(actual), "vacuum3-2." + I + ".1")
+					}
+				}
+				{ // do_test "vacuum3-2." + I + ".2" (file size test.db)
+					got := strconv.Itoa(tclFileSize("test.db"))
+					if got != database {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, database, "vacuum3-2." + I + ".2")
+					}
+				}
+				{ // do_test "vacuum3-2." + I + ".3"
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				_res = db.Exec("PRAGMA integrity_check")
+				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+				// incr I 1
+				{
+					_n, _err := strconv.Atoi(I)
+					if _err == nil {
+						I = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			// proc definition (not transpiled)
+			{ // do_test "vacuum3-3.1"
+				r = db.Query("\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+				}
+			}
+			{ // do_test "vacuum3-3.2"
+				r = db.Query(" PRAGMA page_size ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+				}
+			}
+			_dbeval3 := tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+			sig = _dbeval3
+			_ = sig // suppress unused warning
+			vtab.TclVarSet("I", "", "3")
+			I = "3"
+			_ = I // suppress unused warning
+			// foreach {request actual} "\\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\\n"
+			_items4 := tclSplitList("\\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\\n")
+			for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+				request := _items4[_idx4+0]
+				_ = request // suppress unused warning
+				actual := _items4[_idx4+1]
+				_ = actual // suppress unused warning
+				_ = _idx4
+					{ // do_test "vacuum3-3." + I + ".1"
+						// execsql skipped: VACUUM not implemented (P8.VACUUM)
+						r = db.Query(" PRAGMA page_size ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+						}
+						if flatten(r) != tclListFlatten(actual) {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(actual), "vacuum3-3." + I + ".1")
+						}
+					}
+					{ // do_test "vacuum3-3." + I + ".2"
+						_r = tclExecSQL(db, "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc")
+						if _r != sig {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "vacuum3-3." + I + ".2")
+						}
+					}
+					_res = db.Exec("PRAGMA integrity_check")
+					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+					// incr I 1
+					{
+						_n, _err := strconv.Atoi(I)
+						if _err == nil {
+							I = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				{ // do_test "vacuum3-4.1"
+					db.Close()
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
+					if err != nil { t.Fatal(err) }
+					r = db.Query("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+					}
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.2"
+					db2, err = frigolite.Open("test.db")
+					tclConnRegister("db2", db2)
+					if err != nil { t.Fatal(err) }
+					r = db2.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.3"
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.4"
+					r = db2.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.5"
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
+					r = db2.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.6"
+					// execsql skipped: VACUUM not implemented (P8.VACUUM)
+					r = db2.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				if db2 != nil { db2.Close() }
+				db2, err = frigolite.Open(":memory:")
+				tclConnRegister("db2", db2)
+				if err != nil { t.Fatal(err) }
+				{ // do_test "vacuum3-5.1"
+					_res = db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				}
+				{ // do_test "vacuum3-5.2"
+					_res = db2.Exec("\n    PRAGMA page_size\n  ")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				}
+				vtab.TclVarSet("create_database_sql", "", "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n")
+				create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
+				_ = create_database_sql // suppress unused warning
+				// do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_dat... (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_da... (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-3 -cksum true -sqlprep \n    PRAGMA auto_vacuum = 0;\n    $create_... (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-4 -cksum true -sqlprep \n    PRAGMA auto_vacuum = 1;\n    $create_... (unsupported command, not transpiled)
+				if tclBool(MEMDEBUG) {
+					// do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    ...... (unsupported command, not transpiled)
+					// do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1...... (unsupported command, not transpiled)
+				}
+}

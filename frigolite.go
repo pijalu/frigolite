@@ -26,6 +26,7 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/recover"
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
@@ -920,6 +921,15 @@ func (db *DB) Exec(sqlStr string) *Result {
 
 	var lastResult *exec.Result
 	for _, stmt := range stmts {
+		if vs, ok := stmt.(*sql.VacuumStmt); ok {
+			res := db.execVacuumStmt(vs)
+			if res.Error != nil {
+				db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
+				return execResult(res)
+			}
+			lastResult = res
+			continue
+		}
 		res := db.engine.Exec(stmt)
 		if res.Error != nil {
 			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))

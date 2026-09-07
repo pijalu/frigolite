@@ -252,6 +252,7 @@ var ruleHandlers = map[int]ruleHandler{
 	245: rule245,
 	248: rule248,
 	249: rule249,
+	251: rule251,
 	253: rule253,
 	254: rule254,
 	255: rule255,

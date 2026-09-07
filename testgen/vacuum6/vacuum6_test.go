@@ -5,8 +5,205 @@
 package vacuum6
 
 import (
+"github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/vtab"
+"os"
 "testing"
 )
 
-func Test_vacuum6(t *testing.T) {}
-// skipped: deep-engine applicable gap DEFERRED (tracked for later phase)
+func Test_vacuum6(t *testing.T) {
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var _res *frigolite.Result
+	var r *frigolite.Result
+	var msg string
+	var _r string
+	var _berr error
+	_ = _berr // suppress unused warning
+	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
+	_ = _r   // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
+
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var av string
+	_ = av // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	vtab.TclVarSet("testprefix", "", "vacuum6")
+	testprefix = "vacuum6"
+	_ = testprefix // suppress unused warning
+	{ // "1.0"
+		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 1);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 1);\n")
+		}
+	}
+	{ // "1.1" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  VACUUM\n")
+		_ = _res
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{ // "1.2" — skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n  CREATE TABLE t1(x,b);\n  CREATE INDEX x1 ON t1(x);\n  CREATE INDEX x2 ON t1(x);\n  CREATE INDEX x3 ON t1(x);\n  INSERT INTO t1 SELECT 2,'';\n  VACUUM;\n")
+		_ = _res
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// foreach {tn sz} "1 400 2 4000 3 9999"
+	_items0 := tclSplitList("1 400 2 4000 3 9999")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
+		_ = tn // suppress unused warning
+		sz := _items0[_idx0+1]
+		_ = sz // suppress unused warning
+		_ = _idx0
+			db.Close()
+			os.Remove("test.db")
+			os.Remove("test.db-journal")
+			os.Remove("test.db-wal")
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
+			{ // "2." + tn + ".1"
+				_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob(" + sqlLiteral(sz) + ") FROM s;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob(" + sqlLiteral(sz) + ") FROM s;\n  ")
+				}
+			}
+			{ // "2." + tn + ".2" — skipped: VACUUM not implemented (P8.VACUUM)
+				_res = db.Exec("\n    vacuum;\n  ")
+				_ = _res
+			}
+			{ // "2." + tn + ".3"
+				r = db.Query("\n    PRAGMA integrity_check;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		db.Close()
+		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		{ // "3.0"
+			r = db.Query("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
+			}
+		}
+		{ // "3.1" — skipped: VACUUM not implemented (P8.VACUUM)
+			_res = db.Exec("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			_ = _res
+		}
+		{ // "3.2"
+			r = db.Query("\n  PRAGMA integrity_check\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		db.Close()
+		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		{ // "4.0"
+			r = db.Query("\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
+				return
+			}
+			got := flatten(r)
+			want := "18009000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// foreach {tn pgsz av} "1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1"
+		_items1 := tclSplitList("1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
+			_ = tn // suppress unused warning
+			pgsz := _items1[_idx1+1]
+			_ = pgsz // suppress unused warning
+			av := _items1[_idx1+2]
+			_ = av // suppress unused warning
+			_ = _idx1
+				{ // "4.1." + tn + ".1"
+					r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
+					}
+				}
+				{ // "4.1." + tn + ".2" — skipped: VACUUM not implemented (P8.VACUUM)
+					_res = db.Exec("VACUUM")
+					_ = _res
+				}
+				_res = db.Exec("PRAGMA integrity_check")
+				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+			}
+}
