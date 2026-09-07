@@ -715,6 +715,17 @@ func (tp *transpiler) processNamespaceSet(args []tcl.RawWord) bool {
 					tp.assignSetValue(goName, fmt.Sprintf("tclMemdbSignature(%s)", tp.dbVar))
 					return true
 				}
+				if body, ok := globalProcBodies[parts[0]]; ok && userProcEmitterFor(parts[0], body) == "table_sig" {
+					table, col, _ := tableSigProcInfo(body)
+					connVar := tp.dbVar
+					if len(parts) >= 2 {
+						if v := strings.TrimSpace(parts[1]); isValidGoIdent(tclVarToGo(v)) {
+							connVar = tclVarToGo(v)
+						}
+					}
+					tp.assignSetValue(goName, fmt.Sprintf("tclTableSig(%s, %q, %q)", connVar, table, col))
+					return true
+				}
 			}
 		}
 	}

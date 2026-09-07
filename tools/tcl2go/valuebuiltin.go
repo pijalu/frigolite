@@ -44,6 +44,9 @@ var valueReturningBuiltins = map[string]bool{
 	"pager_pagecount":      true,
 	"integrity_check":      true,
 	"explain":              true,
+	// exclusive2.test change-counter procs (transpiled to harness helpers).
+	"readPagerChangeCounter": true,
+	"pagerChangeCounter":     true,
 }
 
 // bodyEndsWithValueBuiltin reports whether a do_test body's last command is
@@ -59,7 +62,15 @@ func bodyEndsWithValueBuiltin(bodyCmds [][]tcl.RawWord) bool {
 	if len(last) < 1 {
 		return false
 	}
-	return valueReturningBuiltins[last[0].Text]
+	if valueReturningBuiltins[last[0].Text] {
+		return true
+	}
+	// A bare user-proc call whose body is a table fingerprint
+	// (exclusive2.test's t1sig) leaves its "COUNT MD5HEX" value in _r.
+	if body, ok := globalProcBodies[last[0].Text]; ok && userProcEmitterFor(last[0].Text, body) == "table_sig" {
+		return true
+	}
+	return false
 }
 
 // bodyEndsWithLappendVar reports whether a do_test body's last command is

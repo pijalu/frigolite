@@ -14,6 +14,56 @@ import (
 
 // userProcEmitterFor fingerprints a file-local proc body and returns an
 // emitter key for a faithful Go implementation, "" when unsupported.
+// findTableSigProc locates the test file's table-fingerprint proc (see
+// tableSigProcInfo); a file defines at most one.
+func findTableSigProc() (table, col string, ok bool) {
+	for name, body := range globalProcBodies {
+		if userProcEmitterFor(name, body) == "table_sig" {
+			return tableSigProcInfo(body)
+		}
+	}
+	return "", "", false
+}
+
+// tableSigProcInfo recognizes a table-fingerprint proc body:
+// "execsql {SELECT count(*), md5sum(COL) FROM TABLE} $db" (exclusive2.test's
+// t1sig). Returns the table and column, ok=false for other shapes.
+func tableSigProcInfo(body string) (table, col string, ok bool) {
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	lower := strings.ToLower(body)
+	if !strings.HasPrefix(lower, "execsql ") {
+		return "", "", false
+	}
+	rest := strings.TrimSpace(body[len("execsql "):])
+	rest = strings.TrimSuffix(rest, "]")
+	rest = strings.TrimSpace(rest)
+	if len(rest) >= 2 && ((rest[0] == '{' && rest[len(rest)-1] == '}') || (rest[0] == '"' && rest[len(rest)-1] == '"')) {
+		rest = rest[1 : len(rest)-1]
+	}
+	up := strings.ToUpper(rest)
+	if !strings.Contains(up, "SELECT COUNT(*), MD5SUM(") {
+		return "", "", false
+	}
+	i := strings.Index(up, "MD5SUM(")
+	col = rest[i+len("MD5SUM("):]
+	j := strings.Index(col, ")")
+	if j < 0 {
+		return "", "", false
+	}
+	col = strings.TrimSpace(col[:j])
+	k := strings.Index(up[j+i+len("MD5SUM("):], " FROM ")
+	if k < 0 {
+		return "", "", false
+	}
+	tail := strings.TrimSpace(rest[j+i+len("MD5SUM(")+k+len(" FROM "):])
+	table = strings.Fields(tail)[0]
+	table = strings.Trim(table, "}")
+	return table, col, table != "" && col != ""
+}
+
 func userProcEmitterFor(name, body string) string {
 	switch name {
 	case "populate_t1":
@@ -34,6 +84,10 @@ func userProcEmitterFor(name, body string) string {
 	case "signature":
 		if strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length") {
 			return "memdb_signature"
+		}
+	case "t1sig":
+		if _, _, ok := tableSigProcInfo(body); ok {
+			return "table_sig" // exclusive2.test: count + md5sum fingerprint
 		}
 	case "pager_cache_size":
 		if strings.Contains(body, "btree_pager_stats") {
@@ -70,6 +124,21 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 		return `""`
 	}
 	switch key {
+	case "table_sig":
+		// t1sig [CONN] (exclusive2.test): table fingerprint over the named
+		// (or default) connection. The first proc param is a defaulted
+		// connection handle, so a bare call targets the default "db".
+		table, col, ok := findTableSigProc()
+		if !ok {
+			tp.emitLine("// %s proc not recognized (not transpiled)", strings.Join(goArgs, " "))
+			return
+		}
+		connVar := tp.dbVar
+		if len(goArgs) >= 1 && isValidGoIdent(goArgs[0]) {
+			connVar = goArgs[0]
+		}
+		tp.emitLine("_r = tclTableSig(%s, %q, %q)", connVar, table, col)
+
 	case "rtree8_populate":
 		tp.emitLine("_res = %s.Exec(\"DELETE FROM t1\")", tp.dbVar)
 		tp.emitLine("if _res.Error != nil { t.Errorf(\"exec error: %%v\", _res.Error) }")

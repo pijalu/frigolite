@@ -9,7 +9,6 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -97,7 +96,7 @@ func Test_exclusive2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "exclusive2-1.0"
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-1.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
@@ -118,24 +117,23 @@ func Test_exclusive2(t *testing.T) {
 		_r = tclBool01(toInt(tclExecSQL(db, "PRAGMA cache_size"))  >=  toInt(nPage))
 	}
 	{ // do_test "exclusive2-1.2"
-		vtab.TclVarSet("sig", "", "t1sig")
-		sig = "t1sig" // TCL namespace variable
+		sig = tclTableSig(db, "t1", "a")
 		_ = sig // suppress unused warning
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-1.3"
-		// t1sig (unsupported command, not transpiled)
-		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-1.3")
+		_r = tclTableSig(db, "t1", "a")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "exclusive2-1.3")
 		}
 	}
 	{ // do_test "exclusive2-1.4"
 		db2, err = frigolite.Open("test.db")
 		tclConnRegister("db2", db2)
 		if err != nil { t.Fatal(err) }
-		// t1sig db2 (unsupported command, not transpiled)
-		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-1.4")
+		_r = tclTableSig(db, "t1", "a")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "exclusive2-1.4")
 		}
 	}
 	{ // do_test "exclusive2-1.5"
@@ -143,24 +141,30 @@ func Test_exclusive2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b=a, a=0;\n  ")
 		}
+		// expr [t1sig db2] eq $::sig → runtime compare
+		_r = tclBool01(tclTableSig(db2, "t1", "a") == sig)
 		// expr [t1sig db2] eq $::sig (not evaluated)
 	}
 	{ // do_test "exclusive2-1.6"
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-1.7"
-		// pagerChangeCounter test.db 1 (unsupported command, not transpiled)
+		_r = tclSetPagerChangeCounter("test.db", 1)
 	}
 	if "" != "memsubsys1" {
 		{ // do_test "exclusive2-1.9"
-			// t1sig (unsupported command, not transpiled)
+			_r = tclTableSig(db, "t1", "a")
+			// expr [t1sig] eq $::sig → runtime compare
+			_r = tclBool01(tclTableSig(db, "t1", "a") == sig)
 			// expr [t1sig] eq $::sig (not evaluated)
 		}
 	}
 	{ // do_test "exclusive2-1.10"
-		// pagerChangeCounter test.db 2 (unsupported command, not transpiled)
+		_r = tclSetPagerChangeCounter("test.db", 2)
 	}
 	{ // do_test "exclusive2-1.11"
+		// expr [t1sig] eq $::sig → runtime compare
+		_r = tclBool01(tclTableSig(db, "t1", "a") == sig)
 		// expr [t1sig] eq $::sig (not evaluated)
 	}
 	if db2 != nil { db2.Close() }
@@ -191,15 +195,14 @@ func Test_exclusive2(t *testing.T) {
 		_r = tclBool01(toInt(tclExecSQL(db, "PRAGMA cache_size"))  >=  toInt(nPage))
 	}
 	{ // do_test "exclusive2-2.2"
-		vtab.TclVarSet("sig", "", "t1sig")
-		sig = "t1sig" // TCL namespace variable
+		sig = tclTableSig(db, "t1", "a")
 		_ = sig // suppress unused warning
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-2.3"
-		// t1sig (unsupported command, not transpiled)
-		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.3")
+		_r = tclTableSig(db, "t1", "a")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "exclusive2-2.3")
 		}
 	}
 	{ // do_test "exclusive2-2.4"
@@ -208,18 +211,18 @@ func Test_exclusive2(t *testing.T) {
 		_ = fd // suppress unused warning
 		fileChannelSeek["fd"] = int64(tclAtoi("1024"))
 		tclChannelAppendAt("test.db", tclStringRepeat("", "10000"), fileChannelSeek["fd"])
-		// t1sig (unsupported command, not transpiled)
-		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.4")
+		_r = tclTableSig(db, "t1", "a")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "exclusive2-2.4")
 		}
 	}
 	{ // do_test "exclusive2-2.5"
-		// pagerChangeCounter test.db 5 $::fd (unsupported command, not transpiled)
+		_r = tclSetPagerChangeCounter("test.db", 5)
 	}
 	{ // do_test "exclusive2-2.6"
-		// t1sig (unsupported command, not transpiled)
-		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.6")
+		_r = tclTableSig(db, "t1", "a")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "exclusive2-2.6")
 		}
 	}
 	{ // do_test "exclusive2-2.7"
@@ -227,9 +230,9 @@ func Test_exclusive2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA locking_mode = normal")
 		}
-		// t1sig (unsupported command, not transpiled)
-		if _res == nil || _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
-			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, resErrString(_res), "exclusive2-2.7")
+		_r = tclTableSig(db, "t1", "a")
+		if _r != sig {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, sig, "exclusive2-2.7")
 		}
 	}
 	{ // do_test "exclusive2-2.8"
@@ -237,7 +240,7 @@ func Test_exclusive2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// t1sig (unsupported command, not transpiled)
+			_r = tclTableSig(db, "t1", "a")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -267,49 +270,49 @@ func Test_exclusive2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-3.1"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-3.2"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-3.3"
 		r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-3.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-3.5"
 		r = db.Query("\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	{ // do_test "exclusive2-3.6"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		// readPagerChangeCounter test.db (unsupported command, not transpiled)
+		_r = tclReadPagerChangeCounter("test.db")
 	}
 	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

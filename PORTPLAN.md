@@ -96,6 +96,14 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
   Countermeasure adopted 2026-09-03: the §5g Anti-Drift Protocol (green
   ledger, pre-goal baseline, full-run gate at goal close, testgen-regen
   rule) — binding for every goal from now on.
+- **Closed goal: P8.ROLLBACK (2026-09-07)** — 4/4 target packages green
+  (exclusive, exclusive2, rollback, rollback2). Engine: lockreg
+  persistent-SHARED marks so locking_mode=EXCLUSIVE holds locks across
+  transactions (autocommit writes fail immediately, explicit-tx writes at
+  COMMIT); transpiler: TCL sqlite3-rebind-close semantics, t1sig
+  fingerprint inlining, pager change-counter helpers, nil-safe resErrString
+  in Errorf emissions, format-proc db-func registrations. Detail in
+  plan/goals/P8.ROLLBACK.md close sections.
 - **Closed goal: P8.RECOVER (2026-09-07, T0-T7 + WR-WRITE + WR-FIX)** —
   1/1 target package green (`recover_pkg` 0.3s serial, all blocks incl.
   WR round-trip 2.1.1 and WR orphans 2.4.1). Engine: internal/recover
@@ -378,7 +386,7 @@ created only after the previous goal's `verifyCommand` passes and the goal is
 > | 12d | `P7.WAL-G7` | NEW (from Blocker Register "P7 WAL G7 layer") | port src/wal.c wal-index header + lock-bitmap protocol; un-skips walprotocol/walsetlk/walrestart/snapshot/shared families currently N-A G7; sub-plan to be written per §5b before engine edits |
 >
 > Full order: INCRVACUUM → **GREEN-LEDGER ✅ (2026-09-05)** → P8.MISC ✅ → **P8.PRAGMA ✅ (2026-09-06)** → P8.PAGER (active) →
-> P8.RECOVER ✅ (2026-09-07) → P8.ROLLBACK (active next) → P8.VACUUM → FULL-SUITE-DRIFT → P6.FTS-RESIDUE →
+> P8.RECOVER ✅ (2026-09-07) → P8.ROLLBACK ✅ (2026-09-07) → P8.VACUUM (active next) → FULL-SUITE-DRIFT → P6.FTS-RESIDUE →
 > P7.PLANNER.bestindex → P6.RTREE → P6.FTS5 → P6.DBDATA → P6.DBSTAT →
 > P7.WAL-G7 → P9.PERF. Every goal carries the §5e strict DoD + §5g
 > anti-regression protocol (baseline before edits, zero unexpected flips at

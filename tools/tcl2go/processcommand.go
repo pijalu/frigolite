@@ -725,6 +725,44 @@ func (tp *transpiler) inlineDefaultQueryProc(cmdName string, args []tcl.RawWord)
 			return true
 		}
 	}
+	// t1sig [CONN] (exclusive2.test): table fingerprint (count + md5sum).
+	// The optional argument names the connection variable (default "db").
+	if body, ok := globalProcBodies[cmdName]; ok && userProcEmitterFor(cmdName, body) == "table_sig" {
+		table, col, _ := tableSigProcInfo(body)
+		connVar := tp.dbVar
+		if len(args) >= 1 {
+			if v := strings.TrimSpace(args[0].Text); isValidGoIdent(tclVarToGo(v)) {
+				connVar = tclVarToGo(v)
+			}
+		}
+		tp.emitLine("_r = tclTableSig(%s, %q, %q)", connVar, table, col)
+		return true
+	}
+	// readPagerChangeCounter FILE (exclusive2.test): the database header
+	// change counter (big-endian uint32 at offset 24).
+	if cmdName == "readPagerChangeCounter" && len(args) == 1 {
+		tp.emitLine("_r = tclReadPagerChangeCounter(%s)", tp.goStringLiteral(args[0]))
+		return true
+	}
+	// pagerChangeCounter FILE N [FD] (exclusive2.test): write the change
+	// counter and return the re-read value. The optional channel argument
+	// only changes which TCL channel performs the write.
+	if cmdName == "pagerChangeCounter" && len(args) >= 2 {
+		pathExpr := tp.goStringLiteral(args[0])
+		nExpr := strings.TrimSpace(args[1].Text)
+		allDigits := nExpr != ""
+		for _, ch := range nExpr {
+			if ch < '0' || ch > '9' {
+				allDigits = false
+				break
+			}
+		}
+		if !allDigits {
+			nExpr = "0"
+		}
+		tp.emitLine("_r = tclSetPagerChangeCounter(%s, %s)", pathExpr, nExpr)
+		return true
+	}
 	// quota_list (quota.test): the sorted list of quota-group patterns from
 	// sqlite3_quota_dump. A do_test body ending in `quota_list` compares
 	// against the pattern list.

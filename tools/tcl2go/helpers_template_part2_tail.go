@@ -871,6 +871,46 @@ func tclDBCksum(db *frigolite.DB, schemaName string) string {
 }
 
 // tclFileSize returns a file's size in bytes (0 when missing).
+// tclReadPagerChangeCounter returns the database file change counter
+// (big-endian uint32 at header offset 24; 0 when the file is missing or too
+// short) — mirrors exclusive2.test's readPagerChangeCounter proc.
+func tclReadPagerChangeCounter(path string) string {
+	return strconv.FormatInt(tclHexioReadInt(path, 24, 4), 10)
+}
+
+// tclSetPagerChangeCounter writes N as the database file change counter and
+// returns the re-read value — mirrors exclusive2.test's
+// pagerChangeCounter proc.
+func tclSetPagerChangeCounter(path string, n int64) string {
+	if n < 0 {
+		n = 0
+	}
+	tclHexioWrite(path, 24, fmt.Sprintf("%%08X", n))
+	return tclReadPagerChangeCounter(path)
+}
+
+// tclTableSig replicates a table-fingerprint proc like exclusive2.test's
+// t1sig ("proc t1sig {{db db}} { execsql {SELECT count(*), md5sum(a) FROM
+// t1} $db }"): the count and an MD5 over the column's values in scan order,
+// rendered as the TCL list string "COUNT MD5HEX".
+func tclTableSig(db *frigolite.DB, table, col string) string {
+	r := db.Query(fmt.Sprintf("SELECT count(*) FROM %%s", table))
+	if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 {
+		return "0"
+	}
+	count := fmt.Sprint(r.Rows[0][0])
+	r2 := db.Query(fmt.Sprintf("SELECT %%s FROM %%s", col, table))
+	h := md5.New()
+	if r2.Error == nil {
+		for _, row := range r2.Rows {
+			if len(row) > 0 && row[0] != nil {
+				h.Write([]byte(fmt.Sprint(row[0])))
+			}
+		}
+	}
+	return count + " " + hex.EncodeToString(h.Sum(nil))
+}
+
 func tclFileSize(path string) int {
 	fi, err := os.Stat(path)
 	if err != nil {

@@ -316,6 +316,52 @@ func (tp *transpiler) emitIncrCounter(goName string) {
 	tp.emitLine("}")
 }
 
+// emitTableSigEqExpr recognizes "expr [t1sig db2] eq $::sig" — TCL string
+// equality between a table-fingerprint proc call and a variable
+// (exclusive2.test 1.5/1.9/1.11). Emits the runtime comparison and returns
+// true when the shape matched.
+func (tp *transpiler) emitTableSigEqExpr(exprStr string) bool {
+	inner := exprStr
+	if !strings.Contains(inner, "[") || !strings.Contains(inner, "] eq ") {
+		return false
+	}
+	open := strings.Index(inner, "[")
+	close_ := strings.LastIndex(inner, "]")
+	call := strings.TrimSpace(inner[open+1 : close_])
+	parts := strings.Fields(call)
+	rest := strings.TrimSpace(inner[close_+1:])
+	eqOp := ""
+	switch {
+	case strings.HasPrefix(rest, "eq "):
+		eqOp = strings.TrimSpace(rest[len("eq "):])
+	case strings.HasPrefix(rest, "== "):
+		eqOp = strings.TrimSpace(rest[len("== "):])
+	}
+	if len(parts) < 1 || eqOp == "" {
+		return false
+	}
+	body, ok := globalProcBodies[parts[0]]
+	if !ok || userProcEmitterFor(parts[0], body) != "table_sig" {
+		return false
+	}
+	table, col, _ := tableSigProcInfo(body)
+	connVar := tp.dbVar
+	if len(parts) >= 2 {
+		if v := strings.TrimSpace(parts[1]); isValidGoIdent(tclVarToGo(v)) {
+			connVar = tclVarToGo(v)
+		}
+	}
+	wantVar := strings.TrimSpace(eqOp)
+	wantVar = strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(wantVar, "$"), "::"), "::")
+	if !isValidGoIdent(tclVarToGo(wantVar)) {
+		return false
+	}
+	wantGo := tclVarToGo(wantVar)
+	tp.emitLine("// expr %s → runtime compare", sanitizeTCLComment(exprStr))
+	tp.emitLine("_r = tclBool01(tclTableSig(%s, %q, %q) == %s)", connVar, table, col, wantGo)
+	return true
+}
+
 func (tp *transpiler) processExpr(args []tcl.RawWord) {
 	if len(args) == 0 {
 		return
@@ -358,6 +404,7 @@ func (tp *transpiler) processExpr(args []tcl.RawWord) {
 		tp.emitLine("_r = tclExprWith(%q, map[string]string{%s})", exprGo, strings.Join(pairs, ", "))
 		return
 	}
+	tp.emitTableSigEqExpr(exprStr)
 	tp.emitLine("// expr %s (not evaluated)", sanitizeTCLComment(exprStr))
 }
 

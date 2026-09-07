@@ -5076,3 +5076,26 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   extraction (wrSnapshotOldKeys, updateConflictFromCell, addWRDropRewrite)
   keep gocognit/gocyclo at the §5c thresholds; run the gate against the
   PRE-change commit to separate new findings from legacy (deferred) ones.
+
+## P8.ROLLBACK close (2026-09-07) — locking_mode, rebind semantics, t1sig
+
+- **locking_mode=EXCLUSIVE holds a never-released SHARED lock** (pager.c
+  stops unlocking between transactions). Autocommit writes by other
+  connections fail at once (EXCLUSIVE upgrade denied); writes inside an
+  explicit transaction acquire RESERVED and fail at COMMIT. Implemented as
+  lockreg.PersistentShared marks set lazily on first access, checked in
+  CrossConnLockError (non-transactional writes) and commitLockError.
+- **TCL "sqlite3 NAME FILE" CLOSES the previously-bound connection** on
+  rebind. The generated Go leaked it, keeping write-tx locks alive across
+  test.db recreation (blocked hot-journal playback, exclusive-6.5).
+  tclConnRegister now closes the prior handle (IsClosed-guarded).
+- **tcl2go do_test value dispatch**: a bare-command body gets its value
+  compared against the expected ONLY if bodyEndsWithValueBuiltin recognizes
+  the last command — otherwise it falls into the catchsql-error fallback.
+  New value commands must (1) emit `_r =` in their handler, (2) be added to
+  the bodyEndsWithValueBuiltin dispatch.
+- **Template % trap (recurrent)**: anything inserted into the helpers
+  template raw strings gets fmt.Sprintf-rendered — every literal % must be
+  written %% in the template (Sprintf("%08X") became "%!X(MISSING)").
+- **No backticks inside template-inserted comments**: the templates are Go
+  raw string literals; a ` terminates them with a syntax error.
