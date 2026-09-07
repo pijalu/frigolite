@@ -877,7 +877,10 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".3.3"
-				// execsql skipped: VACUUM not implemented (P8.VACUUM)
+				_res = db.Exec(" VACUUM ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+				}
 				_r = tclBackupStep(B, "5000")
 				if _r != "SQLITE_DONE" {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "SQLITE_DONE", "backup-5." + iTest + ".3.3")
@@ -913,7 +916,10 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".4.3"
-				// execsql skipped: VACUUM not implemented (P8.VACUUM)
+				r = db.Query(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
+				}
 				_r = tclBackupStep(B, "5000")
 				if _r != "SQLITE_DONE" {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, "SQLITE_DONE", "backup-5." + iTest + ".4.3")

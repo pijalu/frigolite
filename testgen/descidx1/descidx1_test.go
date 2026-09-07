@@ -276,7 +276,10 @@ func Test_descidx1(t *testing.T) {
 		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.3.1"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
 		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.4"
@@ -295,12 +298,18 @@ func Test_descidx1(t *testing.T) {
 		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.6"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
 		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.7"
 		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("\n      VACUUM;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")
+		}
 		// get_file_format (unsupported command, not transpiled)
 	}
 }

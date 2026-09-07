@@ -640,27 +640,6 @@ func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
 		sqlText = rest[0].Text
 	}
 	if reason := unsupportedSQL(sanitizeSQL(sqlText)); reason != "" {
-		// A VACUUM mixed with other statements: the engine no-ops VACUUM
-		// (P8.VACUUM), but the surrounding statements still have side
-		// effects later tests depend on (e.g. nan-3.1's DELETE + INSERT
-		// 0.5 before VACUUM). Split the body and run the non-VACUUM
-		// statements. Keep the whole-block skip when the body contains a
-		// row-producing query (SELECT/WITH/VALUES/EXPLAIN): its result
-		// order/contents can be VACUUM-dependent (whereA-1.7) and running
-		// it without VACUUM would produce a different value.
-		if reVACUUM.MatchString(sqlText) && !bodyHasRowProducingQuery(sqlText) {
-			var sideEffects []string
-			for _, st := range splitSQLStatements(sqlText) {
-				if !reVACUUM.MatchString(st) {
-					sideEffects = append(sideEffects, st)
-				}
-			}
-			if len(sideEffects) > 0 {
-				tp.emitLine("_res = db.Exec(%q)", strings.Join(sideEffects, "; "))
-				tp.emitLine("_ = _res // VACUUM skipped (P8.VACUUM); side effects run")
-				return
-			}
-		}
 		tp.emitLine("// db eval skipped: %s", reason)
 		return
 	}

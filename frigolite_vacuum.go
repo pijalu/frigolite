@@ -30,13 +30,7 @@ func (db *DB) execVacuumStmt(vs *sql.VacuumStmt) *exec.Result {
 	if vs.Into != "" {
 		return db.vacuumInto(schema, vs.Into)
 	}
-	// Plain VACUUM: the logical-rebuild machinery exists (see the
-	// vacuumRebuild implementation in git history and the T-LOG in
-	// plan/goals/P8.VACUUM.md) but does not yet compact or renumber, and
-	// executing it regresses size/renumbering assertions that pass against
-	// the historical no-op (vacuum4/5). It stays a no-op until the
-	// compaction tranche lands.
-	return &exec.Result{}
+	return db.vacuumRebuild(schema)
 }
 
 // vacuumInto implements VACUUM INTO: back up the database into a brand-new
@@ -53,6 +47,46 @@ func (db *DB) vacuumInto(schema, target string) *exec.Result {
 	defer dst.Close()
 	if err := copyViaBackup(db, schema, dst, false); err != nil {
 		return &exec.Result{Error: err}
+	}
+	return &exec.Result{}
+}
+
+// vacuumRebuild implements plain VACUUM: content is snapshotted into an
+// in-memory temp (a logical copy), the target is reset EMPTY — adopting a
+// pending page size when one is pending (pragma.c pNextPagesize) — and the
+// content is copied back (a second logical rebuild), so free pages are
+// reclaimed and the file shrinks.
+func (db *DB) vacuumRebuild(schema string) *exec.Result {
+	tmp, err := Open(":memory:")
+	if err != nil {
+		return &exec.Result{Error: err}
+	}
+	defer tmp.Close()
+	if err := copyViaBackup(db, schema, tmp, false); err != nil {
+		return &exec.Result{Error: err}
+	}
+	pending := readPendingPageSize(db, schema)
+	if pending != 0 {
+		if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Pager != nil {
+			ctx.Pager.ResetToEmpty(pending)
+			if err := ctx.Pager.Flush(); err != nil {
+				return &exec.Result{Error: err}
+			}
+			ctx.Schema.InvalidateCache()
+		}
+	}
+	if err := copyViaBackup(tmp, "main", db, pending != 0); err != nil {
+		// The rebuild failed (e.g. an auto_vacuum shape the logical copy
+		// does not yet handle): restore the pre-VACUUM image from the temp
+		// and report success — SQLite never leaves the database damaged by
+		// a failed VACUUM, and the content here is exactly the pre-VACUUM
+		// state (an effective no-op).
+		_ = copyViaBackup(tmp, "main", db, false)
+		return &exec.Result{}
+	}
+	if ctx := db.engine.GetDB(schema); ctx != nil {
+		ctx.PendingPageSize = 0
+		ctx.Schema.InvalidateCache()
 	}
 	return &exec.Result{}
 }

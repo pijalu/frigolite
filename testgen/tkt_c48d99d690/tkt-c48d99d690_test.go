@@ -74,6 +74,9 @@ func Test_tkt_c48d99d690(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		// execsql skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
 	}
 }

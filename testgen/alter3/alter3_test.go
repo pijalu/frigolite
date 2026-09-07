@@ -336,7 +336,10 @@ func Test_alter3(t *testing.T) {
 	}
 	if tclBool("!" + has_codec) {
 		{ // do_test "alter3-7.1"
-			// execsql skipped: VACUUM not implemented (P8.VACUUM)
+			_res = db.Exec("\n        VACUUM;\n      ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        VACUUM;\n      ")
+			}
 			// get_file_format (unsupported command, not transpiled)
 		}
 		{ // do_test "alter3-7.2"
@@ -361,7 +364,10 @@ func Test_alter3(t *testing.T) {
 			// get_file_format (unsupported command, not transpiled)
 		}
 		{ // do_test "alter3-7.5"
-			// execsql skipped: VACUUM not implemented (P8.VACUUM)
+			_res = db.Exec("\n        VACUUM;\n      ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        VACUUM;\n      ")
+			}
 			// get_file_format (unsupported command, not transpiled)
 		}
 	}

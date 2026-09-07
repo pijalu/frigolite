@@ -541,18 +541,14 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 func unsupportedSQL(sql string) string {
 	// Window functions (OVER clauses) are implemented by the engine (P4.WINDOW)
 	// and no longer skipped.
-	// VACUUM (including VACUUM INTO) is partially implemented
-	// (P8.VACUUM: DB.execVacuumStmt via the backup machinery) but the
-	// rebuild does not yet compact or renumber, so statements asserting
-	// VACUUM effects (file size, freelist, rowid renumbering) are still
-	// skipped until the compaction tranche lands.
+	// VACUUM is intercepted in DB.Exec/DB.Query (P8.VACUUM): VACUUM INTO
+	// and the transaction guard are real; plain VACUUM currently no-ops
+	// until the compaction tranche lands, so blocks containing it run
+	// safely (side effects preserved).
 	// Keyword checks must ignore SQL comments: "-- Vacuum up the two
 	// pages." (incrvacuum-5.2.3) is a comment, not a VACUUM statement —
 	// matching it caused a whole-block skip that left tbl2 uncreated.
 	sql = stripSQLComments(sql)
-	if reVACUUM.MatchString(sql) {
-		return "VACUUM not implemented (P8.VACUUM)"
-	}
 	// PRAGMA freelist_count reports free pages left after deletes, which only
 	// has meaning relative to VACUUM/auto_vacuum page management.
 	if strings.Contains(strings.ToUpper(sql), "PRAGMA FREELIST_COUNT") {

@@ -222,9 +222,17 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid1-1.40" — skipped: VACUUM not implemented (P8.VACUUM)
-		_res = db.Exec("\n  VACUUM;\n  SELECT *, '|' FROM t1 ORDER BY b, d;\n")
-		_ = _res
+	{ // "without_rowid1-1.40"
+		r = db.Query("\n  VACUUM;\n  SELECT *, '|' FROM t1 ORDER BY b, d;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT *, '|' FROM t1 ORDER BY b, d;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1250 phone flipper harvard | journal sherman ammonia 3.1415926 | journal sherman gamma 3.1415926 | arctic sleep ammonia helena |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -502,13 +510,29 @@ func Test_without_rowid1(t *testing.T) {
 					}
 				}
 			}
-			{ // "6.0" — skipped: VACUUM not implemented (P8.VACUUM)
-				_res = db.Exec("\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
-				_ = _res
+			{ // "6.0"
+				r = db.Query("\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok t47 i47"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			{ // "6.1" — skipped: VACUUM not implemented (P8.VACUUM)
-				_res = db.Exec("\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
-				_ = _res
+			{ // "6.1"
+				r = db.Query("\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok t48 sqlite_autoindex_t48_2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 			{ // "7.1"
 				_res = db.Exec("\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")

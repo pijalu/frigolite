@@ -214,7 +214,7 @@ func Test_trace(t *testing.T) {
 		vtab.TclVarSet("TRACE_OUT", "", "")
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		// db eval skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("VACUUM")
 		if got != want {

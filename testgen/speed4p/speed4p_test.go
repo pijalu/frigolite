@@ -233,7 +233,10 @@ func Test_speed4p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	// execsql skipped: VACUUM not implemented (P8.VACUUM)
+	_res = db.Exec("\n  DROP TABLE t4;\n  DROP TABLE log;\n  VACUUM;\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  BEGIN;\n")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t4;\n  DROP TABLE log;\n  VACUUM;\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  BEGIN;\n")
+	}
 	vtab.TclVarSet("list", "", "")
 	list = ""
 	_ = list // suppress unused warning

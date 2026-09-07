@@ -108,7 +108,7 @@ func Test_resetdb(t *testing.T) {
 	}
 	{ // do_test "210"
 		// sqlite3_db_config RESET_DB (unhandled flag)
-		// db eval skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
 		// sqlite3_db_config RESET_DB (unhandled flag)
 		if "" == "prepare" {
 			_res = db2.Exec("SELECT * FROM sqlite_master")
@@ -159,7 +159,7 @@ func Test_resetdb(t *testing.T) {
 	}
 	{ // do_test "400"
 		// sqlite3_db_config RESET_DB (unhandled flag)
-		// db eval skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
 		// sqlite3_db_config RESET_DB (unhandled flag)
 		_res = db2.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
@@ -173,7 +173,7 @@ func Test_resetdb(t *testing.T) {
 		tclFinalizePrepared("______sqlite3_prepare_db__SELECT_1_FROM_sqlite_master_LIMIT_1___1_tail____")
 		// sqlite3_finalize $______sqlite3_prepare_db__SELECT_1_FROM_sqlite_master_LIMIT_1___1_tail____
 		// sqlite3_db_config RESET_DB (unhandled flag)
-		// db eval skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
 		// sqlite3_db_config RESET_DB (unhandled flag)
 		db2, err = frigolite.Open("test.db")
 		tclConnRegister("db2", db2)
@@ -234,7 +234,7 @@ func Test_resetdb(t *testing.T) {
 			res = tclListAppend(res, a)
 			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 3 }() {
 				// sqlite3_db_config RESET_DB (unhandled flag)
-				// db eval skipped: VACUUM not implemented (P8.VACUUM)
+				_res = db.Exec("VACUUM")
 				// sqlite3_db_config RESET_DB (unhandled flag)
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
@@ -300,7 +300,7 @@ func Test_resetdb(t *testing.T) {
 	}
 	{ // do_test "730"
 		// sqlite3_db_config RESET_DB (unhandled flag)
-		// db eval skipped: VACUUM not implemented (P8.VACUUM)
+		_res = db.Exec("VACUUM")
 		// sqlite3_db_config RESET_DB (unhandled flag)
 	}
 	{ // "740"
