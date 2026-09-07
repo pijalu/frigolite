@@ -1,0 +1,20 @@
+.dbconfig defensive off
+BEGIN;
+PRAGMA writable_schema = on;
+PRAGMA foreign_keys = off;
+PRAGMA encoding = 'UTF-8';
+PRAGMA page_size = '4096';
+PRAGMA auto_vacuum = '0';
+PRAGMA user_version = '0';
+PRAGMA application_id = '0';
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);
+CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);
+INSERT OR IGNORE INTO 't3'('i', 'b', 'c') VALUES (1, 1, 2);
+INSERT OR IGNORE INTO 't3'('i', 'b', 'c') VALUES (2, 3, 4);
+INSERT OR IGNORE INTO 't3'('i', 'b', 'c') VALUES (3, 5, 6);
+DELETE FROM sqlite_sequence;
+INSERT OR IGNORE INTO 'sqlite_sequence'(_rowid_, 'name', 'seq') VALUES (1, 't2', 3);
+INSERT OR IGNORE INTO 'sqlite_sequence'(_rowid_, 'name', 'seq') VALUES (2, 't3', 3);
+PRAGMA writable_schema = off;
+COMMIT;
