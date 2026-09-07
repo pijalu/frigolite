@@ -434,6 +434,13 @@ func (tp *transpiler) cmdExprEval(cmdName, cmdText string, args []string) string
 			tp.exprVarValue(strings.TrimPrefix(m[1], "$")), op,
 			tp.exprVarValue(strings.TrimPrefix(m[3], "$")))
 	}
+	// Hexio arithmetic shape: "[hexio_get_int [hexio_read FILE OFF N]]+K"
+	// (vacuum2-2.x expected values: the change counter plus an increment).
+	if m := hexioReadExpr.FindStringSubmatch(exprStr); m != nil {
+		off := m[2]
+		return fmt.Sprintf("strconv.FormatInt(tclHexioReadInt(%s, %s, %s)%s, 10)",
+			tp.goStringLiteral(tcl.RawWord{Text: m[1]}), off, m[3], m[4])
+	}
 	// Runtime evaluation: substitute $var references with the Go variable
 	// values via a side map, and convert common TCL math functions to Go.
 	exprVarNames, exprGo := tclExprToGo(exprStr, tp.vars)
@@ -1360,3 +1367,8 @@ func (tp *transpiler) cmdExprDefault(cmdName, cmdText string, args []string) str
 	}
 	return fmt.Sprintf("%q", cmdText)
 }
+
+// hexioReadExpr matches an expected-value expression of the shape
+// "[hexio_get_int [hexio_read FILE OFF N]]+K" (or -K): a header-word read
+// plus a small integer adjustment (vacuum2-2.x).
+var hexioReadExpr = regexp.MustCompile(`(?i)^\[hexio_get_int \[hexio_read (\S+) (\d+) (\d+)\]\]([+-]\d+)$`)

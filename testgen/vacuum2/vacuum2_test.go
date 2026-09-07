@@ -96,8 +96,8 @@ func Test_vacuum2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
 		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(24), int64(4)), 10)
-		if _r != tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+3") {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+3"), "vacuum2-2.1")
+		if _r != strconv.FormatInt(tclHexioReadInt("test.db", 24, 4)+3, 10) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, strconv.FormatInt(tclHexioReadInt("test.db", 24, 4)+3, 10), "vacuum2-2.1")
 		}
 	}
 	{ // do_test "vacuum2-2.2"
@@ -106,8 +106,8 @@ func Test_vacuum2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM\n  ")
 		}
 		_r = strconv.FormatInt(tclHexioReadInt("test.db", int64(24), int64(4)), 10)
-		if _r != tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+1") {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, tclExpr("[hexio_get_int [hexio_read test.db 24 4]]+1"), "vacuum2-2.2")
+		if _r != strconv.FormatInt(tclHexioReadInt("test.db", 24, 4)+1, 10) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, strconv.FormatInt(tclHexioReadInt("test.db", 24, 4)+1, 10), "vacuum2-2.2")
 		}
 	}
 	db2, err = frigolite.Open("test.db")
