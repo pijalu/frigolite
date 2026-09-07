@@ -4994,3 +4994,5 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   AND the per-package states; a pass->skipped transition must be blessed by
   setting the ledger state to skipped with NA_EVIDENCE in the evidence
   field.
+
+- P8.RECOVER T4: storage.CellPointer takes the cell-pointer ARRAY base (contentOffset), not the header base. Leaf pages: base=coff; interior: base=coff+4 (rightmost ptr occupies coff+8..12). Passing coff+8/coff+12 shifts every pointer read by 8 bytes and silently decodes garbage/panics. Reference: dbdata.c dbdataColumn DBPTR child path (iOff=pgno==1?100:0; cell rows read u16 at iOff+12+iCell*2 only for bPtr; data rows read at iOff+8+nPointer+iCell*2 then add nPointer). Also: readLeafCellPayload must return an error (not clamp) on truncated local payload or missing overflow pointer, else corrupt/empty cells fabricate lost_and_found rows.
