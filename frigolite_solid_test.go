@@ -45,6 +45,7 @@ var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/execconstraint": 5, // FK constraint enforcement
 	"github.com/pijalu/frigolite/internal/exectrigger":    5, // trigger state management
 	"github.com/pijalu/frigolite/internal/execddl":        5, // DDL execution (CREATE/DROP/ALTER)
+	"github.com/pijalu/frigolite/internal/recover":        5, // corrupt-db recovery (.recover port; reads pager/btree/storage)
 	"github.com/pijalu/frigolite/internal/exec":           6, // execution engine
 }
 
