@@ -280,7 +280,7 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 	if withoutRowid {
 		// WITHOUT ROWID rows live in an index btree in PK-first storage
 		// order (index_xinfo iField layout); see wr_order.go.
-		stored = reorderToStorage(values, withoutRowidStorageOrder(tableEntry.SQL, colDefs))
+		stored = ReorderToStorage(values, WithoutRowidStorageOrder(tableEntry.SQL, colDefs))
 	}
 	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, stored, withoutRowid))
 	if err != nil {
@@ -292,10 +292,10 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 		// raw record bytes (serial-type bytes break memcmp once values
 		// differ in magnitude class). Install a PK-aware comparator over
 		// the storage-order record (PK slots first).
-		if order := withoutRowidStorageOrder(tableEntry.SQL, colDefs); len(order) == len(colDefs) {
-			npk := wrPKSlotCount(tableEntry.SQL, colDefs)
+		if order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs); len(order) == len(colDefs) {
+			npk := WRPKSlotCount(tableEntry.SQL, colDefs)
 			if npk > 0 {
-				tree.SetKeyCompare(wrRecordComparator(npk, colDefs, order))
+				tree.SetKeyCompare(WRRecordComparator(npk, colDefs, order))
 			}
 		}
 	}

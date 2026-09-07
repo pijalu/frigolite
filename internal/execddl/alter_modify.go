@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -549,6 +548,7 @@ func (e *DDLExecutor) removeDroppedColumn(tableName string, tableEntry *schema.E
 	// Update the table's stored SQL to reflect the dropped column, using a
 	// filtered list without dropped columns.
 	sqlColDefs := visibleColDefs(newColDefs)
+	oldSQL := tableEntry.SQL
 	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, sqlColDefs)
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
@@ -562,8 +562,9 @@ func (e *DDLExecutor) removeDroppedColumn(tableName string, tableEntry *schema.E
 	// contain a slot for it. Rewriting the records here (rather than relying on
 	// the Dropped-flag position mapping) keeps reads correct even after the
 	// colCache is invalidated by a later statement (e.g. PRAGMA page_count,
-	// altertab3-31.2).
-	e.rebuildRowsAfterDrop(tableEntry, newColDefs, columnName)
+	// altertab3-31.2). oldSQL carries the pre-rewrite CREATE statement so the
+	// rebuild can decode WITHOUT ROWID rows in their old storage layout.
+	e.rebuildRowsAfterDrop(tableEntry, newColDefs, columnName, oldSQL)
 
 	// The rebuild removed the dropped column's slot from every record, so the
 	// colCache must hold the visible definitions (no Dropped flag).
@@ -572,165 +573,6 @@ func (e *DDLExecutor) removeDroppedColumn(tableName string, tableEntry *schema.E
 	return &Result{}
 }
 
-// filterDroppedColumn returns the column definitions with the named column
-// marked Dropped (PRIMARY KEY/UNIQUE columns cannot be dropped), or a non-nil
-// Result describing why the column cannot be dropped.
-func filterDroppedColumn(colDefs []sql.ColumnDef, columnName string) ([]sql.ColumnDef, *Result) {
-	found := false
-	var out []sql.ColumnDef
-	for _, c := range colDefs {
-		if c.Name != columnName {
-			out = append(out, c)
-			continue
-		}
-		// Cannot drop PRIMARY KEY columns.
-		if c.PrimaryKey {
-			return nil, &Result{Error: fmt.Errorf("cannot drop PRIMARY KEY column: %q", columnName)}
-		}
-		// Cannot drop UNIQUE columns.
-		if c.Unique {
-			return nil, &Result{Error: fmt.Errorf("cannot drop UNIQUE column: %q", columnName)}
-		}
-		found = true
-		// Mark as dropped but keep in the list for correct record position mapping.
-		c.Dropped = true
-		out = append(out, c)
-	}
-	if !found {
-		return nil, &Result{Error: fmt.Errorf("no such column: \"%s\"", columnName)}
-	}
-	return out, nil
-}
-
-// visibleColDefs returns the column definitions with Dropped entries removed.
-func visibleColDefs(colDefs []sql.ColumnDef) []sql.ColumnDef {
-	var out []sql.ColumnDef
-	for _, c := range colDefs {
-		if !c.Dropped {
-			out = append(out, c)
-		}
-	}
-	return out
-}
-
-// visibleCount returns how many column definitions are not Dropped.
-func visibleCount(colDefs []sql.ColumnDef) int {
-	n := 0
-	for _, c := range colDefs {
-		if !c.Dropped {
-			n++
-		}
-	}
-	return n
-}
-
-// rebuildRowsAfterDrop rewrites every row of a table after DROP COLUMN,
-// removing the dropped column's value from each record. The dropped column is
-// identified by its name (it is the only Dropped-flagged definition in
-// colDefs).
-// dropRewrite holds one record to re-insert after DROP COLUMN.
-type dropRewrite struct {
-	rowID  int64
-	values []interface{}
-}
-
-func (e *DDLExecutor) rebuildRowsAfterDrop(tableEntry *schema.Entry, colDefs []sql.ColumnDef, droppedName string) {
-	// Find the dropped column's index in the OLD record layout.
-	dropIdx := findColDefIndex(colDefs, droppedName)
-	if dropIdx < 0 {
-		return
-	}
-	// The engine stores generated-column values in the record (both VIRTUAL
-	// and STORED are computed at INSERT and written to the row), so dropping a
-	// generated column must remove its slot from each record — the early
-	// return below would otherwise leave the slot in place and every later
-	// SELECT * misreads columns to the right (alterdropcol-4.x). The scan and
-	// rewrite must use the schema-qualified table name so the correct pager is
-	// used for an ATTACHed table.
-	tree := e.ctx.TableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
-	rewrites, rowIDs := e.collectDropRewrites(tree, colDefs, dropIdx)
-	e.applyDropRewrites(tree, tableEntry, rewrites, rowIDs)
-}
-
-// collectDropRewrites scans the table and returns the records whose dropped
-// column slot must be removed (each with its rowID) plus the set of rowIDs to
-// delete. Short records written before ADD COLUMN are left unchanged.
-func (e *DDLExecutor) collectDropRewrites(tree *btree.BTree, colDefs []sql.ColumnDef, dropIdx int) ([]dropRewrite, map[int64]bool) {
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return nil, nil
-	}
-	var rewrites []dropRewrite
-	var rowIDs map[int64]bool
-	for {
-		cell, cerr := cursor.ReadCell()
-		if cerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil {
-			break
-		}
-		rewrites, rowIDs = addDropRewrite(rewrites, rowIDs, cell.RowID, collectDropRowValues(rec, dropIdx))
-		ok, nerr := cursor.Next()
-		if nerr != nil || !ok {
-			break
-		}
-	}
-	return rewrites, rowIDs
-}
-
-// addDropRewrite appends a drop rewrite (skipping nil values — short records
-// written before ADD COLUMN have no dropped slot) and returns the updated
-// collections.
-func addDropRewrite(rewrites []dropRewrite, rowIDs map[int64]bool, rowID int64, values []interface{}) ([]dropRewrite, map[int64]bool) {
-	if values == nil {
-		return rewrites, rowIDs
-	}
-	rewrites = append(rewrites, dropRewrite{rowID: rowID, values: values})
-	if rowIDs == nil {
-		rowIDs = make(map[int64]bool)
-	}
-	rowIDs[rowID] = true
-	return rewrites, rowIDs
-}
-
-// collectDropRowValues returns the record values with the dropped column's
-// slot removed, or nil when the short record has no such slot.
-func collectDropRowValues(rec *storage.Record, dropIdx int) []interface{} {
-	if dropIdx >= len(rec.Values) {
-		return nil
-	}
-	values := make([]interface{}, 0, len(rec.Values)-1)
-	values = append(values, rec.Values[:dropIdx]...)
-	values = append(values, rec.Values[dropIdx+1:]...)
-	return values
-}
-
-// applyDropRewrites deletes the original records and re-inserts them without
-// the dropped column's slot (a single delete pass avoids the O(n²) per-row
-// delete+insert that made DROP COLUMN on large tables take minutes,
-// alterdropcol-9.x: 50000 rows).
-func (e *DDLExecutor) applyDropRewrites(tree *btree.BTree, tableEntry *schema.Entry, rewrites []dropRewrite, rowIDs map[int64]bool) {
-	if len(rewrites) == 0 {
-		return
-	}
-	if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
-		return rowIDs[c.RowID]
-	}); err != nil {
-		return
-	}
-	e.ctx.InvalidateRowIDCache(e.ctx.TablePager(tableEntry.Name), tableEntry.RootPage)
-	for _, rw := range rewrites {
-		newRecord, err := storage.EncodeRecord(rw.values)
-		if err != nil {
-			continue
-		}
-		newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: rw.rowID, Payload: newRecord}
-		_ = tree.InsertCell(newCell)
-		e.ctx.BumpRowIDCache(e.ctx.TablePager(tableEntry.Name), tableEntry.RootPage, rw.rowID)
-	}
-}
 func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	// ALTER TABLE ... ALTER COLUMN SET NOT NULL / DROP NOT NULL
 	if s.AlterColAction == "" {

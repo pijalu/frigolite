@@ -286,23 +286,7 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	// PK key (cell.RowID is a synthetic 0 shared by every row), so match
 	// the OLD PK payloads instead of rowids. Snapshot each change's old
 	// PK key (declared order) for the delete predicate below.
-	var wrOldKeys [][]interface{}
-	var wrEntry *schema.Entry
-	if te, _, ferr := e.ctx.FindTable(tableName); ferr == nil && te != nil && hasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
-		wrEntry = te
-		wrColDefs := e.ctx.ParseColumnDefs(tableName, te.SQL)
-		if idx := wrPKIndices(te.SQL, wrColDefs); len(idx) > 0 {
-			for _, c := range changes {
-				key := make([]interface{}, len(idx))
-				for k, ci := range idx {
-					if ci < len(c.oldValues) {
-						key[k] = c.oldValues[ci]
-					}
-				}
-				wrOldKeys = append(wrOldKeys, key)
-			}
-		}
-	}
+	wrOldKeys, wrEntry := e.wrSnapshotOldKeys(tableName, changes)
 
 	tree := e.dmlTableBTree(tableName, rootPage)
 	if wrEntry != nil {
@@ -354,6 +338,25 @@ func (e *DMLExecutor) writeUpdatedCell(tableName string, tree *btree.BTree, root
 	return e.writeUpdatedCellWR(tableName, tree, rootPage, c, nil)
 }
 
+// wrSnapshotOldKeys snapshots each change's OLD PK key (declared order) for
+// a WITHOUT ROWID table's delete phase; wrEntry is nil for rowid tables.
+func (e *DMLExecutor) wrSnapshotOldKeys(tableName string, changes []updateChange) ([][]interface{}, *schema.Entry) {
+	te, _, ferr := e.ctx.FindTable(tableName)
+	if ferr != nil || te == nil || !hasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+		return nil, nil
+	}
+	wrColDefs := e.ctx.ParseColumnDefs(tableName, te.SQL)
+	idx := WRPKIndices(te.SQL, wrColDefs)
+	if len(idx) == 0 {
+		return nil, te
+	}
+	keys := make([][]interface{}, 0, len(changes))
+	for _, c := range changes {
+		keys = append(keys, wrPkKeyFromDeclared(c.oldValues, idx))
+	}
+	return keys, te
+}
+
 // writeUpdatedCellWR re-inserts one updated row; for WITHOUT ROWID tables
 // (wrEntry != nil) values are reordered PK-first into an index-leaf cell,
 // otherwise the legacy table-leaf path is used.
@@ -362,7 +365,7 @@ func (e *DMLExecutor) writeUpdatedCellWR(tableName string, tree *btree.BTree, ro
 	cellType := storage.CellTableLeaf
 	if wrEntry != nil {
 		colDefs := e.ctx.ParseColumnDefs(tableName, wrEntry.SQL)
-		vals = reorderToStorage(c.values, withoutRowidStorageOrder(wrEntry.SQL, colDefs))
+		vals = ReorderToStorage(c.values, WithoutRowidStorageOrder(wrEntry.SQL, colDefs))
 		cellType = storage.CellIndexLeaf
 	}
 	newRecord, err := storage.EncodeRecord(vals)
@@ -464,11 +467,16 @@ type conflictInfo struct {
 // with an update change's new values under UPDATE OR REPLACE semantics (the
 // row being updated itself is excluded). It appends conflicts to the provided
 // slice and returns it.
-func (e *DMLExecutor) collectUpdateConflicts(tree *btree.BTree, c updateChange, uniqueCols []int, idxColsList []uniqueIndexDef, colDefs []sql.ColumnDef, colIndex map[string]int, conflicts []conflictInfo) ([]conflictInfo, error) {
+func (e *DMLExecutor) collectUpdateConflicts(tree *btree.BTree, tableEntry *schema.Entry, c updateChange, uniqueCols []int, idxColsList []uniqueIndexDef, colDefs []sql.ColumnDef, colIndex map[string]int, conflicts []conflictInfo) ([]conflictInfo, error) {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return conflicts, err
 	}
+	// WITHOUT ROWID cells are PK-first storage order: remap to declared
+	// order so the positional conflict comparison sees declared columns,
+	// and exclude the change's own row by OLD PK key (every cell shares
+	// synthetic RowID 0, so the rowid self-exclusion never fires).
+	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil || cell == nil {
@@ -478,8 +486,8 @@ func (e *DMLExecutor) collectUpdateConflicts(tree *btree.BTree, c updateChange, 
 		if err != nil || rec == nil {
 			break
 		}
-		if cell.RowID != c.rowID && updateRowConflicts(e, rec.Values, c.values, colDefs, colIndex, uniqueCols, idxColsList, cell.RowID, c.rowID) {
-			conflicts = append(conflicts, conflictInfo{cell.RowID, rec.Values})
+		if info, conflict := e.updateConflictFromCell(cell, rec, tableEntry, c, wrOrder, colDefs, colIndex, uniqueCols, idxColsList); conflict {
+			conflicts = append(conflicts, info)
 		}
 		ok, err := cursor.Next()
 		if err != nil || !ok {
@@ -489,10 +497,46 @@ func (e *DMLExecutor) collectUpdateConflicts(tree *btree.BTree, c updateChange, 
 	return conflicts, nil
 }
 
+// updateConflictFromCell evaluates one cell against a change's new values.
+// WITHOUT ROWID cells are remapped to declared order first and the change's
+// own row (same OLD PK key) is excluded — every WR cell shares the synthetic
+// RowID 0, so the rowid self-exclusion never fires there.
+func (e *DMLExecutor) updateConflictFromCell(cell *storage.Cell, rec *storage.Record, tableEntry *schema.Entry, c updateChange, wrOrder []int, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflictInfo, bool) {
+	isSelf := len(wrOrder) == 0 && cell.RowID == c.rowID
+	if len(wrOrder) > 0 {
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+		isSelf = declaredPKMatches(rec.Values, tableEntry, c.oldValues, colDefs)
+	}
+	if isSelf || !updateRowConflicts(e, rec.Values, c.values, colDefs, colIndex, uniqueCols, idxColsList, cell.RowID, c.rowID) {
+		return conflictInfo{}, false
+	}
+	return conflictInfo{cell.RowID, rec.Values}, true
+}
+
+// declaredPKMatches reports whether a declared-order row holds the change's
+// OLD PK key (the WITHOUT ROWID self-row test for UPDATE OR REPLACE).
+func declaredPKMatches(declared []interface{}, tableEntry *schema.Entry, oldValues []interface{}, colDefs []sql.ColumnDef) bool {
+	pkIdx := WRPKIndices(tableEntry.SQL, colDefs)
+	if len(pkIdx) == 0 {
+		return false
+	}
+	key := wrPkKeyFromDeclared(oldValues, pkIdx)
+	for k, ci := range pkIdx {
+		var have interface{}
+		if ci < len(declared) {
+			have = declared[ci]
+		}
+		if !wrValuesEqual(have, key[k], colDefs[ci]) {
+			return false
+		}
+	}
+	return true
+}
+
 // deleteConflictRows deletes the rows identified as conflicts during UPDATE
 // OR REPLACE resolution, firing BEFORE/AFTER DELETE triggers and rolling back
 // on an error. It returns nil on success.
-func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.Entry, conflicts []conflictInfo, colDefs []sql.ColumnDef, hasTriggers bool, deletedByConflict map[int64]bool) *Result {
+func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.Entry, conflicts []conflictInfo, colDefs []sql.ColumnDef, hasTriggers bool, deletedByConflict map[string]bool) *Result {
 	// WITHOUT ROWID tables: delete conflict rows in PRIMARY KEY order (the
 	// order SQLite scans its keyed table btree; hook2.test 2.3.5 observes
 	// the preupdate DELETE order).
@@ -508,12 +552,10 @@ func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.E
 				return trigResult
 			}
 		}
-		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return cell.RowID == cf.rowID
-		}); err != nil {
+		if _, err := e.deleteRowCells(tableEntry, colDefs, cf.rowID, cf.values); err != nil {
 			return &Result{Error: err}
 		}
-		deletedByConflict[cf.rowID] = true
+		deletedByConflict[conflictSeenKey(tableEntry, colDefs, cf.rowID, cf.values)] = true
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		// Fire the preupdate hook for the deleted conflicting row.
 		delRowID := cf.rowID
@@ -564,24 +606,25 @@ func (e *DMLExecutor) enforceUpdateForeignKey(tableEntry *schema.Entry, colDefs 
 // skips rows deleted by an earlier change's conflict resolution, aborts (with
 // rollback) when the row vanished during trigger firing, and returns whether
 // the row was actually updated.
-func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Entry, c updateChange, deletedByConflict map[int64]bool, snap *pager.PagerState) (bool, *Result) {
+func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, deletedByConflict map[string]bool, snap *pager.PagerState) (bool, *Result) {
 	// If a conflict-resolution delete's trigger removed the row being
 	// updated too (e.g. a recursive DELETE FROM t0 inside an AFTER DELETE
 	// trigger), SQLite aborts the statement with the generic "constraint
 	// failed" error and rolls it back. A row deleted by a PRIOR change's
 	// conflict resolution is skipped, and a row deleted by THIS change's own
 	// conflict resolution is also skipped.
-	if deletedByConflict[c.rowID] {
+	if deletedByConflict[conflictSeenKey(tableEntry, colDefs, c.rowID, c.oldValues)] {
 		return false, nil
 	}
-	if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
+	// WITHOUT ROWID rows have no rowid: the OLD-PK delete below is the
+	// existence check (a vanished row deletes nothing and the re-insert
+	// surfaces any anomaly), so the rowid probe runs for rowid tables only.
+	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) && !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
 		e.ctx.RestorePager(e.ctx.Pager(), snap)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return false, &Result{Error: fmt.Errorf("constraint failed")}
 	}
-	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		return cell.RowID == c.rowID
-	}); err != nil {
+	if _, err := e.deleteRowCells(tableEntry, colDefs, c.rowID, c.oldValues); err != nil {
 		return false, &Result{Error: err}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
@@ -593,8 +636,19 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 	// writing the record (whose PK column holds the new id) at the old rowid
 	// desyncs the btree key from the record (writeUpdateCell parity).
 	writeRowID := updateWriteRowID(c)
+	cellType := storage.CellTableLeaf
+	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		// WITHOUT ROWID rows are PK-first index cells: reorder the declared
+		// values and write through the PK-comparator index btree.
+		newRecord, err = storage.EncodeRecord(ReorderToStorage(c.values, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
+		if err != nil {
+			return false, &Result{Error: err}
+		}
+		cellType = storage.CellIndexLeaf
+		tree = e.wrTableBTree(e.dmlPager(tableEntry.Name), tableEntry, colDefs)
+	}
 	newCell := &storage.Cell{
-		Type:    storage.CellTableLeaf,
+		Type:    cellType,
 		RowID:   writeRowID,
 		Payload: newRecord,
 	}

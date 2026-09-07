@@ -5027,3 +5027,52 @@ Goal closed 10/10 green (commits 7b1756b7 → 9c8a3907). Key discoveries:
   %!s(MISSING) in output. The checked-in template already had %% but the
   generated files were stale; always `go build ./tools/tcl2go/` with a fresh
   binary before `go run`/regen, then verify the generated helper text.
+
+- **P8 WR-WRITE index-btree write path (2026-09).** DDL allocates 0x0A
+  index-leaf roots for WITHOUT ROWID tables; writeTableRow AND
+  insertSelectWrittenRow both reorder values PK-first into CellIndexLeaf
+  cells (INSERT..SELECT bypassing writeTableRow wrote declared-order cells
+  that corrupted scans — without_rowid6-110 hang). PK-aware btree
+  comparator (value-wise, not raw memcmp) keeps leaf order; scans remap
+  PK-first records to declared order (scan + OR-branch + UNIQUE-conflict +
+  UPDATE-collect paths). UPDATE/DELETE address WR rows by OLD PK key, not
+  synthetic RowID 0 (dedupeUpdateChanges must not collapse RowID-0 rows;
+  conflict-skip by PK key); OR-union dedupes WR rows by payload. ALTER
+  renameSQLiteSequence handles WR sqlite_sequence by NAME value.
+
+## P8 WR-FIX session (2026-09-07) — WITHOUT ROWID read/rewrite parity
+
+- **A storage-layout change is a CONTRACT change across every reader.** The
+  WR-WRITE port (rows → PK-first index-leaf cells) fixed the writers but
+  missed: interior-root scan guards, join right-side scans, ALTER DROP
+  COLUMN rebuild, all rowid-equality DML delete sites, REPLACE conflict
+  collection, UPDATE OR REPLACE self-exclusion, FK parent/child scans. 15
+  packages regressed. Rule: after changing on-disk layout, grep EVERY
+  `DecodeRecord`/`DeleteCellsWhere`/`RootPageType` site and re-verify.
+- **WR cells all carry synthetic RowID 0** — any `cell.RowID == X`
+  predicate over a WR table matches every row (REPLACE deleted whole
+  tables) or nothing (DELETE matched nothing; UPDATE OR REPLACE never found
+  conflicts). All row identity must go through PK-key matching
+  (execdml.deleteRowCells/deleteRowsByIdentity).
+- **Remap BEFORE affinity**: fillStructRowFromTypes wraps values with the
+  declared column's affinity per POSITION — a storage-order record gets the
+  wrong wrapper (WHERE a=2 vs TEXT column fails). The PK-first→declared
+  permutation must run before defaults/affinity.
+- **Interior index roots (0x02) exist for WR tables larger than one leaf**
+  (frigolite default page 512 → ~60 rows). Any `RootPageType()==LeafIndex`
+  guard must include InteriorIndex.
+- **deletedByConflict / seen maps keyed by rowid collapse WR rows** — key by
+  conflictSeenKey (PK values) instead.
+- **REPLACE conflict order**: SQLite resolves UNIQUE-INDEX conflicts before
+  PK conflicts (hook2-2.1.5 expects the index-conflict DELETE preupdate
+  first).
+- **BEFORE-trigger row vanishing**: when a BEFORE UPDATE trigger deletes the
+  row being updated, the identity delete removes 0 cells — skip the write
+  silently (OP_NotExists semantics); writing anyway resurrects the row.
+- **FK self-ref exclusion by rowid skips ALL WR rows** — fkRowExcluder
+  excludes by PK values for WR, and is inactive for the INSERT parent-exists
+  path (fkSelfRefSatisfied covers it).
+- **Quality gate**: file splits (alter_drop_rebuild.go) and helper
+  extraction (wrSnapshotOldKeys, updateConflictFromCell, addWRDropRewrite)
+  keep gocognit/gocyclo at the §5c thresholds; run the gate against the
+  PRE-change commit to separate new findings from legacy (deferred) ones.

@@ -1,6 +1,7 @@
 package execdml
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -11,12 +12,12 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 )
 
-// withoutRowidStorageOrder returns, for each storage slot s of a WITHOUT
+// WithoutRowidStorageOrder returns, for each storage slot s of a WITHOUT
 // ROWID table's index-leaf record, the declared column index stored there.
 // SQLite stores WR rows PK-columns-first (index_xinfo iField layout: PK key
 // columns in key order, then remaining declared columns in declared order),
 // e.g. (a,b,c) PK(b,c) stores [b c a]. Mirrors recover.tableEntry.iField.
-func withoutRowidStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
+func WithoutRowidStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
 	byName := make(map[string]int, len(colDefs))
 	for i, cd := range colDefs {
 		byName[strings.ToLower(cd.Name)] = i
@@ -99,7 +100,7 @@ func tableLevelPKColumns(createSQL string) []string {
 
 // reorderToStorage returns values reordered from declared order to WR
 // storage order (PK-first). The input slice is never mutated.
-func reorderToStorage(values []interface{}, order []int) []interface{} {
+func ReorderToStorage(values []interface{}, order []int) []interface{} {
 	out := make([]interface{}, len(order))
 	for s, di := range order {
 		if di < len(values) {
@@ -111,8 +112,8 @@ func reorderToStorage(values []interface{}, order []int) []interface{} {
 
 // wrPKSlotCount returns the number of leading PK slots in the WR storage
 // record (length of the PK prefix of withoutRowidStorageOrder).
-func wrPKSlotCount(createSQL string, colDefs []sql.ColumnDef) int {
-	order := withoutRowidStorageOrder(createSQL, colDefs)
+func WRPKSlotCount(createSQL string, colDefs []sql.ColumnDef) int {
+	order := WithoutRowidStorageOrder(createSQL, colDefs)
 	if len(order) != len(colDefs) {
 		return 0
 	}
@@ -148,7 +149,7 @@ func wrPKSlotCount(createSQL string, colDefs []sql.ColumnDef) int {
 // instance (one instance per insert/delete call): leaf splits sort with
 // bubble sort, so a naive decode-per-comparison is O(n^2) DecodeRecord calls
 // per split.
-func wrRecordComparator(npk int, colDefs []sql.ColumnDef, order []int) func(a, b []byte) int {
+func WRRecordComparator(npk int, colDefs []sql.ColumnDef, order []int) func(a, b []byte) int {
 	affs := make([]rune, npk)
 	for s := 0; s < npk && s < len(order); s++ {
 		if di := order[s]; di < len(colDefs) {
@@ -195,7 +196,7 @@ func wrRecordComparator(npk int, colDefs []sql.ColumnDef, order []int) func(a, b
 
 // reorderToDeclared returns storage-order values mapped back to declared
 // order (inverse of reorderToStorage).
-func reorderToDeclared(stored []interface{}, order []int) []interface{} {
+func ReorderToDeclared(stored []interface{}, order []int) []interface{} {
 	out := make([]interface{}, len(order))
 	for s, di := range order {
 		if s < len(stored) && di < len(out) {
@@ -213,9 +214,9 @@ func (e *DMLExecutor) wrTableBTree(pg *pager.Pager, tableEntry *schema.Entry, co
 	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, !withoutRowid)
 	if withoutRowid {
-		if order := withoutRowidStorageOrder(tableEntry.SQL, colDefs); len(order) == len(colDefs) {
-			if npk := wrPKSlotCount(tableEntry.SQL, colDefs); npk > 0 {
-				tree.SetKeyCompare(wrRecordComparator(npk, colDefs, order))
+		if order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs); len(order) == len(colDefs) {
+			if npk := WRPKSlotCount(tableEntry.SQL, colDefs); npk > 0 {
+				tree.SetKeyCompare(WRRecordComparator(npk, colDefs, order))
 			}
 		}
 	}
@@ -225,12 +226,12 @@ func (e *DMLExecutor) wrTableBTree(pg *pager.Pager, tableEntry *schema.Entry, co
 // wrPKIndices returns the declared column indices of a WITHOUT ROWID
 // table's PRIMARY KEY in key order (table-level PRIMARY KEY(...) first,
 // then column-level PRIMARY KEY flags). Empty when the table has no PK.
-func wrPKIndices(createSQL string, colDefs []sql.ColumnDef) []int {
-	order := withoutRowidStorageOrder(createSQL, colDefs)
+func WRPKIndices(createSQL string, colDefs []sql.ColumnDef) []int {
+	order := WithoutRowidStorageOrder(createSQL, colDefs)
 	if len(order) != len(colDefs) {
 		return nil
 	}
-	npk := wrPKSlotCount(createSQL, colDefs)
+	npk := WRPKSlotCount(createSQL, colDefs)
 	if npk <= 0 {
 		return nil
 	}
@@ -250,25 +251,29 @@ func wrCellMatchesOldKey(cell *storage.Cell, oldKeys [][]interface{}, tableEntry
 		return false
 	}
 	colDefs := ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-	order := withoutRowidStorageOrder(tableEntry.SQL, colDefs)
-	if len(order) != len(colDefs) {
-		return false
-	}
-	idx := wrPKIndices(tableEntry.SQL, colDefs)
-	if len(idx) == 0 {
+	order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
+	return WRCellMatchesPKKeys(cell, oldKeys, order, WRPKIndices(tableEntry.SQL, colDefs), colDefs)
+}
+
+// WRCellMatchesPKKeys reports whether an index-leaf cell holds one of the
+// given PK keys (each key is a declared-order PK projection aligned with
+// pkIdx). Context-free core of wrCellMatchesOldKey, shared with the DDL
+// row-rebuild delete phase.
+func WRCellMatchesPKKeys(cell *storage.Cell, keys [][]interface{}, order []int, pkIdx []int, colDefs []sql.ColumnDef) bool {
+	if len(keys) == 0 || len(order) != len(colDefs) || len(pkIdx) == 0 {
 		return false
 	}
 	rec, err := storage.DecodeRecord(cell.Payload)
 	if err != nil || rec == nil {
 		return false
 	}
-	decl := reorderToDeclared(rec.Values, order)
-	for _, key := range oldKeys {
-		if len(key) != len(idx) {
+	decl := ReorderToDeclared(rec.Values, order)
+	for _, key := range keys {
+		if len(key) != len(pkIdx) {
 			continue
 		}
 		match := true
-		for k, ci := range idx {
+		for k, ci := range pkIdx {
 			var have interface{}
 			if ci < len(decl) {
 				have = decl[ci]
@@ -295,4 +300,76 @@ func wrValuesEqual(have, want interface{}, cd sql.ColumnDef) bool {
 		return hv == nil && wv == nil
 	}
 	return util.CompareValuesCollate(hv, wv, cd.Collate) == 0
+}
+
+// wrPkKeyFromDeclared projects a declared-order row's PRIMARY KEY values
+// (aligned with pkIdx, the declared PK column indices in key order).
+func wrPkKeyFromDeclared(declaredValues []interface{}, pkIdx []int) []interface{} {
+	key := make([]interface{}, len(pkIdx))
+	for k, ci := range pkIdx {
+		if ci < len(declaredValues) {
+			key[k] = declaredValues[ci]
+		}
+	}
+	return key
+}
+
+// deleteRowCells deletes the single row identified by (rowID, declaredValues):
+// rowid equality for ordinary tables; OLD-PK key match for WITHOUT ROWID
+// tables, whose index cells all share the synthetic RowID 0 so rowid equality
+// would delete (or miss) the whole table.
+func (e *DMLExecutor) deleteRowCells(tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowID int64, declaredValues []interface{}) (int64, error) {
+	return e.deleteRowsByIdentity(tableEntry, colDefs, nil, [][]interface{}{declaredValues}, []int64{rowID})
+}
+
+// deleteRowsByIdentity batch-deletes rows in one DeleteCellsWhere pass:
+// OLD-PK key match (from each row's declared values) for WITHOUT ROWID
+// tables; rowid set membership (rowIDs, or the singleRowIDs list) for
+// ordinary tables. Returns the number of cells deleted.
+func (e *DMLExecutor) deleteRowsByIdentity(tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowIDs map[int64]bool, declaredRowValues [][]interface{}, singleRowIDs []int64) (int64, error) {
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	tree := e.wrTableBTree(e.dmlPager(tableEntry.Name), tableEntry, colDefs)
+	if withoutRowid {
+		order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
+		pkIdx := WRPKIndices(tableEntry.SQL, colDefs)
+		if len(order) != len(colDefs) || len(pkIdx) == 0 {
+			return 0, fmt.Errorf("without rowid layout undecodable for %s", tableEntry.Name)
+		}
+		keys := make([][]interface{}, 0, len(declaredRowValues))
+		for _, vals := range declaredRowValues {
+			keys = append(keys, wrPkKeyFromDeclared(vals, pkIdx))
+		}
+		keys = dropNilKeys(keys)
+		return tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return WRCellMatchesPKKeys(c, keys, order, pkIdx, colDefs)
+		})
+	}
+	if rowIDs == nil {
+		rowIDs = make(map[int64]bool, len(singleRowIDs))
+		for _, id := range singleRowIDs {
+			rowIDs[id] = true
+		}
+	}
+	return tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+		return rowIDs[c.RowID]
+	})
+}
+
+// dropNilKeys filters out PK keys containing nil slots (a row whose record
+// predates a PK column can never match a full cell payload).
+func dropNilKeys(keys [][]interface{}) [][]interface{} {
+	out := keys[:0]
+	for _, key := range keys {
+		bad := false
+		for _, v := range key {
+			if v == nil {
+				bad = true
+				break
+			}
+		}
+		if !bad {
+			out = append(out, key)
+		}
+	}
+	return out
 }

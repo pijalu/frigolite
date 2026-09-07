@@ -62,7 +62,7 @@ func (e *DMLExecutor) execDelete(s *sql.DeleteStmt) *Result {
 	// table-qualified column references ("t6.x") resolve to the row map.
 	prevScan := e.ctx.CurrentScanTable()
 	e.ctx.SetCurrentScanTable(tableEntry.Name)
-	deletedRows, derr := e.collectDeleteRows(tree, s, colDefs)
+	deletedRows, derr := e.collectDeleteRows(tree, s, tableEntry, colDefs)
 	e.ctx.SetCurrentScanTable(prevScan)
 	if derr != nil {
 		return &Result{Error: derr}
@@ -248,7 +248,9 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 
 // collectDeleteRows scans a table b-tree and returns the rows matching the
 // DELETE's WHERE clause (in rowid order), for trigger firing and RETURNING.
-func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, colDefs []sql.ColumnDef) ([]RowMap, error) {
+// WITHOUT ROWID tables store PK-first index cells, so each decoded record is
+// remapped to declared order before the WHERE row map is built.
+func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]RowMap, error) {
 	var deletedRows []RowMap
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -268,6 +270,7 @@ func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, co
 		if err != nil {
 			break
 		}
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		match, err := e.rowMatchesWhere(s.Where, row)
 		if err != nil {
@@ -315,15 +318,17 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 		// per-row DeleteCellsWhere re-walked the whole tree for every row —
 		// O(rows × tree), which made DELETE FROM %_segments (thousands of
 		// 4KB blob rows) take ~40s; fts4merge4's between-scenario DELETE).
+		declaredRows := make([][]interface{}, 0, len(deletedRows))
 		rowIDs := make(map[int64]bool, len(deletedRows))
 		for _, row := range deletedRows {
 			if rowID, ok := util.UnwrapColumnValue(row["rowid"]).(int64); ok {
 				rowIDs[rowID] = true
 			}
+			declaredRows = append(declaredRows, e.rowMapColumnValues(row, colDefs))
 		}
-		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return rowIDs[cell.RowID]
-		}); err != nil {
+		// WITHOUT ROWID rows are PK-keyed index cells sharing synthetic
+		// RowID 0: match OLD PK keys, not rowids.
+		if _, err := e.deleteRowsByIdentity(tableEntry, colDefs, rowIDs, declaredRows, nil); err != nil {
 			return &Result{Error: err}
 		}
 		// Remove the deleted rows' index entries (SQLite OP_Delete deletes
@@ -362,9 +367,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 				}
 				return trigResult
 			}
-			if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-				return cell.RowID == rowID
-			}); err != nil {
+			if _, err := e.deleteRowCells(tableEntry, colDefs, rowID, e.rowMapColumnValues(row, colDefs)); err != nil {
 				return &Result{Error: err}
 			}
 			if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{row}); err != nil {
@@ -422,9 +425,7 @@ func (e *DMLExecutor) execDeleteReturning(s *sql.DeleteStmt, tableEntry *schema.
 			}
 			return trigResult
 		}
-		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return cell.RowID == rowID
-		}); err != nil {
+		if _, err := e.deleteRowCells(tableEntry, colDefs, rowID, e.rowMapColumnValues(row, colDefs)); err != nil {
 			return &Result{Error: err}
 		}
 		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{row}); err != nil {

@@ -373,7 +373,7 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 				return res
 			}
 		}
-		if res := e.writeUpdateCell(tree, tableName, tableEntry.RootPage, c, updateWriteRowID(c), c.values); res.Error != nil {
+		if res := e.writeUpdateCell(tree, tableName, tableEntry.RootPage, c, updateWriteRowID(c), c.values, tableEntry, colDefs); res.Error != nil {
 			return res
 		}
 	}

@@ -97,7 +97,7 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 	if err != nil {
 		return false, &Result{Error: err}
 	}
-	if res := e.writeUpdateCell(tree, tableName, rootPage, ch, updateWriteRowID(ch), finalValues); res.Error != nil {
+	if res := e.writeUpdateCell(tree, tableName, rootPage, ch, updateWriteRowID(ch), finalValues, tableEntry, colDefs); res.Error != nil {
 		return false, res
 	}
 	return true, nil
@@ -228,8 +228,27 @@ func cursorExhausted(cursor *btree.Cursor) bool {
 
 // writeUpdateCell replaces the row at ch.rowID with a new record at
 // writeRowID (delete old cell, insert new), maintaining the rowid caches.
-func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootPage uint32, ch updateChange, writeRowID int64, finalValues []interface{}) *Result {
-	if _, err := tree.DeleteCellByRowID(ch.rowID); err != nil {
+// WITHOUT ROWID tables are rewritten through their index btree: delete by
+// OLD PK key and insert a PK-first CellIndexLeaf (rowid seeks/writes would
+// fail on the 0x0a pages).
+func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootPage uint32, ch updateChange, writeRowID int64, finalValues []interface{}, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var oldKey [][]interface{}
+	if withoutRowid {
+		oldKey = [][]interface{}{ch.oldValues}
+	}
+	if withoutRowid {
+		deleted, err := e.deleteRowsByIdentity(tableEntry, colDefs, nil, oldKey, nil)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if deleted == 0 {
+			// The row vanished while the UPDATE's triggers ran (e.g. a
+			// BEFORE UPDATE trigger deleted it): SQLite's OP_NotExists
+			// skips the row silently — no delete, no re-insert.
+			return &Result{}
+		}
+	} else if _, err := tree.DeleteCellByRowID(ch.rowID); err != nil {
 		return &Result{Error: err}
 	}
 	// The cached largest rowid survives an in-place UPDATE (the rowid is
@@ -243,8 +262,17 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 	if err != nil {
 		return &Result{Error: err}
 	}
+	cellType := storage.CellTableLeaf
+	if withoutRowid {
+		newRecord, err = storage.EncodeRecord(ReorderToStorage(finalValues, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
+		if err != nil {
+			return &Result{Error: err}
+		}
+		cellType = storage.CellIndexLeaf
+		tree = e.wrTableBTree(e.dmlPager(tableName), tableEntry, colDefs)
+	}
 	newCell := &storage.Cell{
-		Type:    storage.CellTableLeaf,
+		Type:    cellType,
 		RowID:   writeRowID,
 		Payload: newRecord,
 	}
@@ -421,7 +449,7 @@ func (e *DMLExecutor) applyIgnoredUpdateRow(tree *btree.BTree, tableName string,
 	}
 	// Write the row (UPDATE OR IGNORE keeps the original rowid even when
 	// the SET clause assigns rowid — the row is re-inserted in place).
-	if res := e.writeUpdateCell(tree, tableName, rootPage, ch, ch.rowID, ch.values); res.Error != nil {
+	if res := e.writeUpdateCell(tree, tableName, rootPage, ch, ch.rowID, ch.values, tableEntry, colDefs); res.Error != nil {
 		return false, res
 	}
 	if hasTriggers {
@@ -474,11 +502,12 @@ func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql
 	// Snapshot so a FOREIGN KEY violation mid-statement rolls back any
 	// conflict rows already deleted.
 	snap := e.ctx.Pager().Snapshot()
-	// RowIDs deleted by an earlier change's conflict resolution. A later
+	// Rows deleted by an earlier change's conflict resolution, keyed by
+	// conflictSeenKey (rowid, or PK values for WITHOUT ROWID tables). A later
 	// change targeting one of these rows must be skipped (the row is gone),
 	// not aborted — SQLite processes the remaining changes against the live
 	// table (tkt2832: UPDATE OR REPLACE SET a=1 over PK rows 2,1,3).
-	deletedByConflict := map[int64]bool{}
+	deletedByConflict := map[string]bool{}
 
 	for _, c := range changes {
 		updated, res := e.replaceUpdateRow(tree, tableEntry, colDefs, colIndex, uniqueCols, idxColsList, hasTriggers, snap, deletedByConflict, c)
@@ -495,14 +524,14 @@ func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql
 // replaceUpdateRow applies one change under UPDATE OR REPLACE: delete other
 // rows whose values conflict with the row's NEW values (firing BEFORE/AFTER
 // DELETE triggers), then delete the row itself and insert its new version.
-func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, hasTriggers bool, snap *pager.PagerState, deletedByConflict map[int64]bool, c updateChange) (bool, *Result) {
+func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, hasTriggers bool, snap *pager.PagerState, deletedByConflict map[string]bool, c updateChange) (bool, *Result) {
 	// If this change's row was deleted by an earlier change's conflict
 	// resolution, the row is gone — skip it (SQLite processes the live
 	// table; the deleted row no longer needs updating).
-	if deletedByConflict[c.rowID] {
+	if deletedByConflict[conflictSeenKey(tableEntry, colDefs, c.rowID, c.oldValues)] {
 		return false, nil
 	}
-	conflicts, err := e.collectUpdateConflicts(tree, c, uniqueCols, idxColsList, colDefs, colIndex, nil)
+	conflicts, err := e.collectUpdateConflicts(tree, tableEntry, c, uniqueCols, idxColsList, colDefs, colIndex, nil)
 	if err != nil {
 		return false, &Result{Error: err}
 	}
@@ -521,7 +550,7 @@ func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Ent
 	}
 	// Delete the row being updated (no DELETE trigger: this is the UPDATE
 	// itself, not a conflict-replacement) and insert its new version.
-	return e.updateRowInPlace(tree, tableEntry, c, deletedByConflict, snap)
+	return e.updateRowInPlace(tree, tableEntry, colDefs, c, deletedByConflict, snap)
 }
 
 // updateTouchesUniqueColumn reports whether the UPDATE's SET clause assigns

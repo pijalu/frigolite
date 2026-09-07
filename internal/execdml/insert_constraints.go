@@ -342,23 +342,25 @@ func uniqueIndexConflictError(tableEntry *schema.Entry, colIndex map[string]int,
 // the explicit rowid, UNIQUE/PRIMARY KEY columns, and UNIQUE indexes.
 // collectReplaceConflicts gathers every row conflicting with the new values:
 // the explicit rowid, UNIQUE/PRIMARY KEY columns, and UNIQUE indexes.
-func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64) ([]int64, map[int64][]interface{}) {
-	seen := make(map[int64]bool)
-	var conflicts []int64
-	var conflictValueMap map[int64][]interface{}
+// conflictRow identifies one row conflicting with a REPLACE insert: its
+// synthetic rowid (0 for WITHOUT ROWID tables) and its declared-order values.
+type conflictRow struct {
+	rowID  int64
+	values []interface{}
+}
+
+func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64) ([]conflictRow, bool) {
+	seen := make(map[string]bool)
+	var conflicts []conflictRow
 	for {
 		foundID, foundVals, found := e.findNextReplaceConflict(pg, tableEntry, colDefs, colIndex, values, replaceRowID, seen)
 		if !found {
 			break
 		}
-		seen[foundID] = true
-		conflicts = append(conflicts, foundID)
-		if conflictValueMap == nil {
-			conflictValueMap = make(map[int64][]interface{})
-		}
-		conflictValueMap[foundID] = foundVals
+		seen[conflictSeenKey(tableEntry, colDefs, foundID, foundVals)] = true
+		conflicts = append(conflicts, conflictRow{rowID: foundID, values: foundVals})
 	}
-	return conflicts, conflictValueMap
+	return conflicts, len(conflicts) > 0
 }
 
 // findNextReplaceConflict locates one not-yet-seen row conflicting with the
@@ -366,11 +368,20 @@ func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schem
 // UNIQUE columns are checked PER-COLUMN: INSERT OR REPLACE INTO t(a UNIQUE,
 // b UNIQUE) VALUES('one','two') must delete BOTH the row with a='one' and the
 // row with b='two' (each unique column independently).
-func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64, seen map[int64]bool) (int64, []interface{}, bool) {
+func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64, seen map[string]bool) (int64, []interface{}, bool) {
 	// An explicit rowid (rowid/oid/_rowid_ in the INSERT list) conflicts
 	// with the existing row at that rowid (SQLite OP_Delete on the rowid).
 	if rid, rv, ok := e.replaceConflictAtRowID(pg, tableEntry, replaceRowID, seen); ok {
 		return rid, rv, true
+	}
+	// UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)): SQLite resolves
+	// these conflicts first in a REPLACE (a row matched by a UNIQUE index is
+	// deleted before a composite-PK conflict; hook2.test 2.1.5 expects the
+	// index-conflict row's DELETE preupdate before the PK-conflict row's).
+	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
+		if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok && !seen[conflictSeenKey(tableEntry, colDefs, rid, rv)] {
+			return rid, rv, true
+		}
 	}
 	// Scan the table once, collecting the first conflicting row for each
 	// UNIQUE/PK column. scanAllUniqueConflicts uses the DML target's context
@@ -391,8 +402,11 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 				if derr != nil || rec == nil {
 					break
 				}
+				// WITHOUT ROWID cells are PK-first storage order; the scan
+				// compares declared positions, so remap first.
+				e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 				for _, idx := range uniqueCols {
-					if foundCols[idx] || seen[cell.RowID] {
+					if foundCols[idx] || seen[conflictSeenKey(tableEntry, colDefs, cell.RowID, rec.Values)] {
 						continue
 					}
 					if idx >= len(rec.Values) || idx >= len(values) {
@@ -413,26 +427,35 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 			}
 		}
 	}
-	// UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)): SQLite resolves
-	// these conflicts first in a REPLACE (a row matched by a UNIQUE index is
-	// deleted before a composite-PK conflict; hook2.test 2.1.5 expects the
-	// index-conflict row's DELETE preupdate before the PK-conflict row's).
-	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
-		if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok && !seen[rid] {
-			return rid, rv, true
-		}
-	}
 	// Composite PRIMARY KEY / UNIQUE groups (e.g. PRIMARY KEY(b,c)): scan
 	// for a row where ALL group columns match the new values (statement
 	// REPLACE must delete it; per-column scans miss composite keys).
 	for _, group := range e.compositeUniqueGroups(tableEntry.Name, tableEntry.SQL, colDefs) {
 		if cell, rec, err := e.scanTableForMatch(tableEntry, func(rec *storage.Record, cell *storage.Cell) bool {
-			return !seen[cell.RowID] && e.allMatch(colDefs, rec.Values, group, values)
+			return !seen[conflictSeenKey(tableEntry, colDefs, cell.RowID, rec.Values)] && e.allMatch(colDefs, rec.Values, group, values)
 		}); err == nil && cell != nil {
 			return cell.RowID, rec.Values, true
 		}
 	}
 	return 0, nil, false
+}
+
+// conflictSeenKey identifies a conflict row across the REPLACE find passes:
+// the rowid for ordinary tables; the declared PK values for WITHOUT ROWID
+// tables, whose cells all share the synthetic RowID 0.
+func conflictSeenKey(tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowID int64, vals []interface{}) string {
+	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		var b strings.Builder
+		for _, ci := range WRPKIndices(tableEntry.SQL, colDefs) {
+			var v interface{}
+			if ci < len(vals) {
+				v = vals[ci]
+			}
+			fmt.Fprintf(&b, "%v\x00", v)
+		}
+		return b.String()
+	}
+	return fmt.Sprintf("r%d", rowID)
 }
 
 // replaceConflictAtRowID returns the row at replaceRowID when it is a not-yet-
@@ -445,7 +468,7 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 // seen conflict for a REPLACE insert.
 // replaceConflictAtRowID returns the row at replaceRowID when it is a not-yet-
 // seen conflict for a REPLACE insert.
-func (e *DMLExecutor) replaceConflictAtRowID(pg *pager.Pager, tableEntry *schema.Entry, replaceRowID int64, seen map[int64]bool) (int64, []interface{}, bool) {
+func (e *DMLExecutor) replaceConflictAtRowID(pg *pager.Pager, tableEntry *schema.Entry, replaceRowID int64, seen map[string]bool) (int64, []interface{}, bool) {
 	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
 		return 0, nil, false
 	}
@@ -458,7 +481,7 @@ func (e *DMLExecutor) replaceConflictAtRowID(pg *pager.Pager, tableEntry *schema
 	if derr != nil || rec == nil {
 		return 0, nil, false
 	}
-	if seen[cell.RowID] {
+	if seen[conflictSeenKey(tableEntry, nil, cell.RowID, rec.Values)] {
 		return 0, nil, false
 	}
 	return cell.RowID, rec.Values, true
@@ -486,9 +509,9 @@ func (e *DMLExecutor) deleteReplaceConflictRow(tree *btree.BTree, tableEntry *sc
 			return trigResult
 		}
 	}
-	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		return cell.RowID == conflictRowID
-	}); err != nil {
+	// WITHOUT ROWID rows are PK-keyed index cells sharing synthetic RowID 0:
+	// match the conflicting row's OLD PK instead of the rowid.
+	if _, err := e.deleteRowCells(tableEntry, colDefs, conflictRowID, conflictValues); err != nil {
 		return &Result{Error: err}
 	}
 	// Remove the conflicting row's index entries (REPLACE deletes the old

@@ -56,7 +56,7 @@ func wrapAffinityCollated(cd sql.ColumnDef, v interface{}) interface{} {
 // fillStructRowFromTypes fills a StructRow using pre-parsed serial types.
 // It clears all values and decodes only the columns in colIndices.
 // Unlike fillStructRow, it does not re-parse the record header.
-func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool, serialTypes []uint64, colIndices map[int]bool) {
+func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool, serialTypes []uint64, colIndices map[int]bool, wrOrder []int) {
 	values := sr.Values
 	for i := range values {
 		values[i] = nil
@@ -64,6 +64,13 @@ func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dat
 	sr.RowID = rowID
 
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, colIndices)
+
+	// WITHOUT ROWID index-leaf records are PK-first storage order: permute
+	// to declared order BEFORE defaults/affinity so every later consumer
+	// (defaults, per-column affinity wrappers, WHERE) sees declared slots.
+	if len(wrOrder) == len(values) {
+		permuteDeclared(values, wrOrder)
+	}
 
 	// A dropped column (ALTER TABLE DROP COLUMN) has no on-disk slot: a VIRTUAL
 	// generated column was never stored, so the record's values sit at the
@@ -83,6 +90,18 @@ func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dat
 	// both the fast StructRow path and the map path.
 	if affinityCols != nil {
 		applyStructRowAffinity(values, colDefs, affinityCols, rowID)
+	}
+}
+
+// permuteDeclared permutes storage-order decoded values to declared column
+// order in place (values[order[s]] = old values[s]).
+func permuteDeclared(values []interface{}, order []int) {
+	tmp := make([]interface{}, len(values))
+	copy(tmp, values)
+	for s, di := range order {
+		if di < len(values) {
+			values[di] = tmp[s]
+		}
 	}
 }
 

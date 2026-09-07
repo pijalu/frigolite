@@ -449,7 +449,7 @@ func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClau
 		return rightMaps, defs, tableName, nil, nil
 	}
 	rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-	rightMaps, err := e.scanRealTableJoinRows(join.Table.Name, tableEntry.RootPage, rightDefs)
+	rightMaps, err := e.scanRealTableJoinRows(join.Table.Name, tableEntry.RootPage, rightDefs, tableEntry.SQL)
 	if err != nil {
 		return nil, nil, "", nil, err
 	}
@@ -474,12 +474,23 @@ func (e *SelectEngine) materializeVTabJoinRows(tableEntry *schema.Entry, rightDe
 }
 
 // scanRealTableJoinRows scans all rows from a real table's b-tree into RowMaps
-// for a join.
-func (e *SelectEngine) scanRealTableJoinRows(tableQualifiedName string, rootPage uint32, rightDefs []sql.ColumnDef) ([]RowMap, error) {
+// for a join. createSQL is the table's CREATE statement: for a WITHOUT ROWID
+// table the index-btree records are PK-first storage order, so each decoded
+// record is remapped back to declared order before the row map is built (the
+// b-tree root is index-typed while the table fits in one leaf and once it
+// splits).
+func (e *SelectEngine) scanRealTableJoinRows(tableQualifiedName string, rootPage uint32, rightDefs []sql.ColumnDef, createSQL string) ([]RowMap, error) {
 	tree := e.ctx.TableBTreeForName(tableQualifiedName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
+	}
+	var wrOrder []int
+	if createSQL != "" {
+		switch tree.RootPageType() {
+		case storage.PageTypeLeafIndex, storage.PageTypeInteriorIndex:
+			wrOrder = wrStorageOrder(createSQL, rightDefs)
+		}
 	}
 	var rightMaps []RowMap
 	for {
@@ -490,6 +501,9 @@ func (e *SelectEngine) scanRealTableJoinRows(tableQualifiedName string, rootPage
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
 			break
+		}
+		if len(wrOrder) > 0 {
+			wrRemapToDeclared(rec.Values, wrOrder, rightDefs)
 		}
 		rightMaps = append(rightMaps, e.buildRowMap(rec, rightDefs, cell.RowID))
 		ok, err := cursor.Next()

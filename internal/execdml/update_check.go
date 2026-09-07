@@ -96,7 +96,7 @@ type wrOldKey struct {
 
 // wrSkipKeys snapshots the OLD PK projections of the given changes.
 func wrSkipKeys(changes []updateChange, createSQL string, colDefs []sql.ColumnDef) []wrOldKey {
-	idx := wrPKIndices(createSQL, colDefs)
+	idx := WRPKIndices(createSQL, colDefs)
 	if len(idx) == 0 {
 		return nil
 	}
@@ -119,8 +119,8 @@ func wrKeyMatchesCell(cell *storage.Cell, keys []wrOldKey, createSQL string, col
 	if len(keys) == 0 {
 		return false
 	}
-	order := withoutRowidStorageOrder(createSQL, colDefs)
-	idx := wrPKIndices(createSQL, colDefs)
+	order := WithoutRowidStorageOrder(createSQL, colDefs)
+	idx := WRPKIndices(createSQL, colDefs)
 	if len(order) != len(colDefs) || len(idx) == 0 {
 		return false
 	}
@@ -128,7 +128,7 @@ func wrKeyMatchesCell(cell *storage.Cell, keys []wrOldKey, createSQL string, col
 	if err != nil || rec == nil {
 		return false
 	}
-	decl := reorderToDeclared(rec.Values, order)
+	decl := ReorderToDeclared(rec.Values, order)
 	for _, key := range keys {
 		if len(key.vals) != len(idx) {
 			continue

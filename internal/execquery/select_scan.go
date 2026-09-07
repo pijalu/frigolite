@@ -357,11 +357,17 @@ func (e *SelectEngine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, co
 func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string) ([][]interface{}, []RowMap, error) {
 
 	st := newScanState(e, s, colDefs, needMaps)
-	if createSQL != "" && cursor.RootPageType() == storage.PageTypeLeafIndex {
-		st.wrOrder = wrStorageOrder(createSQL, colDefs)
-		// Lazy decode indexes positional slots; a permutation would decode
-		// the wrong columns in phase 1, so force full decode under remap.
-		st.useLazyDecode = false
+	// WITHOUT ROWID tables live in an index btree; the root is an index-leaf
+	// (0x0a) while small, and an interior index page (0x02) once the table
+	// exceeds one leaf. Both store PK-first records.
+	if createSQL != "" {
+		switch cursor.RootPageType() {
+		case storage.PageTypeLeafIndex, storage.PageTypeInteriorIndex:
+			st.wrOrder = wrStorageOrder(createSQL, colDefs)
+			// Lazy decode indexes positional slots; a permutation would decode
+			// the wrong columns in phase 1, so force full decode under remap.
+			st.useLazyDecode = false
+		}
 	}
 	if err := st.runScan(cursor); err != nil {
 		return nil, nil, err
@@ -507,7 +513,7 @@ func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, ro
 // remaining (expensive) columns are never decoded. Otherwise decode the rest
 // (phase 2) using the cached serial types.
 func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
-	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, st.whereDecodeIndices)
+	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, st.whereDecodeIndices, nil)
 	passesWhere, err := st.evalRowWhere(cursor)
 	if err != nil {
 		return false, false, err
@@ -521,12 +527,9 @@ func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataSta
 
 // decodeRowFull decodes all columns at once, then evaluates WHERE.
 func (st *scanState) decodeRowFull(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
-	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, nil)
-	// WITHOUT ROWID index-leaf pages store PK-first records; remap the
-	// decoded StructRow back to declared order before WHERE/output.
-	if len(st.wrOrder) > 0 {
-		wrRemapToDeclared(st.reuseSRow.Values, st.wrOrder, st.colDefs)
-	}
+	// wrOrder drives the PK-first → declared permutation inside the fill
+	// (before affinity/defaults), so the row is fully declared-order here.
+	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, nil, st.wrOrder)
 	passesWhere, err := st.evalRowWhere(cursor)
 	return passesWhere, false, err
 }

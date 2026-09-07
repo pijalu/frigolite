@@ -739,14 +739,13 @@ func (e *DMLExecutor) execInsertSelectConflict(s *sql.InsertStmt, tableEntry *sc
 // (column-level ON CONFLICT REPLACE).
 func (e *DMLExecutor) deleteReplaceConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, origErr error) *Result {
 	colIndex := buildColumnIndex(colDefs)
-	conflictRowID, _, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+	conflictRowID, conflictVals, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
 	if !found {
 		return &Result{Error: origErr}
 	}
-	tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
-	if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		return cell.RowID == conflictRowID
-	}); derr != nil {
+	// WITHOUT ROWID rows are PK-keyed: match the conflicting row's OLD PK,
+	// not its synthetic RowID 0 (which every cell shares).
+	if _, derr := e.deleteRowCells(tableEntry, colDefs, conflictRowID, conflictVals); derr != nil {
 		return &Result{Error: derr}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)

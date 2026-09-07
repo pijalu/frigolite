@@ -143,8 +143,9 @@ func (c *ConstraintEnforcer) fkApplyParentRef(ref FKRefAction, parentTable *sche
 	// Find matching child rows: every child FK column equals its old parent
 	// key value. Use the child's own schema pager (a child in an attached
 	// database lives on the attached pager, not main's).
+	ex := c.fkBuildRowExcluder(ref, childEntry, parentTable, oldRow, skipRowID)
 	tree := c.fkChildTree(ref, childEntry)
-	matches := c.fkFindChildMatches(tree, childEntry, parentTable, skipRowID, childIdxs, oldVals, parentColDefs, parentIdxs)
+	matches := c.fkFindChildMatches(tree, childEntry, parentTable, ex, childIdxs, oldVals, parentColDefs, parentIdxs)
 	if len(matches) == 0 {
 		return nil
 	}
@@ -195,6 +196,38 @@ func (c *ConstraintEnforcer) fkChildTree(ref FKRefAction, childEntry *schema.Ent
 		tree = c.ctx.TableBTreePg(ref.ChildCtx.Pager, childEntry.Name, childEntry.RootPage, true)
 	}
 	return tree
+}
+
+// fkBuildRowExcluder builds the self-referential row excluder for a FK child
+// scan: rowid exclusion for rowid tables, PK-value exclusion for WITHOUT
+// ROWID tables (whose cells all share synthetic RowID 0). Inactive for
+// non-self-referential FKs.
+func (c *ConstraintEnforcer) fkBuildRowExcluder(ref FKRefAction, childEntry *schema.Entry, parentTable *schema.Entry, oldRow RowMap, skipRowID int64) fkRowExcluder {
+	ex := fkRowExcluder{selfRef: strings.EqualFold(ref.ChildTable, parentTable.Name), rowID: skipRowID}
+	if !ex.selfRef {
+		return ex
+	}
+	if !execdml.HasWithoutRowidKeyword(strings.ToUpper(childEntry.SQL)) {
+		return ex
+	}
+	colDefs := c.ctx.ParseColumnDefs(childEntry.Name, childEntry.SQL)
+	order := execdml.WithoutRowidStorageOrder(childEntry.SQL, colDefs)
+	if len(order) != len(colDefs) {
+		return fkNoRowExclude()
+	}
+	pkIdx := execdml.WRPKIndices(childEntry.SQL, colDefs)
+	key := make([]interface{}, len(pkIdx))
+	for k, ci := range pkIdx {
+		if v, ok := oldRow.Get(colDefs[ci].Name); ok {
+			key[k] = util.UnwrapColumnValue(v)
+		}
+	}
+	ex.wr = true
+	ex.wrPKIdx = pkIdx
+	ex.wrKey = key
+	ex.wrOrder = order
+	ex.colDefs = colDefs
+	return ex
 }
 
 // fkParentKeyIndices resolves the child/parent column index pairs for a FK
@@ -257,19 +290,19 @@ func fkParentKeyChanged(newRow RowMap, parentCol string, oldVal interface{}) boo
 // old parent key values, returning the matched rowids and decoded values. The
 // parent row being updated/deleted (skipRowID) is skipped only for
 // self-referential FKs.
-func (c *ConstraintEnforcer) fkFindChildMatches(tree *btree.BTree, childEntry *schema.Entry, parentTable *schema.Entry, skipRowID int64, childIdxs []int, oldVals []interface{}, parentColDefs []sql.ColumnDef, parentIdxs []int) []fkChildMatch {
+func (c *ConstraintEnforcer) fkFindChildMatches(tree *btree.BTree, childEntry *schema.Entry, parentTable *schema.Entry, ex fkRowExcluder, childIdxs []int, oldVals []interface{}, parentColDefs []sql.ColumnDef, parentIdxs []int) []fkChildMatch {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil
 	}
-	// skipRowID identifies the parent row being updated/deleted. It is only
-	// meaningful for self-referential FKs (child == parent table), where that
-	// row appears in the child scan. For normal FKs the parent rowid may
-	// coincide with a child rowid (both start at 1, especially on WITHOUT
-	// ROWID tables), so it must not skip child rows.
-	selfRef := strings.EqualFold(childEntry.Name, parentTable.Name)
+	// The excluder identifies the parent row being updated/deleted. It is
+	// only active for self-referential FKs (child == parent table), where
+	// that row appears in the child scan. For normal FKs the parent rowid
+	// may coincide with a child rowid (both start at 1, especially on
+	// WITHOUT ROWID tables), so it must not skip child rows.
 	var matches []fkChildMatch
-	fkScanCells(cursor, selfRef, skipRowID, func(cell *storage.Cell, rec *storage.Record) bool {
+	fkScanCells(cursor, ex, func(cell *storage.Cell, rec *storage.Record) bool {
+		remapWRRecord(c, childEntry, nil, rec)
 		if fkChildRowMatchesParent(c, rec, childIdxs, oldVals, parentColDefs, parentIdxs) {
 			matches = append(matches, fkChildMatch{cell.RowID, rec.Values})
 		}
@@ -278,16 +311,47 @@ func (c *ConstraintEnforcer) fkFindChildMatches(tree *btree.BTree, childEntry *s
 	return matches
 }
 
+// fkRowExcluder identifies the parent row being modified so a self-
+// referential FK scan can skip it. Rowid tables exclude by rowid; WITHOUT
+// ROWID tables exclude by the excluded row's declared PRIMARY KEY values
+// (every WR cell shares the synthetic RowID 0, so rowid exclusion would
+// skip the whole table).
+type fkRowExcluder struct {
+	selfRef bool
+	rowID   int64
+	wr      bool
+	wrPKIdx []int
+	wrKey   []interface{}
+	wrOrder []int
+	colDefs []sql.ColumnDef
+}
+
+// fkNoRowExclude returns an inactive excluder (nothing is skipped).
+func fkNoRowExclude() fkRowExcluder {
+	return fkRowExcluder{}
+}
+
+// skip reports whether the cell is the excluded parent row.
+func (ex *fkRowExcluder) skip(cell *storage.Cell, rec *storage.Record) bool {
+	if !ex.selfRef {
+		return false
+	}
+	if ex.wr {
+		return execdml.WRCellMatchesPKKeys(cell, [][]interface{}{ex.wrKey}, ex.wrOrder, ex.wrPKIdx, ex.colDefs)
+	}
+	return cell.RowID == ex.rowID
+}
+
 // fkScanCells iterates a cursor's cells, skipping the self-referential parent
 // row, and calls match for each decoded record. Returns true when match
 // returned true (early exit), false when the scan completed or hit an error.
-func fkScanCells(cursor *btree.Cursor, selfRef bool, skipRowID int64, match func(cell *storage.Cell, rec *storage.Record) bool) bool {
+func fkScanCells(cursor *btree.Cursor, ex fkRowExcluder, match func(cell *storage.Cell, rec *storage.Record) bool) bool {
 	for {
 		cell, rec, ok := fkNextCell(cursor)
 		if !ok {
 			return false
 		}
-		if selfRef && cell.RowID == skipRowID {
+		if ex.skip(cell, rec) {
 			// Skip the parent row being updated; end the scan if we cannot
 			// advance past it.
 			if !fkAdvance(cursor) {
@@ -316,6 +380,28 @@ func fkNextCell(cursor *btree.Cursor) (*storage.Cell, *storage.Record, bool) {
 		return nil, nil, false
 	}
 	return cell, rec, true
+}
+
+// remapWRRecord permutes a WITHOUT ROWID table's PK-first storage-order
+// record to declared column order in place (no-op for rowid tables), so
+// positional FK column lookups see declared slots.
+func remapWRRecord(c *ConstraintEnforcer, entry *schema.Entry, colDefs []sql.ColumnDef, rec *storage.Record) {
+	if rec == nil || entry == nil || !execdml.HasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		return
+	}
+	if colDefs == nil {
+		colDefs = c.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+	}
+	full := colDefs
+	if len(full) != len(rec.Values) {
+		// A partial def list (e.g. only the FK's referenced parent columns)
+		// cannot express the storage layout: parse the full table defs.
+		full = c.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+	}
+	order := execdml.WithoutRowidStorageOrder(entry.SQL, full)
+	if len(order) == len(full) && len(order) == len(rec.Values) {
+		rec.Values = execdml.ReorderToDeclared(rec.Values, order)
+	}
 }
 
 // fkAdvance moves the cursor to the next cell, reporting whether it succeeded.
@@ -609,6 +695,7 @@ func (c *ConstraintEnforcer) fkCheckChildTable(entry *schema.Entry, ctx *Databas
 		if err != nil || rec == nil {
 			break
 		}
+		remapWRRecord(c, entry, colDefs, rec)
 		rowID := interface{}(cell.RowID)
 		if withoutRowid {
 			rowID = nil
@@ -715,6 +802,7 @@ func (c *ConstraintEnforcer) fkParentRowInTable(rfk resolvedFK, childKey []inter
 		if err != nil || pRec == nil {
 			break
 		}
+		remapWRRecord(c, rfk.parentEntry, rfk.parentDefs, pRec)
 		allMatch := c.fkRecordMatchesParent(pRec, rfk, parentIndex, childKey)
 		if allMatch {
 			return true, true
@@ -861,20 +949,22 @@ func (c *ConstraintEnforcer) fkParentRowExistsForValues(parentCtx *DatabaseConte
 	if err != nil {
 		return false
 	}
-	return c.fkParentRowExists(cursor, excludeRowID, parentRef, tableName, parentIdx, childKey, parentDefs)
+	return c.fkParentRowExists(cursor, parentEntry, excludeRowID, parentRef, tableName, parentIdx, childKey, parentDefs)
 }
 
 // fkParentRowExists scans the parent table for a row whose key columns match
 // the child key values. The excludeRowID skip applies only to self-referential
 // FKs (child == parent table).
-func (c *ConstraintEnforcer) fkParentRowExists(cursor *btree.Cursor, excludeRowID int64, parentRef, tableName string, parentIdx []int, childKey []interface{}, parentDefs []sql.ColumnDef) bool {
+func (c *ConstraintEnforcer) fkParentRowExists(cursor *btree.Cursor, parentEntry *schema.Entry, excludeRowID int64, parentRef, tableName string, parentIdx []int, childKey []interface{}, parentDefs []sql.ColumnDef) bool {
 	// The excludeRowID skip applies only to self-referential FKs (child ==
 	// parent table): the row being updated must not satisfy its own parent
 	// lookup. For a normal FK the parent row may coincidentally share a rowid
 	// with the child row being updated (both start at 1), and must not be
 	// skipped.
-	selfRef := strings.EqualFold(parentRef, tableName)
-	return fkScanCells(cursor, selfRef, excludeRowID, func(_ *storage.Cell, rec *storage.Record) bool {
+	selfRef := strings.EqualFold(parentRef, tableName) && !execdml.HasWithoutRowidKeyword(strings.ToUpper(parentEntry.SQL))
+	ex := fkRowExcluder{selfRef: selfRef, rowID: excludeRowID}
+	return fkScanCells(cursor, ex, func(_ *storage.Cell, rec *storage.Record) bool {
+		remapWRRecord(c, parentEntry, parentDefs, rec)
 		return fkParentRecordMatches(c, rec, parentIdx, childKey, parentDefs)
 	})
 }

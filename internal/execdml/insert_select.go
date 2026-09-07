@@ -19,7 +19,7 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 		// WITHOUT ROWID rows live in an index btree in PK-first storage
 		// order (index_xinfo iField layout); see wr_order.go. Must match
 		// writeTableRow or mixed cell types corrupt the scan path.
-		stored = reorderToStorage(values, withoutRowidStorageOrder(tableEntry.SQL, colDefs))
+		stored = ReorderToStorage(values, WithoutRowidStorageOrder(tableEntry.SQL, colDefs))
 	}
 	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, stored, withoutRowid))
 	if err != nil {

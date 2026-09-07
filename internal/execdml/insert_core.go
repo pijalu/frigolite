@@ -463,12 +463,12 @@ func (e *DMLExecutor) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema
 	// they conflict with the new row, the subsequent INSERT reports the
 	// UNIQUE/CHECK error (matching SQLite, which does not loop over
 	// trigger-inserted rows).
-	conflicts, conflictValueMap := e.collectReplaceConflicts(pg, tableEntry, colDefs, colIndex, values, replaceRowID)
+	conflicts, _ := e.collectReplaceConflicts(pg, tableEntry, colDefs, colIndex, values, replaceRowID)
 
 	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
 	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
-	for _, conflictRowID := range conflicts {
-		if res := e.deleteReplaceConflictRow(tree, tableEntry, colDefs, conflictRowID, conflictValueMap[conflictRowID], hasTriggers); res != nil {
+	for _, cr := range conflicts {
+		if res := e.deleteReplaceConflictRow(tree, tableEntry, colDefs, cr.rowID, cr.values, hasTriggers); res != nil {
 			return res
 		}
 	}
